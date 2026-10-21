@@ -12,6 +12,8 @@ import {
   platformInviteTokenSchema,
   platformOperatorListSchema,
   platformTenantSchema,
+  platformUserRegisteredSchema,
+  registerPlatformUserSchema,
   requestPasswordResetSchema,
   resetPasswordWithOtpSchema,
   verifyPasswordResetOtpSchema,
@@ -21,6 +23,8 @@ import {
   type PlatformInviteTokenRequest,
   type PlatformOperatorList,
   type PlatformTenant,
+  type PlatformUserRegistered,
+  type RegisterPlatformUserInput,
   type RequestPasswordResetInput,
   type ResetPasswordWithOtpInput,
   type VerifyPasswordResetOtpInput,
@@ -91,6 +95,14 @@ export async function getTenants(): Promise<PlatformTenant[]> {
 
 export async function createTenant(input: CreateTenantInput): Promise<PlatformTenant> {
   return platformTenantSchema.parse(await post('/api/tenants', createTenantSchema.parse(input)));
+}
+
+/**
+ * Register a platform account manager. The API answers the same way for an address that
+ * already has an account, so the caller cannot tell the two cases apart.
+ */
+export async function registerPlatformUser(input: RegisterPlatformUserInput): Promise<PlatformUserRegistered> {
+  return platformUserRegisteredSchema.parse(await post('/api/auth/register', registerPlatformUserSchema.parse(input)));
 }
 
 export async function getOperators(): Promise<PlatformOperatorList> {

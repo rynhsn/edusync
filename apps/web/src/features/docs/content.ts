@@ -8,7 +8,7 @@
  */
 import {
   Building2, Clock3, Database, Info, KeyRound, LayoutDashboard, Lock, LogIn, Mail, Palette,
-  ShieldCheck, type LucideIcon,
+  ShieldCheck, UserPlus, type LucideIcon,
 } from 'lucide-react';
 import type { Locale } from '@/i18n';
 
@@ -37,25 +37,65 @@ export const DOC_SECTIONS: readonly DocSection[] = [
     endpoints: ['/api/auth/sign-in/email', 'GET /api/auth/get-session', 'POST /api/auth/sign-out'],
     title: { en: 'Sign-in and session', id: 'Masuk dan sesi', su: 'Lebet sareng sési' },
     description: {
-      en: 'How operators enter the Platform and how their access is decided.',
-      id: 'Bagaimana operator masuk ke Platform dan bagaimana hak akses mereka ditentukan.',
-      su: 'Kumaha operator lebet ka Platform sareng kumaha hak aksesna ditangtukeun.',
+      en: 'How operators and account managers enter the Platform and how their access is decided.',
+      id: 'Bagaimana operator dan pengelola akun masuk ke Platform dan bagaimana hak akses mereka ditentukan.',
+      su: 'Kumaha operator sareng nu ngurus akun lebet ka Platform sareng kumaha hak aksesna ditangtukeun.',
     },
     items: {
       en: [
-        'The sign-in page is restricted to invited platform operators; no account can be created there.',
+        'Sign-in accepts both invited platform operators and self-registered account managers. It never creates an account on its own.',
         'Sign-in uses email and password. The session stays active until you sign out from the user card in the sidebar.',
         'The protected-access card shows the role your session carries, which decides which actions are available.',
+        'A new account manager registers on the sign-up page and then signs in with the same password.',
       ],
       id: [
-        'Halaman masuk hanya untuk platform operator yang diundang; tidak ada akun yang dibuat di sana.',
+        'Masuk menerima baik platform operator yang diundang maupun pengelola akun yang mendaftar sendiri. Halaman masuk tidak pernah membuat akun.',
         'Masuk menggunakan email dan kata sandi. Sesi tetap aktif sampai Anda keluar dari kartu pengguna di sidebar.',
         'Kartu akses terlindungi menunjukkan peran sesi Anda, yang menentukan tindakan apa yang tersedia.',
+        'Pengelola akun baru mendaftar di halaman daftar akun, lalu masuk dengan kata sandi yang sama.',
       ],
       su: [
-        'Halaman lebet kanggo platform operator nu diundang waé; teu aya akun anu didamel di dieu.',
+        'Lebet nampa operator platform nu diundang sareng nu ngurus akun nu worsening dina diri sorangan. Halaman lebet teu pernah nyieun akun.',
         'Lebet nganggo email sareng keunsi sandi. Sési tetep aktif nepi ka Anjeun kaluar tina kartu pamaké di sidebar.',
         'Kartu akses dilindungi nunjukkeun peran sési Anjeun, anu nangtukeun aksi nu tiasa dianggo.',
+        'Nu ngurus akun anyar ngajualna dina halaman daftar akun, tuluy lebet ku keunsi sandi nu sarua.',
+      ],
+    },
+  },
+  {
+    id: 'registration',
+    icon: UserPlus,
+    endpoints: ['POST /api/auth/register (5/hour)'],
+    title: { en: 'Customer account registration', id: 'Pendaftaran akun pelanggan', su: 'Pendaftaran akun palanggan' },
+    description: {
+      en: 'How an account manager signs up for the Platform on their own.',
+      id: 'Bagaimana pengelola akun mendaftar ke Platform secara mandiri.',
+      su: 'Kumaha nu ngurus akun registering ka Platform sorangan.',
+    },
+    items: {
+      en: [
+        'The sign-up page creates a platform_user account: an account manager who owns and manages only the school workspaces they create.',
+        'Name, email, and a password of 12–128 characters are required. The email is stored normalized and lowercased.',
+        'The endpoint is rate limited to five registrations per hour.',
+        'The response never discloses whether the address already had an account: an existing address answers with the same body as a fresh registration.',
+        'If an operator invitation is already pending for that email, the request is rejected so the invitation keeps its precedence.',
+        'Registration does not sign you in. Sign in afterwards on the sign-in page.',
+      ],
+      id: [
+        'Halaman daftar akun membuat akun platform_user: pengelola akun yang hanya memiliki dan mengelola ruang kerja sekolah yang dibuatnya sendiri.',
+        'Nama, email, dan kata sandi 12–128 karakter wajib diisi. Email disimpan dalam bentuk normal dan huruf kecil.',
+        'Endpoint ini dibatasi lima pendaftaran per jam.',
+        'Respons tidak pernah mengungkapkan apakah alamat sudah punya akun: alamat yang sudah terdaftar menjawab dengan isi yang sama seperti pendaftaran baru.',
+        'Jika masih ada undangan operator yang tertunda untuk email tersebut, permintaan ditolak agar undangan tetap diprioritaskan.',
+        'Pendaftaran tidak langsung masuk ke sesi. Setelah itu masuklah di halaman masuk.',
+      ],
+      su: [
+        'Halaman daftar akun nyieun akun platform_user: nu ngurus akun nu boga tur mun nuruskeun ngan ruang gawé sakola nu dilakukeunana sorangan.',
+        'Ngaran, email, sareng keunsi sandi 12–128 karakter kudu. Email disimpen dina bentuk normal jeung hurup leutik.',
+        'Endpoint ieu dibates lima pendaftaran per jam.',
+        'Jawabana teu kantos ngungkulan naha alamat geus aya akun: alamat nu geus kadaptar jawabna sarua jeung pendaftaran anyar.',
+        'Upami masih aya undangan operator anu ngantosan pikeun email éta, paménta ditolak sangkan undangan tetep didahulukeun.',
+        'Pendaftaran teu langsung lebet. Tuluy lebet deui di halaman lebet.',
       ],
     },
   },
@@ -146,20 +186,26 @@ export const DOC_SECTIONS: readonly DocSection[] = [
     },
     items: {
       en: [
-        'Platform admin: create school workspaces and manage operators.',
+        'Platform admin: create school workspaces, manage operators, and see every workspace on the platform.',
         'Platform read only: view workspace and operator records; changes are hidden.',
+        'Account manager (platform_user): create school workspaces and manage only the workspaces they own. The Operators page and every operator record stay hidden for them.',
+        'Operators and account managers are separate roles: an operator invitation can never be answered by a customer account, and a customer account never appears in the operator roster.',
         'You cannot change your own status.',
         'The server prevents disabling the final active administrator.',
       ],
       id: [
-        'Platform admin: membuat ruang kerja sekolah dan mengelola operator.',
+        'Platform admin: membuat ruang kerja sekolah, mengelola operator, dan melihat seluruh ruang kerja di platform.',
         'Platform hanya baca: melihat catatan ruang kerja dan operator; perubahan disembunyikan.',
+        'Pengelola akun (platform_user): membuat ruang kerja sekolah dan hanya mengelola ruang kerja miliknya sendiri. Halaman Operator dan seluruh catatan operator tetap tersembunyi untuk mereka.',
+        'Operator dan pengelola akun adalah peran yang terpisah: undangan operator tidak pernah dapat dijawab oleh akun pelanggan, dan akun pelanggan tidak pernah muncul di daftar operator.',
         'Anda tidak dapat mengubah status Anda sendiri.',
         'Server mencegah menonaktifkan administrator aktif terakhir.',
       ],
       su: [
-        'Platform admin: nyieun ruang gawé sakola sareng ngurus operator.',
+        'Platform admin: nyieun ruang gawé sakola, ngurus operator, sareng ningali kabeh ruang gawé di platform.',
         'Platform ngan maca: ningali catetan ruang gawé sareng operator; parobihan disembunyikeun.',
+        'Nu ngurus akun (platform_user): nyieun ruang gawé sakola sareng ngurus ngan ruang gawé nu bogaana. Halaman Operator sareng kabeh catetan operator tetep disumputkeun keur maranéhna.',
+        'Operator sareng nu ngurus akun téh peran nu misah: undangan operator teu kungsi dijawab ku akun palanggan, sareng akun palanggan teu kungsi mucunghul dina daptar operator.',
         'Anjeun teu tiasa ngarobih status anjeun sorangan.',
         'Server nyegah pareumkeun administrator aktif terakhir.',
       ],
@@ -182,6 +228,7 @@ export const DOC_SECTIONS: readonly DocSection[] = [
     items: {
       en: [
         'Creating a workspace records the tenant with status provisioning on the Platform API.',
+        'The creating account is stored as the workspace owner, so an account manager only ever sees the workspaces they created.',
         'The Platform API then calls the School API server-to-server using a shared provisioning secret, with a 10-second timeout.',
         'On success the tenant becomes active and stores its school tenant ID; on failure it becomes provisioning_failed with a provisioning note.',
         'The School API is idempotent: the same payload returns the same tenant, and changed details are rejected as a conflict.',
@@ -189,6 +236,7 @@ export const DOC_SECTIONS: readonly DocSection[] = [
       ],
       id: [
         'Membuat ruang kerja mencatat tenant dengan status sedang disiapkan di Platform API.',
+        'Akun pembuat disimpan sebagai pemilik ruang kerja, sehingga pengelola akun hanya melihat ruang kerja yang dibuatnya sendiri.',
         'Platform API kemudian memanggil School API server-ke-server dengan rahasia penyiapan bersama, batas waktu 10 detik.',
         'Jika berhasil, tenant menjadi aktif dan menyimpan ID tenant sekolah; jika gagal, menjadi gagal disiapkan dengan catatan penyiapan.',
         'School API bersifat idempoten: payload yang sama mengembalikan tenant yang sama, dan detail yang diubah ditolak sebagai konflik.',
@@ -196,6 +244,7 @@ export const DOC_SECTIONS: readonly DocSection[] = [
       ],
       su: [
         'Damel ruang gawé ngajagi tenant kalayan status nuju disiapkeun dina Platform API.',
+        'Akun nu ngadamelkeun disimpan salaku nu boga ruang gawé, sangkan nu ngurus akun ngan ukur nempo ruang gawé nu dilakukeunana.',
         'Platform API teras nelepon School API server-ka-server nganggo rahasia penyiapan bareng, wates 10 detik.',
         'Upami berhasil, tenant jadi aktif sareng nyimpen ID tenant sakola; upami gagal, jadi gagal disiapkeun kalayan catetan penyiapan.',
         'School API bersifat idempoten: payload nu sami nganteukkeun tenant nu sami, sareng rincian nu dirobih ditolak salaku konflik.',
@@ -251,16 +300,19 @@ export const DOC_SECTIONS: readonly DocSection[] = [
     items: {
       en: [
         'Overview metrics: total school workspaces, active workspaces, items needing attention, and operator count.',
+        'The operator count and the whole Operators page are hidden for account managers, and the overview only counts the workspaces they own.',
         'Needs attention counts workspaces that are provisioning or provisioning_failed.',
         'Each page reloads its data when you open it, and Refresh reloads the current page.',
       ],
       id: [
         'Metrik ikhtisar: total ruang kerja sekolah, ruang kerja aktif, hal yang perlu perhatian, dan jumlah operator.',
+        'Jumlah operator dan seluruh halaman Operator disembunyikan untuk pengelola akun, dan ikhtisar hanya menghitung ruang kerja yang mereka miliki.',
         'Perlu perhatian menghitung ruang kerja yang sedang disiapkan atau gagal disiapkan.',
         'Setiap halaman memuat ulang datanya saat Anda membukanya, dan tombol Muat ulang memuat halaman saat ini kembali.',
       ],
       su: [
         'Métrik ringkesan: total ruang gawé sakola, ruang gawé aktif, anu perlu perhatian, sareng jumlah operator.',
+        'Jumlah operator sareng kabeh halaman Operator disumputkeun keur nu ngurus akun, sareng ringkasan ngan ngitung ruang gawé nu boga maranéhna.',
         'Perlu perhatian ngitung ruang gawé anu nuju disiapkeun atawa gagal disiapkeun.',
         'Unggal halaman muat deui datana nalika Anjeun mbuka, sareng tombol Segarkeun muat deui halaman ayeuna.',
       ],
@@ -306,17 +358,17 @@ export const DOC_SECTIONS: readonly DocSection[] = [
       en: [
         'The Platform seed creates the first Platform Admin only when PLATFORM_BOOTSTRAP_ENABLED is set.',
         'The School seed requires NODE_ENV=development and SCHOOL_BOOTSTRAP_ENABLED=true, and refuses to modify existing accounts.',
-        'Bootstrap accounts are for development only; production access comes from invitations.',
+        'Bootstrap accounts are for development only; in production, operator access comes from invitations and account managers register themselves.',
       ],
       id: [
         'Seed Platform membuat Platform Admin pertama hanya jika PLATFORM_BOOTSTRAP_ENABLED diatur.',
         'Seed Sekolah mensyaratkan NODE_ENV=development dan SCHOOL_BOOTSTRAP_ENABLED=true, dan menolak mengubah akun yang sudah ada.',
-        'Akun bootstrap hanya untuk pengembangan; akses produksi berasal dari undangan.',
+        'Akun bootstrap hanya untuk pengembangan; di produksi, akses operator berasal dari undangan dan pengelola akun mendaftar sendiri.',
       ],
       su: [
         'Seed Platform nyieun Platform Admin munggaran ngan upami PLATFORM_BOOTSTRAP_ENABLED disetel.',
         'Seed Sakola merlukeun NODE_ENV=development sareng SCHOOL_BOOTSTRAP_ENABLED=true, sareng nolak ngarobih anu geus aya.',
-        'Akun bootstrap kanggo pangembangan waé; akses produksi datangna tina undangan.',
+        'Akun bootstrap kanggo pangembangan waé; di produksi, akses operator datangna tina undangan sareng nu ngurus akun registering sorangan.',
       ],
     },
   },
