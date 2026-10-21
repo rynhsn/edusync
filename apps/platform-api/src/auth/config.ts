@@ -5,16 +5,25 @@ import { platformDbPool } from '../db/pool.js';
 const platformStatements = {
   tenant: ['read', 'create', 'manage-access'],
   operator: ['read', 'manage'],
+  subscription: ['read', 'manage'],
 } as const;
 
 const platformAccess = createAccessControl(platformStatements);
 const platformAdminRole = platformAccess.newRole({
   tenant: ['read', 'create', 'manage-access'],
   operator: ['read', 'manage'],
+  subscription: ['read', 'manage'],
 });
 const platformReadOnlyRole = platformAccess.newRole({
   tenant: ['read'],
   operator: ['read'],
+  subscription: ['read'],
+});
+// Customer account that creates and manages its own schools: operators see their rows,
+// admins may manage all of them, and customers only see the ones they own.
+const platformUserRole = platformAccess.newRole({
+  tenant: ['read', 'create'],
+  subscription: ['read', 'manage'],
 });
 
 const authSecret = process.env.PLATFORM_AUTH_SECRET;
@@ -38,6 +47,9 @@ export const platformAuth = betterAuth({
     minPasswordLength: 12,
     maxPasswordLength: 128,
     autoSignIn: false,
+    // Operators are invite-only, so public self-registration cannot mint a read-only
+    // operator account. Account managers self-register through their own route.
+    disableSignUp: true,
   },
   advanced: {
     useSecureCookies: process.env.NODE_ENV === 'production',
@@ -53,6 +65,7 @@ export const platformAuth = betterAuth({
     roles: {
       platform_admin: platformAdminRole,
       platform_read_only: platformReadOnlyRole,
+      platform_user: platformUserRole,
     },
     defaultRole: 'platform_read_only',
     adminRoles: ['platform_admin'],

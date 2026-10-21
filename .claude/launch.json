@@ -12,6 +12,12 @@
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@edusync/school-web", "dev"],
       "port": 5175
+    },
+    {
+      "name": "edusync-school-web alt",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@edusync/school-web", "exec", "vite", "--port", "5185"],
+      "port": 5185
     }
   ]
 }

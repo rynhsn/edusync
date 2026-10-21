@@ -28,10 +28,26 @@ export const platformTenantSchema = z.object({
   status: tenantStatusSchema,
   schoolTenantId: z.uuid().nullable(),
   provisioningError: z.string().nullable(),
+  ownerUserId: z.string().nullable().optional(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
 export type PlatformTenant = z.infer<typeof platformTenantSchema>;
+
+// Ownership of a school by a platform account. `tenants.created_by` only records who
+// performed the creation (an operator may create a school on behalf of someone else),
+// so a dedicated relation records who actually manages the school.
+export const tenantOwnerRoleSchema = z.enum(['platform_owner', 'platform_user']);
+export type TenantOwnerRole = z.infer<typeof tenantOwnerRoleSchema>;
+
+export const tenantOwnershipSchema = z.object({
+  id: z.uuid(),
+  tenantId: z.uuid(),
+  userId: z.string().min(1),
+  role: tenantOwnerRoleSchema,
+  createdAt: z.iso.datetime(),
+});
+export type TenantOwnership = z.infer<typeof tenantOwnershipSchema>;
 
 export const provisioningPayloadSchema = z.object({
   platformTenantId: z.uuid(),
@@ -80,11 +96,18 @@ export type SchoolAuthContext = z.infer<typeof schoolAuthContextSchema>;
 export const platformPermissionSchema = z.enum([
   'tenant.read', 'tenant.create', 'tenant.manage_access',
   'operator.read', 'operator.manage',
+  'subscription.read', 'subscription.manage',
 ]);
 export type PlatformPermission = z.infer<typeof platformPermissionSchema>;
 
 export const platformOperatorRoleSchema = z.enum(['platform_admin', 'platform_read_only']);
 export type PlatformOperatorRole = z.infer<typeof platformOperatorRoleSchema>;
+
+// platform_user gets a dedicated schema rather than reusing the operator schema: the
+// operator invite/role flow must keep strict permission boundaries (no manage, no operator rows),
+// and `platform_user` is an account-manager model distinct from operators.
+export const platformUserRoleSchema = z.enum(['platform_admin', 'platform_read_only', 'platform_user']);
+export type PlatformUserRole = z.infer<typeof platformUserRoleSchema>;
 
 export const invitePlatformOperatorSchema = z.object({
   name: z.string().trim().min(2).max(100),
@@ -140,6 +163,18 @@ export const platformInviteTokenRequestSchema = z.object({ token: z.string().min
 export type PlatformInviteTokenRequest = z.infer<typeof platformInviteTokenRequestSchema>;
 export const platformOperatorIdSchema = z.string().min(1).max(128);
 export const platformInviteIdSchema = z.uuid();
+
+// Public self-registration for a platform account manager. The account is always created
+// with the `platform_user` role: operators remain invite-only.
+export const registerPlatformUserSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+  email: normalizedEmailSchema,
+  password: z.string().min(12).max(128),
+}).strict();
+export type RegisterPlatformUserInput = z.infer<typeof registerPlatformUserSchema>;
+
+export const platformUserRegisteredSchema = z.object({ registered: z.literal(true), id: z.string().min(1) });
+export type PlatformUserRegistered = z.infer<typeof platformUserRegisteredSchema>;
 
 export const requestPasswordResetSchema = z.object({
   email: normalizedEmailSchema,

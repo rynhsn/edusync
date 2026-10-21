@@ -7,6 +7,7 @@ import { registerPlatformAuthRoutes } from './auth/routes.js';
 import { registerTenantRoutes } from './tenants/routes.js';
 import { registerOperatorRoutes } from './operators/routes.js';
 import { registerPasswordResetRoutes } from './auth/password-reset.js';
+import { registerUserRoutes } from './users/routes.js';
 import { platformDbPool } from './db/pool.js';
 import { registerApiDocs } from '@edusync/api-docs';
 import { platformOpenApi } from './docs/openapi.js';
@@ -36,6 +37,9 @@ app.get('/health', async (_request, reply) => {
   return reply.send({ status: 'ok', service: 'platform-api' });
 });
 
+// Registered before the betterAuth catch-all so the public registration endpoint is
+// matched as a static route rather than a `/api/auth/*` wildcard.
+await registerUserRoutes(app);
 await registerPlatformAuthRoutes(app, platformAuth);
 await registerTenantRoutes(app);
 await registerOperatorRoutes(app);

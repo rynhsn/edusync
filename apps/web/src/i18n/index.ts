@@ -38,6 +38,7 @@ const en = {
   'common.fullName': 'Full name',
   'common.createWorkspace': 'Create workspace',
   'common.platformAdmin': 'Platform admin',
+  'common.platformUser': 'Account manager',
   'common.readOnly': 'Read only',
   'common.brandHome': 'EduSync Platform home',
 
@@ -90,11 +91,11 @@ const en = {
   'shell.tenantProvisioned': '{name} is provisioned',
   'shell.adminActivation': '{name} still needs a separate school account activation flow before they can sign in.',
   'shell.noticeTitle': 'Operator access updated',
-  'shell.footerAuthorized': 'EduSync Platform · Authorized operators only',
+  'shell.footerAuthorized': 'EduSync Platform · Operators and school account managers',
   'shell.footerActivation': 'School account activation is managed separately.',
 
   // Auth layout (shared by sign-in, reset, and invitation pages).
-  'auth.layoutFooter': 'EduSync Platform · Secure access for invited operators',
+  'auth.layoutFooter': 'EduSync Platform · Secure access for operators and school owners',
   'auth.asideBadge': 'EduSync network administration',
   'auth.asideTitle1': 'Every school,',
   'auth.asideTitle2': 'one connected network.',
@@ -113,8 +114,22 @@ const en = {
   'auth.hidePassword': 'Hide password',
   'auth.signingIn': 'Signing in…',
   'auth.signIn': 'Sign in to Platform',
-  'auth.restrictedNotice': 'Access is restricted to invited platform operators. Accounts are not created through this page.',
+  'auth.restrictedNotice': 'Operator access is by invitation. If you manage a school, create an account instead.',
   'auth.signInError': 'Check your email and password.',
+  'auth.placeholderEmailAddress': 'you@edusync.org',
+  'auth.signUpAvailable': 'New here?',
+  'auth.createAccount': 'Create an account',
+
+  // Sign up.
+  'auth.signUpEyebrow': 'ACCOUNT CREATION',
+  'auth.signUpTitle': 'Create your account',
+  'auth.signUpDescription': 'Register to provision and manage the school workspaces you own.',
+  'auth.signUpSubmit': 'Create account',
+  'auth.signUpSubmitting': 'Creating account…',
+  'auth.signUpSuccessTitle': 'Account created',
+  'auth.signUpSuccessDescription': 'Sign in with your new password to manage your school workspaces.',
+  'auth.signUpPolicyNote': 'Use at least 12 characters. You will manage the school workspaces you create from this account.',
+  'auth.signUpError': 'Account could not be created.',
 
   // Password reset.
   'auth.resetEyebrow': 'ACCOUNT RECOVERY',
@@ -190,6 +205,8 @@ const en = {
   'overview.adminAccessDescription': 'You can provision workspaces and manage platform operators.',
   'overview.readonlyAccess': 'Read-only access',
   'overview.readonlyAccessDescription': 'You can view workspace and operator information. Changes are restricted.',
+  'overview.userAccess': 'Account manager access',
+  'overview.userAccessDescription': 'You can provision and manage the school workspaces you own. Classes and students are managed in the school console.',
 
   // School workspaces page.
   'tenants.title': 'All school workspaces',
@@ -299,6 +316,7 @@ const id: Record<MessageKey, string> = {
   'common.fullName': 'Nama lengkap',
   'common.createWorkspace': 'Buat ruang kerja',
   'common.platformAdmin': 'Admin Platform',
+  'common.platformUser': 'Pengelola akun',
   'common.readOnly': 'Hanya baca',
   'common.brandHome': 'Beranda EduSync Platform',
 
@@ -348,10 +366,10 @@ const id: Record<MessageKey, string> = {
   'shell.tenantProvisioned': '{name} telah disiapkan',
   'shell.adminActivation': '{name} masih memerlukan alur aktivasi akun sekolah terpisah sebelum dapat masuk.',
   'shell.noticeTitle': 'Akses operator diperbarui',
-  'shell.footerAuthorized': 'EduSync Platform · Hanya operator yang diizinkan',
+  'shell.footerAuthorized': 'EduSync Platform · Operator dan pengelola akun sekolah',
   'shell.footerActivation': 'Aktivasi akun sekolah dikelola terpisah.',
 
-  'auth.layoutFooter': 'EduSync Platform · Akses aman untuk operator yang diundang',
+  'auth.layoutFooter': 'EduSync Platform · Akses aman untuk operator dan pemilik sekolah',
   'auth.asideBadge': 'Administrasi jaringan EduSync',
   'auth.asideTitle1': 'Setiap sekolah,',
   'auth.asideTitle2': 'satu jaringan yang terhubung.',
@@ -369,8 +387,22 @@ const id: Record<MessageKey, string> = {
   'auth.hidePassword': 'Sembunyikan kata sandi',
   'auth.signingIn': 'Sedang masuk…',
   'auth.signIn': 'Masuk ke Platform',
-  'auth.restrictedNotice': 'Akses dibatasi hanya untuk platform operator yang diundang. Akun tidak dibuat melalui halaman ini.',
+  'auth.restrictedNotice': 'Akses operator diberikan lewat undangan. Jika Anda mengelola sekolah, buat akun saja.',
   'auth.signInError': 'Periksa email dan kata sandi Anda.',
+  'auth.placeholderEmailAddress': 'anda@edusync.org',
+  'auth.signUpAvailable': 'Baru di sini?',
+  'auth.createAccount': 'Buat akun',
+
+  // Pendaftaran akun.
+  'auth.signUpEyebrow': 'PEMBUATAN AKUN',
+  'auth.signUpTitle': 'Buat akun Anda',
+  'auth.signUpDescription': 'Daftar untuk menyediakan dan mengelola ruang kerja sekolah yang Anda miliki.',
+  'auth.signUpSubmit': 'Buat akun',
+  'auth.signUpSubmitting': 'Sedang membuat akun…',
+  'auth.signUpSuccessTitle': 'Akun dibuat',
+  'auth.signUpSuccessDescription': 'Masuk dengan kata sandi baru Anda untuk mengelola ruang kerja sekolah Anda.',
+  'auth.signUpPolicyNote': 'Gunakan minimal 12 karakter. Anda akan mengelola ruang kerja sekolah yang Anda buat dari akun ini.',
+  'auth.signUpError': 'Akun tidak dapat dibuat.',
 
   'auth.resetEyebrow': 'PEMULIHAN AKUN',
   'auth.resetTitleEmail': 'Atur ulang kata sandi',
@@ -443,6 +475,8 @@ const id: Record<MessageKey, string> = {
   'overview.adminAccessDescription': 'Anda dapat menyediakan ruang kerja dan mengelola operator Platform.',
   'overview.readonlyAccess': 'Akses baca-saja',
   'overview.readonlyAccessDescription': 'Anda dapat melihat informasi ruang kerja dan operator. Perubahan dibatasi.',
+  'overview.userAccess': 'Akses pengelola akun',
+  'overview.userAccessDescription': 'Anda dapat menyediakan dan mengelola ruang kerja sekolah yang Anda miliki. Kelas dan siswa dikelola di konsol sekolah.',
 
   'tenants.title': 'Semua ruang kerja sekolah',
   'tenants.count': '{count} dari maksimum 100 catatan · terbaru lebih dulu',
@@ -548,6 +582,7 @@ const su: Record<MessageKey, string> = {
   'common.fullName': 'Nama lengkep',
   'common.createWorkspace': 'Damel ruang gawé',
   'common.platformAdmin': 'Admin Platform',
+  'common.platformUser': 'Pamanggen akun',
   'common.readOnly': 'Ngan maca',
   'common.brandHome': 'Imah EduSync Platform',
 
@@ -597,10 +632,10 @@ const su: Record<MessageKey, string> = {
   'shell.tenantProvisioned': '{name} parantos disiapkeun',
   'shell.adminActivation': '{name} masih merlukeun alur aktivasi akun sakola anu misah saméméh tiasa lebet.',
   'shell.noticeTitle': 'Akses operator parantos diperbarui',
-  'shell.footerAuthorized': 'EduSync Platform · Ngan operator nu diengkepan',
+  'shell.footerAuthorized': 'EduSync Platform · Operator jeung pamanggen akun sakola',
   'shell.footerActivation': 'Aktivasi akun sakola diatur sacara misah.',
 
-  'auth.layoutFooter': 'EduSync Platform · Akses aman pikeun operator nu diundang',
+  'auth.layoutFooter': 'EduSync Platform · Akses aman pikeun operator jeung pelaku sakola',
   'auth.asideBadge': 'Administrasi jaringan EduSync',
   'auth.asideTitle1': 'Unggal sakola,',
   'auth.asideTitle2': 'hiji jaringan anu nyambung.',
@@ -618,8 +653,22 @@ const su: Record<MessageKey, string> = {
   'auth.hidePassword': 'Sembunyikeun keunsi sandi',
   'auth.signingIn': 'Keur lebet…',
   'auth.signIn': 'Lebet ka Platform',
-  'auth.restrictedNotice': 'Akses dibatesan ngan pikeun platform operator nu diundang. Akun teu dijieun liwat halaman ieu.',
+  'auth.restrictedNotice': 'Akses operator dieukeun lewat undangan. Upami anjeun ngurus sakola, maké akun deui.',
   'auth.signInError': 'Pariksa email sareng keunsi sandi anjeun.',
+  'auth.placeholderEmailAddress': 'anjeun@edusync.org',
+  'auth.signUpAvailable': 'Anyar di dieu?',
+  'auth.createAccount': 'Jieun akun',
+
+  // Pendaftaran akun.
+  'auth.signUpEyebrow': 'JIEUN AKUN',
+  'auth.signUpTitle': 'Jieun akun anjeun',
+  'auth.signUpDescription': 'Daftar pikeun nyayogikeun jeung ngurus ruang gawé sakola nu dimiliki anjeun.',
+  'auth.signUpSubmit': 'Jieun akun',
+  'auth.signUpSubmitting': 'Keur jieun akun…',
+  'auth.signUpSuccessTitle': 'Akun dijieun',
+  'auth.signUpSuccessDescription': 'Lebet kana keunsi sandi anyar pikeun ngurus ruang gawé sakola anjeun.',
+  'auth.signUpPolicyNote': 'Gunakeun saiki 12 karakter. Anjeun bakal ngurus ruang gawé sakola anjeun dijieun tina akun ieu.',
+  'auth.signUpError': 'Akun teu tiasa dijieun.',
 
   'auth.resetEyebrow': 'PULIHKEUN AKUN',
   'auth.resetTitleEmail': 'Setel deui keunsi sandi',
@@ -692,6 +741,8 @@ const su: Record<MessageKey, string> = {
   'overview.adminAccessDescription': 'Anjeun tiasa nyayogikeun ruang gawé sareng ngurus operator Platform.',
   'overview.readonlyAccess': 'Akses ngan maca',
   'overview.readonlyAccessDescription': 'Anjeun tiasa ningali inpormasi ruang gawé sareng operator. Parobihan dibatesan.',
+  'overview.userAccess': 'Akses pamanggen akun',
+  'overview.userAccessDescription': 'Anjeun tiasa nyayogikeun jeung ngurus ruang gawé sakola nu dimiliki anjeun. Kelas jeung murid diurus di konsol sakola.',
 
   'tenants.title': 'Sadaya ruang gawé sakola',
   'tenants.count': '{count} ti maksimum 100 catetan · nu panganyar heula',

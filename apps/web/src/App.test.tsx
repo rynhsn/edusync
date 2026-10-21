@@ -21,6 +21,8 @@ const mocks = vi.hoisted(() => ({
   revokeInvitation: vi.fn(),
   updateOperatorRole: vi.fn(),
   updateOperatorStatus: vi.fn(),
+  authErrorMessage: vi.fn((cause: unknown) => (cause instanceof Error ? cause.message : 'connection failed')),
+  registerPlatformUser: vi.fn(),
 }));
 
 vi.mock('@/lib/platform-api', () => ({
@@ -42,6 +44,8 @@ vi.mock('@/lib/platform-api', () => ({
   revokeInvitation: mocks.revokeInvitation,
   updateOperatorRole: mocks.updateOperatorRole,
   updateOperatorStatus: mocks.updateOperatorStatus,
+  authErrorMessage: mocks.authErrorMessage,
+  registerPlatformUser: mocks.registerPlatformUser,
 }));
 
 afterEach(() => {
@@ -307,5 +311,61 @@ describe('Platform admin lifecycle', () => {
 
     await waitFor(() => expect(mocks.revokeInvitation).toHaveBeenCalledWith(pendingInvite.id));
     expect(await screen.findByText('Invitation for sam@example.com was revoked.')).toBeTruthy();
+  });
+});
+
+describe('Account manager (platform_user) permissions', () => {
+  function configureAccountManager() {
+    mocks.getSession.mockResolvedValue({ data: { user: { id: 'cm-1', name: 'Casey Manager', email: 'manager@example.com', role: 'platform_user' } } });
+    mocks.getTenants.mockResolvedValue([tenant]);
+    mocks.getOperators.mockResolvedValue({ operators: [operator], invitations: [] });
+  }
+
+  it('registers a new account and returns to sign in', async () => {
+    mocks.registerPlatformUser.mockResolvedValue({ registered: true, id: 'cm-1' });
+    renderAt('/sign-up');
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Casey Manager' } });
+    fireEvent.change(screen.getByLabelText('Email address'), { target: { value: 'manager@example.com' } });
+    fireEvent.change(screen.getByLabelText('Create password'), { target: { value: 'a-long-password-123' } });
+    fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'a-long-password-123' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    await waitFor(() => expect(mocks.registerPlatformUser).toHaveBeenCalledWith({
+      name: 'Casey Manager',
+      email: 'manager@example.com',
+      password: 'a-long-password-123',
+    }));
+    expect(await screen.findByRole('heading', { name: 'Welcome back' })).toBeTruthy();
+  });
+
+  it('refuses a mismatched password confirmation without spending the request', async () => {
+    renderAt('/sign-up');
+    fireEvent.change(screen.getByLabelText('Full name'), { target: { value: 'Casey Manager' } });
+    fireEvent.change(screen.getByLabelText('Email address'), { target: { value: 'manager@example.com' } });
+    fireEvent.change(screen.getByLabelText('Create password'), { target: { value: 'a-long-password-123' } });
+    fireEvent.change(screen.getByLabelText('Confirm password'), { target: { value: 'a-long-password-124' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Create account' }));
+    expect(await screen.findByText('The two passwords do not match.')).toBeTruthy();
+    expect(mocks.registerPlatformUser).not.toHaveBeenCalled();
+  });
+
+  it('hides the operator roster and the operator count from an account manager', async () => {
+    configureAccountManager();
+    renderAt('/');
+    expect(await screen.findByText('Account manager')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: /^operators$/i })).toBeNull();
+    expect(screen.queryByText('Operators')).toBeNull();
+    // The operator roster is never fetched for a customer account.
+    expect(mocks.getOperators).not.toHaveBeenCalled();
+  });
+
+  it('still lets an account manager create a school workspace', async () => {
+    configureAccountManager();
+    const user = userEvent.setup();
+    renderAt('/');
+    expect(await screen.findByText('Northfield Academy')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /school workspaces/i }));
+    expect(await screen.findByText('All school workspaces')).toBeTruthy();
+    expect(await screen.findByRole('button', { name: 'Create workspace' })).toBeTruthy();
   });
 });

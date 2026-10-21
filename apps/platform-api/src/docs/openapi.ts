@@ -6,6 +6,8 @@ import {
   platformOperatorListSchema,
   platformOperatorSchema,
   platformTenantSchema,
+  registerPlatformUserSchema,
+  platformUserRegisteredSchema,
   requestPasswordResetSchema,
   verifyPasswordResetOtpSchema,
   resetPasswordWithOtpSchema,
@@ -27,13 +29,14 @@ export const platformOpenApi = {
   info: {
     title: 'EduSync Platform API',
     version: '0.1.0',
-    description: 'Control-plane API for platform operator sessions and school workspace provisioning. Tenant access is enforced by the Platform API.',
+    description: 'Control-plane API for platform operator sessions and school workspace provisioning. Tenant access is enforced by the Platform API.\n\nThree account roles share the Platform: platform_admin (full control, including operator management), platform_read_only (read-only operator), and platform_user (self-registered account manager who owns and manages only the school workspaces they created). Operator roles are invitation-only; platform_user accounts are created through POST /api/auth/register.',
   },
   servers: [{ url: process.env.PLATFORM_API_URL ?? 'http://localhost:4001', description: 'Platform API' }],
   tags: [
     { name: 'Platform', description: 'Platform service health and tenant workspace management.' },
+    { name: 'Operators', description: 'Platform control-plane operator accounts and email invitations. Only platform_admin and platform_read_only accounts hold operator permissions; a platform_user account never sees or manages operators.' },
+    { name: 'Public account flow', description: 'Platform self-registration for customers who manage their own school workspaces. Operators continue to receive invitations only.' },
     { name: 'Authentication', description: 'Better Auth email and password session endpoints mounted at /api/auth. Only the explicitly listed operations are included here.' },
-    { name: 'Operators', description: 'Platform control-plane operator accounts and email invitations.' },
   ],
   paths: {
     '/health': {
@@ -45,7 +48,7 @@ export const platformOpenApi = {
     '/api/tenants': {
       get: {
         tags: ['Platform'], summary: 'List school workspaces', operationId: 'listTenants',
-        description: 'Requires a valid Platform session with the tenant.read permission. Returns up to 100 workspaces, newest first.',
+        description: 'Requires a valid Platform session with the tenant.read permission. Returns up to 100 workspaces, newest first. A platform_admin or platform_read_only account sees every workspace; a platform_user account only sees the workspaces it owns.',
         security: [{ platformSession: [] }],
         responses: {
           '200': { description: 'Workspace list.', content: { 'application/json': { schema: { type: 'array', items: { $ref: '#/components/schemas/PlatformTenant' } } } } },
@@ -55,14 +58,14 @@ export const platformOpenApi = {
       },
       post: {
         tags: ['Platform'], summary: 'Create a school workspace', operationId: 'createTenant',
-        description: 'Requires a valid Platform session with tenant.create permission. Platform calls the School API privately to provision the tenant. School admin account activation remains pending; no password or reusable activation credential is sent through this API.',
+        description: 'Requires a valid Platform session with tenant.create permission, held by platform_admin and platform_user accounts. The new workspace is recorded in tenant_owners with the creating account as the platform owner, so a platform_user only ever sees the workspaces it created. Platform calls the School API privately to provision the tenant. School admin account activation remains pending; no password or reusable activation credential is sent through this API.',
         security: [{ platformSession: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/CreateTenantInput' } } } },
         responses: {
           '201': { description: 'Workspace created and provisioned.', content: { 'application/json': { schema: { $ref: '#/components/schemas/PlatformTenant' } } } },
           '400': { description: 'Invalid workspace details.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
           '401': { description: 'A Platform session is required.' },
-          '403': { description: 'The account lacks tenant.create permission.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '403': { description: 'The account lacks tenant.create permission, or its role may not create workspaces.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
           '409': { description: 'Workspace could not be created or conflicts with existing data.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
           '502': { description: 'School API provisioning failed.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
           '503': { description: 'Provisioning is unavailable.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
@@ -152,9 +155,24 @@ export const platformOpenApi = {
     '/api/auth/sign-in/email': {
       post: {
         tags: ['Authentication'], summary: 'Sign in with email and password', operationId: 'platformSignIn',
-        description: 'Better Auth creates a Platform session and sets an HttpOnly session cookie. Public sign-up is not enabled by the Platform configuration.',
+        description: 'Better Auth creates a Platform session and sets an HttpOnly session cookie. Operator accounts are created by invitation and customer accounts by POST /api/auth/register, so sign-in never creates an account on its own.',
         requestBody: { required: true, content: { 'application/json': { schema: { type: 'object', required: ['email', 'password'], properties: { email: { type: 'string', format: 'email' }, password: { type: 'string', minLength: 12, maxLength: 128 } } } } } },
         responses: { '200': { description: 'Signed in; session cookie is set.' }, '401': { description: 'Invalid credentials.' } },
+      },
+    },
+    '/api/auth/register': {
+      post: {
+        tags: ['Public account flow'], summary: 'Register a Platform customer account', operationId: 'registerPlatformUser',
+        description: 'Public, rate-limited endpoint. Creates a self-registered account with the platform_user role: an account manager who owns and manages only the school workspaces they create. Operator roles stay invitation-only. The response never discloses whether the address already had an account: an existing account answers with the same { registered: true, id } body as a fresh one. The created account is not signed in automatically; sign in through /api/auth/sign-in/email afterwards.',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/RegisterPlatformUserInput' } } } },
+        responses: {
+          '200': { description: 'The address already had an account. The body is identical to a fresh registration and does not confirm account existence.', content: { 'application/json': { schema: { $ref: '#/components/schemas/PlatformUserRegistered' } } } },
+          '201': { description: 'Account created with the platform_user role.', content: { 'application/json': { schema: { $ref: '#/components/schemas/PlatformUserRegistered' } } } },
+          '400': { description: 'Invalid registration details.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '409': { description: 'An operator invitation already exists for this email address.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '429': { description: 'Rate limit exceeded.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '500': { description: 'The account could not be created.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+        },
       },
     },
     '/api/auth/forgot-password': {
@@ -208,6 +226,8 @@ export const platformOpenApi = {
     schemas: {
       CreateTenantInput: jsonSchema(createTenantSchema),
       PlatformTenant: jsonSchema(platformTenantSchema),
+      RegisterPlatformUserInput: jsonSchema(registerPlatformUserSchema),
+      PlatformUserRegistered: jsonSchema(platformUserRegisteredSchema),
       PlatformOperatorList: jsonSchema(platformOperatorListSchema),
       PlatformOperator: jsonSchema(platformOperatorSchema),
       InvitePlatformOperatorInput: jsonSchema(invitePlatformOperatorSchema),

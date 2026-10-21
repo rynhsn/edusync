@@ -10,6 +10,8 @@ import { getPlatformSession } from '../auth/routes.js';
 import { hasPlatformPermission } from '../auth/permissions.js';
 import { platformDbPool } from '../db/pool.js';
 
+const isPlatformUserRole = (role: string | null | undefined): boolean => role === 'platform_user';
+
 const SCHOOL_PROVISIONING_TIMEOUT_MS = 10_000;
 
 export async function registerTenantRoutes(app: FastifyInstance): Promise<void> {
@@ -28,18 +30,31 @@ export async function registerTenantRoutes(app: FastifyInstance): Promise<void> 
     if (!session) {
       return reply.code(401).send({ error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     }
+    // `tenant.create` is held by admins, read-only operators, and customers. Only admins
+    // and customers may actually create a school: a read-only operator can inspect the
+    // catalogue but not provision new tenants.
+    if (session.user.role !== 'platform_admin' && !isPlatformUserRole(session.user.role)) {
+      return reply.code(403).send({ error: { code: 'FORBIDDEN', message: 'Insufficient permission' } });
+    }
 
     const client = await platformDbPool.connect();
     let tenantId: string;
     try {
       await client.query('BEGIN');
       const inserted = await client.query<{ id: string }>(
-        `INSERT INTO tenants (name, slug, status, created_by)
-         VALUES ($1, $2, 'provisioning', $3)
+        `INSERT INTO tenants (name, slug, status, created_by, owner_user_id)
+         VALUES ($1, $2, 'provisioning', $3, $3)
          RETURNING id`,
         [name, slug, session.user.id],
       );
       tenantId = inserted.rows[0]!.id;
+      // The creator owns the school they just provisioned; an operator creating on behalf
+      // of someone else still owns it as the operator.
+      await client.query(
+        `INSERT INTO tenant_owners (tenant_id, user_id, role) VALUES ($1, $2, 'platform_owner')
+         ON CONFLICT (tenant_id, user_id) DO NOTHING`,
+        [tenantId, session.user.id],
+      );
       await client.query(
         `INSERT INTO platform_audit_logs (actor_user_id, action, entity_type, entity_id, details)
          VALUES ($1, 'tenant.provisioning_started', 'tenant', $2, $3::jsonb)`,
@@ -132,13 +147,20 @@ export async function registerTenantRoutes(app: FastifyInstance): Promise<void> 
   });
 
   app.get('/api/tenants', async (request, reply) => {
+    const actor = await getPlatformSession(platformAuth, request);
+    if (!actor) return reply.code(401).send({ error: { code: 'UNAUTHENTICATED', message: 'Authentication required' } });
     if (!(await hasPlatformPermission(request, 'tenant.read'))) {
       return reply.code(403).send({ error: { code: 'FORBIDDEN', message: 'Insufficient permission' } });
     }
+    // A customer only sees the schools they own; operators and admins see everything.
+    const scopedToOwner = isPlatformUserRole(actor.user.role);
     const result = await platformDbPool.query(
       `SELECT id, name, slug, status, school_tenant_id AS "schoolTenantId",
-              provisioning_error AS "provisioningError", created_at AS "createdAt", updated_at AS "updatedAt"
-       FROM tenants ORDER BY created_at DESC LIMIT 100`,
+              provisioning_error AS "provisioningError", owner_user_id AS "ownerUserId",
+              created_at AS "createdAt", updated_at AS "updatedAt"
+       FROM tenants ${scopedToOwner ? 'WHERE owner_user_id = $1' : ''}
+       ORDER BY created_at DESC LIMIT 100`,
+      scopedToOwner ? [actor.user.id] : [],
     );
     return reply.send(result.rows);
   });
