@@ -1,12 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
 @import "tailwindcss";
 
+/* Class-based dark mode: `.dark` is toggled on <html> by the boot script in index.html and by
+   ThemeProvider. Tailwind v4 has no `darkMode` config key — this variant is the mechanism. */
+@custom-variant dark (&:is(.dark *));
+
 @theme {
   --font-sans: 'DM Sans', sans-serif;
   --font-display: 'Manrope', sans-serif;
   --color-background: #f4f7f8;
   --color-foreground: #14272f;
   --color-card: #ffffff;
+  --color-card-foreground: #14272f;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #14272f;
   --color-primary: #087e78;
   --color-primary-foreground: #ffffff;
   --color-secondary: #e9f2f1;
@@ -14,16 +21,90 @@
   --color-muted: #edf2f3;
   --color-muted-foreground: #6d7e84;
   --color-accent: #d8eeea;
+  --color-accent-foreground: #165c59;
   --color-destructive: #be3a45;
+  --color-destructive-foreground: #ffffff;
   --color-border: #dce5e7;
   --color-input: #d5e0e2;
   --color-ring: #0d9488;
+  --color-selection: #b9e1dc;
+  --color-selection-foreground: #123a3b;
+
+  /* Status palette. The light values reproduce the Tailwind default palette chips that were
+     hard-coded before (emerald/amber/rose/sky 50 + 200/700/800/900), so light mode is unchanged. */
+  --color-success: oklch(97.9% 0.021 166.113);
+  --color-success-foreground: oklch(50.8% 0.118 165.612);
+  --color-success-strong: oklch(43.2% 0.095 166.913);
+  --color-success-border: oklch(90.5% 0.093 164.15);
+  --color-warning: oklch(98.7% 0.022 95.277);
+  --color-warning-foreground: oklch(47.3% 0.137 46.201);
+  --color-warning-strong: oklch(41.4% 0.112 45.904);
+  --color-warning-border: oklch(92.4% 0.12 95.746);
+  --color-danger: oklch(96.9% 0.015 12.422);
+  --color-danger-foreground: oklch(51.4% 0.222 16.935);
+  --color-danger-strong: oklch(45.5% 0.188 13.697);
+  --color-danger-border: oklch(89.2% 0.058 10.001);
+  --color-info: oklch(97.7% 0.013 236.62);
+  --color-info-foreground: oklch(50% 0.134 242.749);
+  --color-info-strong: oklch(44.3% 0.11 240.79);
+  --color-info-border: oklch(90.1% 0.058 230.902);
+
+  --shadow-card: 0 8px 30px -24px rgba(16, 46, 54, .3);
 }
 
-:root { font-family: 'DM Sans', sans-serif; color: #14272f; background: #f4f7f8; font-synthesis: none; text-rendering: optimizeLegibility; }
+:root { font-family: 'DM Sans', sans-serif; color: var(--color-foreground); background: var(--color-background); color-scheme: light; font-synthesis: none; text-rendering: optimizeLegibility; }
 * { box-sizing: border-box; }
 body { margin: 0; min-width: 320px; min-height: 100vh; }
 button, input, select { font: inherit; }
 button { cursor: pointer; }
-::selection { background: #b9e1dc; color: #123a3b; }
+::selection { background: var(--color-selection); color: var(--color-selection-foreground); }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+/* Dark theme. Unlayered on purpose: `@theme` emits its variables inside `@layer theme`, so an
+   unlayered `.dark` block wins at equal specificity without `!important`.
+
+   Deliberately NOT overridden: `--color-white`, `--color-teal-100`, `--color-teal-300` and
+   `--color-slate-950`. AuthLayout's aside is a fixed-dark brand panel that paints white and
+   teal-100 text on `bg-[#123d3d]`; overriding those would invert its own text to dark-on-dark.
+   `slate-950` backs the modal and mobile-nav scrims, which should stay dark in both themes. */
+.dark {
+  color-scheme: dark;
+  --color-background: #0b1418;
+  --color-foreground: #e6eef0;
+  --color-card: #131f24;
+  --color-card-foreground: #e6eef0;
+  --color-popover: #131f24;
+  --color-popover-foreground: #e6eef0;
+  --color-primary: #2dd4bf;
+  --color-primary-foreground: #04201d;
+  --color-secondary: #1c2c31;
+  --color-secondary-foreground: #b7d9d4;
+  --color-muted: #1a272c;
+  --color-muted-foreground: #93a6ab;
+  --color-accent: #1f3b3a;
+  --color-accent-foreground: #a8e3da;
+  --color-destructive: #e5484d;
+  --color-destructive-foreground: #ffffff;
+  --color-border: #23353b;
+  --color-input: #2a3d43;
+  --color-ring: #2dd4bf;
+  --color-selection: #1f4b47;
+  --color-selection-foreground: #d6f2ed;
+  --color-success: #0f2b23;
+  --color-success-foreground: #6ee7b7;
+  --color-success-strong: #a7f3d0;
+  --color-success-border: #1d4d3f;
+  --color-warning: #2e2410;
+  --color-warning-foreground: #fcd34d;
+  --color-warning-strong: #fde68a;
+  --color-warning-border: #4d3d15;
+  --color-danger: #2f1518;
+  --color-danger-foreground: #fda4af;
+  --color-danger-strong: #fecdd3;
+  --color-danger-border: #55222a;
+  --color-info: #10222f;
+  --color-info-foreground: #7dd3fc;
+  --color-info-strong: #bae6fd;
+  --color-info-border: #1e3d52;
+  --shadow-card: 0 8px 30px -24px rgb(0 0 0 / .7);
+}
