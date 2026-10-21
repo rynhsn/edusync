@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "edusync-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@edusync/web", "dev"],
+      "port": 5174
+    },
+    {
+      "name": "edusync-school-web",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@edusync/school-web", "dev"],
+      "port": 5175
+    }
+  ]
+}

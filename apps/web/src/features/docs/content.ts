@@ -1,0 +1,353 @@
+/**
+ * Documentation content for the in-app reference page.
+ *
+ * This prose is long-form and list-shaped, so it lives beside the page instead of in the i18n
+ * catalog, whose `MessageKey` union is tuned for short UI strings and would grow by hundreds of
+ * numbered keys here. Every section still has to spell out all three shipped locales —
+ * `Record<Locale, …>` makes a missing translation a compile error, exactly like the catalog does.
+ */
+import {
+  Building2, Clock3, Database, Info, KeyRound, LayoutDashboard, Lock, LogIn, Mail, Palette,
+  ShieldCheck, type LucideIcon,
+} from 'lucide-react';
+import type { Locale } from '@/i18n';
+
+export interface DocSection {
+  id: string;
+  icon: LucideIcon;
+  /** Endpoint identifiers are code, not prose — one language is enough. */
+  endpoints?: readonly string[];
+  title: Record<Locale, string>;
+  description: Record<Locale, string>;
+  items: Record<Locale, readonly string[]>;
+}
+
+export const DOC_SCOPE = {
+  en: 'This page covers the Platform control plane only. School-side documentation will be added here later.',
+  id: 'Halaman ini hanya mencakup pusat kendali Platform. Dokumentasi sisi sekolah akan ditambahkan di sini nanti.',
+  su: 'Halaman ieu ngan nutupan panel kendali Platform. Dokumentasi sisi sakola bakal ditambahkeun di dieu engké.',
+} as const satisfies Record<Locale, string>;
+
+export const DOC_SCOPE_ICON: LucideIcon = Info;
+
+export const DOC_SECTIONS: readonly DocSection[] = [
+  {
+    id: 'auth',
+    icon: LogIn,
+    endpoints: ['/api/auth/sign-in/email', 'GET /api/auth/get-session', 'POST /api/auth/sign-out'],
+    title: { en: 'Sign-in and session', id: 'Masuk dan sesi', su: 'Lebet sareng sési' },
+    description: {
+      en: 'How operators enter the Platform and how their access is decided.',
+      id: 'Bagaimana operator masuk ke Platform dan bagaimana hak akses mereka ditentukan.',
+      su: 'Kumaha operator lebet ka Platform sareng kumaha hak aksesna ditangtukeun.',
+    },
+    items: {
+      en: [
+        'The sign-in page is restricted to invited platform operators; no account can be created there.',
+        'Sign-in uses email and password. The session stays active until you sign out from the user card in the sidebar.',
+        'The protected-access card shows the role your session carries, which decides which actions are available.',
+      ],
+      id: [
+        'Halaman masuk hanya untuk platform operator yang diundang; tidak ada akun yang dibuat di sana.',
+        'Masuk menggunakan email dan kata sandi. Sesi tetap aktif sampai Anda keluar dari kartu pengguna di sidebar.',
+        'Kartu akses terlindungi menunjukkan peran sesi Anda, yang menentukan tindakan apa yang tersedia.',
+      ],
+      su: [
+        'Halaman lebet kanggo platform operator nu diundang waé; teu aya akun anu didamel di dieu.',
+        'Lebet nganggo email sareng keunsi sandi. Sési tetep aktif nepi ka Anjeun kaluar tina kartu pamaké di sidebar.',
+        'Kartu akses dilindungi nunjukkeun peran sési Anjeun, anu nangtukeun aksi nu tiasa dianggo.',
+      ],
+    },
+  },
+  {
+    id: 'reset',
+    icon: KeyRound,
+    endpoints: [
+      'POST /api/auth/forgot-password (5/hour)',
+      'POST /api/auth/verify-reset-otp (10/hour)',
+      'POST /api/auth/reset-password (10/hour)',
+    ],
+    title: { en: 'Password recovery', id: 'Pemulihan kata sandi', su: 'Pulihkeun keunsi sandi' },
+    description: {
+      en: 'A three-step reset that never reveals whether an account exists.',
+      id: 'Pemulihan tiga langkah yang tidak pernah mengungkapkan apakah akun ada.',
+      su: 'Pulihkeun tilu léngkah anu teu kantos ngungkulan naha akun aya.',
+    },
+    items: {
+      en: [
+        'Request a reset code. The response is identical whether or not the email is registered.',
+        'Codes are six digits, expire after 10 minutes, and allow up to five failed attempts.',
+        'New passwords must be 12–128 characters and be entered twice; a mismatch is rejected before any attempt is spent.',
+        'Rate limits: five code requests, ten verifications, and ten resets per hour.',
+      ],
+      id: [
+        'Minta kode pemulihan. Responsnya sama apakah email terdaftar atau tidak.',
+        'Kode terdiri dari enam digit, kedaluwarsa setelah 10 menit, dan mengizinkan hingga lima percobaan gagal.',
+        'Kata sandi baru harus 12–128 karakter dan diketik dua kali; ketidakcocokan ditolak sebelum percobaan terpakai.',
+        'Batas laju: lima permintaan kode, sepuluh verifikasi, dan sepuluh pemulihan per jam.',
+      ],
+      su: [
+        'Mintakeun kode pamulihan. Jawabana sami naha kadaptar atawa teu.',
+        'Kode genep digit, kadaluwarsa saatos 10 menit, sareng ngamungkinkeun nepi ka lima percobaan gagal.',
+        'Keunsi sandi énggal kedah 12–128 karakter sareng diketik dua kali; teu cocog ditolak saméméh percobaan dipaké.',
+        'Batas laju: lima minta kode, sapuluh verifikasi, sareng sapuluh pamulihan per jam.',
+      ],
+    },
+  },
+  {
+    id: 'invitations',
+    icon: Mail,
+    endpoints: [
+      'POST /api/operators/invitations',
+      'POST /api/operators/invitations/:id/resend',
+      'POST /api/operators/invitations/:id/revoke',
+      'POST /api/operator-invitations/lookup (10/hour)',
+      'POST /api/operator-invitations/accept (10/hour)',
+    ],
+    title: { en: 'Operator invitations', id: 'Undangan operator', su: 'Undangan operator' },
+    description: {
+      en: 'How new Platform operators are created — invitation only.',
+      id: 'Bagaimana operator Platform baru dibuat — hanya melalui undangan.',
+      su: 'Kumaha operator Platform énggal didamel — ngan liwat undangan.',
+    },
+    items: {
+      en: [
+        'An admin sends an invitation from the Operators page. It carries a one-time link that expires after 48 hours.',
+        'The invitee creates a password on the invitation page to activate their account.',
+        'Resending issues a new token and invalidates the previous link.',
+        'Revoking stops the link immediately. A delivery failure leaves the invitation created but unusable until it is resent.',
+        'The API keeps invitations from the last 90 days.',
+      ],
+      id: [
+        'Admin mengirim undangan dari halaman Operator. Undangan berisi tautan sekali pakai yang kedaluwarsa setelah 48 jam.',
+        'Pihak yang diundang membuat kata sandi di halaman undangan untuk mengaktifkan akunnya.',
+        'Pengiriman ulang membuat token baru dan menonaktifkan tautan sebelumnya.',
+        'Pencabutan langsung menghentikan tautan. Kegagalan pengiriman membuat undangan tetap terbuat tetapi tidak dapat dipakai sampai dikirim ulang.',
+        'API menyimpan undangan dari 90 hari terakhir.',
+      ],
+      su: [
+        'Admin ngirim undangan tina halaman Operator. Undangan eusina tautan sakali pakai anu kadaluwarsa saatos 48 jam.',
+        'Nu diundang damel keunsi sandi dina halaman undangan pikeun ngaktipkeun akunna.',
+        'Ngirim deui nyieun token énggal sareng ngahilangkeun tautan sateuacana.',
+        'Ngabatalkeun langsung ngahentinkeun tautan. Gagal pengiriman nyieun undangan tetep didamel tapi teu tiasa dianggo nepi ka dikirim deui.',
+        'API nyimpen undangan ti 90 dinten ka pengker.',
+      ],
+    },
+  },
+  {
+    id: 'roles',
+    icon: ShieldCheck,
+    endpoints: ['GET /api/operators', 'POST /api/operators/:id/role', 'POST /api/operators/:id/status'],
+    title: { en: 'Roles and safeguards', id: 'Peran dan pengaman', su: 'Peran sareng pengaman' },
+    description: {
+      en: 'What each Platform role can do, and the guards the server enforces.',
+      id: 'Apa yang dapat dilakukan setiap peran Platform, dan pengaman yang ditegakkan server.',
+      su: 'Naon anu tiasa dilakukeun ku unggul peran Platform, sareng pengaman anu ditepikeun server.',
+    },
+    items: {
+      en: [
+        'Platform admin: create school workspaces and manage operators.',
+        'Platform read only: view workspace and operator records; changes are hidden.',
+        'You cannot change your own status.',
+        'The server prevents disabling the final active administrator.',
+      ],
+      id: [
+        'Platform admin: membuat ruang kerja sekolah dan mengelola operator.',
+        'Platform hanya baca: melihat catatan ruang kerja dan operator; perubahan disembunyikan.',
+        'Anda tidak dapat mengubah status Anda sendiri.',
+        'Server mencegah menonaktifkan administrator aktif terakhir.',
+      ],
+      su: [
+        'Platform admin: nyieun ruang gawé sakola sareng ngurus operator.',
+        'Platform ngan maca: ningali catetan ruang gawé sareng operator; parobihan disembunyikeun.',
+        'Anjeun teu tiasa ngarobih status anjeun sorangan.',
+        'Server nyegah pareumkeun administrator aktif terakhir.',
+      ],
+    },
+  },
+  {
+    id: 'provisioning',
+    icon: Building2,
+    endpoints: ['POST /api/tenants', 'GET /api/tenants (max 100)', 'POST /internal/provisioning/tenants'],
+    title: {
+      en: 'School workspace provisioning',
+      id: 'Penyiapan ruang kerja sekolah',
+      su: 'Penyiapan ruang gawé sakola',
+    },
+    description: {
+      en: 'What happens between the create dialog and an active workspace.',
+      id: 'Yang terjadi antara dialog pembuatan dan ruang kerja aktif.',
+      su: 'Naon anu kajadian antara dialog damel sareng ruang gawé aktif.',
+    },
+    items: {
+      en: [
+        'Creating a workspace records the tenant with status provisioning on the Platform API.',
+        'The Platform API then calls the School API server-to-server using a shared provisioning secret, with a 10-second timeout.',
+        'On success the tenant becomes active and stores its school tenant ID; on failure it becomes provisioning_failed with a provisioning note.',
+        'The School API is idempotent: the same payload returns the same tenant, and changed details are rejected as a conflict.',
+        'Lists and overview show at most 100 records, newest first.',
+      ],
+      id: [
+        'Membuat ruang kerja mencatat tenant dengan status sedang disiapkan di Platform API.',
+        'Platform API kemudian memanggil School API server-ke-server dengan rahasia penyiapan bersama, batas waktu 10 detik.',
+        'Jika berhasil, tenant menjadi aktif dan menyimpan ID tenant sekolah; jika gagal, menjadi gagal disiapkan dengan catatan penyiapan.',
+        'School API bersifat idempoten: payload yang sama mengembalikan tenant yang sama, dan detail yang diubah ditolak sebagai konflik.',
+        'Daftar dan ikhtisar menampilkan maksimum 100 catatan, terbaru lebih dulu.',
+      ],
+      su: [
+        'Damel ruang gawé ngajagi tenant kalayan status nuju disiapkeun dina Platform API.',
+        'Platform API teras nelepon School API server-ka-server nganggo rahasia penyiapan bareng, wates 10 detik.',
+        'Upami berhasil, tenant jadi aktif sareng nyimpen ID tenant sakola; upami gagal, jadi gagal disiapkeun kalayan catetan penyiapan.',
+        'School API bersifat idempoten: payload nu sami nganteukkeun tenant nu sami, sareng rincian nu dirobih ditolak salaku konflik.',
+        'Daptar sareng ringkesan nembongkeun maksimum 100 catetan, nu panganyar heula.',
+      ],
+    },
+  },
+  {
+    id: 'activation',
+    icon: Clock3,
+    endpoints: ['adminActivation.status = "pending"'],
+    title: {
+      en: 'School admin activation',
+      id: 'Aktivasi admin sekolah',
+      su: 'Aktivasi admin sakola',
+    },
+    description: {
+      en: 'The known gap between a provisioned school and a school that can sign in.',
+      id: 'Celah yang diketahui antara sekolah yang sudah disiapkan dan sekolah yang bisa masuk.',
+      su: 'Celah anu kawurahan antara sakola anu parantos disiapkeun sareng sakola anu tiasa lebet.',
+    },
+    items: {
+      en: [
+        'Provisioning deliberately creates no school user and no membership, so the activation status stays pending.',
+        'Until the separate activation flow exists, a provisioned school admin cannot sign in to school-web.',
+        'Never send a School password or any reusable activation credential through the provisioning API.',
+        'For local development only, the School bootstrap seed creates a demo school with admin and staff accounts.',
+      ],
+      id: [
+        'Penyiapan sengaja tidak membuat pengguna sekolah maupun keanggotaan, sehingga status aktivasi tetap tertunda.',
+        'Selama alur aktivasi terpisah belum ada, admin sekolah yang sudah disiapkan belum bisa masuk ke school-web.',
+        'Jangan pernah mengirim kata sandi Sekolah atau kredensial aktivasi apa pun melalui API penyiapan.',
+        'Hanya untuk pengembangan lokal, seed bootstrap Sekolah membuat sekolah demo beserta akun admin dan staf.',
+      ],
+      su: [
+        'Penyiapan sengaja teu nyieun pamaké sakola sareng teu aya keanggotaan, kitu deui status aktivasi tetep ngantosan.',
+        'Nalika alur aktivasi misah can aya, admin sakola anu parantos disiapkeun teu tiasa lebet ka school-web.',
+        'Ulah kantos ngirim keunsi sandi Sakola atawa kredensial aktivasi naon waé liwat API penyiapan.',
+        'Ngan pikeun pangembangan lokal, seed bootstrap Sakola nyieun sakola demo sareng akun admin sareng staf.',
+      ],
+    },
+  },
+  {
+    id: 'overview',
+    icon: LayoutDashboard,
+    endpoints: ['GET /api/tenants', 'GET /api/operators'],
+    title: { en: 'Overview and lists', id: 'Ikhtisar dan daftar', su: 'Ringkesan sareng daptar' },
+    description: {
+      en: 'What the main pages show and where their numbers come from.',
+      id: 'Yang ditampilkan halaman utama dan dari mana angka-angkanya berasal.',
+      su: 'Naon anu ditembongkeun halaman utama sareng ti mana angka-angkana.',
+    },
+    items: {
+      en: [
+        'Overview metrics: total school workspaces, active workspaces, items needing attention, and operator count.',
+        'Needs attention counts workspaces that are provisioning or provisioning_failed.',
+        'Each page reloads its data when you open it, and Refresh reloads the current page.',
+      ],
+      id: [
+        'Metrik ikhtisar: total ruang kerja sekolah, ruang kerja aktif, hal yang perlu perhatian, dan jumlah operator.',
+        'Perlu perhatian menghitung ruang kerja yang sedang disiapkan atau gagal disiapkan.',
+        'Setiap halaman memuat ulang datanya saat Anda membukanya, dan tombol Muat ulang memuat halaman saat ini kembali.',
+      ],
+      su: [
+        'Métrik ringkesan: total ruang gawé sakola, ruang gawé aktif, anu perlu perhatian, sareng jumlah operator.',
+        'Perlu perhatian ngitung ruang gawé anu nuju disiapkeun atawa gagal disiapkeun.',
+        'Unggal halaman muat deui datana nalika Anjeun mbuka, sareng tombol Segarkeun muat deui halaman ayeuna.',
+      ],
+    },
+  },
+  {
+    id: 'appearance',
+    icon: Palette,
+    title: { en: 'Appearance controls', id: 'Kontrol tampilan', su: 'Kontrol tampilan' },
+    description: {
+      en: 'Theme and language settings for this console.',
+      id: 'Pengaturan tema dan bahasa untuk konsol ini.',
+      su: 'Pangaturan téma sareng basa pikeun konsol ieu.',
+    },
+    items: {
+      en: [
+        'Choose a light, dark, or system theme, and English, Bahasa Indonesia, or Basa Sunda.',
+        'The controls sit at the top of the sidebar footer, above the protected-access card.',
+        'Choices are stored in the browser and apply immediately, without a reload.',
+      ],
+      id: [
+        'Pilih tema terang, gelap, atau sistem, dan Bahasa Inggris, Bahasa Indonesia, atau Basa Sunda.',
+        'Kontrol berada di bagian atas footer sidebar, di atas kartu akses terlindungi.',
+        'Pilihan disimpan di browser dan langsung berlaku, tanpa memuat ulang.',
+      ],
+      su: [
+        'Pilih téma terang, gulita, atawa sistem, sareng Basa Inggris, Basa Indonesia, atawa Basa Sunda.',
+        'Kontrol aya di luhur footer sidebar, di luhur kartu akses dilindungi.',
+        'Pilihan disimpen dina browsér sareng laku langsung, tanpa muat deui.',
+      ],
+    },
+  },
+  {
+    id: 'bootstrap',
+    icon: Database,
+    title: { en: 'Development bootstrap', id: 'Bootstrap pengembangan', su: 'Bootstrap pangembangan' },
+    description: {
+      en: 'How a fresh local database gets its first accounts.',
+      id: 'Bagaimana basis data lokal yang segar mendapatkan akun pertamanya.',
+      su: 'Kumaha database lokal anu énggal nampi akun munggaranna.',
+    },
+    items: {
+      en: [
+        'The Platform seed creates the first Platform Admin only when PLATFORM_BOOTSTRAP_ENABLED is set.',
+        'The School seed requires NODE_ENV=development and SCHOOL_BOOTSTRAP_ENABLED=true, and refuses to modify existing accounts.',
+        'Bootstrap accounts are for development only; production access comes from invitations.',
+      ],
+      id: [
+        'Seed Platform membuat Platform Admin pertama hanya jika PLATFORM_BOOTSTRAP_ENABLED diatur.',
+        'Seed Sekolah mensyaratkan NODE_ENV=development dan SCHOOL_BOOTSTRAP_ENABLED=true, dan menolak mengubah akun yang sudah ada.',
+        'Akun bootstrap hanya untuk pengembangan; akses produksi berasal dari undangan.',
+      ],
+      su: [
+        'Seed Platform nyieun Platform Admin munggaran ngan upami PLATFORM_BOOTSTRAP_ENABLED disetel.',
+        'Seed Sakola merlukeun NODE_ENV=development sareng SCHOOL_BOOTSTRAP_ENABLED=true, sareng nolak ngarobih anu geus aya.',
+        'Akun bootstrap kanggo pangembangan waé; akses produksi datangna tina undangan.',
+      ],
+    },
+  },
+  {
+    id: 'security',
+    icon: Lock,
+    title: { en: 'Security rules', id: 'Aturan keamanan', su: 'Aturan kaamanan' },
+    description: {
+      en: 'Configuration rules that must not be bent, in any environment.',
+      id: 'Aturan konfigurasi yang tidak boleh dilanggar, di lingkungan apa pun.',
+      su: 'Aturan konfigurasi nu teu boleh dilanggar, di lingkungan naon waé.',
+    },
+    items: {
+      en: [
+        'Use distinct random PLATFORM_AUTH_SECRET, SCHOOL_AUTH_SECRET, and SCHOOL_PROVISIONING_SECRET values of at least 32 characters.',
+        'Only VITE_* variables reach the browser bundle; .env is not a frontend config file.',
+        'The SMTP sender is restricted to hi.edusync@gmail.com, and PLATFORM_PUBLIC_URL must be HTTPS outside local development.',
+        'Never send live email during development verification unless private credentials are configured and explicitly intended.',
+      ],
+      id: [
+        'Gunakan nilai PLATFORM_AUTH_SECRET, SCHOOL_AUTH_SECRET, dan SCHOOL_PROVISIONING_SECRET yang berbeda dan acak, minimal 32 karakter.',
+        'Hanya variabel VITE_* yang masuk ke bundel browser; .env bukan berkas konfigurasi frontend.',
+        'Pengirim SMTP dibatasi ke hi.edusync@gmail.com, dan PLATFORM_PUBLIC_URL harus HTTPS di luar pengembangan lokal.',
+        'Jangan pernah mengirim email sungguhan selama verifikasi pengembangan kecuali kredensial privat sudah dikonfigurasi dan memang dimaksudkan.',
+      ],
+      su: [
+        'Anggo nilai PLATFORM_AUTH_SECRET, SCHOOL_AUTH_SECRET, sareng SCHOOL_PROVISIONING_SECRET anu béda sareng acak, minimal 32 karakter.',
+        'Ngan variabel VITE_* anu asup ka bundel browsér; .env teu berkas konfigurasi frontend.',
+        'Pengirim SMTP dibatesan ka hi.edusync@gmail.com, sareng PLATFORM_PUBLIC_URL kedah HTTPS di luar pangembangan lokal.',
+        'Ulah kantos ngirim email beneran salama verifikasi pangembangan, sabab ngan boleh upami kredensial privat parantos dikonfigurasi sareng dituju sacara tegas.',
+      ],
+    },
+  },
+] as const satisfies readonly DocSection[];

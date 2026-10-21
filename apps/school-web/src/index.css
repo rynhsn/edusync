@@ -1,0 +1,29 @@
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: 'DM Sans', sans-serif;
+  --font-display: 'Manrope', sans-serif;
+  --color-background: #f4f7f8;
+  --color-foreground: #14272f;
+  --color-card: #ffffff;
+  --color-primary: #087e78;
+  --color-primary-foreground: #ffffff;
+  --color-secondary: #e9f2f1;
+  --color-secondary-foreground: #165c59;
+  --color-muted: #edf2f3;
+  --color-muted-foreground: #6d7e84;
+  --color-accent: #d8eeea;
+  --color-destructive: #be3a45;
+  --color-border: #dce5e7;
+  --color-input: #d5e0e2;
+  --color-ring: #0d9488;
+}
+
+:root { font-family: 'DM Sans', sans-serif; color: #14272f; background: #f4f7f8; font-synthesis: none; text-rendering: optimizeLegibility; }
+* { box-sizing: border-box; }
+body { margin: 0; min-width: 320px; min-height: 100vh; }
+button, input, select { font: inherit; }
+button { cursor: pointer; }
+::selection { background: #b9e1dc; color: #123a3b; }
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; transition-duration: .01ms !important; } }

@@ -1,0 +1,20 @@
+{
+  "name": "edusync",
+  "version": "0.1.0",
+  "private": true,
+  "description": "EduSync Platform dan EduSync School",
+  "packageManager": "pnpm@12.14.0",
+  "engines": {
+    "node": ">=24 <25"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @edusync/platform-api --filter @edusync/school-api --filter @edusync/web --filter @edusync/school-web dev",
+    "dev:web": "pnpm --filter @edusync/web dev",
+    "dev:school-web": "pnpm --filter @edusync/school-web dev",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "test": "pnpm -r test",
+    "db:migrate": "pnpm --filter @edusync/platform-api db:migrate && pnpm --filter @edusync/school-api db:migrate",
+    "db:seed": "pnpm --filter @edusync/platform-api db:seed && pnpm --filter @edusync/school-api db:seed"
+  }
+}
