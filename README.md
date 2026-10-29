@@ -1,51 +1,139 @@
 # EduSync
 
-EduSync separates the Platform control plane from each school’s operational system. The Platform API owns tenant provisioning and operator access; School API provisioning is a private service-to-service operation.
+EduSync memisahkan control plane Platform dari sistem operasional masing-masing sekolah. Platform API memegang provisioning tenant dan akses operator; provisioning di School API adalah operasi privat antar-layanan.
 
-## Local development
+## Struktur repositori
 
-Prerequisites: Node.js 24, pnpm 12, and Docker Desktop (or Docker Engine with Compose).
+| Path | Fungsi |
+| --- | --- |
+| `apps/platform-api` | Platform API (Fastify, PostgreSQL, port 4001): operator dan undangan, pengguna Platform, tenant, audit log, pengaturan akun. |
+| `apps/school-api` | School API (Fastify, PostgreSQL terpisah, port 4002): tahun ajaran, kelas, siswa, enrollment, provisioning tenant, aktivasi School Admin. |
+| `apps/web` | Aplikasi web Platform (React, Vite, Tailwind, port 5174). |
+| `apps/school-web` | Aplikasi web School (React, Vite, Tailwind, port 5175). |
+| `packages/contracts` | Skema Zod dan tipe yang dipakai bersama oleh API dan aplikasi web. |
+| `packages/api-docs` | Menyajikan dokumen OpenAPI (JSON dan HTML) untuk tiap API. |
+| `Planning/` | Catatan re-engineering sistem lama. Modul-modul ini belum diimplementasikan (lihat [Roadmap](#roadmap)). |
 
-1. Copy `.env.example` to `.env` without replacing an existing file. Set distinct random values for `PLATFORM_AUTH_SECRET` and `SCHOOL_AUTH_SECRET` (at least 32 characters) and `SCHOOL_PROVISIONING_SECRET` (at least 32 characters). Set a private `PLATFORM_BOOTSTRAP_PASSWORD` of at least 12 characters. These values are for local development only; do not use them in production. `.env` is not a frontend configuration file: only `VITE_*` values are exposed to browser code.
-2. Install workspace dependencies and start the local PostgreSQL databases:
+Sistem Platform dan School memakai database, secret autentikasi, dan sesi yang terpisah. Keduanya tidak berbagi origin maupun cookie.
+
+## Pengembangan lokal
+
+Prasyarat: Node.js 24, pnpm 12, dan Docker Desktop (atau Docker Engine dengan Compose).
+
+1. Salin `.env.example` ke `.env` tanpa menimpa file yang sudah ada. Isi nilai acak yang berbeda untuk `PLATFORM_AUTH_SECRET` dan `SCHOOL_AUTH_SECRET` (minimal 32 karakter) serta `SCHOOL_PROVISIONING_SECRET` (minimal 32 karakter). Isi `PLATFORM_BOOTSTRAP_PASSWORD` privat minimal 12 karakter. Nilai-nilai ini hanya untuk pengembangan lokal; jangan dipakai di produksi. `.env` bukan file konfigurasi frontend: hanya nilai `VITE_*` yang terekspos ke kode browser.
+2. Pasang dependensi workspace dan jalankan database PostgreSQL lokal (Platform di port 5433, School di port 5434):
 
    ```bash
    pnpm install
    docker compose up -d
    ```
 
-3. Apply both database migrations:
+3. Jalankan kedua migrasi database:
 
    ```bash
    pnpm db:migrate
    ```
 
-4. Start the Platform API, School API, Platform web app, and School web app:
+4. Jalankan Platform API, School API, aplikasi web Platform, dan aplikasi web School:
 
    ```bash
    pnpm dev
    ```
 
-   The local URLs are `http://localhost:4001` (Platform API), `http://localhost:4002` (School API), `http://localhost:5174` (Platform web app), and `http://localhost:5175` (School web app). To start only the Platform web app, run `pnpm dev:web`; to start only the School web app, run `pnpm dev:school-web`. The Platform web app reads `VITE_PLATFORM_API_URL` from the environment (default `http://localhost:4001`); only `VITE_*` values are exposed to browser code. Public routes are `/sign-in`, `/forgot-password`, and `/invite/:token`; every other path is the authenticated Platform shell (overview, tenants, operators), with management controls limited to Platform Admins.
+   | Layanan | URL |
+   | --- | --- |
+   | Platform API | `http://localhost:4001` |
+   | School API | `http://localhost:4002` |
+   | Aplikasi web Platform | `http://localhost:5174` |
+   | Aplikasi web School | `http://localhost:5175` |
 
-### School web app
+   Untuk menjalankan satu aplikasi web saja, pakai `pnpm dev:web` (Platform) atau `pnpm dev:school-web` (School). Tiap API menyajikan dokumen OpenAPI di `/openapi.json`, dokumentasi interaktif di `/docs`, dan health check di `/health`.
 
-`apps/school-web` is a separate frontend for each school’s own operational panel. It talks only to the School API (`VITE_SCHOOL_API_URL`, default `http://localhost:4002`) and shares no origin or session with the Platform web app, so `SCHOOL_TRUSTED_ORIGINS` must list its origin (`http://localhost:5175` locally). Public route: `/sign-in`. Every other path is the authenticated School shell: dashboard, students, classes, and academic years. School admins (`school_admin`) can create, update, and delete records; School staff (`school_staff`) get read-only access. Students carry their class and academic year through an enrollment record, so at least one class and one academic year must exist before a student can be registered.
-
-5. To create the first local Platform Admin, set `PLATFORM_BOOTSTRAP_ENABLED=true` in the private `.env`, then run:
+5. Untuk membuat Platform Admin lokal pertama, set `PLATFORM_BOOTSTRAP_ENABLED=true` di `.env` privat, lalu jalankan:
 
    ```bash
    pnpm --filter @edusync/platform-api db:seed
    ```
 
-   The bootstrap also requires `NODE_ENV=development`. It creates a new account only and refuses to modify or promote an existing account with the configured email. Turn `PLATFORM_BOOTSTRAP_ENABLED` back to `false` after use. Never use this bootstrap path in production.
+   Bootstrap ini juga mensyaratkan `NODE_ENV=development`. Ia hanya membuat akun baru dan menolak mengubah atau mempromosikan akun yang sudah ada dengan email yang dikonfigurasi. Kembalikan `PLATFORM_BOOTSTRAP_ENABLED` ke `false` setelah dipakai. Jangan pernah memakai jalur bootstrap ini di produksi.
 
-### Platform operator invitations
+### Perintah umum
 
-Only Platform Admins can manage Platform operators; School users and credentials stay in the separate School API/database. Platform Admins manage operators from the web app's Operators page: invite, resend, revoke, change roles, and enable or disable operators. Invitees receive a single-use link, valid for 48 hours, and set their own password (12–128 characters). A read-only operator can view Platform tenants and operators but cannot make changes. Changes to roles and disabling an operator invalidate their active Platform sessions. The final active Platform Admin cannot be downgraded or disabled.
+```bash
+pnpm typecheck   # typecheck semua paket workspace
+pnpm test        # jalankan semua suite Vitest
+pnpm build       # build semua paket
+pnpm db:seed     # jalankan kedua seed development (masing-masing dikunci oleh flag *_BOOTSTRAP_ENABLED sendiri)
+```
 
-To send invitations, configure the optional variables in the private `.env`: `PLATFORM_SMTP_HOST`, `PLATFORM_SMTP_PORT`, `PLATFORM_SMTP_SECURE=true`, `PLATFORM_SMTP_USER`, `PLATFORM_SMTP_PASSWORD`, `PLATFORM_EMAIL_FROM`, and `PLATFORM_PUBLIC_URL`. The sender address is restricted to `hi.edusync@gmail.com`; use a Gmail App Password rather than the Gmail account password. Keep all SMTP credentials private and never place them in `VITE_*` variables or browser code. `PLATFORM_PUBLIC_URL` must be HTTPS outside local development. Without working SMTP configuration, an invitation is still created but marked **Delivery failed** so a Platform Admin can retry it from the operator page. Resending rotates the token, invalidating the prior link, and starts a new 48-hour period. Never send a live email during development verification unless private credentials have been configured and a live test is explicitly intended.
+## Platform
 
-Apply Platform migrations with `pnpm --filter @edusync/platform-api db:migrate` after configuring the local Platform database. Migration `004_operator_email_normalization.sql` adds a normalized-email uniqueness index and will stop if existing Platform accounts contain duplicate normalized email addresses; resolve those identities deliberately, then rerun migration. The routes normalize submitted email addresses before storage and enforce uniqueness against accounts and active invitations.
+### Aplikasi web
 
-Tenant provisioning creates the School tenant and organization. **School admin account activation is not implemented yet**: the UI reports this as pending, and the listed admin contact cannot sign in until a separate activation flow is built. Do not send a School password or reusable activation credential through the Platform provisioning API.
+Aplikasi web Platform membaca `VITE_PLATFORM_API_URL` (default `http://localhost:4001`). Rute publik: `/sign-in`, `/sign-up`, `/forgot-password`, dan `/invite/:token`; semua path lain adalah shell Platform yang terautentikasi: overview, tenant, operator, audit log, pengaturan, dan dokumentasi API. Kontrol pengelolaan hanya tersedia untuk Platform Admin.
+
+### Jenis akun
+
+| Role | Cara dibuat | Akses |
+| --- | --- | --- |
+| `platform_admin` | Seed bootstrap atau undangan operator | Pengelolaan penuh operator dan tenant. |
+| `platform_read_only` | Undangan operator | Dapat melihat tenant dan operator; tidak dapat mengubah apa pun. |
+| `platform_user` | Pendaftaran mandiri publik | Akun pelanggan yang hanya mengelola sekolah miliknya (lihat `tenant_owners`). |
+
+### Undangan operator Platform
+
+Hanya Platform Admin yang dapat mengelola operator Platform; pengguna dan kredensial School tetap berada di School API/database yang terpisah. Platform Admin mengelola operator dari halaman Operators di aplikasi web: mengundang, mengirim ulang, mencabut, mengubah role, serta mengaktifkan atau menonaktifkan operator. Penerima undangan mendapat tautan sekali pakai yang berlaku 48 jam, lalu mengatur password sendiri (12–128 karakter). Perubahan role dan penonaktifan operator membatalkan sesi Platform aktif mereka. Platform Admin aktif terakhir tidak dapat diturunkan atau dinonaktifkan.
+
+Untuk mengirim undangan, atur variabel opsional di `.env` privat: `PLATFORM_SMTP_HOST`, `PLATFORM_SMTP_PORT`, `PLATFORM_SMTP_SECURE=true`, `PLATFORM_SMTP_USER`, `PLATFORM_SMTP_PASSWORD`, `PLATFORM_EMAIL_FROM`, dan `PLATFORM_PUBLIC_URL`. Alamat pengirim dibatasi ke `hi.edusync@gmail.com`; gunakan Gmail App Password, bukan password akun Gmail. Jaga kerahasiaan semua kredensial SMTP dan jangan pernah menaruhnya di variabel `VITE_*` atau kode browser. `PLATFORM_PUBLIC_URL` harus HTTPS di luar pengembangan lokal. Tanpa konfigurasi SMTP yang berfungsi, undangan tetap dibuat tetapi ditandai **Delivery failed** sehingga Platform Admin dapat mencobanya lagi dari halaman operator. Mengirim ulang akan merotasi token (tautan sebelumnya tidak berlaku) dan memulai periode 48 jam baru. Jangan mengirim email sungguhan saat verifikasi development kecuali kredensial privat sudah dikonfigurasi dan uji langsung memang disengaja.
+
+### Reset password
+
+`/forgot-password` mengirim kode sekali pakai (OTP) yang diverifikasi sebelum password dapat diganti. Permintaan reset memakai konfigurasi SMTP yang sama dengan undangan.
+
+### Audit log
+
+Aksi Platform yang sensitif (undangan dan perubahan role operator, pembuatan dan perubahan status tenant, registrasi pengguna, pembaruan profil) dicatat di `platform_audit_logs` dan ditampilkan di halaman Audit logs. School API menyimpan log audit otorisasinya sendiri (`school_authz_audit_logs`).
+
+### Migrasi
+
+Jalankan migrasi Platform dengan `pnpm --filter @edusync/platform-api db:migrate` setelah database Platform lokal dikonfigurasi. Migrasi `004_operator_email_normalization.sql` menambahkan indeks unik untuk email ternormalisasi dan akan berhenti jika akun Platform yang ada memiliki duplikat email ternormalisasi; selesaikan identitas tersebut secara sengaja, lalu jalankan ulang migrasi. Rute-rute menormalisasi email yang dikirim sebelum disimpan dan menegakkan keunikan terhadap akun dan undangan aktif.
+
+## Tenant dan provisioning School
+
+Tenant melewati status Platform berikut: `provisioning`, `active`, `suspended`, dan `provisioning_failed`.
+
+1. Platform Admin atau `platform_user` membuat tenant beserta nama dan email School Admin. Platform API mencatatnya lalu memanggil endpoint privat School API `POST /internal/provisioning/tenants`, diautentikasi dengan `SCHOOL_PROVISIONING_SECRET` bersama.
+2. School API membuat tenant School dan organisasinya, lalu mengirim email tautan aktivasi sekali pakai (berlaku 48 jam) ke School Admin. **Tidak ada password School atau kredensial yang dapat dipakai ulang yang melewati API provisioning Platform.**
+3. School Admin membuka `/activate/:token` di aplikasi web School dan mengatur password sendiri. Sebelum itu, kontak admin tidak dapat masuk, dan UI Platform melaporkan aktivasi sebagai pending.
+4. Jika provisioning gagal, tenant ditandai `provisioning_failed` dan Platform Admin atau `platform_user` pemilik tenant dapat mencobanya lagi. Tenant aktif dapat disuspend atau diaktifkan kembali oleh Platform Admin; perubahan diteruskan ke School API.
+
+Email aktivasi memakai variabel opsional `SCHOOL_SMTP_HOST`, `SCHOOL_SMTP_PORT`, `SCHOOL_SMTP_SECURE`, `SCHOOL_SMTP_USER`, `SCHOOL_SMTP_PASSWORD`, dan `SCHOOL_EMAIL_FROM`, dengan fallback ke nilai `PLATFORM_SMTP_*`. Pembatasan pengirim dan panduan App Password yang sama seperti undangan Platform berlaku, dan `SCHOOL_PUBLIC_URL` harus HTTPS di luar pengembangan lokal. Tanpa konfigurasi SMTP yang berfungsi, tidak ada email yang dikirim.
+
+## School
+
+### Aplikasi web
+
+`apps/school-web` adalah frontend terpisah untuk panel operasional tiap sekolah. Ia hanya berkomunikasi dengan School API (`VITE_SCHOOL_API_URL`, default `http://localhost:4002`) dan tidak berbagi origin atau sesi dengan aplikasi web Platform, sehingga `SCHOOL_TRUSTED_ORIGINS` harus memuat origin-nya (`http://localhost:5175` untuk lokal). Rute publik: `/sign-in` dan `/activate/:token`. Semua path lain adalah shell School yang terautentikasi: dashboard, siswa, kelas, dan tahun ajaran.
+
+| Role | Akses |
+| --- | --- |
+| `school_admin` | Membuat, mengubah, dan menghapus data. |
+| `school_staff` | Hanya baca. |
+
+Siswa terhubung ke kelas dan tahun ajaran melalui record enrollment, jadi minimal satu kelas dan satu tahun ajaran harus ada sebelum siswa dapat didaftarkan. Status siswa adalah salah satu dari `AKTIF`, `LULUS`, `MUTASI`, atau `KELUAR`.
+
+### Bootstrap development
+
+Karena provisioning tidak membuat pengguna, database development yang baru tidak punya akun School untuk masuk. Selain lewat alur aktivasi di atas, Anda dapat membuat satu sekolah beserta akun pertamanya langsung. Di `.env` privat, set `NODE_ENV=development`, `SCHOOL_BOOTSTRAP_ENABLED=true`, nilai nama, slug, email, dan password `SCHOOL_BOOTSTRAP_*` (dan opsional email serta password staf), lalu jalankan:
+
+```bash
+pnpm --filter @edusync/school-api db:seed
+```
+
+Kembalikan `SCHOOL_BOOTSTRAP_ENABLED` ke `false` setelahnya. Jangan pernah memakai jalur bootstrap ini di produksi.
+
+## Roadmap
+
+Sudah diimplementasikan: provisioning dan siklus hidup tenant, pengelolaan operator dan pengguna, aktivasi School Admin, serta master data tahun ajaran, kelas, dan siswa.
+
+Belum diimplementasikan (didokumentasikan di `Planning/`): absensi RFID dan kelas, nilai, penilaian non-akademik, pendaftaran online SPMB, website sekolah publik, administrasi role dan menu, serta master data lainnya (guru, orang tua, jam pelajaran, program/jurusan).
