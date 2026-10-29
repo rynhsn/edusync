@@ -7,11 +7,14 @@
     "dev": "tsx watch --env-file=../../.env src/main.ts",
     "start": "tsx --env-file=../../.env src/main.ts",
     "typecheck": "tsc -p tsconfig.json",
-    "test": "vitest run"
+    "test": "vitest run",
+    "openapi:export": "tsx --env-file=../../.env scripts/export-openapi.ts",
+    "seed:dev": "tsx --env-file=../../.env scripts/seed-dev.ts"
   },
   "dependencies": {
     "@edusync/contracts": "workspace:*",
     "@edusync/db": "workspace:*",
+    "@fastify/cors": "^11.3.1",
     "@fastify/helmet": "^13.2.0",
     "@fastify/rate-limit": "^11.2.1",
     "@fastify/swagger": "^9.9.2",

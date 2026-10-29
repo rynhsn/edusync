@@ -1,4 +1,3 @@
-import { fileURLToPath } from 'node:url';
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { createDb } from './client';
 

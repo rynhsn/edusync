@@ -1,4 +1,4 @@
-import { and, eq, member, memberRole, role, school } from '@edusync/db';
+import { and, eq, member, memberRole, role, rolePermission, school } from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -10,6 +10,7 @@ const membershipSchema = z.object({
   schoolName: z.string(),
   schoolSlug: z.string(),
   roles: z.array(z.string()),
+  permissions: z.array(z.string()).describe('Gabungan izin dari semua peran di sekolah ini'),
 });
 
 export async function meRoutes(instance: FastifyInstance) {
@@ -41,11 +42,13 @@ export async function meRoutes(instance: FastifyInstance) {
           schoolName: school.name,
           schoolSlug: school.slug,
           roleKey: role.key,
+          permission: rolePermission.permission,
         })
         .from(member)
         .innerJoin(school, eq(school.id, member.schoolId))
         .leftJoin(memberRole, eq(memberRole.memberId, member.id))
         .leftJoin(role, eq(role.id, memberRole.roleId))
+        .leftJoin(rolePermission, eq(rolePermission.roleId, memberRole.roleId))
         .where(and(eq(member.userId, userId), eq(member.status, 'active')));
 
       const bySchool = new Map<string, z.infer<typeof membershipSchema>>();
@@ -55,8 +58,10 @@ export async function meRoutes(instance: FastifyInstance) {
           schoolName: r.schoolName,
           schoolSlug: r.schoolSlug,
           roles: [],
+          permissions: [],
         };
         if (r.roleKey && !entry.roles.includes(r.roleKey)) entry.roles.push(r.roleKey);
+        if (r.permission && !entry.permissions.includes(r.permission)) entry.permissions.push(r.permission);
         bySchool.set(r.schoolId, entry);
       }
       const u = request.authUser;

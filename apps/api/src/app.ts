@@ -1,4 +1,5 @@
 import { createDb, sql } from '@edusync/db';
+import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
 import rateLimit from '@fastify/rate-limit';
 import swagger from '@fastify/swagger';
@@ -56,6 +57,12 @@ export async function buildApp(env: Env) {
   });
 
   await app.register(helmet);
+  await app.register(cors, {
+    origin: env.TRUSTED_ORIGINS,
+    credentials: true,
+    methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
+    allowedHeaders: ['content-type', 'x-school-id'],
+  });
   await app.register(rateLimit, { max: 300, timeWindow: '1 minute' });
 
   await app.register(swagger, {

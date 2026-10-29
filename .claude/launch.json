@@ -2,22 +2,16 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "edusync-api",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": ["--filter", "@edusync/api", "start"],
+      "port": 4000
+    },
+    {
       "name": "edusync-web",
       "runtimeExecutable": "pnpm",
       "runtimeArgs": ["--filter", "@edusync/web", "dev"],
-      "port": 5174
-    },
-    {
-      "name": "edusync-school-web",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@edusync/school-web", "dev"],
-      "port": 5175
-    },
-    {
-      "name": "edusync-school-web alt",
-      "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@edusync/school-web", "exec", "vite", "--port", "5185"],
-      "port": 5185
+      "port": 3000
     }
   ]
 }

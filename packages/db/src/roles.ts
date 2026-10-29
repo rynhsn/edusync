@@ -42,7 +42,7 @@ export async function loadMemberAccess(ex: Executor, userId: string, schoolId: s
     .select({ id: member.id, status: member.status })
     .from(member)
     .where(and(eq(member.userId, userId), eq(member.schoolId, schoolId)));
-  if (!m || m.status !== 'active') return null;
+  if (m?.status !== 'active') return null;
   const rows = await ex
     .selectDistinct({ permission: rolePermission.permission, roleKey: role.key })
     .from(memberRole)
