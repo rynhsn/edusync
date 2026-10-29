@@ -116,7 +116,7 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
     const updated = await platformDbPool.query<{ id: string; name: string; email: string; role: string }>(
       `UPDATE "user"
        SET name = $2, "updatedAt" = now()
-       WHERE id = $1 AND COALESCE(disabled, false) = false
+       WHERE id = $1 AND COALESCE(banned, false) = false
        RETURNING id, name, email, role`,
       [session.user.id, parsed.data.name],
     );
@@ -127,15 +127,13 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
 
     await platformDbPool.query(
       `INSERT INTO platform_audit_logs (actor_user_id, action, entity_type, entity_id, details)
-       VALUES ($1, 'account.profile_updated', 'user', $1, $2::jsonb)`,
+       VALUES ($1, 'account.profile_updated', 'user', NULL, $2::jsonb)`,
       [session.user.id, JSON.stringify({ name: row.name })],
     );
 
     return reply.send(platformProfileUpdatedSchema.parse({
-      id: row.id,
+      updated: true,
       name: row.name,
-      email: row.email,
-      role: row.role,
     }));
   });
 
@@ -172,10 +170,10 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
     );
     await platformDbPool.query(
       `INSERT INTO platform_audit_logs (actor_user_id, action, entity_type, entity_id, details)
-       VALUES ($1, 'account.password_changed', 'user', $1, '{}'::jsonb)`,
+       VALUES ($1, 'account.password_changed', 'user', NULL, '{}'::jsonb)`,
       [session.user.id],
     );
 
-    return reply.send(platformPasswordChangedSchema.parse({ changed: true }));
+    return reply.send(platformPasswordChangedSchema.parse({ updated: true }));
   });
 }
