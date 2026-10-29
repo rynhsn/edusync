@@ -21,6 +21,8 @@ const KNOWN = [
   'already_member',
   'last_admin',
   'self_disable',
+  'invitation_invalid',
+  'invitation_wrong_account',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

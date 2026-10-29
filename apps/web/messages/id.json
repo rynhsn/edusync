@@ -97,7 +97,9 @@
     "account_not_found": "Belum ada akun dengan email itu. Minta orangnya mendaftar dulu.",
     "already_member": "Orang ini sudah menjadi anggota sekolah.",
     "last_admin": "Sekolah harus memiliki minimal satu admin sekolah yang aktif.",
-    "self_disable": "Anda tidak dapat menonaktifkan akun Anda sendiri."
+    "self_disable": "Anda tidak dapat menonaktifkan akun Anda sendiri.",
+    "invitation_invalid": "Undangan ini sudah tidak berlaku.",
+    "invitation_wrong_account": "Undangan ini untuk email lain. Masuk dengan email yang diundang."
   },
   "theme": {
     "label": "Tema",
@@ -278,11 +280,11 @@
     "title": "Anggota dan peran",
     "subtitle": "Izin seseorang adalah gabungan semua perannya di sekolah ini.",
     "readOnly": "Anda hanya dapat melihat daftar ini.",
-    "addTitle": "Tambah anggota",
-    "addHint": "Akun harus sudah terdaftar. Minta orangnya mendaftar dulu bila belum.",
-    "email": "Email akun",
+    "addTitle": "Undang anggota",
+    "addHint": "Tautan dikirim ke email dan berlaku 7 hari. Orang yang belum punya akun membuatnya saat menerima.",
+    "email": "Email",
     "roles": "Peran",
-    "add": "Tambah",
+    "add": "Kirim undangan",
     "added": "Anggota ditambahkan.",
     "saved": "Perubahan disimpan.",
     "needRole": "Pilih minimal satu peran.",
@@ -295,6 +297,30 @@
     "disabled": "Nonaktif",
     "active": "Aktif",
     "empty": "Belum ada anggota.",
-    "loadError": "Daftar anggota tidak dapat dimuat."
+    "loadError": "Daftar anggota tidak dapat dimuat.",
+    "invited": "Undangan dikirim.",
+    "pendingTitle": "Undangan menunggu",
+    "expiredBadge": "Kedaluwarsa",
+    "resend": "Kirim ulang",
+    "revoke": "Cabut",
+    "revoked": "Undangan dicabut."
+  },
+  "invite": {
+    "title": "Undangan bergabung",
+    "body": "Anda diundang bergabung di {school} dengan peran: {roles}.",
+    "forEmail": "Undangan untuk {email}",
+    "invalidTitle": "Undangan tidak berlaku",
+    "invalidBody": "Tautan ini sudah dipakai, dicabut, atau kedaluwarsa. Minta admin sekolah mengirim undangan baru.",
+    "loadError": "Undangan tidak dapat dimuat. Periksa koneksi lalu coba lagi.",
+    "wrongTitle": "Anda masuk dengan akun lain",
+    "wrongBody": "Undangan ini untuk {email}. Keluar, lalu masuk atau daftar dengan email tersebut.",
+    "accept": "Terima undangan",
+    "accepting": "Memproses…",
+    "createTitle": "Buat akun untuk menerima",
+    "signInTitle": "Masuk untuk menerima",
+    "createAndAccept": "Buat akun dan terima",
+    "signInAndAccept": "Masuk dan terima",
+    "name": "Nama lengkap",
+    "emailTaken": "Email ini sudah terdaftar. Muat ulang halaman untuk masuk."
   }
 }

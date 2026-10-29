@@ -42,7 +42,7 @@ const memberSchema = z.object({
 });
 
 /** Peran sekolah (kunci -> id, izin). Hanya peran milik sekolah di konteks tenant yang terlihat. */
-async function rolesByKey(tx: Tx, keys: string[]) {
+export async function rolesByKey(tx: Tx, keys: string[]) {
   const rows = await tx.select().from(role).where(inArray(role.key, keys));
   if (rows.length !== new Set(keys).size)
     throw new HttpError(400, 'unknown_role', 'Ada peran yang tidak dikenal.');
@@ -62,7 +62,7 @@ async function rolesByKey(tx: Tx, keys: string[]) {
 }
 
 /** Tidak boleh memberi peran yang izinnya melebihi izin pemberi (mencegah menaikkan diri atau orang lain). */
-function assertNoEscalation(ctx: TenantContext, roles: { name: string; permissions: string[] }[]) {
+export function assertNoEscalation(ctx: TenantContext, roles: { name: string; permissions: string[] }[]) {
   for (const r of roles) {
     if (r.permissions.some((p) => !ctx.permissions.has(p))) {
       throw new HttpError(

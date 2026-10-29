@@ -97,7 +97,9 @@
     "account_not_found": "Acan aya akun nganggo surélék éta. Mugi dipénta ngadaptar heula.",
     "already_member": "Jalmi ieu parantos janten anggota sakola.",
     "last_admin": "Sakola kedah gaduh sahenteuna hiji admin sakola nu aktip.",
-    "self_disable": "Anjeun teu tiasa nonaktipkeun akun Anjeun nyalira."
+    "self_disable": "Anjeun teu tiasa nonaktipkeun akun Anjeun nyalira.",
+    "invitation_invalid": "Uleman ieu geus teu valid.",
+    "invitation_wrong_account": "Uleman ieu pikeun surélék séjén. Lebet nganggo surélék nu diulem."
   },
   "theme": {
     "label": "Tema",
@@ -278,11 +280,11 @@
     "title": "Anggota jeung peran",
     "subtitle": "Idin hiji jalmi nyaéta gabungan sakabéh peranna di sakola ieu.",
     "readOnly": "Anjeun ngan tiasa ningali daptar ieu.",
-    "addTitle": "Tambih anggota",
-    "addHint": "Akun kedah parantos kadaptar. Pénta jalmina ngadaptar heula upami acan.",
-    "email": "Surélék akun",
+    "addTitle": "Uleman anggota",
+    "addHint": "Tumbu dikirim ka surélék sarta lumaku 7 poé. Nu acan gaduh akun nyieun akun waktu narima.",
+    "email": "Surélék",
     "roles": "Peran",
-    "add": "Tambih",
+    "add": "Kirim uleman",
     "added": "Anggota ditambihkeun.",
     "saved": "Parobahan disimpen.",
     "needRole": "Pilih sahenteuna hiji peran.",
@@ -295,6 +297,30 @@
     "disabled": "Teu aktip",
     "active": "Aktip",
     "empty": "Acan aya anggota.",
-    "loadError": "Daptar anggota teu bisa dimuat."
+    "loadError": "Daptar anggota teu bisa dimuat.",
+    "invited": "Uleman dikirim.",
+    "pendingTitle": "Uleman nu ngadagoan",
+    "expiredBadge": "Kadaluwarsa",
+    "resend": "Kirim deui",
+    "revoke": "Cabut",
+    "revoked": "Uleman dicabut."
+  },
+  "invite": {
+    "title": "Uleman pikeun ngagabung",
+    "body": "Anjeun diulem ngagabung di {school} kalayan peran: {roles}.",
+    "forEmail": "Uleman pikeun {email}",
+    "invalidTitle": "Uleman teu valid",
+    "invalidBody": "Tumbu ieu geus dipaké, dicabut, atawa kadaluwarsa. Pénta admin sakola ngirim uleman anyar.",
+    "loadError": "Uleman teu bisa dimuat. Parios sambungan, teras cobian deui.",
+    "wrongTitle": "Anjeun lebet nganggo akun séjén",
+    "wrongBody": "Uleman ieu pikeun {email}. Kaluar, teras lebet atawa daptar nganggo surélék éta.",
+    "accept": "Narima uleman",
+    "accepting": "Diprosés…",
+    "createTitle": "Jieun akun pikeun narima",
+    "signInTitle": "Lebet pikeun narima",
+    "createAndAccept": "Jieun akun jeung narima",
+    "signInAndAccept": "Lebet jeung narima",
+    "name": "Ngaran lengkep",
+    "emailTaken": "Surélék ieu geus kadaptar. Muat deui kaca pikeun lebet."
   }
 }

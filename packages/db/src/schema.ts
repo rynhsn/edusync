@@ -373,3 +373,23 @@ export const foundationOwner = pgTable(
     index('foundation_owner_user_idx').on(t.userId),
   ],
 );
+
+/** Undangan menjadi anggota unit. Token hanya dikirim lewat email; yang disimpan hanya hash-nya. */
+export const invitation = pgTable(
+  'invitation',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    email: text('email').notNull(),
+    roles: jsonb('roles').$type<string[]>().notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+    invitedBy: text('invited_by').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    acceptedAt: timestamp('accepted_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('invitation_school_idx').on(t.schoolId, t.email)],
+);

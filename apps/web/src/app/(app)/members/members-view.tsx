@@ -87,20 +87,46 @@ export function MembersView() {
   const roleName = (key: string) => (tr.has(key as never) ? tr(key as never) : key);
   const canGrant = (r: RoleOption) => r.permissions.every((p) => can(p));
   const refresh = () => queryClient.invalidateQueries({ queryKey: membersKey });
+  const invitationsKey = ['invitations', school.schoolId];
+  const refreshInvitations = () => queryClient.invalidateQueries({ queryKey: invitationsKey });
+  const invitations = useQuery({
+    queryKey: invitationsKey,
+    queryFn: async () => unwrap(await api.GET('/v1/invitations', { params: header })),
+  });
 
   const add = useMutation({
     mutationFn: async () =>
       unwrap(
-        await api.POST('/v1/members', { params: header, body: { email: email.trim(), roles: newRoles } }),
+        await api.POST('/v1/invitations', { params: header, body: { email: email.trim(), roles: newRoles } }),
       ),
     onSuccess: () => {
       setFormError(null);
       setEmail('');
       setNewRoles([]);
-      toast.success(t('added'));
-      refresh();
+      toast.success(t('invited'));
+      refreshInvitations();
     },
     onError: (e) => setFormError(te(errorKey(e))),
+  });
+
+  const resend = useMutation({
+    mutationFn: async (v: { email: string; roles: string[] }) =>
+      unwrap(await api.POST('/v1/invitations', { params: header, body: v })),
+    onSuccess: () => {
+      toast.success(t('invited'));
+      refreshInvitations();
+    },
+    onError: (e) => toast.error(te(errorKey(e))),
+  });
+
+  const revoke = useMutation({
+    mutationFn: async (id: string) =>
+      unwrap(await api.DELETE('/v1/invitations/{id}', { params: { ...header, path: { id } } })),
+    onSuccess: () => {
+      toast.success(t('revoked'));
+      refreshInvitations();
+    },
+    onError: (e) => toast.error(te(errorKey(e))),
   });
 
   const saveRoles = useMutation({
@@ -190,6 +216,53 @@ export function MembersView() {
                 </Button>
               </div>
             </form>
+          </CardContent>
+        </Card>
+      )}
+
+      {invitations.data && invitations.data.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-heading text-lg">{t('pendingTitle')}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="divide-y">
+              {invitations.data.map((i) => (
+                <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
+                  <div>
+                    <span className="font-medium">{i.email}</span>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {i.roles.map((k) => (
+                        <Badge key={k} variant="outline">
+                          {roleName(k)}
+                        </Badge>
+                      ))}
+                      {i.expired && <Badge variant="destructive">{t('expiredBadge')}</Badge>}
+                    </div>
+                  </div>
+                  {manage && (
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={resend.isPending}
+                        onClick={() => resend.mutate({ email: i.email, roles: i.roles })}
+                      >
+                        {t('resend')}
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={revoke.isPending}
+                        onClick={() => revoke.mutate(i.id)}
+                      >
+                        {t('revoke')}
+                      </Button>
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
           </CardContent>
         </Card>
       )}

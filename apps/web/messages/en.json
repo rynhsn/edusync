@@ -97,7 +97,9 @@
     "account_not_found": "No account with that email yet. Ask them to sign up first.",
     "already_member": "This person is already a member of the school.",
     "last_admin": "The school must keep at least one active school admin.",
-    "self_disable": "You cannot deactivate your own account."
+    "self_disable": "You cannot deactivate your own account.",
+    "invitation_invalid": "This invitation is no longer valid.",
+    "invitation_wrong_account": "This invitation is for a different email. Sign in with the invited email."
   },
   "theme": {
     "label": "Theme",
@@ -278,11 +280,11 @@
     "title": "Members and roles",
     "subtitle": "A person’s permissions are the union of all their roles at this school.",
     "readOnly": "You can only view this list.",
-    "addTitle": "Add a member",
-    "addHint": "The account must already exist. Ask them to sign up first if it does not.",
-    "email": "Account email",
+    "addTitle": "Invite a member",
+    "addHint": "A link is emailed and stays valid for 7 days. People without an account create one when they accept.",
+    "email": "Email",
     "roles": "Roles",
-    "add": "Add",
+    "add": "Send invitation",
     "added": "Member added.",
     "saved": "Changes saved.",
     "needRole": "Choose at least one role.",
@@ -295,6 +297,30 @@
     "disabled": "Inactive",
     "active": "Active",
     "empty": "No members yet.",
-    "loadError": "The member list could not be loaded."
+    "loadError": "The member list could not be loaded.",
+    "invited": "Invitation sent.",
+    "pendingTitle": "Pending invitations",
+    "expiredBadge": "Expired",
+    "resend": "Resend",
+    "revoke": "Revoke",
+    "revoked": "Invitation revoked."
+  },
+  "invite": {
+    "title": "Invitation to join",
+    "body": "You have been invited to join {school} with the roles: {roles}.",
+    "forEmail": "Invitation for {email}",
+    "invalidTitle": "Invitation not valid",
+    "invalidBody": "This link was already used, revoked, or has expired. Ask the school admin to send a new one.",
+    "loadError": "The invitation could not be loaded. Check your connection and try again.",
+    "wrongTitle": "You are signed in with another account",
+    "wrongBody": "This invitation is for {email}. Sign out, then sign in or sign up with that email.",
+    "accept": "Accept invitation",
+    "accepting": "Working…",
+    "createTitle": "Create an account to accept",
+    "signInTitle": "Sign in to accept",
+    "createAndAccept": "Create account and accept",
+    "signInAndAccept": "Sign in and accept",
+    "name": "Full name",
+    "emailTaken": "This email is already registered. Reload the page to sign in."
   }
 }
