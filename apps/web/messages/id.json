@@ -606,7 +606,6 @@
     "workdays": "Hari kerja",
     "closures": "Libur dan jeda",
     "totalDays": "Hari kalender",
-    "download": "Unduh iCal",
     "addTitle": "Tambah acara",
     "type": "Jenis",
     "starts": "Mulai",
@@ -625,7 +624,16 @@
     "exam": "Ujian",
     "activity": "Kegiatan",
     "readOnly": "Anda hanya dapat melihat kalender.",
-    "downloadError": "Unduhan gagal. Coba lagi.",
-    "eventTitle": "Judul"
+    "eventTitle": "Judul",
+    "yearView": "Tampilan tahunan dan PDF",
+    "yearTitle": "Kalender tahunan",
+    "pdfTitle": "Kalender Akademik",
+    "backToList": "Kembali ke daftar acara",
+    "downloadPdf": "Unduh PDF",
+    "generating": "Menyiapkan PDF…",
+    "eventsTitle": "Daftar acara",
+    "weekend": "Akhir pekan",
+    "generated": "Dibuat {date} dengan Edusync",
+    "pdfError": "PDF gagal dibuat. Coba lagi."
   }
 }

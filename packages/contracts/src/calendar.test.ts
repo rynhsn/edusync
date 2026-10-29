@@ -1,14 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { effectiveDays, toIcs } from './calendar';
-
-function byteLength(s: string) {
-  let n = 0;
-  for (const ch of s) {
-    const c = ch.codePointAt(0) as number;
-    n += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
-  }
-  return n;
-}
+import { buildYearPlanner, effectiveDays } from './calendar';
 
 describe('effectiveDays', () => {
   it('menghitung hari kerja Senin–Jumat dan Senin–Sabtu', () => {
@@ -41,37 +32,39 @@ describe('effectiveDays', () => {
   });
 });
 
-describe('toIcs', () => {
-  it('membuat acara sehari penuh dengan akhir eksklusif, CRLF, dan teks di-escape', () => {
-    const ics = toIcs(
-      'Tahun 2026/2027',
-      [
-        {
-          id: 'abc',
-          title: 'Libur, Idul Fitri; "besar"',
-          type: 'holiday',
-          startsOn: '2027-03-09',
-          endsOn: '2027-03-11',
-        },
-      ],
-      new Date('2026-10-30T10:20:30Z'),
-    );
-    expect(ics.startsWith('BEGIN:VCALENDAR\r\n')).toBe(true);
-    expect(ics.endsWith('END:VCALENDAR\r\n')).toBe(true);
-    expect(ics).toContain('DTSTART;VALUE=DATE:20270309\r\n');
-    expect(ics).toContain('DTEND;VALUE=DATE:20270312\r\n');
-    expect(ics).toContain('SUMMARY:Libur\\, Idul Fitri\\; "besar"\r\n');
-    expect(ics).toContain('DTSTAMP:20261030T102030Z');
-    expect(ics).not.toMatch(/[^\r]\n/);
+describe('buildYearPlanner', () => {
+  it('membuat grid bulan dari bulan mulai sampai bulan akhir, minggu dimulai Senin', () => {
+    const months = buildYearPlanner({ startsOn: '2026-07-13', endsOn: '2026-09-30' }, []);
+    expect(months.map((m) => [m.year, m.month])).toEqual([
+      [2026, 6],
+      [2026, 7],
+      [2026, 8],
+    ]);
+    // 1 Juli 2026 hari Rabu: minggu pertama diisi dua sel kosong (Sen, Sel) sebelum tanggal 1.
+    const july = months[0]!;
+    expect(july.weeks[0]!.map((c) => c.inMonth)).toEqual([false, false, true, true, true, true, true]);
+    expect(july.weeks.every((w) => w.length === 7)).toBe(true);
+    expect(july.weeks.flat().filter((c) => c.inMonth)).toHaveLength(31);
   });
 
-  it('melipat baris yang panjang tanpa memotong karakter', () => {
-    const title = 'Kegiatan '.repeat(30);
-    const ics = toIcs('x', [
-      { id: 'a', title, type: 'activity', startsOn: '2026-08-17', endsOn: '2026-08-17' },
+  it('hari sebelum tahun ajaran dimulai tidak bertanda; akhir pekan ditandai; libur mengalahkan jeda dan ujian', () => {
+    const months = buildYearPlanner({ startsOn: '2026-07-13', endsOn: '2026-07-31' }, [
+      { type: 'exam', startsOn: '2026-07-20', endsOn: '2026-07-22' },
+      { type: 'break', startsOn: '2026-07-21', endsOn: '2026-07-23' },
+      { type: 'holiday', startsOn: '2026-07-22', endsOn: '2026-07-22' },
     ]);
-    for (const line of ics.split('\r\n')) expect(byteLength(line)).toBeLessThanOrEqual(75);
-    const unfolded = ics.replace(/\r\n /g, '');
-    expect(unfolded).toContain(`SUMMARY:${title}`);
+    const cell = (d: string) => months[0]!.weeks.flat().find((c) => c.date === d && c.inMonth)!;
+    expect(cell('2026-07-10').kind).toBeNull(); // sebelum dimulai, Jumat
+    expect(cell('2026-07-11').kind).toBeNull(); // sebelum dimulai, Sabtu: tetap tanpa penanda
+    expect(cell('2026-07-18').kind).toBe('weekend');
+    expect(cell('2026-07-20').kind).toBe('exam');
+    expect(cell('2026-07-21').kind).toBe('break'); // jeda mengalahkan ujian
+    expect(cell('2026-07-22').kind).toBe('holiday'); // libur mengalahkan jeda
+    expect(cell('2026-07-23').kind).toBe('break');
+    expect(cell('2026-07-24').kind).toBeNull();
+  });
+
+  it('tahun ajaran penuh mencakup 12 bulan', () => {
+    expect(buildYearPlanner({ startsOn: '2026-07-13', endsOn: '2027-06-30' }, [])).toHaveLength(12);
   });
 });

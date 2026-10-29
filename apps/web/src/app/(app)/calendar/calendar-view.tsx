@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -18,7 +19,6 @@ import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
-import { saveBlob } from '@/lib/sheet';
 
 const TYPES = ['holiday', 'break', 'exam', 'activity'] as const;
 type EventType = (typeof TYPES)[number];
@@ -121,19 +121,6 @@ export function CalendarView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
-  async function downloadIcs() {
-    try {
-      const res = await fetch(`/v1/academic-years/${yearId}/calendar.ics`, {
-        credentials: 'include',
-        headers: { 'x-school-id': school.schoolId },
-      });
-      if (!res.ok) throw new Error('unduhan gagal');
-      saveBlob(await res.blob(), 'kalender-akademik.ics');
-    } catch {
-      toast.error(t('downloadError'));
-    }
-  }
-
   const show = (iso: string) => formatCalendarDate(locale, iso);
   const range = (a: string, b: string) => (a === b ? show(a) : `${show(a)} – ${show(b)}`);
   const classList = classes.data ?? [];
@@ -175,8 +162,8 @@ export function CalendarView() {
                 <option value="6">{t('days6')}</option>
               </SelectField>
             </div>
-            <Button variant="outline" onClick={downloadIcs}>
-              {t('download')}
+            <Button variant="outline" nativeButton={false} render={<Link href="/calendar/year" />}>
+              {t('yearView')}
             </Button>
           </div>
 

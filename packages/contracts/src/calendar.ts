@@ -52,66 +52,73 @@ export function effectiveDays(range: DayRange, closures: DayRange[], daysPerWeek
   return { total, workdays, nonEffective, effective: workdays - nonEffective };
 }
 
-export interface IcsEvent {
-  id: string;
-  title: string;
+export interface PlannerEvent extends DayRange {
   type: EventType;
-  startsOn: string;
-  endsOn: string;
 }
 
-function byteLength(s: string) {
-  let n = 0;
-  for (const ch of s) {
-    const c = ch.codePointAt(0) as number;
-    n += c < 0x80 ? 1 : c < 0x800 ? 2 : c < 0x10000 ? 3 : 4;
-  }
-  return n;
+export type CellKind = EventType | 'weekend';
+
+export interface PlannerCell {
+  /** Tanggal TTTT-BB-HH. */
+  date: string;
+  day: number;
+  /** Kosong bila sel hanya pengisi di awal/akhir minggu (bulan lain). */
+  inMonth: boolean;
+  /** Penanda terkuat pada hari itu; libur mengalahkan jeda, ujian, lalu kegiatan. */
+  kind: CellKind | null;
 }
 
-const escapeText = (s: string) =>
-  s.replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
-
-/** Lipat baris iCal yang lebih dari 75 oktet (RFC 5545), dengan spasi di awal baris lanjutan. */
-function fold(line: string) {
-  const out: string[] = [];
-  let rest = line;
-  while (byteLength(rest) > 75) {
-    let cut = 75;
-    while (byteLength(rest.slice(0, cut)) > 75) cut--;
-    out.push(rest.slice(0, cut));
-    rest = ` ${rest.slice(cut)}`;
-  }
-  out.push(rest);
-  return out.join('\r\n');
+export interface PlannerMonth {
+  /** Bulan 0–11 dan tahunnya. */
+  month: number;
+  year: number;
+  /** Minggu demi minggu (Senin–Minggu), tiap minggu 7 sel. */
+  weeks: PlannerCell[][];
 }
 
-const compact = (iso: string) => iso.replaceAll('-', '');
+const PRIORITY: EventType[] = ['holiday', 'break', 'exam', 'activity'];
 
-/** Kalender iCal (acara sehari penuh) untuk diimpor ke Google Calendar, Outlook, atau Apple Calendar. */
-export function toIcs(name: string, events: IcsEvent[], now = new Date()): string {
-  const stamp = `${now.toISOString().replace(/[-:]/g, '').slice(0, 15)}Z`;
-  const lines = [
-    'BEGIN:VCALENDAR',
-    'VERSION:2.0',
-    'PRODID:-//Edusync//Kalender Akademik//ID',
-    'CALSCALE:GREGORIAN',
-  ];
-  lines.push(`X-WR-CALNAME:${escapeText(name)}`);
-  for (const e of events) {
-    lines.push(
-      'BEGIN:VEVENT',
-      `UID:${e.id}@edusync`,
-      `DTSTAMP:${stamp}`,
-      `DTSTART;VALUE=DATE:${compact(e.startsOn)}`,
-      // Akhir acara sehari penuh bersifat eksklusif.
-      `DTEND;VALUE=DATE:${compact(format(parse(e.endsOn) + DAY))}`,
-      `SUMMARY:${escapeText(e.title)}`,
-      `CATEGORIES:${e.type.toUpperCase()}`,
-      'TRANSP:TRANSPARENT',
-      'END:VEVENT',
-    );
+/**
+ * Kalender tahunan: satu grid per bulan dari bulan mulai sampai bulan akhir tahun ajaran. Hari di luar rentang
+ * tahun ajaran tetap tampil tetapi tanpa penanda. Minggu dimulai hari Senin.
+ */
+export function buildYearPlanner(range: DayRange, events: PlannerEvent[]): PlannerMonth[] {
+  const from = parse(range.startsOn);
+  const to = parse(range.endsOn);
+  const start = new Date(from);
+  const end = new Date(to);
+  const months: PlannerMonth[] = [];
+
+  const kindOf = (ms: number): CellKind | null => {
+    if (ms < from || ms > to) return null;
+    const hit = events.filter((e) => ms >= parse(e.startsOn) && ms <= parse(e.endsOn)).map((e) => e.type);
+    for (const t of PRIORITY) if (hit.includes(t)) return t;
+    const wd = new Date(ms).getUTCDay();
+    return wd === 0 || wd === 6 ? 'weekend' : null;
+  };
+
+  for (
+    let y = start.getUTCFullYear(), m = start.getUTCMonth();
+    y < end.getUTCFullYear() || (y === end.getUTCFullYear() && m <= end.getUTCMonth());
+    m === 11 ? ((m = 0), y++) : m++
+  ) {
+    const first = Date.UTC(y, m, 1);
+    const daysInMonth = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
+    const lead = (new Date(first).getUTCDay() + 6) % 7; // Senin = 0
+    const cells: PlannerCell[] = [];
+    for (let i = -lead; i < Math.ceil((lead + daysInMonth) / 7) * 7 - lead; i++) {
+      const ms = first + i * DAY;
+      const inMonth = i >= 0 && i < daysInMonth;
+      cells.push({
+        date: format(ms),
+        day: new Date(ms).getUTCDate(),
+        inMonth,
+        kind: inMonth ? kindOf(ms) : null,
+      });
+    }
+    const weeks: PlannerCell[][] = [];
+    for (let i = 0; i < cells.length; i += 7) weeks.push(cells.slice(i, i + 7));
+    months.push({ month: m, year: y, weeks });
   }
-  lines.push('END:VCALENDAR');
-  return `${lines.map(fold).join('\r\n')}\r\n`;
+  return months;
 }

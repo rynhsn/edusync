@@ -606,7 +606,6 @@
     "workdays": "Poé gawé",
     "closures": "Libur jeung jeda",
     "totalDays": "Poé kalénder",
-    "download": "Unduh iCal",
     "addTitle": "Tambih acara",
     "type": "Jinis",
     "starts": "Mimiti",
@@ -625,7 +624,16 @@
     "exam": "Ujian",
     "activity": "Kagiatan",
     "readOnly": "Anjeun ngan tiasa ningali kalénder.",
-    "downloadError": "Undeuran gagal. Cobian deui.",
-    "eventTitle": "Judul"
+    "eventTitle": "Judul",
+    "yearView": "Tampilan taunan jeung PDF",
+    "yearTitle": "Kalénder taunan",
+    "pdfTitle": "Kalénder Akadémik",
+    "backToList": "Balik ka daptar acara",
+    "downloadPdf": "Unduh PDF",
+    "generating": "Nyiapkeun PDF…",
+    "eventsTitle": "Daptar acara",
+    "weekend": "Tungtung minggu",
+    "generated": "Dijieun {date} nganggo Edusync",
+    "pdfError": "PDF teu bisa dijieun. Cobian deui."
   }
 }

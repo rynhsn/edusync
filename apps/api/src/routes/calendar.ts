@@ -1,4 +1,4 @@
-import { EVENT_TYPES, effectiveDays, toIcs } from '@edusync/contracts';
+import { EVENT_TYPES, effectiveDays } from '@edusync/contracts';
 import {
   academicYear,
   and,
@@ -73,7 +73,7 @@ async function validate(tx: Tx, year: { startsOn: string; endsOn: string }, b: z
   }
 }
 
-/** Kalender akademik per tahun ajaran: acara, hari efektif, dan ekspor iCal. Memakai izin tahun ajaran. */
+/** Kalender akademik per tahun ajaran: acara dan hari efektif. Memakai izin tahun ajaran. */
 export async function calendarRoutes(instance: FastifyInstance) {
   const app = instance.withTypeProvider<ZodTypeProvider>();
   const tenant = <T>(
@@ -128,38 +128,6 @@ export async function calendarRoutes(instance: FastifyInstance) {
           days: effectiveDays(year, closures, request.query.daysPerWeek as 5 | 6),
         };
       }),
-  );
-
-  app.get(
-    '/v1/academic-years/:id/calendar.ics',
-    {
-      onRequest: [requirePermission('academic_year:read')],
-      schema: {
-        tags: ['Academic'],
-        summary: 'Ekspor kalender akademik sebagai iCal',
-        description:
-          'Izin: `academic_year:read`. Berkas `.ics` berisi semua acara tahun ajaran (sehari penuh), untuk diimpor ke ' +
-          'Google Calendar, Outlook, atau Apple Calendar.',
-        headers: schoolHeader,
-        params: idParams,
-        response: { 200: z.string(), 404: errorSchema, ...guarded },
-      },
-    },
-    async (request, reply) => {
-      const { name, events } = await tenant(request, async (tx) => {
-        const year = await yearOf(tx, request.params.id);
-        const rows = await tx
-          .select()
-          .from(calendarEvent)
-          .where(eq(calendarEvent.academicYearId, year.id))
-          .orderBy(asc(calendarEvent.startsOn));
-        return { name: year.name, events: rows };
-      });
-      return reply
-        .header('content-type', 'text/calendar; charset=utf-8')
-        .header('content-disposition', 'attachment; filename="kalender-akademik.ics"')
-        .send(toIcs(`Kalender akademik ${name}`, events));
-    },
   );
 
   app.post(

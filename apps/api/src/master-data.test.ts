@@ -860,7 +860,7 @@ describe('semester', () => {
 });
 
 describe('kalender akademik', () => {
-  it('acara, hari efektif, dan iCal', async () => {
+  it('acara dan hari efektif', async () => {
     const year = (
       await call('POST', '/v1/academic-years', opCookie, {
         name: '2040/2041',
@@ -895,12 +895,6 @@ describe('kalender akademik', () => {
       (await call('GET', `/v1/academic-years/${year.id}/calendar?daysPerWeek=6`, opCookie)).json().days
         .workdays,
     ).toBe(12);
-
-    const ics = await call('GET', `/v1/academic-years/${year.id}/calendar.ics`, teacherCookie);
-    expect(ics.statusCode).toBe(200);
-    expect(ics.headers['content-type']).toContain('text/calendar');
-    expect(ics.body).toContain('SUMMARY:Libur\\, uji\\; coba');
-    expect(ics.body).toContain('DTEND;VALUE=DATE:20400719');
 
     const edit = await call('PUT', `/v1/events/${libur.json().id}`, opCookie, {
       type: 'holiday',

@@ -606,7 +606,6 @@
     "workdays": "Working days",
     "closures": "Holidays and breaks",
     "totalDays": "Calendar days",
-    "download": "Download iCal",
     "addTitle": "Add an event",
     "type": "Type",
     "starts": "Starts",
@@ -625,7 +624,16 @@
     "exam": "Exam",
     "activity": "Activity",
     "readOnly": "You can only view the calendar.",
-    "downloadError": "The download failed. Try again.",
-    "eventTitle": "Title"
+    "eventTitle": "Title",
+    "yearView": "Year view and PDF",
+    "yearTitle": "Yearly calendar",
+    "pdfTitle": "Academic Calendar",
+    "backToList": "Back to the event list",
+    "downloadPdf": "Download PDF",
+    "generating": "Preparing PDF…",
+    "eventsTitle": "Event list",
+    "weekend": "Weekend",
+    "generated": "Created {date} with Edusync",
+    "pdfError": "The PDF could not be created. Try again."
   }
 }
