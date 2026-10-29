@@ -4,14 +4,32 @@
     {
       "name": "edusync-api",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@edusync/api", "start"],
+      "runtimeArgs": [
+        "--filter",
+        "@edusync/api",
+        "start"
+      ],
       "port": 4000
     },
     {
       "name": "edusync-web",
       "runtimeExecutable": "pnpm",
-      "runtimeArgs": ["--filter", "@edusync/web", "dev"],
+      "runtimeArgs": [
+        "--filter",
+        "@edusync/web",
+        "dev"
+      ],
       "port": 3000
+    },
+    {
+      "name": "edusync-worker",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "--filter",
+        "@edusync/worker",
+        "start"
+      ],
+      "port": 0
     }
   ]
 }

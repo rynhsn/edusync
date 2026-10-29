@@ -201,3 +201,25 @@ export const memberRole = pgTable(
   },
   (t) => [primaryKey({ columns: [t.memberId, t.roleId] })],
 );
+
+/* ---------- Outbox: pekerjaan latar belakang yang ditulis dalam transaksi bisnis ---------- */
+
+/**
+ * API menulis baris di sini dalam transaksi yang sama dengan perubahan datanya, sehingga pekerjaan
+ * hanya ada bila datanya tersimpan. Worker memindahkannya ke antrean pg-boss.
+ */
+export const outbox = pgTable(
+  'outbox',
+  {
+    id: id(),
+    schoolId: uuid('school_id').references(() => school.id),
+    queue: text('queue').notNull(),
+    payload: jsonb('payload').$type<Record<string, unknown>>().notNull(),
+    status: text('status', { enum: ['pending', 'enqueued'] })
+      .notNull()
+      .default('pending'),
+    createdAt: createdAt(),
+    enqueuedAt: timestamp('enqueued_at', { withTimezone: true }),
+  },
+  (t) => [index('outbox_pending_idx').on(t.status, t.createdAt)],
+);

@@ -15,7 +15,7 @@
     "lint": "biome check .",
     "format": "biome check --write .",
     "db:generate": "pnpm --filter @edusync/db generate",
-    "db:migrate": "pnpm --filter @edusync/db migrate"
+    "db:migrate": "pnpm --filter @edusync/db migrate && pnpm --filter @edusync/jobs queues:setup"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.6.3",

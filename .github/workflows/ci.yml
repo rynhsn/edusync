@@ -17,7 +17,11 @@ jobs:
         ports: ["5440:5432"]
         options: >-
           --health-cmd "pg_isready -U edusync -d edusync" --health-interval 5s --health-timeout 3s --health-retries 10
+      mailpit:
+        image: axllent/mailpit:latest
+        ports: ["1025:1025", "8025:8025"]
     env:
+      DATABASE_JOBS_URL: postgres://edusync:edusync_dev_only@localhost:5440/edusync
       DATABASE_OWNER_URL: postgres://edusync:edusync_dev_only@localhost:5440/edusync
       DATABASE_URL: postgres://edusync_app:edusync_app_dev@localhost:5440/edusync
       DATABASE_PLATFORM_URL: postgres://edusync_platform:edusync_platform_dev@localhost:5440/edusync
