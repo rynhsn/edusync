@@ -20,6 +20,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
@@ -410,11 +411,10 @@ export function RegisterForm() {
 
                     <div className="grid content-start gap-2 sm:max-w-xs">
                       <Label htmlFor={`${unit.id}-tier`}>{t('tier')}</Label>
-                      <select
+                      <SelectField
                         id={`${unit.id}-tier`}
                         value={unit.tier}
                         onChange={(e) => update(unit.id, { tier: e.target.value })}
-                        className="border-input bg-background focus-visible:ring-ring/50 h-9 rounded-lg border px-2.5 text-sm outline-none focus-visible:ring-3"
                       >
                         {tiers.map((tier) => (
                           <option key={tier.key} value={tier.key}>
@@ -422,7 +422,7 @@ export function RegisterForm() {
                             {tier.priceMonthly > 0 ? ` (+${money.format(tier.priceMonthly)})` : ''}
                           </option>
                         ))}
-                      </select>
+                      </SelectField>
                     </div>
                   </CardContent>
                 </Card>
