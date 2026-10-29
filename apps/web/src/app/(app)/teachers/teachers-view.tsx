@@ -16,6 +16,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { buildExport, saveBlob } from '@/lib/sheet';
 
 interface Draft {
   name: string;
@@ -123,6 +124,18 @@ export function TeachersView() {
     },
     onError: (e) => toast.error(te(errorKey(e))),
   });
+  async function exportExcel() {
+    const rows = list.data ?? [];
+    if (rows.length === 0) return void toast.info(tm('exportEmpty'));
+    const blob = await buildExport(
+      'Guru',
+      ['Nama', 'NIP', 'Status'],
+      rows.map((r) => [r.name, r.nip, r.status === 'active' ? t('active') : t('inactive')]),
+      { textColumns: [2], widths: [30, 24, 14] },
+    );
+    saveBlob(blob, `guru-${school.schoolSlug}-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  }
+
   const remove = useMutation({
     mutationFn: async (id: string) =>
       unwrap(await api.DELETE('/v1/teachers/{id}', { params: { ...header, path: { id } } })),
@@ -140,17 +153,21 @@ export function TeachersView() {
         <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">{t('title')}</h1>
         <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
         {!manage && <p className="text-muted-foreground mt-1 text-sm">{tm('readOnly')}</p>}
-        {manage && (
-          <Button
-            className="mt-3"
-            size="sm"
-            variant="outline"
-            nativeButton={false}
-            render={<Link href="/teachers/import" />}
-          >
-            {t('importLink')}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" onClick={exportExcel}>
+            {tm('export')}
           </Button>
-        )}
+          {manage && (
+            <Button
+              size="sm"
+              variant="outline"
+              nativeButton={false}
+              render={<Link href="/teachers/import" />}
+            >
+              {t('importLink')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {manage && (

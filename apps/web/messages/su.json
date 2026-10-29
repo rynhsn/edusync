@@ -380,7 +380,11 @@
     "readOnly": "Anjeun ngan tiasa ningali daptar ieu.",
     "code": "Kode",
     "name": "Ngaran",
-    "none": "-"
+    "none": "-",
+    "export": "Ekspor Excel",
+    "exporting": "Nyiapkeun…",
+    "exportEmpty": "Teu aya data pikeun diékspor.",
+    "exportError": "Ékspor gagal. Cobian deui."
   },
   "students": {
     "title": "Murid",

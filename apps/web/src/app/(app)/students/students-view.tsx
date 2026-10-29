@@ -16,6 +16,7 @@ import { NativeSelect } from '@/components/ui/native-select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { buildExport, saveBlob } from '@/lib/sheet';
 
 const PAGE = 25;
 const STATUSES = ['active', 'graduated', 'transferred', 'dropped'] as const;
@@ -252,6 +253,35 @@ export function StudentsView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
+  const [exporting, setExporting] = useState(false);
+
+  /** Ekspor hasil pencarian dan saringan yang sedang tampil (semua halaman), dengan judul kolom yang sama dengan templat impor. */
+  async function exportExcel() {
+    setExporting(true);
+    try {
+      const all: NonNullable<typeof list.data>['items'] = [];
+      for (let offset = 0; ; offset += 100) {
+        const page = unwrap(
+          await api.GET('/v1/students', { params: { ...header, query: { ...query, limit: 100, offset } } }),
+        );
+        all.push(...page.items);
+        if (all.length >= page.total || page.items.length === 0) break;
+      }
+      if (all.length === 0) return void toast.info(tm('exportEmpty'));
+      const blob = await buildExport(
+        'Siswa',
+        ['Nama', 'NIS', 'NISN', 'Jenis Kelamin', 'Tanggal Lahir', 'Kelas', 'Status'],
+        all.map((x) => [x.name, x.nis, x.nisn, x.gender, x.birthDate, x.className, t(STATUS_KEY[x.status])]),
+        { textColumns: [2, 3], widths: [30, 14, 16, 16, 16, 14, 14] },
+      );
+      saveBlob(blob, `siswa-${school.schoolSlug}-${new Date().toISOString().slice(0, 10)}.xlsx`);
+    } catch {
+      toast.error(tm('exportError'));
+    } finally {
+      setExporting(false);
+    }
+  }
+
   const total = list.data?.total ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE));
 
@@ -262,17 +292,21 @@ export function StudentsView() {
         <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">{t('title')}</h1>
         <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
         {!manage && <p className="text-muted-foreground mt-1 text-sm">{tm('readOnly')}</p>}
-        {manage && (
-          <Button
-            className="mt-3"
-            size="sm"
-            variant="outline"
-            nativeButton={false}
-            render={<Link href="/students/import" />}
-          >
-            {t('importLink')}
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button size="sm" variant="outline" disabled={exporting} onClick={exportExcel}>
+            {exporting ? tm('exporting') : tm('export')}
           </Button>
-        )}
+          {manage && (
+            <Button
+              size="sm"
+              variant="outline"
+              nativeButton={false}
+              render={<Link href="/students/import" />}
+            >
+              {t('importLink')}
+            </Button>
+          )}
+        </div>
       </div>
 
       {manage && (

@@ -380,7 +380,11 @@
     "readOnly": "You can only view this list.",
     "code": "Code",
     "name": "Name",
-    "none": "-"
+    "none": "-",
+    "export": "Export to Excel",
+    "exporting": "Preparing…",
+    "exportEmpty": "Nothing to export.",
+    "exportError": "Export failed. Try again."
   },
   "students": {
     "title": "Students",

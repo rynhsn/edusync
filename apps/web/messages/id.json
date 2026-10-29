@@ -380,7 +380,11 @@
     "readOnly": "Anda hanya dapat melihat daftar ini.",
     "code": "Kode",
     "name": "Nama",
-    "none": "-"
+    "none": "-",
+    "export": "Ekspor Excel",
+    "exporting": "Menyiapkan…",
+    "exportEmpty": "Tidak ada data untuk diekspor.",
+    "exportError": "Ekspor gagal. Coba lagi."
   },
   "students": {
     "title": "Siswa",
