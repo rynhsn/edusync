@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -261,6 +262,17 @@ export function StudentsView() {
         <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">{t('title')}</h1>
         <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
         {!manage && <p className="text-muted-foreground mt-1 text-sm">{tm('readOnly')}</p>}
+        {manage && (
+          <Button
+            className="mt-3"
+            size="sm"
+            variant="outline"
+            nativeButton={false}
+            render={<Link href="/students/import" />}
+          >
+            {t('importLink')}
+          </Button>
+        )}
       </div>
 
       {manage && (

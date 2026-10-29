@@ -404,7 +404,8 @@
     "total": "{count} students",
     "prev": "Previous",
     "next": "Next",
-    "searchPlaceholder": "Name, NIS, or NISN"
+    "searchPlaceholder": "Name, NIS, or NISN",
+    "importLink": "Import from Excel"
   },
   "classes": {
     "title": "Classes and programs",
@@ -442,5 +443,41 @@
     "active": "Active",
     "inactive": "Inactive",
     "searchPlaceholder": "Name or NIP"
+  },
+  "studentImport": {
+    "title": "Import students from Excel",
+    "subtitle": "Upload an .xlsx file. It is checked first; nothing is saved until every row is valid.",
+    "step1": "1. Download the template",
+    "step1Hint": "Fill from row 2 without changing the column titles. Instructions are on the second sheet.",
+    "download": "Download template",
+    "step2": "2. Choose a file",
+    "step2Hint": ".xlsx only. Up to 1000 rows.",
+    "file": "Excel file",
+    "checking": "Checking…",
+    "readError": "The file could not be read. Make sure it is an .xlsx file.",
+    "noSheet": "The file has no worksheet.",
+    "missingColumns": "Required columns not found: {columns}.",
+    "tooMany": "The file has more than 1000 rows. Split it into several files.",
+    "noRows": "No data rows. Fill from row 2.",
+    "summary": "{valid} of {total} rows are ready to import.",
+    "allValid": "Every row is valid.",
+    "hasErrors": "{count} errors. Fix them in Excel and upload again; nothing was saved.",
+    "showing": "Showing {shown} of {count} errors.",
+    "row": "Row",
+    "field": "Column",
+    "message": "Problem",
+    "import": "Import {count} students",
+    "importing": "Saving…",
+    "done": "{count} students imported.",
+    "toList": "View students",
+    "another": "Import another file",
+    "fields": {
+      "name": "Name",
+      "nis": "NIS",
+      "nisn": "NISN",
+      "gender": "Gender",
+      "birthDate": "Date of birth",
+      "className": "Class"
+    }
   }
 }

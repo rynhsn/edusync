@@ -194,3 +194,9 @@ Pilot Miftahul Huda (SMP IT + SMK, ±15 guru, sebagian lintas unit) masuk akal s
 - Kunci asing Postgres tidak tunduk pada RLS, jadi rujukan lintas sekolah (mis. kelas menunjuk tahun ajaran sekolah lain) divalidasi di API dalam transaksi tenant. Sebuah tes introspeksi memastikan setiap tabel ber-`school_id` mengaktifkan dan memaksa RLS.
 - Siswa dihapus secara lunak (`deleted_at`); kelulusan dan perpindahan memakai status siklus hidup, bukan penghapusan.
 - Guru lintas unit (`person` tingkat yayasan) belum: guru saat ini per unit.
+
+### Catatan impor siswa (M2 tahap 2a)
+- Berkas `.xlsx` dibaca **di browser** (exceljs, dimuat saat halaman impor dibuka); yang dikirim ke server hanya baris teks (`POST /v1/students/import`, maks. 1000 baris, 2 MB), jadi tidak ada unggahan berkas dan tidak ada parser zip di server.
+- Dua langkah: pratinjau (`dryRun`) melaporkan kesalahan per baris (nomor baris lembar kerja, kolom, pesan); simpan hanya bila semua baris valid, dalam satu transaksi (semua-atau-tidak). Server memvalidasi ulang semuanya: NIS/NISN unik di file dan di sekolah, tanggal TTTT-BB-HH, jenis kelamin, kelas dicocokkan dengan tahun ajaran aktif.
+- Templat `.xlsx` dibuat di browser (judul kolom + lembar Petunjuk). Alias judul kolom dikenali (mis. "JK", "Tgl Lahir").
+- Belum: ekspor Excel, impor guru, impor ke kelas tahun ajaran non-aktif.

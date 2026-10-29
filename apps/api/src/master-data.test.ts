@@ -416,3 +416,94 @@ describe('tahun ajaran aktif', () => {
     ).toBe(404);
   });
 });
+
+describe('impor siswa', () => {
+  const importRows = (cookie: string, rows: object[], dryRun: boolean, sid = schoolId) =>
+    call('POST', '/v1/students/import', cookie, { dryRun, rows }, sid);
+  const r = (row: number, over: Record<string, string> = {}) => ({
+    row,
+    name: `Siswa ${row}`,
+    nis: `9${row}`,
+    nisn: '',
+    gender: 'L',
+    birthDate: '',
+    className: '',
+    ...over,
+  });
+
+  it('hanya pemegang student:manage', async () => {
+    expect((await importRows(teacherCookie, [r(2)], true)).statusCode).toBe(403);
+    expect((await app.inject({ method: 'POST', url: '/v1/students/import' })).statusCode).toBe(401);
+  });
+
+  it('pratinjau melaporkan kesalahan per baris dan tidak menyimpan apa pun', async () => {
+    await call('POST', '/v1/classes', opCookie, { academicYearId: yearId, name: 'Impor 7A', level: '7' });
+    await call('POST', '/v1/students', opCookie, { name: 'Sudah Ada', nis: '9001', gender: 'P' });
+    const rows = [
+      r(2, { nis: '9100', className: 'impor 7a', gender: 'Laki-laki', birthDate: '2013-02-03' }), // valid (kelas tak peka huruf)
+      r(3, { name: '' }),
+      r(4, { gender: 'X' }),
+      r(5, { nis: '9001' }), // sudah dipakai di sekolah
+      r(6, { nis: '9100' }), // ganda dengan baris 2
+      r(7, { birthDate: '03/02/2013' }),
+      r(8, { className: 'Kelas Hantu' }),
+      r(9, { nis: 'ab cd' }),
+    ];
+    const res = await importRows(opCookie, rows, true);
+    expect(res.statusCode).toBe(200);
+    const body = res.json();
+    expect(body).toMatchObject({ total: 8, valid: 1, imported: 0 });
+    const byRow = (n: number) => body.errors.filter((e: { row: number }) => e.row === n);
+    expect(byRow(3)[0].field).toBe('name');
+    expect(byRow(4)[0].field).toBe('gender');
+    expect(byRow(5)[0].message).toContain('sudah dipakai');
+    expect(byRow(6)[0].message).toContain('baris 2');
+    expect(byRow(7)[0].field).toBe('birthDate');
+    expect(byRow(8)[0].field).toBe('className');
+    expect(byRow(9)[0].field).toBe('nis');
+    expect(byRow(2)).toHaveLength(0);
+
+    // Tidak ada yang tersimpan, juga bila dryRun salah tetapi ada baris cacat.
+    const attempt = await importRows(opCookie, rows, false);
+    expect(attempt.json().imported).toBe(0);
+    const after = (await call('GET', '/v1/students?q=Siswa', opCookie)).json();
+    expect(after.total).toBe(0);
+  });
+
+  it('menyimpan semua baris yang valid sekaligus beserta penempatan kelasnya', async () => {
+    const rows = [
+      r(2, { nis: '9201', className: 'Impor 7A', gender: 'P' }),
+      r(3, { nis: '9202', nisn: '0099887766', birthDate: '2012-12-31', gender: 'perempuan' }),
+      r(4, { nis: '' }),
+    ];
+    const res = await importRows(opCookie, rows, false);
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({ total: 3, valid: 3, imported: 3, errors: [] });
+
+    const list = (await call('GET', '/v1/students?q=Siswa', opCookie)).json();
+    expect(list.total).toBe(3);
+    const s2 = list.items.find((s: { nis: string }) => s.nis === '9201');
+    expect(s2).toMatchObject({ className: 'Impor 7A', gender: 'P' });
+    expect(list.items.find((s: { nis: string }) => s.nis === '9202')).toMatchObject({
+      nisn: '0099887766',
+      birthDate: '2012-12-31',
+      className: null,
+    });
+
+    // Mengimpor ulang file yang sama ditolak (NIS sudah ada), tanpa duplikat.
+    const again = await importRows(opCookie, rows, false);
+    expect(again.json().imported).toBe(0);
+    expect(again.json().errors.length).toBeGreaterThan(0);
+    expect((await call('GET', '/v1/students?q=Siswa', opCookie)).json().total).toBe(3);
+  });
+
+  it('batas jumlah baris dan isolasi sekolah', async () => {
+    const many = Array.from({ length: 1001 }, (_, i) => r(i + 2, { nis: `x${i}` }));
+    expect((await importRows(opCookie, many, true)).statusCode).toBe(400);
+    expect((await importRows(opCookie, [], true)).statusCode).toBe(400);
+
+    // NIS yang dipakai di sekolah lain tidak dianggap bentrok.
+    const res = await importRows(otherCookie, [r(2, { nis: '9201' })], false, otherSchoolId);
+    expect(res.json()).toMatchObject({ imported: 1, errors: [] });
+  });
+});
