@@ -6,7 +6,9 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "pickDate": "Pick a date",
-    "clearDate": "Clear date"
+    "clearDate": "Clear date",
+    "cancel": "Cancel",
+    "close": "Close"
   },
   "auth": {
     "title": "Sign in to Edusync",
@@ -83,7 +85,7 @@
     "title": "Academic years",
     "list": "List",
     "empty": "No academic years yet.",
-    "emptyManage": "Create the first one next to this list.",
+    "emptyManage": "Create the first one with the button at the top right.",
     "emptyReadonly": "Ask an admin or operator to create it.",
     "createTitle": "Create academic year",
     "createDescription": "The name must be unique within this school.",
@@ -95,7 +97,10 @@
     "created": "Academic year {name} created.",
     "activate": "Make active",
     "active": "Active",
-    "activated": "Active academic year changed."
+    "activated": "Active academic year changed.",
+    "subtitle": "The active academic year drives classes and student placement. Semesters are created within it.",
+    "period": "Period",
+    "statusHeading": "Status"
   },
   "errors": {
     "unauthorized": "Please sign in first.",
@@ -340,7 +345,9 @@
     "expiredBadge": "Expired",
     "resend": "Resend",
     "revoke": "Revoke",
-    "revoked": "Invitation revoked."
+    "revoked": "Invitation revoked.",
+    "member": "Member",
+    "status": "Status"
   },
   "invite": {
     "title": "Invitation to join",
@@ -447,7 +454,8 @@
     "noAssignments": "No teachers assigned yet.",
     "programsTitle": "Programs",
     "programsHint": "Optional. For schools with majors, tracks, or skill programs.",
-    "noPrograms": "No programs yet."
+    "noPrograms": "No programs yet.",
+    "studentsHeading": "Students"
   },
   "subjects": {
     "title": "Subjects",
@@ -643,7 +651,8 @@
     "eventsTitle": "Event list",
     "weekend": "Weekend",
     "generated": "Created {date} with Edusync",
-    "pdfError": "The PDF could not be created. Try again."
+    "pdfError": "The PDF could not be created. Try again.",
+    "period": "Period"
   },
   "platformCatalog": {
     "title": "Plans and pricing",

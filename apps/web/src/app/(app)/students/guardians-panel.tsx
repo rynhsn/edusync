@@ -120,9 +120,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
   const linkedIds = new Set(list.data?.map((g) => g.guardianId));
 
   return (
-    <div className="grid gap-4 rounded-lg border p-4">
-      <p className="text-sm font-medium">{t('title')}</p>
-
+    <div className="grid gap-4">
       {list.data?.length === 0 && <p className="text-muted-foreground text-sm">{t('empty')}</p>}
       <ul className="grid gap-3">
         {list.data?.map((g) => {

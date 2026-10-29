@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -46,7 +47,8 @@ export function PendingView() {
   });
 
   return (
-    <div className="grid gap-4">
+    <PageBody>
+      <PageHeader title={t('pending')} />
       {list.isPending && <Skeleton className="h-24 w-full" />}
       {list.isError && (
         <Alert variant="destructive">
@@ -86,6 +88,6 @@ export function PendingView() {
           </CardContent>
         </Card>
       ))}
-    </div>
+    </PageBody>
   );
 }

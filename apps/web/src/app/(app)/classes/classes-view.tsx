@@ -1,18 +1,30 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Layers, Plus, Trash2, UserCheck } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FormDialog } from '@/components/form-dialog';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 
@@ -71,8 +83,7 @@ function Assignments({ classId }: { classId: string }) {
   });
 
   return (
-    <div className="grid gap-3 border-t pt-3">
-      <p className="text-sm font-medium">{t('assignments')}</p>
+    <div className="grid gap-3">
       {assignments.data?.length === 0 && (
         <p className="text-muted-foreground text-sm">{t('noAssignments')}</p>
       )}
@@ -154,7 +165,7 @@ export function ClassesView() {
   const [yearChoice, setYearChoice] = useState('');
   const [draft, setDraft] = useState({ name: '', level: '', programId: '' });
   const [error, setError] = useState<string | null>(null);
-  const [open, setOpen] = useState<string | null>(null);
+  const [assignFor, setAssignFor] = useState<{ id: string; name: string } | null>(null);
   const [programDraft, setProgramDraft] = useState({ code: '', name: '' });
   const [programError, setProgramError] = useState<string | null>(null);
 
@@ -191,7 +202,6 @@ export function ClassesView() {
         }),
       ),
     onSuccess: () => {
-      setError(null);
       setDraft({ name: '', level: draft.level, programId: draft.programId });
       toast.success(tm('created'));
       refreshClasses();
@@ -227,44 +237,105 @@ export function ClassesView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
+  const hasYears = (years.data?.length ?? 0) > 0;
+
   return (
-    <div className="grid w-full gap-6">
-      <div>
-        <p className="text-primary text-sm font-medium">{school.schoolName}</p>
-        <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
-        {!manage && <p className="text-muted-foreground mt-1 text-sm">{tm('readOnly')}</p>}
-      </div>
-
-      {years.isPending && <Skeleton className="h-24 w-full" />}
-      {years.data?.length === 0 && <p className="text-muted-foreground text-sm">{t('noYears')}</p>}
-
-      {years.data && years.data.length > 0 && (
-        <>
-          <div className="grid max-w-xs gap-2">
-            <Label htmlFor="class-year">{t('year')}</Label>
-            <SelectField id="class-year" value={yearId} onChange={(e) => setYearChoice(e.target.value)}>
-              {years.data.map((y) => (
-                <option key={y.id} value={y.id}>
-                  {y.name}
-                </option>
-              ))}
-            </SelectField>
-          </div>
-
-          {manage && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="font-heading text-lg">{t('addTitle')}</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <form
-                  className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 lg:items-end"
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    createClass.mutate();
-                  }}
-                >
+    <PageBody>
+      <PageHeader
+        title={t('title')}
+        description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
+        actions={
+          <>
+            <Dialog>
+              <DialogTrigger
+                render={
+                  <Button variant="outline">
+                    <Layers className="size-4" /> {t('programsTitle')}
+                  </Button>
+                }
+              />
+              <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+                <DialogHeader>
+                  <DialogTitle className="font-heading text-lg">{t('programsTitle')}</DialogTitle>
+                  <DialogDescription>{t('programsHint')}</DialogDescription>
+                </DialogHeader>
+                {programs.data?.length === 0 && (
+                  <p className="text-muted-foreground text-sm">{t('noPrograms')}</p>
+                )}
+                <ul className="divide-y rounded-lg border">
+                  {programs.data?.map((p) => (
+                    <li key={p.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
+                      <span>
+                        {p.name} <span className="text-muted-foreground font-mono text-xs">{p.code}</span>
+                      </span>
+                      {manage && (
+                        <Button
+                          size="icon-sm"
+                          variant="ghost"
+                          aria-label={tm('delete')}
+                          disabled={removeProgram.isPending}
+                          onClick={() => removeProgram.mutate(p.id)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+                {manage && (
+                  <form
+                    className="grid gap-3 sm:grid-cols-[7rem_1fr_auto] sm:items-end"
+                    onSubmit={(e) => {
+                      e.preventDefault();
+                      createProgram.mutate();
+                    }}
+                  >
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="program-code">{tm('code')}</Label>
+                      <Input
+                        id="program-code"
+                        required
+                        maxLength={20}
+                        value={programDraft.code}
+                        onChange={(e) => setProgramDraft({ ...programDraft, code: e.target.value })}
+                      />
+                    </div>
+                    <div className="grid gap-1.5">
+                      <Label htmlFor="program-name">{tm('name')}</Label>
+                      <Input
+                        id="program-name"
+                        required
+                        maxLength={80}
+                        value={programDraft.name}
+                        onChange={(e) => setProgramDraft({ ...programDraft, name: e.target.value })}
+                      />
+                    </div>
+                    <Button type="submit" disabled={createProgram.isPending}>
+                      <Plus className="size-4" /> {tm('add')}
+                    </Button>
+                    {programError && (
+                      <Alert variant="destructive" className="sm:col-span-3">
+                        <AlertDescription>{programError}</AlertDescription>
+                      </Alert>
+                    )}
+                  </form>
+                )}
+              </DialogContent>
+            </Dialog>
+            {manage && hasYears && (
+              <FormDialog
+                trigger={
+                  <Button>
+                    <Plus className="size-4" /> {t('addTitle')}
+                  </Button>
+                }
+                title={t('addTitle')}
+                submitLabel={tm('add')}
+                error={error}
+                onOpenChange={() => setError(null)}
+                onSubmit={() => createClass.mutateAsync()}
+              >
+                <div className="grid gap-4 sm:grid-cols-2">
                   <div className="grid gap-2">
                     <Label htmlFor="class-name">{tm('name')}</Label>
                     <Input
@@ -286,7 +357,7 @@ export function ClassesView() {
                       onChange={(e) => setDraft({ ...draft, level: e.target.value })}
                     />
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid gap-2 sm:col-span-2">
                     <Label htmlFor="class-program">{t('program')}</Label>
                     <SelectField
                       id="class-program"
@@ -301,129 +372,102 @@ export function ClassesView() {
                       ))}
                     </SelectField>
                   </div>
-                  <Button type="submit" disabled={createClass.isPending}>
-                    {tm('add')}
-                  </Button>
-                  {error && (
-                    <Alert variant="destructive" className="sm:col-span-2 lg:col-span-4">
-                      <AlertDescription>{error}</AlertDescription>
-                    </Alert>
-                  )}
-                </form>
-              </CardContent>
-            </Card>
-          )}
+                </div>
+              </FormDialog>
+            )}
+          </>
+        }
+      />
+
+      {years.isPending && <Skeleton className="h-24 w-full" />}
+      {years.data?.length === 0 && (
+        <Card className="text-muted-foreground p-10 text-center text-sm">{t('noYears')}</Card>
+      )}
+
+      {hasYears && (
+        <>
+          <div className="flex flex-wrap items-center gap-3">
+            <SelectField
+              aria-label={t('year')}
+              className="sm:w-52"
+              value={yearId}
+              onChange={(e) => setYearChoice(e.target.value)}
+            >
+              {years.data?.map((y) => (
+                <option key={y.id} value={y.id}>
+                  {y.name}
+                </option>
+              ))}
+            </SelectField>
+          </div>
 
           {classes.isPending && <Skeleton className="h-32 w-full" />}
-          {classes.data?.length === 0 && <p className="text-muted-foreground text-sm">{tm('empty')}</p>}
+          {classes.data?.length === 0 && (
+            <Card className="text-muted-foreground p-10 text-center text-sm">{tm('empty')}</Card>
+          )}
 
-          <div className="grid gap-3">
-            {classes.data?.map((c) => (
-              <Card key={c.id}>
-                <CardContent className="grid gap-3 pt-4">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-heading text-lg font-semibold">{c.name}</span>
-                      <Badge variant="outline">{c.level}</Badge>
-                      {c.programName && <Badge variant="secondary">{c.programName}</Badge>}
-                      <span className="text-muted-foreground text-sm">
-                        {t('students', { count: c.studentCount })}
-                      </span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => setOpen(open === c.id ? null : c.id)}
-                      >
-                        {t('assignments')}
-                      </Button>
-                      {manage && (
+          {classes.data && classes.data.length > 0 && (
+            <Card className="overflow-hidden p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{tm('name')}</TableHead>
+                    <TableHead>{t('level')}</TableHead>
+                    <TableHead>{t('program')}</TableHead>
+                    <TableHead>{t('studentsHeading')}</TableHead>
+                    <TableHead className="w-28" />
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {classes.data.map((c) => (
+                    <TableRow key={c.id}>
+                      <TableCell className="font-medium">{c.name}</TableCell>
+                      <TableCell>
+                        <Badge variant="outline">{c.level}</Badge>
+                      </TableCell>
+                      <TableCell>{c.programName ?? tm('none')}</TableCell>
+                      <TableCell className="tabular-nums">{c.studentCount}</TableCell>
+                      <TableCell className="text-right whitespace-nowrap">
                         <Button
-                          size="sm"
+                          size="icon-sm"
                           variant="ghost"
-                          disabled={removeClass.isPending}
-                          onClick={() => removeClass.mutate(c.id)}
+                          aria-label={t('assignments')}
+                          title={t('assignments')}
+                          onClick={() => setAssignFor({ id: c.id, name: c.name })}
                         >
-                          {tm('delete')}
+                          <UserCheck className="size-4" />
                         </Button>
-                      )}
-                    </div>
-                  </div>
-                  {open === c.id && <Assignments classId={c.id} />}
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                        {manage && (
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={tm('delete')}
+                            disabled={removeClass.isPending}
+                            onClick={() => removeClass.mutate(c.id)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          )}
         </>
       )}
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="font-heading text-lg">{t('programsTitle')}</CardTitle>
-          <CardDescription>{t('programsHint')}</CardDescription>
-        </CardHeader>
-        <CardContent className="grid gap-4">
-          {programs.data?.length === 0 && <p className="text-muted-foreground text-sm">{t('noPrograms')}</p>}
-          <ul className="divide-y">
-            {programs.data?.map((p) => (
-              <li key={p.id} className="flex items-center justify-between gap-2 py-2">
-                <span>
-                  {p.name} <span className="text-muted-foreground font-mono text-xs">{p.code}</span>
-                </span>
-                {manage && (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    disabled={removeProgram.isPending}
-                    onClick={() => removeProgram.mutate(p.id)}
-                  >
-                    {tm('delete')}
-                  </Button>
-                )}
-              </li>
-            ))}
-          </ul>
-          {manage && (
-            <form
-              className="grid gap-4 sm:grid-cols-[8rem_1fr_auto] sm:items-end"
-              onSubmit={(e) => {
-                e.preventDefault();
-                createProgram.mutate();
-              }}
-            >
-              <div className="grid gap-2">
-                <Label htmlFor="program-code">{tm('code')}</Label>
-                <Input
-                  id="program-code"
-                  required
-                  maxLength={20}
-                  value={programDraft.code}
-                  onChange={(e) => setProgramDraft({ ...programDraft, code: e.target.value })}
-                />
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="program-name">{tm('name')}</Label>
-                <Input
-                  id="program-name"
-                  required
-                  maxLength={80}
-                  value={programDraft.name}
-                  onChange={(e) => setProgramDraft({ ...programDraft, name: e.target.value })}
-                />
-              </div>
-              <Button type="submit" disabled={createProgram.isPending}>
-                {tm('add')}
-              </Button>
-              {programError && (
-                <Alert variant="destructive" className="sm:col-span-3">
-                  <AlertDescription>{programError}</AlertDescription>
-                </Alert>
-              )}
-            </form>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+      <Dialog open={!!assignFor} onOpenChange={(open) => !open && setAssignFor(null)}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-lg">
+              {t('assignments')} · {assignFor?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {assignFor && <Assignments classId={assignFor.id} />}
+        </DialogContent>
+      </Dialog>
+    </PageBody>
   );
 }

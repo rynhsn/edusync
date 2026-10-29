@@ -5,6 +5,7 @@ import { Copy } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -71,12 +72,11 @@ export function PaymentsView() {
   }
 
   return (
-    <div className="grid w-full gap-6">
-      <div>
-        <h1 className="font-heading text-3xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
-        {!canEdit && <p className="text-muted-foreground mt-1 text-sm">{t('readOnly')}</p>}
-      </div>
+    <PageBody>
+      <PageHeader
+        title={t('title')}
+        description={canEdit ? t('subtitle') : `${t('subtitle')} ${t('readOnly')}`}
+      />
 
       <Card>
         <CardHeader>
@@ -182,6 +182,6 @@ export function PaymentsView() {
           </form>
         </CardContent>
       </Card>
-    </div>
+    </PageBody>
   );
 }

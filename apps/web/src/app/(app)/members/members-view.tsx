@@ -1,18 +1,22 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { MailPlus, Pencil, UserCheck, UserX } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FormDialog } from '@/components/form-dialog';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 
@@ -71,7 +75,7 @@ export function MembersView() {
 
   const [email, setEmail] = useState('');
   const [newRoles, setNewRoles] = useState<string[]>([]);
-  const [editing, setEditing] = useState<{ id: string; roles: string[] } | null>(null);
+  const [editing, setEditing] = useState<{ id: string; name: string; roles: string[] } | null>(null);
   const [formError, setFormError] = useState<string | null>(null);
 
   const roles = useQuery({
@@ -137,11 +141,10 @@ export function MembersView() {
         }),
       ),
     onSuccess: () => {
-      setEditing(null);
       toast.success(t('saved'));
       refresh();
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => setFormError(te(errorKey(e))),
   });
 
   const setStatus = useMutation({
@@ -159,30 +162,34 @@ export function MembersView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
-  function onAdd(event: React.FormEvent) {
-    event.preventDefault();
-    if (newRoles.length === 0) return setFormError(t('needRole'));
-    setFormError(null);
-    add.mutate();
-  }
+  const pending = invitations.data ?? [];
 
   return (
-    <div className="grid w-full gap-6">
-      <div>
-        <p className="text-primary text-sm font-medium">{school.schoolName}</p>
-        <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
-        {!manage && <p className="text-muted-foreground mt-1 text-sm">{t('readOnly')}</p>}
-      </div>
-
-      {manage && roles.data && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">{t('addTitle')}</CardTitle>
-            <CardDescription>{t('addHint')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onAdd} className="grid max-w-xl content-start gap-4">
+    <PageBody>
+      <PageHeader
+        title={t('title')}
+        description={manage ? t('subtitle') : `${t('subtitle')} ${t('readOnly')}`}
+        actions={
+          manage &&
+          roles.data && (
+            <FormDialog
+              trigger={
+                <Button>
+                  <MailPlus className="size-4" /> {t('addTitle')}
+                </Button>
+              }
+              title={t('addTitle')}
+              description={t('addHint')}
+              submitLabel={t('add')}
+              error={formError}
+              disabled={newRoles.length === 0}
+              onOpenChange={() => {
+                setEmail('');
+                setNewRoles([]);
+                setFormError(null);
+              }}
+              onSubmit={() => add.mutateAsync()}
+            >
               <div className="grid gap-2">
                 <Label htmlFor="member-email">{t('email')}</Label>
                 <Input
@@ -204,67 +211,10 @@ export function MembersView() {
                   canGrant={canGrant}
                 />
               </fieldset>
-              {formError && (
-                <Alert variant="destructive">
-                  <AlertDescription>{formError}</AlertDescription>
-                </Alert>
-              )}
-              <div>
-                <Button type="submit" disabled={add.isPending}>
-                  {t('add')}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
-
-      {invitations.data && invitations.data.length > 0 && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">{t('pendingTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <ul className="divide-y">
-              {invitations.data.map((i) => (
-                <li key={i.id} className="flex flex-wrap items-center justify-between gap-2 py-3">
-                  <div>
-                    <span className="font-medium">{i.email}</span>
-                    <div className="mt-1 flex flex-wrap gap-1.5">
-                      {i.roles.map((k) => (
-                        <Badge key={k} variant="outline">
-                          {roleName(k)}
-                        </Badge>
-                      ))}
-                      {i.expired && <Badge variant="destructive">{t('expiredBadge')}</Badge>}
-                    </div>
-                  </div>
-                  {manage && (
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        disabled={resend.isPending}
-                        onClick={() => resend.mutate({ email: i.email, roles: i.roles })}
-                      >
-                        {t('resend')}
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="ghost"
-                        disabled={revoke.isPending}
-                        onClick={() => revoke.mutate(i.id)}
-                      >
-                        {t('revoke')}
-                      </Button>
-                    </div>
-                  )}
-                </li>
-              ))}
-            </ul>
-          </CardContent>
-        </Card>
-      )}
+            </FormDialog>
+          )
+        }
+      />
 
       {members.isPending && <Skeleton className="h-40 w-full" />}
       {members.isError && (
@@ -272,57 +222,34 @@ export function MembersView() {
           <AlertDescription>{t('loadError')}</AlertDescription>
         </Alert>
       )}
-      {members.data?.length === 0 && <p className="text-muted-foreground text-sm">{t('empty')}</p>}
+      {members.data?.length === 0 && (
+        <Card className="text-muted-foreground p-10 text-center text-sm">{t('empty')}</Card>
+      )}
 
       {members.data && members.data.length > 0 && (
-        <Card>
-          <CardContent>
-            <ul className="divide-y">
+        <Card className="overflow-hidden p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{t('member')}</TableHead>
+                <TableHead>{t('roles')}</TableHead>
+                <TableHead>{t('status')}</TableHead>
+                {manage && <TableHead className="w-28" />}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {members.data.map((m) => {
-                const open = editing?.id === m.id;
                 const self = m.userId === userId;
                 return (
-                  <li key={m.id} className="grid gap-3 py-4">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <span className="font-medium">{m.name}</span>
-                        {self && <span className="text-muted-foreground"> ({t('you')})</span>}
-                        <p className="text-muted-foreground text-xs">{m.email}</p>
+                  <TableRow key={m.id}>
+                    <TableCell>
+                      <div className="font-medium">
+                        {m.name}
+                        {self && <span className="text-muted-foreground font-normal"> ({t('you')})</span>}
                       </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={m.status === 'active' ? 'secondary' : 'outline'}>
-                          {m.status === 'active' ? t('active') : t('disabled')}
-                        </Badge>
-                        {manage && !open && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() => setEditing({ id: m.id, roles: m.roles })}
-                            >
-                              {t('edit')}
-                            </Button>
-                            {!self && (
-                              <Button
-                                size="sm"
-                                variant="outline"
-                                disabled={setStatus.isPending}
-                                onClick={() =>
-                                  setStatus.mutate({
-                                    id: m.id,
-                                    status: m.status === 'active' ? 'disabled' : 'active',
-                                  })
-                                }
-                              >
-                                {m.status === 'active' ? t('disable') : t('enable')}
-                              </Button>
-                            )}
-                          </>
-                        )}
-                      </div>
-                    </div>
-
-                    {!open && (
+                      <div className="text-muted-foreground text-xs">{m.email}</div>
+                    </TableCell>
+                    <TableCell>
                       <div className="flex flex-wrap gap-1.5">
                         {m.roles.map((k) => (
                           <Badge key={k} variant="outline">
@@ -330,40 +257,125 @@ export function MembersView() {
                           </Badge>
                         ))}
                       </div>
-                    )}
-
-                    {open && editing && roles.data && (
-                      <div className="grid gap-3">
-                        <RolePicker
-                          idPrefix={`edit-${m.id}`}
-                          roles={roles.data}
-                          value={editing.roles}
-                          onChange={(next) => setEditing({ id: m.id, roles: next })}
-                          canGrant={(r) =>
-                            canGrant(r) || m.roles.includes(r.key) === editing.roles.includes(r.key)
-                          }
-                        />
-                        <div className="flex gap-2">
+                    </TableCell>
+                    <TableCell>
+                      <Badge variant={m.status === 'active' ? 'secondary' : 'outline'}>
+                        {m.status === 'active' ? t('active') : t('disabled')}
+                      </Badge>
+                    </TableCell>
+                    {manage && (
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button
+                          size="icon-sm"
+                          variant="ghost"
+                          aria-label={t('edit')}
+                          title={t('edit')}
+                          onClick={() => {
+                            setFormError(null);
+                            setEditing({ id: m.id, name: m.name, roles: m.roles });
+                          }}
+                        >
+                          <Pencil className="size-4" />
+                        </Button>
+                        {!self && (
                           <Button
-                            size="sm"
-                            disabled={editing.roles.length === 0 || saveRoles.isPending}
-                            onClick={() => saveRoles.mutate(editing)}
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={m.status === 'active' ? t('disable') : t('enable')}
+                            title={m.status === 'active' ? t('disable') : t('enable')}
+                            disabled={setStatus.isPending}
+                            onClick={() =>
+                              setStatus.mutate({
+                                id: m.id,
+                                status: m.status === 'active' ? 'disabled' : 'active',
+                              })
+                            }
                           >
-                            {t('save')}
+                            {m.status === 'active' ? (
+                              <UserX className="size-4" />
+                            ) : (
+                              <UserCheck className="size-4" />
+                            )}
                           </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
-                            {t('cancel')}
-                          </Button>
-                        </div>
-                      </div>
+                        )}
+                      </TableCell>
                     )}
-                  </li>
+                  </TableRow>
                 );
               })}
-            </ul>
-          </CardContent>
+            </TableBody>
+          </Table>
         </Card>
       )}
-    </div>
+
+      {pending.length > 0 && (
+        <section className="grid gap-3">
+          <h2 className="font-heading text-lg font-semibold">{t('pendingTitle')}</h2>
+          <Card className="overflow-hidden p-0">
+            <Table>
+              <TableBody>
+                {pending.map((i) => (
+                  <TableRow key={i.id}>
+                    <TableCell className="font-medium">{i.email}</TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1.5">
+                        {i.roles.map((k) => (
+                          <Badge key={k} variant="outline">
+                            {roleName(k)}
+                          </Badge>
+                        ))}
+                        {i.expired && <Badge variant="destructive">{t('expiredBadge')}</Badge>}
+                      </div>
+                    </TableCell>
+                    {manage && (
+                      <TableCell className="text-right whitespace-nowrap">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={resend.isPending}
+                          onClick={() => resend.mutate({ email: i.email, roles: i.roles })}
+                        >
+                          {t('resend')}
+                        </Button>{' '}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={revoke.isPending}
+                          onClick={() => revoke.mutate(i.id)}
+                        >
+                          {t('revoke')}
+                        </Button>
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </section>
+      )}
+
+      <FormDialog
+        open={!!editing}
+        title={`${t('edit')} · ${editing?.name ?? ''}`}
+        submitLabel={t('save')}
+        error={formError}
+        disabled={!editing || editing.roles.length === 0}
+        onOpenChange={(open) => !open && setEditing(null)}
+        onSubmit={() => (editing ? saveRoles.mutateAsync(editing) : Promise.resolve())}
+      >
+        {editing && roles.data && (
+          <RolePicker
+            idPrefix="edit"
+            roles={roles.data}
+            value={editing.roles}
+            onChange={(next) => setEditing({ ...editing, roles: next })}
+            canGrant={(r) =>
+              canGrant(r) || members.data?.find((m) => m.id === editing.id)?.roles.includes(r.key) === true
+            }
+          />
+        )}
+      </FormDialog>
+    </PageBody>
   );
 }

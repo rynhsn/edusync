@@ -8,6 +8,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
@@ -132,27 +133,25 @@ export function YearView() {
   if (!year) return <p className="text-muted-foreground text-sm">{t('noYears')}</p>;
 
   return (
-    <div className="grid w-full gap-6">
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="-ml-2 mb-1"
-            nativeButton={false}
-            render={<Link href="/calendar" />}
-          >
-            <ArrowLeft className="size-4" /> {t('backToList')}
+    <PageBody>
+      <Button
+        variant="ghost"
+        size="sm"
+        className="-ml-2 w-fit"
+        nativeButton={false}
+        render={<Link href="/calendar" />}
+      >
+        <ArrowLeft className="size-4" /> {t('backToList')}
+      </Button>
+      <PageHeader
+        title={`${t('title')} ${year.name}`}
+        description={school.schoolName}
+        actions={
+          <Button onClick={downloadPdf} disabled={generating || !calendar.data}>
+            <Download className="size-4" /> {generating ? t('generating') : t('downloadPdf')}
           </Button>
-          <p className="text-primary text-sm font-medium">{school.schoolName}</p>
-          <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">
-            {t('title')} {year.name}
-          </h1>
-        </div>
-        <Button onClick={downloadPdf} disabled={generating || !calendar.data}>
-          <Download className="size-4" /> {generating ? t('generating') : t('downloadPdf')}
-        </Button>
-      </div>
+        }
+      />
 
       <div className="flex flex-wrap items-end gap-4">
         <div className="grid gap-2">
@@ -268,6 +267,6 @@ export function YearView() {
           </ul>
         </section>
       )}
-    </div>
+    </PageBody>
   );
 }

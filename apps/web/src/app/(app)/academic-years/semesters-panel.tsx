@@ -114,8 +114,7 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
   const show = (iso: string) => formatCalendarDate(locale, iso);
 
   return (
-    <div className="grid gap-3 rounded-lg border p-4">
-      <p className="text-sm font-medium">{t('title')}</p>
+    <div className="grid gap-3">
       {list.data?.length === 0 && <p className="text-muted-foreground text-sm">{t('empty')}</p>}
       <ul className="grid gap-2 text-sm">
         {list.data?.map((s) => {

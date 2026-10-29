@@ -6,7 +6,9 @@
     "showPassword": "Témbongkeun kecap akses",
     "hidePassword": "Sumputkeun kecap akses",
     "pickDate": "Pilih tanggal",
-    "clearDate": "Piceun tanggal"
+    "clearDate": "Piceun tanggal",
+    "cancel": "Batal",
+    "close": "Tutup"
   },
   "auth": {
     "title": "Lebet ka Edusync",
@@ -83,7 +85,7 @@
     "title": "Taun pangajaran",
     "list": "Daptar",
     "empty": "Can aya taun pangajaran.",
-    "emptyManage": "Jieun nu kahiji di gigireun.",
+    "emptyManage": "Jieun nu kahiji nganggo tombol di katuhu luhur.",
     "emptyReadonly": "Pénta admin atawa operator pikeun nyieunna.",
     "createTitle": "Jieun taun pangajaran",
     "createDescription": "Ngaran kudu unik di sakola ieu.",
@@ -95,7 +97,10 @@
     "created": "Taun pangajaran {name} geus dijieun.",
     "activate": "Jadikeun aktip",
     "active": "Aktip",
-    "activated": "Taun pangajaran aktip diganti."
+    "activated": "Taun pangajaran aktip diganti.",
+    "subtitle": "Taun pangajaran aktip nangtukeun kelas jeung panempatan murid. Semester dijieun di jerona.",
+    "period": "Mangsa",
+    "statusHeading": "Status"
   },
   "errors": {
     "unauthorized": "Mangga lebet heula.",
@@ -340,7 +345,9 @@
     "expiredBadge": "Kadaluwarsa",
     "resend": "Kirim deui",
     "revoke": "Cabut",
-    "revoked": "Uleman dicabut."
+    "revoked": "Uleman dicabut.",
+    "member": "Anggota",
+    "status": "Status"
   },
   "invite": {
     "title": "Uleman pikeun ngagabung",
@@ -447,7 +454,8 @@
     "noAssignments": "Acan aya guru pangampu.",
     "programsTitle": "Jurusan",
     "programsHint": "Pilihan. Dipaké ku sakola nu aya jurusan, peminatan, atawa kompeténsi kaahlian.",
-    "noPrograms": "Acan aya jurusan."
+    "noPrograms": "Acan aya jurusan.",
+    "studentsHeading": "Murid"
   },
   "subjects": {
     "title": "Mata pelajaran",
@@ -643,7 +651,8 @@
     "eventsTitle": "Daptar acara",
     "weekend": "Tungtung minggu",
     "generated": "Dijieun {date} nganggo Edusync",
-    "pdfError": "PDF teu bisa dijieun. Cobian deui."
+    "pdfError": "PDF teu bisa dijieun. Cobian deui.",
+    "period": "Mangsa"
   },
   "platformCatalog": {
     "title": "Paket jeung harga",

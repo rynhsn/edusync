@@ -1,9 +1,10 @@
 'use client';
 
-import { ArrowRight, CalendarDays } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
-import { useSchool } from '@/components/app-shell';
+import { NAV_GROUPS, useSchool } from '@/components/app-shell';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -18,51 +19,60 @@ export function DashboardView() {
     return tp.has(key as never) ? tp(key as never) : permission;
   };
 
+  // Pintasan ke menu yang boleh dibuka pengguna, dikelompokkan seperti menu samping.
+  const groups = NAV_GROUPS.filter((g) => g.key !== null)
+    .map((g) => ({
+      key: g.key as 'groupMaster' | 'groupAccess',
+      items: g.items.filter((n) => n.permission === null || can(n.permission)),
+    }))
+    .filter((g) => g.items.length > 0);
+
   return (
-    <div className="grid w-full gap-8">
-      <div>
-        <p className="text-primary text-sm font-medium">{school.schoolName}</p>
-        <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight text-balance">
-          {t('greeting', { name: userName })}
-        </h1>
-        <p className="text-muted-foreground mt-2 text-sm">{t('subtitle')}</p>
-      </div>
+    <PageBody>
+      <PageHeader
+        title={t('greeting', { name: userName })}
+        description={`${school.schoolName} · ${t('subtitle')}`}
+      />
 
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>{t('accessTitle')}</CardTitle>
-            <CardDescription>{t('accessDescription')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="flex flex-wrap gap-2">
-              {school.permissions.length === 0 && (
-                <span className="text-muted-foreground text-sm">{t('noPermissions')}</span>
-              )}
-              {[...school.permissions].sort().map((p) => (
-                <Badge key={p} variant="secondary">
-                  {label(p)}
-                </Badge>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+      {groups.map((g) => (
+        <section key={g.key} className="grid gap-3">
+          <h2 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">{tn(g.key)}</h2>
+          <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {g.items.map((n) => (
+              <Link
+                key={n.href}
+                href={n.href}
+                className="group bg-card hover:border-primary/40 focus-visible:ring-ring/50 flex items-center gap-3 rounded-xl border p-4 transition-colors outline-none focus-visible:ring-3"
+              >
+                <span className="bg-accent text-accent-foreground grid size-10 shrink-0 place-items-center rounded-lg">
+                  <n.icon className="size-5" aria-hidden />
+                </span>
+                <span className="font-heading flex-1 font-semibold">{tn(n.labelKey)}</span>
+                <ArrowRight className="text-muted-foreground group-hover:text-primary size-4 transition-transform group-hover:translate-x-0.5" />
+              </Link>
+            ))}
+          </div>
+        </section>
+      ))}
 
-        {can('academic_year:read') && (
-          <Link
-            href="/academic-years"
-            className="group bg-card hover:border-primary/40 focus-visible:ring-ring/50 flex flex-col justify-between gap-6 rounded-xl border p-6 transition-colors outline-none focus-visible:ring-3"
-          >
-            <span className="bg-accent text-accent-foreground grid size-10 place-items-center rounded-lg">
-              <CalendarDays className="size-5" aria-hidden />
-            </span>
-            <span className="flex items-center justify-between gap-2">
-              <span className="font-heading text-lg font-semibold">{tn('academicYears')}</span>
-              <ArrowRight className="text-muted-foreground group-hover:text-primary size-5 transition-transform group-hover:translate-x-0.5" />
-            </span>
-          </Link>
-        )}
-      </div>
-    </div>
+      <Card>
+        <CardHeader>
+          <CardTitle className="font-heading text-lg">{t('accessTitle')}</CardTitle>
+          <CardDescription>{t('accessDescription')}</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-2">
+            {school.permissions.length === 0 && (
+              <span className="text-muted-foreground text-sm">{t('noPermissions')}</span>
+            )}
+            {[...school.permissions].sort().map((p) => (
+              <Badge key={p} variant="secondary">
+                {label(p)}
+              </Badge>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+    </PageBody>
   );
 }

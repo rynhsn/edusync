@@ -64,7 +64,7 @@ export function useSchool() {
 
 /** Menu diturunkan dari izin. Menambah modul berarti menambah satu baris di sini. */
 /** Menu dikelompokkan menurut fungsinya; kelompok tanpa menu yang boleh dilihat pengguna disembunyikan. */
-const NAV_GROUPS = [
+export const NAV_GROUPS = [
   {
     key: null,
     items: [{ href: '/dashboard', labelKey: 'overview', icon: LayoutDashboard, permission: null }],

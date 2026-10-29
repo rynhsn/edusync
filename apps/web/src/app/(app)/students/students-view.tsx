@@ -1,20 +1,25 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Download, Pencil, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FormDialog } from '@/components/form-dialog';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { buildExport, saveBlob } from '@/lib/sheet';
@@ -72,9 +77,10 @@ function StudentFields({
   const t = useTranslations('students');
   const tm = useTranslations('masterData');
   const f = (k: keyof Draft) => `${idPrefix}-${k}`;
+  const thisYear = new Date().getFullYear();
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      <div className="grid gap-2">
+    <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-2 sm:col-span-2">
         <Label htmlFor={f('name')}>{tm('name')}</Label>
         <Input
           id={f('name')}
@@ -120,7 +126,7 @@ function StudentFields({
           value={draft.birthDate}
           onChange={(v) => onChange({ ...draft, birthDate: v })}
           clearable
-          yearRange={{ from: new Date().getFullYear() - 40, to: new Date().getFullYear() }}
+          yearRange={{ from: thisYear - 40, to: thisYear }}
         />
       </div>
       <div className="grid gap-2">
@@ -161,6 +167,7 @@ function StudentFields({
 export function StudentsView() {
   const t = useTranslations('students');
   const tm = useTranslations('masterData');
+  const tg = useTranslations('guardians');
   const te = useTranslations();
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
@@ -174,6 +181,8 @@ export function StudentsView() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string; originalClassId: string } & Draft) | null>(null);
+  const [guardiansFor, setGuardiansFor] = useState<{ id: string; name: string } | null>(null);
+  const [exporting, setExporting] = useState(false);
 
   // Kelas yang dapat dipilih: hanya tahun ajaran aktif, karena siswa ditempatkan pada tahun berjalan.
   const years = useQuery({
@@ -217,7 +226,6 @@ export function StudentsView() {
         }),
       ),
     onSuccess: () => {
-      setError(null);
       setDraft(EMPTY);
       toast.success(tm('created'));
       refresh();
@@ -239,11 +247,10 @@ export function StudentsView() {
       }
     },
     onSuccess: () => {
-      setEditing(null);
       toast.success(tm('saved'));
       refresh();
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => setError(te(errorKey(e))),
   });
 
   const remove = useMutation({
@@ -256,21 +263,17 @@ export function StudentsView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
-  const [exporting, setExporting] = useState(false);
-  const [guardiansFor, setGuardiansFor] = useState<string | null>(null);
-  const tg = useTranslations('guardians');
-
   /** Ekspor hasil pencarian dan saringan yang sedang tampil (semua halaman), dengan judul kolom yang sama dengan templat impor. */
   async function exportExcel() {
     setExporting(true);
     try {
       const all: NonNullable<typeof list.data>['items'] = [];
       for (let offset = 0; ; offset += 100) {
-        const page = unwrap(
+        const chunk = unwrap(
           await api.GET('/v1/students', { params: { ...header, query: { ...query, limit: 100, offset } } }),
         );
-        all.push(...page.items);
-        if (all.length >= page.total || page.items.length === 0) break;
+        all.push(...chunk.items);
+        if (all.length >= chunk.total || chunk.items.length === 0) break;
       }
       if (all.length === 0) return void toast.info(tm('exportEmpty'));
       const blob = await buildExport(
@@ -291,63 +294,50 @@ export function StudentsView() {
   const pages = Math.max(1, Math.ceil(total / PAGE));
 
   return (
-    <div className="grid w-full gap-6">
-      <div>
-        <p className="text-primary text-sm font-medium">{school.schoolName}</p>
-        <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
-        {!manage && <p className="text-muted-foreground mt-1 text-sm">{tm('readOnly')}</p>}
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" disabled={exporting} onClick={exportExcel}>
-            {exporting ? tm('exporting') : tm('export')}
-          </Button>
-          {manage && (
-            <Button
-              size="sm"
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/students/import" />}
-            >
-              {t('importLink')}
+    <PageBody>
+      <PageHeader
+        title={t('title')}
+        description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
+        actions={
+          <>
+            <Button variant="outline" disabled={exporting} onClick={exportExcel}>
+              <Download className="size-4" /> {exporting ? tm('exporting') : tm('export')}
             </Button>
-          )}
-        </div>
-      </div>
-
-      {manage && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">{t('addTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form
-              className="grid gap-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                create.mutate();
-              }}
-            >
-              <StudentFields idPrefix="new" draft={draft} classes={classList} onChange={setDraft} />
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <div>
-                <Button type="submit" disabled={create.isPending}>
-                  {tm('add')}
+            {manage && (
+              <>
+                <Button variant="outline" nativeButton={false} render={<Link href="/students/import" />}>
+                  <Upload className="size-4" /> {t('importLink')}
                 </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+                <FormDialog
+                  size="wide"
+                  trigger={
+                    <Button>
+                      <Plus className="size-4" /> {t('addTitle')}
+                    </Button>
+                  }
+                  title={t('addTitle')}
+                  submitLabel={tm('add')}
+                  error={error}
+                  onOpenChange={() => {
+                    setDraft(EMPTY);
+                    setError(null);
+                  }}
+                  onSubmit={() => create.mutateAsync()}
+                >
+                  <StudentFields idPrefix="new" draft={draft} classes={classList} onChange={setDraft} />
+                </FormDialog>
+              </>
+            )}
+          </>
+        }
+      />
 
-      <div className="grid gap-4 sm:grid-cols-3">
-        <div className="grid gap-2">
-          <Label htmlFor="student-q">{tm('search')}</Label>
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-full sm:w-72">
+          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
           <Input
-            id="student-q"
+            aria-label={tm('search')}
+            className="pl-8"
             value={q}
             placeholder={t('searchPlaceholder')}
             onChange={(e) => {
@@ -357,43 +347,39 @@ export function StudentsView() {
           />
         </div>
         {classList.length > 0 && (
-          <div className="grid gap-2">
-            <Label htmlFor="student-class">{t('class')}</Label>
-            <SelectField
-              id="student-class"
-              value={classFilter}
-              onChange={(e) => {
-                setClassFilter(e.target.value);
-                setPage(0);
-              }}
-            >
-              <option value="">{t('allClasses')}</option>
-              {classList.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.name}
-                </option>
-              ))}
-            </SelectField>
-          </div>
-        )}
-        <div className="grid gap-2">
-          <Label htmlFor="student-status">{t('status')}</Label>
           <SelectField
-            id="student-status"
-            value={statusFilter}
+            aria-label={t('class')}
+            className="sm:w-44"
+            value={classFilter}
             onChange={(e) => {
-              setStatusFilter(e.target.value);
+              setClassFilter(e.target.value);
               setPage(0);
             }}
           >
-            <option value="">{t('allStatus')}</option>
-            {STATUSES.map((s) => (
-              <option key={s} value={s}>
-                {t(STATUS_KEY[s])}
+            <option value="">{t('allClasses')}</option>
+            {classList.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
               </option>
             ))}
           </SelectField>
-        </div>
+        )}
+        <SelectField
+          aria-label={t('status')}
+          className="sm:w-44"
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(0);
+          }}
+        >
+          <option value="">{t('allStatus')}</option>
+          {STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {t(STATUS_KEY[s])}
+            </option>
+          ))}
+        </SelectField>
       </div>
 
       {list.isPending && <Skeleton className="h-40 w-full" />}
@@ -402,95 +388,88 @@ export function StudentsView() {
           <AlertDescription>{tm('loadError')}</AlertDescription>
         </Alert>
       )}
-      {list.data?.items.length === 0 && <p className="text-muted-foreground text-sm">{tm('empty')}</p>}
+      {list.data?.items.length === 0 && (
+        <Card className="text-muted-foreground p-10 text-center text-sm">{tm('empty')}</Card>
+      )}
 
       {list.data && list.data.items.length > 0 && (
-        <Card>
-          <CardContent>
-            <ul className="divide-y">
-              {list.data.items.map((s) => {
-                const open = editing?.id === s.id;
-                return (
-                  <li key={s.id} className="grid gap-3 py-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <span className="font-medium">{s.name}</span>
-                        <p className="text-muted-foreground text-xs">
-                          {[s.nis && `${t('nis')} ${s.nis}`, s.nisn && `${t('nisn')} ${s.nisn}`]
-                            .filter(Boolean)
-                            .join(' · ') || tm('none')}
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        {s.className && <Badge variant="outline">{s.className}</Badge>}
-                        <Badge variant={s.status === 'active' ? 'secondary' : 'outline'}>
-                          {t(STATUS_KEY[s.status])}
-                        </Badge>
+        <Card className="overflow-hidden p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{tm('name')}</TableHead>
+                <TableHead>
+                  {t('nis')} / {t('nisn')}
+                </TableHead>
+                <TableHead>{t('class')}</TableHead>
+                <TableHead>{t('status')}</TableHead>
+                <TableHead className="w-36" />
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {list.data.items.map((s) => (
+                <TableRow key={s.id}>
+                  <TableCell className="font-medium">{s.name}</TableCell>
+                  <TableCell className="text-muted-foreground font-mono text-xs">
+                    {[s.nis, s.nisn].filter(Boolean).join(' / ') || tm('none')}
+                  </TableCell>
+                  <TableCell>
+                    {s.className ? <Badge variant="outline">{s.className}</Badge> : tm('none')}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={s.status === 'active' ? 'secondary' : 'outline'}>
+                      {t(STATUS_KEY[s.status])}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-right whitespace-nowrap">
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label={tg('button')}
+                      title={tg('button')}
+                      onClick={() => setGuardiansFor({ id: s.id, name: s.name })}
+                    >
+                      <Users className="size-4" />
+                    </Button>
+                    {manage && (
+                      <>
                         <Button
-                          size="sm"
-                          variant="outline"
-                          aria-expanded={guardiansFor === s.id}
-                          onClick={() => setGuardiansFor(guardiansFor === s.id ? null : s.id)}
+                          size="icon-sm"
+                          variant="ghost"
+                          aria-label={tm('edit')}
+                          onClick={() => {
+                            setError(null);
+                            setEditing({
+                              id: s.id,
+                              originalClassId: s.classId ?? '',
+                              name: s.name,
+                              nis: s.nis ?? '',
+                              nisn: s.nisn ?? '',
+                              gender: s.gender,
+                              birthDate: s.birthDate ?? '',
+                              status: s.status,
+                              classId: s.classId ?? '',
+                            });
+                          }}
                         >
-                          {tg('button')}
+                          <Pencil className="size-4" />
                         </Button>
-                        {manage && !open && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                setEditing({
-                                  id: s.id,
-                                  originalClassId: s.classId ?? '',
-                                  name: s.name,
-                                  nis: s.nis ?? '',
-                                  nisn: s.nisn ?? '',
-                                  gender: s.gender,
-                                  birthDate: s.birthDate ?? '',
-                                  status: s.status,
-                                  classId: s.classId ?? '',
-                                })
-                              }
-                            >
-                              {tm('edit')}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              disabled={remove.isPending}
-                              onClick={() => remove.mutate(s.id)}
-                            >
-                              {tm('delete')}
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {guardiansFor === s.id && <GuardiansPanel studentId={s.id} />}
-                    {open && editing && (
-                      <div className="grid gap-3">
-                        <StudentFields
-                          idPrefix={`edit-${s.id}`}
-                          draft={editing}
-                          classes={classList}
-                          onChange={(d) => setEditing({ ...editing, ...d })}
-                        />
-                        <div className="flex gap-2">
-                          <Button size="sm" disabled={save.isPending} onClick={() => save.mutate(editing)}>
-                            {tm('save')}
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
-                            {tm('cancel')}
-                          </Button>
-                        </div>
-                      </div>
+                        <Button
+                          size="icon-sm"
+                          variant="ghost"
+                          aria-label={tm('delete')}
+                          disabled={remove.isPending}
+                          onClick={() => remove.mutate(s.id)}
+                        >
+                          <Trash2 className="size-4" />
+                        </Button>
+                      </>
                     )}
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </Card>
       )}
 
@@ -515,6 +494,36 @@ export function StudentsView() {
           </div>
         </div>
       )}
-    </div>
+
+      <FormDialog
+        size="wide"
+        open={!!editing}
+        title={tm('edit')}
+        submitLabel={tm('save')}
+        error={error}
+        onOpenChange={(open) => !open && setEditing(null)}
+        onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
+      >
+        {editing && (
+          <StudentFields
+            idPrefix="edit"
+            draft={editing}
+            classes={classList}
+            onChange={(d) => setEditing({ ...editing, ...d })}
+          />
+        )}
+      </FormDialog>
+
+      <Dialog open={!!guardiansFor} onOpenChange={(open) => !open && setGuardiansFor(null)}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-lg">
+              {tg('title')} · {guardiansFor?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {guardiansFor && <GuardiansPanel studentId={guardiansFor.id} />}
+        </DialogContent>
+      </Dialog>
+    </PageBody>
   );
 }

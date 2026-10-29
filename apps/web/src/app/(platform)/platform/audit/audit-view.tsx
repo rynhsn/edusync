@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { useFormatter, useTranslations } from 'next-intl';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, unwrap } from '@/lib/api';
@@ -18,7 +19,8 @@ export function AuditView() {
   });
 
   return (
-    <div className="grid gap-4">
+    <PageBody>
+      <PageHeader title={t('audit')} />
       {list.isPending && <Skeleton className="h-40 w-full" />}
       {list.isError && (
         <Alert variant="destructive">
@@ -52,6 +54,6 @@ export function AuditView() {
           </table>
         </div>
       )}
-    </div>
+    </PageBody>
   );
 }

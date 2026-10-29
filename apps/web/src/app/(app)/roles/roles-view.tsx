@@ -2,14 +2,17 @@
 
 import { PERMISSIONS } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Pencil, Plus, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FormDialog } from '@/components/form-dialog';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -45,7 +48,7 @@ function RoleForm({
 
   return (
     <div className="grid gap-4">
-      <div className="grid max-w-sm gap-2">
+      <div className="grid gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{t('name')}</Label>
         <Input
           id={`${idPrefix}-name`}
@@ -99,8 +102,10 @@ export function RolesView() {
   const manage = can('role:manage');
 
   const [creating, setCreating] = useState<Draft>({ name: '', permissions: [] });
-  const [createError, setCreateError] = useState<string | null>(null);
-  const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<
+    ({ id: string; original: string[]; system: boolean } & Draft) | null
+  >(null);
 
   const roles = useQuery({
     queryKey: key,
@@ -114,12 +119,11 @@ export function RolesView() {
   const create = useMutation({
     mutationFn: async () => unwrap(await api.POST('/v1/roles', { params: header, body: creating as never })),
     onSuccess: () => {
-      setCreateError(null);
       setCreating({ name: '', permissions: [] });
       toast.success(t('created'));
       refresh();
     },
-    onError: (e) => setCreateError(te(errorKey(e))),
+    onError: (e) => setError(te(errorKey(e))),
   });
 
   const save = useMutation({
@@ -131,11 +135,10 @@ export function RolesView() {
         }),
       ),
     onSuccess: () => {
-      setEditing(null);
       toast.success(t('saved'));
       refresh();
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => setError(te(errorKey(e))),
   });
 
   const remove = useMutation({
@@ -152,29 +155,30 @@ export function RolesView() {
   const permLabel = (p: string) =>
     tp.has(p.replace(':', '_') as never) ? tp(p.replace(':', '_') as never) : p;
 
-  function onCreate(event: React.FormEvent) {
-    event.preventDefault();
-    if (creating.permissions.length === 0) return setCreateError(t('noPermission'));
-    setCreateError(null);
-    create.mutate();
-  }
-
   return (
-    <div className="grid w-full gap-6">
-      <div>
-        <p className="text-primary text-sm font-medium">{school.schoolName}</p>
-        <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
-        {!manage && <p className="text-muted-foreground mt-1 text-sm">{t('readOnly')}</p>}
-      </div>
-
-      {manage && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">{t('createTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={onCreate} className="grid gap-4">
+    <PageBody>
+      <PageHeader
+        title={t('title')}
+        description={manage ? t('subtitle') : `${t('subtitle')} ${t('readOnly')}`}
+        actions={
+          manage && (
+            <FormDialog
+              size="wide"
+              trigger={
+                <Button>
+                  <Plus className="size-4" /> {t('createTitle')}
+                </Button>
+              }
+              title={t('createTitle')}
+              submitLabel={t('create')}
+              error={error}
+              disabled={creating.name.trim().length < 2 || creating.permissions.length === 0}
+              onOpenChange={() => {
+                setCreating({ name: '', permissions: [] });
+                setError(null);
+              }}
+              onSubmit={() => create.mutateAsync()}
+            >
               <RoleForm
                 idPrefix="new"
                 draft={creating}
@@ -182,20 +186,10 @@ export function RolesView() {
                 nameLocked={false}
                 onChange={setCreating}
               />
-              {createError && (
-                <Alert variant="destructive">
-                  <AlertDescription>{createError}</AlertDescription>
-                </Alert>
-              )}
-              <div>
-                <Button type="submit" disabled={create.isPending || creating.name.trim().length < 2}>
-                  {t('create')}
-                </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+            </FormDialog>
+          )
+        }
+      />
 
       {roles.isPending && <Skeleton className="h-40 w-full" />}
       {roles.isError && (
@@ -204,80 +198,82 @@ export function RolesView() {
         </Alert>
       )}
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 xl:grid-cols-2">
         {roles.data?.map((r) => {
-          const open = editing?.id === r.id;
           const locked = r.key === 'school_admin';
           return (
-            <Card key={r.id}>
-              <CardHeader className="flex-row flex-wrap items-center justify-between gap-2">
+            <Card key={r.id} className="gap-3 p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <CardTitle className="font-heading text-lg">{label(r)}</CardTitle>
+                  <h2 className="font-heading text-base font-semibold">{label(r)}</h2>
                   <Badge variant="outline">{r.isSystem ? t('system') : t('custom')}</Badge>
                   {locked && <Badge variant="secondary">{t('locked')}</Badge>}
                 </div>
-                {manage && !locked && !open && (
-                  <div className="flex gap-2">
+                {manage && !locked && (
+                  <div className="flex gap-1">
                     <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => setEditing({ id: r.id, name: r.name, permissions: r.permissions })}
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label={t('edit')}
+                      onClick={() => {
+                        setError(null);
+                        setEditing({
+                          id: r.id,
+                          name: r.name,
+                          permissions: r.permissions,
+                          original: r.permissions,
+                          system: r.isSystem,
+                        });
+                      }}
                     >
-                      {t('edit')}
+                      <Pencil className="size-4" />
                     </Button>
                     {!r.isSystem && (
                       <Button
-                        size="sm"
+                        size="icon-sm"
                         variant="ghost"
+                        aria-label={t('delete')}
                         disabled={remove.isPending}
                         onClick={() => remove.mutate(r.id)}
                       >
-                        {t('delete')}
+                        <Trash2 className="size-4" />
                       </Button>
                     )}
                   </div>
                 )}
-              </CardHeader>
-              <CardContent className="grid gap-3">
-                {!open && (
-                  <div className="flex flex-wrap gap-1.5">
-                    {r.permissions.map((p) => (
-                      <Badge key={p} variant="secondary">
-                        {permLabel(p)}
-                      </Badge>
-                    ))}
-                  </div>
-                )}
-                {open && editing && (
-                  <>
-                    <RoleForm
-                      idPrefix={`edit-${r.id}`}
-                      draft={editing}
-                      original={r.permissions}
-                      nameLocked={r.isSystem}
-                      onChange={(next) => setEditing({ id: r.id, ...next })}
-                    />
-                    <div className="flex gap-2">
-                      <Button
-                        size="sm"
-                        disabled={
-                          save.isPending || editing.permissions.length === 0 || editing.name.trim().length < 2
-                        }
-                        onClick={() => save.mutate(editing)}
-                      >
-                        {t('save')}
-                      </Button>
-                      <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
-                        {t('cancel')}
-                      </Button>
-                    </div>
-                  </>
-                )}
-              </CardContent>
+              </div>
+              <div className="flex flex-wrap gap-1.5">
+                {r.permissions.map((p) => (
+                  <Badge key={p} variant="secondary">
+                    {permLabel(p)}
+                  </Badge>
+                ))}
+              </div>
             </Card>
           );
         })}
       </div>
-    </div>
+
+      <FormDialog
+        size="wide"
+        open={!!editing}
+        title={t('edit')}
+        submitLabel={t('save')}
+        error={error}
+        disabled={!editing || editing.permissions.length === 0 || editing.name.trim().length < 2}
+        onOpenChange={(open) => !open && setEditing(null)}
+        onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
+      >
+        {editing && (
+          <RoleForm
+            idPrefix="edit"
+            draft={editing}
+            original={editing.original}
+            nameLocked={editing.system}
+            onChange={(next) => setEditing({ ...editing, ...next })}
+          />
+        )}
+      </FormDialog>
+    </PageBody>
   );
 }

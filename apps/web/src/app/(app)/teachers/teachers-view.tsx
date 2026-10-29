@@ -1,19 +1,23 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { Download, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FormDialog } from '@/components/form-dialog';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { buildExport, saveBlob } from '@/lib/sheet';
@@ -37,8 +41,8 @@ function TeacherFields({
   const t = useTranslations('teachers');
   const tm = useTranslations('masterData');
   return (
-    <div className="grid gap-4 sm:grid-cols-3">
-      <div className="grid gap-2">
+    <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-2 sm:col-span-2">
         <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
         <Input
           id={`${idPrefix}-name`}
@@ -86,9 +90,8 @@ export function TeachersView() {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
 
-  const key = ['teachers', school.schoolId, q];
   const list = useQuery({
-    queryKey: key,
+    queryKey: ['teachers', school.schoolId, q],
     queryFn: async () =>
       unwrap(
         await api.GET('/v1/teachers', { params: { ...header, query: q.trim() ? { q: q.trim() } : {} } }),
@@ -118,12 +121,21 @@ export function TeachersView() {
         }),
       ),
     onSuccess: () => {
-      setEditing(null);
       toast.success(tm('saved'));
+      refresh();
+    },
+    onError: (e) => setError(te(errorKey(e))),
+  });
+  const remove = useMutation({
+    mutationFn: async (id: string) =>
+      unwrap(await api.DELETE('/v1/teachers/{id}', { params: { ...header, path: { id } } })),
+    onSuccess: () => {
+      toast.success(tm('deleted'));
       refresh();
     },
     onError: (e) => toast.error(te(errorKey(e))),
   });
+
   async function exportExcel() {
     const rows = list.data ?? [];
     if (rows.length === 0) return void toast.info(tm('exportEmpty'));
@@ -136,73 +148,49 @@ export function TeachersView() {
     saveBlob(blob, `guru-${school.schoolSlug}-${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 
-  const remove = useMutation({
-    mutationFn: async (id: string) =>
-      unwrap(await api.DELETE('/v1/teachers/{id}', { params: { ...header, path: { id } } })),
-    onSuccess: () => {
-      toast.success(tm('deleted'));
-      refresh();
-    },
-    onError: (e) => toast.error(te(errorKey(e))),
-  });
-
   return (
-    <div className="grid w-full gap-6">
-      <div>
-        <p className="text-primary text-sm font-medium">{school.schoolName}</p>
-        <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
-        {!manage && <p className="text-muted-foreground mt-1 text-sm">{tm('readOnly')}</p>}
-        <div className="mt-3 flex flex-wrap gap-2">
-          <Button size="sm" variant="outline" onClick={exportExcel}>
-            {tm('export')}
-          </Button>
-          {manage && (
-            <Button
-              size="sm"
-              variant="outline"
-              nativeButton={false}
-              render={<Link href="/teachers/import" />}
-            >
-              {t('importLink')}
+    <PageBody>
+      <PageHeader
+        title={t('title')}
+        description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
+        actions={
+          <>
+            <Button variant="outline" onClick={exportExcel}>
+              <Download className="size-4" /> {tm('export')}
             </Button>
-          )}
-        </div>
-      </div>
-
-      {manage && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="font-heading text-lg">{t('addTitle')}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form
-              className="grid gap-4"
-              onSubmit={(e) => {
-                e.preventDefault();
-                create.mutate();
-              }}
-            >
-              <TeacherFields idPrefix="new" draft={draft} onChange={setDraft} />
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              <div>
-                <Button type="submit" disabled={create.isPending}>
-                  {tm('add')}
+            {manage && (
+              <>
+                <Button variant="outline" nativeButton={false} render={<Link href="/teachers/import" />}>
+                  <Upload className="size-4" /> {t('importLink')}
                 </Button>
-              </div>
-            </form>
-          </CardContent>
-        </Card>
-      )}
+                <FormDialog
+                  trigger={
+                    <Button>
+                      <Plus className="size-4" /> {t('addTitle')}
+                    </Button>
+                  }
+                  title={t('addTitle')}
+                  submitLabel={tm('add')}
+                  error={error}
+                  onOpenChange={() => {
+                    setDraft(EMPTY);
+                    setError(null);
+                  }}
+                  onSubmit={() => create.mutateAsync()}
+                >
+                  <TeacherFields idPrefix="new" draft={draft} onChange={setDraft} />
+                </FormDialog>
+              </>
+            )}
+          </>
+        }
+      />
 
-      <div className="grid max-w-sm gap-2">
-        <Label htmlFor="teacher-q">{tm('search')}</Label>
+      <div className="relative max-w-sm">
+        <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
         <Input
-          id="teacher-q"
+          aria-label={tm('search')}
+          className="pl-8"
           value={q}
           placeholder={t('searchPlaceholder')}
           onChange={(e) => setQ(e.target.value)}
@@ -215,72 +203,80 @@ export function TeachersView() {
           <AlertDescription>{tm('loadError')}</AlertDescription>
         </Alert>
       )}
-      {list.data?.length === 0 && <p className="text-muted-foreground text-sm">{tm('empty')}</p>}
+      {list.data?.length === 0 && (
+        <Card className="text-muted-foreground p-10 text-center text-sm">{tm('empty')}</Card>
+      )}
 
       {list.data && list.data.length > 0 && (
-        <Card>
-          <CardContent>
-            <ul className="divide-y">
-              {list.data.map((r) => {
-                const open = editing?.id === r.id;
-                return (
-                  <li key={r.id} className="grid gap-3 py-3">
-                    <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div>
-                        <span className="font-medium">{r.name}</span>{' '}
-                        <span className="text-muted-foreground font-mono text-xs">{r.nip ?? ''}</span>
-                      </div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <Badge variant={r.status === 'active' ? 'secondary' : 'outline'}>
-                          {r.status === 'active' ? t('active') : t('inactive')}
-                        </Badge>
-                        {manage && !open && (
-                          <>
-                            <Button
-                              size="sm"
-                              variant="outline"
-                              onClick={() =>
-                                setEditing({ id: r.id, name: r.name, nip: r.nip ?? '', status: r.status })
-                              }
-                            >
-                              {tm('edit')}
-                            </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              disabled={remove.isPending}
-                              onClick={() => remove.mutate(r.id)}
-                            >
-                              {tm('delete')}
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    {open && editing && (
-                      <div className="grid gap-3">
-                        <TeacherFields
-                          idPrefix={`edit-${r.id}`}
-                          draft={editing}
-                          onChange={(d) => setEditing({ id: r.id, ...d })}
-                        />
-                        <div className="flex gap-2">
-                          <Button size="sm" disabled={save.isPending} onClick={() => save.mutate(editing)}>
-                            {tm('save')}
-                          </Button>
-                          <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
-                            {tm('cancel')}
-                          </Button>
-                        </div>
-                      </div>
-                    )}
-                  </li>
-                );
-              })}
-            </ul>
-          </CardContent>
+        <Card className="overflow-hidden p-0">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>{tm('name')}</TableHead>
+                <TableHead>{t('nip')}</TableHead>
+                <TableHead>{t('status')}</TableHead>
+                {manage && <TableHead className="w-24" />}
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {list.data.map((r) => (
+                <TableRow key={r.id}>
+                  <TableCell className="font-medium">{r.name}</TableCell>
+                  <TableCell className="text-muted-foreground font-mono text-xs">
+                    {r.nip ?? tm('none')}
+                  </TableCell>
+                  <TableCell>
+                    <Badge variant={r.status === 'active' ? 'secondary' : 'outline'}>
+                      {r.status === 'active' ? t('active') : t('inactive')}
+                    </Badge>
+                  </TableCell>
+                  {manage && (
+                    <TableCell className="text-right whitespace-nowrap">
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label={tm('edit')}
+                        onClick={() => {
+                          setError(null);
+                          setEditing({ id: r.id, name: r.name, nip: r.nip ?? '', status: r.status });
+                        }}
+                      >
+                        <Pencil className="size-4" />
+                      </Button>
+                      <Button
+                        size="icon-sm"
+                        variant="ghost"
+                        aria-label={tm('delete')}
+                        disabled={remove.isPending}
+                        onClick={() => remove.mutate(r.id)}
+                      >
+                        <Trash2 className="size-4" />
+                      </Button>
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
         </Card>
       )}
-    </div>
+
+      <FormDialog
+        open={!!editing}
+        title={tm('edit')}
+        submitLabel={tm('save')}
+        error={error}
+        onOpenChange={(open) => !open && setEditing(null)}
+        onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
+      >
+        {editing && (
+          <TeacherFields
+            idPrefix="edit"
+            draft={editing}
+            onChange={(d) => setEditing({ id: editing.id, ...d })}
+          />
+        )}
+      </FormDialog>
+    </PageBody>
   );
 }

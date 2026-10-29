@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
-import { useSchool } from '@/components/app-shell';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -54,7 +54,6 @@ export function ImportWizard<Row>({
 }: Props<Row>) {
   const t = useTranslations(namespace);
   const te = useTranslations();
-  const { school } = useSchool();
   const fileInput = useRef<HTMLInputElement>(null);
 
   const [rows, setRows] = useState<Row[]>([]);
@@ -104,12 +103,8 @@ export function ImportWizard<Row>({
   const pending = run.isPending;
 
   return (
-    <div className="grid w-full gap-6">
-      <div>
-        <p className="text-primary text-sm font-medium">{school.schoolName}</p>
-        <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">{t('title')}</h1>
-        <p className="text-muted-foreground mt-1 text-sm">{t('subtitle')}</p>
-      </div>
+    <PageBody>
+      <PageHeader title={t('title')} description={t('subtitle')} />
 
       <Card>
         <CardHeader>
@@ -214,6 +209,6 @@ export function ImportWizard<Row>({
           )}
         </CardContent>
       </Card>
-    </div>
+    </PageBody>
   );
 }

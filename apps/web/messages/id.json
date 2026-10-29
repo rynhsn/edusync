@@ -6,7 +6,9 @@
     "showPassword": "Tampilkan kata sandi",
     "hidePassword": "Sembunyikan kata sandi",
     "pickDate": "Pilih tanggal",
-    "clearDate": "Hapus tanggal"
+    "clearDate": "Hapus tanggal",
+    "cancel": "Batal",
+    "close": "Tutup"
   },
   "auth": {
     "title": "Masuk ke Edusync",
@@ -83,7 +85,7 @@
     "title": "Tahun ajaran",
     "list": "Daftar",
     "empty": "Belum ada tahun ajaran.",
-    "emptyManage": "Buat yang pertama di sebelah.",
+    "emptyManage": "Buat yang pertama dengan tombol di kanan atas.",
     "emptyReadonly": "Minta admin atau operator membuatnya.",
     "createTitle": "Buat tahun ajaran",
     "createDescription": "Nama harus unik di sekolah ini.",
@@ -95,7 +97,10 @@
     "created": "Tahun ajaran {name} dibuat.",
     "activate": "Jadikan aktif",
     "active": "Aktif",
-    "activated": "Tahun ajaran aktif diganti."
+    "activated": "Tahun ajaran aktif diganti.",
+    "subtitle": "Satu tahun ajaran aktif menentukan kelas dan penempatan siswa. Semester dibuat di dalamnya.",
+    "period": "Periode",
+    "statusHeading": "Status"
   },
   "errors": {
     "unauthorized": "Silakan masuk terlebih dahulu.",
@@ -340,7 +345,9 @@
     "expiredBadge": "Kedaluwarsa",
     "resend": "Kirim ulang",
     "revoke": "Cabut",
-    "revoked": "Undangan dicabut."
+    "revoked": "Undangan dicabut.",
+    "member": "Anggota",
+    "status": "Status"
   },
   "invite": {
     "title": "Undangan bergabung",
@@ -447,7 +454,8 @@
     "noAssignments": "Belum ada guru pengampu.",
     "programsTitle": "Jurusan",
     "programsHint": "Opsional. Dipakai sekolah dengan jurusan, peminatan, atau kompetensi keahlian.",
-    "noPrograms": "Belum ada jurusan."
+    "noPrograms": "Belum ada jurusan.",
+    "studentsHeading": "Siswa"
   },
   "subjects": {
     "title": "Mata pelajaran",
@@ -643,7 +651,8 @@
     "eventsTitle": "Daftar acara",
     "weekend": "Akhir pekan",
     "generated": "Dibuat {date} dengan Edusync",
-    "pdfError": "PDF gagal dibuat. Coba lagi."
+    "pdfError": "PDF gagal dibuat. Coba lagi.",
+    "period": "Periode"
   },
   "platformCatalog": {
     "title": "Paket dan harga",

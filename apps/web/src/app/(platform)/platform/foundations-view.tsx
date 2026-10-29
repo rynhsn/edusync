@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -73,9 +74,12 @@ export function FoundationsView() {
   });
 
   return (
-    <div className="grid gap-6">
+    <PageBody>
+      <PageHeader title={t('foundations')} />
       <div className="grid max-w-sm gap-2">
-        <Label htmlFor="q">{t('search')}</Label>
+        <Label htmlFor="q" className="sr-only">
+          {t('search')}
+        </Label>
         <Input id="q" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t('searchPlaceholder')} />
       </div>
       {role === 'read_only' && <p className="text-muted-foreground text-sm">{t('readOnly')}</p>}
@@ -171,6 +175,6 @@ export function FoundationsView() {
           </Card>
         ))}
       </div>
-    </div>
+    </PageBody>
   );
 }
