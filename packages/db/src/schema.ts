@@ -618,3 +618,23 @@ export const schoolCurriculum = pgTable(
   },
   (t) => [primaryKey({ columns: [t.schoolId, t.curriculumKey, t.levelGroup] })],
 );
+
+/** Semester dalam satu tahun ajaran. Tanggalnya di dalam tahun ajaran dan tidak saling tumpang tindih. */
+export const semester = pgTable(
+  'semester',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    name: text('name').notNull(),
+    startsOn: date('starts_on').notNull(),
+    endsOn: date('ends_on').notNull(),
+    isActive: boolean('is_active').notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('semester_year_name_uq').on(t.academicYearId, t.name)],
+);

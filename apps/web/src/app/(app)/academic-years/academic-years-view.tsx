@@ -16,6 +16,7 @@ import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
+import { SemestersPanel } from './semesters-panel';
 
 export function AcademicYearsView() {
   const t = useTranslations('academicYears');
@@ -25,6 +26,8 @@ export function AcademicYearsView() {
   const queryClient = useQueryClient();
   const key = ['academic-years', school.schoolId];
   const [formError, setFormError] = useState<string | null>(null);
+  const [semestersFor, setSemestersFor] = useState<string | null>(null);
+  const ts = useTranslations('semesters');
 
   const show = (iso: string) => formatCalendarDate(locale, iso);
 
@@ -114,6 +117,14 @@ export function AcademicYearsView() {
                     </span>
                     <span className="text-muted-foreground flex items-center gap-3 text-sm">
                       {show(y.startsOn)} – {show(y.endsOn)}
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        aria-expanded={semestersFor === y.id}
+                        onClick={() => setSemestersFor(semestersFor === y.id ? null : y.id)}
+                      >
+                        {ts('toggle')}
+                      </Button>
                       {!y.isActive && can('academic_year:manage') && (
                         <Button
                           size="sm"
@@ -125,6 +136,11 @@ export function AcademicYearsView() {
                         </Button>
                       )}
                     </span>
+                    {semestersFor === y.id && (
+                      <div className="basis-full">
+                        <SemestersPanel yearId={y.id} />
+                      </div>
+                    )}
                   </li>
                 ))}
               </ul>

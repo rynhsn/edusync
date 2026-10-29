@@ -567,5 +567,24 @@
       "sma": "SMA/MA",
       "smk": "SMK"
     }
+  },
+  "semesters": {
+    "title": "Semester",
+    "empty": "Acan aya semester.",
+    "makeDefault": "Jieun Ganjil jeung Genep",
+    "name": "Ngaran",
+    "starts": "Mimiti",
+    "ends": "Réngsé",
+    "add": "Tambih semester",
+    "created": "Semester dijieun.",
+    "saved": "Parobahan disimpen.",
+    "deleted": "Semester dipiceun.",
+    "activate": "Jadikeun aktip",
+    "active": "Aktip",
+    "edit": "Robah",
+    "save": "Simpen",
+    "cancel": "Batal",
+    "delete": "Piceun",
+    "toggle": "Semester"
   }
 }

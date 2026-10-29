@@ -567,5 +567,24 @@
       "sma": "SMA/MA",
       "smk": "SMK"
     }
+  },
+  "semesters": {
+    "title": "Semester",
+    "empty": "Belum ada semester.",
+    "makeDefault": "Buat Ganjil dan Genap",
+    "name": "Nama",
+    "starts": "Mulai",
+    "ends": "Selesai",
+    "add": "Tambah semester",
+    "created": "Semester dibuat.",
+    "saved": "Perubahan disimpan.",
+    "deleted": "Semester dihapus.",
+    "activate": "Jadikan aktif",
+    "active": "Aktif",
+    "edit": "Ubah",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "toggle": "Semester"
   }
 }

@@ -567,5 +567,24 @@
       "sma": "Senior high",
       "smk": "Vocational"
     }
+  },
+  "semesters": {
+    "title": "Semesters",
+    "empty": "No semesters yet.",
+    "makeDefault": "Create Odd and Even",
+    "name": "Name",
+    "starts": "Starts",
+    "ends": "Ends",
+    "add": "Add semester",
+    "created": "Semester created.",
+    "saved": "Changes saved.",
+    "deleted": "Semester deleted.",
+    "activate": "Make active",
+    "active": "Active",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "toggle": "Semesters"
   }
 }

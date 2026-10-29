@@ -148,6 +148,20 @@
       "when": 1793311572375,
       "tag": "0020_reference_data",
       "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1793311839262,
+      "tag": "0021_chemical_ezekiel_stane",
+      "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1793311842677,
+      "tag": "0022_semester_rls",
+      "breakpoints": true
     }
   ]
 }

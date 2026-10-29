@@ -118,6 +118,7 @@ afterAll(async () => {
       'audit_log',
       'teaching_assignment',
       'school_curriculum',
+      'semester',
       'student_guardian',
       'guardian',
       'enrollment',
@@ -758,5 +759,101 @@ describe('bank data kurikulum', () => {
     await expect(
       app.tenantDb.execute(sql`insert into ref_curriculum (key, name) values ('x', 'x')`),
     ).rejects.toThrow();
+  });
+});
+
+describe('semester', () => {
+  it('membuat dua semester otomatis, mengaktifkan, mengubah, dan menghapus', async () => {
+    const year = (
+      await call('POST', '/v1/academic-years', opCookie, {
+        name: '2030/2031',
+        startsOn: '2030-07-15',
+        endsOn: '2031-06-30',
+      })
+    ).json();
+    const made = await call('POST', `/v1/academic-years/${year.id}/semesters/default`, opCookie);
+    expect(made.statusCode).toBe(201);
+    const [ganjil, genap] = made.json();
+    expect(ganjil).toMatchObject({ name: 'Ganjil', startsOn: '2030-07-15' });
+    expect(genap).toMatchObject({ name: 'Genap', endsOn: '2031-06-30' });
+    // Berurutan tanpa celah dan tanpa tumpang tindih.
+    expect(
+      new Date(`${genap.startsOn}T00:00:00Z`).getTime() - new Date(`${ganjil.endsOn}T00:00:00Z`).getTime(),
+    ).toBe(86_400_000);
+    expect((await call('POST', `/v1/academic-years/${year.id}/semesters/default`, opCookie)).statusCode).toBe(
+      409,
+    );
+
+    // Aktifkan: semester dan tahun ajarannya ikut aktif, hanya satu aktif.
+    const act = await call('PUT', `/v1/semesters/${genap.id}/activate`, opCookie);
+    expect(act.json().isActive).toBe(true);
+    const list = (await call('GET', `/v1/semesters?academicYearId=${year.id}`, opCookie)).json();
+    expect(
+      list.filter((s: { isActive: boolean }) => s.isActive).map((s: { name: string }) => s.name),
+    ).toEqual(['Genap']);
+    const years = (await call('GET', '/v1/academic-years', opCookie)).json();
+    expect(years.find((y: { id: string }) => y.id === year.id).isActive).toBe(true);
+    expect(years.filter((y: { isActive: boolean }) => y.isActive)).toHaveLength(1);
+
+    expect((await call('DELETE', `/v1/semesters/${genap.id}`, opCookie)).statusCode).toBe(409);
+    expect((await call('DELETE', `/v1/semesters/${ganjil.id}`, opCookie)).statusCode).toBe(200);
+    // Setelah dihapus, namanya bisa dibuat lagi pada rentang yang kosong.
+    const redo = await call('POST', `/v1/academic-years/${year.id}/semesters`, opCookie, {
+      name: 'Ganjil',
+      startsOn: '2030-07-15',
+      endsOn: '2030-12-20',
+    });
+    expect(redo.statusCode).toBe(201);
+    const edit = await call('PUT', `/v1/semesters/${redo.json().id}`, opCookie, {
+      name: 'Ganjil',
+      startsOn: '2030-07-15',
+      endsOn: '2030-12-31',
+    });
+    expect(edit.json().endsOn).toBe('2030-12-31');
+
+    // Pulihkan tahun aktif agar tes lain tidak terpengaruh.
+    await call('PUT', `/v1/academic-years/${yearId}/activate`, opCookie);
+  });
+
+  it('menolak rentang di luar tahun ajaran, tumpang tindih, urutan terbalik, dan lintas sekolah', async () => {
+    const year = (
+      await call('POST', '/v1/academic-years', opCookie, {
+        name: '2031/2032',
+        startsOn: '2031-07-14',
+        endsOn: '2032-06-30',
+      })
+    ).json();
+    const make = (b: object) => call('POST', `/v1/academic-years/${year.id}/semesters`, opCookie, b);
+    expect((await make({ name: 'A', startsOn: '2031-06-01', endsOn: '2031-12-01' })).json().error.code).toBe(
+      'invalid_period',
+    );
+    expect((await make({ name: 'A', startsOn: '2031-12-01', endsOn: '2031-08-01' })).statusCode).toBe(400);
+    expect((await make({ name: 'A', startsOn: '2031-07-14', endsOn: '2031-12-20' })).statusCode).toBe(201);
+    const overlap = await make({ name: 'B', startsOn: '2031-12-20', endsOn: '2032-06-30' });
+    expect(overlap.statusCode).toBe(400);
+    expect(overlap.json().error.message).toContain('"A"');
+    expect((await make({ name: 'A', startsOn: '2032-01-01', endsOn: '2032-06-30' })).statusCode).toBe(409);
+
+    expect(
+      (
+        await call('POST', `/v1/academic-years/${year.id}/semesters`, teacherCookie, {
+          name: 'C',
+          startsOn: '2032-01-01',
+          endsOn: '2032-02-01',
+        })
+      ).statusCode,
+    ).toBe(403);
+    expect(
+      (
+        await call(
+          'POST',
+          `/v1/academic-years/${year.id}/semesters`,
+          otherCookie,
+          { name: 'C', startsOn: '2032-01-01', endsOn: '2032-02-01' },
+          otherSchoolId,
+        )
+      ).statusCode,
+    ).toBe(404);
+    expect((await call('GET', '/v1/semesters', otherCookie, undefined, otherSchoolId)).json()).toEqual([]);
   });
 });
