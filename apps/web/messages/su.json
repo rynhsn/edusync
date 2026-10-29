@@ -517,5 +517,38 @@
       "nip": "NIP",
       "status": "Status"
     }
+  },
+  "guardians": {
+    "button": "Wali",
+    "title": "Wali murid",
+    "empty": "Acan aya wali.",
+    "primary": "Utama",
+    "makePrimary": "Jadikeun utama",
+    "father": "Bapa",
+    "mother": "Ibu",
+    "guardian": "Wali",
+    "other": "Séjénna",
+    "relation": "Hubungan",
+    "name": "Ngaran wali",
+    "phone": "Telepon / WhatsApp",
+    "phoneHint": "Contona 0812xxxx; disimpen jadi 62812xxxx.",
+    "email": "Surélék",
+    "addTitle": "Tambih wali anyar",
+    "add": "Tambih wali",
+    "added": "Wali ditambihkeun.",
+    "saved": "Parobahan disimpen.",
+    "removed": "Wali dilépaskeun.",
+    "primaryCheck": "Jadikeun wali utama",
+    "remove": "Lépaskeun",
+    "edit": "Robah",
+    "save": "Simpen",
+    "cancel": "Batal",
+    "link": "Tumbu wali nu geus aya",
+    "linkHint": "Teangan ku ngaran atawa telepon (contona dulur sapamaksudan sawali).",
+    "linkSearch": "Teangan wali",
+    "siblings": "wali ti {count} murid",
+    "noMatch": "Teu aya hasil.",
+    "linkAction": "Tumbu",
+    "invalidPhone": "Nomer telepon teu valid."
   }
 }

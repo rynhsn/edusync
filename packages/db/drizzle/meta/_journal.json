@@ -120,6 +120,20 @@
       "when": 1793285490527,
       "tag": "0016_master_data_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1793287547394,
+      "tag": "0017_windy_nextwave",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1793287550862,
+      "tag": "0018_guardian_rls",
+      "breakpoints": true
     }
   ]
 }

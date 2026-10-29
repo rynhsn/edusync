@@ -538,3 +538,42 @@ export const teachingAssignment = pgTable(
   },
   (t) => [unique('teaching_assignment_uq').on(t.classId, t.subjectId)],
 );
+
+/** Wali murid. Satu wali bisa menaungi beberapa siswa (kakak-adik) lewat student_guardian. */
+export const guardian = pgTable(
+  'guardian',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    /** Nomor telepon/WhatsApp dalam bentuk digit berawalan kode negara (mis. 62812...). */
+    phone: text('phone'),
+    email: text('email'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('guardian_school_name_idx').on(t.schoolId, t.name)],
+);
+
+export const studentGuardian = pgTable(
+  'student_guardian',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    guardianId: uuid('guardian_id')
+      .notNull()
+      .references(() => guardian.id),
+    relation: text('relation', { enum: ['father', 'mother', 'guardian', 'other'] }).notNull(),
+    isPrimary: boolean('is_primary').notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.studentId, t.guardianId] }),
+    index('student_guardian_guardian_idx').on(t.guardianId),
+  ],
+);

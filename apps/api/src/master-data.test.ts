@@ -117,6 +117,8 @@ afterAll(async () => {
     for (const table of [
       'audit_log',
       'teaching_assignment',
+      'student_guardian',
+      'guardian',
       'enrollment',
       'student',
       'teacher',
@@ -555,5 +557,153 @@ describe('impor guru', () => {
     expect((await importRows(opCookie, rows, false)).json().imported).toBe(0);
     // Sekolah lain boleh memakai NIP yang sama.
     expect((await importRows(otherCookie, [r(2)], false, otherSchoolId)).json().imported).toBe(1);
+  });
+});
+
+describe('wali murid', () => {
+  const guardiansOf = async (studentId: string) =>
+    (await call('GET', `/v1/students/${studentId}/guardians`, opCookie)).json();
+
+  it('menambah wali baru, menormalkan telepon, dan wali pertama otomatis utama', async () => {
+    const s = (await call('POST', '/v1/students', opCookie, { name: 'Anak Wali', gender: 'L' })).json();
+    const added = await call('POST', `/v1/students/${s.id}/guardians`, opCookie, {
+      name: 'Bapak Wali',
+      phone: '0812-3456-7890',
+      email: 'Bapak@Example.test',
+      relation: 'father',
+    });
+    expect(added.statusCode).toBe(201);
+    expect(added.json()).toEqual([
+      expect.objectContaining({
+        name: 'Bapak Wali',
+        phone: '6281234567890',
+        email: 'bapak@example.test',
+        relation: 'father',
+        isPrimary: true,
+        studentCount: 1,
+      }),
+    ]);
+    expect(
+      (
+        await call('POST', `/v1/students/${s.id}/guardians`, opCookie, {
+          name: 'X',
+          phone: 'abc',
+          relation: 'other',
+        })
+      ).statusCode,
+    ).toBe(400);
+    expect(
+      (await call('POST', `/v1/students/${s.id}/guardians`, opCookie, { relation: 'other' })).statusCode,
+    ).toBe(400);
+  });
+
+  it('wali utama hanya satu; mengganti, melepas, dan wali yatim ikut terhapus', async () => {
+    const s = (await call('POST', '/v1/students', opCookie, { name: 'Anak Dua Wali', gender: 'P' })).json();
+    const add = (body: object) => call('POST', `/v1/students/${s.id}/guardians`, opCookie, body);
+    const ayah = (await add({ name: 'Ayah', relation: 'father' })).json()[0];
+    const ibu = (await add({ name: 'Ibu', relation: 'mother', isPrimary: true })).json();
+    expect(ibu.find((g: { name: string }) => g.name === 'Ibu').isPrimary).toBe(true);
+    expect(ibu.find((g: { name: string }) => g.name === 'Ayah').isPrimary).toBe(false);
+
+    // Ganda ditolak.
+    expect((await add({ guardianId: ayah.guardianId, relation: 'father' })).statusCode).toBe(409);
+
+    // Ubah menjadikan Ayah utama.
+    const changed = await call('PUT', `/v1/students/${s.id}/guardians/${ayah.guardianId}`, opCookie, {
+      relation: 'father',
+      isPrimary: true,
+    });
+    expect(
+      changed
+        .json()
+        .filter((g: { isPrimary: boolean }) => g.isPrimary)
+        .map((g: { name: string }) => g.name),
+    ).toEqual(['Ayah']);
+
+    // Melepas wali utama memindahkan tanda ke wali lain.
+    expect(
+      (await call('DELETE', `/v1/students/${s.id}/guardians/${ayah.guardianId}`, opCookie)).statusCode,
+    ).toBe(200);
+    const left = await guardiansOf(s.id);
+    expect(left).toHaveLength(1);
+    expect(left[0]).toMatchObject({ name: 'Ibu', isPrimary: true });
+    expect(
+      (await call('DELETE', `/v1/students/${s.id}/guardians/${ayah.guardianId}`, opCookie)).statusCode,
+    ).toBe(404);
+    // Wali yang tak menaungi siapa pun lagi hilang dari pencarian.
+    expect((await call('GET', '/v1/guardians?q=Ayah', opCookie)).json()).toHaveLength(0);
+  });
+
+  it('kakak-adik berbagi satu wali, dan mengubah wali berlaku untuk keduanya', async () => {
+    const kakak = (await call('POST', '/v1/students', opCookie, { name: 'Kakak', gender: 'L' })).json();
+    const adik = (await call('POST', '/v1/students', opCookie, { name: 'Adik', gender: 'P' })).json();
+    const g = (
+      await call('POST', `/v1/students/${kakak.id}/guardians`, opCookie, {
+        name: 'Ibu Bersama',
+        phone: '081200001111',
+        relation: 'mother',
+      })
+    ).json()[0];
+
+    const found = (await call('GET', '/v1/guardians?q=Bersama', opCookie)).json();
+    expect(found).toEqual([{ id: g.guardianId, name: 'Ibu Bersama', phone: '6281200001111' }]);
+    const linked = await call('POST', `/v1/students/${adik.id}/guardians`, opCookie, {
+      guardianId: g.guardianId,
+      relation: 'mother',
+    });
+    expect(linked.json()[0].studentCount).toBe(2);
+
+    const edit = await call('PUT', `/v1/guardians/${g.guardianId}`, opCookie, {
+      name: 'Ibu Bersama Baru',
+      phone: '+62 812 0000 2222',
+      email: '',
+    });
+    expect(edit.json()).toMatchObject({
+      name: 'Ibu Bersama Baru',
+      phone: '6281200002222',
+      email: null,
+    });
+    expect((await guardiansOf(kakak.id))[0].name).toBe('Ibu Bersama Baru');
+
+    // Wali tetap ada selama masih menaungi salah satu siswa.
+    await call('DELETE', `/v1/students/${kakak.id}/guardians/${g.guardianId}`, opCookie);
+    expect((await guardiansOf(adik.id))[0].name).toBe('Ibu Bersama Baru');
+  });
+
+  it('izin dan isolasi sekolah', async () => {
+    const s = (await call('POST', '/v1/students', opCookie, { name: 'Anak Izin', gender: 'L' })).json();
+    expect((await call('GET', `/v1/students/${s.id}/guardians`, teacherCookie)).statusCode).toBe(200);
+    expect(
+      (await call('POST', `/v1/students/${s.id}/guardians`, teacherCookie, { name: 'X', relation: 'other' }))
+        .statusCode,
+    ).toBe(403);
+
+    const g = (
+      await call('POST', `/v1/students/${s.id}/guardians`, opCookie, {
+        name: 'Wali Rahasia',
+        relation: 'guardian',
+      })
+    ).json()[0];
+    expect(
+      (await call('GET', `/v1/students/${s.id}/guardians`, otherCookie, undefined, otherSchoolId)).statusCode,
+    ).toBe(404);
+    expect(
+      (await call('GET', '/v1/guardians?q=Rahasia', otherCookie, undefined, otherSchoolId)).json(),
+    ).toHaveLength(0);
+    expect(
+      (await call('PUT', `/v1/guardians/${g.guardianId}`, otherCookie, { name: 'Diubah' }, otherSchoolId))
+        .statusCode,
+    ).toBe(404);
+    const ownStudent = (
+      await call('POST', '/v1/students', otherCookie, { name: 'Siswa Lain', gender: 'L' }, otherSchoolId)
+    ).json();
+    const cross = await call(
+      'POST',
+      `/v1/students/${ownStudent.id}/guardians`,
+      otherCookie,
+      { guardianId: g.guardianId, relation: 'other' },
+      otherSchoolId,
+    );
+    expect(cross.statusCode).toBe(404);
   });
 });

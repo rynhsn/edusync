@@ -17,6 +17,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { buildExport, saveBlob } from '@/lib/sheet';
+import { GuardiansPanel } from './guardians-panel';
 
 const PAGE = 25;
 const STATUSES = ['active', 'graduated', 'transferred', 'dropped'] as const;
@@ -254,6 +255,8 @@ export function StudentsView() {
   });
 
   const [exporting, setExporting] = useState(false);
+  const [guardiansFor, setGuardiansFor] = useState<string | null>(null);
+  const tg = useTranslations('guardians');
 
   /** Ekspor hasil pencarian dan saringan yang sedang tampil (semua halaman), dengan judul kolom yang sama dengan templat impor. */
   async function exportExcel() {
@@ -421,6 +424,14 @@ export function StudentsView() {
                         <Badge variant={s.status === 'active' ? 'secondary' : 'outline'}>
                           {t(STATUS_KEY[s.status])}
                         </Badge>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          aria-expanded={guardiansFor === s.id}
+                          onClick={() => setGuardiansFor(guardiansFor === s.id ? null : s.id)}
+                        >
+                          {tg('button')}
+                        </Button>
                         {manage && !open && (
                           <>
                             <Button
@@ -454,6 +465,7 @@ export function StudentsView() {
                         )}
                       </div>
                     </div>
+                    {guardiansFor === s.id && <GuardiansPanel studentId={s.id} />}
                     {open && editing && (
                       <div className="grid gap-3">
                         <StudentFields

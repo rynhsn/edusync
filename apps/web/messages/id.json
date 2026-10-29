@@ -517,5 +517,38 @@
       "nip": "NIP",
       "status": "Status"
     }
+  },
+  "guardians": {
+    "button": "Wali",
+    "title": "Wali murid",
+    "empty": "Belum ada wali.",
+    "primary": "Utama",
+    "makePrimary": "Jadikan utama",
+    "father": "Ayah",
+    "mother": "Ibu",
+    "guardian": "Wali",
+    "other": "Lainnya",
+    "relation": "Hubungan",
+    "name": "Nama wali",
+    "phone": "Telepon / WhatsApp",
+    "phoneHint": "Mis. 0812xxxx; disimpan sebagai 62812xxxx.",
+    "email": "Email",
+    "addTitle": "Tambah wali baru",
+    "add": "Tambah wali",
+    "added": "Wali ditambahkan.",
+    "saved": "Perubahan disimpan.",
+    "removed": "Wali dilepas.",
+    "primaryCheck": "Jadikan wali utama",
+    "remove": "Lepas",
+    "edit": "Ubah",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "link": "Tautkan wali yang sudah ada",
+    "linkHint": "Cari nama atau telepon (mis. kakak-adik berbagi satu wali).",
+    "linkSearch": "Cari wali",
+    "siblings": "menaungi {count} siswa",
+    "noMatch": "Tidak ada hasil.",
+    "linkAction": "Tautkan",
+    "invalidPhone": "Nomor telepon tidak valid."
   }
 }

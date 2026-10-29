@@ -517,5 +517,38 @@
       "nip": "NIP",
       "status": "Status"
     }
+  },
+  "guardians": {
+    "button": "Guardians",
+    "title": "Guardians",
+    "empty": "No guardians yet.",
+    "primary": "Primary",
+    "makePrimary": "Make primary",
+    "father": "Father",
+    "mother": "Mother",
+    "guardian": "Guardian",
+    "other": "Other",
+    "relation": "Relationship",
+    "name": "Guardian name",
+    "phone": "Phone / WhatsApp",
+    "phoneHint": "E.g. 0812xxxx; stored as 62812xxxx.",
+    "email": "Email",
+    "addTitle": "Add a new guardian",
+    "add": "Add guardian",
+    "added": "Guardian added.",
+    "saved": "Changes saved.",
+    "removed": "Guardian removed.",
+    "primaryCheck": "Make primary guardian",
+    "remove": "Remove",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "link": "Link an existing guardian",
+    "linkHint": "Search by name or phone (e.g. siblings share one guardian).",
+    "linkSearch": "Search guardians",
+    "siblings": "guardian of {count} students",
+    "noMatch": "No results.",
+    "linkAction": "Link",
+    "invalidPhone": "The phone number is not valid."
   }
 }
