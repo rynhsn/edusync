@@ -355,3 +355,21 @@ export const platformStaff = pgTable('platform_staff', {
   role: text('role', { enum: ['admin', 'read_only'] }).notNull(),
   createdAt: createdAt(),
 });
+
+/** Pemilik yayasan: mengurus langganan dan tagihan di alamat utama. Bukan peran sekolah. */
+export const foundationOwner = pgTable(
+  'foundation_owner',
+  {
+    foundationId: uuid('foundation_id')
+      .notNull()
+      .references(() => foundation.id),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.foundationId, t.userId] }),
+    index('foundation_owner_user_idx').on(t.userId),
+  ],
+);

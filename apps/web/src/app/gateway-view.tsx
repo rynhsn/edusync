@@ -41,12 +41,20 @@ export function GatewayView() {
     },
   });
 
+  const owner = useQuery({
+    queryKey: ['account'],
+    enabled: !!me.data && site.ready && site.kind === 'main',
+    queryFn: async () => unwrap(await api.GET('/v1/account')),
+  });
+
   useEffect(() => {
     if (!site.ready || me.isPending || me.isError) return;
     if (me.data === null) return void router.replace('/login');
     if (site.kind === 'school') return void router.replace('/dashboard');
     if (staff.isPending) return;
     if (staff.data) return void router.replace('/platform');
+    if (owner.isPending) return;
+    if (owner.data && owner.data.foundations.length > 0) return void router.replace('/account');
     const first = [...me.data.memberships].sort((a, b) => a.schoolName.localeCompare(b.schoolName))[0];
     if (!first || moving.current) return;
     moving.current = true;
@@ -54,7 +62,17 @@ export function GatewayView() {
       moving.current = false;
       setMoveFailed(true);
     });
-  }, [site, me.isPending, me.isError, me.data, staff.isPending, staff.data, router]);
+  }, [
+    site,
+    me.isPending,
+    me.isError,
+    me.data,
+    staff.isPending,
+    staff.data,
+    owner.isPending,
+    owner.data,
+    router,
+  ]);
 
   async function signOut() {
     await authClient.signOut();
@@ -68,6 +86,8 @@ export function GatewayView() {
     me.data &&
     !staff.isPending &&
     !staff.data &&
+    !owner.isPending &&
+    !owner.data?.foundations.length &&
     me.data.memberships.length === 0;
 
   if (me.isError || moveFailed) {

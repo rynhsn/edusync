@@ -3,10 +3,12 @@ import {
   createDb,
   eq,
   foundation,
+  foundationOwner,
   member,
   platformStaff,
   school,
   seedSchoolRoles,
+  subscription,
   user,
 } from '@edusync/db';
 import { buildApp } from '../src/app';
@@ -61,6 +63,20 @@ const smk = await ensureSchool(yayasan.id, 'smk-miftahul-huda', 'SMK Miftahul Hu
 const admin = await ensureUser('admin@edusync.test', 'Admin Yayasan');
 await ensureMember(admin, smp.id, ['school_admin']);
 await ensureMember(admin, smk.id, ['school_admin']);
+await db.insert(foundationOwner).values({ foundationId: yayasan.id, userId: admin }).onConflictDoNothing();
+const [hasSub] = await db
+  .select({ id: subscription.id })
+  .from(subscription)
+  .where(eq(subscription.foundationId, yayasan.id));
+if (!hasSub) {
+  const now = new Date();
+  await db.insert(subscription).values({
+    foundationId: yayasan.id,
+    period: 'monthly',
+    currentPeriodStart: now,
+    currentPeriodEnd: new Date(now.getTime() + 30 * 86_400_000),
+  });
+}
 
 const guru = await ensureUser('guru@edusync.test', 'Guru Contoh');
 await ensureMember(guru, smp.id, ['teacher', 'operator']);

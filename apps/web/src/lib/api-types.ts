@@ -1574,6 +1574,101 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Langganan dan tagihan yayasan milik pengguna
+         * @description Untuk pemilik yayasan: status langganan, unit beserta modulnya, dan tagihan terbaru. Pengguna yang bukan pemilik mendapat daftar kosong. Tautan bayar hanya untuk tagihan yang masih terbuka.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            foundations: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                slug: string;
+                                subscription: {
+                                    /** @enum {string} */
+                                    status: "pending_payment" | "active" | "past_due" | "suspended" | "canceled";
+                                    /** @enum {string} */
+                                    period: "monthly" | "yearly";
+                                    /** Format: date-time */
+                                    currentPeriodEnd: string;
+                                } | null;
+                                schools: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    name: string;
+                                    slug: string;
+                                    /** @enum {string} */
+                                    status: "active" | "suspended";
+                                    /** @enum {string|null} */
+                                    suspendedReason: "billing" | "staff" | null;
+                                    tier: string;
+                                    modules: string[];
+                                }[];
+                                invoices: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    amount: number;
+                                    currency: string;
+                                    /** @enum {string} */
+                                    status: "open" | "paid" | "expired" | "void";
+                                    paymentUrl: string | null;
+                                    /** Format: date-time */
+                                    dueAt: string;
+                                    /** Format: date-time */
+                                    paidAt: string | null;
+                                    /** Format: date-time */
+                                    createdAt: string;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {

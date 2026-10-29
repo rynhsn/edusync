@@ -1,3 +1,4 @@
+export * from './account';
 export * from './errors';
 export * from './lifecycle';
 export * from './provider';

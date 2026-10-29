@@ -122,6 +122,8 @@ afterAll(async () => {
   }
   if (userIds.length > 0) await db.execute(sql`delete from registration where user_id in (${ids(userIds)})`);
   if (foundationIds.length > 0)
+    await db.execute(sql`delete from foundation_owner where foundation_id in (${ids(foundationIds)})`);
+  if (foundationIds.length > 0)
     await db.execute(sql`delete from foundation where id in (${ids(foundationIds)})`);
   if (userIds.length > 0) await db.delete(user).where(inArray(user.id, userIds));
   await app.close();
@@ -347,6 +349,38 @@ describe('pendaftaran dan aktivasi otomatis', () => {
       })
     ).json();
     expect((await get(`/v1/registrations/${created.registrationId}`, b.cookie)).statusCode).toBe(404);
+  });
+});
+
+describe('portal akun pemilik yayasan', () => {
+  it('pemilik melihat langganan, unit, modul, dan tagihan; orang lain tidak melihat apa pun', async () => {
+    const owner = await makeUser('akun');
+    const other = await makeUser('akun-lain');
+    const created = (
+      await register(owner.cookie, { foundationName: 'Yayasan Akun', period: 'yearly', units: units('akun') })
+    ).json();
+
+    // Sebelum dibayar belum ada yayasan.
+    expect((await get('/v1/account', owner.cookie)).json().foundations).toEqual([]);
+
+    const { orderId, amount } = await orderIdOf(created.registrationId);
+    expect(
+      (await webhook({ eventId: `evt-${run}-akun`, orderId, status: 'paid', amount })).json().outcome,
+    ).toBe('activated');
+
+    const res = await get('/v1/account', owner.cookie);
+    expect(res.statusCode).toBe(200);
+    const [f] = res.json().foundations;
+    expect(f.name).toBe('Yayasan Akun');
+    expect(f.subscription).toMatchObject({ status: 'active', period: 'yearly' });
+    expect(f.schools).toHaveLength(2);
+    const smp = f.schools.find((s: { slug: string }) => s.slug === `smp-akun-${run}`);
+    expect(smp.modules).toEqual(['attendance', 'assessments', 'grades'].sort());
+    expect(f.invoices).toHaveLength(1);
+    expect(f.invoices[0]).toMatchObject({ status: 'paid', amount, paymentUrl: null });
+
+    expect((await get('/v1/account', other.cookie)).json().foundations).toEqual([]);
+    expect((await app.inject('/v1/account')).statusCode).toBe(401);
   });
 });
 

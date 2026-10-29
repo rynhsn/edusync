@@ -88,7 +88,7 @@ Tabel `school_domains(school_id, hostname, kind, status: pending|verified|active
 - **Multi-peran:** `member` 1—N `member_role`; izin = gabungan semua peran. Audit mencatat peran sumber izin. Aturan pemisahan tugas bisa diaktifkan per sekolah.
 - **Peran vs penugasan:** peran memberi izin umum; penugasan membatasi konteks: `teaching_assignment`, `homeroom_assignment`, `extracurricular_advisor`, `halaqah_musyrif`, `pkl_supervisor`. Data guru dibatasi oleh penugasan.
 - **Guard API:** `requireUser`, `requireTenant` (header `x-school-id`; cek keanggotaan dan sekolah aktif), `requirePermission`, `requireModule` (entitlement), `requireStaff`.
-- **Tingkat yayasan:** pemilik yayasan mengurus langganan dan tagihan di alamat utama (belum dibangun); admin sekolah tidak melihat tagihan.
+- **Tingkat yayasan:** pemilik yayasan (tabel `foundation_owner`, dibuat saat aktivasi) mengurus langganan dan tagihan di `/account` pada alamat utama; admin sekolah tidak melihat tagihan.
 - **Staf Edusync:** tabel `platform_staff` (peran `admin` / `read_only`), bukan anggota sekolah; dibuat lewat perintah di server (seed hanya di dev).
 - Pengecualian izin per individu (tambah/cabut, dengan alasan dan tanggal berakhir): direncanakan.
 
@@ -181,7 +181,7 @@ Lihat `README.md`. Konfigurasi penting di `.env`: `DATABASE_*_URL` (owner/app/pl
 Pilot Miftahul Huda (SMP IT + SMK, ±15 guru, sebagian lintas unit) masuk akal setelah M2–M4, memakai aktivasi komplimen.
 
 ### Berikutnya dan terbuka
-- Peran pemilik yayasan dan portal akun: langganan, tagihan, bayar perpanjangan, ubah paket dan unit.
+- Portal akun yayasan: lihat langganan, unit, modul, dan bayar tagihan terbuka sudah ada (`/account`, `GET /v1/account`, tabel `foundation_owner`). Menyusul: ubah modul, tambah unit, tagihan perpanjangan sesuai permintaan.
 - Pengelolaan peran dan anggota lewat layar, undangan guru, pengecualian izin per orang.
 - Uji Midtrans sandbox (butuh terowongan, notification URL `/v1/webhooks/payments/midtrans`).
 - Verifikasi email saat daftar; notifikasi masa tenggang; SMTP sungguhan.

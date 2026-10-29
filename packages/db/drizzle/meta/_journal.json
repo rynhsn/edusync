@@ -78,6 +78,20 @@
       "when": 1793274789772,
       "tag": "0010_platform_staff_security",
       "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793283435805,
+      "tag": "0011_equal_guardsmen",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793283442099,
+      "tag": "0012_foundation_owner_security",
+      "breakpoints": true
     }
   ]
 }

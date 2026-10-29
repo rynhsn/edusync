@@ -165,6 +165,8 @@ afterAll(async () => {
     await db.delete(platformStaff).where(inArray(platformStaff.userId, userIds));
   }
   if (foundationIds.length > 0)
+    await db.execute(sql`delete from foundation_owner where foundation_id in (${list(foundationIds)})`);
+  if (foundationIds.length > 0)
     await db.execute(sql`delete from foundation where id in (${list(foundationIds)})`);
   if (userIds.length > 0) await db.delete(user).where(inArray(user.id, userIds));
   await app.close();

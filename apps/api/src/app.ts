@@ -22,6 +22,7 @@ import { z } from 'zod';
 import { type Auth, createAuth, originMatcherFor } from './auth';
 import type { Env } from './env';
 import { academicYearRoutes } from './routes/academic-years';
+import { accountRoutes } from './routes/account';
 import { registerAuthRoutes } from './routes/auth';
 import { billingRoutes } from './routes/billing';
 import { meRoutes } from './routes/me';
@@ -157,6 +158,7 @@ export async function buildApp(env: Env) {
   await app.register(academicYearRoutes);
   await app.register(billingRoutes, { env });
   await app.register(platformRoutes);
+  await app.register(accountRoutes);
 
   return app;
 }

@@ -14,6 +14,7 @@ import {
   entitlement,
   eq,
   foundation,
+  foundationOwner,
   gt,
   inArray,
   invoice,
@@ -220,6 +221,7 @@ export async function activateRegistration(
     .insert(foundation)
     .values({ name: reg.foundationName, slug: await uniqueFoundationSlug(tx, slugify(reg.foundationName)) })
     .returning();
+  await tx.insert(foundationOwner).values({ foundationId: f!.id, userId: owner.id });
   const [sub] = await tx
     .insert(subscription)
     .values({
