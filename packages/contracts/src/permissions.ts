@@ -1,0 +1,35 @@
+/**
+ * Katalog izin. Format `sumber:aksi`. Modul baru menambah izinnya di sini,
+ * karena API dan UI membaca daftar yang sama.
+ */
+export const PERMISSIONS = [
+  'member:read',
+  'member:manage',
+  'role:manage',
+  'academic_year:read',
+  'academic_year:manage',
+  'audit:read',
+] as const;
+
+export type Permission = (typeof PERMISSIONS)[number];
+
+export function isPermission(value: string): value is Permission {
+  return (PERMISSIONS as readonly string[]).includes(value);
+}
+
+export interface SystemRole {
+  name: string;
+  permissions: readonly Permission[];
+}
+
+/** Peran bawaan yang dibuat untuk setiap sekolah. Sekolah boleh mengubahnya. */
+export const SYSTEM_ROLES = {
+  school_admin: { name: 'Admin sekolah', permissions: PERMISSIONS },
+  principal: { name: 'Kepala sekolah', permissions: ['member:read', 'academic_year:read', 'audit:read'] },
+  curriculum: { name: 'Kurikulum', permissions: ['academic_year:read', 'academic_year:manage'] },
+  treasurer: { name: 'Bendahara', permissions: ['academic_year:read'] },
+  operator: { name: 'Operator', permissions: ['member:read', 'academic_year:read', 'academic_year:manage'] },
+  teacher: { name: 'Guru', permissions: ['academic_year:read'] },
+} as const satisfies Record<string, SystemRole>;
+
+export type SystemRoleKey = keyof typeof SYSTEM_ROLES;

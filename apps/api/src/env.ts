@@ -5,6 +5,17 @@ const schema = z.object({
   API_PORT: z.coerce.number().int().positive().default(4000),
   DATABASE_URL: z.string().min(1),
   DATABASE_PLATFORM_URL: z.string().min(1),
+  AUTH_SECRET: z.string().min(32, 'minimal 32 karakter'),
+  AUTH_URL: z.string().url().default('http://localhost:4000'),
+  TRUSTED_ORIGINS: z
+    .string()
+    .default('http://localhost:3000')
+    .transform((v) =>
+      v
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
+    ),
 });
 
 export type Env = z.infer<typeof schema>;

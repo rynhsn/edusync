@@ -15,6 +15,20 @@
       "when": 1793267683423,
       "tag": "0001_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1793268820746,
+      "tag": "0002_nostalgic_killer_shrike",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1793268823078,
+      "tag": "0003_rls_identity",
+      "breakpoints": true
     }
   ]
 }
