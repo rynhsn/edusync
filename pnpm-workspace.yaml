@@ -2,5 +2,4 @@ packages:
   - apps/*
   - packages/*
 allowBuilds:
-  argon2: true
   esbuild: true

@@ -10,3 +10,4 @@ coverage/
 .claude/
 .codegraph/
 .mcp.json
+.turbo/

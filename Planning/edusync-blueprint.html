@@ -1,0 +1,658 @@
+<title>EduSync Blueprint</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: sticky section nav, single reading column (max 1040px) with wide figures scrolling inside their own boxes. */
+:root{
+  --bg:#F3F6FA; --surface:#FFFFFF; --surface2:#E8EEF6; --fg:#0E1A2B; --muted:#51607A; --line:#CCD6E4;
+  --accent:#2748D8; --accent-soft:#DCE4FF; --pencil:#E8A800; --pencil-soft:#FFF1C2;
+  --ok:#14804A; --ok-soft:#D6F2E2; --bad:#C0312B; --bad-soft:#FBDAD7;
+  --display:'Bricolage Grotesque','Segoe UI',system-ui,sans-serif; --body:'IBM Plex Sans','Segoe UI',system-ui,sans-serif; --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0B1220; --surface:#131D31; --surface2:#1B2840; --fg:#E7EDF8; --muted:#9AA9C3; --line:#28385A;
+  --accent:#8FA6FF; --accent-soft:#1E2C5E; --pencil:#F5B800; --pencil-soft:#3A2E08;
+  --ok:#53D493; --ok-soft:#0F3322; --bad:#FF8A82; --bad-soft:#431917; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0B1220; --surface:#131D31; --surface2:#1B2840; --fg:#E7EDF8; --muted:#9AA9C3; --line:#28385A;
+  --accent:#8FA6FF; --accent-soft:#1E2C5E; --pencil:#F5B800; --pencil-soft:#3A2E08;
+  --ok:#53D493; --ok-soft:#0F3322; --bad:#FF8A82; --bad-soft:#431917; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font:400 16px/1.6 var(--body);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 64px}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.wrap{max-width:1040px;margin:0 auto}
+h1,h2,h3{font-family:var(--display);line-height:1.1;text-wrap:balance;margin:0}
+h2{font-size:clamp(1.7rem,4vw,2.4rem);font-weight:700;letter-spacing:-.02em}
+h3{font-size:1.15rem;font-weight:700}
+p{margin:0}
+a{color:var(--accent)}
+code,.mono{font-family:var(--mono);font-size:.86em}
+nav.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:calc(-1*max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
+nav.top .wrap{display:flex;gap:4px;overflow-x:auto;padding-block:8px;scrollbar-width:none}
+nav.top a{white-space:nowrap;text-decoration:none;color:var(--muted);font-size:.84rem;font-weight:500;padding:6px 12px;border-radius:99px}
+nav.top a:hover,nav.top a:focus-visible{background:var(--surface2);color:var(--fg);outline:none}
+nav.top a.on{background:var(--fg);color:var(--bg)}
+header.hero{padding-block:56px 40px;display:grid;gap:24px}
+.eyebrow{font:500 .75rem var(--mono);letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.hero h1{font-size:clamp(2.6rem,9vw,5.4rem);font-weight:700;letter-spacing:-.04em}
+.hero h1 em{font-style:normal;background:linear-gradient(transparent 62%,var(--pencil) 62% 92%,transparent 92%);padding-inline:.06em}
+.hero p.lead{font-size:1.2rem;max-width:56ch;color:var(--muted)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}
+.fact{border-top:2px solid var(--fg);padding-top:10px}
+.fact b{display:block;font:700 2rem var(--display);letter-spacing:-.03em}
+.fact span{font-size:.85rem;color:var(--muted)}
+section{padding-block:56px 8px;scroll-margin-top:60px}
+section>.intro{margin-block:12px 28px;max-width:62ch;color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:20px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,230px),1fr));gap:16px}
+.card>*+*{margin-top:10px}
+.tag{display:inline-block;font:500 .72rem var(--mono);letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:4px;background:var(--surface2);color:var(--muted)}
+.tag.bad{background:var(--bad-soft);color:var(--bad)} .tag.ok{background:var(--ok-soft);color:var(--ok)} .tag.acc{background:var(--accent-soft);color:var(--accent)} .tag.pen{background:var(--pencil-soft);color:var(--fg)}
+ul.plain{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+ul.plain li{padding-left:22px;position:relative;font-size:.95rem}
+ul.plain li::before{content:"";position:absolute;left:2px;top:.6em;width:10px;height:2px;background:var(--muted)}
+ul.plain.bad li::before{background:var(--bad)} ul.plain.ok li::before{background:var(--ok);height:2px}
+figure{margin:0}
+figcaption{font-size:.88rem;color:var(--muted);margin-top:12px;max-width:70ch}
+.scroll{overflow-x:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:12px}
+.scroll svg{display:block;min-width:720px;width:100%;height:auto}
+svg text{font-family:var(--body);fill:currentColor}
+svg .mono{font-family:var(--mono)}
+svg .box{fill:var(--surface2);stroke:var(--line);stroke-width:1.2}
+svg .boxA{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.4}
+svg .boxP{fill:var(--pencil-soft);stroke:var(--pencil);stroke-width:1.4}
+svg .ln{stroke:currentColor;stroke-width:1.4;fill:none}
+svg .lnA{stroke:var(--accent);stroke-width:1.8;fill:none}
+svg .lbl{font-size:11px;fill:var(--muted)}
+svg .t{font-size:13px;font-weight:600} svg .s{font-size:11.5px}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:16px}
+.tabs button,.seg button{font:500 .88rem var(--body);background:var(--surface);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:8px 14px;cursor:pointer}
+.tabs button[aria-selected="true"],.seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg);border-color:var(--fg)}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--pencil);outline-offset:2px}
+.seg{display:flex;gap:6px;flex-wrap:wrap}
+ol.steps{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:0}
+ol.steps li{counter-increment:s;position:relative;padding:0 0 18px 48px;min-height:40px}
+ol.steps li::before{content:counter(s);position:absolute;left:0;top:0;width:32px;height:32px;border-radius:50%;background:var(--accent-soft);color:var(--accent);font:600 .9rem var(--mono);display:grid;place-items:center}
+ol.steps li::after{content:"";position:absolute;left:15px;top:34px;bottom:2px;width:2px;background:var(--line)}
+ol.steps li:last-child::after{display:none}
+ol.steps b{display:block}
+ol.steps span{color:var(--muted);font-size:.93rem}
+.demo{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr));gap:16px;align-items:start}
+.ctl{display:grid;gap:12px}
+label.f{display:grid;gap:4px;font-size:.85rem;color:var(--muted)}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.btn{font:600 .95rem var(--body);background:var(--accent);color:var(--bg);border:0;border-radius:8px;padding:10px 16px;cursor:pointer}
+:root[data-theme="light"] .btn,.btn{color:#fff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn{color:#0B1220}}
+:root[data-theme="dark"] .btn{color:#0B1220}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line)}
+:root[data-theme="light"] .btn.ghost,.btn.ghost{color:var(--fg)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .btn.ghost{color:var(--fg)}}
+:root[data-theme="dark"] .btn.ghost{color:var(--fg)}
+.clock{font:500 2.4rem var(--mono);letter-spacing:-.02em}
+table{border-collapse:collapse;width:100%;font-size:.9rem}
+th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font:500 .72rem var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+td.c,th.c{text-align:center}
+.tw{overflow-x:auto}
+.log{font:400 .84rem/1.5 var(--mono);display:grid;gap:6px;max-height:260px;overflow:auto}
+.log div{padding:6px 10px;border-radius:6px;background:var(--surface2)}
+.log .ign{background:var(--pencil-soft)} .log .rej{background:var(--bad-soft)}
+.pill{display:inline-block;padding:2px 10px;border-radius:99px;font-size:.8rem;font-weight:600}
+.p-ok{background:var(--ok-soft);color:var(--ok)} .p-late{background:var(--pencil-soft);color:var(--fg)} .p-bad{background:var(--bad-soft);color:var(--bad)} .p-n{background:var(--surface2);color:var(--muted)}
+.mods{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:16px}
+.mod h3{display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.mod .m{font:500 .75rem var(--mono);color:var(--muted)}
+.mod ul{margin:0;padding-left:18px;font-size:.92rem;color:var(--muted)}
+.mod ul li+li{margin-top:3px}
+.perm{display:inline-block;min-width:26px;text-align:center;border-radius:5px;padding:1px 6px;font:600 .8rem var(--mono)}
+.perm.w{background:var(--ok-soft);color:var(--ok)} .perm.r{background:var(--accent-soft);color:var(--accent)} .perm.o{background:var(--pencil-soft);color:var(--fg)} .perm.n{color:var(--muted)}
+.road{list-style:none;margin:0;padding:0;display:grid;gap:12px}
+.road li{display:grid;grid-template-columns:64px 1fr;gap:16px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px}
+.road .mk{font:700 1.5rem var(--display);color:var(--accent)}
+.road .done{font-size:.9rem;color:var(--muted)}
+.road .done b{color:var(--fg);font-weight:600}
+.road li.now{border-color:var(--pencil);box-shadow:inset 4px 0 0 var(--pencil)}
+.road h3{margin-bottom:4px}
+.dec{display:grid;gap:10px}
+.dec .opt{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;align-items:baseline}
+.legend{display:flex;gap:16px;flex-wrap:wrap;font-size:.85rem;color:var(--muted);margin-top:10px}
+footer{margin-top:64px;padding-top:20px;border-top:1px solid var(--line);color:var(--muted);font-size:.88rem}
+@media (max-width:520px){.road li{grid-template-columns:1fr;gap:4px}}
+@media (prefers-reduced-motion:no-preference){.btn,.tabs button{transition:transform .12s}.btn:active{transform:translateY(1px)}}
+</style>
+
+<nav class="top" aria-label="Bagian">
+  <div class="wrap" id="navbar">
+    <a href="#ringkasan">Ringkasan</a><a href="#alasan">Alasan</a><a href="#arsitektur">Arsitektur</a><a href="#tenant">Isolasi sekolah</a><a href="#alur">Alur pengguna</a><a href="#langganan">Langganan</a><a href="#rfid">Absensi RFID</a><a href="#modul">Modul</a><a href="#akses">Hak akses</a><a href="#data">Data</a><a href="#rencana">Rencana</a><a href="#keputusan">Keputusan</a>
+  </div>
+</nav>
+
+<div class="wrap">
+<header class="hero" id="ringkasan">
+  <div class="eyebrow">Blueprint rebuild · 29 Okt 2026 · draf untuk disetujui</div>
+  <h1>Edu<em>Sync</em></h1>
+  <p class="lead">Satu aplikasi untuk absensi RFID, nilai, penilaian, pendaftaran siswa baru, dan website publik setiap sekolah. Banyak sekolah memakainya bersamaan, dan data mereka tidak pernah bercampur.</p>
+  <div class="facts">
+    <div class="fact"><b>1</b><span>API, 1 web app, 1 database</span></div>
+    <div class="fact"><b>8</b><span>modul bisnis dari sistem lama</span></div>
+    <div class="fact"><b>6+</b><span>peran dengan izin yang bisa diatur</span></div>
+    <div class="fact"><b>13</b><span>milestone, M0 sampai M12</span></div>
+  </div>
+</header>
+
+<section id="alasan">
+  <h2>Kenapa dibuat ulang</h2>
+  <p class="intro">Kode sekarang sudah rapi di bagian yang ada, tetapi bentuk dasarnya membuat setiap fitur dikerjakan dua kali dan baru 3 dari sekitar 12 modul yang jadi.</p>
+  <div class="grid2">
+    <div class="card">
+      <span class="tag bad">Sekarang</span>
+      <h3>Dua sistem yang saling memanggil</h3>
+      <ul class="plain bad">
+        <li>Platform API dan School API, masing-masing dengan database, login, dan pengirim email sendiri</li>
+        <li>Dua frontend dengan salinan komponen UI yang sama</li>
+        <li>Membuat sekolah butuh panggilan antar-layanan, jadi ada status <code>provisioning_failed</code> dan proses ulang</li>
+        <li>Dokumen OpenAPI ditulis tangan, mudah tidak cocok dengan route</li>
+        <li>Pemisahan data sekolah bergantung pada setiap query ingat memakai <code>WHERE</code></li>
+        <li>Hanya dua peran: admin dan staf</li>
+      </ul>
+    </div>
+    <div class="card">
+      <span class="tag ok">Rencana</span>
+      <h3>Satu sistem, modul di dalamnya</h3>
+      <ul class="plain ok">
+        <li>Satu API, satu database PostgreSQL, satu login</li>
+        <li>Satu web app berisi situs publik, dashboard sekolah, konsol platform, dan kiosk</li>
+        <li>Membuat sekolah adalah satu transaksi database, berhasil seluruhnya atau tidak sama sekali</li>
+        <li>OpenAPI dibuat otomatis dari skema Zod di setiap route</li>
+        <li>Database sendiri yang menolak data sekolah lain (Row-Level Security)</li>
+        <li>Peran berbasis izin, bisa diubah per sekolah</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="arsitektur">
+  <h2>Arsitektur</h2>
+  <p class="intro">Modular monolith: satu aplikasi dengan modul yang tegas batasnya. Tidak ada jaringan di antara modul, jadi tidak ada yang gagal setengah jalan.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 880 540" role="img" aria-label="Browser mengakses Next.js, yang memanggil API Fastify. API menulis ke PostgreSQL dengan RLS dan mengantrekan pekerjaan ke worker yang mengirim WhatsApp dan email.">
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="currentColor"/></marker>
+      <marker id="arA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="var(--accent)"/></marker></defs>
+      <text class="lbl mono" x="20" y="14">PENGGUNA</text>
+      <rect class="box" x="20" y="22" width="200" height="54" rx="8"/><text class="t" x="120" y="46" text-anchor="middle">Situs publik + SPMB</text><text class="lbl" x="120" y="64" text-anchor="middle">pengunjung, calon siswa</text>
+      <rect class="box" x="235" y="22" width="200" height="54" rx="8"/><text class="t" x="335" y="46" text-anchor="middle">Dashboard sekolah</text><text class="lbl" x="335" y="64" text-anchor="middle">admin, guru, kepala sekolah</text>
+      <rect class="box" x="450" y="22" width="200" height="54" rx="8"/><text class="t" x="550" y="46" text-anchor="middle">Konsol platform</text><text class="lbl" x="550" y="64" text-anchor="middle">staf EduSync</text>
+      <rect class="box" x="665" y="22" width="195" height="54" rx="8"/><text class="t" x="762" y="46" text-anchor="middle">Kiosk RFID (PWA)</text><text class="lbl" x="762" y="64" text-anchor="middle">tablet di gerbang</text>
+      <path class="ln" d="M120 76V112M335 76V112M550 76V112M762 76V112" marker-end="url(#ar)"/>
+      <text class="lbl" x="130" y="98">HTTPS</text>
+      <rect class="boxA" x="20" y="116" width="840" height="52" rx="8"/><text class="t" x="40" y="138">apps/web · Next.js</text><text class="s" x="40" y="156">halaman publik dirender di server (SEO), dashboard memakai klien API bertipe dari OpenAPI</text>
+      <path class="lnA" d="M440 168V212" marker-end="url(#arA)"/><text class="lbl" x="452" y="194">REST + cookie sesi, subdomain sekolah menentukan tenant</text>
+      <rect class="boxA" x="20" y="216" width="570" height="160" rx="8"/><text class="t" x="40" y="238">apps/api · Fastify + Zod → OpenAPI otomatis</text>
+      <g class="s">
+        <rect class="box" x="36" y="252" width="126" height="30" rx="5"/><text x="99" y="272" text-anchor="middle">Identity + RBAC</text>
+        <rect class="box" x="172" y="252" width="126" height="30" rx="5"/><text x="235" y="272" text-anchor="middle">Master data</text>
+        <rect class="box" x="308" y="252" width="126" height="30" rx="5"/><text x="371" y="272" text-anchor="middle">Absensi</text>
+        <rect class="box" x="444" y="252" width="130" height="30" rx="5"/><text x="509" y="272" text-anchor="middle">Nilai + Rubrik</text>
+        <rect class="box" x="36" y="292" width="126" height="30" rx="5"/><text x="99" y="312" text-anchor="middle">SPMB</text>
+        <rect class="box" x="172" y="292" width="126" height="30" rx="5"/><text x="235" y="312" text-anchor="middle">Website CMS</text>
+        <rect class="box" x="308" y="292" width="126" height="30" rx="5"/><text x="371" y="312" text-anchor="middle">Platform + Billing</text>
+        <rect class="box" x="444" y="292" width="130" height="30" rx="5"/><text x="509" y="312" text-anchor="middle">Audit + Notifikasi</text>
+      </g>
+      <text class="lbl" x="40" y="352">routes → service → repo. Modul hanya memanggil service modul lain, tidak repo-nya.</text>
+      <rect class="boxP" x="610" y="216" width="250" height="160" rx="8"/><text class="t" x="630" y="238">apps/worker · pg-boss</text>
+      <text class="s" x="630" y="262">kirim WhatsApp dan email</text><text class="s" x="630" y="282">buat PDF rapi dan bukti SPMB</text><text class="s" x="630" y="302">proses import Excel besar</text><text class="s" x="630" y="322">hitung ulang absensi</text><text class="s" x="630" y="342">coba lagi bila gagal</text>
+      <path class="ln" d="M590 296H606" marker-end="url(#ar)"/><text class="lbl" x="596" y="394" text-anchor="middle">antrean di Postgres</text>
+      <path class="lnA" d="M200 376V440" marker-end="url(#arA)"/><text class="lbl" x="212" y="414">SET LOCAL school_id → RLS</text>
+      <path class="ln" d="M520 376V440" marker-end="url(#ar)"/><text class="lbl" x="532" y="414">signed URL</text>
+      <path class="ln" d="M780 376V440" marker-end="url(#ar)"/><text class="lbl" x="792" y="414">kirim</text>
+      <rect class="boxA" x="20" y="444" width="400" height="70" rx="8"/><text class="t" x="40" y="468">PostgreSQL 18</text><text class="s" x="40" y="488">schema bisnis (semua baris punya school_id)</text><text class="s" x="40" y="504">schema platform (sekolah, staf, audit)</text>
+      <rect class="box" x="440" y="444" width="170" height="70" rx="8"/><text class="t" x="455" y="468">Penyimpanan file</text><text class="s" x="455" y="488">MinIO (dev)</text><text class="s" x="455" y="504">S3 / R2 (produksi)</text>
+      <rect class="box" x="630" y="444" width="230" height="70" rx="8"/><text class="t" x="645" y="468">Layanan luar</text><text class="s" x="645" y="488">WhatsApp dan email</text><text class="s" x="645" y="504">Payment gateway (webhook)</text>
+    </svg>
+    </div>
+    <figcaption>Panah biru adalah jalur utama data. Hasil kerja berat (PDF, notifikasi) tidak dikerjakan di dalam request, tetapi diantrekan ke worker sehingga kiosk dan halaman tetap cepat.</figcaption>
+  </figure>
+  <div class="grid3" style="margin-top:20px">
+    <div class="card"><span class="tag acc">Kode</span><h3>TypeScript satu bahasa</h3><p>pnpm + Turborepo. Skema Zod di <code>packages/contracts</code> dipakai API dan web, jadi tipe tidak pernah ganda.</p></div>
+    <div class="card"><span class="tag acc">Data</span><h3>Drizzle + PostgreSQL</h3><p>Migrasi ber-versi dan kebijakan RLS ikut disimpan di <code>packages/db</code>.</p></div>
+    <div class="card"><span class="tag acc">Mutu</span><h3>Tes memakai DB sungguhan</h3><p>Vitest + Testcontainers, E2E Playwright, lint dan format dengan Biome, CI di GitHub Actions.</p></div>
+    <div class="card"><span class="tag acc">Tampilan</span><h3>Tailwind v4 + shadcn/ui</h3><p>Semua komponen dari shadcn/ui hidup di <code>packages/ui</code> dan dipakai bersama oleh seluruh halaman: publik, dashboard, konsol, dan kiosk.</p></div>
+  </div>
+</section>
+
+<section id="tenant">
+  <h2>Data sekolah tidak bisa bocor</h2>
+  <p class="intro">Semua sekolah berbagi satu database, tetapi setiap baris punya <code>school_id</code>. Dengan RLS aktif, database memfilter sendiri. Coba lihat apa yang terjadi bila filter itu terlupa.</p>
+  <div class="card demo">
+    <div class="ctl">
+      <label class="f" for="rlsSchool">Request datang dari sekolah
+        <select id="rlsSchool" class="btn ghost" style="text-align:left"><option value="A">SMAN 1 Cendekia</option><option value="B">SMK Nusantara</option><option value="C">MTs Al-Hikmah</option></select>
+      </label>
+      <div>
+        <div class="eyebrow" style="margin-bottom:6px">Row-Level Security</div>
+        <div class="seg" id="rlsToggle"><button type="button" data-v="1" aria-pressed="true">Aktif</button><button type="button" data-v="0" aria-pressed="false">Nonaktif</button></div>
+      </div>
+      <p class="mono" style="background:var(--surface2);padding:10px;border-radius:6px">SELECT name FROM student;<br><span style="color:var(--muted)">-- developer lupa menulis WHERE school_id</span></p>
+    </div>
+    <div>
+      <div id="rlsOut" class="log" aria-live="polite"></div>
+      <p id="rlsMsg" style="margin-top:10px;font-size:.92rem"></p>
+    </div>
+  </div>
+  <div class="grid3" style="margin-top:16px">
+    <div class="card"><h3>Subdomain menentukan sekolah</h3><p><code>cendekia.edusync.id</code> memetakan ke satu <code>school_id</code>. Situs publik dan dashboard memakai host yang sama.</p></div>
+    <div class="card"><h3>Satu akun, banyak sekolah</h3><p>Seorang guru yang mengajar di dua sekolah punya satu login dan dua keanggotaan dengan peran berbeda.</p></div>
+    <div class="card"><h3>Dijaga oleh tes</h3><p>Ada tes otomatis yang mencoba membaca data sekolah B dari sesi sekolah A. Build gagal bila berhasil.</p></div>
+    <div class="card"><h3>Yayasan dengan banyak unit</h3><p>Satu yayasan (mis. Miftahul Huda) punya beberapa unit, seperti SMP IT dan SMK. Data tiap unit tetap terpisah, sedangkan guru, wali, dan tagihan bisa dipakai bersama.</p></div>
+    <div class="card"><h3>Domain milik sekolah</h3><p>Sekolah bisa memakai domain dari penyedia lain, misalnya <code>smk.miftahulhuda.sch.id</code>. Admin mengisi dua catatan DNS (CNAME dan TXT), lalu sistem memverifikasi dan menerbitkan HTTPS otomatis. Tahap pertama untuk situs publik dan SPMB; dashboard tetap di <code>slug.edusync.id</code>.</p></div>
+  </div>
+</section>
+
+<section id="alur">
+  <h2>Alur pengguna</h2>
+  <p class="intro">Urutan langkah yang dialami tiap pengguna. Setiap langkah adalah fitur yang harus ada di versi pertama modulnya.</p>
+  <div class="tabs" role="tablist" id="jTabs"></div>
+  <div class="card" id="jBody"></div>
+</section>
+
+<section id="langganan">
+  <h2>Pendaftaran sekolah dan langganan</h2>
+  <p class="intro">Sekolah mendaftar sendiri, memilih paket, membayar, lalu aktif otomatis. Tidak ada langkah manual dari staf platform.</p>
+  <div class="grid2">
+    <div class="card">
+      <h3>Dari daftar sampai aktif</h3>
+      <ol class="steps" style="margin-top:16px">
+        <li><b>Daftar akun</b><span>Email, password, verifikasi email.</span></li>
+        <li><b>Isi data sekolah</b><span>Nama, jenjang, subdomain. Subdomain dipesan 24 jam.</span></li>
+        <li><b>Pilih paket dan modul</b><span>Harga dihitung langsung, lihat kalkulator di bawah.</span></li>
+        <li><b>Bayar lewat gateway</b><span>Virtual account, QRIS, atau e-wallet.</span></li>
+        <li><b>Webhook diterima</b><span>Tanda tangan diperiksa dan diproses sekali saja. Dalam satu transaksi: sekolah dibuat, langganan aktif, akun admin diberi peran, modul dihidupkan.</span></li>
+        <li><b>Masuk ke dashboard</b><span>Tanpa menunggu persetujuan siapa pun.</span></li>
+      </ol>
+    </div>
+    <div class="card">
+      <h3>Status langganan</h3>
+      <table style="margin-top:8px"><tbody>
+        <tr><td><span class="pill p-n">pending_payment</span></td><td>Belum dibayar. Kedaluwarsa 24 jam, subdomain dilepas.</td></tr>
+        <tr><td><span class="pill p-ok">active</span></td><td>Semua modul yang dibeli berfungsi.</td></tr>
+        <tr><td><span class="pill p-late">past_due</span></td><td>Lewat jatuh tempo. Masa tenggang 7 hari, sistem tetap jalan dengan banner tagihan.</td></tr>
+        <tr><td><span class="pill p-bad">suspended</span></td><td>Hanya baca dan halaman bayar. Data tidak dihapus.</td></tr>
+        <tr><td><span class="pill p-n">canceled</span></td><td>Data disimpan 90 hari untuk ekspor, lalu dihapus.</td></tr>
+      </tbody></table>
+      <p style="font-size:.9rem;color:var(--muted)">Perpanjangan memakai invoice baru yang dikirim H-7, H-3, dan hari jatuh tempo lewat email dan WhatsApp. Naik paket berlaku segera dengan selisih harga prorata; turun paket berlaku di periode berikutnya.</p>
+    </div>
+  </div>
+
+  <div class="card" style="margin-top:16px">
+    <h3>Harga mengikuti modul</h3>
+    <p style="color:var(--muted);font-size:.92rem">Modul inti (identity, master data, audit) selalu termasuk. Modul lain dihidupkan per sekolah. Angka di bawah hanya contoh untuk memperlihatkan mekanismenya, bukan harga yang sudah ditetapkan.</p>
+    <div class="demo" style="margin-top:14px">
+      <div class="ctl">
+        <div class="seg" id="plPresets"><button type="button" data-p="starter">Starter</button><button type="button" data-p="standard" aria-pressed="true">Standard</button><button type="button" data-p="pro">Pro</button></div>
+        <div id="plMods" style="display:grid;gap:8px"></div>
+        <label class="f" for="plTier">Jumlah siswa aktif
+          <select id="plTier" class="btn ghost" style="text-align:left"><option value="0">sampai 300</option><option value="100000">301 sampai 800</option><option value="250000">801 sampai 1.500</option></select>
+        </label>
+        <div class="seg" id="plPer"><button type="button" data-v="m" aria-pressed="true">Bulanan</button><button type="button" data-v="y" aria-pressed="false">Tahunan (bayar 10 bulan)</button></div>
+      </div>
+      <div>
+        <table><tbody id="plRows"></tbody></table>
+        <div class="eyebrow" style="margin-top:14px">Total invoice</div>
+        <div class="clock" id="plTotal">-</div>
+        <p id="plNote" style="color:var(--muted);font-size:.88rem"></p>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid2" style="margin-top:16px">
+    <div class="card">
+      <h3>Modul diperiksa di tiga tempat</h3>
+      <ul class="plain">
+        <li><b>API:</b> setiap route modul berbayar memakai <code>requireEntitlement('attendance')</code> dan menolak bila tidak aktif</li>
+        <li><b>Menu:</b> dashboard hanya menampilkan modul yang aktif untuk sekolah dan diizinkan untuk peran</li>
+        <li><b>Kiosk dan situs publik:</b> modul mati berarti halaman tidak tersedia</li>
+        <li>Katalog paket, modul, dan harga berada di database, jadi bisa diubah tanpa deploy</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h3>Payment gateway</h3>
+      <p style="color:var(--muted);font-size:.92rem">Yang disebut gratis di sini berarti tanpa biaya pendaftaran atau bulanan, hanya potongan per transaksi, dan sandbox untuk pengembangan. Tarif terbaru belum bisa saya cek karena pencarian web sedang gagal, jadi perlu Anda pastikan di situs masing-masing.</p>
+      <div class="tw"><table style="margin-top:6px"><tbody>
+        <tr><td><b>Midtrans</b> <span class="tag ok">Rekomendasi</span></td><td>Snap mudah dipasang, VA, QRIS, e-wallet, kartu, sandbox lengkap.</td></tr>
+        <tr><td><b>Xendit</b></td><td>Invoice dan API langganan baik, dokumentasi bagus. Cadangan lewat adapter.</td></tr>
+        <tr><td><b>Duitku, Tripay, iPaymu</b></td><td>Agregator lokal, biasanya aktivasi lebih cepat. Mutu dokumentasi bervariasi.</td></tr>
+      </tbody></table></div>
+      <p style="color:var(--muted);font-size:.88rem;margin-top:10px">Auto-debit berulang untuk VA dan QRIS umumnya tidak tersedia, jadi perpanjangan memakai invoice berulang. Mode produksi biasanya butuh verifikasi identitas atau usaha dan rekening bank.</p>
+    </div>
+  </div>
+</section>
+
+<section id="rfid">
+  <h2>Absensi RFID</h2>
+  <p class="intro">Bagian paling berisiko, jadi dirancang paling teliti. Setiap tap disimpan apa adanya, lalu status harian dihitung dari aturan jam sekolah. Coba simulasinya: geser jam, lalu tap kartu.</p>
+  <div class="card demo">
+    <div class="ctl">
+      <div class="eyebrow">Aturan sekolah (contoh)</div>
+      <table><tbody>
+        <tr><td>Masuk tepat waktu sampai</td><td class="mono">07:15</td></tr>
+        <tr><td>Terlambat sampai</td><td class="mono">10:00</td></tr>
+        <tr><td>Pulang normal mulai</td><td class="mono">14:00</td></tr>
+        <tr><td>Jendela double-tap</td><td class="mono">2 menit</td></tr>
+      </tbody></table>
+      <label class="f" for="rfTime">Jam di gerbang</label>
+      <div class="clock" id="rfClock">06:50</div>
+      <input type="range" id="rfTime" min="330" max="1020" step="1" value="410">
+      <div class="seg">
+        <button type="button" class="btn" id="rfTap">Tap kartu Ayu</button>
+        <button type="button" class="btn ghost" id="rfUnk">Kartu tak dikenal</button>
+        <button type="button" class="btn ghost" id="rfReset">Ulangi</button>
+      </div>
+    </div>
+    <div style="display:grid;gap:14px">
+      <div>
+        <div class="eyebrow" style="margin-bottom:6px">Hasil hari ini: daily_attendance</div>
+        <table><tbody>
+          <tr><td>Masuk</td><td class="mono" id="rfIn">-</td><td id="rfInS"><span class="pill p-n">belum</span></td></tr>
+          <tr><td>Pulang</td><td class="mono" id="rfOut">-</td><td id="rfOutS"><span class="pill p-n">belum</span></td></tr>
+        </tbody></table>
+      </div>
+      <div>
+        <div class="eyebrow" style="margin-bottom:6px">Log mentah: tap_event (tidak pernah diubah)</div>
+        <div class="log" id="rfLog" aria-live="polite"><div>Belum ada tap.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="grid3" style="margin-top:16px">
+    <div class="card"><h3>Kiosk punya kunci sendiri</h3><p>Setiap tablet adalah <code>kiosk_device</code> dengan API key yang bisa dicabut. Tidak ada endpoint terbuka seperti di sistem lama.</p></div>
+    <div class="card"><h3>Tahan koneksi putus</h3><p>Tap diberi <code>client_event_id</code>. Bila internet mati, kiosk menyimpan antrean lalu mengirim ulang tanpa menghasilkan duplikat.</p></div>
+    <div class="card"><h3>Aturan boleh berubah</h3><p>Karena log mentah utuh, status bisa dihitung ulang setelah jam sekolah diubah, tanpa merusak riwayat.</p></div>
+  </div>
+</section>
+
+<section id="modul">
+  <h2>Modul</h2>
+  <p class="intro">Delapan modul pertama berasal dari <code>Planning/01–08</code> (beberapa digabung karena mekanismenya sama). Sisanya modul baru yang diusulkan, ditandai V1, V2, atau V3. Kalender akademik masuk Inti karena absensi dan jadwal membutuhkannya. Surat di modul Administrasi ditandatangani dengan QR yang bisa diverifikasi publik; ini tanda tangan sederhana, bukan tanda tangan elektronik tersertifikasi.</p>
+  <div class="mods" id="mods"></div>
+</section>
+
+<section id="akses">
+  <h2>Hak akses</h2>
+  <p class="intro">Izin diperiksa di API, bukan hanya di tampilan. Menu dan tombol di dashboard muncul otomatis sesuai izin, jadi tidak perlu lagi tabel pengaturan sidebar dan tombol. Tabel ini adalah usulan awal yang bisa diubah per sekolah. Satu orang boleh merangkap: kepala sekolah yang juga mengajar, guru yang juga operator atau kurikulum. Izinnya digabung dari semua peran yang ia pegang, dan peran bisa berbeda di tiap unit.</p>
+  <div class="card tw">
+    <table id="rbac"></table>
+    <div class="legend"><span><span class="perm w">W</span> baca dan tulis</span><span><span class="perm r">R</span> hanya baca</span><span><span class="perm o">◐</span> terbatas pada kelas atau mapel yang ditugaskan</span><span><span class="perm n">–</span> tidak ada akses</span></div>
+  </div>
+  <div class="grid2" style="margin-top:16px">
+    <div class="card"><h3>Peran dan penugasan itu berbeda</h3>
+      <p><b>Peran</b> memberi izin umum di satu unit: kepala sekolah, kurikulum, operator, bendahara, guru, admin yayasan. <b>Penugasan</b> membatasi konteksnya: wali kelas untuk kelas tertentu, pembina ekskul, musyrif untuk satu halaqah, pembimbing PKL untuk siswa tertentu, guru pengampu mapel di kelas tertentu.</p>
+      <p style="color:var(--muted);font-size:.92rem">Akibatnya satu guru bisa mengajar di SMP IT dan SMK, menjadi wali kelas di satu unit, dan menjadi operator di unit lain, tanpa akun ganda.</p></div>
+    <div class="card"><h3>Pengaman untuk rangkap peran</h3>
+      <ul class="plain">
+        <li>Setiap aksi sensitif di audit log mencatat peran mana yang memberi izin</li>
+        <li>Aturan pemisahan tugas bisa diaktifkan sekolah, misalnya bendahara tidak memverifikasi bukti bayar anaknya sendiri</li>
+        <li>Guru hanya bisa mengubah nilai kelas yang ia ampu, apa pun peran lainnya</li>
+      </ul></div>
+  </div>
+</section>
+
+<section id="data">
+  <h2>Model data inti</h2>
+  <p class="intro">Hanya hubungan yang paling menentukan. Setiap tabel punya <code>school_id</code>, <code>created_at</code>, dan jejak audit.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 880 360" role="img" aria-label="Sekolah memiliki tahun ajaran, program, kelas, dan guru. Siswa terdaftar di kelas melalui enrollment, punya wali dan kartu RFID, serta absensi harian. Guru mengajar mapel di kelas melalui penugasan.">
+      <path class="ln" d="M440 56V82M95 82H710M95 82V100M300 82V100M505 82V100M710 82V100"/>
+      <rect class="boxA" x="360" y="16" width="160" height="40" rx="8"/><text class="t" x="440" y="41" text-anchor="middle">school</text>
+      <g class="t">
+        <rect class="box" x="20" y="100" width="150" height="40" rx="6"/><text x="95" y="125" text-anchor="middle">academic_year</text>
+        <rect class="box" x="225" y="100" width="150" height="40" rx="6"/><text x="300" y="125" text-anchor="middle">program</text>
+        <rect class="box" x="430" y="100" width="150" height="40" rx="6"/><text x="505" y="125" text-anchor="middle">class</text>
+        <rect class="box" x="635" y="100" width="150" height="40" rx="6"/><text x="710" y="125" text-anchor="middle">teacher</text>
+        <rect class="box" x="20" y="190" width="150" height="40" rx="6"/><text x="95" y="215" text-anchor="middle">guardian</text>
+        <rect class="boxP" x="225" y="190" width="150" height="40" rx="6"/><text x="300" y="215" text-anchor="middle">student</text>
+        <rect class="box" x="430" y="190" width="150" height="40" rx="6"/><text x="505" y="215" text-anchor="middle">enrollment</text>
+        <rect class="box" x="635" y="190" width="150" height="40" rx="6"/><text x="710" y="215" text-anchor="middle">teaching_assignment</text>
+        <rect class="box" x="20" y="285" width="150" height="40" rx="6"/><text x="95" y="310" text-anchor="middle">rfid_card</text>
+        <rect class="box" x="225" y="285" width="150" height="40" rx="6"/><text x="300" y="310" text-anchor="middle">daily_attendance</text>
+        <rect class="box" x="430" y="285" width="150" height="40" rx="6"/><text x="505" y="310" text-anchor="middle">grade</text>
+        <rect class="box" x="635" y="285" width="150" height="40" rx="6"/><text x="710" y="310" text-anchor="middle">subject</text>
+      </g>
+      <path class="ln" d="M170 210H225M375 210H430M505 140V190M710 140V190M300 230V285M225 215H200V305H170M505 230V285M710 230V285"/>
+      <path class="ln" d="M170 120H225" stroke-dasharray="3 4"/>
+      <text class="lbl" x="178" y="205">wali</text><text class="lbl" x="383" y="205">terdaftar di</text>
+      <text class="lbl" x="516" y="170">kelas per tahun</text><text class="lbl" x="722" y="170">mengajar</text>
+      <text class="lbl" x="312" y="262">dihitung dari tap</text><text class="lbl" x="516" y="262">nilai per komponen</text><text class="lbl" x="722" y="262">mapel</text>
+      <text class="lbl" x="226" y="352">student → enrollment → class adalah satu-satunya jalur siswa ke kelas. Riwayat enrollment tidak pernah dihapus.</text>
+    </svg>
+    </div>
+    <figcaption>Siswa tidak menempel langsung pada kelas. Pindah kelas atau naik tingkat berarti baris enrollment baru, sehingga nilai dan absensi tahun lalu tetap benar.</figcaption>
+  </figure>
+  <div class="grid3" style="margin-top:20px">
+    <div class="card"><h3>Nilai fleksibel</h3><p>UTS, UAS, pengetahuan, dan praktik menjadi komponen berbobot yang diatur kurikulum, bukan kolom tetap.</p></div>
+    <div class="card"><h3>Satu mesin rubrik</h3><p>Kepribadian, ekstrakurikuler, dan kokurikuler memakai tabel aspek dan skala A–D yang sama.</p></div>
+    <div class="card"><h3>Website berbasis blok</h3><p>Sekitar 10 tabel konten homepage lama diganti <code>page</code> berisi <code>block</code> bertipe: hero, program, prestasi, FAQ, galeri.</p></div>
+  </div>
+</section>
+
+<section id="rencana">
+  <h2>Rencana kerja</h2>
+  <p class="intro">Urutannya mengikuti ketergantungan: absensi dan nilai membutuhkan master data, master data membutuhkan fondasi. Setiap milestone punya kriteria selesai yang bisa diuji.</p>
+  <ol class="road" id="road"></ol>
+  <div class="card" style="margin-top:16px"><h3>Di luar cakupan awal</h3><p>Aplikasi mobile native, portal wali dan siswa penuh, 2FA, dan auto-debit berulang. Semuanya dipersiapkan tetapi tidak dikerjakan sebelum M12.</p></div>
+</section>
+
+<section id="keputusan">
+  <h2>Keputusan yang menunggu Anda</h2>
+  <p class="intro">Rekomendasi saya ada di baris pertama setiap pilihan.</p>
+  <div class="grid2">
+    <div class="card dec"><h3>1. Jumlah backend</h3>
+      <div class="opt"><span class="tag ok">Rekomendasi</span><span>Satu API dan satu web app, platform menjadi modul</span></div>
+      <div class="opt"><span class="tag">Alternatif</span><span>Tetap dua layanan Platform dan School</span></div></div>
+    <div class="card dec"><h3>2. Kerangka web</h3>
+      <div class="opt"><span class="tag ok">Rekomendasi</span><span>Next.js, situs publik dan SPMB dirender di server untuk SEO</span></div>
+      <div class="opt"><span class="tag">Alternatif</span><span>Vite SPA, dengan situs publik dibuat terpisah</span></div></div>
+    <div class="card dec"><h3>3. Hosting</h3>
+      <div class="opt"><span class="tag ok">Rekomendasi</span><span>VPS dengan Docker dan Caddy, murah dan dekat dengan pengguna</span></div>
+      <div class="opt"><span class="tag">Alternatif</span><span>PaaS seperti Railway atau Fly.io</span></div></div>
+    <div class="card dec"><h3>4. Pembuatan sekolah</h3>
+      <div class="opt"><span class="tag ok">Diputuskan</span><span>Mandiri: daftar, bayar, aktif otomatis. Staf platform hanya memantau.</span></div></div>
+    <div class="card dec"><h3>5. Payment gateway</h3>
+      <div class="opt"><span class="tag ok">Rekomendasi</span><span>Midtrans (Snap, sandbox gratis), dibungkus adapter agar bisa pindah ke Xendit</span></div>
+      <div class="opt"><span class="tag">Perlu Anda</span><span>Daftar akun dan siapkan data verifikasi bisnis untuk produksi</span></div></div>
+    <div class="card dec"><h3>6. Model harga</h3>
+      <div class="opt"><span class="tag ok">Rekomendasi</span><span>Paket siap pakai, modul tambahan, dan tingkat jumlah siswa</span></div>
+      <div class="opt"><span class="tag">Alternatif</span><span>Hanya paket tetap, tanpa modul tambahan</span></div></div>
+  </div>
+  <div class="card" style="margin-top:16px">
+    <h3>Yang perlu disiapkan</h3>
+    <ul class="plain">
+      <li><b>Sudah ada:</b> Node 26, pnpm 12, Docker</li>
+      <li><b>Git:</b> sudah cukup. Perlu akun GitHub; GitHub Desktop opsional untuk melihat riwayat dan diff</li>
+      <li><b>Dokumentasi:</b> halaman web di dalam aplikasi, sementara memakai artifact seperti ini. Notion tidak diperlukan</li>
+      <li><b>Sebelum M1:</b> akun sandbox Midtrans (gratis)</li>
+      <li><b>Menyusul:</b> token Fonnte sebelum M3, verifikasi bisnis gateway dan domain dan VPS sebelum M12</li>
+    </ul>
+  </div>
+  <footer>Dokumentasi fitur akan menjadi halaman web di dalam aplikasi (<code>/docs</code>), dengan referensi API dari OpenAPI. Sementara ini memakai halaman seperti ini. Teks lengkap: <code>Planning/09-rebuild-blueprint.md</code>. Setelah keputusan disetujui, langkah pertama adalah tag <code>legacy-v0</code>, branch <code>rebuild</code>, lalu M0.</footer>
+</section>
+</div>
+
+<script>
+(function(){
+  /* ---- tenant isolation demo ---- */
+  var names={A:'SMAN 1 Cendekia',B:'SMK Nusantara',C:'MTs Al-Hikmah'};
+  var rows=[['Ayu','A'],['Bima','A'],['Citra','A'],['Dewa','B'],['Eka','B'],['Fajar','C'],['Gita','C']];
+  var rls=true,sel=document.getElementById('rlsSchool');
+  function renderRls(){
+    var out=document.getElementById('rlsOut'),n=0,leak=0;out.innerHTML='';
+    rows.forEach(function(r){
+      if(rls&&r[1]!==sel.value)return;
+      var d=document.createElement('div');d.textContent=r[0]+'  ·  '+names[r[1]];
+      if(r[1]!==sel.value){d.className='rej';leak++}
+      out.appendChild(d);n++});
+    document.getElementById('rlsMsg').innerHTML=rls?'<b>'+n+' baris</b> dikembalikan. Database menyaring baris sekolah lain tanpa diminta.':'<b style="color:var(--bad)">'+leak+' baris milik sekolah lain bocor</b> karena filter terlupa dan RLS mati.';
+  }
+  sel.addEventListener('change',renderRls);
+  document.querySelectorAll('#rlsToggle button').forEach(function(b){b.addEventListener('click',function(){
+    rls=b.dataset.v==='1';document.querySelectorAll('#rlsToggle button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});renderRls()})});
+  renderRls();
+
+  /* ---- user journeys ---- */
+  var J={
+   'Pendaftar sekolah':[['Daftar akun','Email dan password minimal 12 karakter, lalu verifikasi email.'],['Isi data sekolah','Nama, jenjang, dan subdomain. Subdomain dipesan 24 jam selama menunggu pembayaran.'],['Pilih paket dan modul','Harga dihitung langsung dari modul dan jumlah siswa.'],['Bayar','Invoice lewat payment gateway: virtual account, QRIS, atau e-wallet.'],['Aktif otomatis','Begitu pembayaran terkonfirmasi, sekolah, langganan, dan akun admin dibuat dalam satu transaksi. Tidak menunggu staf.']],
+   'Staf platform':[['Pantau langganan','Daftar sekolah, paket, tanggal jatuh tempo, dan status pembayaran.'],['Tangani masalah','Cek pembayaran yang tertahan, kirim ulang invoice, atau beri paket manual untuk kasus khusus.'],['Kelola katalog','Atur paket, harga modul, dan tingkat jumlah siswa tanpa deploy ulang.'],['Tangguhkan bila perlu','Sekolah yang disuspend langsung ditolak di semua endpoint dan sesi aktifnya dicabut.']],
+   'Admin yayasan':[['Daftar sebagai yayasan','Satu akun, satu langganan, satu invoice untuk seluruh unit.'],['Tambah unit','SMP IT dan SMK masing-masing punya subdomain, jenjang, kurikulum, dan modul sendiri.'],['Atur guru dan wali lintas unit','Guru yang mengajar di dua unit dan wali yang punya anak di keduanya tercatat satu kali.'],['Lihat dashboard gabungan','Ringkasan absensi, nilai, dan tagihan semua unit.'],['Mutasi internal','Lulusan SMP IT yang diterima di SMK berpindah unit tanpa input ulang.']],
+   'Admin sekolah':[['Onboarding','Akun sudah aktif setelah pembayaran. Panduan awal mengisi profil sekolah dan tahun ajaran.'],['Atur tahun ajaran','Satu tahun ajaran aktif, dengan semester dan jam pelajaran.'],['Impor data','Unggah Excel siswa dan guru. Pratinjau menampilkan error per baris sebelum disimpan.'],['Daftarkan kartu RFID','Hubungkan kartu ke siswa dan buat kunci untuk tablet kiosk.'],['Undang staf dan atur peran','Guru, kurikulum, operator masing-masing mendapat izin sesuai tugas.']],
+   'Guru':[['Masuk','Dashboard hanya menampilkan kelas dan mapel yang ditugaskan kepadanya.'],['Absensi kelas','Pilih sesi, tandai hadir, izin, sakit, atau alpa untuk seluruh kelas sekaligus.'],['Wali diberi tahu','Pesan WhatsApp dikirim lewat antrean, tanpa menunggu guru.'],['Input nilai','Isi nilai per komponen. Total dihitung otomatis sesuai bobot.'],['Nilai dikunci','Setelah kurikulum mengunci semester, nilai tidak bisa diubah tanpa jejak audit.']],
+   'Siswa di gerbang':[['Tempelkan kartu','Tablet kiosk membaca kartu dan mengirim tap dengan kunci perangkat.'],['Layar membalas','Nama dan foto siswa, serta "Tepat waktu" atau "Terlambat", tampil beberapa detik.'],['Wali mendapat pesan','Pesan masuk atau pulang dikirim bila sekolah mengaktifkannya.'],['Tap pulang','Tap valid berikutnya setelah jam pulang minimum dicatat sebagai pulang.']],
+   'Calon siswa':[['Buka situs sekolah','Periode pendaftaran yang aktif tampil di halaman SPMB.'],['Isi formulir','Biodata dan alamat. Perlindungan spam: honeypot, batas request, dan Turnstile.'],['Unggah 5 dokumen','PDF, JPG, atau PNG maksimal 2 MB, diperiksa isi filenya, bukan hanya ekstensinya.'],['Unduh bukti','PDF bukti pendaftaran dibuat oleh worker.'],['Hasil seleksi','Panitia memverifikasi dan menerima. Calon siswa diterima otomatis menjadi data siswa, tanpa input ulang.']],
+   'Pengunjung':[['Buka cendekia.edusync.id','Halaman dirender di server, cepat dan mudah ditemukan Google.'],['Baca berita dan agenda','Konten dari CMS berbasis blok, sudah disanitasi.'],['Kirim pesan','Formulir kontak masuk ke kotak pesan admin.'],['Unduh dokumen','Berkas publik lewat tautan bertanda tangan.']]
+  };
+  var tabs=document.getElementById('jTabs'),body=document.getElementById('jBody'),keys=Object.keys(J);
+  function showJ(k){
+    tabs.querySelectorAll('button').forEach(function(b){b.setAttribute('aria-selected',b.textContent===k)});
+    body.innerHTML='<ol class="steps">'+J[k].map(function(s){return '<li><b>'+s[0]+'</b><span>'+s[1]+'</span></li>'}).join('')+'</ol>';
+  }
+  keys.forEach(function(k){var b=document.createElement('button');b.type='button';b.setAttribute('role','tab');b.textContent=k;b.addEventListener('click',function(){showJ(k)});tabs.appendChild(b)});
+  showJ(keys[0]);
+
+  /* ---- RFID simulator ---- */
+  var T_ON=435,T_LATE=600,T_OUT=840,DEB=2;
+  var slider=document.getElementById('rfTime'),clock=document.getElementById('rfClock');
+  function hm(m){var h=Math.floor(m/60),n=m%60;return (h<10?'0':'')+h+':'+(n<10?'0':'')+n}
+  slider.addEventListener('input',function(){clock.textContent=hm(+slider.value)});
+  var st;function reset(){st={taps:[],inT:null,outT:null,last:null};draw()}
+  function pill(c,t){return '<span class="pill '+c+'">'+t+'</span>'}
+  function draw(){
+    document.getElementById('rfIn').textContent=st.inT===null?'-':hm(st.inT);
+    document.getElementById('rfOut').textContent=st.outT===null?'-':hm(st.outT);
+    var i=document.getElementById('rfInS'),o=document.getElementById('rfOutS');
+    i.innerHTML=st.inT===null?pill('p-n','belum'):(st.inT<=T_ON?pill('p-ok','Tepat waktu'):st.inT<=T_LATE?pill('p-late','Terlambat'):pill('p-bad','Sangat terlambat'));
+    o.innerHTML=st.outT===null?pill('p-n','belum'):(st.outT>=T_OUT?pill('p-ok','Pulang normal'):pill('p-late','Pulang cepat'));
+    var l=document.getElementById('rfLog');
+    l.innerHTML=st.taps.length?st.taps.map(function(t){return '<div class="'+t.c+'">'+t.t+'  ·  '+t.m+'</div>'}).join(''):'<div>Belum ada tap.</div>';
+    l.scrollTop=l.scrollHeight;
+  }
+  function tap(){
+    var now=+slider.value,e={t:hm(now)};
+    if(st.last!==null&&now-st.last<=DEB&&now>=st.last){e.m='diabaikan: double-tap dalam '+DEB+' menit';e.c='ign'}
+    else if(st.inT===null){st.inT=now;st.last=now;e.m='tercatat sebagai masuk';e.c=''}
+    else if(st.outT===null){st.outT=now;st.last=now;e.m='tercatat sebagai pulang';e.c=''}
+    else{e.m='ditolak: siswa sudah pulang';e.c='rej'}
+    st.taps.push(e);draw();
+  }
+  document.getElementById('rfTap').addEventListener('click',tap);
+  document.getElementById('rfUnk').addEventListener('click',function(){st.taps.push({t:hm(+slider.value),m:'ditolak: kartu tidak terdaftar, dicatat untuk admin',c:'rej'});draw()});
+  document.getElementById('rfReset').addEventListener('click',reset);
+  reset();
+
+  /* ---- pricing demo (contoh angka) ---- */
+  var MODS=[['Absensi',100000],['Nilai',75000],['Penilaian non-akademik',50000],['SPMB',75000],['Website sekolah',75000]];
+  var BASE=150000,PRESET={starter:[1],standard:[0,1,2],pro:[0,1,2,3,4]},per='m';
+  var plM=document.getElementById('plMods'),plT=document.getElementById('plTier');
+  plM.innerHTML=MODS.map(function(m,i){return '<label style="display:flex;gap:10px;align-items:center;font-size:.95rem"><input type="checkbox" id="pm'+i+'" style="width:18px;height:18px;accent-color:var(--accent)"> '+m[0]+' <span class="mono" style="margin-left:auto;color:var(--muted)">+'+rp(m[1])+'</span></label>'}).join('');
+  function rp(n){return 'Rp '+n.toLocaleString('id-ID')}
+  function priceDraw(){
+    var rows=[['Modul inti (sampai 300 siswa)',BASE]],sum=BASE;
+    MODS.forEach(function(m,i){if(document.getElementById('pm'+i).checked){rows.push([m[0],m[1]]);sum+=m[1]}});
+    var t=+plT.value;if(t){rows.push(['Tambahan jumlah siswa',t]);sum+=t}
+    document.getElementById('plRows').innerHTML=rows.map(function(r){return '<tr><td>'+r[0]+'</td><td class="mono" style="text-align:right">'+rp(r[1])+'</td></tr>'}).join('');
+    var tot=per==='y'?sum*10:sum;
+    document.getElementById('plTotal').textContent=rp(tot);
+    document.getElementById('plNote').textContent=per==='y'?'Per tahun. Dibandingkan bulanan, hemat '+rp(sum*2)+'.':'Per bulan, ditagihkan setiap periode.';
+  }
+  function setPreset(p){MODS.forEach(function(m,i){document.getElementById('pm'+i).checked=PRESET[p].indexOf(i)>-1});
+    document.querySelectorAll('#plPresets button').forEach(function(b){b.setAttribute('aria-pressed',b.dataset.p===p)});priceDraw()}
+  document.querySelectorAll('#plPresets button').forEach(function(b){b.addEventListener('click',function(){setPreset(b.dataset.p)})});
+  MODS.forEach(function(m,i){document.getElementById('pm'+i).addEventListener('change',function(){
+    document.querySelectorAll('#plPresets button').forEach(function(b){b.setAttribute('aria-pressed','false')});priceDraw()})});
+  plT.addEventListener('change',priceDraw);
+  document.querySelectorAll('#plPer button').forEach(function(b){b.addEventListener('click',function(){per=b.dataset.v;
+    document.querySelectorAll('#plPer button').forEach(function(x){x.setAttribute('aria-pressed',x===b)});priceDraw()})});
+  setPreset('standard');
+
+  /* ---- modules ---- */
+  var M=[
+   ['Platform','M1',['Pendaftaran sekolah mandiri','Sekolah, subdomain, status aktif/suspend','Staf platform dan audit log']],
+   ['Langganan dan pembayaran','M1',['Paket, harga modul, tingkat jumlah siswa','Invoice, webhook, masa tenggang','Hak modul diperiksa di API dan menu']],
+   ['Identity dan hak akses','M0',['Login, reset password dengan OTP','Satu orang boleh merangkap banyak peran, izin digabung','Sesi dicabut saat peran berubah']],
+   ['Master data','M2',['Tahun ajaran, semester, jurusan dan kompetensi keahlian, kelas','Siswa, guru, wali, mapel, jam pelajaran','Impor dan ekspor Excel','Soft delete dan pemulihan']],
+   ['Absensi','M3',['Kiosk RFID dan kebijakan jam','Absensi kelas per sesi','Status kehadiran bisa diatur sekolah','Notifikasi WhatsApp, laporan PDF dan Excel']],
+   ['Nilai','M4',['Komponen dan bobot per mapel','Input, kunci semester','Rekap rata-rata, min, maks','Rapor PDF per kelas']],
+   ['Penilaian non-akademik','M4',['Kepribadian, ekskul, kokurikuler','Aspek dan skala A–D dapat diatur','Satu alur input untuk ketiganya']],
+   ['SPMB','M8',['Periode dan formulir publik','5 dokumen, 2 MB, cek isi file','Review, terima, tolak, bukti PDF','Konversi otomatis menjadi siswa']],
+   ['Website sekolah','M10',['Halaman dan blok konten','Berita draft dan terbit','Kontak, unduhan, galeri','SEO dan cache per sekolah']]
+  ];
+  M=M.concat([
+   ['Kalender akademik','Inti M2',['Libur, ujian, UTS/UAS, kegiatan per tahun ajaran','Hari efektif dipakai absensi dan jadwal','Tampil di portal dan website, ekspor iCal']],
+   ['Bank data dan kurikulum','Inti M2',['Acuan global: kurikulum, mapel, komponen nilai, format rapor, wilayah','Sekolah menyalin acuan lalu menyesuaikan sendiri','Pembaruan acuan ditawarkan sebagai perbandingan, tidak menimpa']],
+   ['Dashboard dan laporan','V1',['Ringkasan lintas modul untuk kepala sekolah','Laporan siap cetak dan ekspor Excel']],
+   ['Ekstrakurikuler','V1',['Peserta, jadwal, absensi ekskul','Terhubung ke penilaian ekskul']],
+   ['Yayasan dan multi-sekolah','V1',['Satu yayasan, banyak unit (mis. SMP IT dan SMK)','Guru dan wali dipakai bersama lintas unit','Dashboard dan tagihan gabungan','Mutasi internal antar unit']],
+   ['Domain sendiri','V1 · M10',['Situs publik dan SPMB di domain milik sekolah, per unit','Verifikasi DNS otomatis, HTTPS otomatis','Subdomain lama dialihkan','Fitur berbayar di paket tertentu']],
+   ['Domain sendiri untuk dashboard','V3',['Dashboard dan portal wali di domain sekolah','Butuh penyesuaian sesi, CORS, dan tautan email']],
+   ['Kesehatan siswa (UKS)','V3',['Catatan kesehatan dan kunjungan UKS']],
+   ['Alumni','V3',['Data lulusan, kontak, penelusuran']],
+   ['Keuangan sekolah','V3',['Kas, anggaran, laporan dana BOS']],
+   ['API dan integrasi','V3',['API publik dan webhook untuk sistem lain']],
+   ['Administrasi (tata usaha)','V1',['Surat masuk dan keluar, nomor otomatis, disposisi','Template surat (termasuk surat PKL) dari data siswa, PDF bertanda tangan QR','Arsip dokumen dan permintaan layanan dari wali']],
+   ['PKL dan prakerin','V1 · SMK',['Mitra industri dan penempatan siswa','Pembimbing sekolah dan industri','Jurnal harian, kunjungan monitoring, nilai PKL','Surat pengantar dan sertifikat dari template Administrasi']],
+   ['Tahfidz dan ibadah','V1 · SMP IT',['Halaqah, musyrif, target hafalan','Setoran dan murajaah per surah dan ayat','Mutaba’ah ibadah harian yang daftarnya diatur sekolah','Rapor tahfidz']],
+   ['Jadwal pelajaran','V1',['Jadwal per kelas dan guru','Deteksi bentrok','Dasar absensi kelas']],
+   ['Portal wali dan siswa','V1',['Lihat absensi, nilai, pengumuman','Baca saja','Login terpisah dari staf']],
+   ['Pengumuman dan agenda','V1',['Siaran ke wali lewat WhatsApp atau email','Target per kelas atau seluruh sekolah']],
+   ['SPP dan tagihan siswa','V1',['Jenis tagihan dan aturan diatur sekolah: gratis, bulanan, tahunan, sekali bayar, cicilan','Diskon, beasiswa, denda opsional','Wali bayar lewat QRIS atau rekening milik sekolah, unggah bukti, bendahara memverifikasi','Rekap untuk bendahara']],
+   ['Kedisiplinan dan BK','V2',['Catatan pelanggaran dan poin','Konseling']],
+   ['Ujian online (CBT)','V2',['Bank soal, ujian terjadwal','Nilai otomatis ke modul Nilai']],
+   ['Ekspor Dapodik','V2',['Ekspor berkas data siswa dan guru','Bukan integrasi dua arah']],
+   ['Kepegawaian dan absensi guru','V3',['Presensi guru, cuti, data pegawai']],
+   ['LMS ringan','V3',['Materi, tugas, pengumpulan']],
+   ['Perpustakaan dan inventaris','V3',['Katalog, peminjaman, aset']]
+  ]);
+  document.getElementById('mods').innerHTML=M.map(function(m){return '<div class="card mod"><h3>'+m[0]+'<span class="m">'+m[1]+'</span></h3><ul>'+m[2].map(function(x){return '<li>'+x+'</li>'}).join('')+'</ul></div>'}).join('');
+
+  /* ---- rbac ---- */
+  var roles=['Admin','Kepala','Kurikulum','Bendahara','Operator','Guru'];
+  var P=[
+   ['Master data','W','R','W','R','W','R'],
+   ['Kartu RFID dan kiosk','W','R','–','–','W','–'],
+   ['Absensi kelas','W','R','R','–','W','◐'],
+   ['Input nilai','R','R','W','R','–','◐'],
+   ['Kunci nilai dan rapor','W','R','W','–','–','–'],
+   ['Review SPMB','W','R','R','–','W','–'],
+   ['Website','W','R','–','–','W','–'],
+   ['Pengguna dan peran','W','–','–','–','–','–'],
+   ['Audit log','R','R','–','–','–','–']
+  ];
+  var cl={'W':'w','R':'r','◐':'o','–':'n'};
+  document.getElementById('rbac').innerHTML='<thead><tr><th>Izin</th>'+roles.map(function(r){return '<th class="c">'+r+'</th>'}).join('')+'</tr></thead><tbody>'+P.map(function(r){return '<tr><td>'+r[0]+'</td>'+r.slice(1).map(function(v){return '<td class="c"><span class="perm '+cl[v]+'">'+v+'</span></td>'}).join('')+'</tr>'}).join('')+'</tbody>';
+
+  /* ---- roadmap ---- */
+  var R=[
+   ['M0','Fondasi','Monorepo, CI, database dengan RLS, hierarki yayasan dan unit, peran rangkap, login, audit, antrean, UI kit dan app shell.','<b>Selesai bila:</b> <code>pnpm dev</code> jalan, tes bocor-tenant hijau, satu akun bisa punya beberapa peran di dua unit.',1],
+   ['M1','Pendaftaran dan langganan','Daftar mandiri sebagai yayasan, tambah unit, katalog paket dan modul, satu invoice per yayasan, paket komplimen untuk pilot.','<b>Selesai bila:</b> di mode sandbox, yayasan mendaftar, membayar, dan langsung bisa masuk. Webhook ganda tidak membuat data ganda.'],
+   ['M2','Master data dan acuan','Tahun ajaran, kalender, bank data kurikulum, jurusan dan kompetensi keahlian, kelas, siswa, guru lintas unit, wali, mapel, siklus hidup siswa, impor Excel.','<b>Selesai bila:</b> 500 siswa diimpor dengan laporan error per baris, dan seorang guru terlihat di dua unit.'],
+   ['M3','Jadwal dan absensi','Jadwal pelajaran, kiosk RFID, kebijakan, absensi kelas, ekskul, WhatsApp, laporan.','<b>Selesai bila:</b> 1000 tap per menit tanpa duplikat, hitung ulang kebijakan benar.'],
+   ['M4','Nilai dan penilaian','Komponen dan rapor mengikuti kurikulum unit, input, kunci, rubrik, rapor PDF.','<b>Selesai bila:</b> rapor satu kelas dibuat sebagai pekerjaan latar belakang.'],
+   ['M5','Tahfidz dan ibadah','Halaqah, setoran hafalan, target, murajaah, mutaba’ah ibadah harian, rapor tahfidz.','<b>Selesai bila:</b> musyrif mencatat setoran satu halaqah dan wali melihat progres anaknya.'],
+   ['M6','Administrasi','Surat masuk dan keluar, disposisi, template surat, tanda tangan QR, arsip.','<b>Selesai bila:</b> surat bertanda tangan QR diverifikasi dari halaman publik, dan surat yang dicabut terlihat.'],
+   ['M7','PKL dan prakerin','Mitra industri, penempatan, pembimbing sekolah dan industri, jurnal harian, kunjungan, nilai PKL, surat PKL dari template.','<b>Selesai bila:</b> satu siswa melewati alur penempatan, jurnal, penilaian, dan sertifikat.'],
+   ['M8','SPMB','Periode, formulir publik, dokumen, review, bukti, konversi ke siswa, penerimaan antar-unit.','<b>Selesai bila:</b> pendaftar yang diterima otomatis menjadi siswa.'],
+   ['M9','SPP dan tagihan','Jenis tagihan fleksibel, QRIS atau transfer milik sekolah, unggah bukti, verifikasi bendahara, diskon, rekap.','<b>Selesai bila:</b> satu unit gratis dan satu unit dengan cicilan dan beasiswa berjalan dari konfigurasi yang sama.'],
+   ['M10','Website dan pengumuman','CMS halaman dan blok, berita, kontak, pengumuman ke wali, SEO, domain sendiri untuk situs publik dan SPMB.','<b>Selesai bila:</b> skor Lighthouse minimal 90, dan satu unit tampil di domain luar dengan HTTPS otomatis.'],
+   ['M11','Portal dan laporan','Portal wali dan siswa, dashboard kepala sekolah dan yayasan, laporan lintas modul.','<b>Selesai bila:</b> wali melihat absensi, nilai, tahfidz, dan tagihan anaknya.'],
+   ['M12','Rilis','Uji beban, tinjauan keamanan, latihan backup dan restore, deploy produksi.','<b>Selesai bila:</b> daftar periksa rilis lengkap.']
+  ];
+  document.getElementById('road').innerHTML=R.map(function(r){return '<li'+(r[4]?' class="now"':'')+'><div class="mk">'+r[0]+'</div><div><h3>'+r[1]+(r[4]?' <span class="tag pen">berikutnya</span>':'')+'</h3><p>'+r[2]+'</p><p class="done">'+r[3]+'</p></div></li>'}).join('');
+
+  /* ---- nav highlight ---- */
+  var links=[].slice.call(document.querySelectorAll('#navbar a'));
+  function spy(){var y=window.scrollY+120,cur=links[0];
+    links.forEach(function(a){var s=document.querySelector(a.getAttribute('href'));if(s&&s.offsetTop<=y)cur=a});
+    links.forEach(function(a){a.classList.toggle('on',a===cur)})}
+  window.addEventListener('scroll',spy,{passive:true});spy();
+})();
+</script>

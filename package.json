@@ -1,20 +1,28 @@
 {
   "name": "edusync",
-  "version": "0.1.0",
+  "version": "0.0.0",
   "private": true,
-  "description": "EduSync Platform dan EduSync School",
-  "packageManager": "pnpm@12.14.0",
+  "description": "EduSync: platform manajemen sekolah multi-tenant",
+  "packageManager": "pnpm@12.16.1",
   "engines": {
-    "node": ">=24 <25"
+    "node": ">=26"
   },
   "scripts": {
-    "dev": "pnpm --parallel --filter @edusync/platform-api --filter @edusync/school-api --filter @edusync/web --filter @edusync/school-web dev",
-    "dev:web": "pnpm --filter @edusync/web dev",
-    "dev:school-web": "pnpm --filter @edusync/school-web dev",
-    "build": "pnpm -r build",
-    "typecheck": "pnpm -r typecheck",
-    "test": "pnpm -r test",
-    "db:migrate": "pnpm --filter @edusync/platform-api db:migrate && pnpm --filter @edusync/school-api db:migrate",
-    "db:seed": "pnpm --filter @edusync/platform-api db:seed && pnpm --filter @edusync/school-api db:seed"
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "lint": "biome check .",
+    "format": "biome check --write .",
+    "db:generate": "pnpm --filter @edusync/db generate",
+    "db:migrate": "pnpm --filter @edusync/db migrate"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.6.3",
+    "@types/node": "^26.6.5",
+    "tsx": "^4.23.15",
+    "turbo": "^2.11.10",
+    "typescript": "^7.0.2",
+    "vitest": "^5.0.5"
   }
 }

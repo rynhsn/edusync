@@ -1,0 +1,35 @@
+name: CI
+on:
+  push:
+    branches: [main, rebuild]
+  pull_request:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: edusync
+          POSTGRES_PASSWORD: edusync_dev_only
+          POSTGRES_DB: edusync
+        ports: ["5440:5432"]
+        options: >-
+          --health-cmd "pg_isready -U edusync -d edusync" --health-interval 5s --health-timeout 3s --health-retries 10
+    env:
+      DATABASE_OWNER_URL: postgres://edusync:edusync_dev_only@localhost:5440/edusync
+      DATABASE_URL: postgres://edusync_app:edusync_app_dev@localhost:5440/edusync
+      DATABASE_PLATFORM_URL: postgres://edusync_platform:edusync_platform_dev@localhost:5440/edusync
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 26, cache: pnpm }
+      - run: pnpm install --frozen-lockfile
+      - name: Buat peran database
+        run: PGPASSWORD=edusync_dev_only psql -h localhost -p 5440 -U edusync -d edusync -f docker/postgres-init.sql
+      - run: pnpm db:migrate
+      - run: pnpm lint
+      - run: pnpm typecheck
+      - run: pnpm test

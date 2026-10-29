@@ -1,40 +1,41 @@
+name: edusync
+
 services:
-  platform-db:
-    image: postgres:17-alpine
-    container_name: edusync-platform-db
-    restart: unless-stopped
+  postgres:
+    image: postgres:18
     environment:
-      POSTGRES_DB: edusync_platform
-      POSTGRES_USER: edusync_platform
-      POSTGRES_PASSWORD: ${PLATFORM_DB_PASSWORD:-dev_platform_password}
+      POSTGRES_USER: edusync
+      POSTGRES_PASSWORD: edusync_dev_only
+      POSTGRES_DB: edusync
     ports:
-      - "5433:5432"
+      - "5440:5432"
     volumes:
-      - platform-db-data:/var/lib/postgresql/data
+      - pgdata:/var/lib/postgresql
+      - ./docker/postgres-init.sql:/docker-entrypoint-initdb.d/00-roles.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U edusync_platform -d edusync_platform"]
+      test: ["CMD-SHELL", "pg_isready -U edusync -d edusync"]
       interval: 5s
       timeout: 3s
       retries: 10
 
-  school-db:
-    image: postgres:17-alpine
-    container_name: edusync-school-db
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: edusync_school
-      POSTGRES_USER: edusync_school
-      POSTGRES_PASSWORD: ${SCHOOL_DB_PASSWORD:-dev_school_password}
+  mailpit:
+    image: axllent/mailpit:latest
     ports:
-      - "5434:5432"
+      - "8025:8025"
+      - "1025:1025"
+
+  minio:
+    image: minio/minio:latest
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: edusync
+      MINIO_ROOT_PASSWORD: edusync_dev_only
+    ports:
+      - "9000:9000"
+      - "9001:9001"
     volumes:
-      - school-db-data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U edusync_school -d edusync_school"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
+      - miniodata:/data
 
 volumes:
-  platform-db-data:
-  school-db-data:
+  pgdata:
+  miniodata:
