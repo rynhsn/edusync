@@ -20,6 +20,7 @@ import { paymentConfig } from './payment-config';
 import { academicStructureRoutes } from './routes/academic-structure';
 import { academicYearRoutes } from './routes/academic-years';
 import { accountRoutes } from './routes/account';
+import { attendanceRoutes } from './routes/attendance';
 import { registerAuthRoutes } from './routes/auth';
 import { billingRoutes } from './routes/billing';
 import { calendarRoutes } from './routes/calendar';
@@ -170,6 +171,7 @@ export async function buildApp(env: Env) {
   await app.register(academicStructureRoutes);
   await app.register(peopleRoutes);
   await app.register(scheduleRoutes);
+  await app.register(attendanceRoutes);
   await app.register(semesterRoutes);
   await app.register(calendarRoutes);
   await app.register(curriculumRoutes);
