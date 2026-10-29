@@ -1,6 +1,7 @@
 'use client';
 
 import { useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -72,6 +73,12 @@ export function LoginForm() {
           {pending ? t('submitting') : t('submit')}
         </Button>
       </form>
+      <p className="text-muted-foreground mt-6 text-center text-sm">
+        {t('noAccount')}{' '}
+        <Link href="/register" className="text-primary font-medium underline-offset-4 hover:underline">
+          {t('createAccount')}
+        </Link>
+      </p>
     </div>
   );
 }

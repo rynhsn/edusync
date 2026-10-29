@@ -1,4 +1,14 @@
-import { assignRoles, createDb, eq, foundation, member, school, seedSchoolRoles, user } from '@edusync/db';
+import {
+  assignRoles,
+  createDb,
+  eq,
+  foundation,
+  member,
+  platformStaff,
+  school,
+  seedSchoolRoles,
+  user,
+} from '@edusync/db';
 import { buildApp } from '../src/app';
 import { loadEnv } from '../src/env';
 
@@ -56,6 +66,11 @@ const guru = await ensureUser('guru@edusync.test', 'Guru Contoh');
 await ensureMember(guru, smp.id, ['teacher', 'operator']);
 await ensureMember(guru, smk.id, ['teacher']);
 
-console.log('Seed selesai: admin@edusync.test dan guru@edusync.test (kata sandi dari DEV_SEED_PASSWORD)');
+const staff = await ensureUser('staff@edusync.test', 'Staf EduSync');
+await db.insert(platformStaff).values({ userId: staff, role: 'admin' }).onConflictDoNothing();
+
+console.log(
+  'Seed selesai: admin@edusync.test, guru@edusync.test, dan staff@edusync.test (staf platform) (kata sandi dari DEV_SEED_PASSWORD)',
+);
 await pool.end();
 await app.close();

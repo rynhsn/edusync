@@ -3,6 +3,7 @@ import {
   boolean,
   date,
   index,
+  integer,
   jsonb,
   pgTable,
   primaryKey,
@@ -37,6 +38,9 @@ export const school = pgTable(
       .notNull()
       .default('active'),
     timezone: text('timezone').notNull().default('Asia/Jakarta'),
+    studentTier: text('student_tier').notNull().default('t300'),
+    /** Alasan penangguhan: 'billing' dilepas otomatis saat tagihan lunas, 'staff' hanya oleh staf platform. */
+    suspendedReason: text('suspended_reason', { enum: ['billing', 'staff'] }),
     createdAt: createdAt(),
   },
   (t) => [index('school_foundation_idx').on(t.foundationId)],
@@ -223,3 +227,131 @@ export const outbox = pgTable(
   },
   (t) => [index('outbox_pending_idx').on(t.status, t.createdAt)],
 );
+
+/* ---------- Penagihan dan langganan (ditulis lewat peran platform; tenant hanya membaca entitlement) ---------- */
+
+/** Harga yang dapat diubah tanpa deploy. Salinan awal ada di packages/contracts (DEFAULT_CATALOG). */
+export const catalogItem = pgTable(
+  'catalog_item',
+  {
+    kind: text('kind', { enum: ['base', 'module', 'tier'] }).notNull(),
+    key: text('key').notNull(),
+    name: text('name').notNull(),
+    priceMonthly: integer('price_monthly').notNull(),
+    sort: integer('sort').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+  },
+  (t) => [primaryKey({ columns: [t.kind, t.key] })],
+);
+
+/** Pendaftaran yang menunggu pembayaran. Setelah dibayar, yayasan dan unit dibuat dari data ini. */
+export const registration = pgTable(
+  'registration',
+  {
+    id: id(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    foundationName: text('foundation_name').notNull(),
+    period: text('period', { enum: ['monthly', 'yearly'] }).notNull(),
+    units: jsonb('units')
+      .$type<{ name: string; slug: string; modules: string[]; tier: string }[]>()
+      .notNull(),
+    status: text('status', { enum: ['pending_payment', 'paid', 'expired'] })
+      .notNull()
+      .default('pending_payment'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    foundationId: uuid('foundation_id').references(() => foundation.id),
+    createdAt: createdAt(),
+  },
+  (t) => [index('registration_user_idx').on(t.userId)],
+);
+
+/** Subdomain yang dipesan selama menunggu pembayaran. */
+export const slugReservation = pgTable('slug_reservation', {
+  slug: text('slug').primaryKey(),
+  registrationId: uuid('registration_id')
+    .notNull()
+    .references(() => registration.id, { onDelete: 'cascade' }),
+  expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+});
+
+export const invoice = pgTable(
+  'invoice',
+  {
+    id: id(),
+    registrationId: uuid('registration_id').references(() => registration.id),
+    foundationId: uuid('foundation_id').references(() => foundation.id),
+    amount: integer('amount').notNull(),
+    currency: text('currency').notNull().default('IDR'),
+    status: text('status', { enum: ['open', 'paid', 'expired', 'void'] })
+      .notNull()
+      .default('open'),
+    provider: text('provider').notNull(),
+    providerRef: text('provider_ref').notNull().unique(),
+    paymentUrl: text('payment_url'),
+    lines: jsonb('lines').$type<{ key: string; name: string; amount: number }[]>().notNull(),
+    dueAt: timestamp('due_at', { withTimezone: true }).notNull(),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('invoice_registration_idx').on(t.registrationId)],
+);
+
+/** Setiap kabar dari penyedia pembayaran dicatat sekali; (provider, event_id) unik sehingga pengulangan aman. */
+export const payment = pgTable(
+  'payment',
+  {
+    id: id(),
+    invoiceId: uuid('invoice_id')
+      .notNull()
+      .references(() => invoice.id),
+    provider: text('provider').notNull(),
+    eventId: text('event_id').notNull(),
+    status: text('status').notNull(),
+    amount: integer('amount').notNull(),
+    raw: jsonb('raw').$type<Record<string, unknown>>().notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('payment_provider_event_uq').on(t.provider, t.eventId)],
+);
+
+export const subscription = pgTable('subscription', {
+  id: id(),
+  foundationId: uuid('foundation_id')
+    .notNull()
+    .references(() => foundation.id),
+  status: text('status', { enum: ['pending_payment', 'active', 'past_due', 'suspended', 'canceled'] })
+    .notNull()
+    .default('active'),
+  period: text('period', { enum: ['monthly', 'yearly'] }).notNull(),
+  currentPeriodStart: timestamp('current_period_start', { withTimezone: true }).notNull(),
+  currentPeriodEnd: timestamp('current_period_end', { withTimezone: true }).notNull(),
+  createdAt: createdAt(),
+});
+
+/** Modul yang aktif untuk satu unit. Modul inti tidak perlu baris di sini. */
+export const entitlement = pgTable(
+  'entitlement',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    moduleKey: text('module_key').notNull(),
+    subscriptionId: uuid('subscription_id')
+      .notNull()
+      .references(() => subscription.id),
+    validUntil: timestamp('valid_until', { withTimezone: true }).notNull(),
+  },
+  (t) => [primaryKey({ columns: [t.schoolId, t.moduleKey] })],
+);
+
+/* ---------- Staf platform (operator EduSync, bukan anggota sekolah mana pun) ---------- */
+
+export const platformStaff = pgTable('platform_staff', {
+  userId: text('user_id')
+    .primaryKey()
+    .references(() => user.id, { onDelete: 'cascade' }),
+  role: text('role', { enum: ['admin', 'read_only'] }).notNull(),
+  createdAt: createdAt(),
+});

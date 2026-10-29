@@ -59,6 +59,35 @@ const NAV = [
   },
 ] as const;
 
+/** Akun tanpa sekolah: bila ia staf platform, arahkan ke konsol; selain itu jelaskan cara diundang. */
+function NoSchool(props: { title: string; body: string; signOutLabel: string; onSignOut: () => void }) {
+  const router = useRouter();
+  const staff = useQuery({
+    queryKey: ['platform-me'],
+    queryFn: async () => unwrap(await api.GET('/v1/platform/me')),
+  });
+  useEffect(() => {
+    if (staff.data) router.replace('/platform');
+  }, [staff.data, router]);
+
+  if (staff.isPending || staff.data) {
+    return (
+      <div className="flex flex-1 items-center justify-center p-8">
+        <Skeleton className="h-8 w-48" />
+      </div>
+    );
+  }
+  return (
+    <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+      <p className="font-medium">{props.title}</p>
+      <p className="text-muted-foreground text-sm">{props.body}</p>
+      <Button variant="outline" onClick={props.onSignOut}>
+        {props.signOutLabel}
+      </Button>
+    </div>
+  );
+}
+
 const STORAGE_KEY = 'edusync.activeSchool';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -131,13 +160,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   if (!school) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-        <p className="font-medium">{t('noSchoolTitle')}</p>
-        <p className="text-muted-foreground text-sm">{t('noSchoolBody')}</p>
-        <Button variant="outline" onClick={signOut}>
-          {tc('signOut')}
-        </Button>
-      </div>
+      <NoSchool
+        title={t('noSchoolTitle')}
+        body={t('noSchoolBody')}
+        signOutLabel={tc('signOut')}
+        onSignOut={signOut}
+      />
     );
   }
 

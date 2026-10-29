@@ -12,8 +12,10 @@
     "seed:dev": "tsx --env-file=../../.env scripts/seed-dev.ts"
   },
   "dependencies": {
+    "@edusync/billing": "workspace:*",
     "@edusync/contracts": "workspace:*",
     "@edusync/db": "workspace:*",
+    "@edusync/jobs": "workspace:*",
     "@fastify/cors": "^11.3.1",
     "@fastify/helmet": "^13.2.0",
     "@fastify/rate-limit": "^11.2.1",

@@ -1,5 +1,6 @@
+import { type StaffRole, staffRoleOf } from '@edusync/billing';
 import type { Permission } from '@edusync/contracts';
-import { eq, loadMemberAccess, school } from '@edusync/db';
+import { and, entitlement, eq, gt, loadMemberAccess, school, withTenant } from '@edusync/db';
 import type { FastifyReply, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import { forbidden, HttpError, unauthorized } from '../http-error';
@@ -68,5 +69,44 @@ export function requirePermission(...needed: Permission[]) {
     const ctx = request.ctx as TenantContext;
     const missing = needed.filter((p) => !ctx.permissions.has(p));
     if (missing.length > 0) throw forbidden();
+  };
+}
+
+/**
+ * Modul berbayar harus aktif untuk sekolah ini. Pakai setelah requirePermission (butuh konteks sekolah):
+ * `onRequest: [requirePermission('x:read'), requireModule('attendance')]`. Modul inti tidak perlu dicek.
+ */
+export function requireModule(moduleKey: string) {
+  return async (request: FastifyRequest) => {
+    const ctx = request.ctx;
+    if (!ctx) throw new Error('requireModule harus dipakai setelah requireTenant atau requirePermission');
+    const rows = await withTenant(request.server.tenantDb, [ctx.schoolId], (tx) =>
+      tx
+        .select({ key: entitlement.moduleKey })
+        .from(entitlement)
+        .where(and(eq(entitlement.moduleKey, moduleKey), gt(entitlement.validUntil, new Date()))),
+    );
+    if (rows.length === 0) {
+      throw new HttpError(403, 'module_disabled', 'Modul ini belum aktif untuk sekolah Anda.');
+    }
+  };
+}
+
+declare module 'fastify' {
+  interface FastifyRequest {
+    staffRole?: StaffRole;
+  }
+}
+
+/**
+ * Hanya staf platform. `read_only` boleh membaca; `admin` boleh mengubah. Staf tidak terikat sekolah mana pun
+ * dan tidak memakai x-school-id; semua akses lintas-sekolah mereka lewat endpoint /v1/platform.
+ */
+export function requireStaff(needed: StaffRole = 'read_only') {
+  return async (request: FastifyRequest) => {
+    await requireUser(request);
+    const role = await staffRoleOf(request.server.platformDb, request.userId as string);
+    if (!role || (needed === 'admin' && role !== 'admin')) throw forbidden();
+    request.staffRole = role;
   };
 }

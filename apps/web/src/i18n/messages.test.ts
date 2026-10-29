@@ -6,11 +6,13 @@ import { defaultLocale, isLocale, matchAcceptLanguage } from './config';
 
 type Tree = { [key: string]: string | Tree };
 
-function flatten(tree: Tree, prefix = ''): Record<string, string> {
-  return Object.entries(tree).reduce<Record<string, string>>((acc, [key, value]) => {
+function flatten(tree: Tree, prefix = '', out: Record<string, string> = {}): Record<string, string> {
+  for (const [key, value] of Object.entries(tree)) {
     const path = prefix ? `${prefix}.${key}` : key;
-    return typeof value === 'string' ? { ...acc, [path]: value } : { ...acc, ...flatten(value, path) };
-  }, {});
+    if (typeof value === 'string') out[path] = value;
+    else flatten(value, path, out);
+  }
+  return out;
 }
 
 const placeholders = (text: string) => [...text.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort();

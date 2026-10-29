@@ -1,3 +1,9 @@
+import {
+  createPaymentProvider,
+  DomainError,
+  type PaymentConfig,
+  type PaymentProvider,
+} from '@edusync/billing';
 import { createDb, sql } from '@edusync/db';
 import cors from '@fastify/cors';
 import helmet from '@fastify/helmet';
@@ -18,7 +24,17 @@ import type { Env } from './env';
 import { HttpError } from './http-error';
 import { academicYearRoutes } from './routes/academic-years';
 import { registerAuthRoutes } from './routes/auth';
+import { billingRoutes } from './routes/billing';
 import { meRoutes } from './routes/me';
+import { platformRoutes } from './routes/platform';
+
+export const paymentConfig = (env: Env): PaymentConfig => ({
+  provider: env.PAYMENT_PROVIDER,
+  webUrl: env.WEB_URL,
+  devSecret: env.PAYMENT_DEV_SECRET,
+  midtransServerKey: env.MIDTRANS_SERVER_KEY,
+  midtransSnapUrl: env.MIDTRANS_SNAP_URL,
+});
 
 export async function buildApp(env: Env) {
   const app = Fastify({
@@ -35,12 +51,13 @@ export async function buildApp(env: Env) {
   app.decorate('tenantDb', tenantDb.db);
   app.decorate('platformDb', platformDb.db);
   app.decorate('auth', createAuth(env, tenantDb.db));
+  app.decorate('paymentProvider', createPaymentProvider(paymentConfig(env)));
   app.addHook('onClose', async () => {
     await Promise.all([tenantDb.pool.end(), platformDb.pool.end()]);
   });
 
   app.setErrorHandler((error, request, reply) => {
-    if (error instanceof HttpError) {
+    if (error instanceof DomainError) {
       return reply.code(error.status).send({ error: { code: error.code, message: error.message } });
     }
     if (hasZodFastifySchemaValidationErrors(error)) {
@@ -77,6 +94,8 @@ export async function buildApp(env: Env) {
         { name: 'System', description: 'Status layanan' },
         { name: 'Identity', description: 'Akun dan keanggotaan' },
         { name: 'Academic', description: 'Data akademik' },
+        { name: 'Billing', description: 'Katalog, pendaftaran, dan pembayaran' },
+        { name: 'Platform', description: 'Konsol staf EduSync' },
       ],
     },
     transform: jsonSchemaTransform,
@@ -122,6 +141,8 @@ export async function buildApp(env: Env) {
   await registerAuthRoutes(app);
   await app.register(meRoutes);
   await app.register(academicYearRoutes);
+  await app.register(billingRoutes, { env });
+  await app.register(platformRoutes);
 
   return app;
 }
@@ -131,5 +152,6 @@ declare module 'fastify' {
     tenantDb: import('@edusync/db').Db;
     platformDb: import('@edusync/db').Db;
     auth: Auth;
+    paymentProvider: PaymentProvider;
   }
 }

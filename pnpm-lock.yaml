@@ -228,12 +228,18 @@ importers:
 
   apps/api:
     dependencies:
+      "@edusync/billing":
+        specifier: workspace:*
+        version: link:../../packages/billing
       "@edusync/contracts":
         specifier: workspace:*
         version: link:../../packages/contracts
       "@edusync/db":
         specifier: workspace:*
         version: link:../../packages/db
+      "@edusync/jobs":
+        specifier: workspace:*
+        version: link:../../packages/jobs
       "@fastify/cors":
         specifier: ^11.3.1
         version: 11.3.1
@@ -340,6 +346,9 @@ importers:
 
   apps/worker:
     dependencies:
+      "@edusync/billing":
+        specifier: workspace:*
+        version: link:../../packages/billing
       "@edusync/db":
         specifier: workspace:*
         version: link:../../packages/db
@@ -360,7 +369,23 @@ importers:
         specifier: ^12.38.0
         version: 12.38.0(@opentelemetry/api@1.10.0)
 
-  packages/contracts: {}
+  packages/billing:
+    dependencies:
+      "@edusync/contracts":
+        specifier: workspace:*
+        version: link:../contracts
+      "@edusync/db":
+        specifier: workspace:*
+        version: link:../db
+      "@edusync/jobs":
+        specifier: workspace:*
+        version: link:../jobs
+
+  packages/contracts:
+    dependencies:
+      zod:
+        specifier: ^4.6.7
+        version: 4.6.7
 
   packages/db:
     dependencies:

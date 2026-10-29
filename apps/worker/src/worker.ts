@@ -1,3 +1,4 @@
+import { createPaymentProvider, createRenewalInvoices, sweepSubscriptions } from '@edusync/billing';
 import { createDb } from '@edusync/db';
 import { QUEUES, relayOutbox, setupJobs } from '@edusync/jobs';
 import { PgBoss } from 'pg-boss';
@@ -33,10 +34,36 @@ export async function startWorker(env: Env) {
     }
   }, env.RELAY_INTERVAL_MS);
 
+  // Siklus penagihan: invoice perpanjangan dan perubahan status langganan. Idempoten, aman diulang.
+  const provider = createPaymentProvider({
+    provider: env.PAYMENT_PROVIDER,
+    webUrl: env.WEB_URL,
+    devSecret: env.PAYMENT_DEV_SECRET,
+    midtransServerKey: env.MIDTRANS_SERVER_KEY,
+    midtransSnapUrl: env.MIDTRANS_SNAP_URL,
+  });
+  let billingBusy = false;
+  const runBillingCycle = async () => {
+    if (billingBusy) return;
+    billingBusy = true;
+    try {
+      await createRenewalInvoices(platform.db, provider);
+      await sweepSubscriptions(platform.db);
+    } catch (error) {
+      console.error('[worker] siklus penagihan gagal', error);
+    } finally {
+      billingBusy = false;
+    }
+  };
+  const billingTimer = setInterval(runBillingCycle, env.BILLING_CYCLE_MS);
+  void runBillingCycle();
+
   return {
     boss,
     stop: async () => {
       clearInterval(timer);
+      clearInterval(billingTimer);
+      while (billingBusy) await new Promise((r) => setTimeout(r, 50));
       while (busy) await new Promise((r) => setTimeout(r, 50));
       await boss.stop({ graceful: true, timeout: 10_000 });
       await platform.pool.end();

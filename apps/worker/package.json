@@ -10,6 +10,7 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@edusync/billing": "workspace:*",
     "@edusync/db": "workspace:*",
     "@edusync/jobs": "workspace:*",
     "nodemailer": "^10.2.1",

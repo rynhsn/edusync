@@ -1,14 +1,7 @@
+import { DomainError } from '@edusync/billing';
 import { z } from 'zod';
 
-export class HttpError extends Error {
-  constructor(
-    readonly status: number,
-    readonly code: string,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+export class HttpError extends DomainError {}
 
 export const errorSchema = z.object({ error: z.object({ code: z.string(), message: z.string() }) });
 

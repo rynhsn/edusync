@@ -9,6 +9,13 @@ const KNOWN = [
   'conflict',
   'request_error',
   'internal',
+  'invalid_selection',
+  'slug_taken',
+  'slug_duplicate',
+  'payment_unavailable',
+  'not_found',
+  'module_disabled',
+  'invalid_signature',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

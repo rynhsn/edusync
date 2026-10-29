@@ -21,6 +21,7 @@ export function LanguageSwitcher() {
 
   function choose(locale: Locale) {
     // Satu tahun, berlaku untuk seluruh situs. refresh() membuat server membaca cookie baru.
+    // biome-ignore lint/suspicious/noDocumentCookie: cookie preferensi bahasa sederhana, tanpa data sensitif
     document.cookie = `${LOCALE_COOKIE}=${locale}; path=/; max-age=31536000; samesite=lax`;
     router.refresh();
   }
