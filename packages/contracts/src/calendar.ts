@@ -97,11 +97,11 @@ export function buildYearPlanner(range: DayRange, events: PlannerEvent[]): Plann
     return wd === 0 || wd === 6 ? 'weekend' : null;
   };
 
-  for (
-    let y = start.getUTCFullYear(), m = start.getUTCMonth();
-    y < end.getUTCFullYear() || (y === end.getUTCFullYear() && m <= end.getUTCMonth());
-    m === 11 ? ((m = 0), y++) : m++
-  ) {
+  const firstIndex = start.getUTCFullYear() * 12 + start.getUTCMonth();
+  const lastIndex = end.getUTCFullYear() * 12 + end.getUTCMonth();
+  for (let index = firstIndex; index <= lastIndex; index++) {
+    const y = Math.floor(index / 12);
+    const m = index % 12;
     const first = Date.UTC(y, m, 1);
     const daysInMonth = new Date(Date.UTC(y, m + 1, 0)).getUTCDate();
     const lead = (new Date(first).getUTCDay() + 6) % 7; // Senin = 0
