@@ -664,3 +664,22 @@ export const calendarEvent = pgTable(
   },
   (t) => [index('calendar_event_year_idx').on(t.academicYearId, t.startsOn)],
 );
+
+/** Paket siap pakai (kumpulan modul + tingkat siswa) yang dipilih saat mendaftar. Dikelola staf platform. */
+export const planPreset = pgTable('plan_preset', {
+  key: text('key').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description').notNull().default(''),
+  modules: jsonb('modules').$type<string[]>().notNull(),
+  tier: text('tier').notNull().default('t300'),
+  sort: integer('sort').notNull().default(0),
+  active: boolean('active').notNull().default(true),
+});
+
+/** Pengaturan platform (mis. penyedia pembayaran). Nilai rahasia disimpan terenkripsi. Hanya peran platform. */
+export const platformSetting = pgTable('platform_setting', {
+  key: text('key').primaryKey(),
+  value: jsonb('value').$type<Record<string, unknown>>().notNull(),
+  updatedBy: text('updated_by'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});

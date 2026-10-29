@@ -126,7 +126,7 @@ export async function createRenewalInvoices(db: Db, provider: PaymentProvider, n
         tier: s.studentTier,
         modules: ents.filter((e) => e.schoolId === s.id).map((e) => e.moduleKey),
       }));
-      const quote = quoteUnits(await loadCatalog(db), units, sub.period);
+      const quote = quoteUnits(await loadCatalog(db, { includeInactive: true }), units, sub.period);
 
       const [reg] = await tx
         .select()

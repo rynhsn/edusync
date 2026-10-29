@@ -176,6 +176,20 @@
       "when": 1793312031645,
       "tag": "0024_calendar_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 25,
+      "version": "7",
+      "when": 1793313837072,
+      "tag": "0025_curly_susan_delgado",
+      "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1793313840430,
+      "tag": "0026_plans_and_settings",
+      "breakpoints": true
     }
   ]
 }

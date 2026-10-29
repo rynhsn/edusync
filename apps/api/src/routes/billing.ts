@@ -14,7 +14,7 @@ import {
   slugSchema,
   YEARLY_MONTHS,
 } from '@edusync/contracts';
-import { eq, invoice, loadCatalog } from '@edusync/db';
+import { asc, eq, invoice, loadCatalog, planPreset } from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -61,6 +61,15 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
             currency: z.literal('IDR'),
             yearlyMonths: z.number(),
             requires: z.record(z.string(), z.array(z.string())),
+            plans: z.array(
+              z.object({
+                key: z.string(),
+                name: z.string(),
+                description: z.string(),
+                modules: z.array(z.string()),
+                tier: z.string(),
+              }),
+            ),
             items: z.array(
               z.object({
                 kind: z.enum(['base', 'module', 'tier']),
@@ -77,6 +86,13 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
       currency: 'IDR' as const,
       yearlyMonths: YEARLY_MONTHS,
       requires: Object.fromEntries(Object.entries(MODULE_REQUIRES).map(([k, v]) => [k, [...v]])),
+      plans: (
+        await app.platformDb
+          .select()
+          .from(planPreset)
+          .where(eq(planPreset.active, true))
+          .orderBy(asc(planPreset.sort))
+      ).map(({ key, name, description, modules, tier }) => ({ key, name, description, modules, tier })),
       items: (await loadCatalog(app.platformDb)).map(({ kind, key, name, priceMonthly }) => ({
         kind,
         key,

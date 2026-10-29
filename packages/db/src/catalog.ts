@@ -14,8 +14,15 @@ export async function seedCatalog(db: Db) {
     .onConflictDoNothing();
 }
 
-export async function loadCatalog(db: Db) {
-  const rows = await db.select().from(catalogItem).where(sql`${catalogItem.active}`);
+/**
+ * Katalog untuk menghitung harga. Pendaftaran baru hanya memakai item aktif; perpanjangan memakai
+ * `includeInactive` supaya sekolah yang sudah berlangganan modul yang kemudian disembunyikan tetap bisa ditagih.
+ */
+export async function loadCatalog(db: Db, options: { includeInactive?: boolean } = {}) {
+  const rows = await db
+    .select()
+    .from(catalogItem)
+    .where(options.includeInactive ? undefined : sql`${catalogItem.active}`);
   return rows
     .map((r) => ({ kind: r.kind, key: r.key, name: r.name, priceMonthly: r.priceMonthly, sort: r.sort }))
     .sort((a, b) => a.sort - b.sort);
