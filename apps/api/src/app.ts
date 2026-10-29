@@ -138,6 +138,20 @@ export async function buildApp(env: Env) {
     },
   );
 
+  app.get(
+    '/v1/config',
+    {
+      schema: {
+        tags: ['System'],
+        summary: 'Pengaturan publik untuk web',
+        description:
+          'Domain dasar tempat sekolah diakses. Alamat sekolah adalah <alamat>.<baseDomain>, mis. smpit.localhost:3000.',
+        response: { 200: z.object({ baseDomain: z.string() }) },
+      },
+    },
+    async () => ({ baseDomain: env.APP_DOMAIN }),
+  );
+
   await registerAuthRoutes(app);
   await app.register(meRoutes);
   await app.register(academicYearRoutes);

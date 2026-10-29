@@ -15,6 +15,8 @@ export interface ChargeRequest {
   amount: number;
   customer: { name: string; email: string };
   description: string;
+  /** Halaman di web Edusync tempat pengguna kembali setelah membayar, mis. /register/status/<id>. */
+  returnPath: string;
 }
 
 export interface Charge {
@@ -121,6 +123,12 @@ function midtransProvider(env: PaymentConfig): PaymentProvider {
         },
         body: JSON.stringify({
           transaction_details: { order_id: request.orderId, gross_amount: request.amount },
+          // Midtrans menambahkan parameter hasil di belakang alamat ini, jadi id ada di path, bukan query.
+          callbacks: {
+            finish: `${env.webUrl}${request.returnPath}`,
+            unfinish: `${env.webUrl}${request.returnPath}`,
+            error: `${env.webUrl}${request.returnPath}`,
+          },
           customer_details: { first_name: request.customer.name, email: request.customer.email },
           item_details: [
             {

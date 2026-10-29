@@ -2,7 +2,9 @@
   "common": {
     "appName": "Edusync",
     "retry": "Try again",
-    "signOut": "Sign out"
+    "signOut": "Sign out",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password"
   },
   "auth": {
     "title": "Sign in to Edusync",
@@ -155,7 +157,9 @@
     "emailTaken": "This email is already registered. Sign in with that account.",
     "weakPassword": "Password must be at least 12 characters.",
     "haveAccount": "Already have an account?",
-    "signIn": "Sign in"
+    "signIn": "Sign in",
+    "passwordConfirm": "Confirm password",
+    "passwordMismatch": "Passwords do not match."
   },
   "pay": {
     "title": "Payment",
@@ -204,5 +208,21 @@
     "time": "Time",
     "action": "Action",
     "detail": "Details"
+  },
+  "registerStatus": {
+    "title": "Payment status",
+    "waiting": "Waiting for payment confirmation",
+    "waitingHint": "This page checks automatically. Once the payment is confirmed, your school is active right away. If you have not paid yet, open the payment page below.",
+    "amount": "Amount due",
+    "openPayment": "Open payment page",
+    "paid": "Payment received. Your school is now active.",
+    "paidHint": "Units created:",
+    "goDashboard": "Open dashboard",
+    "expired": "This registration has expired or was canceled.",
+    "expiredHint": "The school addresses you reserved have been released. Register again to continue.",
+    "registerAgain": "Register again",
+    "notFound": "Registration not found.",
+    "signInNeeded": "Sign in with the account you registered with to see the status.",
+    "signIn": "Sign in"
   }
 }

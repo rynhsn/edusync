@@ -11,7 +11,9 @@ try {
 let app: Awaited<ReturnType<typeof buildApp>>;
 
 beforeAll(async () => {
-  app = await buildApp(loadEnv({ ...process.env, NODE_ENV: 'test' }));
+  app = await buildApp(
+    loadEnv({ ...process.env, NODE_ENV: 'test', PAYMENT_PROVIDER: 'dev', MIDTRANS_SERVER_KEY: '' }),
+  );
   await app.ready();
 });
 afterAll(async () => {
@@ -39,6 +41,8 @@ describe('API', () => {
   });
 
   it('konfigurasi salah ditolak saat start', () => {
-    expect(() => loadEnv({ NODE_ENV: 'test' })).toThrow(/DATABASE_URL/);
+    expect(() => loadEnv({ NODE_ENV: 'test', PAYMENT_PROVIDER: 'dev', MIDTRANS_SERVER_KEY: '' })).toThrow(
+      /DATABASE_URL/,
+    );
   });
 });

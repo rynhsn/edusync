@@ -158,6 +158,7 @@ export async function createRenewalInvoices(db: Db, provider: PaymentProvider, n
         amount: result.amount,
         customer: { name: result.owner.name, email: result.owner.email },
         description: 'Perpanjangan langganan Edusync',
+        returnPath: '/dashboard',
       });
       await db.transaction(async (tx) => {
         await tx.update(invoice).set({ paymentUrl }).where(eq(invoice.id, result.inv.id));

@@ -17,6 +17,16 @@ const schema = z
           .map((s) => s.trim())
           .filter(Boolean),
       ),
+    /**
+     * Domain dasar tempat sekolah diakses: <alamat-sekolah>.<APP_DOMAIN>. Hanya host dan port opsional,
+     * tanpa skema atau path. Lokal: localhost:3000. Produksi: domain sebenarnya (belum tentu edusync.id).
+     */
+    APP_DOMAIN: z
+      .string()
+      .trim()
+      .toLowerCase()
+      .regex(/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d{2,5})?$/, 'hanya host dan port, tanpa http:// atau path')
+      .default('localhost:3000'),
     /** Alamat web, dipakai untuk tautan pembayaran. */
     WEB_URL: z.string().url().default('http://localhost:3000'),
     PAYMENT_PROVIDER: z.enum(['dev', 'midtrans']).default('dev'),

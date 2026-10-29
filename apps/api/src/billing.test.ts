@@ -1,7 +1,7 @@
 import { createPaymentProvider, midtransSignature, signDevEvent } from '@edusync/billing';
 import { DEFAULT_CATALOG, quoteUnits } from '@edusync/contracts';
 import { inArray, outbox, sql, user } from '@edusync/db';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildApp, paymentConfig } from './app';
 import { loadEnv } from './env';
 import { requireModule, requirePermission } from './identity/guards';
@@ -15,7 +15,7 @@ try {
 const run = Math.random().toString(36).slice(2, 8);
 const password = 'kata-sandi-uji-12345';
 const origin = 'http://localhost:3000';
-const env = loadEnv({ ...process.env, NODE_ENV: 'test' });
+const env = loadEnv({ ...process.env, NODE_ENV: 'test', PAYMENT_PROVIDER: 'dev', MIDTRANS_SERVER_KEY: '' });
 
 let app: Awaited<ReturnType<typeof buildApp>>;
 const userIds: string[] = [];
@@ -431,3 +431,72 @@ describe('Midtrans', () => {
 function get(url: string, cookie: string) {
   return app.inject({ url, headers: { cookie } });
 }
+
+describe('Midtrans: pembuatan transaksi', () => {
+  it('mengirim alamat kembali ke halaman status dan kunci server di header', async () => {
+    const config = paymentConfig(
+      loadEnv({
+        ...process.env,
+        NODE_ENV: 'test',
+        PAYMENT_PROVIDER: 'midtrans',
+        MIDTRANS_SERVER_KEY: 'SB-Mid-server-contoh',
+        WEB_URL: 'http://localhost:3000',
+      }),
+    );
+    const fetchMock = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({ redirect_url: 'https://app.sandbox.midtrans.com/snap/v4/redirection/abc' }),
+        ),
+    );
+    vi.stubGlobal('fetch', fetchMock);
+    try {
+      const charge = await createPaymentProvider(config).createCharge({
+        orderId: 'edu-123',
+        amount: 250000,
+        customer: { name: 'Pemilik', email: 'pemilik@example.test' },
+        description: 'Langganan Edusync Uji',
+        returnPath: '/register/status/reg-1',
+      });
+      expect(charge.paymentUrl).toContain('midtrans.com');
+      const [url, init] = fetchMock.mock.calls[0] as unknown as [string, RequestInit];
+      expect(url).toContain('/snap/v1/transactions');
+      expect((init.headers as Record<string, string>).authorization).toBe(
+        `Basic ${Buffer.from('SB-Mid-server-contoh:').toString('base64')}`,
+      );
+      const body = JSON.parse(init.body as string);
+      expect(body.transaction_details).toEqual({ order_id: 'edu-123', gross_amount: 250000 });
+      expect(body.callbacks.finish).toBe('http://localhost:3000/register/status/reg-1');
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it('menolak bila Midtrans tidak mengembalikan alamat pembayaran', async () => {
+    const config = paymentConfig(
+      loadEnv({
+        ...process.env,
+        NODE_ENV: 'test',
+        PAYMENT_PROVIDER: 'midtrans',
+        MIDTRANS_SERVER_KEY: 'SB-Mid-server-contoh',
+      }),
+    );
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => new Response(JSON.stringify({ error_messages: ['salah'] }), { status: 401 })),
+    );
+    try {
+      await expect(
+        createPaymentProvider(config).createCharge({
+          orderId: 'edu-1',
+          amount: 1000,
+          customer: { name: 'A', email: 'a@example.test' },
+          description: 'x',
+          returnPath: '/dashboard',
+        }),
+      ).rejects.toThrow(/Midtrans/);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});

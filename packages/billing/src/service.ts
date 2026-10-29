@@ -162,6 +162,7 @@ export async function createRegistration(
       amount: quote.total,
       customer: { name: account.name, email: account.email },
       description: `Langganan Edusync ${input.foundationName}`,
+      returnPath: `/register/status/${created.registrationId}`,
     }));
   } catch (error) {
     await db.transaction((tx) => releaseRegistration(tx, created.registrationId));

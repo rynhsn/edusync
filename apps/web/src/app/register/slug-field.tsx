@@ -14,10 +14,12 @@ interface Props {
   onChange: (value: string) => void;
   status: SlugStatus | undefined;
   onStatus: (id: string, status: SlugStatus) => void;
+  /** Domain dasar dari API (mis. edusync.id atau localhost:3000). Kosong selama belum dimuat. */
+  baseDomain: string | undefined;
 }
 
 /** Kolom subdomain dengan pemeriksaan ketersediaan yang ditunda 400 ms setelah pengguna berhenti mengetik. */
-export function SlugField({ id, value, onChange, status, onStatus }: Props) {
+export function SlugField({ id, value, onChange, status, onStatus, baseDomain }: Props) {
   const t = useTranslations('register');
 
   useEffect(() => {
@@ -47,7 +49,7 @@ export function SlugField({ id, value, onChange, status, onStatus }: Props) {
           : { text: t('slugChecking'), tone: 'text-muted-foreground' };
 
   return (
-    <div className="grid gap-2">
+    <div className="grid content-start gap-2">
       <Label htmlFor={id}>{t('subdomain')}</Label>
       <div className="flex items-center gap-2">
         <Input
@@ -59,7 +61,7 @@ export function SlugField({ id, value, onChange, status, onStatus }: Props) {
           aria-describedby={`${id}-status`}
           className="font-mono"
         />
-        <span className="text-muted-foreground shrink-0 text-sm">.edusync.id</span>
+        <span className="text-muted-foreground shrink-0 text-sm">{baseDomain ? `.${baseDomain}` : ''}</span>
       </div>
       <p id={`${id}-status`} className={`text-xs ${message.tone}`} aria-live="polite">
         {message.text}

@@ -2,7 +2,9 @@
   "common": {
     "appName": "Edusync",
     "retry": "Coba lagi",
-    "signOut": "Keluar"
+    "signOut": "Keluar",
+    "showPassword": "Tampilkan kata sandi",
+    "hidePassword": "Sembunyikan kata sandi"
   },
   "auth": {
     "title": "Masuk ke Edusync",
@@ -155,7 +157,9 @@
     "emailTaken": "Email ini sudah terdaftar. Masuk dengan akun tersebut.",
     "weakPassword": "Kata sandi minimal 12 karakter.",
     "haveAccount": "Sudah punya akun?",
-    "signIn": "Masuk"
+    "signIn": "Masuk",
+    "passwordConfirm": "Ulangi kata sandi",
+    "passwordMismatch": "Kata sandi tidak sama."
   },
   "pay": {
     "title": "Pembayaran",
@@ -204,5 +208,21 @@
     "time": "Waktu",
     "action": "Aksi",
     "detail": "Rincian"
+  },
+  "registerStatus": {
+    "title": "Status pembayaran",
+    "waiting": "Menunggu konfirmasi pembayaran",
+    "waitingHint": "Halaman ini memeriksa otomatis. Setelah pembayaran terkonfirmasi, sekolah Anda langsung aktif. Bila Anda belum membayar, buka halaman pembayaran di bawah.",
+    "amount": "Total tagihan",
+    "openPayment": "Buka halaman pembayaran",
+    "paid": "Pembayaran diterima. Sekolah Anda sudah aktif.",
+    "paidHint": "Unit yang dibuat:",
+    "goDashboard": "Buka dashboard",
+    "expired": "Pendaftaran ini sudah kedaluwarsa atau dibatalkan.",
+    "expiredHint": "Alamat sekolah yang dipesan sudah dilepas. Daftarkan ulang untuk melanjutkan.",
+    "registerAgain": "Daftar ulang",
+    "notFound": "Pendaftaran tidak ditemukan.",
+    "signInNeeded": "Masuk dengan akun yang dipakai mendaftar untuk melihat status.",
+    "signIn": "Masuk"
   }
 }

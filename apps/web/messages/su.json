@@ -2,7 +2,9 @@
   "common": {
     "appName": "Edusync",
     "retry": "Cobian deui",
-    "signOut": "Kaluar"
+    "signOut": "Kaluar",
+    "showPassword": "Témbongkeun kecap akses",
+    "hidePassword": "Sumputkeun kecap akses"
   },
   "auth": {
     "title": "Lebet ka Edusync",
@@ -155,7 +157,9 @@
     "emailTaken": "Email ieu geus kadaptar. Lebet nganggo akun éta.",
     "weakPassword": "Kecap akses sahenteuna 12 karakter.",
     "haveAccount": "Geus gaduh akun?",
-    "signIn": "Lebet"
+    "signIn": "Lebet",
+    "passwordConfirm": "Ulangan kecap akses",
+    "passwordMismatch": "Kecap akses teu sarua."
   },
   "pay": {
     "title": "Pamayaran",
@@ -204,5 +208,21 @@
     "time": "Waktu",
     "action": "Aksi",
     "detail": "Rincian"
+  },
+  "registerStatus": {
+    "title": "Status pamayaran",
+    "waiting": "Ngantosan konfirmasi pamayaran",
+    "waitingHint": "Kaca ieu mariksa sacara otomatis. Sanggeus pamayaran dikonfirmasi, sakola Anjeun langsung aktip. Upami acan mayar, buka kaca pamayaran di handap.",
+    "amount": "Total tagihan",
+    "openPayment": "Buka kaca pamayaran",
+    "paid": "Pamayaran ditampi. Sakola Anjeun geus aktip.",
+    "paidHint": "Unit nu dijieun:",
+    "goDashboard": "Buka dashboard",
+    "expired": "Pendaptaran ieu geus kadaluwarsa atawa dibatalkeun.",
+    "expiredHint": "Alamat sakola nu dipesen geus dileupaskeun. Daptarkeun deui pikeun neraskeun.",
+    "registerAgain": "Daptarkeun deui",
+    "notFound": "Pendaptaran teu kapendak.",
+    "signInNeeded": "Lebet nganggo akun nu dipaké ngadaptar pikeun ningali status.",
+    "signIn": "Lebet"
   }
 }

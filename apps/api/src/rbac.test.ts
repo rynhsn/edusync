@@ -65,7 +65,9 @@ const post = (url: string, cookie: string, schoolId: string, payload: object) =>
   });
 
 beforeAll(async () => {
-  app = await buildApp(loadEnv({ ...process.env, NODE_ENV: 'test' }));
+  app = await buildApp(
+    loadEnv({ ...process.env, NODE_ENV: 'test', PAYMENT_PROVIDER: 'dev', MIDTRANS_SERVER_KEY: '' }),
+  );
   await app.ready();
   const [fa] = await app.platformDb
     .insert(foundation)

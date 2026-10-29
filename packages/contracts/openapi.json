@@ -95,6 +95,36 @@
         }
       }
     },
+    "/v1/config": {
+      "get": {
+        "summary": "Pengaturan publik untuk web",
+        "tags": [
+          "System"
+        ],
+        "description": "Domain dasar tempat sekolah diakses. Alamat sekolah adalah <alamat>.<baseDomain>, mis. smpit.localhost:3000.",
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "baseDomain": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "baseDomain"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/me": {
       "get": {
         "summary": "Profil pengguna dan sekolah tempat ia menjadi anggota",

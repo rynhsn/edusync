@@ -3,6 +3,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -15,12 +16,23 @@ export function PayView({ orderId }: { orderId: string }) {
   const t = useTranslations('pay');
   const te = useTranslations();
   const queryClient = useQueryClient();
+  const router = useRouter();
 
   const simulate = useMutation({
     mutationFn: async () =>
       unwrap(await api.POST('/v1/dev/payments/{orderId}/simulate', { params: { path: { orderId } } })),
-    // Pengguna kini menjadi anggota sekolah baru, jadi data akun lama dibuang.
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ['me'] }),
+    onSuccess: () => {
+      // Pengguna kini menjadi anggota sekolah baru, jadi data akun lama dibuang.
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+      // Sama seperti kembali dari penyedia sungguhan: lanjut ke halaman status pendaftaran.
+      let registrationId: string | null = null;
+      try {
+        registrationId = sessionStorage.getItem('edusync.pendingRegistration');
+      } catch {
+        // Tanpa penyimpanan sesi, pengguna memakai tombol dashboard di bawah.
+      }
+      if (registrationId) router.replace(`/register/status/${registrationId}`);
+    },
   });
 
   return (

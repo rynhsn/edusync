@@ -18,7 +18,7 @@ try {
 const run = Math.random().toString(36).slice(2, 8);
 const password = 'kata-sandi-uji-12345';
 const origin = 'http://localhost:3000';
-const env = loadEnv({ ...process.env, NODE_ENV: 'test' });
+const env = loadEnv({ ...process.env, NODE_ENV: 'test', PAYMENT_PROVIDER: 'dev', MIDTRANS_SERVER_KEY: '' });
 const provider = createPaymentProvider(paymentConfig(env));
 const json = { origin, 'content-type': 'application/json' };
 

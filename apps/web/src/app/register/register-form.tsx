@@ -13,6 +13,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useMemo, useState } from 'react';
+import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -22,6 +23,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import { errorKey } from '@/lib/errors';
+import { checkPasswords } from '@/lib/password';
 import { cn } from '@/lib/utils';
 import { SlugField, type SlugStatus } from './slug-field';
 
@@ -54,13 +56,20 @@ export function RegisterForm() {
   const [period, setPeriod] = useState<'monthly' | 'yearly'>('monthly');
   const [units, setUnits] = useState<Unit[]>([newUnit()]);
   const [slugStatus, setSlugStatus] = useState<Record<string, SlugStatus>>({});
-  const [account, setAccount] = useState({ name: '', email: '', password: '' });
+  const [account, setAccount] = useState({ name: '', email: '', password: '', confirm: '' });
+  const [touched, setTouched] = useState({ password: false });
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
 
   const catalog = useQuery({
     queryKey: ['catalog'],
     queryFn: async () => unwrap(await api.GET('/v1/catalog')),
+  });
+
+  const config = useQuery({
+    queryKey: ['config'],
+    queryFn: async () => unwrap(await api.GET('/v1/config')),
+    staleTime: Number.POSITIVE_INFINITY,
   });
 
   // 401 berarti belum masuk, bukan kesalahan: form akan membuatkan akun.
@@ -125,8 +134,10 @@ export function RegisterForm() {
   const slugsOk =
     units.every((u) => slugStatus[`${u.id}-slug`] === 'available') &&
     new Set(units.map((u) => u.slug)).size === units.length;
-  const accountOk =
-    signedIn || (account.name.trim().length >= 2 && account.email && account.password.length >= 12);
+  const passwordCheck = checkPasswords(account.password, account.confirm);
+  // Kesalahan panjang baru ditampilkan setelah kolom ditinggalkan, supaya tidak muncul saat masih mengetik.
+  const showShort = passwordCheck.tooShort && touched.password;
+  const accountOk = signedIn || (account.name.trim().length >= 2 && account.email && passwordCheck.ok);
   const canSubmit =
     !pending &&
     quote &&
@@ -214,7 +225,7 @@ export function RegisterForm() {
               <p className="text-sm">{t('signedInAs', { email: signedIn.email })}</p>
             ) : (
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2 sm:col-span-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="name">{t('name')}</Label>
                   <Input
                     id="name"
@@ -224,7 +235,7 @@ export function RegisterForm() {
                     required
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="email">{t('email')}</Label>
                   <Input
                     id="email"
@@ -235,18 +246,44 @@ export function RegisterForm() {
                     required
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="password">{t('password')}</Label>
-                  <Input
+                  <PasswordInput
                     id="password"
-                    type="password"
                     autoComplete="new-password"
-                    minLength={12}
                     value={account.password}
                     onChange={(e) => setAccount({ ...account, password: e.target.value })}
+                    onBlur={() => setTouched((s) => ({ ...s, password: true }))}
+                    aria-invalid={showShort}
+                    aria-describedby="password-hint"
                     required
                   />
-                  <p className="text-muted-foreground text-xs">{t('passwordHint')}</p>
+                  <p
+                    id="password-hint"
+                    aria-live="polite"
+                    className={cn('text-xs', showShort ? 'text-destructive' : 'text-muted-foreground')}
+                  >
+                    {showShort ? t('weakPassword') : t('passwordHint')}
+                  </p>
+                </div>
+                <div className="grid content-start gap-2">
+                  <Label htmlFor="passwordConfirm">{t('passwordConfirm')}</Label>
+                  <PasswordInput
+                    id="passwordConfirm"
+                    autoComplete="new-password"
+                    value={account.confirm}
+                    onChange={(e) => setAccount({ ...account, confirm: e.target.value })}
+                    aria-invalid={passwordCheck.mismatch}
+                    aria-describedby="password-confirm-hint"
+                    required
+                  />
+                  <p
+                    id="password-confirm-hint"
+                    aria-live="polite"
+                    className="text-destructive min-h-4 text-xs"
+                  >
+                    {passwordCheck.mismatch ? t('passwordMismatch') : ''}
+                  </p>
                 </div>
                 <p className="text-muted-foreground text-sm sm:col-span-2">
                   {t('haveAccount')}{' '}
@@ -265,7 +302,7 @@ export function RegisterForm() {
             <CardDescription>{t('foundationHelp')}</CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="foundationName">{t('foundationName')}</Label>
               <Input
                 id="foundationName"
@@ -306,7 +343,7 @@ export function RegisterForm() {
                   </CardHeader>
                   <CardContent className="grid gap-5">
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="grid gap-2">
+                      <div className="grid content-start gap-2">
                         <Label htmlFor={`${unit.id}-name`}>{t('unitName')}</Label>
                         <Input
                           id={`${unit.id}-name`}
@@ -327,10 +364,11 @@ export function RegisterForm() {
                         onChange={(value) => update(unit.id, { slug: value, slugTouched: true })}
                         status={slugStatus[`${unit.id}-slug`]}
                         onStatus={setStatusFor}
+                        baseDomain={config.data?.baseDomain}
                       />
                     </div>
 
-                    <fieldset className="grid gap-2">
+                    <fieldset className="grid content-start gap-2">
                       <legend className="text-sm font-medium">{t('modulesTitle')}</legend>
                       <p className="text-muted-foreground text-xs">{t('modulesNote')}</p>
                       <div className="mt-1 grid gap-2 sm:grid-cols-2">
@@ -372,7 +410,7 @@ export function RegisterForm() {
                       )}
                     </fieldset>
 
-                    <div className="grid gap-2 sm:max-w-xs">
+                    <div className="grid content-start gap-2 sm:max-w-xs">
                       <Label htmlFor={`${unit.id}-tier`}>{t('tier')}</Label>
                       <select
                         id={`${unit.id}-tier`}
@@ -411,7 +449,7 @@ export function RegisterForm() {
             <CardTitle>{t('summary')}</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-5">
-            <fieldset className="grid gap-2">
+            <fieldset className="grid content-start gap-2">
               <legend className="text-sm font-medium">{t('period')}</legend>
               <div className="grid grid-cols-2 gap-2">
                 {(['monthly', 'yearly'] as const).map((p) => (
