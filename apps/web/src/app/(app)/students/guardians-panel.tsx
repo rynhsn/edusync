@@ -8,6 +8,7 @@ import { useSchool } from '@/components/app-shell';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
@@ -265,12 +266,14 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                 onChange={(e) => setDraft({ ...draft, email: e.target.value })}
               />
             </div>
-            <label className="flex items-center gap-2 text-sm sm:col-span-2">
-              <input
-                type="checkbox"
-                className="accent-primary size-4"
+            <label
+              htmlFor={`g-primary-${studentId}`}
+              className="flex items-center gap-2 text-sm sm:col-span-2"
+            >
+              <Checkbox
+                id={`g-primary-${studentId}`}
                 checked={draft.isPrimary}
-                onChange={(e) => setDraft({ ...draft, isPrimary: e.target.checked })}
+                onCheckedChange={(checked) => setDraft({ ...draft, isPrimary: checked })}
               />
               {t('primaryCheck')}
             </label>

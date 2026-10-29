@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -44,13 +45,11 @@ function RolePicker({
         const id = `${idPrefix}-${r.key}`;
         return (
           <label key={r.key} htmlFor={id} className="flex items-center gap-2 text-sm">
-            <input
+            <Checkbox
               id={id}
-              type="checkbox"
-              className="accent-primary size-4"
               checked={checked}
               disabled={!canGrant(r)}
-              onChange={() => onChange(checked ? value.filter((k) => k !== r.key) : [...value, r.key])}
+              onCheckedChange={() => onChange(checked ? value.filter((k) => k !== r.key) : [...value, r.key])}
             />
             {label(r)}
           </label>

@@ -8,6 +8,7 @@ import { useSchool } from '@/components/app-shell';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { api, schoolHeader, unwrap } from '@/lib/api';
@@ -119,12 +120,11 @@ export function CurriculumBank() {
         </div>
         <div className="grid gap-2 sm:grid-cols-2">
           {level.subjects.map((s) => (
-            <label key={s.code} className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                className="accent-primary size-4"
+            <label key={s.code} htmlFor={`bank-${s.code}`} className="flex items-center gap-2 text-sm">
+              <Checkbox
+                id={`bank-${s.code}`}
                 checked={!unchecked.has(s.code)}
-                onChange={() => {
+                onCheckedChange={() => {
                   const next = new Set(unchecked);
                   if (next.has(s.code)) next.delete(s.code);
                   else next.add(s.code);

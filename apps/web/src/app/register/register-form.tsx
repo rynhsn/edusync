@@ -17,6 +17,7 @@ import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -374,19 +375,19 @@ export function RegisterForm() {
                           return (
                             <label
                               key={m.key}
+                              htmlFor={`mod-${unit.id}-${m.key}`}
                               className={cn(
                                 'flex cursor-pointer items-center gap-3 rounded-lg border p-3 text-sm transition-colors',
                                 checked ? 'border-primary/50 bg-accent/50' : 'hover:bg-muted/50',
                               )}
                             >
-                              <input
-                                type="checkbox"
-                                className="accent-primary size-4"
+                              <Checkbox
+                                id={`mod-${unit.id}-${m.key}`}
                                 checked={checked}
                                 disabled={extra.includes(m.key)}
-                                onChange={(e) =>
+                                onCheckedChange={(next) =>
                                   update(unit.id, {
-                                    modules: e.target.checked
+                                    modules: next
                                       ? [...unit.modules, m.key]
                                       : unit.modules.filter((x) => x !== m.key),
                                   })
