@@ -46,11 +46,14 @@ pnpm --filter @edusync/api seed:dev
 pnpm dev
 ```
 
-| Apa                       | Alamat                     |
-| ------------------------- | -------------------------- |
-| Aplikasi web              | http://localhost:3000      |
-| Dokumentasi API           | http://localhost:4000/docs |
-| Kotak email uji (Mailpit) | http://localhost:8025      |
+| Apa                                                                     | Alamat                                                                                |
+| ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Aplikasi web (halaman utama, daftar, login, konsol staf di `/platform`) | http://localhost:3000                                                                 |
+| Sekolah (contoh seed)                                                   | http://smpit-miftahul-huda.localhost:3000 dan http://smk-miftahul-huda.localhost:3000 |
+| Dokumentasi API                                                         | http://localhost:4000/docs                                                            |
+| Kotak email uji (Mailpit)                                               | http://localhost:8025                                                                 |
+
+Setiap sekolah punya alamat sendiri: `<alamat-sekolah>.localhost:3000`. Chrome, Edge, dan Firefox mengarahkan `*.localhost` ke komputer Anda tanpa pengaturan tambahan. Sesi login terikat ke alamat tempat login dilakukan, jadi guru masuk di alamat sekolahnya, dan staf serta pemilik yayasan di alamat utama. Pindah sekolah memindahkan alamat dengan token sekali pakai (satu menit).
 
 Akun contoh: `admin@edusync.test`, `guru@edusync.test`, `staff@edusync.test` (staf platform). Kata sandi ada di `.env`, baris `DEV_SEED_PASSWORD`.
 
@@ -63,6 +66,11 @@ pnpm typecheck   # TypeScript
 ```
 
 Mengosongkan database sama sekali: `docker compose down -v`, lalu ulangi langkah 2 sampai 5.
+
+## Konfigurasi alamat
+
+- `APP_DOMAIN`: domain dasar sekolah (`localhost:3000` di lokal; domain produksi nanti). Host dan port saja, tanpa `http://`.
+- `API_URL`: alamat API yang dipakai web untuk meneruskan permintaan (`/v1` dan `/api/auth`) dari alamat mana pun.
 
 ## Struktur
 

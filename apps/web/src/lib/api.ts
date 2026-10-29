@@ -1,10 +1,12 @@
 import createClient from 'openapi-fetch';
 import type { paths } from './api-types';
 
-export const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
-
-/** Klien API bertipe. Tipenya dihasilkan dari OpenAPI (`pnpm gen:api`), jadi selalu sama dengan server. */
-export const api = createClient<paths>({ baseUrl: API_URL, credentials: 'include' });
+/**
+ * Klien API bertipe. Tipenya dihasilkan dari OpenAPI (`pnpm gen:api`), jadi selalu sama dengan server.
+ * Alamatnya relatif: Next meneruskan /v1 dan /api/auth ke API (lihat next.config.ts), sehingga cookie sesi
+ * milik alamat tempat halaman dibuka.
+ */
+export const api = createClient<paths>({ baseUrl: '', credentials: 'include' });
 
 export const schoolHeader = (schoolId: string) => ({ 'x-school-id': schoolId });
 

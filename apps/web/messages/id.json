@@ -31,7 +31,10 @@
     "active": "aktif",
     "noSchoolTitle": "Akun Anda belum terdaftar di sekolah mana pun.",
     "noSchoolBody": "Hubungi admin sekolah atau yayasan Anda untuk diundang.",
-    "loadError": "Data akun tidak dapat dimuat. Periksa koneksi lalu coba lagi."
+    "loadError": "Data akun tidak dapat dimuat. Periksa koneksi lalu coba lagi.",
+    "notMemberTitle": "Anda bukan anggota sekolah ini.",
+    "notMemberBody": "Masuk dengan akun yang terdaftar di sekolah ini, atau hubungi admin sekolah untuk diundang.",
+    "goMain": "Ke halaman utama"
   },
   "roles": {
     "school_admin": "Admin sekolah",
@@ -224,5 +227,10 @@
     "notFound": "Pendaftaran tidak ditemukan.",
     "signInNeeded": "Masuk dengan akun yang dipakai mendaftar untuk melihat status.",
     "signIn": "Masuk"
+  },
+  "handoff": {
+    "working": "Memindahkan Anda ke sekolah…",
+    "failed": "Tautan masuk tidak valid atau sudah kedaluwarsa.",
+    "signInAgain": "Masuk ulang"
   }
 }

@@ -31,7 +31,10 @@
     "active": "aktif",
     "noSchoolTitle": "Akun Anjeun can kadaptar di sakola mana waé.",
     "noSchoolBody": "Hubungi admin sakola atawa yayasan Anjeun pikeun diondang.",
-    "loadError": "Data akun teu bisa dimuat. Parios sambungan, teras cobian deui."
+    "loadError": "Data akun teu bisa dimuat. Parios sambungan, teras cobian deui.",
+    "notMemberTitle": "Anjeun lain anggota sakola ieu.",
+    "notMemberBody": "Lebet nganggo akun nu kadaptar di sakola ieu, atawa hubungi admin sakola pikeun diondang.",
+    "goMain": "Ka kaca utama"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -224,5 +227,10 @@
     "notFound": "Pendaptaran teu kapendak.",
     "signInNeeded": "Lebet nganggo akun nu dipaké ngadaptar pikeun ningali status.",
     "signIn": "Lebet"
+  },
+  "handoff": {
+    "working": "Keur mindahkeun Anjeun ka sakola…",
+    "failed": "Tautan lebet teu valid atawa geus kadaluwarsa.",
+    "signInAgain": "Lebet deui"
   }
 }

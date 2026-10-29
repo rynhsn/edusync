@@ -52,7 +52,7 @@ export function PayView({ orderId }: { orderId: string }) {
             <p className="flex items-center gap-2 text-sm font-medium">
               <CheckCircle2 className="text-primary size-5" aria-hidden /> {t('activated')}
             </p>
-            <Button nativeButton={false} render={<Link href="/dashboard" />}>
+            <Button nativeButton={false} render={<Link href="/" />}>
               {t('goDashboard')}
             </Button>
           </>

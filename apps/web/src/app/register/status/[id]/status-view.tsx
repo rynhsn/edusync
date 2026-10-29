@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, api, unwrap } from '@/lib/api';
+import { useConfig } from '@/lib/site';
 
 const POLL_MS = 2000;
 
@@ -18,11 +19,7 @@ export function StatusView({ id }: { id: string }) {
   const locale = useLocale();
   const queryClient = useQueryClient();
 
-  const config = useQuery({
-    queryKey: ['config'],
-    queryFn: async () => unwrap(await api.GET('/v1/config')),
-    staleTime: Number.POSITIVE_INFINITY,
-  });
+  const config = useConfig();
 
   const reg = useQuery({
     queryKey: ['registration', id],
@@ -118,7 +115,7 @@ export function StatusView({ id }: { id: string }) {
                 </ul>
               </div>
             )}
-            <Button nativeButton={false} render={<Link href="/dashboard" />}>
+            <Button nativeButton={false} render={<Link href="/" />}>
               {t('goDashboard')}
             </Button>
           </>

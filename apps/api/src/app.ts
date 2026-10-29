@@ -19,9 +19,8 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { type Auth, createAuth } from './auth';
+import { type Auth, createAuth, originMatcherFor } from './auth';
 import type { Env } from './env';
-import { HttpError } from './http-error';
 import { academicYearRoutes } from './routes/academic-years';
 import { registerAuthRoutes } from './routes/auth';
 import { billingRoutes } from './routes/billing';
@@ -75,7 +74,8 @@ export async function buildApp(env: Env) {
 
   await app.register(helmet);
   await app.register(cors, {
-    origin: env.TRUSTED_ORIGINS,
+    // Permintaan tanpa Origin (alat server) lolos; yang membawa Origin harus asal yang dipercaya.
+    origin: (origin, done) => done(null, !origin || originMatcherFor(env)(origin)),
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
     allowedHeaders: ['content-type', 'x-school-id'],
@@ -152,7 +152,7 @@ export async function buildApp(env: Env) {
     async () => ({ baseDomain: env.APP_DOMAIN }),
   );
 
-  await registerAuthRoutes(app);
+  await registerAuthRoutes(app, originMatcherFor(env));
   await app.register(meRoutes);
   await app.register(academicYearRoutes);
   await app.register(billingRoutes, { env });

@@ -31,7 +31,10 @@
     "active": "active",
     "noSchoolTitle": "Your account is not a member of any school yet.",
     "noSchoolBody": "Ask your school or foundation admin to invite you.",
-    "loadError": "Your account data could not be loaded. Check your connection and try again."
+    "loadError": "Your account data could not be loaded. Check your connection and try again.",
+    "notMemberTitle": "You are not a member of this school.",
+    "notMemberBody": "Sign in with an account registered at this school, or ask the school admin to invite you.",
+    "goMain": "Go to the main page"
   },
   "roles": {
     "school_admin": "School admin",
@@ -224,5 +227,10 @@
     "notFound": "Registration not found.",
     "signInNeeded": "Sign in with the account you registered with to see the status.",
     "signIn": "Sign in"
+  },
+  "handoff": {
+    "working": "Taking you to your school…",
+    "failed": "The sign-in link is invalid or has expired.",
+    "signInAgain": "Sign in again"
   }
 }

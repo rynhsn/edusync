@@ -24,6 +24,7 @@ import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import { errorKey } from '@/lib/errors';
 import { checkPasswords } from '@/lib/password';
+import { useConfig } from '@/lib/site';
 import { cn } from '@/lib/utils';
 import { SlugField, type SlugStatus } from './slug-field';
 
@@ -66,11 +67,7 @@ export function RegisterForm() {
     queryFn: async () => unwrap(await api.GET('/v1/catalog')),
   });
 
-  const config = useQuery({
-    queryKey: ['config'],
-    queryFn: async () => unwrap(await api.GET('/v1/config')),
-    staleTime: Number.POSITIVE_INFINITY,
-  });
+  const config = useConfig();
 
   // 401 berarti belum masuk, bukan kesalahan: form akan membuatkan akun.
   const me = useQuery({

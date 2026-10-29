@@ -5,7 +5,7 @@ import { CalendarDays, ChevronsUpDown, LayoutDashboard, LogOut } from 'lucide-re
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -24,6 +24,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
+import { goToSchool, useSite } from '@/lib/site';
 import { cn } from '@/lib/utils';
 
 interface Membership {
@@ -59,37 +60,17 @@ const NAV = [
   },
 ] as const;
 
-/** Akun tanpa sekolah: bila ia staf platform, arahkan ke konsol; selain itu jelaskan cara diundang. */
-function NoSchool(props: { title: string; body: string; signOutLabel: string; onSignOut: () => void }) {
-  const router = useRouter();
-  const staff = useQuery({
-    queryKey: ['platform-me'],
-    queryFn: async () => unwrap(await api.GET('/v1/platform/me')),
-  });
-  useEffect(() => {
-    if (staff.data) router.replace('/platform');
-  }, [staff.data, router]);
-
-  if (staff.isPending || staff.data) {
-    return (
-      <div className="flex flex-1 items-center justify-center p-8">
-        <Skeleton className="h-8 w-48" />
-      </div>
-    );
-  }
+function Centered({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-      <p className="font-medium">{props.title}</p>
-      <p className="text-muted-foreground text-sm">{props.body}</p>
-      <Button variant="outline" onClick={props.onSignOut}>
-        {props.signOutLabel}
-      </Button>
-    </div>
+    <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">{children}</div>
   );
 }
 
-const STORAGE_KEY = 'edusync.activeSchool';
-
+/**
+ * Kerangka sekolah. Sekolah yang aktif ditentukan oleh alamat (<alamat>.domain), bukan oleh pilihan di layar:
+ * satu alamat = satu sekolah. Di alamat utama halaman ini tidak ada artinya, jadi pengguna dikembalikan ke
+ * gerbang, yang memindahkannya ke alamat sekolahnya.
+ */
 export function AppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations('nav');
   const tc = useTranslations('common');
@@ -97,7 +78,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const site = useSite();
 
   // Sumber kebenaran sesi adalah API: 401 dari /v1/me berarti belum masuk.
   const me = useQuery({
@@ -105,33 +86,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     queryFn: async () => unwrap(await api.GET('/v1/me')),
   });
   const unauthenticated = me.error instanceof ApiError && me.error.status === 401;
+  const onMainHost = site.ready && site.kind === 'main';
 
   useEffect(() => {
     if (unauthenticated) router.replace('/login');
   }, [unauthenticated, router]);
 
   useEffect(() => {
-    try {
-      setActiveId(localStorage.getItem(STORAGE_KEY));
-    } catch {
-      // Penyimpanan bisa diblokir; pilihan sekolah tetap berjalan untuk sesi ini.
-    }
-  }, []);
-
-  const memberships = me.data?.memberships ?? [];
-  const school = useMemo(
-    () => memberships.find((m) => m.schoolId === activeId) ?? memberships[0],
-    [memberships, activeId],
-  );
-
-  function choose(id: string) {
-    setActiveId(id);
-    try {
-      localStorage.setItem(STORAGE_KEY, id);
-    } catch {
-      // Tidak masalah bila gagal disimpan.
-    }
-  }
+    if (onMainHost) router.replace('/');
+  }, [onMainHost, router]);
 
   async function signOut() {
     await authClient.signOut();
@@ -141,31 +104,42 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const roleLabel = (key: string) => (tr.has(key as never) ? tr(key as never) : key);
 
-  if (me.isPending || unauthenticated) {
+  if (!site.ready || me.isPending || unauthenticated || onMainHost) {
     return (
-      <div className="flex flex-1 items-center justify-center p-8">
+      <Centered>
         <Skeleton className="h-8 w-48" />
-      </div>
+      </Centered>
     );
   }
 
   if (me.isError) {
     return (
-      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+      <Centered>
         <p>{t('loadError')}</p>
         <Button onClick={() => me.refetch()}>{tc('retry')}</Button>
-      </div>
+      </Centered>
     );
   }
 
+  const slug = site.kind === 'school' ? site.slug : '';
+  const memberships = me.data.memberships;
+  const school = memberships.find((m) => m.schoolSlug === slug);
+
+  // Sekolah yang tidak ada dan sekolah yang bukan milik pengguna dijawab sama, agar alamat tidak bisa ditebak.
   if (!school) {
     return (
-      <NoSchool
-        title={t('noSchoolTitle')}
-        body={t('noSchoolBody')}
-        signOutLabel={tc('signOut')}
-        onSignOut={signOut}
-      />
+      <Centered>
+        <p className="font-medium">{t('notMemberTitle')}</p>
+        <p className="text-muted-foreground max-w-sm text-sm">{t('notMemberBody')}</p>
+        <div className="flex flex-wrap justify-center gap-2">
+          <Button variant="outline" onClick={signOut}>
+            {tc('signOut')}
+          </Button>
+          <Button nativeButton={false} render={<a href={site.urlFor(null, '/')} />}>
+            {t('goMain')}
+          </Button>
+        </div>
+      </Centered>
     );
   }
 
@@ -198,7 +172,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 <DropdownMenuGroup>
                   <DropdownMenuLabel>{t('switchSchool')}</DropdownMenuLabel>
                   {memberships.map((m) => (
-                    <DropdownMenuItem key={m.schoolId} onClick={() => choose(m.schoolId)}>
+                    <DropdownMenuItem
+                      key={m.schoolId}
+                      // Pindah sekolah = pindah alamat. Sekolah yang sedang dibuka tidak perlu berpindah.
+                      onClick={() => m.schoolSlug !== slug && goToSchool(site, m.schoolSlug)}
+                    >
                       <span className="flex-1 truncate">{m.schoolName}</span>
                       {m.schoolId === school.schoolId && <Badge variant="secondary">{t('active')}</Badge>}
                     </DropdownMenuItem>

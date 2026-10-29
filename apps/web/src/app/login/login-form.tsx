@@ -35,7 +35,7 @@ export function LoginForm() {
       }
       // Buang data akun lama agar shell memuat ulang untuk pengguna yang baru masuk.
       queryClient.clear();
-      router.replace('/dashboard');
+      router.replace('/');
     } catch {
       setError('unreachable');
     } finally {
