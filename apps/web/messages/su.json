@@ -246,7 +246,12 @@
     "auditEmpty": "Can aya catetan.",
     "time": "Waktu",
     "action": "Aksi",
-    "detail": "Rincian"
+    "detail": "Rincian",
+    "groupOps": "Operasional",
+    "groupConfig": "Konfigurasi",
+    "groupWatch": "Pangawasan",
+    "catalog": "Paket jeung harga",
+    "payments": "Pamayaran"
   },
   "registerStatus": {
     "title": "Status pamayaran",

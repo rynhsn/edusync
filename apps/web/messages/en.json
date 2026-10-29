@@ -246,7 +246,12 @@
     "auditEmpty": "No entries yet.",
     "time": "Time",
     "action": "Action",
-    "detail": "Details"
+    "detail": "Details",
+    "groupOps": "Operations",
+    "groupConfig": "Configuration",
+    "groupWatch": "Oversight",
+    "catalog": "Plans and pricing",
+    "payments": "Payments"
   },
   "registerStatus": {
     "title": "Payment status",

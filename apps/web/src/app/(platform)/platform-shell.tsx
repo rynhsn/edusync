@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { LogOut } from 'lucide-react';
+import { Building2, ClipboardList, CreditCard, History, LogOut, Package } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -24,10 +24,26 @@ export function useStaff() {
   return ctx;
 }
 
-const TABS = [
-  { href: '/platform', key: 'foundations' },
-  { href: '/platform/pending', key: 'pending' },
-  { href: '/platform/audit', key: 'audit' },
+/** Menu konsol dikelompokkan menurut fungsinya. */
+const GROUPS = [
+  {
+    key: 'groupOps',
+    items: [
+      { href: '/platform', key: 'foundations', icon: Building2 },
+      { href: '/platform/pending', key: 'pending', icon: ClipboardList },
+    ],
+  },
+  {
+    key: 'groupConfig',
+    items: [
+      { href: '/platform/catalog', key: 'catalog', icon: Package },
+      { href: '/platform/payments', key: 'payments', icon: CreditCard },
+    ],
+  },
+  {
+    key: 'groupWatch',
+    items: [{ href: '/platform/audit', key: 'audit', icon: History }],
+  },
 ] as const;
 
 export function PlatformShell({ children }: { children: React.ReactNode }) {
@@ -75,43 +91,59 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
 
   return (
     <StaffContext.Provider value={{ role: me.data.role }}>
-      <div className="flex flex-1 flex-col">
-        <header className="flex flex-wrap items-center justify-between gap-3 border-b p-3 md:px-6">
-          <div className="flex items-center gap-4">
+      <div className="flex flex-1 flex-col md:flex-row">
+        <aside className="bg-sidebar text-sidebar-foreground border-b md:w-64 md:border-r md:border-b-0">
+          <div className="flex items-center justify-between gap-2 p-3 md:flex-col md:items-start md:gap-3 md:p-4">
             <Logo />
             <span className="bg-amber text-amber-foreground rounded-md px-2 py-0.5 text-xs font-medium">
               {t('title')}
             </span>
           </div>
-          <div className="flex items-center gap-1">
+          <nav
+            className="flex gap-1 overflow-x-auto px-3 pb-3 [scrollbar-width:none] md:flex-col md:gap-0.5 md:overflow-visible md:px-4 [&::-webkit-scrollbar]:hidden"
+            aria-label={t('title')}
+          >
+            {GROUPS.map((group) => (
+              <div key={group.key} className="contents md:mt-3 md:grid md:gap-0.5 md:first:mt-0">
+                <p className="text-muted-foreground hidden px-3 pt-1 pb-1 text-xs font-medium tracking-wide uppercase md:block">
+                  {t(group.key)}
+                </p>
+                {group.items.map((item) => {
+                  const active =
+                    pathname === item.href ||
+                    (item.href !== '/platform' && pathname.startsWith(`${item.href}/`));
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      aria-current={active ? 'page' : undefined}
+                      className={cn(
+                        'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors',
+                        active
+                          ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                          : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
+                      )}
+                    >
+                      <item.icon className={cn('size-4', active && 'text-primary')} />
+                      {t(item.key)}
+                    </Link>
+                  );
+                })}
+              </div>
+            ))}
+          </nav>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <header className="flex items-center justify-end gap-1 border-b p-3">
             <LanguageSwitcher />
             <ThemeToggle />
             <Button variant="ghost" size="sm" onClick={signOut}>
               <LogOut className="size-4" /> {tc('signOut')}
             </Button>
-          </div>
-        </header>
-        <nav className="flex gap-1 overflow-x-auto border-b px-3 md:px-6" aria-label={t('title')}>
-          {TABS.map((tab) => {
-            const active = pathname === tab.href;
-            return (
-              <Link
-                key={tab.href}
-                href={tab.href}
-                aria-current={active ? 'page' : undefined}
-                className={cn(
-                  '-mb-px border-b-2 px-3 py-3 text-sm whitespace-nowrap transition-colors',
-                  active
-                    ? 'border-primary text-foreground font-medium'
-                    : 'text-muted-foreground hover:text-foreground border-transparent',
-                )}
-              >
-                {t(tab.key)}
-              </Link>
-            );
-          })}
-        </nav>
-        <main className="mx-auto w-full max-w-6xl flex-1 p-4 md:p-8">{children}</main>
+          </header>
+          <main className="w-full flex-1 p-4 md:p-8">{children}</main>
+        </div>
       </div>
     </StaffContext.Provider>
   );

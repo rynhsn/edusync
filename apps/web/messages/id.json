@@ -246,7 +246,12 @@
     "auditEmpty": "Belum ada catatan.",
     "time": "Waktu",
     "action": "Aksi",
-    "detail": "Rincian"
+    "detail": "Rincian",
+    "groupOps": "Operasional",
+    "groupConfig": "Konfigurasi",
+    "groupWatch": "Pengawasan",
+    "catalog": "Paket dan harga",
+    "payments": "Pembayaran"
   },
   "registerStatus": {
     "title": "Status pembayaran",
