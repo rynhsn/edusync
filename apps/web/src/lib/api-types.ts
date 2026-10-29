@@ -5087,6 +5087,114 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/teachers/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Impor guru (pratinjau atau simpan)
+         * @description Izin: `teacher:manage`. Maksimal 1000 baris. `dryRun: true` hanya memeriksa. Tanpa `dryRun`, guru disimpan hanya bila semua baris valid. NIP harus unik di file dan di sekolah; status kosong berarti aktif.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        dryRun: boolean;
+                        rows: {
+                            row: number;
+                            /** @default  */
+                            name?: string;
+                            /** @default  */
+                            nip?: string;
+                            /** @default  */
+                            status?: string;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            total: number;
+                            valid: number;
+                            imported: number;
+                            errors: {
+                                row: number;
+                                field: string | null;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/invitations": {
         parameters: {
             query?: never;

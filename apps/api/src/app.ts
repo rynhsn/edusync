@@ -33,6 +33,7 @@ import { peopleRoutes } from './routes/people';
 import { platformRoutes } from './routes/platform';
 import { roleRoutes } from './routes/roles';
 import { studentImportRoutes } from './routes/student-import';
+import { teacherImportRoutes } from './routes/teacher-import';
 
 export const paymentConfig = (env: Env): PaymentConfig => ({
   provider: env.PAYMENT_PROVIDER,
@@ -170,6 +171,7 @@ export async function buildApp(env: Env) {
   await app.register(academicStructureRoutes);
   await app.register(peopleRoutes);
   await app.register(studentImportRoutes);
+  await app.register(teacherImportRoutes);
   await app.register(invitationRoutes, { env });
 
   return app;

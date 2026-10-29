@@ -507,3 +507,53 @@ describe('impor siswa', () => {
     expect(res.json()).toMatchObject({ imported: 1, errors: [] });
   });
 });
+
+describe('impor guru', () => {
+  const importRows = (cookie: string, rows: object[], dryRun: boolean, sid = schoolId) =>
+    call('POST', '/v1/teachers/import', cookie, { dryRun, rows }, sid);
+  const r = (row: number, over: Record<string, string> = {}) => ({
+    row,
+    name: `Guru ${row}`,
+    nip: `77${row}`,
+    status: '',
+    ...over,
+  });
+
+  it('izin, pratinjau berisi kesalahan per baris, dan tidak ada yang tersimpan bila ada yang cacat', async () => {
+    expect((await importRows(teacherCookie, [r(2)], true)).statusCode).toBe(403);
+    await call('POST', '/v1/teachers', opCookie, { name: 'Sudah Ada', nip: '7700' });
+    const rows = [
+      r(2),
+      r(3, { name: '' }),
+      r(4, { nip: '7700' }),
+      r(5, { nip: '772' }),
+      r(6, { status: 'cuti' }),
+      r(7, { nip: 'a b' }),
+    ];
+    const res = await importRows(opCookie, rows, true);
+    const body = res.json();
+    expect(body).toMatchObject({ total: 6, valid: 1, imported: 0 });
+    const field = (n: number) => body.errors.find((e: { row: number }) => e.row === n)?.field;
+    expect([field(3), field(4), field(5), field(6), field(7)]).toEqual([
+      'name',
+      'nip',
+      'nip',
+      'status',
+      'nip',
+    ]);
+    expect((await importRows(opCookie, rows, false)).json().imported).toBe(0);
+    expect((await call('GET', '/v1/teachers?q=Guru', opCookie)).json()).toHaveLength(0);
+  });
+
+  it('menyimpan semua guru valid dan menolak impor ulang', async () => {
+    const rows = [r(2), r(3, { status: 'Nonaktif' }), r(4, { nip: '' })];
+    const res = await importRows(opCookie, rows, false);
+    expect(res.json()).toMatchObject({ total: 3, valid: 3, imported: 3, errors: [] });
+    const list = (await call('GET', '/v1/teachers?q=Guru', opCookie)).json();
+    expect(list).toHaveLength(3);
+    expect(list.find((t: { nip: string }) => t.nip === '773').status).toBe('inactive');
+    expect((await importRows(opCookie, rows, false)).json().imported).toBe(0);
+    // Sekolah lain boleh memakai NIP yang sama.
+    expect((await importRows(otherCookie, [r(2)], false, otherSchoolId)).json().imported).toBe(1);
+  });
+});

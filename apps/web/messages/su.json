@@ -442,7 +442,8 @@
     "status": "Status",
     "active": "Aktip",
     "inactive": "Teu aktip",
-    "searchPlaceholder": "Ngaran atawa NIP"
+    "searchPlaceholder": "Ngaran atawa NIP",
+    "importLink": "Impor Excel"
   },
   "studentImport": {
     "title": "Impor murid ti Excel",
@@ -478,6 +479,39 @@
       "gender": "Jenis Kelamin",
       "birthDate": "Tanggal Lahir",
       "className": "Kelas"
+    }
+  },
+  "teacherImport": {
+    "title": "Impor guru ti Excel",
+    "subtitle": "Unggah berkas .xlsx. Data dipariksa heula; teu aya nu disimpen samemeh sakabéh baris valid.",
+    "step1": "1. Unduh citakan",
+    "step1Hint": "Eusian ti baris 2 tanpa ngarobah judul kolom. Pituduh aya di lambar kadua.",
+    "download": "Unduh citakan",
+    "step2": "2. Pilih berkas",
+    "step2Hint": "Ngan .xlsx. Pangpangna 1000 baris.",
+    "file": "Berkas Excel",
+    "checking": "Mariksa…",
+    "readError": "Berkas teu bisa dibaca. Pastikeun formatna .xlsx.",
+    "noSheet": "Berkas teu gaduh lambar gawé.",
+    "missingColumns": "Kolom wajib teu kapanggih: {columns}.",
+    "tooMany": "Berkas eusina leuwih ti 1000 baris. Pamérés jadi sababaraha berkas.",
+    "noRows": "Teu aya baris data. Eusian ti baris 2.",
+    "summary": "{valid} ti {total} baris siap diimpor.",
+    "allValid": "Sakabéh baris valid.",
+    "hasErrors": "{count} kasalahan. Bérés-bérés di Excel terus unggah deui; teu aya nu disimpen.",
+    "showing": "Nuduhkeun {shown} ti {count} kasalahan.",
+    "row": "Baris",
+    "field": "Kolom",
+    "message": "Masalah",
+    "import": "Impor {count} guru",
+    "importing": "Nyimpen…",
+    "done": "{count} guru hasil diimpor.",
+    "toList": "Tingali daptar guru",
+    "another": "Impor berkas séjén",
+    "fields": {
+      "name": "Ngaran",
+      "nip": "NIP",
+      "status": "Status"
     }
   }
 }

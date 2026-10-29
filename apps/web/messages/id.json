@@ -442,7 +442,8 @@
     "status": "Status",
     "active": "Aktif",
     "inactive": "Nonaktif",
-    "searchPlaceholder": "Nama atau NIP"
+    "searchPlaceholder": "Nama atau NIP",
+    "importLink": "Impor Excel"
   },
   "studentImport": {
     "title": "Impor siswa dari Excel",
@@ -478,6 +479,39 @@
       "gender": "Jenis Kelamin",
       "birthDate": "Tanggal Lahir",
       "className": "Kelas"
+    }
+  },
+  "teacherImport": {
+    "title": "Impor guru dari Excel",
+    "subtitle": "Unggah berkas .xlsx. Data diperiksa dulu; tidak ada yang tersimpan sebelum semua baris valid.",
+    "step1": "1. Unduh templat",
+    "step1Hint": "Isi mulai baris 2 tanpa mengubah judul kolom. Petunjuk ada di lembar kedua.",
+    "download": "Unduh templat",
+    "step2": "2. Pilih berkas",
+    "step2Hint": "Hanya .xlsx. Maksimal 1000 baris.",
+    "file": "Berkas Excel",
+    "checking": "Memeriksa…",
+    "readError": "Berkas tidak dapat dibaca. Pastikan formatnya .xlsx.",
+    "noSheet": "Berkas tidak punya lembar kerja.",
+    "missingColumns": "Kolom wajib tidak ditemukan: {columns}.",
+    "tooMany": "Berkas berisi lebih dari 1000 baris. Pecah menjadi beberapa berkas.",
+    "noRows": "Tidak ada baris data. Isi mulai baris 2.",
+    "summary": "{valid} dari {total} baris siap diimpor.",
+    "allValid": "Semua baris valid.",
+    "hasErrors": "{count} kesalahan. Perbaiki di Excel lalu unggah ulang; tidak ada yang disimpan.",
+    "showing": "Menampilkan {shown} dari {count} kesalahan.",
+    "row": "Baris",
+    "field": "Kolom",
+    "message": "Masalah",
+    "import": "Impor {count} guru",
+    "importing": "Menyimpan…",
+    "done": "{count} guru berhasil diimpor.",
+    "toList": "Lihat daftar guru",
+    "another": "Impor berkas lain",
+    "fields": {
+      "name": "Nama",
+      "nip": "NIP",
+      "status": "Status"
     }
   }
 }
