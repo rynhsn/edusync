@@ -3,3 +3,7 @@ packages:
   - packages/*
 allowBuilds:
   esbuild: true
+  "@swc/core": false
+  "@parcel/watcher": false
+  sharp: false
+  unrs-resolver: false

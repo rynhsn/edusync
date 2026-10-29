@@ -1,0 +1,91 @@
+{
+  "common": {
+    "appName": "EduSync",
+    "retry": "Try again",
+    "signOut": "Sign out"
+  },
+  "auth": {
+    "title": "Sign in to EduSync",
+    "subtitle": "Use the account registered with your school or foundation.",
+    "email": "Email",
+    "password": "Password",
+    "submit": "Sign in",
+    "submitting": "Checking…",
+    "invalid": "Incorrect email or password.",
+    "unreachable": "Cannot reach the server. Check your connection and try again.",
+    "heroTitle": "One place for every school unit",
+    "heroBody": "Attendance, grades, and administration are managed together, while each school's data stays separate.",
+    "point1": "One account for many schools",
+    "point2": "Permissions follow each person's roles",
+    "point3": "Each school's data is isolated"
+  },
+  "nav": {
+    "menu": "Main menu",
+    "overview": "Overview",
+    "academicYears": "Academic years",
+    "switchSchool": "Switch school",
+    "active": "active",
+    "noSchoolTitle": "Your account is not a member of any school yet.",
+    "noSchoolBody": "Ask your school or foundation admin to invite you.",
+    "loadError": "Your account data could not be loaded. Check your connection and try again."
+  },
+  "roles": {
+    "school_admin": "School admin",
+    "principal": "Principal",
+    "curriculum": "Curriculum",
+    "treasurer": "Treasurer",
+    "operator": "Operator",
+    "teacher": "Teacher",
+    "none": "No role"
+  },
+  "permissions": {
+    "member_read": "View members",
+    "member_manage": "Manage members",
+    "role_manage": "Manage roles",
+    "academic_year_read": "View academic years",
+    "academic_year_manage": "Manage academic years",
+    "audit_read": "View audit log"
+  },
+  "dashboard": {
+    "greeting": "Hello, {name}",
+    "subtitle": "The overview will fill in as modules are added.",
+    "accessTitle": "Your access at this school",
+    "accessDescription": "Combined permissions from all the roles you hold.",
+    "noPermissions": "No permissions yet."
+  },
+  "academicYears": {
+    "title": "Academic years",
+    "list": "List",
+    "empty": "No academic years yet.",
+    "emptyManage": "Create the first one next to this list.",
+    "emptyReadonly": "Ask an admin or operator to create it.",
+    "createTitle": "Create academic year",
+    "createDescription": "The name must be unique within this school.",
+    "name": "Name",
+    "startsOn": "Starts",
+    "endsOn": "Ends",
+    "save": "Save",
+    "saving": "Saving…",
+    "created": "Academic year {name} created."
+  },
+  "errors": {
+    "unauthorized": "Please sign in first.",
+    "forbidden": "You do not have permission to do this.",
+    "school_required": "Choose a school first.",
+    "school_suspended": "This school is currently suspended.",
+    "validation": "The data you sent is not valid.",
+    "conflict": "An entry with that name already exists.",
+    "request_error": "The request could not be processed.",
+    "internal": "Something went wrong on the server.",
+    "unknown": "The request could not be processed."
+  },
+  "theme": {
+    "label": "Theme",
+    "light": "Light",
+    "dark": "Dark",
+    "system": "System"
+  },
+  "language": {
+    "label": "Language"
+  }
+}

@@ -1,0 +1,91 @@
+{
+  "common": {
+    "appName": "EduSync",
+    "retry": "Cobian deui",
+    "signOut": "Kaluar"
+  },
+  "auth": {
+    "title": "Lebet ka EduSync",
+    "subtitle": "Paké akun nu kadaptar di sakola atawa yayasan Anjeun.",
+    "email": "Email",
+    "password": "Kecap akses",
+    "submit": "Lebet",
+    "submitting": "Keur marios…",
+    "invalid": "Email atawa kecap akses salah.",
+    "unreachable": "Server teu bisa dihubungan. Parios sambungan, teras cobian deui.",
+    "heroTitle": "Hiji tempat pikeun sakumna unit sakola",
+    "heroBody": "Absénsi, nilai, jeung administrasi dikokolakeun babarengan, tapi data unggal sakola tetep papisah.",
+    "point1": "Hiji akun pikeun loba sakola",
+    "point2": "Idin nuturkeun peran unggal jalma",
+    "point3": "Data unggal sakola kajaga papisah"
+  },
+  "nav": {
+    "menu": "Menu utama",
+    "overview": "Ringkesan",
+    "academicYears": "Taun pangajaran",
+    "switchSchool": "Pindah sakola",
+    "active": "aktif",
+    "noSchoolTitle": "Akun Anjeun can kadaptar di sakola mana waé.",
+    "noSchoolBody": "Hubungi admin sakola atawa yayasan Anjeun pikeun diondang.",
+    "loadError": "Data akun teu bisa dimuat. Parios sambungan, teras cobian deui."
+  },
+  "roles": {
+    "school_admin": "Admin sakola",
+    "principal": "Kepala sakola",
+    "curriculum": "Kurikulum",
+    "treasurer": "Bendahara",
+    "operator": "Operator",
+    "teacher": "Guru",
+    "none": "Tanpa peran"
+  },
+  "permissions": {
+    "member_read": "Ningali anggota",
+    "member_manage": "Ngokolakeun anggota",
+    "role_manage": "Ngokolakeun peran",
+    "academic_year_read": "Ningali taun pangajaran",
+    "academic_year_manage": "Ngokolakeun taun pangajaran",
+    "audit_read": "Ningali log audit"
+  },
+  "dashboard": {
+    "greeting": "Wilujeng sumping, {name}",
+    "subtitle": "Ringkesan bakal pinuh saluyu jeung modul nu ditambahkeun.",
+    "accessTitle": "Aksés Anjeun di sakola ieu",
+    "accessDescription": "Gabungan idin tina sakabéh peran nu dicepeng.",
+    "noPermissions": "Can aya idin."
+  },
+  "academicYears": {
+    "title": "Taun pangajaran",
+    "list": "Daptar",
+    "empty": "Can aya taun pangajaran.",
+    "emptyManage": "Jieun nu kahiji di gigireun.",
+    "emptyReadonly": "Pénta admin atawa operator pikeun nyieunna.",
+    "createTitle": "Jieun taun pangajaran",
+    "createDescription": "Ngaran kudu unik di sakola ieu.",
+    "name": "Ngaran",
+    "startsOn": "Mimiti",
+    "endsOn": "Réngsé",
+    "save": "Simpen",
+    "saving": "Nyimpen…",
+    "created": "Taun pangajaran {name} geus dijieun."
+  },
+  "errors": {
+    "unauthorized": "Mangga lebet heula.",
+    "forbidden": "Anjeun teu gaduh idin pikeun tindakan ieu.",
+    "school_required": "Pilih sakola heula.",
+    "school_suspended": "Sakola ieu keur ditangguhkeun.",
+    "validation": "Data nu dikirim teu valid.",
+    "conflict": "Data kalayan ngaran éta geus aya.",
+    "request_error": "Paménta teu bisa diprosés.",
+    "internal": "Aya kasalahan dina server.",
+    "unknown": "Paménta teu bisa diprosés."
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Caang",
+    "dark": "Poék",
+    "system": "Sistem"
+  },
+  "language": {
+    "label": "Basa"
+  }
+}

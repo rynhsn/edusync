@@ -1,0 +1,91 @@
+{
+  "common": {
+    "appName": "EduSync",
+    "retry": "Coba lagi",
+    "signOut": "Keluar"
+  },
+  "auth": {
+    "title": "Masuk ke EduSync",
+    "subtitle": "Gunakan akun yang terdaftar di sekolah atau yayasan Anda.",
+    "email": "Email",
+    "password": "Kata sandi",
+    "submit": "Masuk",
+    "submitting": "Memeriksa…",
+    "invalid": "Email atau kata sandi salah.",
+    "unreachable": "Server tidak dapat dihubungi. Periksa koneksi lalu coba lagi.",
+    "heroTitle": "Satu tempat untuk seluruh unit sekolah",
+    "heroBody": "Absensi, nilai, dan administrasi dikelola bersama, sementara data tiap sekolah tetap terpisah.",
+    "point1": "Satu akun untuk banyak sekolah",
+    "point2": "Izin mengikuti peran setiap orang",
+    "point3": "Data tiap sekolah terisolasi"
+  },
+  "nav": {
+    "menu": "Menu utama",
+    "overview": "Ringkasan",
+    "academicYears": "Tahun ajaran",
+    "switchSchool": "Pindah sekolah",
+    "active": "aktif",
+    "noSchoolTitle": "Akun Anda belum terdaftar di sekolah mana pun.",
+    "noSchoolBody": "Hubungi admin sekolah atau yayasan Anda untuk diundang.",
+    "loadError": "Data akun tidak dapat dimuat. Periksa koneksi lalu coba lagi."
+  },
+  "roles": {
+    "school_admin": "Admin sekolah",
+    "principal": "Kepala sekolah",
+    "curriculum": "Kurikulum",
+    "treasurer": "Bendahara",
+    "operator": "Operator",
+    "teacher": "Guru",
+    "none": "Tanpa peran"
+  },
+  "permissions": {
+    "member_read": "Melihat anggota",
+    "member_manage": "Mengelola anggota",
+    "role_manage": "Mengelola peran",
+    "academic_year_read": "Melihat tahun ajaran",
+    "academic_year_manage": "Mengelola tahun ajaran",
+    "audit_read": "Melihat log audit"
+  },
+  "dashboard": {
+    "greeting": "Halo, {name}",
+    "subtitle": "Ringkasan akan terisi seiring modul ditambahkan.",
+    "accessTitle": "Akses Anda di sekolah ini",
+    "accessDescription": "Gabungan izin dari semua peran yang Anda pegang.",
+    "noPermissions": "Belum ada izin."
+  },
+  "academicYears": {
+    "title": "Tahun ajaran",
+    "list": "Daftar",
+    "empty": "Belum ada tahun ajaran.",
+    "emptyManage": "Buat yang pertama di sebelah.",
+    "emptyReadonly": "Minta admin atau operator membuatnya.",
+    "createTitle": "Buat tahun ajaran",
+    "createDescription": "Nama harus unik di sekolah ini.",
+    "name": "Nama",
+    "startsOn": "Mulai",
+    "endsOn": "Selesai",
+    "save": "Simpan",
+    "saving": "Menyimpan…",
+    "created": "Tahun ajaran {name} dibuat."
+  },
+  "errors": {
+    "unauthorized": "Silakan masuk terlebih dahulu.",
+    "forbidden": "Anda tidak punya izin untuk tindakan ini.",
+    "school_required": "Pilih sekolah terlebih dahulu.",
+    "school_suspended": "Sekolah ini sedang ditangguhkan.",
+    "validation": "Data yang dikirim tidak valid.",
+    "conflict": "Data dengan nama itu sudah ada.",
+    "request_error": "Permintaan tidak dapat diproses.",
+    "internal": "Terjadi kesalahan pada server.",
+    "unknown": "Permintaan tidak dapat diproses."
+  },
+  "theme": {
+    "label": "Tema",
+    "light": "Terang",
+    "dark": "Gelap",
+    "system": "Ikuti sistem"
+  },
+  "language": {
+    "label": "Bahasa"
+  }
+}

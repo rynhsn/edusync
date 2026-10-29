@@ -4,7 +4,11 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarDays, ChevronsUpDown, LayoutDashboard, LogOut } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { Logo } from '@/components/logo';
+import { ThemeToggle } from '@/components/theme-toggle';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -32,6 +36,7 @@ interface Membership {
 
 interface SchoolContextValue {
   school: Membership;
+  userName: string;
   can: (permission: string) => boolean;
 }
 
@@ -43,24 +48,23 @@ export function useSchool() {
   return ctx;
 }
 
-const ROLE_LABEL: Record<string, string> = {
-  school_admin: 'Admin sekolah',
-  principal: 'Kepala sekolah',
-  curriculum: 'Kurikulum',
-  treasurer: 'Bendahara',
-  operator: 'Operator',
-  teacher: 'Guru',
-};
-
 /** Menu diturunkan dari izin. Menambah modul berarti menambah satu baris di sini. */
 const NAV = [
-  { href: '/dashboard', label: 'Ringkasan', icon: LayoutDashboard, permission: null },
-  { href: '/academic-years', label: 'Tahun ajaran', icon: CalendarDays, permission: 'academic_year:read' },
+  { href: '/dashboard', labelKey: 'overview', icon: LayoutDashboard, permission: null },
+  {
+    href: '/academic-years',
+    labelKey: 'academicYears',
+    icon: CalendarDays,
+    permission: 'academic_year:read',
+  },
 ] as const;
 
 const STORAGE_KEY = 'edusync.activeSchool';
 
 export function AppShell({ children }: { children: React.ReactNode }) {
+  const t = useTranslations('nav');
+  const tc = useTranslations('common');
+  const tr = useTranslations('roles');
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -106,6 +110,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     router.replace('/login');
   }
 
+  const roleLabel = (key: string) => (tr.has(key as never) ? tr(key as never) : key);
+
   if (me.isPending || unauthenticated) {
     return (
       <div className="flex flex-1 items-center justify-center p-8">
@@ -117,8 +123,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (me.isError) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-        <p>Data akun tidak dapat dimuat. Periksa koneksi lalu coba lagi.</p>
-        <Button onClick={() => me.refetch()}>Coba lagi</Button>
+        <p>{t('loadError')}</p>
+        <Button onClick={() => me.refetch()}>{tc('retry')}</Button>
       </div>
     );
   }
@@ -126,48 +132,47 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   if (!school) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
-        <p className="font-medium">Akun Anda belum terdaftar di sekolah mana pun.</p>
-        <p className="text-muted-foreground text-sm">
-          Hubungi admin sekolah atau yayasan Anda untuk diundang.
-        </p>
+        <p className="font-medium">{t('noSchoolTitle')}</p>
+        <p className="text-muted-foreground text-sm">{t('noSchoolBody')}</p>
         <Button variant="outline" onClick={signOut}>
-          Keluar
+          {tc('signOut')}
         </Button>
       </div>
     );
   }
 
   const permissions = new Set(school.permissions);
-  const value: SchoolContextValue = { school, can: (p) => permissions.has(p) };
   const user = me.data.user;
+  const value: SchoolContextValue = { school, userName: user.name, can: (p) => permissions.has(p) };
   const initials = user.name.slice(0, 2).toUpperCase();
+  const roles = school.roles.map(roleLabel).join(', ') || tr('none');
 
   return (
     <SchoolContext.Provider value={value}>
       <div className="flex flex-1 flex-col md:flex-row">
         <aside className="bg-sidebar text-sidebar-foreground border-b md:w-64 md:border-r md:border-b-0">
-          <div className="flex items-center justify-between gap-2 p-3 md:flex-col md:items-stretch md:gap-4 md:p-4">
-            <div className="font-heading text-lg font-semibold tracking-tight">EduSync</div>
+          <div className="flex items-center justify-between gap-2 p-3 md:flex-col md:items-stretch md:gap-5 md:p-4">
+            <Logo />
 
             <DropdownMenu>
               <DropdownMenuTrigger
-                render={<Button variant="outline" className="h-auto justify-between py-2 md:w-full" />}
+                render={
+                  <Button variant="outline" className="bg-card h-auto justify-between py-2 md:w-full" />
+                }
               >
                 <span className="truncate text-left">
                   <span className="block truncate text-sm font-medium">{school.schoolName}</span>
-                  <span className="text-muted-foreground block truncate text-xs">
-                    {school.roles.map((r) => ROLE_LABEL[r] ?? r).join(', ') || 'Tanpa peran'}
-                  </span>
+                  <span className="text-muted-foreground block truncate text-xs">{roles}</span>
                 </span>
                 <ChevronsUpDown className="size-4 shrink-0 opacity-60" />
               </DropdownMenuTrigger>
               <DropdownMenuContent className="min-w-60">
                 <DropdownMenuGroup>
-                  <DropdownMenuLabel>Pindah sekolah</DropdownMenuLabel>
+                  <DropdownMenuLabel>{t('switchSchool')}</DropdownMenuLabel>
                   {memberships.map((m) => (
                     <DropdownMenuItem key={m.schoolId} onClick={() => choose(m.schoolId)}>
                       <span className="flex-1 truncate">{m.schoolName}</span>
-                      {m.schoolId === school.schoolId && <Badge variant="secondary">aktif</Badge>}
+                      {m.schoolId === school.schoolId && <Badge variant="secondary">{t('active')}</Badge>}
                     </DropdownMenuItem>
                   ))}
                 </DropdownMenuGroup>
@@ -175,7 +180,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </DropdownMenu>
           </div>
 
-          <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:px-4" aria-label="Menu utama">
+          <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:px-4" aria-label={t('menu')}>
             {NAV.filter((n) => n.permission === null || permissions.has(n.permission)).map((n) => {
               const active = pathname === n.href;
               return (
@@ -184,14 +189,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   href={n.href}
                   aria-current={active ? 'page' : undefined}
                   className={cn(
-                    'flex items-center gap-2 rounded-lg px-3 py-2 text-sm whitespace-nowrap',
+                    'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors',
                     active
                       ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                      : 'text-muted-foreground hover:bg-sidebar-accent/60',
+                      : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
                   )}
                 >
-                  <n.icon className="size-4" />
-                  {n.label}
+                  <n.icon className={cn('size-4', active && 'text-primary')} />
+                  {t(n.labelKey)}
                 </Link>
               );
             })}
@@ -199,7 +204,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center justify-end gap-3 border-b p-3">
+          <header className="flex items-center justify-end gap-1 border-b p-3">
+            <LanguageSwitcher />
+            <ThemeToggle />
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button variant="ghost" className="h-auto gap-2 py-1" />}>
                 <Avatar className="size-7">
@@ -216,12 +223,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={signOut}>
-                  <LogOut className="size-4" /> Keluar
+                  <LogOut className="size-4" /> {tc('signOut')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </header>
-          <main className="flex-1 p-4 md:p-6">{children}</main>
+          <main className="flex-1 p-4 md:p-8">{children}</main>
         </div>
       </div>
     </SchoolContext.Provider>
