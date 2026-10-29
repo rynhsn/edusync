@@ -16,7 +16,7 @@ const schema = z.object({
   SMTP_PORT: z.coerce.number().int().positive().default(1025),
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
-  EMAIL_FROM: z.string().default('EduSync <noreply@edusync.test>'),
+  EMAIL_FROM: z.string().default('Edusync <noreply@edusync.test>'),
 });
 
 export type Env = z.infer<typeof schema>;

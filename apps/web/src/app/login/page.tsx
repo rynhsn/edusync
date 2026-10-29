@@ -31,7 +31,7 @@ export default async function LoginPage() {
             ))}
           </ul>
         </div>
-        <p className="text-primary-foreground/60 text-xs">© EduSync</p>
+        <p className="text-primary-foreground/60 text-xs">© Edusync</p>
       </section>
 
       <section className="flex flex-col">

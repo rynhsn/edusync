@@ -66,7 +66,7 @@ const guru = await ensureUser('guru@edusync.test', 'Guru Contoh');
 await ensureMember(guru, smp.id, ['teacher', 'operator']);
 await ensureMember(guru, smk.id, ['teacher']);
 
-const staff = await ensureUser('staff@edusync.test', 'Staf EduSync');
+const staff = await ensureUser('staff@edusync.test', 'Staf Edusync');
 await db.insert(platformStaff).values({ userId: staff, role: 'admin' }).onConflictDoNothing();
 
 console.log(

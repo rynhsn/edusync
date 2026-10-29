@@ -53,7 +53,7 @@ const serializeSummary = (f: Summary) => ({
     : null,
 });
 
-/** Konsol staf EduSync. Semua endpoint di sini hanya untuk staf platform, bukan anggota sekolah. */
+/** Konsol staf Edusync. Semua endpoint di sini hanya untuk staf platform, bukan anggota sekolah. */
 export async function platformRoutes(instance: FastifyInstance) {
   const app = instance.withTypeProvider<ZodTypeProvider>();
 

@@ -157,15 +157,15 @@ export async function createRenewalInvoices(db: Db, provider: PaymentProvider, n
         orderId: result.orderId,
         amount: result.amount,
         customer: { name: result.owner.name, email: result.owner.email },
-        description: 'Perpanjangan langganan EduSync',
+        description: 'Perpanjangan langganan Edusync',
       });
       await db.transaction(async (tx) => {
         await tx.update(invoice).set({ paymentUrl }).where(eq(invoice.id, result.inv.id));
         await enqueue(tx, QUEUES.emailSend, {
           to: result.owner.email,
-          subject: 'Tagihan perpanjangan EduSync',
+          subject: 'Tagihan perpanjangan Edusync',
           text:
-            `Halo ${result.owner.name},\n\nLangganan EduSync Anda berakhir pada ${result.periodEnd.toISOString().slice(0, 10)}.\n` +
+            `Halo ${result.owner.name},\n\nLangganan Edusync Anda berakhir pada ${result.periodEnd.toISOString().slice(0, 10)}.\n` +
             `Tagihan perpanjangan: Rp ${result.amount.toLocaleString('id-ID')}.\n\nBayar di: ${paymentUrl}\n\n` +
             `Bila terlambat lebih dari ${GRACE_DAYS} hari, akses sekolah akan dihentikan sementara dan dibuka lagi setelah dibayar.`,
         });

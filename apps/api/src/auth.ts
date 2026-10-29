@@ -9,7 +9,7 @@ import type { Env } from './env';
  */
 export function createAuth(env: Env, db: Db) {
   return betterAuth({
-    appName: 'EduSync',
+    appName: 'Edusync',
     baseURL: env.AUTH_URL,
     basePath: '/api/auth',
     secret: env.AUTH_SECRET,

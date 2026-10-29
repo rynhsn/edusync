@@ -1,11 +1,11 @@
 {
   "common": {
-    "appName": "EduSync",
+    "appName": "Edusync",
     "retry": "Try again",
     "signOut": "Sign out"
   },
   "auth": {
-    "title": "Sign in to EduSync",
+    "title": "Sign in to Edusync",
     "subtitle": "Use the account registered with your school or foundation.",
     "email": "Email",
     "password": "Password",

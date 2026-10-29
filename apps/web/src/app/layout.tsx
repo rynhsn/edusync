@@ -10,8 +10,8 @@ const geistMono = Geist_Mono({ variable: '--font-geist-mono', subsets: ['latin']
 const bricolage = Bricolage_Grotesque({ variable: '--font-bricolage', subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: { default: 'EduSync', template: '%s · EduSync' },
-  description: 'EduSync',
+  title: { default: 'Edusync', template: '%s · Edusync' },
+  description: 'Edusync',
 };
 
 export default async function RootLayout({ children }: LayoutProps<'/'>) {

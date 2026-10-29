@@ -24,18 +24,5 @@ services:
       - "8025:8025"
       - "1025:1025"
 
-  minio:
-    image: minio/minio:latest
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: edusync
-      MINIO_ROOT_PASSWORD: edusync_dev_only
-    ports:
-      - "9000:9000"
-      - "9001:9001"
-    volumes:
-      - miniodata:/data
-
 volumes:
   pgdata:
-  miniodata:

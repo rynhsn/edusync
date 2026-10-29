@@ -35,7 +35,18 @@ async function waitFor<T>(fn: () => Promise<T | undefined | false>, ms = 20_000)
 beforeAll(async () => {
   const up = await fetch(`${mailpit}/info`).catch(() => null);
   if (!up?.ok) throw new Error('Mailpit tidak berjalan di localhost:8025 (docker compose up -d mailpit)');
-  worker = await startWorker(loadEnv({ ...process.env, NODE_ENV: 'test', RELAY_INTERVAL_MS: '300' }));
+  // Tes selalu memakai Mailpit lokal, apa pun isi SMTP di .env, agar tidak pernah mengirim email sungguhan.
+  worker = await startWorker(
+    loadEnv({
+      ...process.env,
+      NODE_ENV: 'test',
+      RELAY_INTERVAL_MS: '300',
+      SMTP_HOST: 'localhost',
+      SMTP_PORT: '1025',
+      SMTP_USER: '',
+      SMTP_PASSWORD: '',
+    }),
+  );
 });
 
 afterAll(async () => {
@@ -49,7 +60,7 @@ describe('outbox → pg-boss → email (Mailpit)', () => {
     const subject = `E2E ${run}`;
     const to = `penerima-${run}@example.test`;
     const id = await platform.db.transaction((tx) =>
-      enqueue(tx, QUEUES.emailSend, { to, subject, text: 'Halo dari EduSync' }),
+      enqueue(tx, QUEUES.emailSend, { to, subject, text: 'Halo dari Edusync' }),
     );
 
     const msgs = await waitFor(async () => {

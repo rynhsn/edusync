@@ -309,7 +309,7 @@ describe('siklus langganan', () => {
       .select()
       .from(outbox)
       .where(
-        sql`${outbox.payload}->>'subject' = 'Tagihan perpanjangan EduSync' and ${outbox.payload}->>'to' = ${f.owner.email}`,
+        sql`${outbox.payload}->>'subject' = 'Tagihan perpanjangan Edusync' and ${outbox.payload}->>'to' = ${f.owner.email}`,
       );
     expect(mail).toHaveLength(1);
   });

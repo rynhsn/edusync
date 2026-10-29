@@ -1,4 +1,4 @@
-# EduSync — Blueprint Rebuild dari Nol
+# Edusync — Blueprint Rebuild dari Nol
 
 Status: **DRAFT untuk disetujui** · Tanggal: 2026-10-29
 Sumber kebutuhan bisnis: `Planning/00`–`08` (sistem lama CodeIgniter 4). Dokumen ini menggantikan README lama sebagai arah teknis.
@@ -187,7 +187,7 @@ Tabel `calendar_event(type: holiday|exam|activity|break, start, end, scope: scho
 ### SPP fleksibel
 - `fee_item` (SPP, uang gedung, seragam, kegiatan), `fee_plan` (frekuensi: bulanan/tahunan/sekali/cicilan; berlaku per tingkat, program, kelas, atau siswa), `fee_discount` (beasiswa, saudara kandung), `invoice` siswa, `payment`. Nominal 0 = gratis. Denda keterlambatan opsional.
 - Dua mode pembayaran: **catat manual** (tunai/transfer, unggah bukti, bendahara memverifikasi) dan **online** (VA/QRIS).
-- **Risiko uang:** pembayaran siswa harus masuk ke rekening sekolah, bukan EduSync. Menampung dana pihak lain bisa memerlukan izin penyelenggara pembayaran. Usulan: sekolah menghubungkan akun gateway miliknya sendiri (kunci disimpan terenkripsi), atau memakai mode catat manual. Perlu keputusan.
+- **Risiko uang:** pembayaran siswa harus masuk ke rekening sekolah, bukan Edusync. Menampung dana pihak lain bisa memerlukan izin penyelenggara pembayaran. Usulan: sekolah menghubungkan akun gateway miliknya sendiri (kunci disimpan terenkripsi), atau memakai mode catat manual. Perlu keputusan.
 
 ### Usulan modul tambahan (menunggu persetujuan)
 V1: Dashboard dan laporan, Ekstrakurikuler (sistem lama punya absensi ekskul). V2: Yayasan dan multi-sekolah. V3: Kesehatan siswa (UKS), Alumni, Keuangan sekolah (kas, dana BOS), API dan webhook.
@@ -197,7 +197,7 @@ V1: Dashboard dan laporan, Ekstrakurikuler (sistem lama punya absensi ekskul). V
 **Diputuskan:** SPP dibayar ke sekolah lewat QRIS milik sekolah atau transfer rekening sekolah; opsional dan diatur sekolah. Yayasan dan multi-sekolah masuk **V1** (pilot: Miftahul Huda, unit SMP IT dan SMK). Dashboard dan Ekstrakurikuler masuk V1. Modul V3 (UKS, Alumni, Keuangan sekolah, API dan webhook) tetap direncanakan.
 
 ### SPP tanpa gateway
-EduSync tidak menyentuh uang SPP. Sekolah mengisi gambar QRIS dan/atau data rekening. Wali membayar di luar sistem, mengunggah bukti pada tagihan, bendahara memverifikasi (`payment.status: pending → verified | rejected`). Tidak ada kunci gateway milik sekolah, tidak ada risiko penampungan dana. Integrasi gateway sekolah bisa ditambahkan nanti sebagai opsi.
+Edusync tidak menyentuh uang SPP. Sekolah mengisi gambar QRIS dan/atau data rekening. Wali membayar di luar sistem, mengunggah bukti pada tagihan, bendahara memverifikasi (`payment.status: pending → verified | rejected`). Tidak ada kunci gateway milik sekolah, tidak ada risiko penampungan dana. Integrasi gateway sekolah bisa ditambahkan nanti sebagai opsi.
 
 ### Hierarki yayasan
 - `foundation` 1—N `school` (unit). Sekolah tunggal otomatis punya yayasan tersembunyi, jadi hanya ada satu model.
@@ -237,7 +237,7 @@ SMK: perlu PKL/prakerin dan kompetensi keahlian? SMP IT: perlu tahfidz dan monit
 ## 14. Domain sendiri (2026-10-29)
 
 - **Tabel:** `school_domains(school_id, hostname, kind: platform_subdomain|custom, status: pending|verified|active|failed, verification_token, verified_at, is_primary)`.
-- **Alur:** admin menambah hostname → sistem menampilkan `CNAME` ke alamat EduSync dan `TXT` bukti kepemilikan → pemeriksa DNS berkala (job) → status `verified` → sertifikat HTTPS diterbitkan otomatis (Caddy on-demand TLS; endpoint `ask` hanya mengizinkan hostname yang terdaftar dan terverifikasi) → subdomain bawaan dialihkan 301 ke domain utama.
+- **Alur:** admin menambah hostname → sistem menampilkan `CNAME` ke alamat Edusync dan `TXT` bukti kepemilikan → pemeriksa DNS berkala (job) → status `verified` → sertifikat HTTPS diterbitkan otomatis (Caddy on-demand TLS; endpoint `ask` hanya mengizinkan hostname yang terdaftar dan terverifikasi) → subdomain bawaan dialihkan 301 ke domain utama.
 - **Tahap 1 (M10, V1):** situs publik dan SPMB per unit. Tanpa login di domain luar, jadi cookie, CORS, dan tautan email tidak berubah. Dashboard dan portal tetap di `slug.edusync.id`.
 - **Tahap 2 (V3):** dashboard dan portal wali di domain sekolah (sesi per host, `trustedOrigins` dinamis, tautan email memakai host utama).
 - **Batasan:** apex tanpa `www` memerlukan ALIAS/A record; batas penerbitan sertifikat perlu dipantau; hostname dicegah mengarah ke domain platform lain (anti pembajakan), dan domain dilepas bila langganan berhenti.

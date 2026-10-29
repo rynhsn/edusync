@@ -1,11 +1,11 @@
 {
   "common": {
-    "appName": "EduSync",
+    "appName": "Edusync",
     "retry": "Coba lagi",
     "signOut": "Keluar"
   },
   "auth": {
-    "title": "Masuk ke EduSync",
+    "title": "Masuk ke Edusync",
     "subtitle": "Gunakan akun yang terdaftar di sekolah atau yayasan Anda.",
     "email": "Email",
     "password": "Kata sandi",

@@ -1,9 +1,9 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "EduSync API",
+    "title": "Edusync API",
     "version": "0.0.0",
-    "description": "API platform manajemen sekolah EduSync. Endpoint sekolah memakai cookie sesi dan header `x-school-id`."
+    "description": "API platform manajemen sekolah Edusync. Endpoint sekolah memakai cookie sesi dan header `x-school-id`."
   },
   "components": {
     "schemas": {}
@@ -2887,7 +2887,7 @@
     },
     {
       "name": "Platform",
-      "description": "Konsol staf EduSync"
+      "description": "Konsol staf Edusync"
     }
   ]
 }

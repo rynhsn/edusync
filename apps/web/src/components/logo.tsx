@@ -12,7 +12,7 @@ export function Logo({ className, tone = 'default' }: { className?: string; tone
       >
         <GraduationCap className="size-5" aria-hidden />
       </span>
-      <span className="font-heading text-lg font-semibold tracking-tight">EduSync</span>
+      <span className="font-heading text-lg font-semibold tracking-tight">Edusync</span>
     </span>
   );
 }

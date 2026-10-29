@@ -1,11 +1,11 @@
 {
   "common": {
-    "appName": "EduSync",
+    "appName": "Edusync",
     "retry": "Cobian deui",
     "signOut": "Kaluar"
   },
   "auth": {
-    "title": "Lebet ka EduSync",
+    "title": "Lebet ka Edusync",
     "subtitle": "Paké akun nu kadaptar di sakola atawa yayasan Anjeun.",
     "email": "Email",
     "password": "Kecap akses",

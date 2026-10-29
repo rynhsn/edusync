@@ -346,7 +346,7 @@ export const entitlement = pgTable(
   (t) => [primaryKey({ columns: [t.schoolId, t.moduleKey] })],
 );
 
-/* ---------- Staf platform (operator EduSync, bukan anggota sekolah mana pun) ---------- */
+/* ---------- Staf platform (operator Edusync, bukan anggota sekolah mana pun) ---------- */
 
 export const platformStaff = pgTable('platform_staff', {
   userId: text('user_id')

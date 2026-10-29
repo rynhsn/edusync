@@ -85,17 +85,17 @@ export async function buildApp(env: Env) {
   await app.register(swagger, {
     openapi: {
       info: {
-        title: 'EduSync API',
+        title: 'Edusync API',
         version: '0.0.0',
         description:
-          'API platform manajemen sekolah EduSync. Endpoint sekolah memakai cookie sesi dan header `x-school-id`.',
+          'API platform manajemen sekolah Edusync. Endpoint sekolah memakai cookie sesi dan header `x-school-id`.',
       },
       tags: [
         { name: 'System', description: 'Status layanan' },
         { name: 'Identity', description: 'Akun dan keanggotaan' },
         { name: 'Academic', description: 'Data akademik' },
         { name: 'Billing', description: 'Katalog, pendaftaran, dan pembayaran' },
-        { name: 'Platform', description: 'Konsol staf EduSync' },
+        { name: 'Platform', description: 'Konsol staf Edusync' },
       ],
     },
     transform: jsonSchemaTransform,

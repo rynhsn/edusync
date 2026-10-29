@@ -161,7 +161,7 @@ export async function createRegistration(
       orderId,
       amount: quote.total,
       customer: { name: account.name, email: account.email },
-      description: `Langganan EduSync ${input.foundationName}`,
+      description: `Langganan Edusync ${input.foundationName}`,
     }));
   } catch (error) {
     await db.transaction((tx) => releaseRegistration(tx, created.registrationId));
@@ -271,8 +271,8 @@ export async function activateRegistration(
   const list = reg.units.map((u) => `- ${u.name}: ${u.slug}`).join('\n');
   await enqueue(tx, QUEUES.emailSend, {
     to: owner.email,
-    subject: 'Selamat datang di EduSync',
-    text: `Halo ${owner.name},\n\nPembayaran diterima dan ${reg.foundationName} sudah aktif di EduSync.\n\nUnit Anda:\n${list}\n\nMasuk dengan email ini untuk mulai mengatur sekolah Anda.`,
+    subject: 'Selamat datang di Edusync',
+    text: `Halo ${owner.name},\n\nPembayaran diterima dan ${reg.foundationName} sudah aktif di Edusync.\n\nUnit Anda:\n${list}\n\nMasuk dengan email ini untuk mulai mengatur sekolah Anda.`,
   });
 }
 

@@ -10,10 +10,10 @@ describe('emailSendHandler', () => {
     const spy = vi.spyOn(transport, 'sendMail');
     await emailSendHandler(
       transport,
-      'EduSync <a@edusync.test>',
+      'Edusync <a@edusync.test>',
     )([job({ to: 'guru@example.test', subject: 'Halo', text: 'Isi' })]);
     expect(spy).toHaveBeenCalledWith(
-      expect.objectContaining({ to: 'guru@example.test', subject: 'Halo', from: 'EduSync <a@edusync.test>' }),
+      expect.objectContaining({ to: 'guru@example.test', subject: 'Halo', from: 'Edusync <a@edusync.test>' }),
     );
   });
 
