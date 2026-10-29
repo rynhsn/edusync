@@ -550,5 +550,22 @@
     "noMatch": "No results.",
     "linkAction": "Link",
     "invalidPhone": "The phone number is not valid."
+  },
+  "curriculumBank": {
+    "title": "Pick from the curriculum bank",
+    "hint": "Copy subjects from the reference into the school’s subjects. Subjects with the same code are skipped. Once copied, you can edit them freely. Reference data is a starting sample; verify against current regulations.",
+    "curriculum": "Curriculum",
+    "level": "Level",
+    "selectAll": "Select all",
+    "adopt": "Add selected subjects",
+    "adopted": "{created} subjects added, {skipped} skipped.",
+    "alreadyAdopted": "Already taken",
+    "none": "Choose at least one subject.",
+    "levels": {
+      "sd": "Primary",
+      "smp": "Junior high",
+      "sma": "Senior high",
+      "smk": "Vocational"
+    }
   }
 }

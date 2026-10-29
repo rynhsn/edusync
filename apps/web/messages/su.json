@@ -550,5 +550,22 @@
     "noMatch": "Teu aya hasil.",
     "linkAction": "Tumbu",
     "invalidPhone": "Nomer telepon teu valid."
+  },
+  "curriculumBank": {
+    "title": "Candak tina bank data kurikulum",
+    "hint": "Salin mata pelajaran tina acuan kana daptar mata pelajaran sakola. Nu kodéna sarua dilaliwatan. Sanggeus disalin, bébas dirobah. Data acuan téh conto awal; pariksa deui jeung aturan panganyarna.",
+    "curriculum": "Kurikulum",
+    "level": "Jenjang",
+    "selectAll": "Pilih sadayana",
+    "adopt": "Candak mata pelajaran nu dipilih",
+    "adopted": "{created} mata pelajaran ditambihkeun, {skipped} dilaliwatan.",
+    "alreadyAdopted": "Geus dicandak",
+    "none": "Pilih sahenteuna hiji mata pelajaran.",
+    "levels": {
+      "sd": "SD/MI",
+      "smp": "SMP/MTs",
+      "sma": "SMA/MA",
+      "smk": "SMK"
+    }
   }
 }

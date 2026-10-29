@@ -13,6 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { CurriculumBank } from './curriculum-bank';
 
 interface Draft {
   code: string;
@@ -128,6 +129,8 @@ export function SubjectsView() {
           </CardContent>
         </Card>
       )}
+
+      {manage && <CurriculumBank />}
 
       {list.isPending && <Skeleton className="h-40 w-full" />}
       {list.isError && (

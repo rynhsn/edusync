@@ -550,5 +550,22 @@
     "noMatch": "Tidak ada hasil.",
     "linkAction": "Tautkan",
     "invalidPhone": "Nomor telepon tidak valid."
+  },
+  "curriculumBank": {
+    "title": "Ambil dari bank data kurikulum",
+    "hint": "Salin mapel dari acuan ke daftar mapel sekolah. Mapel dengan kode yang sama dilewati. Setelah disalin, bebas Anda ubah. Data acuan adalah contoh awal; periksa kembali dengan regulasi terbaru.",
+    "curriculum": "Kurikulum",
+    "level": "Jenjang",
+    "selectAll": "Pilih semua",
+    "adopt": "Ambil mapel terpilih",
+    "adopted": "{created} mapel ditambahkan, {skipped} dilewati.",
+    "alreadyAdopted": "Pernah diambil",
+    "none": "Pilih minimal satu mapel.",
+    "levels": {
+      "sd": "SD/MI",
+      "smp": "SMP/MTs",
+      "sma": "SMA/MA",
+      "smk": "SMK"
+    }
   }
 }

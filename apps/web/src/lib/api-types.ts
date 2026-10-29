@@ -4972,6 +4972,191 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reference/curricula": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Bank data kurikulum (acuan)
+         * @description Izin: `subject:read`. Daftar kurikulum acuan beserta mapelnya per kelompok jenjang, dan kurikulum yang sudah diadopsi sekolah ini. Data acuan adalah contoh awal; verifikasi terhadap regulasi terbaru.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            curricula: {
+                                key: string;
+                                name: string;
+                                description: string;
+                                levels: {
+                                    levelGroup: string;
+                                    subjects: {
+                                        code: string;
+                                        name: string;
+                                    }[];
+                                }[];
+                            }[];
+                            adopted: {
+                                curriculumKey: string;
+                                levelGroup: string;
+                                /** Format: date-time */
+                                adoptedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/curricula/adopt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Adopsi mapel dari bank data kurikulum
+         * @description Izin: `subject:manage`. Menyalin mapel acuan (semua, atau hanya `subjectCodes` yang dipilih) ke mapel sekolah. Mapel dengan kode yang sudah ada dilewati. Salinan bebas diubah sekolah; pembaruan acuan tidak menimpanya.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        curriculumKey: string;
+                        /** @enum {string} */
+                        levelGroup: "sd" | "smp" | "sma" | "smk";
+                        subjectCodes?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            created: number;
+                            skipped: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/students/{id}/guardians": {
         parameters: {
             query?: never;

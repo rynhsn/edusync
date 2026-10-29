@@ -577,3 +577,44 @@ export const studentGuardian = pgTable(
     index('student_guardian_guardian_idx').on(t.guardianId),
   ],
 );
+
+/* ---------- Bank data kurikulum: acuan global (hanya baca) dan adopsi oleh sekolah ---------- */
+
+/** Acuan kurikulum. Tanpa school_id: sama untuk semua sekolah, hanya ditulis lewat migrasi/peran platform. */
+export const refCurriculum = pgTable('ref_curriculum', {
+  key: text('key').primaryKey(),
+  name: text('name').notNull(),
+  description: text('description').notNull().default(''),
+});
+
+export const refSubject = pgTable(
+  'ref_subject',
+  {
+    id: id(),
+    curriculumKey: text('curriculum_key')
+      .notNull()
+      .references(() => refCurriculum.key),
+    /** Kelompok jenjang: sd, smp (termasuk MTs), sma (termasuk MA), smk. */
+    levelGroup: text('level_group').notNull(),
+    code: text('code').notNull(),
+    name: text('name').notNull(),
+    sort: integer('sort').notNull().default(0),
+  },
+  (t) => [unique('ref_subject_uq').on(t.curriculumKey, t.levelGroup, t.code)],
+);
+
+/** Catatan kurikulum yang diadopsi sekolah (mapel disalin ke tabel subject, lalu bebas diubah). */
+export const schoolCurriculum = pgTable(
+  'school_curriculum',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    curriculumKey: text('curriculum_key')
+      .notNull()
+      .references(() => refCurriculum.key),
+    levelGroup: text('level_group').notNull(),
+    adoptedAt: timestamp('adopted_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.schoolId, t.curriculumKey, t.levelGroup] })],
+);

@@ -117,6 +117,7 @@ afterAll(async () => {
     for (const table of [
       'audit_log',
       'teaching_assignment',
+      'school_curriculum',
       'student_guardian',
       'guardian',
       'enrollment',
@@ -705,5 +706,57 @@ describe('wali murid', () => {
       otherSchoolId,
     );
     expect(cross.statusCode).toBe(404);
+  });
+});
+
+describe('bank data kurikulum', () => {
+  it('menampilkan acuan, mengadopsi mapel (lewati yang sudah ada), dan mencatat adopsi', async () => {
+    const ref = await call('GET', '/v1/reference/curricula', opCookie);
+    expect(ref.statusCode).toBe(200);
+    const merdeka = ref.json().curricula.find((c: { key: string }) => c.key === 'merdeka');
+    const smp = merdeka.levels.find((l: { levelGroup: string }) => l.levelGroup === 'smp');
+    expect(smp.subjects.map((s: { code: string }) => s.code)).toContain('MTK');
+    expect(ref.json().adopted).toEqual([]);
+
+    // Mapel dengan kode yang sama sudah ada: dilewati dan tidak ditimpa.
+    await call('POST', '/v1/subjects', opCookie, { code: 'BIN', name: 'Bahasa Indonesia (sekolah)' });
+    const adopt = await call('POST', '/v1/curricula/adopt', opCookie, {
+      curriculumKey: 'merdeka',
+      levelGroup: 'smp',
+      subjectCodes: ['MTK', 'BIN', 'SBD'],
+    });
+    expect(adopt.json()).toEqual({ created: 2, skipped: 1 });
+    const subjects = (await call('GET', '/v1/subjects', opCookie)).json();
+    expect(subjects.find((s: { code: string }) => s.code === 'BIN').name).toBe('Bahasa Indonesia (sekolah)');
+    expect(subjects.map((s: { code: string }) => s.code)).toEqual(expect.arrayContaining(['MTK', 'SBD']));
+
+    // Adopsi ulang aman; semua mapel jenjang diadopsi bila daftar kode tidak diberikan.
+    const again = await call('POST', '/v1/curricula/adopt', opCookie, {
+      curriculumKey: 'merdeka',
+      levelGroup: 'smp',
+    });
+    expect(again.json().created).toBe(smp.subjects.length - 4);
+    const after = (await call('GET', '/v1/reference/curricula', opCookie)).json();
+    expect(after.adopted).toEqual([expect.objectContaining({ curriculumKey: 'merdeka', levelGroup: 'smp' })]);
+  });
+
+  it('kurikulum tidak dikenal 404, izin dijaga, dan adopsi sekolah lain terpisah', async () => {
+    expect(
+      (await call('POST', '/v1/curricula/adopt', opCookie, { curriculumKey: 'tidak-ada', levelGroup: 'smp' }))
+        .statusCode,
+    ).toBe(404);
+    expect(
+      (await call('POST', '/v1/curricula/adopt', teacherCookie, { curriculumKey: 'k13', levelGroup: 'smp' }))
+        .statusCode,
+    ).toBe(403);
+    expect((await call('GET', '/v1/reference/curricula', teacherCookie)).statusCode).toBe(200);
+    const other = (
+      await call('GET', '/v1/reference/curricula', otherCookie, undefined, otherSchoolId)
+    ).json();
+    expect(other.adopted).toEqual([]);
+    // Tabel acuan tidak bisa ditulis peran aplikasi.
+    await expect(
+      app.tenantDb.execute(sql`insert into ref_curriculum (key, name) values ('x', 'x')`),
+    ).rejects.toThrow();
   });
 });
