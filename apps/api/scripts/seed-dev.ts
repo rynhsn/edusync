@@ -1,6 +1,7 @@
 import {
   assignRoles,
   createDb,
+  entitlement,
   eq,
   foundation,
   foundationOwner,
@@ -76,6 +77,24 @@ if (!hasSub) {
     currentPeriodStart: now,
     currentPeriodEnd: new Date(now.getTime() + 30 * 86_400_000),
   });
+}
+
+// Modul berbayar untuk sekolah contoh (pilot tanpa tagihan), berlaku selama langganan contoh.
+const [sub] = await db.select().from(subscription).where(eq(subscription.foundationId, yayasan.id));
+if (sub) {
+  for (const s of [smp, smk]) {
+    await db
+      .insert(entitlement)
+      .values(
+        ['schedule', 'attendance', 'grades'].map((moduleKey) => ({
+          schoolId: s.id,
+          moduleKey,
+          subscriptionId: sub.id,
+          validUntil: sub.currentPeriodEnd,
+        })),
+      )
+      .onConflictDoNothing();
+  }
 }
 
 const guru = await ensureUser('guru@edusync.test', 'Guru Contoh');

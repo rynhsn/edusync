@@ -72,7 +72,11 @@
     "teacher_read": "Melihat guru",
     "teacher_manage": "Mengelola guru",
     "subject_read": "Melihat mata pelajaran",
-    "subject_manage": "Mengelola mata pelajaran"
+    "subject_manage": "Mengelola mata pelajaran",
+    "schedule_read": "Melihat jadwal",
+    "schedule_manage": "Mengelola jadwal",
+    "attendance_read": "Melihat absensi",
+    "attendance_manage": "Mengelola absensi"
   },
   "dashboard": {
     "greeting": "Halo, {name}",

@@ -683,3 +683,83 @@ export const platformSetting = pgTable('platform_setting', {
   updatedBy: text('updated_by'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/* ---------- Jadwal pelajaran dan absensi (modul berbayar; tabel tetap dijaga RLS) ---------- */
+
+/** Jam pelajaran: nomor urut dan rentang waktunya. */
+export const lessonPeriod = pgTable(
+  'lesson_period',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    number: integer('number').notNull(),
+    startsAt: text('starts_at').notNull(),
+    endsAt: text('ends_at').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('lesson_period_number_uq').on(t.schoolId, t.number)],
+);
+
+/**
+ * Satu sel jadwal: kelas + hari + jam pelajaran berisi satu mata pelajaran dan gurunya. Dua batasan unik
+ * mencegah bentrok di tingkat database: satu kelas satu isi per jam, dan satu guru satu kelas per jam.
+ */
+export const scheduleEntry = pgTable(
+  'schedule_entry',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    teacherId: uuid('teacher_id')
+      .notNull()
+      .references(() => teacher.id),
+    /** 1 = Senin … 6 = Sabtu. */
+    weekday: integer('weekday').notNull(),
+    periodId: uuid('period_id')
+      .notNull()
+      .references(() => lessonPeriod.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('schedule_class_slot_uq').on(t.classId, t.weekday, t.periodId),
+    unique('schedule_teacher_slot_uq').on(t.academicYearId, t.teacherId, t.weekday, t.periodId),
+  ],
+);
+
+/** Absensi harian per siswa. Satu baris per siswa per tanggal. */
+export const classAttendance = pgTable(
+  'class_attendance',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    date: date('date').notNull(),
+    status: text('status', { enum: ['present', 'excused', 'sick', 'absent'] }).notNull(),
+    note: text('note'),
+    recordedBy: text('recorded_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('class_attendance_student_date_uq').on(t.studentId, t.date),
+    index('class_attendance_class_date_idx').on(t.classId, t.date),
+  ],
+);

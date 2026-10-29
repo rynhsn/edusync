@@ -1,4 +1,15 @@
-import { and, eq, member, memberRole, role, rolePermission, school } from '@edusync/db';
+import {
+  and,
+  entitlement,
+  eq,
+  gt,
+  inArray,
+  member,
+  memberRole,
+  role,
+  rolePermission,
+  school,
+} from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -11,6 +22,7 @@ const membershipSchema = z.object({
   schoolSlug: z.string(),
   roles: z.array(z.string()),
   permissions: z.array(z.string()).describe('Gabungan izin dari semua peran di sekolah ini'),
+  modules: z.array(z.string()).describe('Modul berbayar yang sedang aktif di sekolah ini'),
 });
 
 export async function meRoutes(instance: FastifyInstance) {
@@ -59,10 +71,20 @@ export async function meRoutes(instance: FastifyInstance) {
           schoolSlug: r.schoolSlug,
           roles: [],
           permissions: [],
+          modules: [],
         };
         if (r.roleKey && !entry.roles.includes(r.roleKey)) entry.roles.push(r.roleKey);
         if (r.permission && !entry.permissions.includes(r.permission)) entry.permissions.push(r.permission);
         bySchool.set(r.schoolId, entry);
+      }
+      // Modul berbayar yang masih berlaku; menu modul yang tidak aktif disembunyikan di web.
+      const ids = [...bySchool.keys()];
+      if (ids.length > 0) {
+        const active = await request.server.platformDb
+          .select({ schoolId: entitlement.schoolId, moduleKey: entitlement.moduleKey })
+          .from(entitlement)
+          .where(and(inArray(entitlement.schoolId, ids), gt(entitlement.validUntil, new Date())));
+        for (const a of active) bySchool.get(a.schoolId)?.modules.push(a.moduleKey);
       }
       const u = request.authUser;
       return {

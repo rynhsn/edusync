@@ -72,7 +72,11 @@
     "teacher_read": "Ningali guru",
     "teacher_manage": "Ngatur guru",
     "subject_read": "Ningali mata pelajaran",
-    "subject_manage": "Ngatur mata pelajaran"
+    "subject_manage": "Ngatur mata pelajaran",
+    "schedule_read": "Ningali jadwal",
+    "schedule_manage": "Ngatur jadwal",
+    "attendance_read": "Ningali absénsi",
+    "attendance_manage": "Ngatur absénsi"
   },
   "dashboard": {
     "greeting": "Wilujeng sumping, {name}",

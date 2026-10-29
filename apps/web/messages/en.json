@@ -72,7 +72,11 @@
     "teacher_read": "View teachers",
     "teacher_manage": "Manage teachers",
     "subject_read": "View subjects",
-    "subject_manage": "Manage subjects"
+    "subject_manage": "Manage subjects",
+    "schedule_read": "View schedule",
+    "schedule_manage": "Manage schedule",
+    "attendance_read": "View attendance",
+    "attendance_manage": "Manage attendance"
   },
   "dashboard": {
     "greeting": "Hello, {name}",
