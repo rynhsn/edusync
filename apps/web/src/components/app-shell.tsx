@@ -6,6 +6,8 @@ import {
   CalendarDays,
   CalendarRange,
   ChevronsUpDown,
+  ClipboardCheck,
+  Clock,
   GraduationCap,
   LayoutDashboard,
   LogOut,
@@ -45,6 +47,7 @@ interface Membership {
   schoolSlug: string;
   roles: string[];
   permissions: string[];
+  modules: string[];
 }
 
 interface SchoolContextValue {
@@ -52,6 +55,7 @@ interface SchoolContextValue {
   userName: string;
   userId: string;
   can: (permission: string) => boolean;
+  hasModule: (moduleKey: string) => boolean;
 }
 
 const SchoolContext = createContext<SchoolContextValue | null>(null);
@@ -83,6 +87,25 @@ export const NAV_GROUPS = [
       { href: '/students', labelKey: 'students', icon: GraduationCap, permission: 'student:read' },
       { href: '/teachers', labelKey: 'teachers', icon: UserRound, permission: 'teacher:read' },
       { href: '/subjects', labelKey: 'subjects', icon: BookOpen, permission: 'subject:read' },
+    ],
+  },
+  {
+    key: 'groupAcademic',
+    items: [
+      {
+        href: '/schedule',
+        labelKey: 'schedule',
+        icon: Clock,
+        permission: 'schedule:read',
+        module: 'schedule',
+      },
+      {
+        href: '/attendance',
+        labelKey: 'attendance',
+        icon: ClipboardCheck,
+        permission: 'attendance:read',
+        module: 'attendance',
+      },
     ],
   },
   {
@@ -184,6 +207,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     userName: user.name,
     userId: user.id,
     can: (p) => permissions.has(p),
+    hasModule: (m) => school.modules.includes(m),
   };
   const initials = user.name.slice(0, 2).toUpperCase();
   const roles = school.roles.map(roleLabel).join(', ') || tr('none');
@@ -230,7 +254,11 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             aria-label={t('menu')}
           >
             {NAV_GROUPS.map((group) => {
-              const items = group.items.filter((n) => n.permission === null || permissions.has(n.permission));
+              const items = group.items.filter(
+                (n) =>
+                  (n.permission === null || permissions.has(n.permission)) &&
+                  (!('module' in n) || school.modules.includes(n.module)),
+              );
               if (items.length === 0) return null;
               return (
                 <div key={group.key ?? 'main'} className="contents md:mt-3 md:grid md:gap-0.5 md:first:mt-0">

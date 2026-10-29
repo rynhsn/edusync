@@ -12,7 +12,7 @@ export function DashboardView() {
   const t = useTranslations('dashboard');
   const tp = useTranslations('permissions');
   const tn = useTranslations('nav');
-  const { school, userName, can } = useSchool();
+  const { school, userName, can, hasModule } = useSchool();
 
   const label = (permission: string) => {
     const key = permission.replace(':', '_');
@@ -22,8 +22,10 @@ export function DashboardView() {
   // Pintasan ke menu yang boleh dibuka pengguna, dikelompokkan seperti menu samping.
   const groups = NAV_GROUPS.filter((g) => g.key !== null)
     .map((g) => ({
-      key: g.key as 'groupMaster' | 'groupAccess',
-      items: g.items.filter((n) => n.permission === null || can(n.permission)),
+      key: g.key as 'groupMaster' | 'groupAcademic' | 'groupAccess',
+      items: g.items.filter(
+        (n) => (n.permission === null || can(n.permission)) && (!('module' in n) || hasModule(n.module)),
+      ),
     }))
     .filter((g) => g.items.length > 0);
 

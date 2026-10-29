@@ -32,6 +32,10 @@ const KNOWN = [
   'invalid_period',
   'server_key_required',
   'invalid_provider',
+  'no_assignment',
+  'teacher_busy',
+  'future_date',
+  'school_closed',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];
