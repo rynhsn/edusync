@@ -1,4 +1,4 @@
-import { createPaymentProvider, createRenewalInvoices, sweepSubscriptions } from '@edusync/billing';
+import { createRenewalInvoices, PaymentProviderResolver, sweepSubscriptions } from '@edusync/billing';
 import { createDb } from '@edusync/db';
 import { QUEUES, relayOutbox, setupJobs } from '@edusync/jobs';
 import { PgBoss } from 'pg-boss';
@@ -35,7 +35,8 @@ export async function startWorker(env: Env) {
   }, env.RELAY_INTERVAL_MS);
 
   // Siklus penagihan: invoice perpanjangan dan perubahan status langganan. Idempoten, aman diulang.
-  const provider = createPaymentProvider({
+  // Penyedia pembayaran mengikuti pengaturan di konsol platform (menimpa variabel lingkungan) tanpa restart.
+  const payments = new PaymentProviderResolver(platform.db, env.AUTH_SECRET, {
     provider: env.PAYMENT_PROVIDER,
     webUrl: env.WEB_URL,
     devSecret: env.PAYMENT_DEV_SECRET,
@@ -47,7 +48,7 @@ export async function startWorker(env: Env) {
     if (billingBusy) return;
     billingBusy = true;
     try {
-      await createRenewalInvoices(platform.db, provider);
+      await createRenewalInvoices(platform.db, await payments.get());
       await sweepSubscriptions(platform.db);
     } catch (error) {
       console.error('[worker] siklus penagihan gagal', error);

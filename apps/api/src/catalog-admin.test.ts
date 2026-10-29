@@ -255,3 +255,84 @@ describe('katalog dan paket (staf platform)', () => {
     ]);
   });
 });
+
+describe('pengaturan pembayaran (staf platform)', () => {
+  const body = (o: object) => ({ provider: 'midtrans', mode: 'sandbox', ...o });
+
+  it('izin, kunci tersimpan terenkripsi dan tidak pernah dikembalikan, dan pengaturan berlaku tanpa restart', async () => {
+    expect((await call('GET', '/v1/platform/payment-settings', outsider)).statusCode).toBe(403);
+    expect(
+      (
+        await call(
+          'PUT',
+          '/v1/platform/payment-settings',
+          readOnly,
+          body({ serverKey: 'SB-Mid-server-abcd' }),
+        )
+      ).statusCode,
+    ).toBe(403);
+
+    const before = await call('GET', '/v1/platform/payment-settings', readOnly);
+    expect(before.statusCode).toBe(200);
+    const original = before.json();
+
+    // Midtrans tanpa kunci ditolak bila belum ada kunci tersimpan.
+    await app.platformDb.execute(sql`delete from platform_setting where key = 'payment'`);
+    app.payments.invalidate();
+    expect((await call('PUT', '/v1/platform/payment-settings', admin, body({}))).json().error.code).toBe(
+      'server_key_required',
+    );
+
+    const saved = await call(
+      'PUT',
+      '/v1/platform/payment-settings',
+      admin,
+      body({ serverKey: 'SB-Mid-server-WXYZ' }),
+    );
+    expect(saved.statusCode).toBe(200);
+    expect(saved.json()).toMatchObject({
+      provider: 'midtrans',
+      mode: 'sandbox',
+      hasServerKey: true,
+      serverKeyHint: 'WXYZ',
+      source: 'database',
+    });
+    expect(JSON.stringify(saved.json())).not.toContain('SB-Mid-server');
+    expect(saved.json().webhookUrl).toContain('/v1/webhooks/payments/midtrans');
+
+    // Di database kunci terenkripsi, bukan teks biasa.
+    const raw = await app.platformDb.execute<{ value: { serverKeyEnc: string } }>(
+      sql`select value from platform_setting where key = 'payment'`,
+    );
+    expect(raw.rows[0]?.value.serverKeyEnc.startsWith('v1.')).toBe(true);
+    expect(JSON.stringify(raw.rows[0])).not.toContain('SB-Mid-server');
+
+    // Penyedia yang berlaku langsung berubah, dan mode produksi memakai alamat Snap produksi.
+    expect((await app.payments.get()).name).toBe('midtrans');
+    // Menyimpan tanpa kunci baru mempertahankan kunci lama.
+    const keep = await call('PUT', '/v1/platform/payment-settings', admin, body({ mode: 'production' }));
+    expect(keep.json()).toMatchObject({ mode: 'production', serverKeyHint: 'WXYZ' });
+
+    // Dikembalikan: simulasi, lalu pulihkan keadaan semula.
+    const dev = await call('PUT', '/v1/platform/payment-settings', admin, {
+      provider: 'dev',
+      mode: 'sandbox',
+    });
+    expect(dev.json().provider).toBe('dev');
+    expect((await app.payments.get()).name).toBe('dev');
+    await app.platformDb.execute(sql`delete from platform_setting where key = 'payment'`);
+    app.payments.invalidate();
+    expect((await call('GET', '/v1/platform/payment-settings', readOnly)).json().source).toBe(
+      original.source,
+    );
+
+    const audit = await app.platformDb.execute<{ details: Record<string, unknown> }>(
+      sql`select details from audit_log where action = 'payment.settings.update' and actor_id in (${sql.join(
+        userIds.map((u) => sql`${u}`),
+        sql`, `,
+      )})`,
+    );
+    expect(audit.rows.length).toBeGreaterThanOrEqual(3);
+    expect(JSON.stringify(audit.rows)).not.toContain('SB-Mid-server');
+  });
+});

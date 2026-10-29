@@ -7,6 +7,8 @@ const schema = z.object({
   RELAY_INTERVAL_MS: z.coerce.number().int().positive().default(1000),
   /** Seberapa sering siklus penagihan (invoice perpanjangan dan status langganan) dijalankan. */
   BILLING_CYCLE_MS: z.coerce.number().int().positive().default(600_000),
+  /** Dipakai untuk membuka kunci penyedia pembayaran yang disimpan terenkripsi (sama dengan API). */
+  AUTH_SECRET: z.string().min(32, 'minimal 32 karakter'),
   PAYMENT_PROVIDER: z.enum(['dev', 'midtrans']).default('dev'),
   PAYMENT_DEV_SECRET: z.string().min(16).default('dev-only-payment-secret-do-not-use'),
   WEB_URL: z.string().url().default('http://localhost:3000'),

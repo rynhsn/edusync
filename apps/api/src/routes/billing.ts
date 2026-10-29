@@ -149,7 +149,12 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
     },
     async (request, reply) => {
       const account = request.authUser as { id: string; name: string; email: string };
-      const result = await createRegistration(app.platformDb, app.paymentProvider, account, request.body);
+      const result = await createRegistration(
+        app.platformDb,
+        await app.payments.get(),
+        account,
+        request.body,
+      );
       return reply.code(201).send({
         registrationId: result.registrationId,
         invoiceId: result.invoiceId,
@@ -228,25 +233,26 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
       },
     },
     async (request) => {
-      if (request.params.provider !== app.paymentProvider.name) {
+      const provider = await app.payments.get();
+      if (request.params.provider !== provider.name) {
         throw new HttpError(404, 'not_found', 'Penyedia tidak dikenal.');
       }
-      let event: ReturnType<typeof app.paymentProvider.parseWebhook>;
+      let event: ReturnType<typeof provider.parseWebhook>;
       try {
-        event = app.paymentProvider.parseWebhook(request.body);
+        event = provider.parseWebhook(request.body);
       } catch (error) {
         if (error instanceof InvalidWebhookError) {
           throw new HttpError(401, 'invalid_signature', 'Tanda tangan webhook tidak valid.');
         }
         throw error;
       }
-      const outcome = await handlePaymentEvent(app.platformDb, app.paymentProvider.name, event, request.body);
+      const outcome = await handlePaymentEvent(app.platformDb, provider.name, event, request.body);
       return { outcome };
     },
   );
 
   // Hanya penyedia dev di luar produksi: mensimulasikan pembayaran lewat jalur webhook yang sama.
-  if (env.NODE_ENV !== 'production' && app.paymentProvider.name === 'dev') {
+  if (env.NODE_ENV !== 'production') {
     app.post(
       '/v1/dev/payments/:orderId/simulate',
       {
@@ -258,6 +264,9 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
         },
       },
       async (request) => {
+        const provider = await app.payments.get();
+        if (provider.name !== 'dev')
+          throw new HttpError(404, 'not_found', 'Simulasi hanya untuk penyedia dev.');
         const [inv] = await app.platformDb
           .select()
           .from(invoice)
@@ -270,7 +279,7 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
           amount: inv.amount,
         };
         const body = { ...event, signature: signDevEvent(env.PAYMENT_DEV_SECRET, event) };
-        const parsed = app.paymentProvider.parseWebhook(body);
+        const parsed = provider.parseWebhook(body);
         return { outcome: await handlePaymentEvent(app.platformDb, 'dev', parsed, body) };
       },
     );
