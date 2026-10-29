@@ -1,245 +1,190 @@
-# Edusync — Blueprint Rebuild dari Nol
+# Edusync — Rancangan Sistem
 
-Status: **DRAFT untuk disetujui** · Tanggal: 2026-10-29
-Sumber kebutuhan bisnis: `Planning/00`–`08` (sistem lama CodeIgniter 4). Dokumen ini menggantikan README lama sebagai arah teknis.
+Status: **berjalan** (M0–M1 selesai) · Diperbarui: 2026-10-29
+Versi interaktif: artifak "Edusync Blueprint". Kebutuhan bisnis awal ada di `Planning/00`–`08`.
 
-## 1. Diagnosis kode saat ini (kenapa dibuat ulang)
+Edusync adalah platform manajemen sekolah untuk yayasan dan unit-unit sekolahnya: absensi, nilai, penilaian, SPMB, administrasi, SPP, tahfidz, PKL, dan website, dalam satu sistem multi-tenant.
 
-| Masalah | Dampak |
-| --- | --- |
-| 2 backend (platform-api, school-api) + 2 frontend (web, school-web) dengan DB terpisah | Auth, mailer, migrasi, OpenAPI, UI kit **diduplikasi** (ada `repair_auth_copy.py` sebagai tambalan). Setiap fitur dikerjakan 2x. |
-| Provisioning tenant lintas-layanan via shared secret | Perlu saga/state `provisioning_failed`, retry, dan sinkronisasi suspend. Kompleksitas tinggi untuk nilai rendah. |
-| OpenAPI ditulis tangan (`docs/openapi.ts`) terpisah dari route | Dokumentasi mudah basi dan tidak terjamin cocok dengan perilaku sebenarnya. |
-| SQL mentah + `pg.Pool`, isolasi tenant hanya lewat konvensi query | Satu `WHERE` terlupa = kebocoran data antar-sekolah. |
-| Baru 3 dari ±12 modul (tahun ajaran, kelas, siswa) | 90% nilai produk (absensi, nilai, SPMB, website) belum ada. |
-| Role hanya `school_admin` / `school_staff` | Tidak memadai untuk 6 role lama (kepala sekolah, bendahara, kurikulum, operator, guru). |
+## 1. Prinsip
 
-Yang **dipertahankan sebagai ide**: kontrak Zod bersama, aktivasi admin via token sekali pakai, audit log, rate limit, bootstrap dev yang aman, Tailwind + shadcn, i18n.
+- **Satu yayasan, banyak unit.** Tiap unit punya alamat, kurikulum, modul, dan data sendiri. Sekolah tunggal punya satu yayasan tersembunyi, jadi hanya ada satu model.
+- **Daftar, bayar, aktif.** Sekolah mendaftar sendiri; setelah pembayaran terkonfirmasi, aktif otomatis.
+- **Database menjaga batas.** Isolasi data dipaksa RLS, bukan disiplin penulis kode.
+- **Izin menurut peran; satu orang boleh banyak peran** (izin digabung), tanpa akun ganda.
+- **Modul dan harga fleksibel.** Katalog di database, bisa diubah tanpa rilis.
 
-## 2. Keputusan arsitektur
+## 2. Arsitektur
 
-### 2.1 Modular monolith, satu database, multi-tenant shared-schema + RLS
-- **Satu API, satu web app, satu PostgreSQL.** Modul dipisah per folder (bukan per layanan). Microservice tidak dibutuhkan pada skala ribuan sekolah kecil.
-- Tabel bisnis semua punya `school_id`. **Row-Level Security Postgres** aktif: tiap request menjalankan `SET LOCAL app.school_id = ...` dalam transaksi; query tanpa konteks tenant mengembalikan 0 baris. Isolasi dijamin database, bukan disiplin developer.
-- Control plane (platform) = schema `platform` di DB yang sama. Provisioning sekolah = **satu transaksi** (sekolah + owner + undangan aktivasi) → saga dan `provisioning_failed` hilang.
-- Tenant dikenali dari **subdomain** (`slug.edusync.id`), custom domain menyusul. Situs publik sekolah memakai host yang sama.
-- Ditolak: DB-per-tenant (migrasi/ops berlipat), service terpisah (alasan di 2.1 atas).
+### 2.1 Modular monolith
+Satu API, satu web, satu worker, satu PostgreSQL. Modul dipisah per folder; modul saling memanggil lewat service, bukan repo. Tanpa jaringan antar-modul, jadi tidak ada operasi yang gagal setengah jalan.
 
 ### 2.2 Stack
 
-| Lapisan | Pilihan | Alasan |
-| --- | --- | --- |
-| Runtime/monorepo | Node 26, pnpm workspaces + **Turborepo** (cache build/test) | Sudah dipakai; Turbo memangkas waktu CI. |
-| Bahasa | TypeScript strict, ESM | Satu bahasa di seluruh stack, kontrak dibagi. |
-| API | **Fastify 5** + `fastify-type-provider-zod` + `@fastify/swagger` | Zod di route = validasi **dan** OpenAPI otomatis (tidak ada openapi.ts manual). Sudah dikenal di repo. |
-| DB & ORM | PostgreSQL 18 + **Drizzle ORM** + drizzle-kit | Type-safe, SQL-dekat, mendukung RLS/policy dan migrasi ter-versi. |
-| Auth | **Better Auth** (organization plugin) satu instance | Sudah terbukti di repo; user global, membership per sekolah, perannya per sekolah. |
-| Otorisasi | RBAC berbasis **permission** (`student:read`, `grade:write`, …); role = kumpulan permission, bisa dikustom per sekolah | Menggantikan 3 tabel hack lama (`role_sidebar_settings`, `button_settings`, `custom_sidebar_menus`): menu & tombol diturunkan dari permission. |
-| Background job | **pg-boss** (antrian di Postgres) | Tanpa Redis. Untuk WhatsApp, email, PDF, import besar; ada retry dan jadwal. |
-| Web | **Next.js (App Router)** + React + Tailwind v4 + shadcn/ui | Satu app: situs publik **SSR/SEO** (website sekolah, SPMB), dashboard sekolah, konsol platform, kiosk (PWA). |
-| Data fetching | TanStack Query + klien **openapi-fetch** yang digenerate dari OpenAPI API | Tipe frontend selalu sinkron dengan API; tidak ada tipe ganda. |
-| Form/tabel | react-hook-form + Zod resolver, TanStack Table | Standar de-facto. |
-| File | Abstraksi `Storage` → **MinIO (dev) / S3-compatible atau Cloudflare R2 (prod)**, signed URL | Menggantikan `WRITEPATH/uploads`; aman, bisa scale. |
-| PDF | `@react-pdf/renderer` (job di worker) | Tanpa headless browser; ringan menggantikan Dompdf. |
-| Excel | `exceljs` | Import/export siswa dan nilai. |
-| WhatsApp | Adapter `NotificationChannel` (Fonnte dulu), email via SMTP/Nodemailer | Provider bisa diganti tanpa ubah domain. |
-| Kualitas | **Biome** (lint+format), Vitest, Testcontainers (Postgres nyata), Playwright (E2E), GitHub Actions | Satu tool lint cepat; test tidak mock DB. |
-| Observability | pino (log terstruktur), Sentry, `/health` + `/ready` | Cukup untuk awal; OTel menyusul. |
-| Deploy | Docker image (api, web, worker) + Caddy; target VPS (Coolify/Compose) | Murah, latensi baik di Indonesia, mudah dipindah. |
+| Lapisan | Pilihan |
+| --- | --- |
+| Runtime/monorepo | Node 26, pnpm 12 + Turborepo, TypeScript, ESM |
+| API | Fastify 5 + fastify-type-provider-zod + @fastify/swagger, Zod 4; OpenAPI otomatis dari route (Scalar di `/docs`) |
+| DB & ORM | PostgreSQL 18 + Drizzle ORM + drizzle-kit (migrasi SQL kustom untuk RLS) |
+| Auth | Better Auth (email + kata sandi min. 12 karakter, plugin oneTimeToken) |
+| Antrean | pg-boss lewat **outbox transaksional**: API menulis `outbox` di transaksi yang sama dengan datanya; worker menyalurkan (SKIP LOCKED + singletonKey). Tanpa Redis |
+| Web | Next.js 16, Tailwind v4, shadcn/ui, TanStack Query, openapi-fetch + openapi-typescript (tipe digenerate dari OpenAPI) |
+| i18n & tema | next-intl (id, en, su; urutan: cookie → Accept-Language → `id`), next-themes (terang/gelap/sistem); tanggal Sunda diformat sendiri |
+| Email | Nodemailer; lokal ke Mailpit |
+| Kualitas | Biome, Vitest dengan Postgres nyata (tanpa mock DB) |
+| File (saat fitur unggah ada) | Abstraksi `Storage`, S3-compatible, signed URL |
+| PDF/Excel/WA (rencana) | `@react-pdf/renderer` di worker, `exceljs`, adapter `NotificationChannel` (Fonnte) |
 
 ### 2.3 Struktur repositori
 
 ```
 edusync/
 ├─ apps/
-│  ├─ api/            # Fastify; src/modules/<modul>/{routes,service,repo,schema}.ts
-│  ├─ worker/         # pg-boss consumer (import api/modules sebagai library)
-│  └─ web/            # Next.js: (public) (school) (platform) (kiosk)
+│  ├─ api/      # Fastify: routes, identity/guards, scripts (seed-dev, export-openapi)
+│  ├─ worker/   # outbox relay, handler email, siklus penagihan
+│  └─ web/      # Next.js: halaman utama, daftar, login, bayar, (app), (platform)
 ├─ packages/
-│  ├─ db/             # Drizzle schema, migrasi, RLS policies, seed
-│  ├─ contracts/      # Zod bersama (input/output, enum, permission list)
-│  ├─ ui/             # shadcn/ui + design tokens (satu-satunya UI kit)
-│  ├─ config/         # tsconfig, biome, env schema
-│  └─ testing/        # factory data, helper Testcontainers
-├─ Planning/          # dokumen bisnis lama + blueprint ini (dipertahankan)
-├─ docs/              # ADR singkat, runbook
-└─ docker-compose.yml # postgres, minio, mailpit
+│  ├─ db/        # skema Drizzle, migrasi, kebijakan RLS
+│  ├─ contracts/ # katalog izin, katalog harga, aturan bersama
+│  ├─ billing/   # pendaftaran, pembayaran, langganan, konsol staf
+│  └─ jobs/      # antrean dan outbox
+└─ Planning/
 ```
 
-Aturan modul: `routes` hanya HTTP; `service` berisi logika + transaksi; `repo` satu-satunya yang menyentuh Drizzle. Modul tidak saling impor repo — hanya service/event. Domain event internal (`student.enrolled`, `attendance.recorded`) lewat outbox tabel + pg-boss.
+### 2.4 Pemisahan data (RLS)
+- Semua tabel sekolah punya `school_id`. Tiap request tenant berjalan dalam transaksi dengan `app.school_ids` (uuid[]) dari keanggotaan; kebijakan memakai `app_school_ids()`. Query tanpa konteks mengembalikan 0 baris.
+- Dua peran database: `edusync_app` (tunduk RLS) untuk request sekolah; `edusync_platform` (BYPASSRLS) hanya untuk pendaftaran, webhook pembayaran, dan konsol staf. Tabel penagihan hanya bisa ditulis peran platform.
+- Helper `withTenant(db, schoolIds, fn)`. Tes otomatis mencoba membaca/menulis/mengubah/menghapus data sekolah lain; build gagal bila berhasil.
 
-## 3. Domain & model data (ringkas)
+## 3. Alamat dan sesi
 
-Penamaan kode: **Inggris**; label UI default **Bahasa Indonesia** (i18n sejak awal). Semua tabel: `id` (uuid v7), `school_id`, `created_at/updated_at`, kolom `deleted_at` untuk entitas yang di-soft-delete (siswa, guru, dll.), `created_by`.
+| Alamat | Isi | Pengguna |
+| --- | --- | --- |
+| `APP_DOMAIN` (edusync.id; lokal `localhost:3000`) | Halaman depan, daftar, login utama, portal akun yayasan, `/platform` | Pemilik/admin yayasan, staf Edusync |
+| `<slug>.APP_DOMAIN` | Dashboard dan situs satu unit | Admin sekolah, kepala sekolah, guru, operator, bendahara, wali, siswa |
+| Domain milik sekolah | Tahap 1: situs publik dan SPMB. Tahap 2: dashboard dan portal | Pengunjung; warga sekolah (tahap 2) |
+
+- Next meneruskan `/v1/*` dan `/api/auth/*` ke API lewat alamat yang sama, sehingga **cookie sesi terikat satu alamat** (host-only). Tiap alamat berdiri sendiri.
+- `GET /v1/config` mengembalikan `baseDomain`. API mempercayai domain dasar dan subdomainnya (skema mengikuti `AUTH_URL`; https di produksi).
+- **Pindah alamat tanpa login ulang:** alamat asal menukar sesi menjadi token sekali pakai (1 menit, disimpan sebagai hash); browser pindah membawa token; halaman tujuan menghapusnya dari URL, menukarnya menjadi sesi alamat itu, dan token hangus. Asal permintaan diperiksa.
+- **Gerbang (`/`):** belum masuk → login; di alamat sekolah → dashboard; di alamat utama → staf ke `/platform`, anggota sekolah dipindah ke alamat sekolahnya. Sekolah yang tidak ada dan bukan milik pengguna dijawab sama (alamat tidak bisa ditebak).
+- Konsol staf, daftar, dan pembayaran hanya hidup di alamat utama.
+
+### Domain milik sekolah
+Tabel `school_domains(school_id, hostname, kind, status: pending|verified|active|failed, verification_token, is_primary)`. Admin menambah hostname → sistem menampilkan CNAME dan TXT → pemeriksa DNS berkala (job) → `verified` → HTTPS otomatis (Caddy on-demand TLS; endpoint `ask` hanya untuk hostname terdaftar dan terverifikasi) → subdomain bawaan dialihkan 301.
+- **Tahap 1 (M10):** situs publik dan SPMB, tanpa login di domain luar.
+- **Tahap 2 (lanjut):** dashboard di domain sekolah memakai token pindah alamat yang sama.
+- Batasan: apex tanpa `www` perlu ALIAS/A; pantau batas penerbitan sertifikat; cegah hostname yang mengarah ke domain platform lain; domain dilepas bila langganan berhenti. Entitlement `custom_domain` pada paket tertentu.
+
+## 4. Yayasan, unit, dan orang
+
+- `foundation` 1—N `school` (unit). Keanggotaan `member` bercakupan unit; satu akun bisa jadi guru di unit A dan admin di unit B.
+- `person` di tingkat yayasan untuk guru/pegawai dan wali (guru lintas unit, wali dengan anak di dua unit, satu kontak WhatsApp). Siswa per unit, ditautkan ke `person` agar mutasi internal menjaga riwayat.
+- Langganan di tingkat yayasan, item per unit dan modul. Kurikulum dan jenjang per unit. Kalender yayasan diwariskan ke unit.
+- SPMB internal untuk lulusan unit lain di yayasan yang sama.
+
+## 5. Peran dan izin
+
+- Katalog izin `resource:action` (member, role, academic_year, audit, ...). Peran bawaan per sekolah: `school_admin`, `principal`, `curriculum`, `treasurer`, `operator`, `teacher` (portal `guardian`/`student` menyusul). Izin diperiksa **di API** (sumber kebenaran); menu dan tombol hanya mengikuti izin.
+- **Multi-peran:** `member` 1—N `member_role`; izin = gabungan semua peran. Audit mencatat peran sumber izin. Aturan pemisahan tugas bisa diaktifkan per sekolah.
+- **Peran vs penugasan:** peran memberi izin umum; penugasan membatasi konteks: `teaching_assignment`, `homeroom_assignment`, `extracurricular_advisor`, `halaqah_musyrif`, `pkl_supervisor`. Data guru dibatasi oleh penugasan.
+- **Guard API:** `requireUser`, `requireTenant` (header `x-school-id`; cek keanggotaan dan sekolah aktif), `requirePermission`, `requireModule` (entitlement), `requireStaff`.
+- **Tingkat yayasan:** pemilik yayasan mengurus langganan dan tagihan di alamat utama (belum dibangun); admin sekolah tidak melihat tagihan.
+- **Staf Edusync:** tabel `platform_staff` (peran `admin` / `read_only`), bukan anggota sekolah; dibuat lewat perintah di server (seed hanya di dev).
+- Pengecualian izin per individu (tambah/cabut, dengan alasan dan tanggal berakhir): direncanakan.
+
+## 6. Pendaftaran dan langganan
+
+**Alur:** daftar akun (kata sandi min. 12, ulangi, validasi) → isi yayasan, unit, alamat (diperiksa ketersediaannya, dipesan 24 jam), modul, jumlah siswa → invoice dan halaman pembayaran → kembali ke `/register/status/<id>` (memeriksa otomatis) → webhook → satu transaksi: yayasan, unit, peran, admin, langganan, entitlement, email sambutan (lewat outbox) → pindah ke alamat sekolah tanpa login ulang.
+
+- **Katalog** di DB (`catalog_item`); harga bawaan hanya contoh. `quoteUnits`: dasar + modul + tingkat jumlah siswa; tahunan = 10 bulan; modul bersyarat ikut ditambahkan (mis. penilaian butuh nilai).
+- **Penyedia pembayaran (adapter):** `dev` (simulasi bertanda tangan HMAC; dilarang di produksi) dan `midtrans` (Snap, `callbacks.finish` ke halaman status). Logika langganan hanya menerima kabar yang sudah diverifikasi.
+- **Webhook** idempoten (`payment` unik `(provider, event_id)`); jumlah berbeda dan pembayaran terlambat ditangani dan diuji.
+- **Status:** `pending_payment` (kedaluwarsa 24 jam, alamat dilepas) → `active` → `past_due` (tenggang 7 hari, sekolah tetap jalan) → `suspended` (alasan `billing`; data aman, dibuka saat lunas) → `canceled` (data disimpan 90 hari).
+- **Perpanjangan:** invoice dibuat 7 hari sebelum jatuh tempo (email); pembayaran menyambung dari akhir periode. Naik paket segera (selisih harga), turun paket di periode berikutnya.
+- **Staf:** penangguhan (`staff`) tidak dilepas pembayaran; aktivasi komplimen (pembayaran senilai 0, di-audit) untuk pilot.
+- **SPP siswa tidak melewati Edusync:** wali membayar ke QRIS/rekening milik sekolah, mengunggah bukti, bendahara memverifikasi (`pending → verified | rejected`). Tanpa gateway sekolah, tanpa penampungan dana.
+
+## 7. Konsol platform (`/platform`)
+Daftar yayasan dan unit (status, tanggal berakhir, invoice terbuka, pencarian); pendaftaran tertunda; penangguhan/aktivasi dengan alasan wajib; aktivasi komplimen; audit lintas sekolah. Sebelum produksi: verifikasi dua langkah dan sesi lebih pendek untuk staf.
+
+## 8. Katalog modul
+
+- **Inti (selalu ada):** identitas + peran, yayasan dan unit, pendaftaran dan langganan, konsol platform, email dan antrean, tampilan dan bahasa, master data, kalender akademik, bank data kurikulum, audit, pengaturan sekolah.
+- **Modul (dibeli per unit):** Jadwal pelajaran, Absensi (RFID + kelas), Ekstrakurikuler, Nilai + rapor, Penilaian non-akademik, Tahfidz + ibadah, Administrasi, PKL, SPMB, SPP + tagihan, Website + pengumuman, Portal wali/siswa, Dashboard + laporan.
+- **Tahap lanjut:** UKS, alumni, keuangan sekolah (kas, BOS), API dan webhook, kepegawaian, LMS, perpustakaan/inventaris, domain sendiri untuk dashboard.
+- Siklus hidup siswa (naik kelas massal, kelulusan, mutasi, buku induk) ada di master data, bukan modul berbayar.
+- Paket contoh: Starter (Nilai), Standard (+ Absensi, Jadwal, Penilaian, Portal wali), Pro (+ SPMB, Website, Administrasi, SPP). Harga belum ditetapkan.
+
+## 9. Domain dan model data
+
+Penamaan kode Inggris; label UI default Indonesia. Tabel sekolah: `id` (uuid), `school_id`, `created_at/updated_at`, `deleted_at` untuk entitas yang di-soft-delete, `created_by`.
 
 | Modul | Tabel inti | Aturan penting |
 | --- | --- | --- |
-| **Platform** | `schools`, `school_domains`, `platform_staff`, `activation_tokens`, `audit_logs` | Status: `active`/`suspended`. Token aktivasi di-hash, 48 jam, sekali pakai. Tanpa password lewat jaringan. |
-| **Identity** | `user`, `member(school_id, role_id)`, `role`, `role_permission`, `session` | Satu user bisa jadi guru di sekolah A dan wali murid di B. Penonaktifan mencabut sesi. |
-| **Master data** | `academic_year`, `semester`, `program`, `class`, `student`, `guardian`, `student_guardian`, `teacher`, `subject`, `teaching_assignment`, `lesson_period`, `enrollment` | NIS/NISN/RFID unik per sekolah. Hanya satu tahun ajaran aktif. Siswa soft-delete; riwayat enrollment tidak pernah dihapus. Import Excel dengan **preview + laporan error per baris**. |
-| **Attendance** | `rfid_card`, `kiosk_device`, `attendance_policy`, `tap_event` (log mentah, immutable), `daily_attendance` (turunan), `class_session`, `class_attendance`, `attendance_status` (konfigurable) | Lihat 3.1. |
-| **Grades** | `assessment_component` (bobot per mapel/semester, dapat dikonfigurasi), `grade`, `grade_lock` | UTS/UAS/Pengetahuan/Praktik dari sistem lama menjadi **komponen terkonfigurasi**, bukan kolom hardcode. Nilai 0–100; kunci nilai per semester oleh kurikulum. Rapor PDF. |
-| **Assessments** | `rubric_aspect`, `rubric_scale`, `student_assessment` | Kepribadian, ekskul, kokurikuler disatukan satu mesin rubrik (skala A–D, aspek dapat diatur) — hilangkan 3 tabel & 3 alur duplikat. |
-| **SPMB** | `admission_period`, `application`, `application_document`, `application_status_log` | Alur: `submitted → verified → accepted/rejected → enrolled`. "Enrolled" menciptakan `student` otomatis (tidak input ulang). Dokumen max 2 MB (PDF/JPG/PNG), cek MIME magic-bytes, honeypot + rate limit + Turnstile (opsional). Bukti PDF. |
-| **Website** | `site_settings`, `page`, `post`, `block` (JSON terstruktur bertipe: hero, program, prestasi, testimoni, agenda, FAQ, galeri), `media`, `contact_message`, `download` | Sistem lama punya ±10 tabel konten homepage → diganti model **page + block** satu tabel. Konten rich-text disanitasi (allowlist) saat simpan. Publish/draft, slug unik, SEO meta, ISR cache per tenant. |
-| **Notification** | `outbox`, `notification_template`, `notification_log` | Idempoten, retry, jejak pengiriman. |
-| **Audit** | `audit_log` | Semua mutasi sensitif: siapa, apa, sebelum/sesudah, IP. |
+| Platform & langganan | `foundation`, `school` (`student_tier`, `suspended_reason`), `catalog_item`, `registration`, `slug_reservation`, `invoice`, `payment`, `subscription`, `entitlement`, `platform_staff` | RLS pada tabel sekolah; penagihan hanya ditulis peran platform |
+| Identitas | `user`, `session`, `account`, `verification`, `member`, `role`, `role_permission`, `member_role` | Penonaktifan mencabut sesi |
+| Pendukung | `outbox`, `audit_log` | Outbox ditulis di transaksi data |
+| Master data | `academic_year`, `semester`, `program`, `class`, `student`, `guardian`, `teacher`, `subject`, `teaching_assignment`, `lesson_period`, `enrollment` | NIS/NISN/RFID unik per sekolah; satu tahun ajaran aktif; riwayat enrollment tidak dihapus; impor Excel dengan pratinjau + laporan error per baris |
+| Kalender | `calendar_event(type: holiday/exam/activity/break, scope: school/class/program)` | Hari efektif dari kalender; tidak ada alpa di hari libur; ekspor iCal |
+| Bank data | schema `reference` (tanpa `school_id`, ber-versi): kurikulum, struktur mapel, komponen nilai, aspek rubrik, templat rapor, wilayah, surah/juz, libur nasional | Disalin ke unit lalu bebas diubah; pembaruan acuan sebagai perbandingan, tidak menimpa; satu sekolah boleh banyak jenjang |
+| Absensi | `rfid_card`, `kiosk_device`, `attendance_policy`, `tap_event` (immutable), `daily_attendance`, `class_session`, `class_attendance` | Lihat 9.1 |
+| Nilai | `assessment_component` (bobot), `grade`, `grade_lock` | UTS/UAS/pengetahuan/praktik adalah komponen terkonfigurasi; kunci per semester oleh kurikulum |
+| Penilaian | `rubric_aspect`, `rubric_scale`, `student_assessment` | Kepribadian, ekskul, kokurikuler memakai satu mesin rubrik |
+| Tahfidz | `halaqah`, `hafalan_target`, `hafalan_entry` (ziyadah/murajaah), `ibadah_item`, `ibadah_log` | Wali melihat progres lewat portal; rapor tahfidz memakai templat rapor |
+| Administrasi | `signer_credential`, `signed_document`, surat masuk/keluar, disposisi, template, arsip | Lihat 9.2 |
+| PKL (SMK) | `pkl_partner`, `pkl_period`, `pkl_placement`, `pkl_journal`, `pkl_visit`, `pkl_assessment` | Pembimbing industri lewat tautan terbatas; surat dan sertifikat dari template Administrasi |
+| SPMB | `admission_period`, `application`, `application_document`, `application_status_log` | `submitted → verified → accepted/rejected → enrolled`; "enrolled" membuat `student` otomatis; dokumen maks. 2 MB (PDF/JPG/PNG), cek magic bytes, honeypot + rate limit |
+| SPP | `fee_item`, `fee_plan` (bulanan/tahunan/sekali/cicilan; per tingkat/program/kelas/siswa), `fee_discount`, invoice siswa, `payment` | Nominal 0 = gratis; denda opsional; verifikasi manual oleh bendahara |
+| Website | `site_settings`, `page`, `block` (JSON bertipe), `post`, `media`, `contact_message`, `download` | Rich-text disanitasi; draft/publish; SEO; cache per tenant |
+| Notifikasi | `notification_template`, `notification_log` | Idempoten, coba ulang |
 
-### 3.1 Desain absensi RFID (bagian paling berisiko)
-- Kiosk = `kiosk_device` dengan **API key sendiri** (bukan endpoint publik terbuka seperti sistem lama), terikat ke sekolah, bisa dicabut.
-- `POST /kiosk/taps` **idempoten** (`client_event_id`); waktu otoritatif = server, `client_time` hanya disimpan. Kiosk (PWA) **antri offline** lalu sinkron.
-- Tap mentah disimpan immutable di `tap_event`; `daily_attendance` dihitung dari policy (jam masuk, batas terlambat, jam pulang minimum, jendela debounce double-tap, zona waktu sekolah `Asia/Jakarta`). Policy bisa berubah tanpa merusak data historis (recompute dari log).
-- Tap kedua dalam jendela debounce diabaikan; tap pertama = masuk, tap valid berikutnya = pulang. Kartu tak dikenal/siswa nonaktif ditolak dengan alasan dan dicatat.
-- Notifikasi WhatsApp ke wali dikirim via outbox, bukan inline dalam request tap.
+Jurusan: `program` bertingkat (jurusan/peminatan SMA; bidang → program → kompetensi keahlian SMK), acuannya di bank data.
 
-### 3.2 RBAC
-Role bawaan (seed per sekolah, dapat diubah): `school_admin`, `principal` (kepala sekolah), `curriculum`, `treasurer`, `operator`, `teacher`, `guardian`/`student` (portal, fase lanjut). Permission dicek di **API** (sumber kebenaran) dan dipakai UI hanya untuk menyembunyikan menu/tombol. Data guru dibatasi ke kelas/mapel yang ditugaskan (ABAC ringan lewat `teaching_assignment`).
+### 9.1 Absensi RFID
+- Kiosk (PWA) = `kiosk_device` dengan API key sendiri yang bisa dicabut; tanpa endpoint terbuka.
+- `POST /kiosk/taps` idempoten (`client_event_id`); waktu otoritatif server, `client_time` disimpan saja; antrean offline lalu sinkron.
+- Tap mentah immutable; `daily_attendance` dihitung dari kebijakan (jam masuk, batas terlambat, jam pulang minimum, jendela debounce, zona waktu sekolah). Kebijakan bisa berubah dan status dihitung ulang dari log.
+- Tap pertama = masuk; tap valid berikutnya = pulang; tap dalam jendela debounce diabaikan; kartu tak dikenal/siswa nonaktif ditolak dan dicatat. Notifikasi ke wali lewat outbox, bukan inline.
 
-## 4. Lintas-sektor (non-fungsional)
+### 9.2 Administrasi: tanda tangan QR
+Menandatangani membuat `signed_document` (hash SHA-256 PDF, penandatangan, waktu, nomor surat) dengan token acak; QR mengarah ke `/verify/{token}` (halaman publik: nomor, penerbit, penandatangan, waktu, status; opsi unggah PDF untuk mencocokkan hash). Surat bisa dicabut (`revoked`). Ini tanda tangan sederhana, bukan TTE tersertifikasi; cukup untuk surat internal. Tanda tangan dan stempel disimpan privat dan hanya dipakai penandatangannya.
 
-- **Keamanan:** RLS, cookie `httpOnly/SameSite`, CSRF untuk mutasi cookie, rate limit per IP + per akun, argon2id, validasi upload (magic bytes, ukuran, nama acak, storage privat, signed URL), sanitasi HTML, secret hanya di env tervalidasi Zod (gagal start jika salah), header keamanan (CSP), audit log, dependency audit di CI. Bootstrap dev tetap dikunci `NODE_ENV=development`.
-- **Performa:** indeks sesuai pola (`school_id, class_id, date`), pagination cursor di daftar besar, N+1 dicegah di repo, hasil laporan berat lewat job + cache.
-- **Data:** soft-delete + restore; migrasi maju-saja (expand/contract) agar deploy tanpa downtime; backup `pg_dump` harian + uji restore; retensi tap/log terdokumentasi (privasi data anak).
-- **Dokumentasi:** OpenAPI **dihasilkan dari route** (tidak ditulis tangan); setiap endpoint wajib `summary`, skema request/response/error. ADR singkat per keputusan besar di `docs/adr`.
-- **Test pyramid:** unit untuk aturan murni (status absensi, bobot nilai), integrasi dengan Postgres nyata (termasuk **tes bocor-tenant**: sekolah A tak bisa membaca B), E2E Playwright untuk alur kritis (aktivasi, tap RFID, input nilai, SPMB, publik).
+## 10. Keamanan dan mutu
 
-## 5. Rencana kerja (milestone, urut dependensi)
+- **Keamanan:** RLS dan dua peran database; sesi cookie httpOnly terikat alamat; kata sandi di-hash, min. 12 karakter; asal permintaan terbatas pada domain dasar dan subdomainnya; rate limit, header keamanan, validasi Zod untuk semua input, konfigurasi divalidasi saat start; unggahan diperiksa (ukuran, isi, nama acak, penyimpanan privat, tautan bertanda tangan); audit log aksi sensitif dengan pelaku, alasan, dan peran sumber izin.
+- **Mutu:** tes dengan Postgres nyata (isolasi tenant, izin, penagihan, antrean, email sampai Mailpit); tes kelengkapan kunci terjemahan tiga bahasa; migrasi maju-saja dan aman diulang; cadangan harian dengan uji pemulihan sebelum produksi; pekerjaan latar idempoten; CI menjalankan migrasi, lint, tipe, dan seluruh tes.
+- **Dokumentasi:** OpenAPI dihasilkan dari route (tidak ditulis tangan); setiap endpoint wajib `summary` dan skema request/response/error; fitur dan konsep didokumentasikan sebagai halaman web.
+- **Performa:** indeks sesuai pola (`school_id, class_id, date`), pagination cursor, laporan berat lewat job.
+- **Data:** soft-delete + restore; retensi tap/log terdokumentasi (privasi data anak).
 
-| M | Isi | Selesai bila |
+## 11. Lingkungan lokal
+Lihat `README.md`. Konfigurasi penting di `.env`: `DATABASE_*_URL` (owner/app/platform/jobs), `AUTH_SECRET`, `AUTH_URL`, `TRUSTED_ORIGINS`, `SMTP_*`, `PAYMENT_PROVIDER` + `PAYMENT_DEV_SECRET`/`MIDTRANS_SERVER_KEY`, `APP_DOMAIN`, `API_URL`, `DEV_SEED_PASSWORD`. Akun seed: `admin@edusync.test`, `guru@edusync.test`, `staff@edusync.test`; sekolah contoh `smpit-miftahul-huda` dan `smk-miftahul-huda`.
+
+## 12. Rencana dan status
+
+| M | Isi | Status / selesai bila |
 | --- | --- | --- |
-| **M0 Fondasi** | Monorepo, CI, `packages/db` + RLS, env, Fastify + OpenAPI otomatis, Better Auth, RBAC, audit, outbox/pg-boss, `ui` + app shell + i18n, docker-compose dev | `pnpm dev` jalan; tes bocor-tenant hijau; CI hijau; login + daftar permission bekerja |
-| **M1 Platform** | Konsol platform: sekolah, subdomain, aktivasi admin, suspend/aktifkan, staf platform, audit viewer, reset password | Buat sekolah → email aktivasi → admin masuk, dalam 1 transaksi |
-| **M2 Master data** | Tahun ajaran/semester, program, kelas, siswa, guru, wali, mapel, penugasan, jam pelajaran, enrollment, import/export Excel | Operator mengimpor 500 siswa dengan laporan error per baris |
-| **M3 Absensi** | Kiosk RFID, policy, rekap harian, absensi kelas, status kustom, notifikasi WA, laporan PDF/Excel | Simulasi 1000 tap/menit tanpa duplikat; recompute policy benar |
-| **M4 Nilai & Penilaian** | Komponen & bobot, input nilai, kunci, rubrik non-akademik, rapor PDF | Rapor satu kelas dihasilkan sebagai job |
-| **M5 SPMB** | Periode, form publik, upload dokumen, review, bukti PDF, konversi ke siswa | Pendaftar diterima → siswa terbuat tanpa input ulang |
-| **M6 Website** | Page/block CMS, berita, kontak, unduhan, SEO, cache | Situs publik sekolah skor Lighthouse ≥ 90 |
-| **M7 Hardening & rilis** | Uji beban, review keamanan, backup/restore drill, deploy produksi, runbook | Checklist rilis lengkap |
+| M0 | Fondasi: monorepo, RLS, yayasan dan unit, login, peran rangkap, audit, antrean, tampilan, 3 bahasa | **Selesai** |
+| M1 | Pendaftaran dan langganan, konsol staf, subdomain sekolah, sesi per alamat | **Selesai** (mode simulasi; Midtrans sandbox belum diuji akun sungguhan) |
+| M2 | Master data, kalender, bank data kurikulum, jurusan, siklus hidup siswa, impor Excel | 500 siswa diimpor dengan laporan error per baris; guru terlihat di dua unit |
+| M3 | Jadwal, absensi (kiosk RFID), ekskul, WhatsApp | 1000 tap/menit tanpa duplikat; hitung ulang kebijakan benar |
+| M4 | Nilai dan penilaian | Rapor satu kelas dibuat sebagai job |
+| M5 | Tahfidz dan ibadah | Musyrif mencatat satu halaqah; wali melihat progres |
+| M6 | Administrasi | Surat bertanda tangan QR diverifikasi publik; surat dicabut terlihat |
+| M7 | PKL dan prakerin | Satu siswa melewati penempatan, jurnal, penilaian, sertifikat |
+| M8 | SPMB | Pendaftar diterima otomatis menjadi siswa |
+| M9 | SPP dan tagihan | Satu unit gratis dan satu unit dengan cicilan + beasiswa dari konfigurasi yang sama |
+| M10 | Website, pengumuman, domain sendiri (situs publik + SPMB) | Lighthouse ≥ 90; satu unit tampil di domain luar dengan HTTPS otomatis |
+| M11 | Portal wali/siswa, dashboard kepala sekolah dan yayasan | Wali melihat absensi, nilai, tahfidz, tagihan anaknya |
+| M12 | Rilis: uji beban, tinjauan keamanan, latihan pemulihan, produksi | Daftar periksa rilis lengkap |
 
-Prioritas lama (absensi, auth, nilai, siswa) dipenuhi lewat urutan M0→M4; website/SPMB setelahnya. Di luar cakupan awal: billing/langganan, aplikasi mobile native, portal wali/siswa penuh, 2FA (disiapkan oleh Better Auth, diaktifkan kemudian).
+Pilot Miftahul Huda (SMP IT + SMK, ±15 guru, sebagian lintas unit) masuk akal setelah M2–M4, memakai aktivasi komplimen.
 
-## 6. Prosedur "hapus dan mulai dari nol"
-
-1. Tag arsip: `git tag legacy-v0 && git push --tags` (kode lama tetap terbaca di riwayat).
-2. Branch `rebuild`; hapus `apps/*`, `packages/*`, `repair_auth_copy.py`, lockfile, migrasi lama. **Pertahankan** `Planning/`, `.claude/`, `.gitignore`, `.env.example` (diperbarui).
-3. Indeks ulang CodeGraph setelah scaffold M0 (`codegraph index`) agar pencarian kode tetap hemat token.
-4. Tiap fitur: satu PR kecil, tes menyertai, endpoint ter-dokumentasi di OpenAPI otomatis, konsep/fitur dicatat di Notion.
-
-## 7. Yang perlu Anda siapkan/pasang
-
-| Item | Untuk |
-| --- | --- |
-| Node 26, pnpm (sudah ada), **Docker Desktop** | Postgres, MinIO, Mailpit lokal + Testcontainers |
-| **GitHub CLI** `gh` (login) | PR dan CI; konektor GitHub gagal terhubung di sesi ini |
-| Otorisasi **Notion** (`/mcp`) | Dokumentasi fitur/konsep sesuai aturan kerja Anda |
-| Akun **Fonnte** (token) — bisa menyusul sebelum M3 | WhatsApp |
-| Akun SMTP/App Password (bisa Mailpit dulu) | Email aktivasi/reset |
-| Domain + VPS — bisa menyusul sebelum M7 | Produksi, wildcard subdomain |
-| Playwright browsers (saya pasang via `pnpm`) | E2E |
-
-## 8. Keputusan yang perlu dikonfirmasi
-
-1. **Satu backend + satu web app** (rekomendasi) vs mempertahankan pemisahan Platform/School.
-2. **Next.js** (SSR untuk situs publik/SPMB; rekomendasi) vs Vite SPA + situs publik terpisah.
-3. **Hosting**: VPS + Docker (rekomendasi) vs PaaS (Railway/Fly).
-4. ~~Pendaftaran mandiri~~ **Diputuskan 2026-10-29:** sekolah mendaftar sendiri, membayar, dan aktif otomatis (lihat bagian 9).
-
-## 9. Revisi 1 (2026-10-29)
-
-- **UI:** Tailwind v4 + shadcn/ui, seluruh komponen di `packages/ui`.
-- **Git:** Git CLI sudah cukup. Perlu akun GitHub; GitHub Desktop opsional, `gh` tidak wajib.
-- **Dokumentasi fitur:** halaman web di dalam aplikasi (`/docs`, MDX) dengan referensi API dari OpenAPI; sementara memakai artifact. Notion tidak dipakai.
-- **Pendaftaran mandiri + aktif otomatis:** daftar akun (verifikasi email) → data sekolah + subdomain (dipesan 24 jam) → pilih paket/modul → invoice gateway → webhook (tanda tangan diperiksa, idempoten) → satu transaksi: `school`, `subscription`, keanggotaan admin, entitlement modul → langsung masuk. Staf platform hanya memantau dan menangani kasus khusus.
-- **Langganan:** tabel `plan`, `module`, `price`, `subscription`, `subscription_item`, `invoice`, `payment`, `entitlement`. Katalog di database (ubah harga tanpa deploy). Modul inti selalu termasuk; modul lain per sekolah. Harga = dasar + modul + tingkat jumlah siswa aktif. Entitlement dicek di API (`requireEntitlement`), menu, kiosk, dan situs publik. Status: `pending_payment`, `active`, `past_due` (tenggang 7 hari), `suspended` (hanya baca), `canceled` (data disimpan 90 hari). Naik paket segera (prorata), turun paket di periode berikutnya.
-- **Payment gateway:** "gratis" = tanpa biaya setup/bulanan, hanya potongan per transaksi + sandbox. Rekomendasi Midtrans (Snap), dibungkus adapter `PaymentProvider` agar bisa pindah ke Xendit. Tarif terkini belum terverifikasi (pencarian web gagal) — periksa di situs resmi. Auto-debit VA/QRIS umumnya tidak ada, jadi perpanjangan memakai invoice berulang (pengingat H-7, H-3, H-0 via email + WA). Produksi butuh verifikasi identitas/usaha dan rekening bank.
-- **Roadmap:** M1 menjadi "Pendaftaran dan langganan" (mode sandbox).
-
-## 10. Katalog modul (revisi 2, 2026-10-29)
-
-- **Inti (tidak dijual terpisah):** identity + RBAC, master data, audit, pengaturan sekolah, notifikasi dasar, **kalender akademik**.
-- **V1:** Absensi (RFID + kelas), Nilai + rapor, Penilaian non-akademik, SPMB, Website, Jadwal pelajaran, Portal wali/siswa (baca saja), Pengumuman + agenda, **Administrasi** (usulan: V1 akhir, menunggu keputusan V1/V2).
-- **V2:** SPP + tagihan siswa, Kedisiplinan + BK, Ujian online (CBT), Ekspor Dapodik (hanya ekspor berkas).
-- **V3:** Kepegawaian + absensi guru, LMS ringan, Perpustakaan + inventaris.
-- **Siklus hidup siswa** (naik kelas massal, kelulusan, mutasi, buku induk) ada di Master data (M2), bukan modul berbayar.
-- Paket usulan: Starter (Nilai + Pengumuman), Standard (+ Absensi, Jadwal, Penilaian, Portal wali, Administrasi), Pro (+ SPMB, Website). Modul V2 dijual terpisah. Harga belum ditetapkan.
-
-### Kalender akademik
-Tabel `calendar_event(type: holiday|exam|activity|break, start, end, scope: school|class|program)` terikat `academic_year`/`semester`. Hari efektif dihitung dari kalender; absensi tidak menandai alpa pada hari libur; jadwal menolak sesi di hari libur. Ekspor iCal, tampil di portal dan website. Libur nasional dapat di-seed per tahun, sekolah menambah sendiri.
-
-### Administrasi: tanda tangan QR
-- `signer_credential`: gambar tanda tangan + stempel per penandatangan (jabatan), disimpan di storage privat; hanya penandatangan sendiri yang bisa memakainya.
-- Menandatangani = membuat `signed_document` (hash SHA-256 PDF, penandatangan, waktu, nomor surat) + token acak; QR di PDF mengarah ke `/verify/{token}` (halaman publik: nomor, penerbit, penandatangan, waktu, status; opsi unggah PDF untuk mencocokkan hash).
-- Surat bisa dicabut (status `revoked`), halaman verifikasi menampilkannya.
-- Batasan: ini tanda tangan sederhana, bukan tanda tangan elektronik tersertifikasi (TTE). Cukup untuk surat internal sekolah; dokumen yang butuh kekuatan hukum penuh perlu penyedia TTE.
-- Fitur lain: surat masuk/keluar dengan nomor otomatis, disposisi, template surat dari data siswa, arsip dokumen, permintaan layanan dari wali (butuh Portal wali).
-
-## 11. Revisi 3 (2026-10-29): keputusan modul
-
-**Diputuskan:** Administrasi masuk V1. SPP masuk V1, dengan aturan sepenuhnya mengikuti sekolah (gratis sampai detail). Kurikulum disesuaikan per sekolah dengan **bank data** sebagai acuan. Jenjang beragam.
-
-**Milestone (menggantikan bagian 5):** M0 Fondasi · M1 Pendaftaran dan langganan · M2 Master data, kalender, bank data kurikulum, siklus hidup siswa · M3 Jadwal + Absensi (+ ekskul) · M4 Nilai dan penilaian · M5 SPMB · M6 Administrasi · M7 SPP · M8 Website + Pengumuman · M9 Portal wali + Dashboard · M10 Rilis.
-
-### Bank data dan kurikulum
-- Schema `reference` (tanpa `school_id`, hanya baca, ber-versi): kurikulum (Merdeka, K13, KMA madrasah, dll.), struktur mapel per jenjang/fase, komponen nilai default, aspek rubrik, templat rapor, wilayah, agama, libur nasional.
-- Sekolah **mengadopsi** acuan = salin ke data sekolah (`curriculum`, `subject`, `assessment_component`, `report_template`), lalu bebas diubah. Pembaruan acuan baru ditawarkan sebagai perbandingan (diff), tidak menimpa.
-- Satu sekolah boleh punya banyak jenjang (mis. SD + SMP). Struktur tingkat/fase mengikuti kurikulum yang diadopsi, bukan angka tetap.
-
-### SPP fleksibel
-- `fee_item` (SPP, uang gedung, seragam, kegiatan), `fee_plan` (frekuensi: bulanan/tahunan/sekali/cicilan; berlaku per tingkat, program, kelas, atau siswa), `fee_discount` (beasiswa, saudara kandung), `invoice` siswa, `payment`. Nominal 0 = gratis. Denda keterlambatan opsional.
-- Dua mode pembayaran: **catat manual** (tunai/transfer, unggah bukti, bendahara memverifikasi) dan **online** (VA/QRIS).
-- **Risiko uang:** pembayaran siswa harus masuk ke rekening sekolah, bukan Edusync. Menampung dana pihak lain bisa memerlukan izin penyelenggara pembayaran. Usulan: sekolah menghubungkan akun gateway miliknya sendiri (kunci disimpan terenkripsi), atau memakai mode catat manual. Perlu keputusan.
-
-### Usulan modul tambahan (menunggu persetujuan)
-V1: Dashboard dan laporan, Ekstrakurikuler (sistem lama punya absensi ekskul). V2: Yayasan dan multi-sekolah. V3: Kesehatan siswa (UKS), Alumni, Keuangan sekolah (kas, dana BOS), API dan webhook.
-
-## 12. Revisi 4 (2026-10-29): yayasan, SPP, V3
-
-**Diputuskan:** SPP dibayar ke sekolah lewat QRIS milik sekolah atau transfer rekening sekolah; opsional dan diatur sekolah. Yayasan dan multi-sekolah masuk **V1** (pilot: Miftahul Huda, unit SMP IT dan SMK). Dashboard dan Ekstrakurikuler masuk V1. Modul V3 (UKS, Alumni, Keuangan sekolah, API dan webhook) tetap direncanakan.
-
-### SPP tanpa gateway
-Edusync tidak menyentuh uang SPP. Sekolah mengisi gambar QRIS dan/atau data rekening. Wali membayar di luar sistem, mengunggah bukti pada tagihan, bendahara memverifikasi (`payment.status: pending → verified | rejected`). Tidak ada kunci gateway milik sekolah, tidak ada risiko penampungan dana. Integrasi gateway sekolah bisa ditambahkan nanti sebagai opsi.
-
-### Hierarki yayasan
-- `foundation` 1—N `school` (unit). Sekolah tunggal otomatis punya yayasan tersembunyi, jadi hanya ada satu model.
-- Keanggotaan: `member` bercakupan yayasan atau unit. Peran `foundation_admin` melihat semua unit; peran lain per unit.
-- RLS: request mengisi `app.school_ids` (uuid[]) dari keanggotaan; kebijakan `school_id = ANY(app.school_ids)`. Tes bocor-tenant diperluas: antar yayasan tidak boleh bocor; antar unit hanya lewat izin.
-- `person` ada di level yayasan untuk guru/pegawai dan wali (guru lintas unit, wali dengan anak di dua unit, satu kontak WhatsApp). Siswa tetap per unit, ditautkan ke `person` agar mutasi internal SMP IT → SMK menjaga riwayat.
-- Langganan di level yayasan, item per unit dan modul, satu invoice. Entitlement dicek per unit. Kurikulum dan jenjang per unit.
-- Subdomain per unit; konsol yayasan di subdomain yayasan. Satu login untuk semua.
-- Kalender: acara yayasan diwariskan ke unit, unit menambah sendiri.
-- SPMB internal untuk lulusan unit lain di yayasan yang sama.
-
-### Dampak rencana
-Hierarki dan RLS multi-unit harus ada sejak **M0** (mahal diubah belakangan). M1 membuat pendaftaran sebagai yayasan. Untuk pilot Miftahul Huda, paket `komplimen` (tanpa tagihan) agar pengujian M2–M4 tidak menunggu pembayaran.
-
-### Pertanyaan terbuka
-SMK: perlu PKL/prakerin dan kompetensi keahlian? SMP IT: perlu tahfidz dan monitoring ibadah (mutaba'ah)? Guru lintas unit: berapa banyak?
-
-## 13. Revisi 5 (2026-10-29): PKL, Tahfidz, peran rangkap
-
-**Milestone final usulan (menggantikan bagian 11):** M0 Fondasi · M1 Pendaftaran dan langganan · M2 Master data (jurusan, kompetensi keahlian, kalender, bank data) · M3 Jadwal + Absensi + Ekskul · M4 Nilai · M5 Tahfidz dan ibadah · M6 Administrasi · M7 PKL · M8 SPMB · M9 SPP · M10 Website + Pengumuman · M11 Portal + Dashboard · M12 Rilis. PKL setelah Administrasi karena memakai template surat; Tahfidz lebih awal karena pilot.
-
-### Peran rangkap
-- `member` (orang di unit) 1—N `member_role`. Izin = gabungan semua peran yang dipegang. Peran bisa berbeda per unit. Satu `person` = satu login.
-- Peran (izin umum) dipisah dari **penugasan** (konteks): `teaching_assignment` (pengampu mapel+kelas), `homeroom_assignment` (wali kelas), `extracurricular_advisor`, `halaqah_musyrif`, `pkl_supervisor`. Data guru dibatasi oleh penugasan, bukan oleh peran.
-- Audit log mencatat peran sumber izin. Aturan pemisahan tugas opsional per sekolah.
-- Pilot: ±15 guru, sebagian mengajar di SMP IT dan SMK.
-
-### Jurusan (SMA sederajat)
-`program` bertingkat: jurusan/peminatan (IPA, IPS, dll. untuk SMA) atau bidang → program → kompetensi keahlian (SMK), dengan acuan di bank data. Kelas dan kurikulum mengacu ke `program`.
-
-### PKL / prakerin (SMK)
-`pkl_partner` (DUDI), `pkl_period`, `pkl_placement` (siswa, mitra, periode, pembimbing sekolah, pembimbing industri), `pkl_journal` (harian, bisa lampiran foto), `pkl_visit` (kunjungan monitoring), `pkl_assessment` (rubrik dari sekolah, dinilai pembimbing industri dan sekolah), sertifikat dan surat (pengantar, tugas, permohonan) lewat template modul Administrasi dengan tanda tangan QR. Pembimbing industri mengakses lewat tautan masuk terbatas, tanpa akun staf penuh.
-
-### Tahfidz dan ibadah (SMP IT)
-`halaqah` (musyrif, anggota, jadwal), `hafalan_target`, `hafalan_entry` (jenis ziyadah/murajaah, surah, ayat awal-akhir, kualitas, catatan), `ibadah_item` (daftar mutaba'ah yang diatur sekolah) dan `ibadah_log` harian. Acuan surah/juz di bank data. Wali melihat progres lewat portal. Rapor tahfidz mengikuti templat rapor.
-
-## 14. Domain sendiri (2026-10-29)
-
-- **Tabel:** `school_domains(school_id, hostname, kind: platform_subdomain|custom, status: pending|verified|active|failed, verification_token, verified_at, is_primary)`.
-- **Alur:** admin menambah hostname → sistem menampilkan `CNAME` ke alamat Edusync dan `TXT` bukti kepemilikan → pemeriksa DNS berkala (job) → status `verified` → sertifikat HTTPS diterbitkan otomatis (Caddy on-demand TLS; endpoint `ask` hanya mengizinkan hostname yang terdaftar dan terverifikasi) → subdomain bawaan dialihkan 301 ke domain utama.
-- **Tahap 1 (M10, V1):** situs publik dan SPMB per unit. Tanpa login di domain luar, jadi cookie, CORS, dan tautan email tidak berubah. Dashboard dan portal tetap di `slug.edusync.id`.
-- **Tahap 2 (V3):** dashboard dan portal wali di domain sekolah (sesi per host, `trustedOrigins` dinamis, tautan email memakai host utama).
-- **Batasan:** apex tanpa `www` memerlukan ALIAS/A record; batas penerbitan sertifikat perlu dipantau; hostname dicegah mengarah ke domain platform lain (anti pembajakan), dan domain dilepas bila langganan berhenti.
-- **Paket:** entitlement `custom_domain` pada paket tertentu atau modul tambahan.
-- **Hosting:** mengandalkan VPS dengan Caddy. Jika pindah ke PaaS, perlu layanan setara (mis. Cloudflare for SaaS).
+### Berikutnya dan terbuka
+- Peran pemilik yayasan dan portal akun: langganan, tagihan, bayar perpanjangan, ubah paket dan unit.
+- Pengelolaan peran dan anggota lewat layar, undangan guru, pengecualian izin per orang.
+- Uji Midtrans sandbox (butuh terowongan, notification URL `/v1/webhooks/payments/midtrans`).
+- Verifikasi email saat daftar; notifikasi masa tenggang; SMTP sungguhan.
+- Verifikasi dua langkah staf; perintah pembuatan admin pertama di produksi.
+- E2E Playwright; penyimpanan berkas; hosting produksi dan domain dasar final (VPS + Docker + Caddy, atau PaaS).
+- Teks Sunda perlu ditinjau penutur asli. Harga katalog belum ditetapkan.
