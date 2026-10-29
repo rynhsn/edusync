@@ -35,7 +35,8 @@
     "notMemberTitle": "Anda bukan anggota sekolah ini.",
     "notMemberBody": "Masuk dengan akun yang terdaftar di sekolah ini, atau hubungi admin sekolah untuk diundang.",
     "goMain": "Ke halaman utama",
-    "members": "Anggota"
+    "members": "Anggota",
+    "roles": "Peran"
   },
   "roles": {
     "school_admin": "Admin sekolah",
@@ -99,7 +100,10 @@
     "last_admin": "Sekolah harus memiliki minimal satu admin sekolah yang aktif.",
     "self_disable": "Anda tidak dapat menonaktifkan akun Anda sendiri.",
     "invitation_invalid": "Undangan ini sudah tidak berlaku.",
-    "invitation_wrong_account": "Undangan ini untuk email lain. Masuk dengan email yang diundang."
+    "invitation_wrong_account": "Undangan ini untuk email lain. Masuk dengan email yang diundang.",
+    "role_locked": "Peran Admin sekolah tidak dapat diubah.",
+    "role_system": "Peran bawaan tidak dapat dihapus.",
+    "role_in_use": "Peran ini masih dipegang anggota. Lepaskan dulu dari mereka."
   },
   "theme": {
     "label": "Tema",
@@ -322,5 +326,26 @@
     "signInAndAccept": "Masuk dan terima",
     "name": "Nama lengkap",
     "emailTaken": "Email ini sudah terdaftar. Muat ulang halaman untuk masuk."
+  },
+  "rolesPage": {
+    "title": "Peran dan izin",
+    "subtitle": "Peran adalah kumpulan izin. Perubahan berlaku segera untuk semua pemegangnya.",
+    "readOnly": "Anda hanya dapat melihat daftar ini.",
+    "createTitle": "Buat peran kustom",
+    "name": "Nama peran",
+    "permissions": "Izin",
+    "noPermission": "Pilih minimal satu izin.",
+    "create": "Buat peran",
+    "created": "Peran dibuat.",
+    "saved": "Perubahan disimpan.",
+    "deleted": "Peran dihapus.",
+    "edit": "Ubah",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "delete": "Hapus",
+    "system": "Bawaan",
+    "custom": "Kustom",
+    "locked": "Terkunci",
+    "loadError": "Daftar peran tidak dapat dimuat."
   }
 }

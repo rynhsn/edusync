@@ -35,7 +35,8 @@
     "notMemberTitle": "Anjeun lain anggota sakola ieu.",
     "notMemberBody": "Lebet nganggo akun nu kadaptar di sakola ieu, atawa hubungi admin sakola pikeun diondang.",
     "goMain": "Ka kaca utama",
-    "members": "Anggota"
+    "members": "Anggota",
+    "roles": "Peran"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -99,7 +100,10 @@
     "last_admin": "Sakola kedah gaduh sahenteuna hiji admin sakola nu aktip.",
     "self_disable": "Anjeun teu tiasa nonaktipkeun akun Anjeun nyalira.",
     "invitation_invalid": "Uleman ieu geus teu valid.",
-    "invitation_wrong_account": "Uleman ieu pikeun surélék séjén. Lebet nganggo surélék nu diulem."
+    "invitation_wrong_account": "Uleman ieu pikeun surélék séjén. Lebet nganggo surélék nu diulem.",
+    "role_locked": "Peran Admin sakola teu tiasa dirobah.",
+    "role_system": "Peran bawaan teu tiasa dipiceun.",
+    "role_in_use": "Peran ieu masih dicekel ku anggota. Lépaskeun heula ti aranjeunna."
   },
   "theme": {
     "label": "Tema",
@@ -322,5 +326,26 @@
     "signInAndAccept": "Lebet jeung narima",
     "name": "Ngaran lengkep",
     "emailTaken": "Surélék ieu geus kadaptar. Muat deui kaca pikeun lebet."
+  },
+  "rolesPage": {
+    "title": "Peran jeung idin",
+    "subtitle": "Peran nyaéta kumpulan idin. Parobahan lumaku langsung pikeun sakabéh nu nyekelna.",
+    "readOnly": "Anjeun ngan tiasa ningali daptar ieu.",
+    "createTitle": "Jieun peran kustom",
+    "name": "Ngaran peran",
+    "permissions": "Idin",
+    "noPermission": "Pilih sahenteuna hiji idin.",
+    "create": "Jieun peran",
+    "created": "Peran dijieun.",
+    "saved": "Parobahan disimpen.",
+    "deleted": "Peran dipiceun.",
+    "edit": "Robah",
+    "save": "Simpen",
+    "cancel": "Batal",
+    "delete": "Piceun",
+    "system": "Bawaan",
+    "custom": "Kustom",
+    "locked": "Dikonci",
+    "loadError": "Daptar peran teu bisa dimuat."
   }
 }

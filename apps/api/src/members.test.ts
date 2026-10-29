@@ -341,3 +341,149 @@ describe('undangan lewat email', () => {
     ).toBe(403);
   });
 });
+
+describe('peran kustom', () => {
+  it('admin membuat peran kustom, memberikannya, mengubah izinnya, dan menghapusnya setelah dilepas', async () => {
+    const admin = await makeUser('admin-peran');
+    await join(admin.id, schoolId, ['school_admin']);
+    const cookie = await login(admin.email);
+
+    const created = await call('POST', '/v1/roles', cookie, {
+      name: 'Staf Perpustakaan',
+      permissions: ['member:read'],
+    });
+    expect(created.statusCode).toBe(201);
+    const r = created.json();
+    expect(r).toMatchObject({ isSystem: false, name: 'Staf Perpustakaan', permissions: ['member:read'] });
+    expect(r.key).toBe('custom-staf-perpustakaan');
+    // Nama yang sama menghasilkan kunci berbeda.
+    const twin = (
+      await call('POST', '/v1/roles', cookie, { name: 'Staf Perpustakaan', permissions: ['member:read'] })
+    ).json();
+    expect(twin.key).not.toBe(r.key);
+
+    // Diberikan ke anggota: izinnya langsung berlaku.
+    const staf = await makeUser('staf-perpus');
+    const stafMember = await join(staf.id, schoolId, ['teacher']);
+    const stafCookie = await login(staf.email);
+    expect((await call('GET', '/v1/members', stafCookie)).statusCode).toBe(403);
+    expect(
+      (await call('PUT', `/v1/members/${stafMember}/roles`, cookie, { roles: ['teacher', r.key] }))
+        .statusCode,
+    ).toBe(200);
+    expect((await call('GET', '/v1/members', stafCookie)).statusCode).toBe(200);
+
+    // Mengubah izin berlaku segera untuk pemegangnya.
+    const updated = await call('PUT', `/v1/roles/${r.id}`, cookie, {
+      name: 'Staf Perpus',
+      permissions: ['academic_year:read'],
+    });
+    expect(updated.statusCode).toBe(200);
+    expect(updated.json().name).toBe('Staf Perpus');
+    expect((await call('GET', '/v1/members', stafCookie)).statusCode).toBe(403);
+
+    // Masih dipegang: tidak bisa dihapus.
+    const inUse = await call('DELETE', `/v1/roles/${r.id}`, cookie);
+    expect(inUse.statusCode).toBe(409);
+    expect(inUse.json().error.code).toBe('role_in_use');
+    await call('PUT', `/v1/members/${stafMember}/roles`, cookie, { roles: ['teacher'] });
+    expect((await call('DELETE', `/v1/roles/${r.id}`, cookie)).statusCode).toBe(200);
+    const roles = (await call('GET', '/v1/roles', cookie)).json();
+    expect(roles.find((x: { id: string }) => x.id === r.id)).toBeUndefined();
+
+    const logs = await app.platformDb.execute<{ action: string }>(
+      sql`select action from audit_log where school_id = ${schoolId} and entity_id = ${r.id} order by created_at`,
+    );
+    expect(logs.rows.map((x) => x.action)).toEqual(['role.create', 'role.update', 'role.delete']);
+  });
+
+  it('peran bawaan: izin boleh diubah, nama dan penghapusan tidak; Admin sekolah terkunci', async () => {
+    const admin = await makeUser('admin-bawaan');
+    await join(admin.id, schoolId, ['school_admin']);
+    const cookie = await login(admin.email);
+    const roles = (await call('GET', '/v1/roles', cookie)).json();
+    const teacher = roles.find((x: { key: string }) => x.key === 'teacher');
+    const schoolAdmin = roles.find((x: { key: string }) => x.key === 'school_admin');
+
+    const edit = await call('PUT', `/v1/roles/${teacher.id}`, cookie, {
+      name: 'Dicoba Ganti',
+      permissions: ['academic_year:read', 'audit:read'],
+    });
+    expect(edit.statusCode).toBe(200);
+    expect(edit.json().name).toBe('Guru');
+    expect(edit.json().permissions).toEqual(['academic_year:read', 'audit:read']);
+    // Kembalikan seperti semula agar tes lain tidak terpengaruh.
+    await call('PUT', `/v1/roles/${teacher.id}`, cookie, {
+      name: 'Guru',
+      permissions: ['academic_year:read'],
+    });
+
+    const del = await call('DELETE', `/v1/roles/${teacher.id}`, cookie);
+    expect(del.statusCode).toBe(409);
+    expect(del.json().error.code).toBe('role_system');
+    const locked = await call('PUT', `/v1/roles/${schoolAdmin.id}`, cookie, {
+      name: 'Admin',
+      permissions: ['member:read'],
+    });
+    expect(locked.statusCode).toBe(409);
+    expect(locked.json().error.code).toBe('role_locked');
+  });
+
+  it('hanya pemegang role:manage, dan tidak bisa memberi izin yang tidak dimilikinya', async () => {
+    const guru = await makeUser('guru-peran');
+    await join(guru.id, schoolId, ['teacher']);
+    expect(
+      (
+        await call('POST', '/v1/roles', await login(guru.email), {
+          name: 'Coba',
+          permissions: ['academic_year:read'],
+        })
+      ).statusCode,
+    ).toBe(403);
+
+    // Peran khusus: role:manage + member:read saja.
+    await app.platformDb.execute(
+      sql`insert into role (school_id, key, name) values (${schoolId}, 'pengelola', 'Pengelola')`,
+    );
+    await app.platformDb.execute(
+      sql`insert into role_permission (role_id, school_id, permission)
+          select id, school_id, p from role, unnest(array['role:manage','member:read']) p
+          where school_id = ${schoolId} and key = 'pengelola'`,
+    );
+    const pengelola = await makeUser('pengelola');
+    await join(pengelola.id, schoolId, ['pengelola']);
+    const cookie = await login(pengelola.email);
+    const tinggi = await call('POST', '/v1/roles', cookie, {
+      name: 'Terlalu Tinggi',
+      permissions: ['audit:read'],
+    });
+    expect(tinggi.statusCode).toBe(403);
+    expect(
+      (await call('POST', '/v1/roles', cookie, { name: 'Wajar', permissions: ['member:read'] })).statusCode,
+    ).toBe(201);
+    // Izin tidak dikenal ditolak validasi.
+    expect(
+      (await call('POST', '/v1/roles', cookie, { name: 'Ngawur', permissions: ['hack:all'] })).statusCode,
+    ).toBe(400);
+  });
+
+  it('peran sekolah lain tidak terjangkau', async () => {
+    const admin = await makeUser('admin-peran-iso');
+    await join(admin.id, schoolId, ['school_admin']);
+    const cookie = await login(admin.email);
+    const [other] = (
+      await app.platformDb.execute<{ id: string }>(
+        sql`select id from role where school_id = ${otherSchoolId} and key = 'teacher'`,
+      )
+    ).rows;
+    expect(
+      (
+        await call('PUT', `/v1/roles/${other?.id}`, cookie, {
+          name: 'Xx',
+          permissions: ['academic_year:read'],
+        })
+      ).statusCode,
+    ).toBe(404);
+    expect((await call('DELETE', `/v1/roles/${other?.id}`, cookie)).statusCode).toBe(404);
+  });
+});

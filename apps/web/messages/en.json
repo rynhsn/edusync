@@ -35,7 +35,8 @@
     "notMemberTitle": "You are not a member of this school.",
     "notMemberBody": "Sign in with an account registered at this school, or ask the school admin to invite you.",
     "goMain": "Go to the main page",
-    "members": "Members"
+    "members": "Members",
+    "roles": "Roles"
   },
   "roles": {
     "school_admin": "School admin",
@@ -99,7 +100,10 @@
     "last_admin": "The school must keep at least one active school admin.",
     "self_disable": "You cannot deactivate your own account.",
     "invitation_invalid": "This invitation is no longer valid.",
-    "invitation_wrong_account": "This invitation is for a different email. Sign in with the invited email."
+    "invitation_wrong_account": "This invitation is for a different email. Sign in with the invited email.",
+    "role_locked": "The School admin role cannot be changed.",
+    "role_system": "Built-in roles cannot be deleted.",
+    "role_in_use": "Members still hold this role. Remove it from them first."
   },
   "theme": {
     "label": "Theme",
@@ -322,5 +326,26 @@
     "signInAndAccept": "Sign in and accept",
     "name": "Full name",
     "emailTaken": "This email is already registered. Reload the page to sign in."
+  },
+  "rolesPage": {
+    "title": "Roles and permissions",
+    "subtitle": "A role is a set of permissions. Changes apply immediately to everyone who holds it.",
+    "readOnly": "You can only view this list.",
+    "createTitle": "Create a custom role",
+    "name": "Role name",
+    "permissions": "Permissions",
+    "noPermission": "Choose at least one permission.",
+    "create": "Create role",
+    "created": "Role created.",
+    "saved": "Changes saved.",
+    "deleted": "Role deleted.",
+    "edit": "Edit",
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "system": "Built-in",
+    "custom": "Custom",
+    "locked": "Locked",
+    "loadError": "The role list could not be loaded."
   }
 }

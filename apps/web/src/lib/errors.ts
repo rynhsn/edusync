@@ -23,6 +23,9 @@ const KNOWN = [
   'self_disable',
   'invitation_invalid',
   'invitation_wrong_account',
+  'role_locked',
+  'role_system',
+  'role_in_use',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

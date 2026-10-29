@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, ChevronsUpDown, LayoutDashboard, LogOut, Users } from 'lucide-react';
+import { CalendarDays, ChevronsUpDown, LayoutDashboard, LogOut, ShieldCheck, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -60,6 +60,7 @@ const NAV = [
     permission: 'academic_year:read',
   },
   { href: '/members', labelKey: 'members', icon: Users, permission: 'member:read' },
+  { href: '/roles', labelKey: 'roles', icon: ShieldCheck, permission: 'member:read' },
 ] as const;
 
 function Centered({ children }: { children: React.ReactNode }) {
