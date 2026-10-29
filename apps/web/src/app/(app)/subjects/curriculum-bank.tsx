@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
+import { SelectField } from '@/components/ui/select-field';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 
@@ -75,7 +75,7 @@ export function CurriculumBank() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="bank-curriculum">{t('curriculum')}</Label>
-            <NativeSelect
+            <SelectField
               id="bank-curriculum"
               value={current.key}
               onChange={(e) => {
@@ -89,11 +89,11 @@ export function CurriculumBank() {
                   {c.name}
                 </option>
               ))}
-            </NativeSelect>
+            </SelectField>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="bank-level">{t('level')}</Label>
-            <NativeSelect
+            <SelectField
               id="bank-level"
               value={level.levelGroup}
               onChange={(e) => {
@@ -106,7 +106,7 @@ export function CurriculumBank() {
                   {levelLabel(l.levelGroup)}
                 </option>
               ))}
-            </NativeSelect>
+            </SelectField>
           </div>
         </div>
         <p className="text-muted-foreground text-sm">{current.description}</p>

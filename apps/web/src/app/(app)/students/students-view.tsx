@@ -10,9 +10,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
+import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
@@ -103,27 +104,28 @@ function StudentFields({
       </div>
       <div className="grid gap-2">
         <Label htmlFor={f('gender')}>{t('gender')}</Label>
-        <NativeSelect
+        <SelectField
           id={f('gender')}
           value={draft.gender}
           onChange={(e) => onChange({ ...draft, gender: e.target.value as 'L' | 'P' })}
         >
           <option value="L">{t('male')}</option>
           <option value="P">{t('female')}</option>
-        </NativeSelect>
+        </SelectField>
       </div>
       <div className="grid gap-2">
         <Label htmlFor={f('birthDate')}>{t('birthDate')}</Label>
-        <Input
+        <DatePicker
           id={f('birthDate')}
-          type="date"
           value={draft.birthDate}
-          onChange={(e) => onChange({ ...draft, birthDate: e.target.value })}
+          onChange={(v) => onChange({ ...draft, birthDate: v })}
+          clearable
+          yearRange={{ from: new Date().getFullYear() - 40, to: new Date().getFullYear() }}
         />
       </div>
       <div className="grid gap-2">
         <Label htmlFor={f('status')}>{t('status')}</Label>
-        <NativeSelect
+        <SelectField
           id={f('status')}
           value={draft.status}
           onChange={(e) => onChange({ ...draft, status: e.target.value as Status })}
@@ -133,12 +135,12 @@ function StudentFields({
               {t(STATUS_KEY[s])}
             </option>
           ))}
-        </NativeSelect>
+        </SelectField>
       </div>
       {classes.length > 0 && (
         <div className="grid gap-2">
           <Label htmlFor={f('classId')}>{t('class')}</Label>
-          <NativeSelect
+          <SelectField
             id={f('classId')}
             value={draft.classId}
             onChange={(e) => onChange({ ...draft, classId: e.target.value })}
@@ -149,7 +151,7 @@ function StudentFields({
                 {c.name}
               </option>
             ))}
-          </NativeSelect>
+          </SelectField>
         </div>
       )}
     </div>
@@ -357,7 +359,7 @@ export function StudentsView() {
         {classList.length > 0 && (
           <div className="grid gap-2">
             <Label htmlFor="student-class">{t('class')}</Label>
-            <NativeSelect
+            <SelectField
               id="student-class"
               value={classFilter}
               onChange={(e) => {
@@ -371,12 +373,12 @@ export function StudentsView() {
                   {c.name}
                 </option>
               ))}
-            </NativeSelect>
+            </SelectField>
           </div>
         )}
         <div className="grid gap-2">
           <Label htmlFor="student-status">{t('status')}</Label>
-          <NativeSelect
+          <SelectField
             id="student-status"
             value={statusFilter}
             onChange={(e) => {
@@ -390,7 +392,7 @@ export function StudentsView() {
                 {t(STATUS_KEY[s])}
               </option>
             ))}
-          </NativeSelect>
+          </SelectField>
         </div>
       </div>
 

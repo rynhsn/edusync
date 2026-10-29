@@ -4,7 +4,9 @@
     "retry": "Cobian deui",
     "signOut": "Kaluar",
     "showPassword": "Témbongkeun kecap akses",
-    "hidePassword": "Sumputkeun kecap akses"
+    "hidePassword": "Sumputkeun kecap akses",
+    "pickDate": "Pilih tanggal",
+    "clearDate": "Piceun tanggal"
   },
   "auth": {
     "title": "Lebet ka Edusync",

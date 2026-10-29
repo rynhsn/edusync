@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -26,6 +27,8 @@ export function AcademicYearsView() {
   const queryClient = useQueryClient();
   const key = ['academic-years', school.schoolId];
   const [formError, setFormError] = useState<string | null>(null);
+  const [startsOn, setStartsOn] = useState('');
+  const [endsOn, setEndsOn] = useState('');
   const [semestersFor, setSemestersFor] = useState<string | null>(null);
   const ts = useTranslations('semesters');
 
@@ -76,10 +79,16 @@ export function AcademicYearsView() {
     create.mutate(
       {
         name: String(data.get('name')),
-        startsOn: String(data.get('startsOn')),
-        endsOn: String(data.get('endsOn')),
+        startsOn,
+        endsOn,
       },
-      { onSuccess: () => form.reset() },
+      {
+        onSuccess: () => {
+          form.reset();
+          setStartsOn('');
+          setEndsOn('');
+        },
+      },
     );
   }
 
@@ -167,13 +176,13 @@ export function AcademicYearsView() {
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="startsOn">{t('startsOn')}</Label>
-                  <Input id="startsOn" name="startsOn" type="date" required />
+                  <DatePicker id="startsOn" value={startsOn} onChange={setStartsOn} />
                 </div>
                 <div className="grid gap-2">
                   <Label htmlFor="endsOn">{t('endsOn')}</Label>
-                  <Input id="endsOn" name="endsOn" type="date" required />
+                  <DatePicker id="endsOn" value={endsOn} onChange={setEndsOn} />
                 </div>
-                <Button type="submit" disabled={create.isPending}>
+                <Button type="submit" disabled={create.isPending || !startsOn || !endsOn}>
                   {create.isPending ? t('saving') : t('save')}
                 </Button>
               </form>

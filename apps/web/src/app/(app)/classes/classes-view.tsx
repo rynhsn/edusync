@@ -11,7 +11,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
+import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
@@ -99,7 +99,7 @@ function Assignments({ classId }: { classId: string }) {
         <div className="flex flex-wrap items-end gap-2">
           <div className="grid gap-1">
             <Label htmlFor={`as-${classId}`}>{t('subject')}</Label>
-            <NativeSelect
+            <SelectField
               id={`as-${classId}`}
               value={subjectId}
               onChange={(e) => setSubjectId(e.target.value)}
@@ -110,11 +110,11 @@ function Assignments({ classId }: { classId: string }) {
                   {s.name}
                 </option>
               ))}
-            </NativeSelect>
+            </SelectField>
           </div>
           <div className="grid gap-1">
             <Label htmlFor={`at-${classId}`}>{t('teacher')}</Label>
-            <NativeSelect
+            <SelectField
               id={`at-${classId}`}
               value={teacherId}
               onChange={(e) => setTeacherId(e.target.value)}
@@ -127,7 +127,7 @@ function Assignments({ classId }: { classId: string }) {
                     {x.name}
                   </option>
                 ))}
-            </NativeSelect>
+            </SelectField>
           </div>
           <Button
             size="sm"
@@ -243,13 +243,13 @@ export function ClassesView() {
         <>
           <div className="grid max-w-xs gap-2">
             <Label htmlFor="class-year">{t('year')}</Label>
-            <NativeSelect id="class-year" value={yearId} onChange={(e) => setYearChoice(e.target.value)}>
+            <SelectField id="class-year" value={yearId} onChange={(e) => setYearChoice(e.target.value)}>
               {years.data.map((y) => (
                 <option key={y.id} value={y.id}>
                   {y.name}
                 </option>
               ))}
-            </NativeSelect>
+            </SelectField>
           </div>
 
           {manage && (
@@ -288,7 +288,7 @@ export function ClassesView() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="class-program">{t('program')}</Label>
-                    <NativeSelect
+                    <SelectField
                       id="class-program"
                       value={draft.programId}
                       onChange={(e) => setDraft({ ...draft, programId: e.target.value })}
@@ -299,7 +299,7 @@ export function ClassesView() {
                           {p.name}
                         </option>
                       ))}
-                    </NativeSelect>
+                    </SelectField>
                   </div>
                   <Button type="submit" disabled={createClass.isPending}>
                     {tm('add')}

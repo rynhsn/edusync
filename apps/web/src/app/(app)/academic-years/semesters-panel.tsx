@@ -8,6 +8,7 @@ import { useSchool } from '@/components/app-shell';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Locale } from '@/i18n/config';
@@ -128,17 +129,15 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
                     value={editing.name}
                     onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                   />
-                  <Input
+                  <DatePicker
                     aria-label={t('starts')}
-                    type="date"
                     value={editing.startsOn}
-                    onChange={(e) => setEditing({ ...editing, startsOn: e.target.value })}
+                    onChange={(v) => setEditing({ ...editing, startsOn: v })}
                   />
-                  <Input
+                  <DatePicker
                     aria-label={t('ends')}
-                    type="date"
                     value={editing.endsOn}
-                    onChange={(e) => setEditing({ ...editing, endsOn: e.target.value })}
+                    onChange={(v) => setEditing({ ...editing, endsOn: v })}
                   />
                   <div className="flex gap-2 sm:col-span-3">
                     <Button size="sm" disabled={save.isPending} onClick={() => save.mutate(editing)}>
@@ -231,25 +230,21 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
             </div>
             <div className="grid gap-1">
               <Label htmlFor={`sem-start-${yearId}`}>{t('starts')}</Label>
-              <Input
+              <DatePicker
                 id={`sem-start-${yearId}`}
-                type="date"
-                required
                 value={draft.startsOn}
-                onChange={(e) => setDraft({ ...draft, startsOn: e.target.value })}
+                onChange={(v) => setDraft({ ...draft, startsOn: v })}
               />
             </div>
             <div className="grid gap-1">
               <Label htmlFor={`sem-end-${yearId}`}>{t('ends')}</Label>
-              <Input
+              <DatePicker
                 id={`sem-end-${yearId}`}
-                type="date"
-                required
                 value={draft.endsOn}
-                onChange={(e) => setDraft({ ...draft, endsOn: e.target.value })}
+                onChange={(v) => setDraft({ ...draft, endsOn: v })}
               />
             </div>
-            <Button type="submit" size="sm" disabled={create.isPending}>
+            <Button type="submit" size="sm" disabled={create.isPending || !draft.startsOn || !draft.endsOn}>
               {t('add')}
             </Button>
             {error && (

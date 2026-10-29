@@ -4,7 +4,9 @@
     "retry": "Coba lagi",
     "signOut": "Keluar",
     "showPassword": "Tampilkan kata sandi",
-    "hidePassword": "Sembunyikan kata sandi"
+    "hidePassword": "Sembunyikan kata sandi",
+    "pickDate": "Pilih tanggal",
+    "clearDate": "Hapus tanggal"
   },
   "auth": {
     "title": "Masuk ke Edusync",

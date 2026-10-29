@@ -9,9 +9,10 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
+import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
@@ -155,24 +156,24 @@ export function CalendarView() {
           <div className="flex flex-wrap items-end gap-4">
             <div className="grid gap-2">
               <Label htmlFor="cal-year">{t('year')}</Label>
-              <NativeSelect id="cal-year" value={yearId} onChange={(e) => setYearChoice(e.target.value)}>
+              <SelectField id="cal-year" value={yearId} onChange={(e) => setYearChoice(e.target.value)}>
                 {years.data.map((y) => (
                   <option key={y.id} value={y.id}>
                     {y.name}
                   </option>
                 ))}
-              </NativeSelect>
+              </SelectField>
             </div>
             <div className="grid gap-2">
               <Label htmlFor="cal-week">{t('workweek')}</Label>
-              <NativeSelect
+              <SelectField
                 id="cal-week"
                 value={String(daysPerWeek)}
                 onChange={(e) => setDaysPerWeek(e.target.value === '6' ? 6 : 5)}
               >
                 <option value="5">{t('days5')}</option>
                 <option value="6">{t('days6')}</option>
-              </NativeSelect>
+              </SelectField>
             </div>
             <Button variant="outline" onClick={downloadIcs}>
               {t('download')}
@@ -203,7 +204,7 @@ export function CalendarView() {
                 >
                   <div className="grid gap-2">
                     <Label htmlFor="ev-type">{t('type')}</Label>
-                    <NativeSelect
+                    <SelectField
                       id="ev-type"
                       value={draft.type}
                       onChange={(e) => {
@@ -221,7 +222,7 @@ export function CalendarView() {
                           {t(x)}
                         </option>
                       ))}
-                    </NativeSelect>
+                    </SelectField>
                   </div>
                   <div className="grid gap-2 lg:col-span-2">
                     <Label htmlFor="ev-title">{t('eventTitle')}</Label>
@@ -235,27 +236,25 @@ export function CalendarView() {
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="ev-start">{t('starts')}</Label>
-                    <Input
+                    <DatePicker
                       id="ev-start"
-                      type="date"
-                      required
                       value={draft.startsOn}
-                      onChange={(e) => setDraft({ ...draft, startsOn: e.target.value })}
+                      onChange={(v) => setDraft({ ...draft, startsOn: v })}
                     />
                   </div>
                   <div className="grid gap-2">
                     <Label htmlFor="ev-end">{t('ends')}</Label>
-                    <Input
+                    <DatePicker
                       id="ev-end"
-                      type="date"
                       value={draft.endsOn}
-                      onChange={(e) => setDraft({ ...draft, endsOn: e.target.value })}
+                      onChange={(v) => setDraft({ ...draft, endsOn: v })}
+                      clearable
                     />
                   </div>
                   {(draft.type === 'exam' || draft.type === 'activity') && classList.length > 0 && (
                     <div className="grid gap-2">
                       <Label htmlFor="ev-scope">{t('scope')}</Label>
-                      <NativeSelect
+                      <SelectField
                         id="ev-scope"
                         value={draft.scope === 'class' ? draft.classId : ''}
                         onChange={(e) =>
@@ -272,7 +271,7 @@ export function CalendarView() {
                             {t('scopeClass')}: {c.name}
                           </option>
                         ))}
-                      </NativeSelect>
+                      </SelectField>
                     </div>
                   )}
                   {error && (
@@ -281,7 +280,7 @@ export function CalendarView() {
                     </Alert>
                   )}
                   <div>
-                    <Button type="submit" disabled={create.isPending}>
+                    <Button type="submit" disabled={create.isPending || !draft.startsOn}>
                       {t('add')}
                     </Button>
                   </div>

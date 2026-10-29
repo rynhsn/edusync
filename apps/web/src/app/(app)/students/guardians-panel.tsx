@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
+import { SelectField } from '@/components/ui/select-field';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 
@@ -233,7 +233,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor={`g-rel-${studentId}`}>{t('relation')}</Label>
-              <NativeSelect
+              <SelectField
                 id={`g-rel-${studentId}`}
                 value={draft.relation}
                 onChange={(e) => setDraft({ ...draft, relation: e.target.value as Relation })}
@@ -243,7 +243,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                     {t(r)}
                   </option>
                 ))}
-              </NativeSelect>
+              </SelectField>
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor={`g-phone-${studentId}`}>{t('phone')}</Label>

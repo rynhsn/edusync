@@ -4,7 +4,9 @@
     "retry": "Try again",
     "signOut": "Sign out",
     "showPassword": "Show password",
-    "hidePassword": "Hide password"
+    "hidePassword": "Hide password",
+    "pickDate": "Pick a date",
+    "clearDate": "Clear date"
   },
   "auth": {
     "title": "Sign in to Edusync",

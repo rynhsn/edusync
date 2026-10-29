@@ -12,7 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { NativeSelect } from '@/components/ui/native-select';
+import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
@@ -59,14 +59,14 @@ function TeacherFields({
       </div>
       <div className="grid gap-2">
         <Label htmlFor={`${idPrefix}-status`}>{t('status')}</Label>
-        <NativeSelect
+        <SelectField
           id={`${idPrefix}-status`}
           value={draft.status}
           onChange={(e) => onChange({ ...draft, status: e.target.value as Draft['status'] })}
         >
           <option value="active">{t('active')}</option>
           <option value="inactive">{t('inactive')}</option>
-        </NativeSelect>
+        </SelectField>
       </div>
     </div>
   );
