@@ -40,7 +40,8 @@
     "classes": "Kelas",
     "students": "Murid",
     "teachers": "Guru",
-    "subjects": "Mata pelajaran"
+    "subjects": "Mata pelajaran",
+    "calendar": "Kalénder"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -120,7 +121,9 @@
     "role_system": "Peran bawaan teu tiasa dipiceun.",
     "role_in_use": "Peran ieu masih dicekel ku anggota. Lépaskeun heula ti aranjeunna.",
     "in_use": "Data ieu masih dipaké di tempat séjén, jadi teu tiasa dipiceun.",
-    "invalid_reference": "Data nu dirujuk teu kapanggih."
+    "invalid_reference": "Data nu dirujuk teu kapanggih.",
+    "invalid_event": "Data acara teu valid. Parios tanggal jeung cakupanna.",
+    "invalid_period": "Rentang tanggal semester teu valid."
   },
   "theme": {
     "label": "Tema",
@@ -586,5 +589,39 @@
     "cancel": "Batal",
     "delete": "Piceun",
     "toggle": "Semester"
+  },
+  "calendar": {
+    "title": "Kalénder akadémik",
+    "subtitle": "Libur jeung jeda ngurangan poé éféktif diajar. Ujian jeung kagiatan ngan tanda.",
+    "year": "Taun pangajaran",
+    "noYears": "Jieun heula taun pangajaran di ménu Taun pangajaran.",
+    "workweek": "Poé diajar per minggu",
+    "days5": "5 poé (Sen–Jum)",
+    "days6": "6 poé (Sen–Sab)",
+    "effective": "Poé éféktif",
+    "workdays": "Poé gawé",
+    "closures": "Libur jeung jeda",
+    "totalDays": "Poé kalénder",
+    "download": "Unduh iCal",
+    "addTitle": "Tambih acara",
+    "type": "Jinis",
+    "starts": "Mimiti",
+    "ends": "Réngsé",
+    "scope": "Cakupan",
+    "scopeSchool": "Sakumna sakola",
+    "scopeClass": "Hiji kelas",
+    "class": "Kelas",
+    "add": "Tambih",
+    "created": "Acara ditambihkeun.",
+    "deleted": "Acara dipiceun.",
+    "delete": "Piceun",
+    "empty": "Acan aya acara.",
+    "holiday": "Libur",
+    "break": "Jeda",
+    "exam": "Ujian",
+    "activity": "Kagiatan",
+    "readOnly": "Anjeun ngan tiasa ningali kalénder.",
+    "downloadError": "Undeuran gagal. Cobian deui.",
+    "eventTitle": "Judul"
   }
 }

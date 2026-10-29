@@ -40,7 +40,8 @@
     "classes": "Kelas",
     "students": "Siswa",
     "teachers": "Guru",
-    "subjects": "Mata pelajaran"
+    "subjects": "Mata pelajaran",
+    "calendar": "Kalender"
   },
   "roles": {
     "school_admin": "Admin sekolah",
@@ -120,7 +121,9 @@
     "role_system": "Peran bawaan tidak dapat dihapus.",
     "role_in_use": "Peran ini masih dipegang anggota. Lepaskan dulu dari mereka.",
     "in_use": "Data ini masih dipakai di tempat lain, jadi tidak dapat dihapus.",
-    "invalid_reference": "Data yang dirujuk tidak ditemukan."
+    "invalid_reference": "Data yang dirujuk tidak ditemukan.",
+    "invalid_event": "Data acara tidak valid. Periksa tanggal dan cakupannya.",
+    "invalid_period": "Rentang tanggal semester tidak valid."
   },
   "theme": {
     "label": "Tema",
@@ -586,5 +589,39 @@
     "cancel": "Batal",
     "delete": "Hapus",
     "toggle": "Semester"
+  },
+  "calendar": {
+    "title": "Kalender akademik",
+    "subtitle": "Libur dan jeda mengurangi hari efektif belajar. Ujian dan kegiatan hanya penanda.",
+    "year": "Tahun ajaran",
+    "noYears": "Buat tahun ajaran dulu di menu Tahun ajaran.",
+    "workweek": "Hari belajar per pekan",
+    "days5": "5 hari (Sen–Jum)",
+    "days6": "6 hari (Sen–Sab)",
+    "effective": "Hari efektif",
+    "workdays": "Hari kerja",
+    "closures": "Libur dan jeda",
+    "totalDays": "Hari kalender",
+    "download": "Unduh iCal",
+    "addTitle": "Tambah acara",
+    "type": "Jenis",
+    "starts": "Mulai",
+    "ends": "Selesai",
+    "scope": "Cakupan",
+    "scopeSchool": "Seluruh sekolah",
+    "scopeClass": "Satu kelas",
+    "class": "Kelas",
+    "add": "Tambah",
+    "created": "Acara ditambahkan.",
+    "deleted": "Acara dihapus.",
+    "delete": "Hapus",
+    "empty": "Belum ada acara.",
+    "holiday": "Libur",
+    "break": "Jeda",
+    "exam": "Ujian",
+    "activity": "Kegiatan",
+    "readOnly": "Anda hanya dapat melihat kalender.",
+    "downloadError": "Unduhan gagal. Coba lagi.",
+    "eventTitle": "Judul"
   }
 }

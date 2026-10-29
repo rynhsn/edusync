@@ -119,6 +119,7 @@ afterAll(async () => {
       'teaching_assignment',
       'school_curriculum',
       'semester',
+      'calendar_event',
       'student_guardian',
       'guardian',
       'enrollment',
@@ -855,5 +856,95 @@ describe('semester', () => {
       ).statusCode,
     ).toBe(404);
     expect((await call('GET', '/v1/semesters', otherCookie, undefined, otherSchoolId)).json()).toEqual([]);
+  });
+});
+
+describe('kalender akademik', () => {
+  it('acara, hari efektif, dan iCal', async () => {
+    const year = (
+      await call('POST', '/v1/academic-years', opCookie, {
+        name: '2040/2041',
+        startsOn: '2040-07-16',
+        endsOn: '2040-07-29',
+      })
+    ).json();
+    const add = (b: object) => call('POST', `/v1/academic-years/${year.id}/events`, opCookie, b);
+    // 2040-07-16 Senin … 2040-07-29 Minggu: 14 hari, 10 hari kerja.
+    const base = (await call('GET', `/v1/academic-years/${year.id}/calendar`, opCookie)).json();
+    expect(base.days).toEqual({ total: 14, workdays: 10, nonEffective: 0, effective: 10 });
+
+    const libur = await add({
+      type: 'holiday',
+      title: 'Libur, uji; coba',
+      startsOn: '2040-07-17',
+      endsOn: '2040-07-18',
+    });
+    expect(libur.statusCode).toBe(201);
+    expect(
+      (await add({ type: 'break', title: 'Jeda', startsOn: '2040-07-18', endsOn: '2040-07-19' })).statusCode,
+    ).toBe(201);
+    // Ujian dan kegiatan tidak mengurangi hari efektif.
+    expect(
+      (await add({ type: 'exam', title: 'Ujian', startsOn: '2040-07-23', endsOn: '2040-07-25' })).statusCode,
+    ).toBe(201);
+
+    const cal = (await call('GET', `/v1/academic-years/${year.id}/calendar`, opCookie)).json();
+    expect(cal.events.map((e: { title: string }) => e.title)).toEqual(['Libur, uji; coba', 'Jeda', 'Ujian']);
+    expect(cal.days).toEqual({ total: 14, workdays: 10, nonEffective: 3, effective: 7 });
+    expect(
+      (await call('GET', `/v1/academic-years/${year.id}/calendar?daysPerWeek=6`, opCookie)).json().days
+        .workdays,
+    ).toBe(12);
+
+    const ics = await call('GET', `/v1/academic-years/${year.id}/calendar.ics`, teacherCookie);
+    expect(ics.statusCode).toBe(200);
+    expect(ics.headers['content-type']).toContain('text/calendar');
+    expect(ics.body).toContain('SUMMARY:Libur\\, uji\\; coba');
+    expect(ics.body).toContain('DTEND;VALUE=DATE:20400719');
+
+    const edit = await call('PUT', `/v1/events/${libur.json().id}`, opCookie, {
+      type: 'holiday',
+      title: 'Libur nasional',
+      startsOn: '2040-07-17',
+      endsOn: '2040-07-17',
+    });
+    expect(edit.json()).toMatchObject({ title: 'Libur nasional', endsOn: '2040-07-17' });
+    expect((await call('DELETE', `/v1/events/${libur.json().id}`, opCookie)).statusCode).toBe(200);
+    expect((await call('DELETE', `/v1/events/${libur.json().id}`, opCookie)).statusCode).toBe(404);
+    await call('PUT', `/v1/academic-years/${yearId}/activate`, opCookie);
+  });
+
+  it('aturan: rentang, cakupan, izin, dan isolasi', async () => {
+    const year = (
+      await call('POST', '/v1/academic-years', opCookie, {
+        name: '2041/2042',
+        startsOn: '2041-07-15',
+        endsOn: '2042-06-30',
+      })
+    ).json();
+    const add = (b: object, cookie = opCookie, sid = schoolId) =>
+      call('POST', `/v1/academic-years/${year.id}/events`, cookie, b, sid);
+    const ev = { type: 'activity', title: 'Kegiatan', startsOn: '2041-08-17', endsOn: '2041-08-17' };
+    expect((await add({ ...ev, startsOn: '2041-06-01' })).json().error.code).toBe('invalid_event');
+    expect((await add({ ...ev, startsOn: '2041-09-01', endsOn: '2041-08-01' })).statusCode).toBe(400);
+    expect((await add({ ...ev, type: 'holiday', scope: 'class', classId: null })).statusCode).toBe(400);
+    expect((await add({ ...ev, scope: 'class' })).statusCode).toBe(400);
+    expect((await add({ ...ev, scope: 'class', classId: yearId })).statusCode).toBe(400);
+
+    const kelas = (
+      await call('POST', '/v1/classes', opCookie, { academicYearId: year.id, name: 'Kal 7A', level: '7' })
+    ).json();
+    expect((await add({ ...ev, type: 'exam', scope: 'class', classId: kelas.id })).statusCode).toBe(201);
+    // Acara kelas tidak mengurangi hari efektif sekolah.
+    const days = (await call('GET', `/v1/academic-years/${year.id}/calendar`, opCookie)).json().days;
+    expect(days.nonEffective).toBe(0);
+
+    expect((await add(ev, teacherCookie)).statusCode).toBe(403);
+    expect((await add(ev, otherCookie, otherSchoolId)).statusCode).toBe(404);
+    expect(
+      (await call('GET', `/v1/academic-years/${year.id}/calendar`, otherCookie, undefined, otherSchoolId))
+        .statusCode,
+    ).toBe(404);
+    await call('PUT', `/v1/academic-years/${yearId}/activate`, opCookie);
   });
 });

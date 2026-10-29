@@ -638,3 +638,29 @@ export const semester = pgTable(
   },
   (t) => [unique('semester_year_name_uq').on(t.academicYearId, t.name)],
 );
+
+/** Acara kalender akademik. Libur dan jeda mengurangi hari efektif; ujian dan kegiatan hanya penanda. */
+export const calendarEvent = pgTable(
+  'calendar_event',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    type: text('type', { enum: ['holiday', 'break', 'exam', 'activity'] }).notNull(),
+    /** Cakupan: seluruh sekolah, satu kelas, atau satu jurusan. Hanya cakupan sekolah yang mengurangi hari efektif. */
+    scope: text('scope', { enum: ['school', 'class', 'program'] })
+      .notNull()
+      .default('school'),
+    classId: uuid('class_id').references(() => classRoom.id),
+    programId: uuid('program_id').references(() => program.id),
+    title: text('title').notNull(),
+    startsOn: date('starts_on').notNull(),
+    endsOn: date('ends_on').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('calendar_event_year_idx').on(t.academicYearId, t.startsOn)],
+);

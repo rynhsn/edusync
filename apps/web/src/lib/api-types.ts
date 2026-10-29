@@ -5620,6 +5620,569 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/academic-years/{id}/calendar": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kalender akademik satu tahun ajaran
+         * @description Izin: `academic_year:read`. Acara urut tanggal, beserta hari efektif belajar: hari kerja (Senin–Jumat, atau Senin–Sabtu dengan `daysPerWeek=6`) dikurangi libur dan jeda cakupan sekolah.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    daysPerWeek?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            events: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                /** @enum {string} */
+                                type: "holiday" | "break" | "exam" | "activity";
+                                /** @enum {string} */
+                                scope: "school" | "class" | "program";
+                                /** Format: uuid */
+                                classId: string | null;
+                                /** Format: uuid */
+                                programId: string | null;
+                                title: string;
+                                /** Format: date */
+                                startsOn: string;
+                                /** Format: date */
+                                endsOn: string;
+                            }[];
+                            days: {
+                                total: number;
+                                workdays: number;
+                                nonEffective: number;
+                                effective: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ekspor kalender akademik sebagai iCal
+         * @description Izin: `academic_year:read`. Berkas `.ics` berisi semua acara tahun ajaran (sehari penuh), untuk diimpor ke Google Calendar, Outlook, atau Apple Calendar.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": string;
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tambah acara kalender
+         * @description Izin: `academic_year:manage`. Tipe: `holiday`, `break`, `exam`, `activity`. Libur dan jeda hanya untuk cakupan sekolah dan mengurangi hari efektif; ujian dan kegiatan boleh untuk sekolah, satu kelas, atau satu jurusan.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        type: "holiday" | "break" | "exam" | "activity";
+                        /**
+                         * @default school
+                         * @enum {string}
+                         */
+                        scope?: "school" | "class" | "program";
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        classId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        programId?: string | null;
+                        title: string;
+                        /** Format: date */
+                        startsOn: string;
+                        /** Format: date */
+                        endsOn: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** @enum {string} */
+                            type: "holiday" | "break" | "exam" | "activity";
+                            /** @enum {string} */
+                            scope: "school" | "class" | "program";
+                            /** Format: uuid */
+                            classId: string | null;
+                            /** Format: uuid */
+                            programId: string | null;
+                            title: string;
+                            /** Format: date */
+                            startsOn: string;
+                            /** Format: date */
+                            endsOn: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah acara kalender
+         * @description Izin: `academic_year:manage`. Aturan sama dengan saat membuat.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        type: "holiday" | "break" | "exam" | "activity";
+                        /**
+                         * @default school
+                         * @enum {string}
+                         */
+                        scope?: "school" | "class" | "program";
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        classId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        programId?: string | null;
+                        title: string;
+                        /** Format: date */
+                        startsOn: string;
+                        /** Format: date */
+                        endsOn: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** @enum {string} */
+                            type: "holiday" | "break" | "exam" | "activity";
+                            /** @enum {string} */
+                            scope: "school" | "class" | "program";
+                            /** Format: uuid */
+                            classId: string | null;
+                            /** Format: uuid */
+                            programId: string | null;
+                            title: string;
+                            /** Format: date */
+                            startsOn: string;
+                            /** Format: date */
+                            endsOn: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus acara kalender
+         * @description Izin: `academic_year:manage`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reference/curricula": {
         parameters: {
             query?: never;

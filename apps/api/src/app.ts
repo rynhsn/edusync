@@ -26,6 +26,7 @@ import { academicYearRoutes } from './routes/academic-years';
 import { accountRoutes } from './routes/account';
 import { registerAuthRoutes } from './routes/auth';
 import { billingRoutes } from './routes/billing';
+import { calendarRoutes } from './routes/calendar';
 import { curriculumRoutes } from './routes/curriculum';
 import { guardianRoutes } from './routes/guardians';
 import { invitationRoutes } from './routes/invitations';
@@ -174,6 +175,7 @@ export async function buildApp(env: Env) {
   await app.register(academicStructureRoutes);
   await app.register(peopleRoutes);
   await app.register(semesterRoutes);
+  await app.register(calendarRoutes);
   await app.register(curriculumRoutes);
   await app.register(guardianRoutes);
   await app.register(studentImportRoutes);

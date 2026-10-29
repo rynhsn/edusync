@@ -200,3 +200,10 @@ Pilot Miftahul Huda (SMP IT + SMK, ±15 guru, sebagian lintas unit) masuk akal s
 - Dua langkah: pratinjau (`dryRun`) melaporkan kesalahan per baris (nomor baris lembar kerja, kolom, pesan); simpan hanya bila semua baris valid, dalam satu transaksi (semua-atau-tidak). Server memvalidasi ulang semuanya: NIS/NISN unik di file dan di sekolah, tanggal TTTT-BB-HH, jenis kelamin, kelas dicocokkan dengan tahun ajaran aktif.
 - Templat `.xlsx` dibuat di browser (judul kolom + lembar Petunjuk). Alias judul kolom dikenali (mis. "JK", "Tgl Lahir").
 - Belum: ekspor Excel, impor guru, impor ke kelas tahun ajaran non-aktif.
+
+### Catatan M2 tahap 2 (impor guru, ekspor, wali, bank data, semester, kalender)
+- **Impor dan ekspor Excel:** siswa dan guru memakai alur yang sama (`ImportWizard`, `lib/sheet.ts`); berkas dibaca dan dibuat di browser. Ekspor siswa mengikuti saringan yang tampil, semua halaman. Belum: ekspor/impor wali, impor ke tahun non-aktif.
+- **Wali murid:** per unit (`guardian`, `student_guardian`); satu wali bisa menaungi kakak-adik; satu wali utama per siswa; telepon dinormalkan ke `62…`. Memakai izin `student:*`. Wali lintas unit (`person` tingkat yayasan) belum.
+- **Bank data kurikulum:** `ref_curriculum` dan `ref_subject` global dan hanya-baca bagi peran aplikasi (diisi migrasi, **contoh awal yang perlu diverifikasi dengan regulasi terbaru**). Sekolah menyalin mapel ke `subject` (kode yang sudah ada dilewati) dan adopsinya dicatat di `school_curriculum`. Belum: komponen nilai, templat rapor, wilayah, perbandingan pembaruan acuan.
+- **Semester:** per tahun ajaran; tanggal di dalam tahun ajaran dan tanpa tumpang tindih; pembuatan otomatis Ganjil/Genap; mengaktifkan semester ikut mengaktifkan tahun ajarannya.
+- **Kalender akademik:** `calendar_event` (libur, jeda, ujian, kegiatan; cakupan sekolah atau kelas). Hari efektif = hari kerja (5 atau 6 hari per pekan) dikurangi libur/jeda cakupan sekolah (`effectiveDays`, murni dan diuji). Ekspor iCal (`/v1/academic-years/{id}/calendar.ics`). Belum: libur nasional otomatis per tahun, cakupan jurusan di layar, penggunaan hari efektif oleh absensi/jadwal.

@@ -28,6 +28,8 @@ const KNOWN = [
   'role_in_use',
   'in_use',
   'invalid_reference',
+  'invalid_event',
+  'invalid_period',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

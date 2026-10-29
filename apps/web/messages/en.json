@@ -40,7 +40,8 @@
     "classes": "Classes",
     "students": "Students",
     "teachers": "Teachers",
-    "subjects": "Subjects"
+    "subjects": "Subjects",
+    "calendar": "Calendar"
   },
   "roles": {
     "school_admin": "School admin",
@@ -120,7 +121,9 @@
     "role_system": "Built-in roles cannot be deleted.",
     "role_in_use": "Members still hold this role. Remove it from them first.",
     "in_use": "This record is still in use elsewhere, so it cannot be deleted.",
-    "invalid_reference": "A referenced record was not found."
+    "invalid_reference": "A referenced record was not found.",
+    "invalid_event": "The event is not valid. Check the dates and scope.",
+    "invalid_period": "The semester date range is not valid."
   },
   "theme": {
     "label": "Theme",
@@ -586,5 +589,39 @@
     "cancel": "Cancel",
     "delete": "Delete",
     "toggle": "Semesters"
+  },
+  "calendar": {
+    "title": "Academic calendar",
+    "subtitle": "Holidays and breaks reduce effective teaching days. Exams and activities are markers only.",
+    "year": "Academic year",
+    "noYears": "Create an academic year first under Academic years.",
+    "workweek": "School days per week",
+    "days5": "5 days (Mon–Fri)",
+    "days6": "6 days (Mon–Sat)",
+    "effective": "Effective days",
+    "workdays": "Working days",
+    "closures": "Holidays and breaks",
+    "totalDays": "Calendar days",
+    "download": "Download iCal",
+    "addTitle": "Add an event",
+    "type": "Type",
+    "starts": "Starts",
+    "ends": "Ends",
+    "scope": "Scope",
+    "scopeSchool": "Whole school",
+    "scopeClass": "One class",
+    "class": "Class",
+    "add": "Add",
+    "created": "Event added.",
+    "deleted": "Event deleted.",
+    "delete": "Delete",
+    "empty": "No events yet.",
+    "holiday": "Holiday",
+    "break": "Break",
+    "exam": "Exam",
+    "activity": "Activity",
+    "readOnly": "You can only view the calendar.",
+    "downloadError": "The download failed. Try again.",
+    "eventTitle": "Title"
   }
 }

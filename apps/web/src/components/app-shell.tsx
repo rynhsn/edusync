@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BookOpen,
   CalendarDays,
+  CalendarRange,
   ChevronsUpDown,
   GraduationCap,
   LayoutDashboard,
@@ -70,6 +71,7 @@ const NAV = [
     icon: CalendarDays,
     permission: 'academic_year:read',
   },
+  { href: '/calendar', labelKey: 'calendar', icon: CalendarRange, permission: 'academic_year:read' },
   { href: '/classes', labelKey: 'classes', icon: School, permission: 'class:read' },
   { href: '/students', labelKey: 'students', icon: GraduationCap, permission: 'student:read' },
   { href: '/teachers', labelKey: 'teachers', icon: UserRound, permission: 'teacher:read' },
