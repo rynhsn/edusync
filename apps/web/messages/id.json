@@ -36,7 +36,11 @@
     "notMemberBody": "Masuk dengan akun yang terdaftar di sekolah ini, atau hubungi admin sekolah untuk diundang.",
     "goMain": "Ke halaman utama",
     "members": "Anggota",
-    "roles": "Peran"
+    "roles": "Peran",
+    "classes": "Kelas",
+    "students": "Siswa",
+    "teachers": "Guru",
+    "subjects": "Mata pelajaran"
   },
   "roles": {
     "school_admin": "Admin sekolah",
@@ -53,7 +57,15 @@
     "role_manage": "Mengelola peran",
     "academic_year_read": "Melihat tahun ajaran",
     "academic_year_manage": "Mengelola tahun ajaran",
-    "audit_read": "Melihat log audit"
+    "audit_read": "Melihat log audit",
+    "class_read": "Melihat kelas",
+    "class_manage": "Mengelola kelas",
+    "student_read": "Melihat siswa",
+    "student_manage": "Mengelola siswa",
+    "teacher_read": "Melihat guru",
+    "teacher_manage": "Mengelola guru",
+    "subject_read": "Melihat mata pelajaran",
+    "subject_manage": "Mengelola mata pelajaran"
   },
   "dashboard": {
     "greeting": "Halo, {name}",
@@ -75,7 +87,10 @@
     "endsOn": "Selesai",
     "save": "Simpan",
     "saving": "Menyimpan…",
-    "created": "Tahun ajaran {name} dibuat."
+    "created": "Tahun ajaran {name} dibuat.",
+    "activate": "Jadikan aktif",
+    "active": "Aktif",
+    "activated": "Tahun ajaran aktif diganti."
   },
   "errors": {
     "unauthorized": "Silakan masuk terlebih dahulu.",
@@ -103,7 +118,9 @@
     "invitation_wrong_account": "Undangan ini untuk email lain. Masuk dengan email yang diundang.",
     "role_locked": "Peran Admin sekolah tidak dapat diubah.",
     "role_system": "Peran bawaan tidak dapat dihapus.",
-    "role_in_use": "Peran ini masih dipegang anggota. Lepaskan dulu dari mereka."
+    "role_in_use": "Peran ini masih dipegang anggota. Lepaskan dulu dari mereka.",
+    "in_use": "Data ini masih dipakai di tempat lain, jadi tidak dapat dihapus.",
+    "invalid_reference": "Data yang dirujuk tidak ditemukan."
   },
   "theme": {
     "label": "Tema",
@@ -347,5 +364,83 @@
     "custom": "Kustom",
     "locked": "Terkunci",
     "loadError": "Daftar peran tidak dapat dimuat."
+  },
+  "masterData": {
+    "add": "Tambah",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "edit": "Ubah",
+    "delete": "Hapus",
+    "created": "Data ditambahkan.",
+    "saved": "Perubahan disimpan.",
+    "deleted": "Data dihapus.",
+    "search": "Cari",
+    "empty": "Belum ada data.",
+    "loadError": "Data tidak dapat dimuat.",
+    "readOnly": "Anda hanya dapat melihat daftar ini.",
+    "code": "Kode",
+    "name": "Nama",
+    "none": "-"
+  },
+  "students": {
+    "title": "Siswa",
+    "subtitle": "Kelas yang tampil adalah kelas pada tahun ajaran aktif.",
+    "addTitle": "Tambah siswa",
+    "nis": "NIS",
+    "nisn": "NISN",
+    "gender": "Jenis kelamin",
+    "male": "Laki-laki",
+    "female": "Perempuan",
+    "birthDate": "Tanggal lahir",
+    "class": "Kelas",
+    "noClass": "Tanpa kelas",
+    "allClasses": "Semua kelas",
+    "status": "Status",
+    "allStatus": "Semua status",
+    "statusActive": "Aktif",
+    "statusGraduated": "Lulus",
+    "statusTransferred": "Pindah",
+    "statusDropped": "Keluar",
+    "total": "{count} siswa",
+    "prev": "Sebelumnya",
+    "next": "Berikutnya",
+    "searchPlaceholder": "Nama, NIS, atau NISN"
+  },
+  "classes": {
+    "title": "Kelas dan jurusan",
+    "subtitle": "Kelas dibuat per tahun ajaran. Guru pengampu ditetapkan per mata pelajaran.",
+    "year": "Tahun ajaran",
+    "noYears": "Buat tahun ajaran dulu di menu Tahun ajaran.",
+    "addTitle": "Tambah kelas",
+    "level": "Tingkat",
+    "levelHint": "Mis. 7, X, atau Kelas 1",
+    "program": "Jurusan",
+    "noProgram": "Tanpa jurusan",
+    "students": "{count} siswa",
+    "assignments": "Guru pengampu",
+    "subject": "Mata pelajaran",
+    "teacher": "Guru",
+    "choose": "Pilih",
+    "assign": "Tetapkan",
+    "remove": "Lepas",
+    "noAssignments": "Belum ada guru pengampu.",
+    "programsTitle": "Jurusan",
+    "programsHint": "Opsional. Dipakai sekolah dengan jurusan, peminatan, atau kompetensi keahlian.",
+    "noPrograms": "Belum ada jurusan."
+  },
+  "subjects": {
+    "title": "Mata pelajaran",
+    "subtitle": "Daftar mata pelajaran sekolah. Kode harus unik.",
+    "addTitle": "Tambah mata pelajaran"
+  },
+  "teachers": {
+    "title": "Guru",
+    "subtitle": "Guru dan pegawai pengajar. Akun login dikelola di menu Anggota.",
+    "addTitle": "Tambah guru",
+    "nip": "NIP",
+    "status": "Status",
+    "active": "Aktif",
+    "inactive": "Nonaktif",
+    "searchPlaceholder": "Nama atau NIP"
   }
 }

@@ -36,7 +36,11 @@
     "notMemberBody": "Lebet nganggo akun nu kadaptar di sakola ieu, atawa hubungi admin sakola pikeun diondang.",
     "goMain": "Ka kaca utama",
     "members": "Anggota",
-    "roles": "Peran"
+    "roles": "Peran",
+    "classes": "Kelas",
+    "students": "Murid",
+    "teachers": "Guru",
+    "subjects": "Mata pelajaran"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -53,7 +57,15 @@
     "role_manage": "Ngokolakeun peran",
     "academic_year_read": "Ningali taun pangajaran",
     "academic_year_manage": "Ngokolakeun taun pangajaran",
-    "audit_read": "Ningali log audit"
+    "audit_read": "Ningali log audit",
+    "class_read": "Ningali kelas",
+    "class_manage": "Ngatur kelas",
+    "student_read": "Ningali murid",
+    "student_manage": "Ngatur murid",
+    "teacher_read": "Ningali guru",
+    "teacher_manage": "Ngatur guru",
+    "subject_read": "Ningali mata pelajaran",
+    "subject_manage": "Ngatur mata pelajaran"
   },
   "dashboard": {
     "greeting": "Wilujeng sumping, {name}",
@@ -75,7 +87,10 @@
     "endsOn": "Réngsé",
     "save": "Simpen",
     "saving": "Nyimpen…",
-    "created": "Taun pangajaran {name} geus dijieun."
+    "created": "Taun pangajaran {name} geus dijieun.",
+    "activate": "Jadikeun aktip",
+    "active": "Aktip",
+    "activated": "Taun pangajaran aktip diganti."
   },
   "errors": {
     "unauthorized": "Mangga lebet heula.",
@@ -103,7 +118,9 @@
     "invitation_wrong_account": "Uleman ieu pikeun surélék séjén. Lebet nganggo surélék nu diulem.",
     "role_locked": "Peran Admin sakola teu tiasa dirobah.",
     "role_system": "Peran bawaan teu tiasa dipiceun.",
-    "role_in_use": "Peran ieu masih dicekel ku anggota. Lépaskeun heula ti aranjeunna."
+    "role_in_use": "Peran ieu masih dicekel ku anggota. Lépaskeun heula ti aranjeunna.",
+    "in_use": "Data ieu masih dipaké di tempat séjén, jadi teu tiasa dipiceun.",
+    "invalid_reference": "Data nu dirujuk teu kapanggih."
   },
   "theme": {
     "label": "Tema",
@@ -347,5 +364,83 @@
     "custom": "Kustom",
     "locked": "Dikonci",
     "loadError": "Daptar peran teu bisa dimuat."
+  },
+  "masterData": {
+    "add": "Tambih",
+    "save": "Simpen",
+    "cancel": "Batal",
+    "edit": "Robah",
+    "delete": "Piceun",
+    "created": "Data ditambihkeun.",
+    "saved": "Parobahan disimpen.",
+    "deleted": "Data dipiceun.",
+    "search": "Teangan",
+    "empty": "Acan aya data.",
+    "loadError": "Data teu bisa dimuat.",
+    "readOnly": "Anjeun ngan tiasa ningali daptar ieu.",
+    "code": "Kode",
+    "name": "Ngaran",
+    "none": "-"
+  },
+  "students": {
+    "title": "Murid",
+    "subtitle": "Kelas nu kaciri nyaéta kelas dina taun pangajaran aktip.",
+    "addTitle": "Tambih murid",
+    "nis": "NIS",
+    "nisn": "NISN",
+    "gender": "Jenis kelamin",
+    "male": "Lalaki",
+    "female": "Awéwé",
+    "birthDate": "Tanggal lahir",
+    "class": "Kelas",
+    "noClass": "Tanpa kelas",
+    "allClasses": "Sakabéh kelas",
+    "status": "Status",
+    "allStatus": "Sakabéh status",
+    "statusActive": "Aktip",
+    "statusGraduated": "Lulus",
+    "statusTransferred": "Pindah",
+    "statusDropped": "Kaluar",
+    "total": "{count} murid",
+    "prev": "Samemehna",
+    "next": "Salajengna",
+    "searchPlaceholder": "Ngaran, NIS, atawa NISN"
+  },
+  "classes": {
+    "title": "Kelas jeung jurusan",
+    "subtitle": "Kelas dijieun per taun pangajaran. Guru pangampu ditetepkeun per mata pelajaran.",
+    "year": "Taun pangajaran",
+    "noYears": "Jieun heula taun pangajaran di ménu Taun pangajaran.",
+    "addTitle": "Tambih kelas",
+    "level": "Tingkat",
+    "levelHint": "Contona 7, X, atawa Kelas 1",
+    "program": "Jurusan",
+    "noProgram": "Tanpa jurusan",
+    "students": "{count} murid",
+    "assignments": "Guru pangampu",
+    "subject": "Mata pelajaran",
+    "teacher": "Guru",
+    "choose": "Pilih",
+    "assign": "Tetepkeun",
+    "remove": "Lépaskeun",
+    "noAssignments": "Acan aya guru pangampu.",
+    "programsTitle": "Jurusan",
+    "programsHint": "Pilihan. Dipaké ku sakola nu aya jurusan, peminatan, atawa kompeténsi kaahlian.",
+    "noPrograms": "Acan aya jurusan."
+  },
+  "subjects": {
+    "title": "Mata pelajaran",
+    "subtitle": "Daptar mata pelajaran sakola. Kode kedah unik.",
+    "addTitle": "Tambih mata pelajaran"
+  },
+  "teachers": {
+    "title": "Guru",
+    "subtitle": "Guru jeung pagawé pangajar. Akun lebet diatur di ménu Anggota.",
+    "addTitle": "Tambih guru",
+    "nip": "NIP",
+    "status": "Status",
+    "active": "Aktip",
+    "inactive": "Teu aktip",
+    "searchPlaceholder": "Ngaran atawa NIP"
   }
 }

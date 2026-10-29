@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -47,6 +48,22 @@ export function AcademicYearsView() {
       queryClient.invalidateQueries({ queryKey: key });
     },
     onError: (e) => setFormError(te(errorKey(e))),
+  });
+
+  const activate = useMutation({
+    mutationFn: async (id: string) =>
+      unwrap(
+        await api.PUT('/v1/academic-years/{id}/activate', {
+          params: { header: schoolHeader(school.schoolId), path: { id } },
+        }),
+      ),
+    onSuccess: () => {
+      toast.success(t('activated'));
+      queryClient.invalidateQueries({ queryKey: key });
+      queryClient.invalidateQueries({ queryKey: ['classes', school.schoolId] });
+      queryClient.invalidateQueries({ queryKey: ['students', school.schoolId] });
+    },
+    onError: (e) => toast.error(te(errorKey(e))),
   });
 
   function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -91,9 +108,22 @@ export function AcademicYearsView() {
               <ul className="divide-y">
                 {list.data.map((y) => (
                   <li key={y.id} className="flex flex-wrap items-baseline justify-between gap-2 py-3">
-                    <span className="font-medium">{y.name}</span>
-                    <span className="text-muted-foreground text-sm">
+                    <span className="flex items-center gap-2 font-medium">
+                      {y.name}
+                      {y.isActive && <Badge variant="secondary">{t('active')}</Badge>}
+                    </span>
+                    <span className="text-muted-foreground flex items-center gap-3 text-sm">
                       {show(y.startsOn)} – {show(y.endsOn)}
+                      {!y.isActive && can('academic_year:manage') && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          disabled={activate.isPending}
+                          onClick={() => activate.mutate(y.id)}
+                        >
+                          {t('activate')}
+                        </Button>
+                      )}
                     </span>
                   </li>
                 ))}

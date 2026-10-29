@@ -1,7 +1,18 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, ChevronsUpDown, LayoutDashboard, LogOut, ShieldCheck, Users } from 'lucide-react';
+import {
+  BookOpen,
+  CalendarDays,
+  ChevronsUpDown,
+  GraduationCap,
+  LayoutDashboard,
+  LogOut,
+  School,
+  ShieldCheck,
+  UserRound,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -59,6 +70,10 @@ const NAV = [
     icon: CalendarDays,
     permission: 'academic_year:read',
   },
+  { href: '/classes', labelKey: 'classes', icon: School, permission: 'class:read' },
+  { href: '/students', labelKey: 'students', icon: GraduationCap, permission: 'student:read' },
+  { href: '/teachers', labelKey: 'teachers', icon: UserRound, permission: 'teacher:read' },
+  { href: '/subjects', labelKey: 'subjects', icon: BookOpen, permission: 'subject:read' },
   { href: '/members', labelKey: 'members', icon: Users, permission: 'member:read' },
   { href: '/roles', labelKey: 'roles', icon: ShieldCheck, permission: 'member:read' },
 ] as const;

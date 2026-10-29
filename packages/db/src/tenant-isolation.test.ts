@@ -124,3 +124,30 @@ describe('isolasi tenant (RLS)', () => {
     expect(all.length).toBeGreaterThanOrEqual(3);
   });
 });
+
+describe('setiap tabel bersekolah dijaga RLS', () => {
+  it('semua tabel dengan kolom school_id mengaktifkan dan memaksa RLS, dan punya kebijakan atau tanpa akses aplikasi', async () => {
+    const res = await platform.db.execute<{
+      table_name: string;
+      rls: boolean;
+      forced: boolean;
+      policies: number;
+      app_can_select: boolean;
+    }>(sql`
+      select c.relname as table_name, c.relrowsecurity as rls, c.relforcerowsecurity as forced,
+             (select count(*)::int from pg_policy p where p.polrelid = c.oid) as policies,
+             has_table_privilege('edusync_app', c.oid, 'SELECT') as app_can_select
+      from pg_class c
+      join pg_namespace n on n.oid = c.relnamespace and n.nspname = 'public'
+      join pg_attribute a on a.attrelid = c.oid and a.attname = 'school_id' and not a.attisdropped
+      where c.relkind = 'r'
+    `);
+    expect(res.rows.length).toBeGreaterThan(10);
+    for (const t of res.rows) {
+      expect(t.rls, `${t.table_name}: RLS belum aktif`).toBe(true);
+      expect(t.forced, `${t.table_name}: RLS belum dipaksa`).toBe(true);
+      // Tabel yang bisa dibaca peran aplikasi wajib punya kebijakan; bila tidak, hasilnya selalu kosong tetapi tetap salah arah.
+      if (t.app_can_select) expect(t.policies, `${t.table_name}: tanpa kebijakan`).toBeGreaterThan(0);
+    }
+  });
+});

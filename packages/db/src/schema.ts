@@ -393,3 +393,148 @@ export const invitation = pgTable(
   },
   (t) => [index('invitation_school_idx').on(t.schoolId, t.email)],
 );
+
+/* ---------- Master data akademik (semua tabel tenant, dijaga RLS) ---------- */
+
+/** Jurusan, peminatan, atau kompetensi keahlian. Opsional: sekolah tanpa jurusan tidak memakainya. */
+export const program = pgTable(
+  'program',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    code: text('code').notNull(),
+    name: text('name').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('program_school_code_uq').on(t.schoolId, t.code)],
+);
+
+/** Kelas pada satu tahun ajaran. Tingkat (`level`) ditulis bebas karena mengikuti kurikulum: "7", "X", "Kelas 1". */
+export const classRoom = pgTable(
+  'class_room',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    programId: uuid('program_id').references(() => program.id),
+    name: text('name').notNull(),
+    level: text('level').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('class_room_year_name_uq').on(t.schoolId, t.academicYearId, t.name),
+    index('class_room_year_idx').on(t.academicYearId),
+  ],
+);
+
+export const student = pgTable(
+  'student',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    nis: text('nis'),
+    nisn: text('nisn'),
+    gender: text('gender', { enum: ['L', 'P'] }).notNull(),
+    birthDate: date('birth_date'),
+    /** Siklus hidup siswa; perpindahan kelas ada di enrollment, bukan di sini. */
+    status: text('status', { enum: ['active', 'graduated', 'transferred', 'dropped'] })
+      .notNull()
+      .default('active'),
+    createdAt: createdAt(),
+    deletedAt: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (t) => [
+    unique('student_school_nis_uq').on(t.schoolId, t.nis),
+    unique('student_school_nisn_uq').on(t.schoolId, t.nisn),
+    index('student_school_name_idx').on(t.schoolId, t.name),
+  ],
+);
+
+/** Siswa duduk di satu kelas per tahun ajaran. Pindah kelas = ubah baris ini; riwayat tahun lalu tetap. */
+export const enrollment = pgTable(
+  'enrollment',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('enrollment_student_year_uq').on(t.studentId, t.academicYearId),
+    index('enrollment_class_idx').on(t.classId),
+  ],
+);
+
+export const subject = pgTable(
+  'subject',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    code: text('code').notNull(),
+    name: text('name').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('subject_school_code_uq').on(t.schoolId, t.code)],
+);
+
+/** Guru atau pegawai pengajar. `memberId` menautkan ke akun login bila orangnya punya akun. */
+export const teacher = pgTable(
+  'teacher',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    nip: text('nip'),
+    memberId: uuid('member_id').references(() => member.id),
+    status: text('status', { enum: ['active', 'inactive'] })
+      .notNull()
+      .default('active'),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('teacher_school_nip_uq').on(t.schoolId, t.nip)],
+);
+
+/** Guru mengampu satu mapel di satu kelas. */
+export const teachingAssignment = pgTable(
+  'teaching_assignment',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    teacherId: uuid('teacher_id')
+      .notNull()
+      .references(() => teacher.id),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('teaching_assignment_uq').on(t.classId, t.subjectId)],
+);

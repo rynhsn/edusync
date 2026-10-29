@@ -166,7 +166,7 @@ Lihat `README.md`. Konfigurasi penting di `.env`: `DATABASE_*_URL` (owner/app/pl
 | --- | --- | --- |
 | M0 | Fondasi: monorepo, RLS, yayasan dan unit, login, peran rangkap, audit, antrean, tampilan, 3 bahasa | **Selesai** |
 | M1 | Pendaftaran dan langganan, konsol staf, subdomain sekolah, sesi per alamat | **Selesai** (mode simulasi; Midtrans sandbox belum diuji akun sungguhan) |
-| M2 | Master data, kalender, bank data kurikulum, jurusan, siklus hidup siswa, impor Excel | 500 siswa diimpor dengan laporan error per baris; guru terlihat di dua unit |
+| M2 | Master data, kalender, bank data kurikulum, jurusan, siklus hidup siswa, impor Excel | **Tahap 1 selesai:** jurusan, kelas, mapel, guru, siswa + penempatan kelas, penugasan guru, tahun ajaran aktif (CRUD, API + layar). Tahap 2: impor Excel (500 siswa dengan laporan error per baris), kalender akademik, bank data kurikulum, wali, guru lintas unit |
 | M3 | Jadwal, absensi (kiosk RFID), ekskul, WhatsApp | 1000 tap/menit tanpa duplikat; hitung ulang kebijakan benar |
 | M4 | Nilai dan penilaian | Rapor satu kelas dibuat sebagai job |
 | M5 | Tahfidz dan ibadah | Musyrif mencatat satu halaqah; wali melihat progres |
@@ -188,3 +188,9 @@ Pilot Miftahul Huda (SMP IT + SMK, ±15 guru, sebagian lintas unit) masuk akal s
 - Verifikasi dua langkah staf; perintah pembuatan admin pertama di produksi.
 - E2E Playwright; penyimpanan berkas; hosting produksi dan domain dasar final (VPS + Docker + Caddy, atau PaaS).
 - Teks Sunda perlu ditinjau penutur asli. Harga katalog belum ditetapkan.
+
+### Catatan M2 tahap 1
+- Izin baru: `class`, `student`, `teacher`, `subject` (read/manage); peran bawaan sekolah yang sudah ada mendapat izinnya lewat migrasi.
+- Kunci asing Postgres tidak tunduk pada RLS, jadi rujukan lintas sekolah (mis. kelas menunjuk tahun ajaran sekolah lain) divalidasi di API dalam transaksi tenant. Sebuah tes introspeksi memastikan setiap tabel ber-`school_id` mengaktifkan dan memaksa RLS.
+- Siswa dihapus secara lunak (`deleted_at`); kelulusan dan perpindahan memakai status siklus hidup, bukan penghapusan.
+- Guru lintas unit (`person` tingkat yayasan) belum: guru saat ini per unit.

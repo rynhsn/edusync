@@ -8,6 +8,14 @@ export const PERMISSIONS = [
   'role:manage',
   'academic_year:read',
   'academic_year:manage',
+  'class:read',
+  'class:manage',
+  'student:read',
+  'student:manage',
+  'teacher:read',
+  'teacher:manage',
+  'subject:read',
+  'subject:manage',
   'audit:read',
 ] as const;
 
@@ -25,11 +33,52 @@ export interface SystemRole {
 /** Peran bawaan yang dibuat untuk setiap sekolah. Sekolah boleh mengubahnya. */
 export const SYSTEM_ROLES = {
   school_admin: { name: 'Admin sekolah', permissions: PERMISSIONS },
-  principal: { name: 'Kepala sekolah', permissions: ['member:read', 'academic_year:read', 'audit:read'] },
-  curriculum: { name: 'Kurikulum', permissions: ['academic_year:read', 'academic_year:manage'] },
-  treasurer: { name: 'Bendahara', permissions: ['academic_year:read'] },
-  operator: { name: 'Operator', permissions: ['member:read', 'academic_year:read', 'academic_year:manage'] },
-  teacher: { name: 'Guru', permissions: ['academic_year:read'] },
+  principal: {
+    name: 'Kepala sekolah',
+    permissions: [
+      'member:read',
+      'academic_year:read',
+      'class:read',
+      'student:read',
+      'teacher:read',
+      'subject:read',
+      'audit:read',
+    ],
+  },
+  curriculum: {
+    name: 'Kurikulum',
+    permissions: [
+      'academic_year:read',
+      'academic_year:manage',
+      'class:read',
+      'class:manage',
+      'subject:read',
+      'subject:manage',
+      'student:read',
+      'teacher:read',
+    ],
+  },
+  treasurer: { name: 'Bendahara', permissions: ['academic_year:read', 'student:read'] },
+  operator: {
+    name: 'Operator',
+    permissions: [
+      'member:read',
+      'academic_year:read',
+      'academic_year:manage',
+      'class:read',
+      'class:manage',
+      'student:read',
+      'student:manage',
+      'teacher:read',
+      'teacher:manage',
+      'subject:read',
+      'subject:manage',
+    ],
+  },
+  teacher: {
+    name: 'Guru',
+    permissions: ['academic_year:read', 'class:read', 'student:read', 'subject:read'],
+  },
 } as const satisfies Record<string, SystemRole>;
 
 export type SystemRoleKey = keyof typeof SYSTEM_ROLES;

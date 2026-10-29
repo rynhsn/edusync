@@ -26,6 +26,8 @@ const KNOWN = [
   'role_locked',
   'role_system',
   'role_in_use',
+  'in_use',
+  'invalid_reference',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

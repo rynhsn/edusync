@@ -110,9 +110,9 @@ describe('kelola anggota dan peran', () => {
     expect(members.statusCode).toBe(200);
     expect(members.json().map((m: { email: string }) => m.email)).toContain(guru.email);
     const roles = (await call('GET', '/v1/roles', cookie)).json();
-    expect(roles.find((r: { key: string }) => r.key === 'teacher').permissions).toEqual([
+    expect(roles.find((r: { key: string }) => r.key === 'teacher').permissions).toContain(
       'academic_year:read',
-    ]);
+    );
     // Kepala sekolah hanya membaca.
     expect(
       (await call('POST', '/v1/members', cookie, { email: guru.email, roles: ['teacher'] })).statusCode,
@@ -403,6 +403,7 @@ describe('peran kustom', () => {
     const cookie = await login(admin.email);
     const roles = (await call('GET', '/v1/roles', cookie)).json();
     const teacher = roles.find((x: { key: string }) => x.key === 'teacher');
+    const teacherPerms: string[] = teacher.permissions;
     const schoolAdmin = roles.find((x: { key: string }) => x.key === 'school_admin');
 
     const edit = await call('PUT', `/v1/roles/${teacher.id}`, cookie, {
@@ -415,7 +416,7 @@ describe('peran kustom', () => {
     // Kembalikan seperti semula agar tes lain tidak terpengaruh.
     await call('PUT', `/v1/roles/${teacher.id}`, cookie, {
       name: 'Guru',
-      permissions: ['academic_year:read'],
+      permissions: teacherPerms,
     });
 
     const del = await call('DELETE', `/v1/roles/${teacher.id}`, cookie);

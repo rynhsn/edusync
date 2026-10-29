@@ -21,6 +21,7 @@ import {
 import { z } from 'zod';
 import { type Auth, createAuth, originMatcherFor } from './auth';
 import type { Env } from './env';
+import { academicStructureRoutes } from './routes/academic-structure';
 import { academicYearRoutes } from './routes/academic-years';
 import { accountRoutes } from './routes/account';
 import { registerAuthRoutes } from './routes/auth';
@@ -28,6 +29,7 @@ import { billingRoutes } from './routes/billing';
 import { invitationRoutes } from './routes/invitations';
 import { meRoutes } from './routes/me';
 import { memberRoutes } from './routes/members';
+import { peopleRoutes } from './routes/people';
 import { platformRoutes } from './routes/platform';
 import { roleRoutes } from './routes/roles';
 
@@ -164,6 +166,8 @@ export async function buildApp(env: Env) {
   await app.register(accountRoutes);
   await app.register(memberRoutes);
   await app.register(roleRoutes);
+  await app.register(academicStructureRoutes);
+  await app.register(peopleRoutes);
   await app.register(invitationRoutes, { env });
 
   return app;

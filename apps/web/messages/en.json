@@ -36,7 +36,11 @@
     "notMemberBody": "Sign in with an account registered at this school, or ask the school admin to invite you.",
     "goMain": "Go to the main page",
     "members": "Members",
-    "roles": "Roles"
+    "roles": "Roles",
+    "classes": "Classes",
+    "students": "Students",
+    "teachers": "Teachers",
+    "subjects": "Subjects"
   },
   "roles": {
     "school_admin": "School admin",
@@ -53,7 +57,15 @@
     "role_manage": "Manage roles",
     "academic_year_read": "View academic years",
     "academic_year_manage": "Manage academic years",
-    "audit_read": "View audit log"
+    "audit_read": "View audit log",
+    "class_read": "View classes",
+    "class_manage": "Manage classes",
+    "student_read": "View students",
+    "student_manage": "Manage students",
+    "teacher_read": "View teachers",
+    "teacher_manage": "Manage teachers",
+    "subject_read": "View subjects",
+    "subject_manage": "Manage subjects"
   },
   "dashboard": {
     "greeting": "Hello, {name}",
@@ -75,7 +87,10 @@
     "endsOn": "Ends",
     "save": "Save",
     "saving": "Saving…",
-    "created": "Academic year {name} created."
+    "created": "Academic year {name} created.",
+    "activate": "Make active",
+    "active": "Active",
+    "activated": "Active academic year changed."
   },
   "errors": {
     "unauthorized": "Please sign in first.",
@@ -103,7 +118,9 @@
     "invitation_wrong_account": "This invitation is for a different email. Sign in with the invited email.",
     "role_locked": "The School admin role cannot be changed.",
     "role_system": "Built-in roles cannot be deleted.",
-    "role_in_use": "Members still hold this role. Remove it from them first."
+    "role_in_use": "Members still hold this role. Remove it from them first.",
+    "in_use": "This record is still in use elsewhere, so it cannot be deleted.",
+    "invalid_reference": "A referenced record was not found."
   },
   "theme": {
     "label": "Theme",
@@ -347,5 +364,83 @@
     "custom": "Custom",
     "locked": "Locked",
     "loadError": "The role list could not be loaded."
+  },
+  "masterData": {
+    "add": "Add",
+    "save": "Save",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "created": "Added.",
+    "saved": "Changes saved.",
+    "deleted": "Deleted.",
+    "search": "Search",
+    "empty": "Nothing here yet.",
+    "loadError": "The data could not be loaded.",
+    "readOnly": "You can only view this list.",
+    "code": "Code",
+    "name": "Name",
+    "none": "-"
+  },
+  "students": {
+    "title": "Students",
+    "subtitle": "The class shown is the class in the active academic year.",
+    "addTitle": "Add a student",
+    "nis": "Student ID (NIS)",
+    "nisn": "National ID (NISN)",
+    "gender": "Gender",
+    "male": "Male",
+    "female": "Female",
+    "birthDate": "Date of birth",
+    "class": "Class",
+    "noClass": "No class",
+    "allClasses": "All classes",
+    "status": "Status",
+    "allStatus": "All statuses",
+    "statusActive": "Active",
+    "statusGraduated": "Graduated",
+    "statusTransferred": "Transferred",
+    "statusDropped": "Left",
+    "total": "{count} students",
+    "prev": "Previous",
+    "next": "Next",
+    "searchPlaceholder": "Name, NIS, or NISN"
+  },
+  "classes": {
+    "title": "Classes and programs",
+    "subtitle": "Classes are created per academic year. Teachers are assigned per subject.",
+    "year": "Academic year",
+    "noYears": "Create an academic year first under Academic years.",
+    "addTitle": "Add a class",
+    "level": "Level",
+    "levelHint": "E.g. 7, X, or Grade 1",
+    "program": "Program",
+    "noProgram": "No program",
+    "students": "{count} students",
+    "assignments": "Assigned teachers",
+    "subject": "Subject",
+    "teacher": "Teacher",
+    "choose": "Choose",
+    "assign": "Assign",
+    "remove": "Remove",
+    "noAssignments": "No teachers assigned yet.",
+    "programsTitle": "Programs",
+    "programsHint": "Optional. For schools with majors, tracks, or skill programs.",
+    "noPrograms": "No programs yet."
+  },
+  "subjects": {
+    "title": "Subjects",
+    "subtitle": "The school’s subjects. Codes must be unique.",
+    "addTitle": "Add a subject"
+  },
+  "teachers": {
+    "title": "Teachers",
+    "subtitle": "Teachers and teaching staff. Login accounts are managed under Members.",
+    "addTitle": "Add a teacher",
+    "nip": "Staff ID (NIP)",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "searchPlaceholder": "Name or NIP"
   }
 }
