@@ -29,10 +29,24 @@ export const platformTenantSchema = z.object({
   schoolTenantId: z.uuid().nullable(),
   provisioningError: z.string().nullable(),
   ownerUserId: z.string().nullable().optional(),
+  adminName: z.string().nullable().optional(),
+  adminEmail: z.email().nullable().optional(),
   createdAt: z.iso.datetime(),
   updatedAt: z.iso.datetime(),
 });
 export type PlatformTenant = z.infer<typeof platformTenantSchema>;
+
+export const platformTenantIdSchema = z.uuid();
+
+export const updateTenantStatusSchema = z.object({
+  status: z.enum(['active', 'suspended']),
+}).strict();
+export type UpdateTenantStatusInput = z.infer<typeof updateTenantStatusSchema>;
+
+export const internalUpdateSchoolTenantStatusSchema = z.object({
+  status: z.enum(['active', 'suspended']),
+}).strict();
+export type InternalUpdateSchoolTenantStatusInput = z.infer<typeof internalUpdateSchoolTenantStatusSchema>;
 
 // Ownership of a school by a platform account. `tenants.created_by` only records who
 // performed the creation (an operator may create a school on behalf of someone else),
@@ -82,8 +96,26 @@ export type SchoolLoginInput = z.infer<typeof schoolLoginSchema>;
 export const bootstrapSchoolAdminSchema = z.object({
   token: z.string().min(32).max(256),
   password: z.string().min(12).max(128),
-});
+}).strict();
 export type BootstrapSchoolAdminInput = z.infer<typeof bootstrapSchoolAdminSchema>;
+
+export const schoolAdminActivationTokenRequestSchema = z.object({
+  token: z.string().min(32).max(256),
+}).strict();
+export type SchoolAdminActivationTokenRequest = z.infer<typeof schoolAdminActivationTokenRequestSchema>;
+
+export const schoolAdminActivationLookupSchema = z.object({
+  valid: z.boolean(),
+  email: z.email().optional(),
+  name: z.string().optional(),
+  schoolName: z.string().optional(),
+});
+export type SchoolAdminActivationLookup = z.infer<typeof schoolAdminActivationLookupSchema>;
+
+export const schoolAdminActivationAcceptanceSchema = z.object({
+  activated: z.literal(true),
+});
+export type SchoolAdminActivationAcceptance = z.infer<typeof schoolAdminActivationAcceptanceSchema>;
 
 export const schoolAuthContextSchema = z.object({
   userId: z.string().min(1),
@@ -175,6 +207,46 @@ export type RegisterPlatformUserInput = z.infer<typeof registerPlatformUserSchem
 
 export const platformUserRegisteredSchema = z.object({ registered: z.literal(true), id: z.string().min(1) });
 export type PlatformUserRegistered = z.infer<typeof platformUserRegisteredSchema>;
+
+export const updatePlatformProfileSchema = z.object({
+  name: z.string().trim().min(2).max(100),
+}).strict();
+export type UpdatePlatformProfileInput = z.infer<typeof updatePlatformProfileSchema>;
+
+export const changePlatformPasswordSchema = z.object({
+  currentPassword: z.string().min(1).max(128),
+  newPassword: z.string().min(12).max(128),
+}).strict();
+export type ChangePlatformPasswordInput = z.infer<typeof changePlatformPasswordSchema>;
+
+export const platformProfileUpdatedSchema = z.object({
+  updated: z.literal(true),
+  name: z.string(),
+});
+export type PlatformProfileUpdated = z.infer<typeof platformProfileUpdatedSchema>;
+
+export const platformPasswordChangedSchema = z.object({
+  updated: z.literal(true),
+});
+export type PlatformPasswordChanged = z.infer<typeof platformPasswordChangedSchema>;
+
+export const platformAuditLogSchema = z.object({
+  id: z.uuid(),
+  actorUserId: z.string().nullable(),
+  actorName: z.string().nullable(),
+  actorEmail: z.string().nullable(),
+  action: z.string(),
+  entityType: z.string(),
+  entityId: z.string().nullable(),
+  details: z.record(z.string(), z.unknown()),
+  createdAt: z.iso.datetime(),
+});
+export type PlatformAuditLog = z.infer<typeof platformAuditLogSchema>;
+
+export const platformAuditLogListSchema = z.object({
+  logs: z.array(platformAuditLogSchema),
+});
+export type PlatformAuditLogList = z.infer<typeof platformAuditLogListSchema>;
 
 export const requestPasswordResetSchema = z.object({
   email: normalizedEmailSchema,

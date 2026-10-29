@@ -1,10 +1,16 @@
 import { randomUUID } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import {
-  registerPlatformUserSchema,
+  changePlatformPasswordSchema,
+  platformPasswordChangedSchema,
+  platformProfileUpdatedSchema,
   platformUserRegisteredSchema,
+  registerPlatformUserSchema,
+  updatePlatformProfileSchema,
 } from '@edusync/contracts';
-import { hashPassword } from 'better-auth/crypto';
+import { hashPassword, verifyPassword } from 'better-auth/crypto';
+import { platformAuth } from '../auth/config.js';
+import { getPlatformSession } from '../auth/routes.js';
 import { platformDbPool } from '../db/pool.js';
 
 // Public self-registration for a platform account manager. Operators remain invite-only,
@@ -94,5 +100,82 @@ export async function registerUserRoutes(app: FastifyInstance): Promise<void> {
     }
 
     return reply.code(201).send(platformUserRegisteredSchema.parse({ registered: true, id: userId }));
+  });
+
+  app.patch('/api/account/profile', async (request, reply) => {
+    const session = await getPlatformSession(platformAuth, request);
+    if (!session) {
+      return error(reply, 401, 'UNAUTHENTICATED', 'Authentication required');
+    }
+
+    const parsed = updatePlatformProfileSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return error(reply, 400, 'INVALID_INPUT', 'Invalid profile details');
+    }
+
+    const updated = await platformDbPool.query<{ id: string; name: string; email: string; role: string }>(
+      `UPDATE "user"
+       SET name = $2, "updatedAt" = now()
+       WHERE id = $1 AND COALESCE(disabled, false) = false
+       RETURNING id, name, email, role`,
+      [session.user.id, parsed.data.name],
+    );
+    const row = updated.rows[0];
+    if (!row) {
+      return error(reply, 404, 'USER_NOT_FOUND', 'Account could not be updated');
+    }
+
+    await platformDbPool.query(
+      `INSERT INTO platform_audit_logs (actor_user_id, action, entity_type, entity_id, details)
+       VALUES ($1, 'account.profile_updated', 'user', $1, $2::jsonb)`,
+      [session.user.id, JSON.stringify({ name: row.name })],
+    );
+
+    return reply.send(platformProfileUpdatedSchema.parse({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      role: row.role,
+    }));
+  });
+
+  app.post('/api/account/password', async (request, reply) => {
+    const session = await getPlatformSession(platformAuth, request);
+    if (!session) {
+      return error(reply, 401, 'UNAUTHENTICATED', 'Authentication required');
+    }
+
+    const parsed = changePlatformPasswordSchema.safeParse(request.body);
+    if (!parsed.success) {
+      return error(reply, 400, 'INVALID_INPUT', 'Invalid password details');
+    }
+
+    const { currentPassword, newPassword } = parsed.data;
+    const accountResult = await platformDbPool.query<{ id: string; password: string | null }>(
+      `SELECT id, password FROM account WHERE "userId" = $1 AND "providerId" = 'credential' LIMIT 1`,
+      [session.user.id],
+    );
+    const account = accountResult.rows[0];
+    if (!account?.password) {
+      return error(reply, 400, 'INVALID_PASSWORD', 'Current password is incorrect');
+    }
+
+    const valid = await verifyPassword({ hash: account.password, password: currentPassword });
+    if (!valid) {
+      return error(reply, 400, 'INVALID_PASSWORD', 'Current password is incorrect');
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+    await platformDbPool.query(
+      `UPDATE account SET password = $2, "updatedAt" = now() WHERE id = $1`,
+      [account.id, passwordHash],
+    );
+    await platformDbPool.query(
+      `INSERT INTO platform_audit_logs (actor_user_id, action, entity_type, entity_id, details)
+       VALUES ($1, 'account.password_changed', 'user', $1, '{}'::jsonb)`,
+      [session.user.id],
+    );
+
+    return reply.send(platformPasswordChangedSchema.parse({ changed: true }));
   });
 }

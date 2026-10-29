@@ -1,5 +1,6 @@
 import {
   acceptPlatformOperatorInviteSchema,
+  changePlatformPasswordSchema,
   createTenantSchema,
   invitePlatformOperatorSchema,
   operatorInviteAcceptanceSchema,
@@ -8,25 +9,35 @@ import {
   passwordResetOtpVerifiedSchema,
   passwordResetRequestedSchema,
   passwordResetSchema,
+  platformAuditLogListSchema,
   platformInviteTokenRequestSchema,
   platformInviteTokenSchema,
   platformOperatorListSchema,
+  platformPasswordChangedSchema,
+  platformProfileUpdatedSchema,
   platformTenantSchema,
   platformUserRegisteredSchema,
   registerPlatformUserSchema,
   requestPasswordResetSchema,
   resetPasswordWithOtpSchema,
+  updatePlatformProfileSchema,
+  updateTenantStatusSchema,
   verifyPasswordResetOtpSchema,
   type AcceptPlatformOperatorInviteInput,
+  type ChangePlatformPasswordInput,
   type CreateTenantInput,
   type InvitePlatformOperatorInput,
+  type PlatformAuditLogList,
   type PlatformInviteTokenRequest,
   type PlatformOperatorList,
+  type PlatformPasswordChanged,
+  type PlatformProfileUpdated,
   type PlatformTenant,
   type PlatformUserRegistered,
   type RegisterPlatformUserInput,
   type RequestPasswordResetInput,
   type ResetPasswordWithOtpInput,
+  type UpdatePlatformProfileInput,
   type VerifyPasswordResetOtpInput,
 } from '@edusync/contracts';
 import { createAuthClient } from 'better-auth/react';
@@ -86,6 +97,7 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 const post = (path: string, data: unknown) => request<unknown>(path, { method: 'POST', body: JSON.stringify(data) });
+const patch = (path: string, data: unknown) => request<unknown>(path, { method: 'PATCH', body: JSON.stringify(data) });
 
 export async function getTenants(): Promise<PlatformTenant[]> {
   const result = await request<unknown>('/api/tenants');
@@ -95,6 +107,26 @@ export async function getTenants(): Promise<PlatformTenant[]> {
 
 export async function createTenant(input: CreateTenantInput): Promise<PlatformTenant> {
   return platformTenantSchema.parse(await post('/api/tenants', createTenantSchema.parse(input)));
+}
+
+export async function updateTenantStatus(tenantId: string, status: 'active' | 'suspended'): Promise<PlatformTenant> {
+  return platformTenantSchema.parse(await patch(`/api/tenants/${encodeURIComponent(tenantId)}/status`, updateTenantStatusSchema.parse({ status })));
+}
+
+export async function retryTenantProvisioning(tenantId: string): Promise<PlatformTenant> {
+  return platformTenantSchema.parse(await post(`/api/tenants/${encodeURIComponent(tenantId)}/retry-provisioning`, {}));
+}
+
+export async function updatePlatformProfile(input: UpdatePlatformProfileInput): Promise<PlatformProfileUpdated> {
+  return platformProfileUpdatedSchema.parse(await patch('/api/account/profile', updatePlatformProfileSchema.parse(input)));
+}
+
+export async function changePlatformPassword(input: ChangePlatformPasswordInput): Promise<PlatformPasswordChanged> {
+  return platformPasswordChangedSchema.parse(await post('/api/account/password', changePlatformPasswordSchema.parse(input)));
+}
+
+export async function getAuditLogs(): Promise<PlatformAuditLogList> {
+  return platformAuditLogListSchema.parse(await request<unknown>('/api/audit-logs'));
 }
 
 /**

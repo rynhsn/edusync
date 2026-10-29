@@ -2,6 +2,7 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ZodError } from 'zod';
 import {
   ApiError,
+  acceptAdminActivation,
   authErrorMessage,
   createAcademicYear,
   createClass,
@@ -11,6 +12,7 @@ import {
   getClasses,
   getOverview,
   getStudents,
+  lookupAdminActivation,
   updateAcademicYear,
   updateClass,
   updateStudent,
@@ -297,5 +299,31 @@ describe('deleteStudent', () => {
     const { pathname } = new URL(String(lastCall().url));
     expect(pathname).toBe('/api/students/..%2F..%2Fapi%2Fschool%2Foverview');
     expect(pathname.startsWith('/api/students/')).toBe(true);
+  });
+});
+
+describe('school admin activation', () => {
+  it('validates token length before looking up an admin activation', async () => {
+    vi.stubGlobal('fetch', fetchMock);
+    await expect(lookupAdminActivation({ token: 'short' })).rejects.toBeInstanceOf(ZodError);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it('looks up and accepts a school admin activation token', async () => {
+    vi.stubGlobal('fetch', fetchMock);
+    const token = 'a'.repeat(43);
+    fetchMock.mockResolvedValue(respond({ valid: true, email: 'admin@school.edu', name: 'Ada Admin', schoolName: 'Northfield Academy' }));
+
+    await expect(lookupAdminActivation({ token })).resolves.toEqual({
+      valid: true,
+      email: 'admin@school.edu',
+      name: 'Ada Admin',
+      schoolName: 'Northfield Academy',
+    });
+    expect(String(lastCall().url)).toMatch(/\/api\/admin-activations\/lookup$/);
+
+    fetchMock.mockResolvedValue(respond({ activated: true }));
+    await expect(acceptAdminActivation({ token, password: 'a-strong-school-password' })).resolves.toEqual({ activated: true });
+    expect(String(lastCall().url)).toMatch(/\/api\/admin-activations\/accept$/);
   });
 });

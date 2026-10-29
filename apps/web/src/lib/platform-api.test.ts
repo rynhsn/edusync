@@ -4,13 +4,18 @@ import {
   ApiError,
   acceptInvitation,
   authErrorMessage,
+  changePlatformPassword,
   createTenant,
+  getAuditLogs,
   getOperators,
   getTenants,
   inviteOperator,
   lookupInvitation,
   requestPasswordReset,
+  retryTenantProvisioning,
   updateOperatorRole,
+  updatePlatformProfile,
+  updateTenantStatus,
   verifyPasswordResetOtp,
 } from '@/lib/platform-api';
 
@@ -267,5 +272,64 @@ describe('invitations', () => {
 
     const { url } = lastCall();
     expect(String(url)).toMatch(/\/api\/operator-invitations\/accept$/);
+  });
+});
+
+describe('tenant lifecycle, audit logs, and account settings', () => {
+  it('patches tenant status and parses the updated workspace', async () => {
+    vi.stubGlobal('fetch', fetchMock);
+    fetchMock.mockResolvedValue(respond({ ...tenant, status: 'suspended' }));
+
+    await expect(updateTenantStatus(tenant.id, 'suspended')).resolves.toEqual({ ...tenant, status: 'suspended' });
+    const { url, init } = lastCall();
+    expect(String(url)).toMatch(new RegExp(`/api/tenants/${tenant.id}/status$`));
+    expect(init?.method).toBe('PATCH');
+    expect(JSON.parse(String(init?.body))).toEqual({ status: 'suspended' });
+  });
+
+  it('retries tenant provisioning via POST', async () => {
+    vi.stubGlobal('fetch', fetchMock);
+    fetchMock.mockResolvedValue(respond(tenant));
+
+    await expect(retryTenantProvisioning(tenant.id)).resolves.toEqual(tenant);
+    const { url, init } = lastCall();
+    expect(String(url)).toMatch(new RegExp(`/api/tenants/${tenant.id}/retry-provisioning$`));
+    expect(init?.method).toBe('POST');
+  });
+
+  it('fetches platform audit logs', async () => {
+    vi.stubGlobal('fetch', fetchMock);
+    const payload = {
+      logs: [{
+        id: '00000000-0000-4000-8000-000000000010',
+        actorUserId: 'op-1',
+        actorName: 'Platform Admin',
+        actorEmail: 'admin@example.com',
+        action: 'tenant.created',
+        entityType: 'tenant',
+        entityId: tenant.id,
+        details: { slug: 'northfield-academy' },
+        createdAt: '2026-10-19T10:00:00.000Z',
+      }],
+    };
+    fetchMock.mockResolvedValue(respond(payload));
+
+    await expect(getAuditLogs()).resolves.toEqual(payload);
+    expect(String(lastCall().url)).toMatch(/\/api\/audit-logs$/);
+  });
+
+  it('updates account profile and changes password', async () => {
+    vi.stubGlobal('fetch', fetchMock);
+    const updatedProfile = { updated: true as const, name: 'New Name' };
+    fetchMock.mockResolvedValue(respond(updatedProfile));
+
+    await expect(updatePlatformProfile({ name: ' New Name ' })).resolves.toEqual(updatedProfile);
+    expect(String(lastCall().url)).toMatch(/\/api\/account\/profile$/);
+    expect(lastCall().init?.method).toBe('PATCH');
+
+    fetchMock.mockResolvedValue(respond({ updated: true }));
+    await expect(changePlatformPassword({ currentPassword: 'old-password-123', newPassword: 'new-password-456' })).resolves.toEqual({ updated: true });
+    expect(String(lastCall().url)).toMatch(/\/api\/account\/password$/);
+    expect(lastCall().init?.method).toBe('POST');
   });
 });

@@ -1,6 +1,6 @@
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
-import { CircleAlert, LoaderCircle } from 'lucide-react';
+import { CircleAlert, Eye, EyeOff, LoaderCircle } from 'lucide-react';
 import type { StudentStatus } from '@edusync/contracts';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +11,21 @@ import { useTranslation, type Locale, type MessageKey } from '@/i18n';
 export function Brand() { const { t } = useTranslation(); return <Link to="/" className="flex items-center gap-2.5" aria-label={t('common.brandHome')}><span className="grid size-9 grid-cols-2 gap-1 rounded-xl bg-primary p-2"><i className="rounded-sm bg-white" /><i className="rounded-sm bg-white/60" /><i className="rounded-sm bg-white/60" /><i className="rounded-sm bg-white" /></span><span className="font-display text-lg font-extrabold tracking-tight">edusync<span className="text-primary">.</span><span className="ml-2 text-xs font-medium text-muted-foreground">{t('common.brandSuffix')}</span></span></Link>; }
 
 export function Field({ label, name, type = 'text', required, minLength, maxLength, placeholder, autoComplete, defaultValue }: { label: string; name: string; type?: string; required?: boolean; minLength?: number; maxLength?: number; placeholder?: string; autoComplete?: string; defaultValue?: string }) { return <div className="space-y-1.5"><Label htmlFor={name}>{label}</Label><Input id={name} name={name} type={type} required={required} minLength={minLength} maxLength={maxLength} placeholder={placeholder} autoComplete={autoComplete} defaultValue={defaultValue} /></div>; }
+
+export function PasswordField({ label, name, required, minLength, maxLength, placeholder, autoComplete }: { label: string; name: string; required?: boolean; minLength?: number; maxLength?: number; placeholder?: string; autoComplete?: string }) {
+  const [visible, setVisible] = useState(false);
+  const { t } = useTranslation();
+  const action = t(visible ? 'common.hide' : 'common.show');
+  return <div className="space-y-1.5"><Label htmlFor={name}>{label}</Label><div className="relative"><Input id={name} name={name} type={visible ? 'text' : 'password'} required={required} minLength={minLength} maxLength={maxLength} autoComplete={autoComplete} className="pr-11" placeholder={placeholder} /><button type="button" aria-label={`${action} ${label.toLowerCase()}`} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground" onClick={() => setVisible(!visible)}>{visible ? <EyeOff size={17} /> : <Eye size={17} />}</button></div></div>;
+}
+
+export const PASSWORD_MISMATCH_MESSAGE = 'The two passwords do not match.';
+
+export function readConfirmedPassword(values: FormData): string {
+  const password = String(values.get('password') ?? '');
+  if (password !== String(values.get('confirmPassword') ?? '')) throw new Error(PASSWORD_MISMATCH_MESSAGE);
+  return password;
+}
 
 export function FormError({ message }: { message: string }) { return <Alert variant="destructive"><CircleAlert size={16} /><AlertDescription>{message}</AlertDescription></Alert>; }
 

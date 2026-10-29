@@ -28,3 +28,7 @@ export const canManageOperators = (access: PlatformAccess): boolean => access ==
 
 /** Administrators and customers both provision schools; read-only operators do not. */
 export const canCreateTenants = (access: PlatformAccess): boolean => access === 'admin' || access === 'user';
+
+/** Only administrators may suspend or reactivate a school workspace. */
+export const canManageTenantStatus = (access: PlatformAccess): boolean => access === 'admin';
+

@@ -2,8 +2,12 @@ import {
   academicYearInputSchema,
   academicYearSchema,
   academicYearUpdateSchema,
+  bootstrapSchoolAdminSchema,
   classInputSchema,
   classUpdateSchema,
+  schoolAdminActivationAcceptanceSchema,
+  schoolAdminActivationLookupSchema,
+  schoolAdminActivationTokenRequestSchema,
   schoolAuthContextSchema,
   schoolClassSchema,
   schoolDeletionResultSchema,
@@ -15,8 +19,10 @@ import {
   type AcademicYear,
   type AcademicYearInput,
   type AcademicYearUpdateInput,
+  type BootstrapSchoolAdminInput,
   type ClassInput,
   type ClassUpdateInput,
+  type SchoolAdminActivationTokenRequest,
   type SchoolAuthContext,
   type SchoolClass,
   type SchoolOverview,
@@ -139,3 +145,12 @@ export async function updateStudent(id: string, input: StudentUpdateInput): Prom
 export async function deleteStudent(id: string) {
   return schoolDeletionResultSchema.parse(await remove(`/api/students/${encodeURIComponent(id)}`));
 }
+
+export async function lookupAdminActivation(input: SchoolAdminActivationTokenRequest) {
+  return schoolAdminActivationLookupSchema.parse(await post('/api/admin-activations/lookup', schoolAdminActivationTokenRequestSchema.parse(input)));
+}
+
+export async function acceptAdminActivation(input: BootstrapSchoolAdminInput) {
+  return schoolAdminActivationAcceptanceSchema.parse(await post('/api/admin-activations/accept', bootstrapSchoolAdminSchema.parse(input)));
+}
+

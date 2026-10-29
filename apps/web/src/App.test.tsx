@@ -10,7 +10,12 @@ const mocks = vi.hoisted(() => ({
   signOut: vi.fn(),
   getTenants: vi.fn(),
   getOperators: vi.fn(),
+  getAuditLogs: vi.fn(),
   createTenant: vi.fn(),
+  updateTenantStatus: vi.fn(),
+  retryTenantProvisioning: vi.fn(),
+  updatePlatformProfile: vi.fn(),
+  changePlatformPassword: vi.fn(),
   lookupInvitation: vi.fn(),
   acceptInvitation: vi.fn(),
   requestPasswordReset: vi.fn(),
@@ -33,7 +38,12 @@ vi.mock('@/lib/platform-api', () => ({
   },
   getTenants: mocks.getTenants,
   getOperators: mocks.getOperators,
+  getAuditLogs: mocks.getAuditLogs,
   createTenant: mocks.createTenant,
+  updateTenantStatus: mocks.updateTenantStatus,
+  retryTenantProvisioning: mocks.retryTenantProvisioning,
+  updatePlatformProfile: mocks.updatePlatformProfile,
+  changePlatformPassword: mocks.changePlatformPassword,
   lookupInvitation: mocks.lookupInvitation,
   acceptInvitation: mocks.acceptInvitation,
   requestPasswordReset: mocks.requestPasswordReset,
@@ -58,7 +68,7 @@ function renderAt(path: string) {
 }
 
 const operator = { id: 'op-1', name: 'Platform Admin', email: 'admin@example.com', role: 'platform_admin', emailVerified: true, disabled: false, createdAt: '2026-10-19T10:00:00.000Z', updatedAt: '2026-10-19T10:00:00.000Z' };
-const tenant = { id: 'tenant-1', name: 'Northfield Academy', slug: 'northfield', status: 'active', schoolTenantId: 'school-1', provisioningError: null, createdAt: '2026-10-19T10:00:00.000Z', updatedAt: '2026-10-19T10:00:00.000Z' };
+const tenant = { id: 'tenant-1', name: 'Northfield Academy', slug: 'northfield', status: 'active', schoolTenantId: 'school-1', adminName: 'Ada Admin', adminEmail: 'ada@northfield.edu', provisioningError: null, createdAt: '2026-10-19T10:00:00.000Z', updatedAt: '2026-10-19T10:00:00.000Z' };
 const otherOperator = { id: 'op-2', name: 'Taylor Viewer', email: 'viewer@example.com', role: 'platform_read_only', emailVerified: true, disabled: false, createdAt: '2026-10-19T10:30:00.000Z', updatedAt: '2026-10-19T10:30:00.000Z' };
 const pendingInvite = { id: '00000000-0000-4000-8000-000000000003', email: 'sam@example.com', name: 'Sam Invitee', role: 'platform_read_only', status: 'pending', expiresAt: '2026-10-21T10:00:00.000Z', createdAt: '2026-10-19T10:00:00.000Z' };
 
@@ -66,6 +76,7 @@ function configureAuthenticated(role = 'platform_admin') {
   mocks.getSession.mockResolvedValue({ data: { user: { id: 'op-1', name: 'Platform Admin', email: 'admin@example.com', role } } });
   mocks.getTenants.mockResolvedValue([tenant]);
   mocks.getOperators.mockResolvedValue({ operators: [operator], invitations: [] });
+  mocks.getAuditLogs.mockResolvedValue({ logs: [] });
 }
 
 describe('Platform app authentication and permissions', () => {
@@ -121,7 +132,7 @@ describe('Public account flows', () => {
     renderAt('/sign-in');
     fireEvent.change(screen.getByLabelText('Email address'), { target: { value: 'admin@example.com' } });
     fireEvent.change(screen.getByLabelText('Password'), { target: { value: 'a-secure-password' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Sign in to Platform' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Sign in' }));
     await waitFor(() => expect(mocks.signIn).toHaveBeenCalledWith({ email: 'admin@example.com', password: 'a-secure-password' }));
     expect(await screen.findByText('Northfield Academy')).toBeTruthy();
   });
@@ -364,8 +375,65 @@ describe('Account manager (platform_user) permissions', () => {
     renderAt('/');
     expect(await screen.findByText('Northfield Academy')).toBeTruthy();
 
-    await user.click(screen.getByRole('button', { name: /school workspaces/i }));
-    expect(await screen.findByText('All school workspaces')).toBeTruthy();
+    await user.click(screen.getByRole('button', { name: /my school workspaces/i }));
+    expect((await screen.findAllByRole('heading', { name: 'My school workspaces' })).length).toBeGreaterThan(0);
     expect(await screen.findByRole('button', { name: 'Create workspace' })).toBeTruthy();
+  });
+
+  it('allows suspending a workspace, retrying failed provisioning, and viewing audit logs and account settings', async () => {
+    configureAuthenticated();
+    const failedTenant = {
+      ...tenant,
+      id: 'tenant-failed',
+      name: 'Westbrook High',
+      slug: 'westbrook',
+      status: 'provisioning_failed',
+      schoolTenantId: null,
+      provisioningError: 'School API timed out during provisioning.',
+    };
+    mocks.getTenants.mockResolvedValue([tenant, failedTenant]);
+    mocks.retryTenantProvisioning.mockResolvedValue({ ...failedTenant, status: 'active', schoolTenantId: 'school-2', provisioningError: null });
+    mocks.updateTenantStatus.mockResolvedValue({ ...tenant, status: 'suspended' });
+    mocks.getAuditLogs.mockResolvedValue({
+      logs: [{
+        id: '00000000-0000-4000-8000-000000000099',
+        actorUserId: 'op-1',
+        actorName: 'Platform Admin',
+        actorEmail: 'admin@example.com',
+        action: 'tenant.suspended',
+        entityType: 'tenant',
+        entityId: 'tenant-1',
+        details: { slug: 'northfield' },
+        createdAt: '2026-10-19T12:00:00.000Z',
+      }],
+    });
+    mocks.updatePlatformProfile.mockResolvedValue({ updated: true, name: 'Updated Admin' });
+
+    const user = userEvent.setup();
+    renderAt('/');
+    expect(await screen.findByText('Northfield Academy')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /school workspaces/i }));
+    expect(await screen.findByText('Provisioning attention required')).toBeTruthy();
+    expect(screen.getAllByText(/School API timed out during provisioning\./).length).toBeGreaterThan(0);
+
+    const retryButtons = screen.getAllByRole('button', { name: /retry provisioning/i });
+    await user.click(retryButtons[0]!);
+    await waitFor(() => expect(mocks.retryTenantProvisioning).toHaveBeenCalledWith('tenant-failed'));
+
+    const suspendButtons = screen.getAllByRole('button', { name: 'Suspend' });
+    await user.click(suspendButtons[0]!);
+    const confirm = await screen.findByRole('alertdialog');
+    await user.click(within(confirm).getByRole('button', { name: 'Suspend' }));
+    await waitFor(() => expect(mocks.updateTenantStatus).toHaveBeenCalledWith('tenant-1', 'suspended'));
+
+    await user.click(screen.getByRole('button', { name: /audit logs/i }));
+    expect(await screen.findAllByText('tenant.suspended')).toBeTruthy();
+
+    await user.click(screen.getByRole('button', { name: /account settings/i }));
+    const nameInput = await screen.findByLabelText('Full name');
+    fireEvent.change(nameInput, { target: { value: 'Updated Admin' } });
+    await user.click(screen.getByRole('button', { name: 'Save profile' }));
+    await waitFor(() => expect(mocks.updatePlatformProfile).toHaveBeenCalledWith({ name: 'Updated Admin' }));
   });
 });

@@ -8,7 +8,7 @@
  */
 import {
   Building2, Clock3, Database, Info, KeyRound, LayoutDashboard, Lock, LogIn, Mail, Palette,
-  ShieldCheck, UserPlus, type LucideIcon,
+  ScrollText, Settings, ShieldCheck, UserPlus, type LucideIcon,
 } from 'lucide-react';
 import type { Locale } from '@/i18n';
 
@@ -214,7 +214,13 @@ export const DOC_SECTIONS: readonly DocSection[] = [
   {
     id: 'provisioning',
     icon: Building2,
-    endpoints: ['POST /api/tenants', 'GET /api/tenants (max 100)', 'POST /internal/provisioning/tenants'],
+    endpoints: [
+      'POST /api/tenants',
+      'GET /api/tenants (max 100)',
+      'PATCH /api/tenants/:id/status',
+      'POST /api/tenants/:id/retry-provisioning',
+      'POST /internal/provisioning/tenants',
+    ],
     title: {
       en: 'School workspace provisioning',
       id: 'Penyiapan ruang kerja sekolah',
@@ -230,7 +236,8 @@ export const DOC_SECTIONS: readonly DocSection[] = [
         'Creating a workspace records the tenant with status provisioning on the Platform API.',
         'The creating account is stored as the workspace owner, so an account manager only ever sees the workspaces they created.',
         'The Platform API then calls the School API server-to-server using a shared provisioning secret, with a 10-second timeout.',
-        'On success the tenant becomes active and stores its school tenant ID; on failure it becomes provisioning_failed with a provisioning note.',
+        'On success the tenant becomes active and stores its school tenant ID; on failure it becomes provisioning_failed with a provisioning note and can be retried from the workspace list.',
+        'Platform admins can suspend an active workspace or reactivate a suspended workspace from the workspace table.',
         'The School API is idempotent: the same payload returns the same tenant, and changed details are rejected as a conflict.',
         'Lists and overview show at most 100 records, newest first.',
       ],
@@ -238,7 +245,8 @@ export const DOC_SECTIONS: readonly DocSection[] = [
         'Membuat ruang kerja mencatat tenant dengan status sedang disiapkan di Platform API.',
         'Akun pembuat disimpan sebagai pemilik ruang kerja, sehingga pengelola akun hanya melihat ruang kerja yang dibuatnya sendiri.',
         'Platform API kemudian memanggil School API server-ke-server dengan rahasia penyiapan bersama, batas waktu 10 detik.',
-        'Jika berhasil, tenant menjadi aktif dan menyimpan ID tenant sekolah; jika gagal, menjadi gagal disiapkan dengan catatan penyiapan.',
+        'Jika berhasil, tenant menjadi aktif dan menyimpan ID tenant sekolah; jika gagal, menjadi gagal disiapkan dengan catatan penyiapan dan dapat dicoba ulang dari daftar ruang kerja.',
+        'Platform admin dapat menangguhkan ruang kerja aktif atau mengaktifkan kembali ruang kerja yang ditangguhkan dari tabel ruang kerja.',
         'School API bersifat idempoten: payload yang sama mengembalikan tenant yang sama, dan detail yang diubah ditolak sebagai konflik.',
         'Daftar dan ikhtisar menampilkan maksimum 100 catatan, terbaru lebih dulu.',
       ],
@@ -246,7 +254,8 @@ export const DOC_SECTIONS: readonly DocSection[] = [
         'Damel ruang gawé ngajagi tenant kalayan status nuju disiapkeun dina Platform API.',
         'Akun nu ngadamelkeun disimpan salaku nu boga ruang gawé, sangkan nu ngurus akun ngan ukur nempo ruang gawé nu dilakukeunana.',
         'Platform API teras nelepon School API server-ka-server nganggo rahasia penyiapan bareng, wates 10 detik.',
-        'Upami berhasil, tenant jadi aktif sareng nyimpen ID tenant sakola; upami gagal, jadi gagal disiapkeun kalayan catetan penyiapan.',
+        'Upami berhasil, tenant jadi aktif sareng nyimpen ID tenant sakola; upami gagal, jadi gagal disiapkeun kalayan catetan penyiapan sareng tiasa dicobian deui tina daptar ruang gawé.',
+        'Platform admin tiasa ngagantungkeun ruang gawé aktif atawa ngaktipkeun deui ruang gawé anu digantungkeun tina tabél ruang gawé.',
         'School API bersifat idempoten: payload nu sami nganteukkeun tenant nu sami, sareng rincian nu dirobih ditolak salaku konflik.',
         'Daptar sareng ringkesan nembongkeun maksimum 100 catetan, nu panganyar heula.',
       ],
@@ -255,34 +264,37 @@ export const DOC_SECTIONS: readonly DocSection[] = [
   {
     id: 'activation',
     icon: Clock3,
-    endpoints: ['adminActivation.status = "pending"'],
+    endpoints: [
+      'POST /api/admin-activations/lookup (10/hour)',
+      'POST /api/admin-activations/accept (10/hour)',
+    ],
     title: {
       en: 'School admin activation',
       id: 'Aktivasi admin sekolah',
       su: 'Aktivasi admin sakola',
     },
     description: {
-      en: 'The known gap between a provisioned school and a school that can sign in.',
-      id: 'Celah yang diketahui antara sekolah yang sudah disiapkan dan sekolah yang bisa masuk.',
-      su: 'Celah anu kawurahan antara sakola anu parantos disiapkeun sareng sakola anu tiasa lebet.',
+      en: 'How the designated school administrator activates their account after provisioning.',
+      id: 'Bagaimana administrator sekolah yang ditunjuk mengaktifkan akunnya setelah penyiapan.',
+      su: 'Kumaha administrator sakola anu ditunjuk ngaktipkeun akunna saatos penyiapan.',
     },
     items: {
       en: [
-        'Provisioning deliberately creates no school user and no membership, so the activation status stays pending.',
-        'Until the separate activation flow exists, a provisioned school admin cannot sign in to school-web.',
-        'Never send a School password or any reusable activation credential through the provisioning API.',
+        'Provisioning generates a 48-hour, single-use activation link and emails it directly to the school admin contact.',
+        'The school admin opens the link on school-web (/activate/:token) and chooses a password (12–128 characters) to create their school_admin membership.',
+        'Never send a School password or any reusable activation credential through the provisioning API response.',
         'For local development only, the School bootstrap seed creates a demo school with admin and staff accounts.',
       ],
       id: [
-        'Penyiapan sengaja tidak membuat pengguna sekolah maupun keanggotaan, sehingga status aktivasi tetap tertunda.',
-        'Selama alur aktivasi terpisah belum ada, admin sekolah yang sudah disiapkan belum bisa masuk ke school-web.',
-        'Jangan pernah mengirim kata sandi Sekolah atau kredensial aktivasi apa pun melalui API penyiapan.',
+        'Penyiapan membuat tautan aktivasi sekali pakai selama 48 jam dan mengirimkannya melalui email ke kontak admin sekolah.',
+        'Admin sekolah membuka tautan di school-web (/activate/:token) dan memilih kata sandi (12–128 karakter) untuk mengaktifkan keanggotaan school_admin.',
+        'Jangan pernah mengirim kata sandi Sekolah atau kredensial aktivasi apa pun melalui respons API penyiapan.',
         'Hanya untuk pengembangan lokal, seed bootstrap Sekolah membuat sekolah demo beserta akun admin dan staf.',
       ],
       su: [
-        'Penyiapan sengaja teu nyieun pamaké sakola sareng teu aya keanggotaan, kitu deui status aktivasi tetep ngantosan.',
-        'Nalika alur aktivasi misah can aya, admin sakola anu parantos disiapkeun teu tiasa lebet ka school-web.',
-        'Ulah kantos ngirim keunsi sandi Sakola atawa kredensial aktivasi naon waé liwat API penyiapan.',
+        'Penyiapan nyieun tautan aktivasi sakali pakai salama 48 jam sareng ngirimkeunana liwat email ka kontak admin sakola.',
+        'Admin sakola muka tautan di school-web (/activate/:token) sareng milih keunsi sandi (12–128 karakter) pikeun ngaktipkeun keanggotaan school_admin.',
+        'Ulah kantos ngirim keunsi sandi Sakola atawa kredensial aktivasi naon waé liwat respons API penyiapan.',
         'Ngan pikeun pangembangan lokal, seed bootstrap Sakola nyieun sakola demo sareng akun admin sareng staf.',
       ],
     },
@@ -315,6 +327,62 @@ export const DOC_SECTIONS: readonly DocSection[] = [
         'Jumlah operator sareng kabeh halaman Operator disumputkeun keur nu ngurus akun, sareng ringkasan ngan ngitung ruang gawé nu boga maranéhna.',
         'Perlu perhatian ngitung ruang gawé anu nuju disiapkeun atawa gagal disiapkeun.',
         'Unggal halaman muat deui datana nalika Anjeun mbuka, sareng tombol Segarkeun muat deui halaman ayeuna.',
+      ],
+    },
+  },
+  {
+    id: 'audit',
+    icon: ScrollText,
+    endpoints: ['GET /api/audit-logs (max 100)'],
+    title: { en: 'Audit logs', id: 'Log audit', su: 'Log audit' },
+    description: {
+      en: 'Security and lifecycle events recorded across the Platform control plane.',
+      id: 'Peristiwa keamanan dan siklus hidup yang tercatat di pusat kendali Platform.',
+      su: 'Kajadian kaamanan sareng siklus hirup anu kacatet dina panel kendali Platform.',
+    },
+    items: {
+      en: [
+        'Operators (platform_admin and platform_read_only) can inspect the 100 most recent platform audit events on the Audit logs page.',
+        'Recorded events include workspace creation, provisioning retries, workspace suspension/reactivation, operator invitations, role changes, and account profile/password updates.',
+        'Sensitive credentials, tokens, and password hashes are never stored in audit details.',
+      ],
+      id: [
+        'Operator (platform_admin dan platform_read_only) dapat memeriksa 100 peristiwa audit platform terbaru di halaman Log audit.',
+        'Peristiwa yang dicatat meliputi pembuatan ruang kerja, percobaan ulang penyiapan, penangguhan/pengaktifan kembali ruang kerja, undangan operator, perubahan peran, serta pembaruan profil dan kata sandi.',
+        'Kredensial sensitif, token, dan hash kata sandi tidak pernah disimpan dalam detail audit.',
+      ],
+      su: [
+        'Operator (platform_admin sareng platform_read_only) tiasa mariksa 100 kajadian audit platform panganyarna dina halaman Log audit.',
+        'Kajadian anu dicatet kalebet nyieun ruang gawé, nyobian deui penyiapan, ngagantungkeun/ngaktipkeun deui ruang gawé, undangan operator, parobihan peran, sareng apdét profil atanapi keunsi sandi.',
+        'Kredensial sensitif, token, sareng hash keunsi sandi teu kantos disimpen dina rincian audit.',
+      ],
+    },
+  },
+  {
+    id: 'settings',
+    icon: Settings,
+    endpoints: ['PATCH /api/account/profile', 'POST /api/account/password'],
+    title: { en: 'Account settings', id: 'Pengaturan akun', su: 'Pangaturan akun' },
+    description: {
+      en: 'How signed-in users update their display name and change their password.',
+      id: 'Bagaimana pengguna yang masuk memperbarui nama tampilan dan mengganti kata sandi.',
+      su: 'Kumaha pamaké anu parantos lebet ngapdét ngaran tampilan sareng ngaganti keunsi sandi.',
+    },
+    items: {
+      en: [
+        'Any signed-in Platform user can update their display name on the Account settings page.',
+        'Changing a password requires verifying the current password and entering a new 12–128 character password twice.',
+        'Both profile updates and password changes are recorded in the platform audit log.',
+      ],
+      id: [
+        'Setiap pengguna Platform yang masuk dapat memperbarui nama tampilan di halaman Pengaturan akun.',
+        'Mengganti kata sandi memerlukan verifikasi kata sandi saat ini dan memasukkan kata sandi baru 12–128 karakter dua kali.',
+        'Pembaruan profil maupun perubahan kata sandi dicatat di log audit platform.',
+      ],
+      su: [
+        'Unggal pamaké Platform anu lebet tiasa ngapdét ngaran tampilan dina halaman Pangaturan akun.',
+        'Ngaganti keunsi sandi merlukeun verifikasi keunsi sandi ayeuna sareng ngalebetkeun keunsi sandi énggal 12–128 karakter dua kali.',
+        'Apdét profil sareng parobihan keunsi sandi dicatet dina log audit platform.',
       ],
     },
   },

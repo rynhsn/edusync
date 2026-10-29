@@ -3,6 +3,8 @@ import type { FastifyInstance } from 'fastify';
 import {
   acceptPlatformOperatorInviteSchema,
   invitePlatformOperatorSchema,
+  platformAuditLogListSchema,
+  platformAuditLogSchema,
   platformInviteTokenRequestSchema,
   platformOperatorListSchema,
   platformOperatorSchema,
@@ -71,6 +73,50 @@ export async function registerOperatorRoutes(app: FastifyInstance): Promise<void
         createdAt: user.createdAt.toISOString(), updatedAt: user.updatedAt.toISOString(),
       })),
       invitations: invitations.rows.map(inviteDto),
+    }));
+  });
+
+  app.get('/api/audit-logs', async (request, reply) => {
+    const actor = await getPlatformSession(platformAuth, request);
+    if (!actor) return error(reply, 401, 'UNAUTHENTICATED', 'Authentication required');
+    if (!(await hasPlatformPermission(request, 'operator.read'))) return error(reply, 403, 'FORBIDDEN', 'Insufficient permission');
+    const result = await platformDbPool.query<{
+      id: string;
+      actorUserId: string | null;
+      actorName: string | null;
+      actorEmail: string | null;
+      action: string;
+      entityType: string;
+      entityId: string | null;
+      details: Record<string, unknown> | null;
+      createdAt: Date;
+    }>(
+      `SELECT l.id,
+              l.actor_user_id AS "actorUserId",
+              u.name AS "actorName",
+              u.email AS "actorEmail",
+              l.action,
+              l.entity_type AS "entityType",
+              l.entity_id AS "entityId",
+              l.details,
+              l.created_at AS "createdAt"
+       FROM platform_audit_logs l
+       LEFT JOIN "user" u ON u.id = l.actor_user_id
+       ORDER BY l.created_at DESC
+       LIMIT 100`,
+    );
+    return reply.send(platformAuditLogListSchema.parse({
+      logs: result.rows.map((row) => platformAuditLogSchema.parse({
+        id: row.id,
+        actorUserId: row.actorUserId,
+        actorName: row.actorName,
+        actorEmail: row.actorEmail,
+        action: row.action,
+        entityType: row.entityType,
+        entityId: row.entityId,
+        details: row.details ?? {},
+        createdAt: row.createdAt instanceof Date ? row.createdAt.toISOString() : String(row.createdAt),
+      })),
     }));
   });
 

@@ -168,4 +168,38 @@ describe('Platform operator invitation lifecycle routes', () => {
       await app.close();
     }
   });
+
+  it('returns platform audit logs for operators with operator.read', async () => {
+    routeDeps.query.mockResolvedValue(result([{
+      id: '76a5a8a3-92cf-4e81-b3b7-168ec73a9f8d',
+      actorUserId: 'admin-1',
+      actorName: 'Platform Admin',
+      actorEmail: 'admin@example.com',
+      action: 'tenant.suspended',
+      entityType: 'tenant',
+      entityId: 'tenant-1',
+      details: { slug: 'northfield' },
+      createdAt: new Date('2026-10-19T12:00:00.000Z'),
+    }]));
+    const app = await buildApp();
+    try {
+      const response = await app.inject({ method: 'GET', url: '/api/audit-logs' });
+      expect(response.statusCode).toBe(200);
+      expect(response.json()).toEqual({
+        logs: [{
+          id: '76a5a8a3-92cf-4e81-b3b7-168ec73a9f8d',
+          actorUserId: 'admin-1',
+          actorName: 'Platform Admin',
+          actorEmail: 'admin@example.com',
+          action: 'tenant.suspended',
+          entityType: 'tenant',
+          entityId: 'tenant-1',
+          details: { slug: 'northfield' },
+          createdAt: '2026-10-19T12:00:00.000Z',
+        }],
+      });
+    } finally {
+      await app.close();
+    }
+  });
 });

@@ -11,10 +11,13 @@ describe('School OpenAPI document', () => {
     expect(operation?.requestBody).toBeDefined();
   });
 
-  it('does not publish a secret or suggest School admin activation exists', () => {
+  it('does not publish a secret or expose activation tokens in provisioning', () => {
     expect(() => JSON.parse(schoolOpenApiJson)).not.toThrow();
     expect(schoolOpenApiJson).not.toContain('SCHOOL_PROVISIONING_SECRET');
-    expect(schoolOpenApi.info.description).toContain('activation is not implemented');
+    expect(schoolOpenApi.paths['/api/admin-activations/lookup']?.post).toBeDefined();
+    expect(schoolOpenApi.paths['/api/admin-activations/accept']?.post).toBeDefined();
+    expect('security' in schoolOpenApi.paths['/api/admin-activations/lookup']!.post).toBe(false);
+    expect('security' in schoolOpenApi.paths['/api/admin-activations/accept']!.post).toBe(false);
   });
 
   it('documents every school operation as session-authenticated and tenant-scoped', () => {

@@ -8,6 +8,11 @@ describe('Platform OpenAPI document', () => {
     expect(platformOpenApi.paths['/api/tenants']).toHaveProperty('post');
     expect(platformOpenApi.paths['/api/tenants']?.get.security).toEqual([{ platformSession: [] }]);
     expect(platformOpenApi.paths['/api/tenants']?.post.requestBody).toBeDefined();
+    expect(platformOpenApi.paths['/api/tenants/{tenantId}/status']?.patch.security).toEqual([{ platformSession: [] }]);
+    expect(platformOpenApi.paths['/api/tenants/{tenantId}/retry-provisioning']?.post.security).toEqual([{ platformSession: [] }]);
+    expect(platformOpenApi.paths['/api/audit-logs']?.get.security).toEqual([{ platformSession: [] }]);
+    expect(platformOpenApi.paths['/api/account/profile']?.patch.security).toEqual([{ platformSession: [] }]);
+    expect(platformOpenApi.paths['/api/account/password']?.post.security).toEqual([{ platformSession: [] }]);
     expect(platformOpenApi.paths['/api/auth/sign-in/email']).toHaveProperty('post');
   });
 

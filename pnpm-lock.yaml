@@ -268,6 +268,9 @@ importers:
       fastify:
         specifier: 5.12.7
         version: 5.12.7
+      nodemailer:
+        specifier: ^10.1.2
+        version: 10.1.2
       pg:
         specifier: 8.23.1
         version: 8.23.1

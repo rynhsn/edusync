@@ -2,10 +2,14 @@ import {
   academicYearInputSchema,
   academicYearSchema,
   academicYearUpdateSchema,
+  bootstrapSchoolAdminSchema,
   classInputSchema,
   classUpdateSchema,
   provisionedTenantSchema,
   provisioningPayloadSchema,
+  schoolAdminActivationAcceptanceSchema,
+  schoolAdminActivationLookupSchema,
+  schoolAdminActivationTokenRequestSchema,
   schoolAuthContextSchema,
   schoolClassSchema,
   schoolDeletionResultSchema,
@@ -49,7 +53,7 @@ export const schoolOpenApi = {
   info: {
     title: 'EduSync School API',
     version: '0.1.0',
-    description: 'School service API. Operational endpoints read and write only the school that owns the caller\'s session. The documented provisioning operation is private and used only by the Platform API. School admin activation is not implemented yet.',
+    description: 'School service API. Operational endpoints read and write only the school that owns the caller\'s session. The documented provisioning operation is private and used only by the Platform API. School admin activation uses a 48-hour single-use email token without transmitting passwords or activation tokens over the provisioning API.',
   },
   servers: [{ url: process.env.SCHOOL_API_URL ?? 'http://localhost:4002', description: 'School API' }],
   tags: [
@@ -182,10 +186,33 @@ export const schoolOpenApi = {
     '/api/auth/get-session': {
       get: { tags: ['Authentication'], summary: 'Get the current session', operationId: 'getSchoolSession', security: [{ schoolSession: [] }], responses: { '200': { description: 'Current session, or null if signed out.' } } },
     },
+    '/api/admin-activations/lookup': {
+      post: {
+        tags: ['Authentication'], summary: 'Validate a school admin activation token', operationId: 'lookupSchoolAdminActivation',
+        description: 'Public endpoint, rate-limited. Returns only validity, admin email, admin name, and school name; never returns the token or token digest.',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/SchoolAdminActivationTokenRequest' } } } },
+        responses: {
+          '200': { description: 'Token validity result.', content: { 'application/json': { schema: { $ref: '#/components/schemas/SchoolAdminActivationLookup' } } } },
+          '429': { description: 'Too many requests.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+        },
+      },
+    },
+    '/api/admin-activations/accept': {
+      post: {
+        tags: ['Authentication'], summary: 'Accept a school admin activation token', operationId: 'acceptSchoolAdminActivation',
+        description: 'Public endpoint, rate-limited. Consumes a valid single-use activation token, creates or updates the school admin credential, and binds the user to the school organization with the school_admin role.',
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/AcceptSchoolAdminActivationInput' } } } },
+        responses: {
+          '200': { description: 'School admin account activated.', content: { 'application/json': { schema: { $ref: '#/components/schemas/SchoolAdminActivationAccepted' } } } },
+          '400': { description: 'Invalid, expired, revoked, or already-consumed activation token.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '429': { description: 'Too many requests.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+        },
+      },
+    },
     '/internal/provisioning/tenants': {
       post: {
         tags: ['Internal · server-to-server'], summary: 'Provision a School tenant (internal)', operationId: 'provisionSchoolTenant',
-        description: 'PRIVATE PLATFORM-TO-SCHOOL INTEGRATION. Call only from the Platform API using the configured bearer secret. Never call from a browser or expose the shared secret. Idempotent for identical payloads. Provisions a tenant and organization, but does not activate the admin contact account.',
+        description: 'PRIVATE PLATFORM-TO-SCHOOL INTEGRATION. Call only from the Platform API using the configured bearer secret. Never call from a browser or expose the shared secret. Idempotent for identical payloads. Provisions a tenant and organization and emails a one-time activation link to the admin contact; never returns a password or activation token in the API response.',
         security: [{ provisioningBearer: [] }],
         requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ProvisioningPayload' } } } },
         responses: {
@@ -206,6 +233,10 @@ export const schoolOpenApi = {
     schemas: {
       ProvisioningPayload: jsonSchema(provisioningPayloadSchema),
       ProvisionedTenant: jsonSchema(provisionedTenantSchema),
+      SchoolAdminActivationTokenRequest: jsonSchema(schoolAdminActivationTokenRequestSchema),
+      SchoolAdminActivationLookup: jsonSchema(schoolAdminActivationLookupSchema),
+      AcceptSchoolAdminActivationInput: jsonSchema(bootstrapSchoolAdminSchema),
+      SchoolAdminActivationAccepted: jsonSchema(schoolAdminActivationAcceptanceSchema),
       ApiError: jsonSchema(errorSchema),
       SchoolAuthContext: jsonSchema(schoolAuthContextSchema),
       AcademicYear: jsonSchema(academicYearSchema),

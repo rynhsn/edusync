@@ -1,13 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import {
+  bootstrapSchoolAdminSchema,
+  changePlatformPasswordSchema,
   createTenantSchema,
+  internalUpdateSchoolTenantStatusSchema,
+  platformAuditLogListSchema,
   platformPermissionSchema,
   provisioningPayloadSchema,
   invitePlatformOperatorSchema,
   acceptPlatformOperatorInviteSchema,
   platformOperatorInviteSchema,
   safeEqualSecret,
+  schoolAdminActivationLookupSchema,
+  schoolAdminActivationTokenRequestSchema,
   schoolPermissionSchema,
+  updatePlatformProfileSchema,
+  updateTenantStatusSchema,
 } from './index.js';
 
 describe('tenant provisioning contract', () => {
@@ -102,4 +110,48 @@ describe('safeEqualSecret', () => {
     expect(safeEqualSecret('päss🔐', 'päss🔒')).toBe(false);
   });
 });
+
+describe('school admin activation, tenant lifecycle, profile, and audit contracts', () => {
+  it('validates school admin activation token and password requirements', () => {
+    expect(schoolAdminActivationTokenRequestSchema.safeParse({ token: 'a'.repeat(43) }).success).toBe(true);
+    expect(schoolAdminActivationTokenRequestSchema.safeParse({ token: 'short' }).success).toBe(false);
+    expect(bootstrapSchoolAdminSchema.safeParse({ token: 'a'.repeat(43), password: 'a-strong-password-123' }).success).toBe(true);
+    expect(bootstrapSchoolAdminSchema.safeParse({ token: 'a'.repeat(43), password: 'short' }).success).toBe(false);
+    expect(schoolAdminActivationLookupSchema.parse({
+      valid: true,
+      email: 'admin@example.com',
+      name: 'Sam Admin',
+      schoolName: 'Riverside Prep',
+    }).valid).toBe(true);
+  });
+
+  it('validates tenant status transitions', () => {
+    expect(updateTenantStatusSchema.parse({ status: 'suspended' })).toEqual({ status: 'suspended' });
+    expect(internalUpdateSchoolTenantStatusSchema.parse({ status: 'active' })).toEqual({ status: 'active' });
+    expect(updateTenantStatusSchema.safeParse({ status: 'provisioning' }).success).toBe(false);
+  });
+
+  it('validates profile and password change inputs', () => {
+    expect(updatePlatformProfileSchema.parse({ name: '  Alex Admin  ' })).toEqual({ name: 'Alex Admin' });
+    expect(changePlatformPasswordSchema.safeParse({ currentPassword: 'old', newPassword: 'a-new-strong-password-123' }).success).toBe(true);
+    expect(changePlatformPasswordSchema.safeParse({ currentPassword: 'old', newPassword: 'short' }).success).toBe(false);
+  });
+
+  it('validates audit log list entries', () => {
+    expect(platformAuditLogListSchema.parse({
+      logs: [{
+        id: '76a5a8a3-92cf-4e81-b3b7-168ec73a9f8d',
+        actorUserId: 'op-1',
+        actorName: 'Platform Admin',
+        actorEmail: 'admin@example.com',
+        action: 'tenant.suspended',
+        entityType: 'tenant',
+        entityId: '55db7a5d-57c1-4a8f-b057-4c0420ea2974',
+        details: { slug: 'northfield' },
+        createdAt: '2026-10-19T10:00:00.000Z',
+      }],
+    }).logs).toHaveLength(1);
+  });
+});
+
 

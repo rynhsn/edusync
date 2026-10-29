@@ -2,13 +2,13 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import {
   BookOpen, Building2, Check, ChevronDown, CircleAlert, DoorOpen, GraduationCap, LayoutDashboard,
-  LoaderCircle, Menu, RefreshCw, ShieldCheck, Users, X,
+  LoaderCircle, Menu, RefreshCw, ScrollText, Settings, ShieldCheck, Users, X,
 } from 'lucide-react';
-import type { PlatformOperator, PlatformOperatorInvite, PlatformTenant } from '@edusync/contracts';
+import type { PlatformAuditLog, PlatformOperator, PlatformOperatorInvite, PlatformTenant } from '@edusync/contracts';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { authClient, getOperators, getTenants } from '@/lib/platform-api';
+import { authClient, getAuditLogs, getOperators, getTenants } from '@/lib/platform-api';
 import type { PageKey, SessionState, SessionUser } from '@/features/types';
 import { Brand } from '@/features/shared';
 import { AppearanceControls } from '@/features/appearance/AppearanceControls';
@@ -17,6 +17,8 @@ import { useTranslation, type MessageKey } from '@/i18n';
 import { OverviewPage } from '@/features/overview/OverviewPage';
 import { TenantsPage } from '@/features/tenants/TenantsPage';
 import { OperatorsPage } from '@/features/operators/OperatorsPage';
+import { AuditLogsPage } from '@/features/audit/AuditLogsPage';
+import { SettingsPage } from '@/features/settings/SettingsPage';
 import { DocsPage } from '@/features/docs/DocsPage';
 
 function NavButton({ active, icon, onClick, children }: { active: boolean; icon: ReactNode; onClick: () => void; children: ReactNode }) { return <button type="button" onClick={onClick} className={`flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition ${active ? 'bg-accent font-semibold text-accent-foreground' : 'text-muted-foreground hover:bg-muted hover:text-foreground'}`}>{icon}{children}</button>; }
@@ -25,9 +27,18 @@ const TITLE_KEYS: Record<PageKey, { title: MessageKey; description: MessageKey }
   overview: { title: 'shell.overviewTitle', description: 'shell.overviewDescription' },
   tenants: { title: 'shell.tenantsTitle', description: 'shell.tenantsDescription' },
   operators: { title: 'shell.operatorsTitle', description: 'shell.operatorsDescription' },
+  audit: { title: 'shell.auditTitle', description: 'shell.auditDescription' },
+  settings: { title: 'shell.settingsTitle', description: 'shell.settingsDescription' },
   docs: { title: 'shell.docsTitle', description: 'shell.docsDescription' },
 };
-const EYEBROW_KEYS: Record<PageKey, MessageKey> = { overview: 'shell.eyebrowOverview', tenants: 'shell.eyebrowTenants', operators: 'shell.eyebrowOperators', docs: 'shell.eyebrowDocs' };
+const EYEBROW_KEYS: Record<PageKey, MessageKey> = {
+  overview: 'shell.eyebrowOverview',
+  tenants: 'shell.eyebrowTenants',
+  operators: 'shell.eyebrowOperators',
+  audit: 'shell.eyebrowAudit',
+  settings: 'shell.eyebrowSettings',
+  docs: 'shell.eyebrowDocs',
+};
 
 export function AuthenticatedApp() {
   const [state, setState] = useState<SessionState>('loading');
@@ -36,6 +47,7 @@ export function AuthenticatedApp() {
   const [page, setPage] = useState<PageKey>('overview');
   const [tenantList, setTenantList] = useState<PlatformTenant[]>([]);
   const [operatorList, setOperatorList] = useState<{ operators: PlatformOperator[]; invitations: PlatformOperatorInvite[] }>({ operators: [], invitations: [] });
+  const [auditList, setAuditList] = useState<PlatformAuditLog[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notice, setNotice] = useState<{ title: string; message: string; tone: 'success' | 'warning' } | null>(null);
@@ -55,6 +67,7 @@ export function AuthenticatedApp() {
     try {
       if (target === 'tenants' || target === 'overview') setTenantList(await getTenants());
       if ((target === 'operators' || target === 'overview') && operatorsVisible) setOperatorList(await getOperators());
+      if (target === 'audit' && operatorsVisible) setAuditList((await getAuditLogs()).logs);
     } catch (cause) { setError(cause instanceof Error ? cause.message : t('shell.loadFailed')); }
     finally { setLoading(false); }
   }, [t, operatorsVisible]);
@@ -72,7 +85,7 @@ export function AuthenticatedApp() {
   useEffect(() => { if (state === 'signed-in') void refresh(page); }, [state, page, refresh]);
 
   const switchPage = (next: PageKey) => {
-    if (next === 'operators' && !operatorsVisible) return;
+    if ((next === 'operators' || next === 'audit') && !operatorsVisible) return;
     setPage(next); setMobileNav(false); setError(''); setNotice(null);
   };
   const onSignOut = async () => {
@@ -89,8 +102,10 @@ export function AuthenticatedApp() {
 
   const titles: Record<PageKey, { title: string; description: string }> = {
     overview: { title: t(TITLE_KEYS.overview.title), description: t(TITLE_KEYS.overview.description) },
-    tenants: { title: t(TITLE_KEYS.tenants.title), description: t(TITLE_KEYS.tenants.description) },
+    tenants: { title: access === 'user' ? t('tenants.myWorkspacesTitle') : t(TITLE_KEYS.tenants.title), description: t(TITLE_KEYS.tenants.description) },
     operators: { title: t(TITLE_KEYS.operators.title), description: t(TITLE_KEYS.operators.description) },
+    audit: { title: t(TITLE_KEYS.audit.title), description: t(TITLE_KEYS.audit.description) },
+    settings: { title: t(TITLE_KEYS.settings.title), description: t(TITLE_KEYS.settings.description) },
     docs: { title: t(TITLE_KEYS.docs.title), description: t(TITLE_KEYS.docs.description) },
   };
   return <div className="min-h-screen bg-background lg:flex">
@@ -99,7 +114,7 @@ export function AuthenticatedApp() {
       <div className="flex items-center gap-3 px-3 pb-8"><Brand /><button className="ml-auto rounded p-1 text-muted-foreground lg:hidden" onClick={() => setMobileNav(false)} aria-label={t('shell.closeMenu')}><X size={18} /></button></div>
       <div className="mb-6 flex items-center gap-3 rounded-xl border border-border bg-muted px-3 py-3"><div className="grid size-9 place-items-center rounded-lg bg-primary text-primary-foreground"><GraduationCap size={18} /></div><div className="min-w-0"><p className="truncate text-sm font-semibold">EduSync</p><p className="text-xs text-muted-foreground">{t('shell.controlPlane')}</p></div><ChevronDown className="ml-auto size-4 text-muted-foreground" /></div>
       <p className="px-3 pb-2 text-xs font-semibold text-muted-foreground">{t('shell.platformSection')}</p>
-      <nav className="space-y-1" aria-label={t('shell.navLabel')}><NavButton active={page === 'overview'} icon={<LayoutDashboard size={17} />} onClick={() => switchPage('overview')}>{t('shell.navOverview')}</NavButton><NavButton active={page === 'tenants'} icon={<Building2 size={17} />} onClick={() => switchPage('tenants')}>{t('shell.navTenants')} <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{tenantList.length}</span></NavButton>{operatorsVisible && <NavButton active={page === 'operators'} icon={<Users size={17} />} onClick={() => switchPage('operators')}>{t('shell.navOperators')}</NavButton>}<NavButton active={page === 'docs'} icon={<BookOpen size={17} />} onClick={() => switchPage('docs')}>{t('shell.navDocs')}</NavButton></nav>
+      <nav className="space-y-1" aria-label={t('shell.navLabel')}><NavButton active={page === 'overview'} icon={<LayoutDashboard size={17} />} onClick={() => switchPage('overview')}>{t('shell.navOverview')}</NavButton><NavButton active={page === 'tenants'} icon={<Building2 size={17} />} onClick={() => switchPage('tenants')}>{access === 'user' ? t('tenants.myWorkspacesTitle') : t('shell.navTenants')} <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">{tenantList.length}</span></NavButton>{operatorsVisible && <NavButton active={page === 'operators'} icon={<Users size={17} />} onClick={() => switchPage('operators')}>{t('shell.navOperators')}</NavButton>}{operatorsVisible && <NavButton active={page === 'audit'} icon={<ScrollText size={17} />} onClick={() => switchPage('audit')}>{t('shell.navAudit')}</NavButton>}<NavButton active={page === 'settings'} icon={<Settings size={17} />} onClick={() => switchPage('settings')}>{t('shell.navSettings')}</NavButton><NavButton active={page === 'docs'} icon={<BookOpen size={17} />} onClick={() => switchPage('docs')}>{t('shell.navDocs')}</NavButton></nav>
       <div className="mt-auto space-y-3"><div className="rounded-xl border border-border p-3"><AppearanceControls /></div><div className="rounded-xl border border-primary/20 bg-accent/70 p-3"><div className="flex items-center gap-2 text-sm font-semibold text-accent-foreground"><ShieldCheck size={16} /> {t('shell.protectedAccess')}</div><p className="mt-1 text-xs leading-5 text-accent-foreground/80">{t('shell.protectedHint')}</p></div>{signOutError && <p className="text-xs text-danger-foreground" role="alert">{signOutError}</p>}<div className="flex items-center gap-3 rounded-xl border border-border p-3"><div className="grid size-9 shrink-0 place-items-center rounded-full bg-accent text-sm font-bold text-accent-foreground">{user?.name?.slice(0, 1).toUpperCase() ?? 'P'}</div><span className="min-w-0 flex-1"><strong className="block truncate text-sm">{user?.name ?? t('shell.operatorFallback')}</strong><span className="block truncate text-xs text-muted-foreground">{user?.email}</span></span><Button variant="ghost" size="icon" aria-label={t('shell.signOut')} onClick={() => void onSignOut()} disabled={signOutBusy}>{signOutBusy ? <LoaderCircle size={16} className="animate-spin" /> : <DoorOpen size={16} />}</Button></div></div>
     </aside>
     <main className="min-w-0 flex-1">
@@ -109,8 +124,10 @@ export function AuthenticatedApp() {
         {error && <Alert variant="destructive" className="mb-5"><CircleAlert size={17} /><AlertTitle>{t('shell.errorTitle')}</AlertTitle><AlertDescription className="flex flex-wrap items-center justify-between gap-3"><span>{error}</span><Button variant="outline" size="sm" onClick={() => void refresh(page)}>{t('common.tryAgain')}</Button></AlertDescription></Alert>}
         {notice && <Alert variant={notice.tone === 'success' ? 'success' : 'warning'} className="mb-5"><Check size={17} /><AlertTitle>{notice.title}</AlertTitle><AlertDescription>{notice.message}</AlertDescription></Alert>}
         {page === 'overview' && <OverviewPage tenants={tenantList} operators={operatorList.operators} loading={loading} access={access} onNavigate={switchPage} />}
-        {page === 'tenants' && <TenantsPage tenants={tenantList} loading={loading} canCreate={canCreateTenants(access)} onCreated={(tenant, adminName) => { setTenantList((current) => [tenant, ...current.filter((item) => item.id !== tenant.id)]); setNotice({ tone: 'warning', title: t('shell.tenantProvisioned', { name: tenant.name }), message: t('shell.adminActivation', { name: adminName }) }); }} />}
+        {page === 'tenants' && <TenantsPage tenants={tenantList} loading={loading} canCreate={canCreateTenants(access)} access={access} onCreated={(tenant, adminName) => { setTenantList((current) => [tenant, ...current.filter((item) => item.id !== tenant.id)]); setNotice({ tone: 'warning', title: t('shell.tenantProvisioned', { name: tenant.name }), message: t('shell.adminActivation', { name: adminName }) }); }} onUpdated={(tenant, message, tone = 'success') => { setTenantList((current) => current.map((item) => item.id === tenant.id ? tenant : item)); setNotice({ tone, title: t('shell.noticeTitle'), message }); }} />}
         {page === 'operators' && operatorsVisible && <OperatorsPage data={operatorList} user={user} canManage={canManageOperators(access)} onChanged={async (message, tone = 'success') => { setNotice({ title: t('shell.noticeTitle'), message, tone }); await refresh('operators'); }} />}
+        {page === 'audit' && operatorsVisible && <AuditLogsPage logs={auditList} loading={loading} />}
+        {page === 'settings' && <SettingsPage user={user} onProfileUpdated={(nextName, message) => { setUser((current) => current ? { ...current, name: nextName } : current); setNotice({ tone: 'success', title: t('shell.noticeTitle'), message }); }} onPasswordChanged={(message) => { setNotice({ tone: 'success', title: t('shell.noticeTitle'), message }); }} />}
         {page === 'docs' && <DocsPage />}
         <footer className="mt-12 flex flex-col gap-2 border-t border-border pt-5 text-xs text-muted-foreground sm:flex-row sm:justify-between"><span>{t('shell.footerAuthorized')}</span><span>{t('shell.footerActivation')}</span></footer>
       </div>

@@ -1,10 +1,14 @@
 import {
   acceptPlatformOperatorInviteSchema,
+  changePlatformPasswordSchema,
   createTenantSchema,
   invitePlatformOperatorSchema,
+  platformAuditLogListSchema,
   platformInviteTokenRequestSchema,
   platformOperatorListSchema,
   platformOperatorSchema,
+  platformPasswordChangedSchema,
+  platformProfileUpdatedSchema,
   platformTenantSchema,
   registerPlatformUserSchema,
   platformUserRegisteredSchema,
@@ -15,6 +19,8 @@ import {
   passwordResetSchema,
   updatePlatformOperatorRoleSchema,
   updatePlatformOperatorStatusSchema,
+  updatePlatformProfileSchema,
+  updateTenantStatusSchema,
 } from '@edusync/contracts';
 import { z } from 'zod';
 
@@ -69,6 +75,53 @@ export const platformOpenApi = {
           '409': { description: 'Workspace could not be created or conflicts with existing data.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
           '502': { description: 'School API provisioning failed.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
           '503': { description: 'Provisioning is unavailable.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+        },
+      },
+    },
+    '/api/tenants/{tenantId}/status': {
+      patch: {
+        tags: ['Platform'], summary: 'Suspend or reactivate a school workspace', operationId: 'updateTenantStatus',
+        description: 'Requires a valid Platform session with tenant.manage permission (platform_admin only). Transitions an active workspace to suspended or a suspended workspace back to active, and records an audit event.',
+        security: [{ platformSession: [] }],
+        parameters: [{ name: 'tenantId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/UpdateTenantStatusInput' } } } },
+        responses: {
+          '200': { description: 'Workspace status updated.', content: { 'application/json': { schema: { $ref: '#/components/schemas/PlatformTenant' } } } },
+          '400': { description: 'Invalid tenant ID or status.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '401': { description: 'A Platform session is required.' },
+          '403': { description: 'The account lacks tenant.manage permission.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '404': { description: 'Workspace not found.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '409': { description: 'Workspace cannot transition from its current status.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+        },
+      },
+    },
+    '/api/tenants/{tenantId}/retry-provisioning': {
+      post: {
+        tags: ['Platform'], summary: 'Retry provisioning for a failed school workspace', operationId: 'retryTenantProvisioning',
+        description: 'Requires a valid Platform session with tenant.create permission. A platform_user may only retry workspaces they own. Re-invokes the private School API provisioning endpoint using the stored admin contact details.',
+        security: [{ platformSession: [] }],
+        parameters: [{ name: 'tenantId', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }],
+        responses: {
+          '200': { description: 'Workspace provisioned and marked active.', content: { 'application/json': { schema: { $ref: '#/components/schemas/PlatformTenant' } } } },
+          '400': { description: 'Invalid tenant ID.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '401': { description: 'A Platform session is required.' },
+          '403': { description: 'The account lacks tenant.create permission or does not own the workspace.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '404': { description: 'Workspace not found.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '409': { description: 'Workspace is not in provisioning_failed status or lacks admin contact details.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '502': { description: 'School API provisioning failed.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '503': { description: 'Provisioning is unavailable.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+        },
+      },
+    },
+    '/api/audit-logs': {
+      get: {
+        tags: ['Operators'], summary: 'List Platform audit log entries', operationId: 'listPlatformAuditLogs',
+        description: 'Requires a Platform session with operator.read permission. Returns up to 100 recent platform audit log events.',
+        security: [{ platformSession: [] }],
+        responses: {
+          '200': { description: 'Recent audit log entries.', content: { 'application/json': { schema: { $ref: '#/components/schemas/PlatformAuditLogList' } } } },
+          '401': { description: 'A Platform session is required.' },
+          '403': { description: 'The account lacks operator.read permission.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
         },
       },
     },
@@ -220,14 +273,47 @@ export const platformOpenApi = {
     '/api/auth/get-session': {
       get: { tags: ['Authentication'], summary: 'Get the current session', operationId: 'getPlatformSession', security: [{ platformSession: [] }], responses: { '200': { description: 'Current session, or null if signed out.' } } },
     },
+    '/api/account/profile': {
+      patch: {
+        tags: ['Authentication'], summary: 'Update the signed-in account profile', operationId: 'updatePlatformProfile',
+        description: 'Updates the display name of the currently signed-in Platform account and records an audit log entry.',
+        security: [{ platformSession: [] }],
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/UpdatePlatformProfileInput' } } } },
+        responses: {
+          '200': { description: 'Updated profile details.', content: { 'application/json': { schema: { $ref: '#/components/schemas/PlatformProfileUpdated' } } } },
+          '400': { description: 'Invalid profile input.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '401': { description: 'A Platform session is required.' },
+          '404': { description: 'Account not found.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+        },
+      },
+    },
+    '/api/account/password': {
+      post: {
+        tags: ['Authentication'], summary: 'Change the signed-in account password', operationId: 'changePlatformPassword',
+        description: 'Verifies the current password and replaces it with a new password (12–128 characters) for the signed-in Platform account.',
+        security: [{ platformSession: [] }],
+        requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/ChangePlatformPasswordInput' } } } },
+        responses: {
+          '200': { description: 'Password changed.', content: { 'application/json': { schema: { $ref: '#/components/schemas/PlatformPasswordChanged' } } } },
+          '400': { description: 'Invalid password input or wrong current password.', content: { 'application/json': { schema: { $ref: '#/components/schemas/ApiError' } } } },
+          '401': { description: 'A Platform session is required.' },
+        },
+      },
+    },
   },
   components: {
     securitySchemes: { platformSession: { type: 'apiKey', in: 'cookie', name: 'better-auth.session_token', description: 'HttpOnly cookie set by Better Auth sign-in.' } },
     schemas: {
       CreateTenantInput: jsonSchema(createTenantSchema),
+      UpdateTenantStatusInput: jsonSchema(updateTenantStatusSchema),
       PlatformTenant: jsonSchema(platformTenantSchema),
+      PlatformAuditLogList: jsonSchema(platformAuditLogListSchema),
       RegisterPlatformUserInput: jsonSchema(registerPlatformUserSchema),
       PlatformUserRegistered: jsonSchema(platformUserRegisteredSchema),
+      UpdatePlatformProfileInput: jsonSchema(updatePlatformProfileSchema),
+      PlatformProfileUpdated: jsonSchema(platformProfileUpdatedSchema),
+      ChangePlatformPasswordInput: jsonSchema(changePlatformPasswordSchema),
+      PlatformPasswordChanged: jsonSchema(platformPasswordChangedSchema),
       PlatformOperatorList: jsonSchema(platformOperatorListSchema),
       PlatformOperator: jsonSchema(platformOperatorSchema),
       InvitePlatformOperatorInput: jsonSchema(invitePlatformOperatorSchema),
