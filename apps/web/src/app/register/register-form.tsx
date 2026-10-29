@@ -367,6 +367,36 @@ export function RegisterForm() {
                       />
                     </div>
 
+                    {(catalog.data.plans?.length ?? 0) > 0 && (
+                      <div className="grid gap-2">
+                        <p className="text-sm font-medium">{t('plansTitle')}</p>
+                        <div className="flex flex-wrap gap-2">
+                          {catalog.data.plans.map((plan) => {
+                            const picked =
+                              plan.tier === unit.tier &&
+                              plan.modules.length === unit.modules.length &&
+                              plan.modules.every((m) => unit.modules.includes(m));
+                            return (
+                              <Button
+                                key={plan.key}
+                                type="button"
+                                size="sm"
+                                variant={picked ? 'default' : 'outline'}
+                                aria-pressed={picked}
+                                title={plan.description}
+                                onClick={() =>
+                                  update(unit.id, { modules: [...plan.modules], tier: plan.tier })
+                                }
+                              >
+                                {plan.name}
+                              </Button>
+                            );
+                          })}
+                        </div>
+                        <p className="text-muted-foreground text-xs">{t('plansNote')}</p>
+                      </div>
+                    )}
+
                     <fieldset className="grid content-start gap-2">
                       <legend className="text-sm font-medium">{t('modulesTitle')}</legend>
                       <p className="text-muted-foreground text-xs">{t('modulesNote')}</p>
