@@ -34,7 +34,8 @@
     "loadError": "Data akun tidak dapat dimuat. Periksa koneksi lalu coba lagi.",
     "notMemberTitle": "Anda bukan anggota sekolah ini.",
     "notMemberBody": "Masuk dengan akun yang terdaftar di sekolah ini, atau hubungi admin sekolah untuk diundang.",
-    "goMain": "Ke halaman utama"
+    "goMain": "Ke halaman utama",
+    "members": "Anggota"
   },
   "roles": {
     "school_admin": "Admin sekolah",
@@ -91,7 +92,12 @@
     "payment_unavailable": "Pembayaran sedang tidak tersedia. Coba lagi sebentar.",
     "not_found": "Data tidak ditemukan.",
     "module_disabled": "Modul ini belum aktif untuk sekolah Anda.",
-    "invalid_signature": "Tanda tangan tidak valid."
+    "invalid_signature": "Tanda tangan tidak valid.",
+    "unknown_role": "Ada peran yang tidak dikenal.",
+    "account_not_found": "Belum ada akun dengan email itu. Minta orangnya mendaftar dulu.",
+    "already_member": "Orang ini sudah menjadi anggota sekolah.",
+    "last_admin": "Sekolah harus memiliki minimal satu admin sekolah yang aktif.",
+    "self_disable": "Anda tidak dapat menonaktifkan akun Anda sendiri."
   },
   "theme": {
     "label": "Tema",
@@ -267,5 +273,28 @@
     "due": "Jatuh tempo {date}",
     "paidOn": "Dibayar {date}",
     "pay": "Bayar sekarang"
+  },
+  "members": {
+    "title": "Anggota dan peran",
+    "subtitle": "Izin seseorang adalah gabungan semua perannya di sekolah ini.",
+    "readOnly": "Anda hanya dapat melihat daftar ini.",
+    "addTitle": "Tambah anggota",
+    "addHint": "Akun harus sudah terdaftar. Minta orangnya mendaftar dulu bila belum.",
+    "email": "Email akun",
+    "roles": "Peran",
+    "add": "Tambah",
+    "added": "Anggota ditambahkan.",
+    "saved": "Perubahan disimpan.",
+    "needRole": "Pilih minimal satu peran.",
+    "you": "Anda",
+    "edit": "Ubah peran",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "disable": "Nonaktifkan",
+    "enable": "Aktifkan",
+    "disabled": "Nonaktif",
+    "active": "Aktif",
+    "empty": "Belum ada anggota.",
+    "loadError": "Daftar anggota tidak dapat dimuat."
   }
 }

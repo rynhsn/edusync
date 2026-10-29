@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, ChevronsUpDown, LayoutDashboard, LogOut } from 'lucide-react';
+import { CalendarDays, ChevronsUpDown, LayoutDashboard, LogOut, Users } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -38,6 +38,7 @@ interface Membership {
 interface SchoolContextValue {
   school: Membership;
   userName: string;
+  userId: string;
   can: (permission: string) => boolean;
 }
 
@@ -58,6 +59,7 @@ const NAV = [
     icon: CalendarDays,
     permission: 'academic_year:read',
   },
+  { href: '/members', labelKey: 'members', icon: Users, permission: 'member:read' },
 ] as const;
 
 function Centered({ children }: { children: React.ReactNode }) {
@@ -145,7 +147,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const permissions = new Set(school.permissions);
   const user = me.data.user;
-  const value: SchoolContextValue = { school, userName: user.name, can: (p) => permissions.has(p) };
+  const value: SchoolContextValue = {
+    school,
+    userName: user.name,
+    userId: user.id,
+    can: (p) => permissions.has(p),
+  };
   const initials = user.name.slice(0, 2).toUpperCase();
   const roles = school.roles.map(roleLabel).join(', ') || tr('none');
 

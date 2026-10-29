@@ -16,6 +16,11 @@ const KNOWN = [
   'not_found',
   'module_disabled',
   'invalid_signature',
+  'unknown_role',
+  'account_not_found',
+  'already_member',
+  'last_admin',
+  'self_disable',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

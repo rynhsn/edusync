@@ -26,6 +26,7 @@ import { accountRoutes } from './routes/account';
 import { registerAuthRoutes } from './routes/auth';
 import { billingRoutes } from './routes/billing';
 import { meRoutes } from './routes/me';
+import { memberRoutes } from './routes/members';
 import { platformRoutes } from './routes/platform';
 
 export const paymentConfig = (env: Env): PaymentConfig => ({
@@ -159,6 +160,7 @@ export async function buildApp(env: Env) {
   await app.register(billingRoutes, { env });
   await app.register(platformRoutes);
   await app.register(accountRoutes);
+  await app.register(memberRoutes);
 
   return app;
 }

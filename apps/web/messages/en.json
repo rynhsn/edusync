@@ -34,7 +34,8 @@
     "loadError": "Your account data could not be loaded. Check your connection and try again.",
     "notMemberTitle": "You are not a member of this school.",
     "notMemberBody": "Sign in with an account registered at this school, or ask the school admin to invite you.",
-    "goMain": "Go to the main page"
+    "goMain": "Go to the main page",
+    "members": "Members"
   },
   "roles": {
     "school_admin": "School admin",
@@ -91,7 +92,12 @@
     "payment_unavailable": "Payment is unavailable right now. Please try again shortly.",
     "not_found": "Not found.",
     "module_disabled": "This module is not active for your school.",
-    "invalid_signature": "Invalid signature."
+    "invalid_signature": "Invalid signature.",
+    "unknown_role": "Some roles are not recognized.",
+    "account_not_found": "No account with that email yet. Ask them to sign up first.",
+    "already_member": "This person is already a member of the school.",
+    "last_admin": "The school must keep at least one active school admin.",
+    "self_disable": "You cannot deactivate your own account."
   },
   "theme": {
     "label": "Theme",
@@ -267,5 +273,28 @@
     "due": "Due {date}",
     "paidOn": "Paid {date}",
     "pay": "Pay now"
+  },
+  "members": {
+    "title": "Members and roles",
+    "subtitle": "A person’s permissions are the union of all their roles at this school.",
+    "readOnly": "You can only view this list.",
+    "addTitle": "Add a member",
+    "addHint": "The account must already exist. Ask them to sign up first if it does not.",
+    "email": "Account email",
+    "roles": "Roles",
+    "add": "Add",
+    "added": "Member added.",
+    "saved": "Changes saved.",
+    "needRole": "Choose at least one role.",
+    "you": "You",
+    "edit": "Edit roles",
+    "save": "Save",
+    "cancel": "Cancel",
+    "disable": "Deactivate",
+    "enable": "Activate",
+    "disabled": "Inactive",
+    "active": "Active",
+    "empty": "No members yet.",
+    "loadError": "The member list could not be loaded."
   }
 }

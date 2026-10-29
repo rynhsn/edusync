@@ -34,7 +34,8 @@
     "loadError": "Data akun teu bisa dimuat. Parios sambungan, teras cobian deui.",
     "notMemberTitle": "Anjeun lain anggota sakola ieu.",
     "notMemberBody": "Lebet nganggo akun nu kadaptar di sakola ieu, atawa hubungi admin sakola pikeun diondang.",
-    "goMain": "Ka kaca utama"
+    "goMain": "Ka kaca utama",
+    "members": "Anggota"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -91,7 +92,12 @@
     "payment_unavailable": "Pamayaran keur teu sadia. Cobian deui sakeudeung.",
     "not_found": "Teu kapendak.",
     "module_disabled": "Modul ieu can aktip pikeun sakola Anjeun.",
-    "invalid_signature": "Tanda tangan teu valid."
+    "invalid_signature": "Tanda tangan teu valid.",
+    "unknown_role": "Aya peran nu teu dipikawanoh.",
+    "account_not_found": "Acan aya akun nganggo surélék éta. Mugi dipénta ngadaptar heula.",
+    "already_member": "Jalmi ieu parantos janten anggota sakola.",
+    "last_admin": "Sakola kedah gaduh sahenteuna hiji admin sakola nu aktip.",
+    "self_disable": "Anjeun teu tiasa nonaktipkeun akun Anjeun nyalira."
   },
   "theme": {
     "label": "Tema",
@@ -267,5 +273,28 @@
     "due": "Tanggal bayar {date}",
     "paidOn": "Dibayar {date}",
     "pay": "Bayar ayeuna"
+  },
+  "members": {
+    "title": "Anggota jeung peran",
+    "subtitle": "Idin hiji jalmi nyaéta gabungan sakabéh peranna di sakola ieu.",
+    "readOnly": "Anjeun ngan tiasa ningali daptar ieu.",
+    "addTitle": "Tambih anggota",
+    "addHint": "Akun kedah parantos kadaptar. Pénta jalmina ngadaptar heula upami acan.",
+    "email": "Surélék akun",
+    "roles": "Peran",
+    "add": "Tambih",
+    "added": "Anggota ditambihkeun.",
+    "saved": "Parobahan disimpen.",
+    "needRole": "Pilih sahenteuna hiji peran.",
+    "you": "Anjeun",
+    "edit": "Robah peran",
+    "save": "Simpen",
+    "cancel": "Batal",
+    "disable": "Nonaktipkeun",
+    "enable": "Aktipkeun",
+    "disabled": "Teu aktip",
+    "active": "Aktip",
+    "empty": "Acan aya anggota.",
+    "loadError": "Daptar anggota teu bisa dimuat."
   }
 }

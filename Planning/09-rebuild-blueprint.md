@@ -182,7 +182,7 @@ Pilot Miftahul Huda (SMP IT + SMK, ±15 guru, sebagian lintas unit) masuk akal s
 
 ### Berikutnya dan terbuka
 - Portal akun yayasan: lihat langganan, unit, modul, dan bayar tagihan terbuka sudah ada (`/account`, `GET /v1/account`, tabel `foundation_owner`). Menyusul: ubah modul, tambah unit, tagihan perpanjangan sesuai permintaan.
-- Pengelolaan peran dan anggota lewat layar, undangan guru, pengecualian izin per orang.
+- Anggota dan peran: daftar, tambah akun terdaftar, ganti peran, nonaktifkan sudah ada (`/members`, `/v1/members`, `/v1/roles`; aturan: tanpa kenaikan izin, admin terakhir terlindungi). Menyusul: undangan lewat email untuk akun baru, peran kustom, pengecualian izin per orang.
 - Uji Midtrans sandbox (butuh terowongan, notification URL `/v1/webhooks/payments/midtrans`).
 - Verifikasi email saat daftar; notifikasi masa tenggang; SMTP sungguhan.
 - Verifikasi dua langkah staf; perintah pembuatan admin pertama di produksi.
