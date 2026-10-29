@@ -43,7 +43,9 @@
     "students": "Murid",
     "teachers": "Guru",
     "subjects": "Mata pelajaran",
-    "calendar": "Kalénder"
+    "calendar": "Kalénder",
+    "groupMaster": "Master data",
+    "groupAccess": "Pamaké jeung aksés"
   },
   "roles": {
     "school_admin": "Admin sakola",

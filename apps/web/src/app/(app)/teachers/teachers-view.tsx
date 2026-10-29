@@ -147,7 +147,7 @@ export function TeachersView() {
   });
 
   return (
-    <div className="mx-auto grid max-w-4xl gap-6">
+    <div className="grid w-full gap-6">
       <div>
         <p className="text-primary text-sm font-medium">{school.schoolName}</p>
         <h1 className="font-heading mt-1 text-3xl font-semibold tracking-tight">{t('title')}</h1>

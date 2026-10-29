@@ -63,21 +63,35 @@ export function useSchool() {
 }
 
 /** Menu diturunkan dari izin. Menambah modul berarti menambah satu baris di sini. */
-const NAV = [
-  { href: '/dashboard', labelKey: 'overview', icon: LayoutDashboard, permission: null },
+/** Menu dikelompokkan menurut fungsinya; kelompok tanpa menu yang boleh dilihat pengguna disembunyikan. */
+const NAV_GROUPS = [
   {
-    href: '/academic-years',
-    labelKey: 'academicYears',
-    icon: CalendarDays,
-    permission: 'academic_year:read',
+    key: null,
+    items: [{ href: '/dashboard', labelKey: 'overview', icon: LayoutDashboard, permission: null }],
   },
-  { href: '/calendar', labelKey: 'calendar', icon: CalendarRange, permission: 'academic_year:read' },
-  { href: '/classes', labelKey: 'classes', icon: School, permission: 'class:read' },
-  { href: '/students', labelKey: 'students', icon: GraduationCap, permission: 'student:read' },
-  { href: '/teachers', labelKey: 'teachers', icon: UserRound, permission: 'teacher:read' },
-  { href: '/subjects', labelKey: 'subjects', icon: BookOpen, permission: 'subject:read' },
-  { href: '/members', labelKey: 'members', icon: Users, permission: 'member:read' },
-  { href: '/roles', labelKey: 'roles', icon: ShieldCheck, permission: 'member:read' },
+  {
+    key: 'groupMaster',
+    items: [
+      {
+        href: '/academic-years',
+        labelKey: 'academicYears',
+        icon: CalendarDays,
+        permission: 'academic_year:read',
+      },
+      { href: '/calendar', labelKey: 'calendar', icon: CalendarRange, permission: 'academic_year:read' },
+      { href: '/classes', labelKey: 'classes', icon: School, permission: 'class:read' },
+      { href: '/students', labelKey: 'students', icon: GraduationCap, permission: 'student:read' },
+      { href: '/teachers', labelKey: 'teachers', icon: UserRound, permission: 'teacher:read' },
+      { href: '/subjects', labelKey: 'subjects', icon: BookOpen, permission: 'subject:read' },
+    ],
+  },
+  {
+    key: 'groupAccess',
+    items: [
+      { href: '/members', labelKey: 'members', icon: Users, permission: 'member:read' },
+      { href: '/roles', labelKey: 'roles', icon: ShieldCheck, permission: 'member:read' },
+    ],
+  },
 ] as const;
 
 function Centered({ children }: { children: React.ReactNode }) {
@@ -211,24 +225,41 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </DropdownMenu>
           </div>
 
-          <nav className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:px-4" aria-label={t('menu')}>
-            {NAV.filter((n) => n.permission === null || permissions.has(n.permission)).map((n) => {
-              const active = pathname === n.href;
+          <nav
+            className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:gap-0.5 md:overflow-visible md:px-4"
+            aria-label={t('menu')}
+          >
+            {NAV_GROUPS.map((group) => {
+              const items = group.items.filter((n) => n.permission === null || permissions.has(n.permission));
+              if (items.length === 0) return null;
               return (
-                <Link
-                  key={n.href}
-                  href={n.href}
-                  aria-current={active ? 'page' : undefined}
-                  className={cn(
-                    'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors',
-                    active
-                      ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                      : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
+                <div key={group.key ?? 'main'} className="contents md:mt-3 md:grid md:gap-0.5 md:first:mt-0">
+                  {group.key && (
+                    <p className="text-muted-foreground hidden px-3 pt-1 pb-1 text-xs font-medium tracking-wide uppercase md:block">
+                      {t(group.key)}
+                    </p>
                   )}
-                >
-                  <n.icon className={cn('size-4', active && 'text-primary')} />
-                  {t(n.labelKey)}
-                </Link>
+                  {items.map((n) => {
+                    const active =
+                      pathname === n.href || (n.href !== '/dashboard' && pathname.startsWith(`${n.href}/`));
+                    return (
+                      <Link
+                        key={n.href}
+                        href={n.href}
+                        aria-current={active ? 'page' : undefined}
+                        className={cn(
+                          'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors',
+                          active
+                            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                            : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
+                        )}
+                      >
+                        <n.icon className={cn('size-4', active && 'text-primary')} />
+                        {t(n.labelKey)}
+                      </Link>
+                    );
+                  })}
+                </div>
               );
             })}
           </nav>

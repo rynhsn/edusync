@@ -43,7 +43,9 @@
     "students": "Siswa",
     "teachers": "Guru",
     "subjects": "Mata pelajaran",
-    "calendar": "Kalender"
+    "calendar": "Kalender",
+    "groupMaster": "Master data",
+    "groupAccess": "Pengguna dan akses"
   },
   "roles": {
     "school_admin": "Admin sekolah",

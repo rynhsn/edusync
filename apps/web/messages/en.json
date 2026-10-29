@@ -43,7 +43,9 @@
     "students": "Students",
     "teachers": "Teachers",
     "subjects": "Subjects",
-    "calendar": "Calendar"
+    "calendar": "Calendar",
+    "groupMaster": "Master data",
+    "groupAccess": "Users and access"
   },
   "roles": {
     "school_admin": "School admin",
