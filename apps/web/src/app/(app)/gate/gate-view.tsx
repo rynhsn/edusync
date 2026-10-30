@@ -1,12 +1,13 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, ScanLine } from 'lucide-react';
+import { Camera, CameraOff, ChevronDown, ScanLine } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
+import { QrScanner } from '@/components/qr-scanner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -53,6 +54,7 @@ export function GateView() {
   const [classId, setClassId] = useState('');
   const [q, setQ] = useState('');
   const [code, setCode] = useState('');
+  const [camera, setCamera] = useState(false);
 
   const me = useQuery({
     queryKey: ['duty-me', school.schoolId],
@@ -160,6 +162,12 @@ export function GateView() {
             />
           </form>
         )}
+        {canCover && (
+          <Button variant="outline" onClick={() => setCamera((v) => !v)}>
+            {camera ? <CameraOff className="size-4" /> : <Camera className="size-4" />}
+            {camera ? t('scanner.stop') : t('scanner.start')}
+          </Button>
+        )}
         <SelectField
           aria-label={t('class')}
           className="sm:w-48"
@@ -181,6 +189,16 @@ export function GateView() {
           onChange={(e) => setQ(e.target.value)}
         />
       </div>
+
+      {canCover && camera && (
+        <QrScanner
+          active
+          className="h-56 w-full max-w-sm"
+          onScan={(value) => {
+            if (!scan.isPending) scan.mutate(value);
+          }}
+        />
+      )}
 
       {daily.isPending && <Skeleton className="h-48 w-full" />}
       {daily.data && students.length === 0 && (

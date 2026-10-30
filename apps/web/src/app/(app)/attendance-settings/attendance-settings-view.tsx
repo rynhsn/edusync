@@ -1,7 +1,8 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Copy, Plus, RotateCw, Trash2 } from 'lucide-react';
+import { Copy, Plus, Printer, RotateCw, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -10,7 +11,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -372,7 +373,12 @@ function CardsPanel() {
 
   return (
     <div className="grid gap-4">
-      <p className="text-muted-foreground max-w-2xl text-sm">{t('cardsHint')}</p>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-muted-foreground max-w-2xl text-sm">{t('cardsHint')}</p>
+        <Link href="/attendance-settings/cards/print" className={buttonVariants({ variant: 'outline' })}>
+          <Printer className="size-4" /> {t('printQr.link')}
+        </Link>
+      </div>
       <FormDialog
         trigger={
           <Button className="justify-self-start">

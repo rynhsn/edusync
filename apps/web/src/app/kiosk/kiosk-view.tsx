@@ -1,8 +1,9 @@
 'use client';
 
-import { Maximize2, ScanLine, WifiOff } from 'lucide-react';
+import { Camera, CameraOff, Maximize2, ScanLine, WifiOff } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { QrScanner } from '@/components/qr-scanner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { cn } from '@/lib/utils';
@@ -91,6 +92,7 @@ export function KioskView() {
   const [now, setNow] = useState(() => new Date());
   const [offline, setOffline] = useState(0);
   const [code, setCode] = useState('');
+  const [camera, setCamera] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -253,6 +255,12 @@ export function KioskView() {
     );
   }
 
+  const methods = info?.methods ?? [];
+  const hasRfid = methods.includes('rfid');
+  const hasQr = methods.includes('qr');
+  const unused = !!info && !hasRfid && !hasQr;
+  const prompt = hasRfid && hasQr ? 'tapPromptBoth' : hasQr ? 'tapPromptQr' : 'tapPrompt';
+
   const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
   const day = now.toLocaleDateString(undefined, {
     weekday: 'long',
@@ -290,6 +298,13 @@ export function KioskView() {
           <div>{info?.device}</div>
         </div>
         <div className="flex items-center gap-3">
+          {methods.length > 0 && (
+            <span className="hidden sm:inline">
+              {t('kiosk.activeMethods', {
+                methods: methods.map((m) => t(`method.${m as 'rfid'}`)).join(' · '),
+              })}
+            </span>
+          )}
           {offline > 0 && (
             <span className="inline-flex items-center gap-1">
               <WifiOff className="size-4" /> {t('kiosk.pending', { count: offline })}
@@ -315,9 +330,23 @@ export function KioskView() {
         <div className="grid gap-6 text-center">
           <div className="font-heading text-8xl font-bold tabular-nums sm:text-9xl">{time}</div>
           <div className="text-muted-foreground text-xl">{day}</div>
-          <div className="text-muted-foreground mx-auto flex items-center gap-2 text-lg">
-            <ScanLine className="size-6" /> {t('kiosk.tapPrompt')}
-          </div>
+          {unused ? (
+            <div className="text-muted-foreground mx-auto max-w-md text-lg">{t('kiosk.notUsed')}</div>
+          ) : (
+            <div className="text-muted-foreground mx-auto flex items-center gap-2 text-lg">
+              <ScanLine className="size-6" /> {t(`kiosk.${prompt}`)}
+            </div>
+          )}
+        </div>
+      )}
+
+      {hasQr && (
+        <div className="absolute right-4 bottom-4 flex flex-col items-end gap-2">
+          <QrScanner active={camera} onScan={submit} className="h-36 w-48 sm:h-48 sm:w-64" />
+          <Button size="sm" variant="outline" onClick={() => setCamera((v) => !v)}>
+            {camera ? <CameraOff className="size-4" /> : <Camera className="size-4" />}
+            {camera ? t('kiosk.cameraOff') : t('kiosk.cameraOn')}
+          </Button>
         </div>
       )}
     </main>

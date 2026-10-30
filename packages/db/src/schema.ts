@@ -738,32 +738,6 @@ export const scheduleEntry = pgTable(
   ],
 );
 
-/** Absensi harian per siswa. Satu baris per siswa per tanggal. */
-export const classAttendance = pgTable(
-  'class_attendance',
-  {
-    id: id(),
-    schoolId: uuid('school_id')
-      .notNull()
-      .references(() => school.id),
-    classId: uuid('class_id')
-      .notNull()
-      .references(() => classRoom.id),
-    studentId: uuid('student_id')
-      .notNull()
-      .references(() => student.id),
-    date: date('date').notNull(),
-    status: text('status', { enum: ['present', 'excused', 'sick', 'absent'] }).notNull(),
-    note: text('note'),
-    recordedBy: text('recorded_by').notNull(),
-    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
-  },
-  (t) => [
-    unique('class_attendance_student_date_uq').on(t.studentId, t.date),
-    index('class_attendance_class_date_idx').on(t.classId, t.date),
-  ],
-);
-
 /* ---------- Absensi gerbang (RFID, QR, manual), piket, dan absensi per jam pelajaran ---------- */
 
 /** Kebijakan absensi gerbang, satu baris per sekolah. Jam dalam zona waktu sekolah (Asia/Jakarta), format HH:MM. */

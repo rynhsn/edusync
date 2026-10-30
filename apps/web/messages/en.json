@@ -49,7 +49,7 @@
     "groupMaster": "Master data",
     "groupAccess": "Users and access",
     "schedule": "Timetable",
-    "attendance": "Attendance",
+    "attendance": "Attendance report",
     "groupAcademic": "Learning",
     "lessons": "Lesson attendance",
     "gate": "Gate & duty",
@@ -786,17 +786,23 @@
     "noClasses": "No classes in the active academic year yet."
   },
   "attendance": {
-    "title": "Attendance",
-    "subtitle": "Record daily attendance per class. School holidays and breaks from the academic calendar cannot be filled.",
-    "readOnly": "You can only view attendance.",
+    "title": "Attendance report",
+    "subtitle": "Daily gate and per-lesson attendance summary, including skipped classes (present at the gate but absent from a lesson).",
     "class": "Class",
-    "date": "Date",
+    "allClasses": "All classes",
+    "from": "From",
+    "to": "To",
     "student": "Student",
+    "nis": "Student ID",
     "status": "Attendance",
     "present": "Present",
     "excused": "Excused",
     "sick": "Sick",
     "absent": "Absent",
+    "late": "Late",
+    "notRecorded": "Not recorded",
+    "skipped": "Skipped class",
+    "skippedHint": "Present at the gate but absent from a lesson.",
     "short": {
       "present": "P",
       "excused": "E",
@@ -806,18 +812,23 @@
     "allPresent": "Mark all present",
     "save": "Save attendance",
     "saved": "Attendance saved ({count} students).",
-    "notFilled": "Not filled",
-    "closed": "This date is {title} ({kind}). Attendance cannot be recorded.",
-    "kindHoliday": "holiday",
-    "kindBreak": "break",
-    "noStudents": "There are no active students in this class.",
+    "unsaved": "You have unsaved changes.",
     "noClasses": "No classes in the active academic year yet.",
-    "recap": "Recap",
-    "from": "From",
-    "to": "To",
-    "daysFilled": "{count} days recorded",
+    "noStudents": "There are no active students in this selection.",
+    "gateGroup": "Daily gate (days)",
+    "lessonGroup": "Lessons",
+    "effectiveDays": "Effective days",
+    "studentsCount": "Students",
     "totalRow": "Total",
-    "unsaved": "You have unsaved changes."
+    "invalidRange": "Invalid date range (maximum 366 days).",
+    "exportExcel": "Export Excel",
+    "exportPdf": "Export PDF",
+    "exportEmpty": "There is no data to export.",
+    "pdfError": "The PDF could not be created. Try again.",
+    "pdfTitle": "Attendance report",
+    "period": "Period {from} – {to}",
+    "generated": "Printed {date}",
+    "page": "Page {page} of {total}"
   },
   "gate": {
     "settingsTitle": "Attendance settings",
@@ -948,7 +959,13 @@
       "readerInput": "Card reader input",
       "pending": "{count} waiting to send",
       "fullscreen": "Full screen",
-      "tapPrompt": "Tap your card on the reader"
+      "tapPrompt": "Tap your card on the reader",
+      "activeMethods": "Methods: {methods}",
+      "tapPromptBoth": "Tap your card or show your QR code",
+      "tapPromptQr": "Show your QR code to the camera",
+      "notUsed": "Kiosk not in use: only manual attendance is enabled. Enable RFID or QR in Attendance settings.",
+      "cameraOn": "Turn on camera",
+      "cameraOff": "Turn off camera"
     },
     "kioskError": {
       "unknown_card": "Unknown card",
@@ -961,6 +978,29 @@
       "unknown": "Something went wrong"
     },
     "searchStudent": "Find student",
-    "searchStudentPlaceholder": "Type a name or student number"
+    "searchStudentPlaceholder": "Type a name or student number",
+    "scanner": {
+      "preview": "Camera preview",
+      "start": "Scan with camera",
+      "stop": "Turn off camera",
+      "error_denied": "Camera permission was denied. Allow camera access in your browser settings and try again.",
+      "error_noCamera": "No camera was found on this device.",
+      "error_unsupported": "This browser does not support camera access (needs HTTPS or localhost).",
+      "error_failed": "The camera could not be opened. Try again."
+    },
+    "printQr": {
+      "link": "Print QR cards",
+      "title": "Print QR cards",
+      "subtitle": "Create and print student QR cards by class.",
+      "chooseClass": "Choose a class",
+      "generate": "Create QR cards for those without one",
+      "progress": "Creating {done}/{total}…",
+      "print": "Print",
+      "missing": "{count} students do not have a QR card yet.",
+      "pickHint": "Choose a class to show its cards.",
+      "empty": "No QR cards for this class yet. Create the cards first.",
+      "created": "{count} QR cards created.",
+      "partial": "{count} cards created, {failed} failed."
+    }
   }
 }

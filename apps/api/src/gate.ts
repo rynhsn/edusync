@@ -14,9 +14,9 @@ import {
   tapEvent,
   teacher,
 } from '@edusync/db';
+import { closureOn } from './attendance-lib';
 import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
-import { closureOn } from './routes/attendance';
 
 export const METHODS = ['rfid', 'qr', 'manual'] as const;
 export type Method = (typeof METHODS)[number];

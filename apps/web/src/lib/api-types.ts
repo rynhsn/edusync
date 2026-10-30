@@ -6571,7 +6571,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/attendance": {
+    "/v1/attendance/report": {
         parameters: {
             query?: never;
             header?: never;
@@ -6579,13 +6579,166 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * Absensi satu kelas pada satu tanggal
-         * @description Izin: `attendance:read`; modul `attendance` harus aktif. Daftar siswa aktif di kelas beserta statusnya (null bila belum diisi). `closed` berisi libur atau jeda sekolah pada tanggal itu bila ada.
+         * Rekap absensi gerbang dan per jam pelajaran
+         * @description Izin: `attendance:read`; modul `attendance` harus aktif. Per siswa aktif di tahun ajaran aktif (satu kelas bila `classId` diisi, selain itu semua kelas yang boleh dilihat pengguna): jumlah hari gerbang (`days`: present, late, excused, sick, absent, dan `notRecorded`), jumlah jam pelajaran (`lessons`), dan `skipped` (bolos kelas) yaitu jam pelajaran berstatus alpa pada hari siswa hadir atau terlambat di gerbang. `effectiveDays` adalah jumlah tanggal berbeda yang punya catatan gerbang untuk kelas itu (hari libur/jeda tanpa catatan tidak dihitung). Rentang maksimal 366 hari (400 `invalid_period`). Guru yang tidak punya `attendance:configure` dan bukan kepala sekolah/kurikulum hanya boleh melihat kelas yang ia ajar; kelas lain 403 `forbidden`. Kelas tidak ada atau milik sekolah lain: 404 `not_found`.
          */
         get: {
             parameters: {
                 query: {
-                    classId: string;
+                    classId?: string;
+                    from: string;
+                    to: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            from: string;
+                            to: string;
+                            /** Format: uuid */
+                            classId: string | null;
+                            /** @description Tanggal berbeda yang punya catatan gerbang pada pilihan ini */
+                            effectiveDays: number;
+                            summary: {
+                                students: number;
+                                days: {
+                                    present: number;
+                                    late: number;
+                                    excused: number;
+                                    sick: number;
+                                    absent: number;
+                                    /** @description Hari efektif yang belum tercatat untuk siswa ini */
+                                    notRecorded: number;
+                                };
+                                lessons: {
+                                    present: number;
+                                    excused: number;
+                                    sick: number;
+                                    absent: number;
+                                };
+                                skipped: number;
+                            };
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                                effectiveDays: number;
+                                days: {
+                                    present: number;
+                                    late: number;
+                                    excused: number;
+                                    sick: number;
+                                    absent: number;
+                                    /** @description Hari efektif yang belum tercatat untuk siswa ini */
+                                    notRecorded: number;
+                                };
+                                lessons: {
+                                    present: number;
+                                    excused: number;
+                                    sick: number;
+                                    absent: number;
+                                };
+                                skipped: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/attendance/report/lessons-unfilled": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Jam pelajaran yang belum terisi absensinya
+         * @description Izin: `attendance:read`; modul `attendance` harus aktif. Sel jadwal pada tanggal itu (tahun ajaran aktif) yang absensi per jamnya belum lengkap (`filled` kurang dari `total`), untuk dipantau guru piket. Pengurus (`attendance:configure`), kepala sekolah, kurikulum, dan guru piket hari itu melihat semua kelas; guru lain hanya jam miliknya. Hari libur/jeda dan hari Minggu menghasilkan daftar kosong.
+         */
+        get: {
+            parameters: {
+                query: {
                     date: string;
                 };
                 header: {
@@ -6610,14 +6763,19 @@ export interface paths {
                                 type: "holiday" | "break";
                                 title: string;
                             } | null;
-                            students: {
+                            lessons: {
                                 /** Format: uuid */
-                                studentId: string;
-                                name: string;
-                                nis: string | null;
-                                /** @enum {string|null} */
-                                status: "present" | "excused" | "sick" | "absent" | null;
-                                note: string | null;
+                                id: string;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                                subjectName: string;
+                                teacherName: string;
+                                periodNumber: number;
+                                startsAt: string;
+                                endsAt: string;
+                                total: number;
+                                filled: number;
                             }[];
                         };
                     };
@@ -6638,323 +6796,6 @@ export interface paths {
                 };
                 /** @description Default Response */
                 403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        /**
-         * Simpan absensi satu kelas pada satu tanggal
-         * @description Izin: `attendance:manage`. Menimpa status siswa yang disebut; siswa harus terdaftar di kelas itu. Ditolak bila tanggalnya belum tiba (409 `future_date`) atau libur/jeda sekolah (409 `school_closed`).
-         */
-        put: {
-            parameters: {
-                query?: never;
-                header: {
-                    /** @description Sekolah yang sedang dipakai */
-                    "x-school-id": string;
-                };
-                path?: never;
-                cookie?: never;
-            };
-            requestBody: {
-                content: {
-                    "application/json": {
-                        /** Format: uuid */
-                        classId: string;
-                        /** Format: date */
-                        date: string;
-                        records: {
-                            /** Format: uuid */
-                            studentId: string;
-                            /** @enum {string} */
-                            status: "present" | "excused" | "sick" | "absent";
-                            /** @default null */
-                            note?: string | null;
-                        }[];
-                    };
-                };
-            };
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            saved: number;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                409: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        post?: never;
-        /**
-         * Hapus absensi satu kelas pada satu tanggal
-         * @description Izin: `attendance:manage`. Mengosongkan semua isian kelas itu pada tanggal tersebut.
-         */
-        delete: {
-            parameters: {
-                query: {
-                    classId: string;
-                    date: string;
-                };
-                header: {
-                    /** @description Sekolah yang sedang dipakai */
-                    "x-school-id": string;
-                };
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @enum {boolean} */
-                            ok: true;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/attendance/recap": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Rekap absensi satu kelas dalam rentang tanggal
-         * @description Izin: `attendance:read`. Jumlah hadir, izin, sakit, dan alpa per siswa, dan jumlah hari yang sudah diisi. Rentang maksimal 366 hari.
-         */
-        get: {
-            parameters: {
-                query: {
-                    classId: string;
-                    from: string;
-                    to: string;
-                };
-                header: {
-                    /** @description Sekolah yang sedang dipakai */
-                    "x-school-id": string;
-                };
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** @description Jumlah tanggal berbeda yang sudah ada absensinya */
-                            days: number;
-                            students: {
-                                /** Format: uuid */
-                                studentId: string;
-                                name: string;
-                                present: number;
-                                excused: number;
-                                sick: number;
-                                absent: number;
-                            }[];
-                        };
-                    };
-                };
-                /** @description Default Response */
-                400: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
                     headers: {
                         [name: string]: unknown;
                     };

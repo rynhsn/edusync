@@ -19,10 +19,10 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { closureOn, rosterOf, todayInJakarta } from '../attendance-lib';
 import { isOnDuty, jakarta, weekdayOf } from '../gate';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
-import { closureOn, rosterOf, todayInJakarta } from './attendance';
 import { audit, guarded, schoolHeader } from './helpers';
 
 const STATUSES = ['present', 'excused', 'sick', 'absent'] as const;

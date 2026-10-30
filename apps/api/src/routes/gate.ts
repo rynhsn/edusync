@@ -26,10 +26,10 @@ import {
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { closureOn } from '../attendance-lib';
 import { isOnDuty, jakarta, loadPolicy, METHODS, recordTap, requireDuty } from '../gate';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
-import { closureOn } from './attendance';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const tag = ['Gate attendance'];

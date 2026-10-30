@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { getTranslations } from 'next-intl/server';
-import { AttendanceView } from './attendance-view';
+import { ReportView } from './report-view';
 
 export async function generateMetadata(): Promise<Metadata> {
   const t = await getTranslations('attendance');
@@ -8,5 +8,5 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default function AttendancePage() {
-  return <AttendanceView />;
+  return <ReportView />;
 }

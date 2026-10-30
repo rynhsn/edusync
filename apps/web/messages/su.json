@@ -49,7 +49,7 @@
     "groupMaster": "Master data",
     "groupAccess": "Pamaké jeung aksés",
     "schedule": "Jadwal pangajaran",
-    "attendance": "Absénsi",
+    "attendance": "Rekap absénsi",
     "groupAcademic": "Kagiatan diajar",
     "lessons": "Absénsi per jam",
     "gate": "Gerbang & piket",
@@ -786,17 +786,23 @@
     "noClasses": "Acan aya kelas dina taun pangajaran aktip."
   },
   "attendance": {
-    "title": "Absénsi",
-    "subtitle": "Eusian kahadiran poéan per kelas. Poé libur jeung jeda tina kalénder akadémik teu bisa diisi.",
-    "readOnly": "Anjeun ngan tiasa ningali absénsi.",
+    "title": "Rékap absénsi",
+    "subtitle": "Rékap kahadiran gerbang poéan jeung per jam pangajaran, kaasup kabur ti kelas (hadir di gerbang tapi alpa dina jam pangajaran).",
     "class": "Kelas",
-    "date": "Tanggal",
+    "allClasses": "Sadaya kelas",
+    "from": "Ti",
+    "to": "Dugi ka",
     "student": "Murid",
+    "nis": "NIS",
     "status": "Kahadiran",
     "present": "Hadir",
     "excused": "Idin",
     "sick": "Gering",
     "absent": "Alpa",
+    "late": "Telat",
+    "notRecorded": "Acan kacatet",
+    "skipped": "Kabur ti kelas",
+    "skippedHint": "Hadir di gerbang tapi alpa dina jam pangajaran.",
     "short": {
       "present": "H",
       "excused": "I",
@@ -806,18 +812,23 @@
     "allPresent": "Sadayana hadir",
     "save": "Simpen absénsi",
     "saved": "Absénsi disimpen ({count} murid).",
-    "notFilled": "Acan diisi",
-    "closed": "Tanggal ieu {title} ({kind}). Absénsi teu bisa diisi.",
-    "kindHoliday": "libur",
-    "kindBreak": "jeda",
-    "noStudents": "Acan aya murid aktip di kelas ieu.",
+    "unsaved": "Aya parobahan nu acan disimpen.",
     "noClasses": "Acan aya kelas dina taun pangajaran aktip.",
-    "recap": "Rékap",
-    "from": "Ti",
-    "to": "Dugi ka",
-    "daysFilled": "{count} poé kaeusi",
+    "noStudents": "Euweuh murid aktip dina pilihan ieu.",
+    "gateGroup": "Gerbang poéan (poé)",
+    "lessonGroup": "Jam pangajaran",
+    "effectiveDays": "Poé éféktif",
+    "studentsCount": "Murid",
     "totalRow": "Jumlah",
-    "unsaved": "Aya parobahan nu acan disimpen."
+    "invalidRange": "Rentang tanggal teu valid (pangpangna 366 poé).",
+    "exportExcel": "Ékspor Excel",
+    "exportPdf": "Ékspor PDF",
+    "exportEmpty": "Euweuh data pikeun diékspor.",
+    "pdfError": "PDF gagal dijieun. Cobian deui.",
+    "pdfTitle": "Rékap absénsi",
+    "period": "Période {from} – {to}",
+    "generated": "Dicitak {date}",
+    "page": "Kaca {page} ti {total}"
   },
   "gate": {
     "settingsTitle": "Pangaturan absénsi",
@@ -948,7 +959,13 @@
       "readerInput": "Kolom pamaca kartu",
       "pending": "{count} ngantosan dikirim",
       "fullscreen": "Layar pinuh",
-      "tapPrompt": "Tempelkeun kartu kana pamaca"
+      "tapPrompt": "Tempelkeun kartu kana pamaca",
+      "activeMethods": "Cara: {methods}",
+      "tapPromptBoth": "Tempelkeun kartu atawa témbongkeun kode QR",
+      "tapPromptQr": "Témbongkeun kode QR ka kaméra",
+      "notUsed": "Kiosk teu dipaké: ngan absén manual nu aktif. Hurungkeun RFID atawa QR di Setélan absén.",
+      "cameraOn": "Hurungkeun kaméra",
+      "cameraOff": "Pareuman kaméra"
     },
     "kioskError": {
       "unknown_card": "Kartu teu dipikawanoh",
@@ -961,6 +978,29 @@
       "unknown": "Aya kasalahan"
     },
     "searchStudent": "Pilarian murid",
-    "searchStudentPlaceholder": "Ketik ngaran atawa NIS"
+    "searchStudentPlaceholder": "Ketik ngaran atawa NIS",
+    "scanner": {
+      "preview": "Pratayang kaméra",
+      "start": "Pindai maké kaméra",
+      "stop": "Pareuman kaméra",
+      "error_denied": "Idin kaméra ditolak. Idinan aksés kaméra di setélan pangbaskéran terus cobaan deui.",
+      "error_noCamera": "Kaméra teu kapanggih dina parabot ieu.",
+      "error_unsupported": "Pangbaskéran ieu teu ngarojong aksés kaméra (peryogi HTTPS atawa localhost).",
+      "error_failed": "Kaméra teu bisa dibuka. Cobaan deui."
+    },
+    "printQr": {
+      "link": "Citak kartu QR",
+      "title": "Citak kartu QR",
+      "subtitle": "Jieun jeung citak kartu QR siswa per kelas.",
+      "chooseClass": "Pilih kelas",
+      "generate": "Jieun kartu QR pikeun nu acan boga",
+      "progress": "Nyieun {done}/{total}…",
+      "print": "Citak",
+      "missing": "{count} siswa acan boga kartu QR.",
+      "pickHint": "Pilih kelas pikeun mintonkeun kartuna.",
+      "empty": "Kartu QR kelas ieu acan aya. Jieun heula kartuna.",
+      "created": "{count} kartu QR geus dijieun.",
+      "partial": "{count} kartu dijieun, {failed} gagal."
+    }
   }
 }
