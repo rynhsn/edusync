@@ -132,7 +132,10 @@
     "pkl_read": "Ningali PKL",
     "pkl_manage": "Ngatur PKL",
     "admission_read": "Ningali pendaftaran murid anyar",
-    "admission_manage": "Ngatur pendaftaran murid anyar"
+    "admission_manage": "Ngatur pendaftaran murid anyar",
+    "portal_read": "Muka portal wali/siswa",
+    "announcement_read": "Ningali pengumuman",
+    "announcement_manage": "Ngatur pengumuman jeung situs"
   },
   "dashboard": {
     "greeting": "Wilujeng sumping, {name}",

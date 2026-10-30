@@ -42,6 +42,9 @@ export const PERMISSIONS = [
   'pkl:manage',
   'admission:read',
   'admission:manage',
+  'portal:read',
+  'announcement:read',
+  'announcement:manage',
   'audit:read',
 ] as const;
 
@@ -80,6 +83,7 @@ export const SYSTEM_ROLES = {
       'letter:sign',
       'pkl:read',
       'admission:read',
+      'announcement:read',
       'audit:read',
     ],
   },
@@ -103,11 +107,19 @@ export const SYSTEM_ROLES = {
       'grade:configure',
       'report_card:read',
       'report_card:manage',
+      'announcement:read',
     ],
   },
   treasurer: {
     name: 'Bendahara',
-    permissions: ['academic_year:read', 'student:read', 'finance:read', 'finance:pay', 'finance:manage'],
+    permissions: [
+      'academic_year:read',
+      'student:read',
+      'finance:read',
+      'finance:pay',
+      'finance:manage',
+      'announcement:read',
+    ],
   },
   operator: {
     name: 'Operator',
@@ -146,6 +158,8 @@ export const SYSTEM_ROLES = {
       'pkl:manage',
       'admission:read',
       'admission:manage',
+      'announcement:read',
+      'announcement:manage',
     ],
   },
   teacher: {
@@ -164,8 +178,11 @@ export const SYSTEM_ROLES = {
       'report_card:read',
       'tahfidz:read',
       'pkl:read',
+      'announcement:read',
     ],
   },
+  guardian: { name: 'Wali', permissions: ['portal:read'] },
+  student: { name: 'Siswa', permissions: ['portal:read'] },
 } as const satisfies Record<string, SystemRole>;
 
 export type SystemRoleKey = keyof typeof SYSTEM_ROLES;

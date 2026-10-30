@@ -337,6 +337,20 @@
       "when": 1793370718837,
       "tag": "0047_modules_m5_m9_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 48,
+      "version": "7",
+      "when": 1793400793354,
+      "tag": "0048_portal_site_latefee",
+      "breakpoints": true
+    },
+    {
+      "idx": 49,
+      "version": "7",
+      "when": 1793400800000,
+      "tag": "0049_portal_site_latefee_rls",
+      "breakpoints": true
     }
   ]
 }

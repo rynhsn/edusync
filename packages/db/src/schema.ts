@@ -1941,3 +1941,122 @@ export const finStudentDiscount = pgTable(
   },
   (t) => [unique('fin_student_discount_uq').on(t.studentId, t.ruleId, t.academicYearId)],
 );
+
+/* ---------- Denda SPP, portal wali/siswa, pengumuman, profil situs ---------- */
+
+/** Pengaturan denda keterlambatan per sekolah. `none` = tidak ada denda. */
+export const finLateFeeSetting = pgTable('fin_late_fee_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  mode: text('mode', { enum: ['none', 'flat', 'percent'] })
+    .notNull()
+    .default('none'),
+  /** Rupiah (flat) atau persen dari sisa tagihan (percent, 1..100). */
+  value: integer('value').notNull().default(0),
+  /** Hari toleransi setelah jatuh tempo sebelum denda berlaku. */
+  graceDays: integer('grace_days').notNull().default(0),
+  /** Batas denda per tagihan dalam rupiah; kosong = tanpa batas. */
+  capAmount: integer('cap_amount'),
+  /** Jenis biaya untuk tagihan denda yang dibuat. */
+  feeTypeId: uuid('fee_type_id').references(() => finFeeType.id),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Tautan akun masuk (member) ke wali atau siswa; menentukan data apa yang boleh dilihat di portal. */
+export const portalLink = pgTable(
+  'portal_link',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    memberId: uuid('member_id')
+      .notNull()
+      .references(() => member.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: ['guardian', 'student'] }).notNull(),
+    guardianId: uuid('guardian_id').references(() => guardian.id),
+    studentId: uuid('student_id').references(() => student.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('portal_link_member_uq').on(t.memberId),
+    check(
+      'portal_link_target_ck',
+      sql`(${t.kind} = 'guardian' and ${t.guardianId} is not null and ${t.studentId} is null) or (${t.kind} = 'student' and ${t.studentId} is not null and ${t.guardianId} is null)`,
+    ),
+    index('portal_link_school_idx').on(t.schoolId),
+  ],
+);
+
+/** Undangan portal sekali pakai (token disimpan sebagai hash). */
+export const portalInvite = pgTable(
+  'portal_invite',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    kind: text('kind', { enum: ['guardian', 'student'] }).notNull(),
+    guardianId: uuid('guardian_id').references(() => guardian.id),
+    studentId: uuid('student_id').references(() => student.id),
+    tokenHash: text('token_hash').notNull().unique(),
+    email: text('email'),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('portal_invite_school_idx').on(t.schoolId)],
+);
+
+/** Pengumuman dan agenda. `audience`: public (situs), portal (wali/siswa), staff, all. */
+export const announcement = pgTable(
+  'announcement',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    title: text('title').notNull(),
+    body: text('body').notNull(),
+    category: text('category', { enum: ['news', 'agenda', 'notice'] })
+      .notNull()
+      .default('news'),
+    audience: text('audience', { enum: ['public', 'portal', 'staff', 'all'] })
+      .notNull()
+      .default('all'),
+    /** Tanggal acara untuk kategori agenda. */
+    eventDate: date('event_date'),
+    pinned: boolean('pinned').notNull().default(false),
+    status: text('status', { enum: ['draft', 'published'] })
+      .notNull()
+      .default('draft'),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    expiresAt: timestamp('expires_at', { withTimezone: true }),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('announcement_school_pub_idx').on(t.schoolId, t.status, t.publishedAt)],
+);
+
+/** Profil situs publik sekolah (satu baris per sekolah). */
+export const schoolProfile = pgTable('school_profile', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  tagline: text('tagline'),
+  about: text('about'),
+  vision: text('vision'),
+  mission: text('mission'),
+  address: text('address'),
+  phone: text('phone'),
+  email: text('email'),
+  whatsapp: text('whatsapp'),
+  mapUrl: text('map_url'),
+  /** Warna aksen heksadesimal (#RRGGBB). */
+  accentColor: text('accent_color'),
+  published: boolean('published').notNull().default(false),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});

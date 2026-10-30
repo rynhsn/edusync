@@ -132,7 +132,10 @@
     "pkl_read": "View internships",
     "pkl_manage": "Manage internships",
     "admission_read": "View new student applications",
-    "admission_manage": "Manage new student applications"
+    "admission_manage": "Manage new student applications",
+    "portal_read": "Open the guardian/student portal",
+    "announcement_read": "View announcements",
+    "announcement_manage": "Manage announcements and website"
   },
   "dashboard": {
     "greeting": "Hello, {name}",

@@ -132,7 +132,10 @@
     "pkl_read": "Melihat PKL",
     "pkl_manage": "Mengelola PKL",
     "admission_read": "Melihat pendaftaran murid baru",
-    "admission_manage": "Mengelola pendaftaran murid baru"
+    "admission_manage": "Mengelola pendaftaran murid baru",
+    "portal_read": "Membuka portal wali/siswa",
+    "announcement_read": "Melihat pengumuman",
+    "announcement_manage": "Mengelola pengumuman dan situs"
   },
   "dashboard": {
     "greeting": "Halo, {name}",
