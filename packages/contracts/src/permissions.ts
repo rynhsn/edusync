@@ -28,6 +28,9 @@ export const PERMISSIONS = [
   'grade:configure',
   'report_card:read',
   'report_card:manage',
+  'finance:read',
+  'finance:pay',
+  'finance:manage',
   'audit:read',
 ] as const;
 
@@ -59,6 +62,7 @@ export const SYSTEM_ROLES = {
       'extracurricular:read',
       'grade:read',
       'report_card:read',
+      'finance:read',
       'audit:read',
     ],
   },
@@ -84,7 +88,10 @@ export const SYSTEM_ROLES = {
       'report_card:manage',
     ],
   },
-  treasurer: { name: 'Bendahara', permissions: ['academic_year:read', 'student:read'] },
+  treasurer: {
+    name: 'Bendahara',
+    permissions: ['academic_year:read', 'student:read', 'finance:read', 'finance:pay', 'finance:manage'],
+  },
   operator: {
     name: 'Operator',
     permissions: [
@@ -111,6 +118,7 @@ export const SYSTEM_ROLES = {
       'grade:input',
       'report_card:read',
       'report_card:manage',
+      'finance:read',
     ],
   },
   teacher: {

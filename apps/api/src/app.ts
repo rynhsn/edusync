@@ -26,6 +26,7 @@ import { billingRoutes } from './routes/billing';
 import { calendarRoutes } from './routes/calendar';
 import { curriculumRoutes } from './routes/curriculum';
 import { extracurricularRoutes } from './routes/extracurricular';
+import { financeRoutes } from './routes/finance';
 import { gateRoutes } from './routes/gate';
 import { gradingRoutes } from './routes/grading';
 import { guardianRoutes } from './routes/guardians';
@@ -105,6 +106,7 @@ export async function buildApp(env: Env) {
         { name: 'System', description: 'Status layanan' },
         { name: 'Identity', description: 'Akun dan keanggotaan' },
         { name: 'Academic', description: 'Data akademik' },
+        { name: 'Finance', description: 'Keuangan sekolah: tarif, tagihan, kwitansi, dan laporan' },
         { name: 'Billing', description: 'Katalog, pendaftaran, dan pembayaran' },
         { name: 'Platform', description: 'Konsol staf Edusync' },
       ],
@@ -182,6 +184,7 @@ export async function buildApp(env: Env) {
   await app.register(extracurricularRoutes);
   await app.register(gradingRoutes);
   await app.register(reportCardRoutes);
+  await app.register(financeRoutes);
   await app.register(semesterRoutes);
   await app.register(calendarRoutes);
   await app.register(curriculumRoutes);

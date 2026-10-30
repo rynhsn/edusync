@@ -274,6 +274,20 @@
       "when": 1793351151433,
       "tag": "0038_report_card_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1793352356165,
+      "tag": "0039_finance",
+      "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1793352358277,
+      "tag": "0040_finance_rls",
+      "breakpoints": true
     }
   ]
 }

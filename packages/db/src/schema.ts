@@ -1,6 +1,7 @@
 import { sql } from 'drizzle-orm';
 import {
   boolean,
+  check,
   date,
   index,
   integer,
@@ -1151,4 +1152,155 @@ export const reportCard = pgTable(
     unique('report_card_semester_student_uq').on(t.semesterId, t.studentId),
     index('report_card_class_idx').on(t.classId, t.semesterId),
   ],
+);
+
+/* ---------- Keuangan sekolah (modul `finance`) ---------- */
+
+/** Tagihan sekolah milik tenant; berbeda dari tagihan langganan platform (`invoice` di packages/billing). */
+export const FIN_FEE_KINDS = ['monthly', 'one_time', 'yearly'] as const;
+export const FIN_PAYMENT_METHODS = ['cash', 'transfer', 'other'] as const;
+
+/** Jenis biaya (SPP, uang gedung, seragam, ...). */
+export const finFeeType = pgTable(
+  'fin_fee_type',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    kind: text('kind', { enum: FIN_FEE_KINDS }).notNull(),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('fin_fee_type_school_name_uq').on(t.schoolId, t.name)],
+);
+
+/** Tarif per tahun ajaran, jenis biaya, dan tingkat (`level` kosong = semua tingkat). Rupiah bulat. */
+export const finFeePlan = pgTable(
+  'fin_fee_plan',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    feeTypeId: uuid('fee_type_id')
+      .notNull()
+      .references(() => finFeeType.id),
+    level: text('level'),
+    amount: integer('amount').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('fin_fee_plan_uq').on(t.academicYearId, t.feeTypeId, t.level).nullsNotDistinct(),
+    check('fin_fee_plan_amount_ck', sql`${t.amount} >= 0`),
+  ],
+);
+
+/** Tagihan siswa. Status bayar tidak disimpan; dihitung dari `fin_payment_item` kwitansi yang tidak batal. */
+export const finInvoice = pgTable(
+  'fin_invoice',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    feeTypeId: uuid('fee_type_id')
+      .notNull()
+      .references(() => finFeeType.id),
+    /** TTTT-BB untuk biaya bulanan; kosong untuk lainnya. */
+    period: text('period'),
+    title: text('title').notNull(),
+    amount: integer('amount').notNull(),
+    discount: integer('discount').notNull().default(0),
+    discountReason: text('discount_reason'),
+    dueDate: date('due_date').notNull(),
+    status: text('status', { enum: ['open', 'void'] })
+      .notNull()
+      .default('open'),
+    voidReason: text('void_reason'),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('fin_invoice_uq').on(t.studentId, t.academicYearId, t.feeTypeId, t.period).nullsNotDistinct(),
+    index('fin_invoice_year_idx').on(t.academicYearId, t.studentId),
+    check('fin_invoice_amount_ck', sql`${t.amount} >= 0`),
+    check('fin_invoice_discount_ck', sql`${t.discount} >= 0 and ${t.discount} <= ${t.amount}`),
+  ],
+);
+
+/** Kwitansi. Nomor unik per sekolah; kwitansi batal tetap ada (`voidedAt`) tetapi tidak dihitung. */
+export const finPayment = pgTable(
+  'fin_payment',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    receiptNo: text('receipt_no').notNull(),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    paidAt: timestamp('paid_at', { withTimezone: true }).notNull().defaultNow(),
+    method: text('method', { enum: FIN_PAYMENT_METHODS }).notNull(),
+    total: integer('total').notNull(),
+    note: text('note'),
+    recordedBy: text('recorded_by').notNull(),
+    voidedAt: timestamp('voided_at', { withTimezone: true }),
+    voidedBy: text('voided_by'),
+    voidReason: text('void_reason'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('fin_payment_receipt_uq').on(t.schoolId, t.receiptNo),
+    index('fin_payment_student_idx').on(t.studentId),
+    index('fin_payment_paid_idx').on(t.schoolId, t.paidAt),
+    check('fin_payment_total_ck', sql`${t.total} > 0`),
+  ],
+);
+
+/** Rincian kwitansi: berapa yang dibayarkan untuk tiap tagihan. */
+export const finPaymentItem = pgTable(
+  'fin_payment_item',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    paymentId: uuid('payment_id')
+      .notNull()
+      .references(() => finPayment.id),
+    invoiceId: uuid('invoice_id')
+      .notNull()
+      .references(() => finInvoice.id),
+    amount: integer('amount').notNull(),
+  },
+  (t) => [
+    index('fin_payment_item_payment_idx').on(t.paymentId),
+    index('fin_payment_item_invoice_idx').on(t.invoiceId),
+    check('fin_payment_item_amount_ck', sql`${t.amount} > 0`),
+  ],
+);
+
+/** Pencacah nomor kwitansi per sekolah per tahun. Ditambah atomik di transaksi pembuatan kwitansi. */
+export const finCounter = pgTable(
+  'fin_counter',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    year: integer('year').notNull(),
+    last: integer('last').notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.schoolId, t.year] })],
 );

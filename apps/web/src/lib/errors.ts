@@ -50,6 +50,11 @@ const KNOWN = [
   'invalid_score',
   'report_final',
   'grades_incomplete',
+  'overpay',
+  'invoice_void',
+  'has_payments',
+  'period_required',
+  'plan_missing',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

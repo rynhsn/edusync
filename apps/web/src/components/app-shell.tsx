@@ -14,8 +14,10 @@ import {
   DoorOpen,
   FileText,
   GraduationCap,
+  Landmark,
   LayoutDashboard,
   LogOut,
+  Receipt,
   School,
   Settings2,
   ShieldCheck,
@@ -23,6 +25,8 @@ import {
   Trophy,
   UserRound,
   Users,
+  Wallet,
+  WalletCards,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -169,6 +173,33 @@ export const NAV_GROUPS = [
         icon: FileText,
         permission: 'report_card:manage',
         module: 'grades',
+      },
+    ],
+  },
+  {
+    key: 'groupFinance',
+    items: [
+      { href: '/finance', labelKey: 'cashier', icon: Wallet, permission: 'finance:pay', module: 'finance' },
+      {
+        href: '/finance/invoices',
+        labelKey: 'invoices',
+        icon: Receipt,
+        permission: 'finance:read',
+        module: 'finance',
+      },
+      {
+        href: '/finance/settings',
+        labelKey: 'financeSettings',
+        icon: WalletCards,
+        permission: 'finance:manage',
+        module: 'finance',
+      },
+      {
+        href: '/finance/reports',
+        labelKey: 'financeReports',
+        icon: Landmark,
+        permission: 'finance:read',
+        module: 'finance',
       },
     ],
   },

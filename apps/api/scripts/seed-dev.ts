@@ -1,8 +1,12 @@
 import {
+  academicYear,
+  and,
   assignRoles,
   createDb,
   entitlement,
   eq,
+  finFeePlan,
+  finFeeType,
   foundation,
   foundationOwner,
   gradeComponent,
@@ -89,7 +93,7 @@ if (sub) {
     await db
       .insert(entitlement)
       .values(
-        ['schedule', 'attendance', 'grades', 'extracurricular'].map((moduleKey) => ({
+        ['schedule', 'attendance', 'grades', 'extracurricular', 'finance'].map((moduleKey) => ({
           schoolId: s.id,
           moduleKey,
           subscriptionId: sub.id,
@@ -125,6 +129,38 @@ for (const [s, principalName, city] of [
     .insert(reportSetting)
     .values({ schoolId: s.id, principalName, principalNip: '197001012000031001', city })
     .onConflictDoNothing();
+}
+
+// Jenis biaya dan tarif contoh untuk modul finance (tarif pada tahun ajaran aktif bila ada).
+for (const s of [smp, smk]) {
+  const types = await db
+    .insert(finFeeType)
+    .values([
+      { schoolId: s.id, name: 'SPP', kind: 'monthly' as const },
+      { schoolId: s.id, name: 'Uang Gedung', kind: 'one_time' as const },
+      { schoolId: s.id, name: 'Seragam', kind: 'one_time' as const },
+    ])
+    .onConflictDoNothing()
+    .returning();
+  const [year] = await db
+    .select()
+    .from(academicYear)
+    .where(and(eq(academicYear.schoolId, s.id), eq(academicYear.isActive, true)));
+  if (types.length > 0 && year) {
+    const amount: Record<string, number> = { SPP: 250_000, 'Uang Gedung': 3_000_000, Seragam: 650_000 };
+    await db
+      .insert(finFeePlan)
+      .values(
+        types.map((t) => ({
+          schoolId: s.id,
+          academicYearId: year.id,
+          feeTypeId: t.id,
+          level: null,
+          amount: amount[t.name] ?? 0,
+        })),
+      )
+      .onConflictDoNothing();
+  }
 }
 
 const guru = await ensureUser('guru@edusync.test', 'Guru Contoh');
