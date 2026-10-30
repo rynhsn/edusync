@@ -5,6 +5,8 @@ import {
   eq,
   foundation,
   foundationOwner,
+  gradeComponent,
+  gradingSetting,
   member,
   platformStaff,
   school,
@@ -95,6 +97,22 @@ if (sub) {
       )
       .onConflictDoNothing();
   }
+}
+
+// Pengaturan penilaian dan komponen bawaan (Tugas, Ulangan Harian, UTS, UAS) untuk modul `grades`.
+for (const s of [smp, smk]) {
+  await db.insert(gradingSetting).values({ schoolId: s.id }).onConflictDoNothing();
+  await db
+    .insert(gradeComponent)
+    .values(
+      [
+        { name: 'Tugas', weight: 20 },
+        { name: 'Ulangan Harian', weight: 30 },
+        { name: 'UTS', weight: 20 },
+        { name: 'UAS', weight: 30 },
+      ].map((c, sort) => ({ schoolId: s.id, ...c, sort })),
+    )
+    .onConflictDoNothing();
 }
 
 const guru = await ensureUser('guru@edusync.test', 'Guru Contoh');

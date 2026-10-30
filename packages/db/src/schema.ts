@@ -5,6 +5,7 @@ import {
   index,
   integer,
   jsonb,
+  numeric,
   pgTable,
   primaryKey,
   text,
@@ -1008,4 +1009,83 @@ export const extracurricularAssessment = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [unique('extracurricular_assessment_uq').on(t.extracurricularId, t.studentId, t.semesterId)],
+);
+
+/** Pengaturan penilaian sekolah: KKM dan batas predikat (nilai minimal A, B, C). Satu baris per sekolah. */
+export const gradingSetting = pgTable('grading_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  kkm: integer('kkm').notNull().default(75),
+  predicateA: integer('predicate_a').notNull().default(90),
+  predicateB: integer('predicate_b').notNull().default(80),
+  predicateC: integer('predicate_c').notNull().default(70),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Komponen penilaian berbobot (Tugas, Ulangan Harian, UTS, UAS, ...). Bobot dinormalisasi saat nilai akhir dihitung. */
+export const gradeComponent = pgTable(
+  'grade_component',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    weight: integer('weight').notNull(),
+    sort: integer('sort').notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('grade_component_school_name_uq').on(t.schoolId, t.name)],
+);
+
+/** Satu penilaian (ulangan, tugas, ...) untuk satu kelas dan mapel pada satu semester. */
+export const assessment = pgTable(
+  'assessment',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    componentId: uuid('component_id')
+      .notNull()
+      .references(() => gradeComponent.id),
+    teacherId: uuid('teacher_id').references(() => teacher.id),
+    title: text('title').notNull(),
+    date: date('date').notNull(),
+    maxScore: integer('max_score').notNull().default(100),
+    createdAt: createdAt(),
+  },
+  (t) => [index('assessment_scope_idx').on(t.classId, t.subjectId, t.semesterId)],
+);
+
+/** Skor siswa pada satu penilaian. `value` kosong berarti belum diisi. */
+export const score = pgTable(
+  'score',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    assessmentId: uuid('assessment_id')
+      .notNull()
+      .references(() => assessment.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    value: numeric('value', { precision: 6, scale: 2, mode: 'number' }),
+    note: text('note'),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('score_assessment_student_uq').on(t.assessmentId, t.studentId)],
 );

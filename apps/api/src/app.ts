@@ -27,6 +27,7 @@ import { calendarRoutes } from './routes/calendar';
 import { curriculumRoutes } from './routes/curriculum';
 import { extracurricularRoutes } from './routes/extracurricular';
 import { gateRoutes } from './routes/gate';
+import { gradingRoutes } from './routes/grading';
 import { guardianRoutes } from './routes/guardians';
 import { invitationRoutes } from './routes/invitations';
 import { lessonAttendanceRoutes } from './routes/lesson-attendance';
@@ -178,6 +179,7 @@ export async function buildApp(env: Env) {
   await app.register(gateRoutes);
   await app.register(lessonAttendanceRoutes);
   await app.register(extracurricularRoutes);
+  await app.register(gradingRoutes);
   await app.register(semesterRoutes);
   await app.register(calendarRoutes);
   await app.register(curriculumRoutes);

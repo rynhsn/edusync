@@ -2,6 +2,7 @@
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  Award,
   BookOpen,
   CalendarDays,
   CalendarRange,
@@ -16,6 +17,7 @@ import {
   School,
   Settings2,
   ShieldCheck,
+  SlidersHorizontal,
   Trophy,
   UserRound,
   Users,
@@ -137,6 +139,20 @@ export const NAV_GROUPS = [
         icon: Trophy,
         permission: 'extracurricular:read',
         module: 'extracurricular',
+      },
+      {
+        href: '/grades',
+        labelKey: 'grades',
+        icon: Award,
+        permission: 'grade:read',
+        module: 'grades',
+      },
+      {
+        href: '/grades/settings',
+        labelKey: 'gradeSettings',
+        icon: SlidersHorizontal,
+        permission: 'grade:configure',
+        module: 'grades',
       },
     ],
   },
@@ -300,8 +316,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </p>
                   )}
                   {items.map((n) => {
+                    const matches = (href: string) =>
+                      pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
+                    // Menu dengan alamat lebih spesifik (mis. /grades/settings) mengalahkan induknya (/grades).
                     const active =
-                      pathname === n.href || (n.href !== '/dashboard' && pathname.startsWith(`${n.href}/`));
+                      matches(n.href) &&
+                      !items.some(
+                        (o) => o.href !== n.href && o.href.startsWith(`${n.href}/`) && matches(o.href),
+                      );
                     return (
                       <Link
                         key={n.href}
