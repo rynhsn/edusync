@@ -27,7 +27,10 @@ import { formatRupiah } from '@/lib/money';
 import { downloadReceiptPdf } from './pdf/download';
 import { type Receipt, ReceiptDialog } from './receipt-dialog';
 import {
+  DiscountMark,
   digitsOnly,
+  InstallmentBadge,
+  installmentInfo,
   localDate,
   METHOD_KEY,
   METHODS,
@@ -301,6 +304,12 @@ export function CashierView() {
                           <TableCell>
                             <span className="font-medium">{i.title}</span>{' '}
                             <StatusBadge status={i.status} overdue={i.overdue} />
+                            {(installmentInfo(i.period, i.title) || i.discount > 0) && (
+                              <span className="mt-1 flex flex-wrap gap-1">
+                                <InstallmentBadge period={i.period} title={i.title} />
+                                <DiscountMark amount={i.discount} reason={i.discountReason} />
+                              </span>
+                            )}
                           </TableCell>
                           <TableCell className={i.overdue ? 'text-destructive' : 'text-muted-foreground'}>
                             {formatCalendarDate(locale, i.dueDate.slice(0, 10))}

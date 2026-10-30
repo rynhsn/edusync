@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Ban, Download, FilePlus2, Pencil, Search, X } from 'lucide-react';
+import { Ban, CalendarClock, Download, FilePlus2, Layers, Pencil, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -27,8 +27,13 @@ import { formatCalendarDate } from '@/lib/format-date';
 import { formatRupiah } from '@/lib/money';
 import { buildExport, saveBlob } from '@/lib/sheet';
 import {
+  DiscountMark,
   digitsOnly,
+  INSTALLMENT_CHOICES,
+  InstallmentBadge,
+  InstallmentTimeline,
   type InvoiceStatus,
+  installmentInfo,
   PeriodPicker,
   STATUS_KEY,
   STATUSES,
@@ -43,6 +48,8 @@ const PAGE = 25;
 interface GenerateResult {
   created: number;
   skipped: number;
+  free?: number;
+  discounted?: number;
   missingPlan: unknown;
 }
 
@@ -96,8 +103,20 @@ export function InvoicesView() {
   const [voiding, setVoiding] = useState<{ id: string; title: string } | null>(null);
   const [reason, setReason] = useState('');
   const [error, setError] = useState<string | null>(null);
-  const [gen, setGen] = useState({ feeTypeId: '', period: '', classId: '', dueDate: todayIso() });
+  const [gen, setGen] = useState({
+    feeTypeId: '',
+    period: '',
+    classId: '',
+    dueDate: todayIso(),
+    installments: '',
+  });
   const [genResult, setGenResult] = useState<GenerateResult | null>(null);
+  const [splitting, setSplitting] = useState<{
+    id: string;
+    title: string;
+    count: string;
+    firstDue: string;
+  } | null>(null);
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(q.trim()), 300);
@@ -142,6 +161,21 @@ export function InvoicesView() {
   const feeList = feeTypes.data ?? [];
   const genFee = feeList.find((f) => f.id === gen.feeTypeId);
   const genMonthly = genFee?.kind === 'monthly';
+  const genCount = Number(gen.installments || 0);
+
+  // Tarif jenis biaya terpilih, untuk pratinjau nominal cicilan (hanya bila semua tarifnya sama).
+  const genPlans = useQuery({
+    queryKey: ['finance', school.schoolId, 'fee-plans', yearId],
+    enabled: manage && !!yearId && !!genFee && !genMonthly,
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/v1/finance/fee-plans', { params: { ...header, query: { academicYearId: yearId } } }),
+      ),
+  });
+  const genAmounts = [
+    ...new Set((genPlans.data ?? []).filter((p) => p.feeTypeId === gen.feeTypeId).map((p) => p.amount)),
+  ];
+  const genAmount = genAmounts.length === 1 ? (genAmounts[0] as number) : 0;
 
   const generate = useMutation({
     mutationFn: async () =>
@@ -154,11 +188,27 @@ export function InvoicesView() {
             period: genMonthly ? gen.period : null,
             classId: gen.classId || null,
             dueDate: gen.dueDate,
+            ...(!genMonthly && genCount >= 2 ? { installments: genCount } : {}),
           },
         }),
       ),
     onSuccess: (r) => {
       setGenResult(r as GenerateResult);
+      refresh();
+    },
+    onError: (e) => setError(te(errorKey(e))),
+  });
+
+  const split = useMutation({
+    mutationFn: async (v: NonNullable<typeof splitting>) =>
+      unwrap(
+        await api.POST('/v1/finance/invoices/{id}/split', {
+          params: { ...header, path: { id: v.id } },
+          body: { installments: Number(v.count), firstDueDate: v.firstDue },
+        }),
+      ),
+    onSuccess: (r) => {
+      toast.success(t('splitDone', { count: r.invoices.length }));
       refresh();
     },
     onError: (e) => setError(te(errorKey(e))),
@@ -279,7 +329,7 @@ export function InvoicesView() {
                 error={error}
                 disabled={!gen.feeTypeId || !gen.dueDate || (genMonthly && !gen.period)}
                 onOpenChange={() => {
-                  setGen({ feeTypeId: '', period: '', classId: '', dueDate: todayIso() });
+                  setGen({ feeTypeId: '', period: '', classId: '', dueDate: todayIso(), installments: '' });
                   setError(null);
                 }}
                 onSubmit={() => generate.mutateAsync()}
@@ -297,6 +347,7 @@ export function InvoicesView() {
                           ...gen,
                           feeTypeId: e.target.value,
                           period: f?.kind === 'monthly' ? todayIso().slice(0, 7) : '',
+                          installments: '',
                         });
                       }}
                     >
@@ -342,6 +393,42 @@ export function InvoicesView() {
                       onChange={(v) => setGen({ ...gen, dueDate: v })}
                     />
                   </div>
+                  {genFee && !genMonthly && (
+                    <div className="bg-muted/40 grid gap-3 rounded-xl border p-3 sm:col-span-2">
+                      <div className="grid gap-2 sm:grid-cols-2">
+                        <div className="grid gap-2">
+                          <Label htmlFor="gen-installments">{t('installments')}</Label>
+                          <SelectField
+                            id="gen-installments"
+                            value={gen.installments}
+                            onChange={(e) => setGen({ ...gen, installments: e.target.value })}
+                          >
+                            <option value="">{t('installmentsOnce')}</option>
+                            {INSTALLMENT_CHOICES.map((n) => (
+                              <option key={n} value={String(n)}>
+                                {t('installmentsN', { count: n })}
+                              </option>
+                            ))}
+                          </SelectField>
+                        </div>
+                        <p className="text-muted-foreground self-end text-xs">{t('installmentsHint')}</p>
+                      </div>
+                      {genCount >= 2 && (
+                        <div className="grid gap-2">
+                          <p className="flex items-center gap-1.5 text-sm font-medium">
+                            <CalendarClock className="text-primary size-4" aria-hidden="true" />
+                            {genAmount > 0
+                              ? t('installmentsPreview', {
+                                  count: genCount,
+                                  amount: formatRupiah(Math.floor(genAmount / genCount)),
+                                })
+                              : t('installmentsPreviewPlain', { count: genCount })}
+                          </p>
+                          <InstallmentTimeline count={genCount} firstDue={gen.dueDate} locale={locale} />
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </FormDialog>
             )}
@@ -498,7 +585,7 @@ export function InvoicesView() {
                   <TableHead className="text-right">{t('paid')}</TableHead>
                   <TableHead className="text-right">{t('outstanding')}</TableHead>
                   <TableHead>{t('status')}</TableHead>
-                  {manage && <TableHead className="w-24" />}
+                  {manage && <TableHead className="w-32" />}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -512,7 +599,15 @@ export function InvoicesView() {
                           {[i.nis, i.className].filter(Boolean).join(' · ')}
                         </span>
                       </TableCell>
-                      <TableCell>{i.title}</TableCell>
+                      <TableCell>
+                        {i.title}
+                        {(installmentInfo(i.period, i.title) || i.discount > 0) && (
+                          <span className="mt-1 flex flex-wrap gap-1">
+                            <InstallmentBadge period={i.period} title={i.title} />
+                            <DiscountMark amount={i.discount} reason={i.discountReason} />
+                          </span>
+                        )}
+                      </TableCell>
                       <TableCell className={late ? 'text-destructive font-medium' : ''}>
                         {formatCalendarDate(locale, i.dueDate.slice(0, 10))}
                       </TableCell>
@@ -529,6 +624,27 @@ export function InvoicesView() {
                         <TableCell className="text-right whitespace-nowrap">
                           {i.status !== 'void' && (
                             <>
+                              {i.status === 'unpaid' &&
+                                i.paid === 0 &&
+                                !installmentInfo(i.period, i.title) && (
+                                  <Button
+                                    size="icon-sm"
+                                    variant="ghost"
+                                    aria-label={t('splitInstallments')}
+                                    title={t('splitInstallments')}
+                                    onClick={() => {
+                                      setError(null);
+                                      setSplitting({
+                                        id: i.id,
+                                        title: `${i.studentName} · ${i.title}`,
+                                        count: '3',
+                                        firstDue: i.dueDate.slice(0, 10),
+                                      });
+                                    }}
+                                  >
+                                    <Layers className="size-4" />
+                                  </Button>
+                                )}
                               <Button
                                 size="icon-sm"
                                 variant="ghost"
@@ -657,6 +773,51 @@ export function InvoicesView() {
         </div>
       </FormDialog>
 
+      <FormDialog
+        open={!!splitting}
+        title={`${t('splitInstallments')} · ${splitting?.title ?? ''}`}
+        description={t('splitHint')}
+        submitLabel={t('splitInstallments')}
+        error={error}
+        disabled={!splitting || Number(splitting.count) < 2 || !splitting.firstDue}
+        onOpenChange={(o) => !o && setSplitting(null)}
+        onSubmit={() => (splitting ? split.mutateAsync(splitting) : Promise.resolve())}
+      >
+        {splitting && (
+          <div className="grid gap-4">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid gap-2">
+                <Label htmlFor="split-count">{t('installmentCount')}</Label>
+                <SelectField
+                  id="split-count"
+                  value={splitting.count}
+                  onChange={(e) => setSplitting({ ...splitting, count: e.target.value })}
+                >
+                  {INSTALLMENT_CHOICES.map((n) => (
+                    <option key={n} value={String(n)}>
+                      {t('installmentsN', { count: n })}
+                    </option>
+                  ))}
+                </SelectField>
+              </div>
+              <div className="grid gap-2">
+                <Label htmlFor="split-due">{t('firstDueDate')}</Label>
+                <DatePicker
+                  id="split-due"
+                  value={splitting.firstDue}
+                  onChange={(v) => setSplitting({ ...splitting, firstDue: v })}
+                />
+              </div>
+            </div>
+            <InstallmentTimeline
+              count={Number(splitting.count)}
+              firstDue={splitting.firstDue}
+              locale={locale}
+            />
+          </div>
+        )}
+      </FormDialog>
+
       <Dialog open={!!genResult} onOpenChange={(o) => !o && setGenResult(null)}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -666,6 +827,12 @@ export function InvoicesView() {
             <ul className="grid gap-1 text-sm">
               <li>{t('resultCreated', { count: genResult.created })}</li>
               <li>{t('resultSkipped', { count: genResult.skipped })}</li>
+              {(genResult.free ?? 0) > 0 && <li>{t('resultFree', { count: genResult.free ?? 0 })}</li>}
+              {(genResult.discounted ?? 0) > 0 && (
+                <li className="text-amber-700 dark:text-amber-300">
+                  {t('resultDiscounted', { count: genResult.discounted ?? 0 })}
+                </li>
+              )}
               <li className={countOf(genResult.missingPlan) > 0 ? 'text-destructive' : ''}>
                 {t('resultMissingPlan', { count: countOf(genResult.missingPlan) })}
               </li>

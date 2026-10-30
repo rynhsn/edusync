@@ -57,6 +57,33 @@ const KNOWN = [
   'plan_missing',
   'invalid_placeholder',
   'invalid_phone',
+  'invalid_range',
+  'invalid_scope',
+  'no_active_year',
+  'period_closed',
+  'duplicate_application',
+  'quota_full',
+  'nisn_taken',
+  'invalid_transition',
+  'use_enroll',
+  'invalid_file_type',
+  'file_too_large',
+  'rate_limited',
+  'unknown_placeholder',
+  'hash_already_set',
+  'not_draft',
+  'not_outgoing',
+  'not_signable',
+  'not_signed',
+  'revoked',
+  'not_a_signer',
+  'installments_invalid',
+  'inactive',
+  'link_read_only',
+  'date_in_future',
+  'date_out_of_period',
+  'placement_cancelled',
+  'not_deletable',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];
@@ -66,6 +93,7 @@ type KnownCode = (typeof KNOWN)[number];
  * bahasa pengguna dan tidak bergantung pada pesan bahasa Indonesia dari server.
  */
 export function errorKey(error: unknown): `errors.${KnownCode | 'unknown'}` {
-  const code = error instanceof ApiError ? error.code : undefined;
+  // Pembatas laju (429) tidak memakai bentuk galat API, jadi dikenali dari status.
+  const code = error instanceof ApiError ? (error.status === 429 ? 'rate_limited' : error.code) : undefined;
   return `errors.${(KNOWN as readonly (string | undefined)[]).includes(code) ? (code as KnownCode) : 'unknown'}`;
 }

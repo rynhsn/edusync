@@ -2632,7 +2632,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "admission:read" | "admission:manage" | "audit:read")[];
                     };
                 };
             };
@@ -3168,7 +3168,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "admission:read" | "admission:manage" | "audit:read")[];
                     };
                 };
             };
@@ -8647,6 +8647,2375 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/letters/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar templat surat
+         * @description Izin: `letter:read`; modul `administration`. Isi templat memakai pengganti `{{nama}}`, `{{nis}}`, `{{kelas}}`, `{{tanggal}}`, `{{sekolah}}`, `{{nomor}}`, `{{penandatangan}}`, `{{jabatan}}`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "letter" | "certificate";
+                            body: string;
+                            active: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah templat surat
+         * @description Izin: `letter:manage`; modul `administration`. Nama unik (409 `conflict`). Pengganti di luar daftar ditolak (400 `unknown_placeholder`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /**
+                         * @default letter
+                         * @enum {string}
+                         */
+                        kind?: "letter" | "certificate";
+                        body: string;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "letter" | "certificate";
+                            body: string;
+                            active: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/templates/defaults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buat templat bawaan
+         * @description Izin: `letter:manage`; modul `administration`. Membuat tiga templat bawaan (surat keterangan siswa aktif, surat panggilan orang tua, sertifikat sederhana) hanya bila sekolah belum punya templat (409 `not_empty`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "letter" | "certificate";
+                            body: string;
+                            active: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah templat surat
+         * @description Izin: `letter:manage`; modul `administration`. Mengganti seluruh isi (termasuk `active`). Nama unik (409 `conflict`); pengganti tak dikenal 400 `unknown_placeholder`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /**
+                         * @default letter
+                         * @enum {string}
+                         */
+                        kind?: "letter" | "certificate";
+                        body: string;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "letter" | "certificate";
+                            body: string;
+                            active: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus templat surat
+         * @description Izin: `letter:manage`; modul `administration`. Ditolak 409 `in_use` bila sudah dipakai surat; nonaktifkan lewat ubah (`active: false`).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/signers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar penandatangan
+         * @description Izin: `letter:read`; modul `administration`. Gambar tanda tangan TIDAK pernah ada di daftar; hanya `hasSignature`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            memberId: string;
+                            name: string;
+                            nip: string | null;
+                            title: string;
+                            active: boolean;
+                            /** @description Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar) */
+                            hasSignature: boolean;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah penandatangan
+         * @description Izin: `letter:manage`; modul `administration`. `memberId` harus anggota aktif sekolah ini (400 `invalid_reference`); satu anggota satu kredensial (409 `conflict`). Gambar tanda tangan: lihat `PUT /v1/letters/signers/me/signature` (400 `invalid_signature`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        memberId: string;
+                        name: string;
+                        /** @default null */
+                        nip?: string | null;
+                        title: string;
+                        /** @default null */
+                        signatureData?: string | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            memberId: string;
+                            name: string;
+                            nip: string | null;
+                            title: string;
+                            active: boolean;
+                            /** @description Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar) */
+                            hasSignature: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/signers/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kredensial penandatangan saya
+         * @description Izin: `letter:read`; modul `administration`. `signer` bernilai null bila anggota ini belum terdaftar sebagai penandatangan. Hanya di sini (dan di respons tanda tangan) gambar tanda tangan dikembalikan, dan hanya untuk pemiliknya.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            signer: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                memberId: string;
+                                name: string;
+                                nip: string | null;
+                                title: string;
+                                active: boolean;
+                                /** @description Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar) */
+                                hasSignature: boolean;
+                                /** @description Data URL gambar tanda tangan; hanya untuk pemiliknya sendiri */
+                                signatureData: string | null;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/signers/me/signature": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Unggah tanda tangan saya
+         * @description Izin: `letter:sign`; modul `administration`. Penandatangan mengunggah atau menghapus (`null`) gambar tanda tangannya sendiri tanpa izin kelola. Data URL `image/png` atau `image/jpeg`, maksimal 150 KB, magic bytes diperiksa (400 `invalid_signature`). 404 `not_found` bila belum terdaftar sebagai penandatangan.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        signatureData: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            memberId: string;
+                            name: string;
+                            nip: string | null;
+                            title: string;
+                            active: boolean;
+                            /** @description Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar) */
+                            hasSignature: boolean;
+                            /** @description Data URL gambar tanda tangan; hanya untuk pemiliknya sendiri */
+                            signatureData: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/signers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah penandatangan
+         * @description Izin: `letter:manage`; modul `administration`. `signatureData` dihilangkan = gambar tidak diubah, `null` = hapus. Tautan anggota tidak dapat diubah.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** @default null */
+                        nip?: string | null;
+                        title: string;
+                        /** @description Dihilangkan = tidak diubah; null = hapus gambar */
+                        signatureData?: string | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            memberId: string;
+                            name: string;
+                            nip: string | null;
+                            title: string;
+                            active: boolean;
+                            /** @description Gambar tanda tangan sudah diunggah (gambarnya tidak pernah ada di daftar) */
+                            hasSignature: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus penandatangan
+         * @description Izin: `letter:manage`; modul `administration`. Ditolak 409 `in_use` bila sudah pernah menandatangani surat; nonaktifkan lewat ubah (`active: false`).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar surat
+         * @description Izin: `letter:read`; modul `administration`. Filter arah, status, rentang tanggal surat, dan `q` (nomor, perihal, pihak). Terbaru lebih dulu. Isi surat ada di detail.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    direction?: "outgoing" | "incoming";
+                    status?: "draft" | "signed" | "revoked";
+                    q?: string;
+                    from?: string;
+                    to?: string;
+                    limit?: number;
+                    offset?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                direction: "outgoing" | "incoming";
+                                number: string;
+                                subject: string;
+                                party: string;
+                                letterDate: string;
+                                /** @enum {string} */
+                                status: "draft" | "signed" | "revoked";
+                                /** Format: uuid */
+                                templateId: string | null;
+                                /** Format: uuid */
+                                studentId: string | null;
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Catat atau buat surat
+         * @description Izin: `letter:manage`; modul `administration`. Surat keluar (`direction: outgoing`) mendapat nomor otomatis berurutan per tahun surat, format `012/KODE/X/2026`, dari penghitung atomik. Surat masuk (`incoming`) mendapat nomor agenda otomatis `AG/012/2026`; `number` (nomor surat pengirim) dicatat pada awal isi. `templateId` harus templat aktif dan `studentId` siswa sekolah ini (400 `invalid_reference`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        direction: "outgoing";
+                        subject: string;
+                        /** @description Penerima surat */
+                        party: string;
+                        /** Format: date */
+                        letterDate: string;
+                        /** @default null */
+                        body?: string | null;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        templateId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        studentId?: string | null;
+                    } | {
+                        /** @enum {string} */
+                        direction: "incoming";
+                        /**
+                         * @description Nomor surat dari pengirim
+                         * @default null
+                         */
+                        number?: string | null;
+                        subject: string;
+                        /** @description Pengirim surat */
+                        party: string;
+                        /** Format: date */
+                        letterDate: string;
+                        /** @default null */
+                        body?: string | null;
+                        /** @default null */
+                        dispositionNote?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            direction: "outgoing" | "incoming";
+                            number: string;
+                            subject: string;
+                            party: string;
+                            letterDate: string;
+                            /** @enum {string} */
+                            status: "draft" | "signed" | "revoked";
+                            /** Format: uuid */
+                            templateId: string | null;
+                            /** Format: uuid */
+                            studentId: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            body: string | null;
+                            dispositionNote: string | null;
+                            studentName: string | null;
+                            templateName: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail surat
+         * @description Izin: `letter:read`; modul `administration`. Memuat isi surat dan catatan disposisi.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            direction: "outgoing" | "incoming";
+                            number: string;
+                            subject: string;
+                            party: string;
+                            letterDate: string;
+                            /** @enum {string} */
+                            status: "draft" | "signed" | "revoked";
+                            /** Format: uuid */
+                            templateId: string | null;
+                            /** Format: uuid */
+                            studentId: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            body: string | null;
+                            dispositionNote: string | null;
+                            studentName: string | null;
+                            templateName: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah surat
+         * @description Izin: `letter:manage`; modul `administration`. Surat keluar hanya boleh diubah saat draf (409 `not_draft`); nomor tidak berubah. Surat masuk boleh diubah kapan saja (termasuk `dispositionNote`); `templateId` dan `studentId` diabaikan untuk surat masuk. Bidang opsional yang dihilangkan tidak diubah.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        subject: string;
+                        party: string;
+                        /** Format: date */
+                        letterDate: string;
+                        body?: string | null;
+                        /** Format: uuid */
+                        templateId?: string | null;
+                        /** Format: uuid */
+                        studentId?: string | null;
+                        dispositionNote?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            direction: "outgoing" | "incoming";
+                            number: string;
+                            subject: string;
+                            party: string;
+                            letterDate: string;
+                            /** @enum {string} */
+                            status: "draft" | "signed" | "revoked";
+                            /** Format: uuid */
+                            templateId: string | null;
+                            /** Format: uuid */
+                            studentId: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            body: string | null;
+                            dispositionNote: string | null;
+                            studentName: string | null;
+                            templateName: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus surat
+         * @description Izin: `letter:manage`; modul `administration`. Hanya surat berstatus draf (409 `not_draft`); surat bertanda tangan dicabut, bukan dihapus. Nomor yang sudah dipakai tidak dipakai ulang.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/{id}/render": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Isi surat dari templat
+         * @description Izin: `letter:manage`; modul `administration`. Mengisi templat surat (atau isi surat bila tanpa templat) dengan data siswa (`studentId` atau siswa pada surat), sekolah, nomor, tanggal, dan penandatangan (`signerId`, bawaan kredensial pengguna). Tidak menyimpan apa pun; simpan lewat ubah surat. Surat masuk tidak dapat dirender (409 `not_outgoing`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        studentId?: string | null;
+                        /** Format: uuid */
+                        signerId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            text: string;
+                            unknown: string[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/{id}/sign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tandatangani surat
+         * @description Izin: `letter:sign` dan kredensial penandatangan aktif milik pengguna (403 `not_a_signer`); modul `administration`. Hanya surat keluar berstatus draf (409 `not_signable`). Membuat `signed_document` dengan token acak 32 byte (base64url), mengubah status surat menjadi `signed`, dan mengembalikan token, `verifyPath` untuk QR, serta data penandatangan termasuk gambar tanda tangannya sendiri. Ini tanda tangan sederhana, bukan tanda tangan elektronik tersertifikasi. Klien lalu membuat PDF berQR, menghitung SHA-256, dan mendaftarkannya lewat `PUT /v1/signed-documents/{id}/hash`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            signedDocumentId: string;
+                            token: string;
+                            verifyPath: string;
+                            /** Format: date-time */
+                            signedAt: string;
+                            number: string;
+                            subject: string;
+                            signer: {
+                                name: string;
+                                title: string;
+                                nip: string | null;
+                                signatureData: string | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/signed-documents/{id}/hash": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Daftarkan hash PDF
+         * @description Izin: penandatangan dokumen itu atau `letter:manage` (dasar `letter:read`); modul `administration`. Hanya sekali: hash yang sudah terisi atau dokumen yang dicabut menghasilkan 409 `hash_already_set` / `revoked`. `sha256` 64 karakter heksadesimal.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        sha256: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                            sha256: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/{id}/signature": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Status tanda tangan surat
+         * @description Izin: `letter:read`; modul `administration`. Penandatanganan terbaru surat: token (untuk QR), waktu, status cabut, dan apakah hash PDF sudah terdaftar. 404 bila surat belum ditandatangani.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            signedDocumentId: string;
+                            token: string;
+                            /** Format: date-time */
+                            signedAt: string;
+                            revoked: boolean;
+                            /** Format: date-time */
+                            revokedAt: string | null;
+                            revokedReason: string | null;
+                            hashRegistered: boolean;
+                            signerName: string;
+                            signerTitle: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/letters/{id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cabut surat bertanda tangan
+         * @description Izin: `letter:manage` atau penandatangan surat itu (dasar `letter:read`); modul `administration`. Status surat menjadi `revoked`; halaman verifikasi publik menampilkan alasan. Hanya surat berstatus `signed` (409 `not_signed`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        reason: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            signedDocumentId: string;
+                            token: string;
+                            /** Format: date-time */
+                            signedAt: string;
+                            revoked: boolean;
+                            /** Format: date-time */
+                            revokedAt: string | null;
+                            revokedReason: string | null;
+                            hashRegistered: boolean;
+                            signerName: string;
+                            signerTitle: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/verify/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Verifikasi surat (publik)
+         * @description Tanpa login. Memeriksa token pada QR surat. Selalu 200: token tak dikenal menghasilkan `status: unknown` (tanpa membedakan respons). `valid` hanya bila status `valid`. Tidak memuat isi surat. Dibatasi 30 permintaan per menit per alamat.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            valid: boolean;
+                            /** @enum {string} */
+                            status: "valid" | "revoked" | "unknown";
+                            number: string | null;
+                            subject: string | null;
+                            issuer: {
+                                schoolName: string | null;
+                            };
+                            signer: {
+                                name: string | null;
+                                title: string | null;
+                            };
+                            /** Format: date-time */
+                            signedAt: string | null;
+                            /** Format: date-time */
+                            revokedAt: string | null;
+                            revokedReason: string | null;
+                            hashRegistered: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/verify/{token}/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cocokkan hash PDF (publik)
+         * @description Tanpa login. Membandingkan SHA-256 berkas PDF yang diunggah pengunjung (dihitung di peramban) dengan hash terdaftar. `match` false untuk token tak dikenal, hash belum terdaftar, atau tidak cocok. Dibatasi 20 permintaan per menit per alamat.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        sha256: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            match: boolean;
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/extracurriculars": {
         parameters: {
             query?: never;
@@ -13408,7 +15777,7 @@ export interface paths {
         put?: never;
         /**
          * Buat tagihan massal
-         * @description Izin: `finance:manage`; modul `finance`. Membuat tagihan untuk setiap siswa aktif yang terdaftar di tahun ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas siswa; tarif tingkat yang cocok diutamakan daripada tarif semua tingkat (level null). Siswa tanpa tarif tidak dibuatkan tagihan dan dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (siswa, tahun, jenis biaya, periode) dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026". Galat: 400 `period_required` (`period` wajib TTTT-BB untuk jenis `monthly`, dan harus null untuk jenis lain), 400 `invalid_reference`, 409 `inactive` (jenis biaya nonaktif).
+         * @description Izin: `finance:manage`; modul `finance`. Membuat tagihan untuk setiap siswa aktif yang terdaftar di tahun ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas siswa; tarif tingkat yang cocok diutamakan daripada tarif semua tingkat (level null). Siswa tanpa tarif tidak dibuatkan tagihan dan dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (siswa, tahun, jenis biaya, periode) dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026". Galat: 400 `period_required` (`period` wajib TTTT-BB untuk jenis `monthly`, dan harus null untuk jenis lain), 400 `invalid_reference`, 409 `inactive` (jenis biaya nonaktif). Tarif bernominal 0 = gratis: tagihan tidak dibuat dan dihitung di `free`. Keringanan: aturan aktif yang dipasang pada siswa di tahun ajaran itu dan berlaku untuk jenis biaya ini (jenis kosong atau sama) dijumlahkan (persen dibulatkan ke bawah per aturan + nominal tetap, maksimal sebesar nominal) menjadi `discount` tagihan baru, nama aturan digabung di `discountReason`; `discounted` = jumlah tagihan baru yang berdiskon (tagihan yang sudah ada tidak diubah). `installments` (2..12, hanya jenis non-bulanan; 400 `installments_invalid`) membuat N tagihan berperiode `C01`..`C12` dengan nominal dibagi rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; siswa yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati.
          */
         post: {
             parameters: {
@@ -13433,6 +15802,8 @@ export interface paths {
                         classId: string | null;
                         /** Format: date */
                         dueDate: string;
+                        /** @description Cicilan 2..12, hanya untuk jenis biaya non-bulanan; kosong = satu tagihan */
+                        installments?: number | null;
                     };
                 };
             };
@@ -13446,6 +15817,10 @@ export interface paths {
                         "application/json": {
                             created: number;
                             skipped: number;
+                            /** @description Siswa bertarif 0 (gratis); tagihan tidak dibuat */
+                            free: number;
+                            /** @description Jumlah tagihan baru yang berdiskon */
+                            discounted: number;
                             missingPlan: {
                                 /** Format: uuid */
                                 studentId: string;
@@ -13844,6 +16219,183 @@ export interface paths {
                             status: "unpaid" | "partial" | "paid" | "void";
                             /** @description Masih ada sisa dan sudah lewat jatuh tempo */
                             overdue: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/invoices/{id}/split": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pecah tagihan menjadi cicilan
+         * @description Izin: `finance:manage`; modul `finance`. Memecah satu tagihan terbuka yang belum punya pembayaran aktif menjadi `installments` (2..12) tagihan berperiode `C01`.., nominal dibagi rata (sisa ke cicilan pertama), diskon dibagi proporsional, jatuh tempo `firstDueDate` + (i-1) bulan. Tagihan asal dibatalkan (void, alasan "dipecah menjadi cicilan"). Atomik. Galat: 409 `has_payments`, 409 `invoice_void`, 409 `conflict` bila tagihan cicilan jenis itu sudah ada, 404 `not_found`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        installments: number;
+                        /** Format: date */
+                        firstDueDate: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            voided: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                studentId: string;
+                                studentName: string;
+                                nis: string | null;
+                                className: string | null;
+                                /** Format: uuid */
+                                feeTypeId: string;
+                                feeTypeName: string;
+                                title: string;
+                                period: string | null;
+                                amount: number;
+                                discount: number;
+                                discountReason: string | null;
+                                /** @description Jumlah terbayar (kwitansi tidak batal) */
+                                paid: number;
+                                /** @description amount - discount - paid; 0 untuk tagihan batal */
+                                outstanding: number;
+                                /** Format: date */
+                                dueDate: string;
+                                /** @enum {string} */
+                                status: "unpaid" | "partial" | "paid" | "void";
+                                /** @description Masih ada sisa dan sudah lewat jatuh tempo */
+                                overdue: boolean;
+                            };
+                            invoices: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                studentId: string;
+                                studentName: string;
+                                nis: string | null;
+                                className: string | null;
+                                /** Format: uuid */
+                                feeTypeId: string;
+                                feeTypeName: string;
+                                title: string;
+                                period: string | null;
+                                amount: number;
+                                discount: number;
+                                discountReason: string | null;
+                                /** @description Jumlah terbayar (kwitansi tidak batal) */
+                                paid: number;
+                                /** @description amount - discount - paid; 0 untuk tagihan batal */
+                                outstanding: number;
+                                /** Format: date */
+                                dueDate: string;
+                                /** @enum {string} */
+                                status: "unpaid" | "partial" | "paid" | "void";
+                                /** @description Masih ada sisa dan sudah lewat jatuh tempo */
+                                overdue: boolean;
+                            }[];
                         };
                     };
                 };
@@ -14756,6 +17308,2288 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/finance/discount-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar aturan keringanan
+         * @description Izin: `finance:read`; modul `finance`. Aturan keringanan/beasiswa sekolah, urut nama. `assignedCount` = jumlah pemasangan ke siswa.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "percent" | "amount";
+                            /** @description Persen (1..100) atau nominal rupiah */
+                            value: number;
+                            /**
+                             * Format: uuid
+                             * @description Kosong = berlaku untuk semua jenis biaya
+                             */
+                            feeTypeId: string | null;
+                            feeTypeName: string | null;
+                            active: boolean;
+                            /** @description Jumlah pemasangan ke siswa */
+                            assignedCount: number;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah aturan keringanan
+         * @description Izin: `finance:manage`; modul `finance`. `kind` `percent` (nilai 1..100) atau `amount` (rupiah > 0). `feeTypeId` kosong = berlaku untuk semua jenis biaya. Nama unik di sekolah (409 `conflict`); 400 `invalid_reference` bila jenis biaya bukan milik sekolah.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** @enum {string} */
+                        kind: "percent" | "amount";
+                        value: number;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        feeTypeId?: string | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "percent" | "amount";
+                            /** @description Persen (1..100) atau nominal rupiah */
+                            value: number;
+                            /**
+                             * Format: uuid
+                             * @description Kosong = berlaku untuk semua jenis biaya
+                             */
+                            feeTypeId: string | null;
+                            feeTypeName: string | null;
+                            active: boolean;
+                            /** @description Jumlah pemasangan ke siswa */
+                            assignedCount: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/discount-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah aturan keringanan
+         * @description Izin: `finance:manage`; modul `finance`. Perubahan hanya memengaruhi tagihan yang dibuat sesudahnya. Nama unik (409 `conflict`); 404 `not_found`; 400 `invalid_reference`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** @enum {string} */
+                        kind: "percent" | "amount";
+                        value: number;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        feeTypeId?: string | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "percent" | "amount";
+                            /** @description Persen (1..100) atau nominal rupiah */
+                            value: number;
+                            /**
+                             * Format: uuid
+                             * @description Kosong = berlaku untuk semua jenis biaya
+                             */
+                            feeTypeId: string | null;
+                            feeTypeName: string | null;
+                            active: boolean;
+                            /** @description Jumlah pemasangan ke siswa */
+                            assignedCount: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus aturan keringanan
+         * @description Izin: `finance:manage`; modul `finance`. Ditolak 409 `in_use` bila sudah dipasang ke siswa (nonaktifkan saja); 404 `not_found` bila tak ada.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/students/{studentId}/discounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Keringanan terpasang pada siswa
+         * @description Izin: `finance:read`; modul `finance`. Daftar keringanan yang dipasang pada siswa di satu tahun ajaran (`academicYearId` wajib), urut nama aturan. 404 `not_found` bila siswa tak ada.
+         */
+        get: {
+            parameters: {
+                query: {
+                    academicYearId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            rule: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                /** @enum {string} */
+                                kind: "percent" | "amount";
+                                value: number;
+                                /** Format: uuid */
+                                feeTypeId: string | null;
+                                active: boolean;
+                            };
+                            reason: string | null;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/discounts/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pasang keringanan ke siswa
+         * @description Izin: `finance:manage`; modul `finance`. Pasang satu aturan ke `studentIds` (maks 300) atau ke seluruh siswa satu `classId` (terdaftar di kelas itu pada tahun ajaran tsb), tepat salah satunya. Pemasangan yang sudah ada (siswa, aturan, tahun) dilewati dan dihitung di `skipped`. Tidak mengubah tagihan yang sudah dibuat. Galat: 400 `invalid_reference` (aturan, tahun ajaran, kelas, atau siswa bukan milik sekolah).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        ruleId: string;
+                        /** Format: uuid */
+                        academicYearId: string;
+                        studentIds?: string[];
+                        /** Format: uuid */
+                        classId?: string;
+                        reason?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            assigned: number;
+                            skipped: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/discounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Lepas keringanan dari siswa
+         * @description Izin: `finance:manage`; modul `finance`. Melepas satu pemasangan. Tidak mengubah tagihan yang sudah dibuat. 404 `not_found` bila tak ada.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admissions/periods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar periode SPMB
+         * @description Izin: `admission:read`; modul `admissions`. Dilengkapi jumlah pendaftar, kuota terpakai (diterima + sudah daftar ulang), dan penanda `open` (aktif dan hari ini WIB dalam rentang buka-tutup).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            academicYearName: string;
+                            name: string;
+                            level: string;
+                            /** Format: date */
+                            opensOn: string;
+                            /** Format: date */
+                            closesOn: string;
+                            quota: number | null;
+                            active: boolean;
+                            /** @description Aktif dan hari ini (WIB) berada dalam rentang buka-tutup */
+                            open: boolean;
+                            applicationCount: number;
+                            /** @description Pendaftar berstatus diterima atau sudah daftar ulang */
+                            quotaUsed: number;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat periode SPMB
+         * @description Izin: `admission:manage`; modul `admissions`. `opensOn` harus ≤ `closesOn`; tahun ajaran harus milik sekolah (400 `invalid_reference`); nama unik per sekolah (409 `conflict`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        academicYearId: string;
+                        name: string;
+                        /** @description Tingkat kelas yang dibuka, mis. "7" atau "X" */
+                        level: string;
+                        /** Format: date */
+                        opensOn: string;
+                        /** Format: date */
+                        closesOn: string;
+                        /**
+                         * @description Kosong = tanpa batas
+                         * @default null
+                         */
+                        quota?: number | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            academicYearName: string;
+                            name: string;
+                            level: string;
+                            /** Format: date */
+                            opensOn: string;
+                            /** Format: date */
+                            closesOn: string;
+                            quota: number | null;
+                            active: boolean;
+                            /** @description Aktif dan hari ini (WIB) berada dalam rentang buka-tutup */
+                            open: boolean;
+                            applicationCount: number;
+                            /** @description Pendaftar berstatus diterima atau sudah daftar ulang */
+                            quotaUsed: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admissions/periods/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah periode SPMB
+         * @description Izin: `admission:manage`; modul `admissions`. Aturan validasi sama dengan pembuatan.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        academicYearId: string;
+                        name: string;
+                        /** @description Tingkat kelas yang dibuka, mis. "7" atau "X" */
+                        level: string;
+                        /** Format: date */
+                        opensOn: string;
+                        /** Format: date */
+                        closesOn: string;
+                        /**
+                         * @description Kosong = tanpa batas
+                         * @default null
+                         */
+                        quota?: number | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            academicYearName: string;
+                            name: string;
+                            level: string;
+                            /** Format: date */
+                            opensOn: string;
+                            /** Format: date */
+                            closesOn: string;
+                            quota: number | null;
+                            active: boolean;
+                            /** @description Aktif dan hari ini (WIB) berada dalam rentang buka-tutup */
+                            open: boolean;
+                            applicationCount: number;
+                            /** @description Pendaftar berstatus diterima atau sudah daftar ulang */
+                            quotaUsed: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus periode SPMB
+         * @description Izin: `admission:manage`; modul `admissions`. Ditolak (409 `in_use`) bila sudah ada pendaftar; tutup periode dengan menonaktifkannya.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admissions/applications": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar pendaftar
+         * @description Izin: `admission:read`; modul `admissions`. `q` mencari nama, nomor pendaftaran, atau nama wali. `counts` menghitung per status pada saringan `periodId` dan `q` (tanpa saringan `status`). Data dokumen tidak disertakan; hanya `documentCount`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    periodId?: string;
+                    status?: "submitted" | "verified" | "accepted" | "rejected" | "enrolled" | "withdrawn";
+                    q?: string;
+                    limit?: number;
+                    offset?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                regNumber: string;
+                                fullName: string;
+                                /** @enum {string} */
+                                gender: "L" | "P";
+                                /** Format: date */
+                                birthDate: string;
+                                previousSchool: string | null;
+                                guardianName: string;
+                                guardianPhone: string;
+                                /** @enum {string} */
+                                status: "submitted" | "verified" | "accepted" | "rejected" | "enrolled" | "withdrawn";
+                                createdAt: string;
+                                documentCount: number;
+                                programName: string | null;
+                            }[];
+                            total: number;
+                            counts: {
+                                submitted: number;
+                                verified: number;
+                                accepted: number;
+                                rejected: number;
+                                enrolled: number;
+                                withdrawn: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admissions/applications/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail pendaftar
+         * @description Izin: `admission:read`; modul `admissions`. Memuat metadata dokumen (tanpa isi berkas; ambil lewat `/documents/{docId}`) dan riwayat status.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            regNumber: string;
+                            fullName: string;
+                            /** @enum {string} */
+                            gender: "L" | "P";
+                            /** Format: date */
+                            birthDate: string;
+                            previousSchool: string | null;
+                            guardianName: string;
+                            guardianPhone: string;
+                            /** @enum {string} */
+                            status: "submitted" | "verified" | "accepted" | "rejected" | "enrolled" | "withdrawn";
+                            createdAt: string;
+                            documentCount: number;
+                            programName: string | null;
+                            /** Format: uuid */
+                            periodId: string;
+                            periodName: string;
+                            birthPlace: string | null;
+                            nisn: string | null;
+                            address: string | null;
+                            /** Format: uuid */
+                            programId: string | null;
+                            guardianEmail: string | null;
+                            decisionNote: string | null;
+                            /** Format: uuid */
+                            studentId: string | null;
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "family_card" | "birth_certificate" | "diploma" | "photo" | "other";
+                                fileName: string;
+                                mime: string;
+                                size: number;
+                                createdAt: string;
+                            }[];
+                            log: {
+                                /** Format: uuid */
+                                id: string;
+                                fromStatus: string | null;
+                                toStatus: string;
+                                note: string | null;
+                                actor: string | null;
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admissions/applications/{id}/documents/{docId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Unduh dokumen pendaftar
+         * @description Izin: `admission:read`; modul `admissions`. Isi berkas base64 beserta jenis (mime) yang ditentukan server.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                    docId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            fileName: string;
+                            mime: string;
+                            size: number;
+                            dataBase64: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admissions/applications/{id}/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ubah status pendaftar
+         * @description Izin: `admission:manage`; modul `admissions`. Hanya peralihan sah (`canTransition`): 409 `invalid_transition` bila tidak sah. `accepted` memeriksa kuota periode (409 `quota_full`). `enrolled` tidak bisa lewat sini (409 `use_enroll`): pakai `/enroll`. `note` pada `accepted`/`rejected` menjadi catatan keputusan yang terlihat pendaftar.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        to: "submitted" | "verified" | "accepted" | "rejected" | "enrolled" | "withdrawn";
+                        note?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            regNumber: string;
+                            fullName: string;
+                            /** @enum {string} */
+                            gender: "L" | "P";
+                            /** Format: date */
+                            birthDate: string;
+                            previousSchool: string | null;
+                            guardianName: string;
+                            guardianPhone: string;
+                            /** @enum {string} */
+                            status: "submitted" | "verified" | "accepted" | "rejected" | "enrolled" | "withdrawn";
+                            createdAt: string;
+                            documentCount: number;
+                            programName: string | null;
+                            /** Format: uuid */
+                            periodId: string;
+                            periodName: string;
+                            birthPlace: string | null;
+                            nisn: string | null;
+                            address: string | null;
+                            /** Format: uuid */
+                            programId: string | null;
+                            guardianEmail: string | null;
+                            decisionNote: string | null;
+                            /** Format: uuid */
+                            studentId: string | null;
+                            documents: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "family_card" | "birth_certificate" | "diploma" | "photo" | "other";
+                                fileName: string;
+                                mime: string;
+                                size: number;
+                                createdAt: string;
+                            }[];
+                            log: {
+                                /** Format: uuid */
+                                id: string;
+                                fromStatus: string | null;
+                                toStatus: string;
+                                note: string | null;
+                                actor: string | null;
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admissions/applications/bulk-status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ubah status banyak pendaftar
+         * @description Izin: `admission:manage`; modul `admissions`. Maks. 200 id. Tiap pendaftar diproses sendiri-sendiri: yang gagal (tidak ditemukan, peralihan tidak sah, kuota penuh) dilaporkan di `results` tanpa membatalkan yang lain. Penerimaan (`accepted`) diproses berurutan sehingga kuota tidak terlampaui. `enrolled` ditolak.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        ids: string[];
+                        /** @enum {string} */
+                        to: "submitted" | "verified" | "accepted" | "rejected" | "enrolled" | "withdrawn";
+                        note?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            updated: number;
+                            failed: number;
+                            results: {
+                                /** Format: uuid */
+                                id: string;
+                                ok: boolean;
+                                /** @enum {string|null} */
+                                code: "not_found" | "invalid_transition" | "use_enroll" | "quota_full" | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admissions/applications/{id}/enroll": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Daftar ulang: jadikan pendaftar siswa
+         * @description Izin: `admission:manage`; modul `admissions`. Body wajib (boleh `{}`). Hanya dari status `accepted` (409 `invalid_transition`). Dalam SATU transaksi: membuat siswa (NISN bentrok: 409 `nisn_taken`), wali + tautan wali utama, menempatkan di kelas `classId` bila diberikan (400 `invalid_reference` bila kelas tidak ada), mengubah status menjadi `enrolled`, dan mengisi `studentId`. Gagal di tengah = tidak ada yang tersimpan.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        classId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            applicationId: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            /** Format: uuid */
+                            guardianId: string;
+                            /** Format: uuid */
+                            classId: string | null;
+                            /** @enum {string} */
+                            status: "enrolled";
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/admissions/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ringkasan statistik SPMB
+         * @description Izin: `admission:read`; modul `admissions`. Jumlah per status, pendaftar baru per hari (14 hari terakhir WIB, hari tanpa pendaftar bernilai 0), dan kuota (`total` null bila periode tanpa batas). Tanpa `periodId`, mencakup semua periode.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    periodId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            total: number;
+                            counts: {
+                                submitted: number;
+                                verified: number;
+                                accepted: number;
+                                rejected: number;
+                                enrolled: number;
+                                withdrawn: number;
+                            };
+                            perDay: {
+                                /** Format: date */
+                                date: string;
+                                count: number;
+                            }[];
+                            quota: {
+                                total: number | null;
+                                used: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/admission/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Info pendaftaran sekolah (publik)
+         * @description Tanpa login. Nama sekolah, periode yang sedang dibuka untuk pendaftaran (aktif dan hari ini WIB dalam rentang buka-tutup), dan daftar program/jurusan. 404 `not_found` untuk sekolah yang tidak ada, ditangguhkan, atau tanpa modul SPMB.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            school: {
+                                name: string;
+                            };
+                            periods: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                level: string;
+                                /** Format: date */
+                                opensOn: string;
+                                /** Format: date */
+                                closesOn: string;
+                                open: boolean;
+                            }[];
+                            programs: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/admission/{slug}/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kirim pendaftaran (publik)
+         * @description Tanpa login; dibatasi 5 pendaftaran per jam per IP. `documents` maks. 5 berkas, tiap berkas ≤ 2 MB asli (413 `file_too_large`) dan harus PDF/JPG/PNG menurut isi berkas, bukan nama (400 `invalid_file_type`). `website` adalah kolom jebakan: bila terisi, server membalas sukses palsu tanpa menyimpan apa pun. `trackingCode` hanya ditampilkan sekali; server hanya menyimpan hash-nya. Periode tutup/di luar tanggal: 409 `period_closed`; nama + tanggal lahir yang sama pada periode itu: 409 `duplicate_application`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        periodId: string;
+                        fullName: string;
+                        /** @enum {string} */
+                        gender: "L" | "P";
+                        birthPlace: string;
+                        /** Format: date */
+                        birthDate: string;
+                        nisn?: string | null;
+                        previousSchool?: string | null;
+                        address?: string | null;
+                        /** Format: uuid */
+                        programId?: string | null;
+                        guardianName: string;
+                        guardianPhone: string;
+                        guardianEmail?: ("" | string) | null;
+                        /** @default [] */
+                        documents?: {
+                            /** @enum {string} */
+                            kind: "family_card" | "birth_certificate" | "diploma" | "photo" | "other";
+                            fileName: string;
+                            dataBase64: string;
+                        }[];
+                        /** @description Kolom jebakan (honeypot): harus kosong */
+                        website?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            regNumber: string;
+                            /** @description Simpan baik-baik: tidak bisa ditampilkan ulang */
+                            trackingCode: string;
+                            /** @enum {string} */
+                            status: "submitted";
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                413: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/admission/status": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cek status pendaftaran (publik)
+         * @description Tanpa login; dibatasi 20 pengecekan per jam per IP. Memakai nomor pendaftaran dan kode pelacakan. Sekolah/nomor/kode yang salah dijawab seragam: 404 `not_found`. Perbandingan hash waktu-konstan.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        slug: string;
+                        regNumber: string;
+                        trackingCode: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            regNumber: string;
+                            fullName: string;
+                            /** @enum {string} */
+                            status: "submitted" | "verified" | "accepted" | "rejected" | "enrolled" | "withdrawn";
+                            decisionNote: string | null;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/live/snapshot": {
         parameters: {
             query?: never;
@@ -14947,6 +19781,5442 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/halaqah": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar halaqah
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Halaqah pada tahun ajaran `academicYearId` (bawaan: tahun ajaran aktif; daftar kosong bila belum ada tahun aktif). Memuat nama mentor, jumlah anggota, dan `canManage` (pengelola atau guru mentornya).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    academicYearId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            name: string;
+                            /** Format: uuid */
+                            mentorTeacherId: string | null;
+                            mentorName: string | null;
+                            scheduleNote: string | null;
+                            active: boolean;
+                            memberCount: number;
+                            /** @description Pengguna ini boleh mengelola anggota, setoran, ibadah, dan target halaqah ini */
+                            canManage: boolean;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah halaqah
+         * @description Izin: `tahfidz:manage`; modul `tahfidz`. `academicYearId` bawaan tahun ajaran aktif (409 `no_active_year` bila tidak ada; 400 `invalid_reference` bila tidak dikenal). Nama unik per tahun ajaran (409 `conflict`). Mentor harus guru aktif sekolah ini (400 `invalid_reference`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        academicYearId?: string;
+                        name: string;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        mentorTeacherId?: string | null;
+                        /** @default null */
+                        scheduleNote?: string | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            name: string;
+                            /** Format: uuid */
+                            mentorTeacherId: string | null;
+                            mentorName: string | null;
+                            scheduleNote: string | null;
+                            active: boolean;
+                            memberCount: number;
+                            /** @description Pengguna ini boleh mengelola anggota, setoran, ibadah, dan target halaqah ini */
+                            canManage: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/halaqah/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah halaqah
+         * @description Izin: `tahfidz:manage`; modul `tahfidz`. Mengganti seluruh isi (tahun ajaran tidak berubah; `active: false` untuk menonaktifkan). Nama unik per tahun ajaran (409 `conflict`); mentor harus guru aktif (400 `invalid_reference`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        mentorTeacherId?: string | null;
+                        /** @default null */
+                        scheduleNote?: string | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            name: string;
+                            /** Format: uuid */
+                            mentorTeacherId: string | null;
+                            mentorName: string | null;
+                            scheduleNote: string | null;
+                            active: boolean;
+                            memberCount: number;
+                            /** @description Pengguna ini boleh mengelola anggota, setoran, ibadah, dan target halaqah ini */
+                            canManage: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus halaqah
+         * @description Izin: `tahfidz:manage`; modul `tahfidz`. Ditolak 409 `in_use` bila sudah punya setoran hafalan; nonaktifkan lewat ubah (`active: false`). Anggota ikut terhapus.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/halaqah/{id}/members": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Anggota halaqah
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Siswa aktif anggota halaqah, urut nama. `className` adalah kelas siswa pada tahun ajaran halaqah.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            studentId: string;
+                            name: string;
+                            nis: string | null;
+                            className: string | null;
+                            joinedAt: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah anggota halaqah
+         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah ini; selain itu 403 `forbidden`. Hanya siswa aktif sekolah ini (400 `invalid_reference` bila ada yang bukan). Satu siswa satu halaqah per tahun ajaran: siswa yang sudah berada di halaqah mana pun pada tahun ajaran halaqah ini dilewati dan dilaporkan di `skipped` beserta nama halaqahnya. Maksimal 200 siswa per permintaan.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        studentIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            added: number;
+                            skipped: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                halaqahName: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/halaqah/{id}/members/{studentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Keluarkan anggota halaqah
+         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah ini; selain itu 403 `forbidden`. 404 bila bukan anggota. Setoran lama tetap tersimpan.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/entries": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar setoran hafalan
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Saring dengan `studentId` dan/atau `halaqahId` (halaqah saat setoran dicatat) dan rentang tanggal `from`..`to`. Terbaru dahulu; `limit` bawaan 50 (maksimal 200) dan `offset`. `total` adalah jumlah seluruh baris yang cocok.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    studentId?: string;
+                    halaqahId?: string;
+                    from?: string;
+                    to?: string;
+                    limit?: number;
+                    offset?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            total: number;
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                studentId: string;
+                                studentName: string;
+                                /** Format: uuid */
+                                halaqahId: string | null;
+                                date: string;
+                                /** @enum {string} */
+                                kind: "ziyadah" | "murajaah";
+                                surahFrom: number;
+                                ayahFrom: number;
+                                surahTo: number;
+                                ayahTo: number;
+                                /** @description Jumlah ayat dalam rentang setoran */
+                                ayahCount: number;
+                                /** @enum {string} */
+                                quality: "fluent" | "fair" | "repeat";
+                                note: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Catat setoran hafalan
+         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah siswa itu; guru lain 403 `forbidden`. Tanggal tidak boleh belum tiba (409 `future_date`). Rentang ayat harus ada dan awal tidak melewati akhir (400 `invalid_range`). Selain pengelola, siswa harus anggota halaqah pada tahun ajaran yang mencakup tanggal (400 `invalid_reference`); setoran pengelola untuk siswa tanpa halaqah tersimpan tanpa halaqah. `kind`: `ziyadah` (hafalan baru) atau `murajaah`; `quality`: `fluent`, `fair`, atau `repeat` (harus diulang, tidak dihitung sebagai hafalan baru).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        studentId: string;
+                        /** Format: date */
+                        date: string;
+                        /** @enum {string} */
+                        kind: "ziyadah" | "murajaah";
+                        surahFrom: number;
+                        ayahFrom: number;
+                        surahTo: number;
+                        ayahTo: number;
+                        /**
+                         * @default fluent
+                         * @enum {string}
+                         */
+                        quality?: "fluent" | "fair" | "repeat";
+                        /** @default null */
+                        note?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            studentName: string;
+                            /** Format: uuid */
+                            halaqahId: string | null;
+                            date: string;
+                            /** @enum {string} */
+                            kind: "ziyadah" | "murajaah";
+                            surahFrom: number;
+                            ayahFrom: number;
+                            surahTo: number;
+                            ayahTo: number;
+                            /** @description Jumlah ayat dalam rentang setoran */
+                            ayahCount: number;
+                            /** @enum {string} */
+                            quality: "fluent" | "fair" | "repeat";
+                            note: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/entries/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Hapus setoran hafalan
+         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tempat setoran dicatat; selain itu 403 `forbidden` (setoran tanpa halaqah hanya oleh pengelola).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/students/{studentId}/progress": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Progres hafalan siswa
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. `coverage` menghitung ayat unik dari seluruh setoran ziyadah dengan kualitas selain `repeat` (rentang tumpang tindih tidak menggandakan); `juzComplete` = jumlah juz yang seluruh ayatnya tercakup. `semester` (bawaan: semester aktif; `id` null bila tidak ada) memuat target dan capaian ayat unik dalam rentang semester; `percentOfTarget` = (ziyadah dan murajaah tercapai, masing-masing dibatasi targetnya) / total target, null bila target 0. `last30Days` berisi 30 hari terakhir (nol bila tak ada setoran). `streakDays` = hari beruntun dengan setoran sampai hari ini (atau kemarin bila hari ini belum ada). `next` = ayat lanjutan setoran ziyadah terakhir (awal setoran itu bila kualitasnya `repeat`).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    semesterId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            student: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                className: string | null;
+                            };
+                            halaqah: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            coverage: {
+                                ayahs: number;
+                                percent: number;
+                                perSurah: {
+                                    surah: number;
+                                    ayahs: number;
+                                    complete: boolean;
+                                }[];
+                                juzComplete: number;
+                                juzCompleteList: number[];
+                            };
+                            semester: {
+                                /** Format: uuid */
+                                id: string | null;
+                                name: string | null;
+                                target: {
+                                    ziyadahAyahs: number;
+                                    murajaahAyahs: number;
+                                };
+                                done: {
+                                    ziyadahAyahs: number;
+                                    murajaahAyahs: number;
+                                };
+                                percentOfTarget: number | null;
+                            };
+                            last30Days: {
+                                date: string;
+                                ziyadahAyahs: number;
+                                murajaahAyahs: number;
+                            }[];
+                            streakDays: number;
+                            lastEntryDate: string | null;
+                            next: {
+                                surah: number;
+                                ayah: number;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/halaqah/{id}/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ringkasan halaqah
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Per anggota: `ayahsTotal` dan `percent` (ayat unik ziyadah bukan `repeat` seluruh waktu), `ziyadahInRange` dan `murajaahInRange` (ayat unik pada `from`..`to`; bawaan 30 hari terakhir, maksimal 366 hari, selain itu 400 `invalid_range`), `lastEntryDate` dan `daysSinceLast` (hari sejak setoran terakhir sampai hari ini; null bila belum pernah). `onTarget`: membandingkan capaian dalam semester yang memuat tanggal `to` (atau semester aktif tahun halaqah) dengan target yang dibagi rata per hari sampai `to`; null bila siswa belum punya target atau tidak ada semester.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            halaqah: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            };
+                            from: string;
+                            to: string;
+                            semester: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                ayahsTotal: number;
+                                percent: number;
+                                ziyadahInRange: number;
+                                murajaahInRange: number;
+                                lastEntryDate: string | null;
+                                daysSinceLast: number | null;
+                                onTarget: boolean | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Target hafalan per semester
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Dengan `halaqahId`: seluruh anggota halaqah (target 0 dan `set: false` bila belum ditetapkan). Tanpa `halaqahId`: semua siswa yang punya target pada semester itu. Semester tak dikenal: 400 `invalid_reference`.
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    halaqahId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            studentId: string;
+                            name: string;
+                            /** Format: uuid */
+                            halaqahId: string | null;
+                            ziyadahAyahs: number;
+                            murajaahAyahs: number;
+                            /** @description Sudah ada target tersimpan untuk siswa ini */
+                            set: boolean;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan target hafalan
+         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tiap siswa pada tahun ajaran semester itu; guru lain 403 `forbidden`. Semester harus milik sekolah ini dan siswa aktif (400 `invalid_reference`). Selain pengelola, siswa harus anggota halaqah mentor itu. Target berupa jumlah ayat baru (ziyadah) dan ayat murajaah selama semester. Maksimal 200 baris.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        records: {
+                            /** Format: uuid */
+                            studentId: string;
+                            ziyadahAyahs: number;
+                            murajaahAyahs: number;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/ibadah-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar butir ibadah
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Semua butir (termasuk yang nonaktif), urut `sort` lalu nama. `kind`: `daily` (harian) atau `weekly` (mingguan).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "daily" | "weekly";
+                            sort: number;
+                            active: boolean;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah butir ibadah
+         * @description Izin: `tahfidz:manage`; modul `tahfidz`. Nama unik di sekolah (409 `conflict`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /**
+                         * @default daily
+                         * @enum {string}
+                         */
+                        kind?: "daily" | "weekly";
+                        /** @default 0 */
+                        sort?: number;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "daily" | "weekly";
+                            sort: number;
+                            active: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/ibadah-items/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah butir ibadah
+         * @description Izin: `tahfidz:manage`; modul `tahfidz`. Mengganti seluruh isi (`active: false` untuk menonaktifkan). Nama unik (409 `conflict`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /**
+                         * @default daily
+                         * @enum {string}
+                         */
+                        kind?: "daily" | "weekly";
+                        /** @default 0 */
+                        sort?: number;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "daily" | "weekly";
+                            sort: number;
+                            active: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus butir ibadah
+         * @description Izin: `tahfidz:manage`; modul `tahfidz`. Ditolak 409 `in_use` bila sudah ada catatan ibadahnya; nonaktifkan lewat ubah (`active: false`).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/ibadah-sheet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lembar ibadah harian
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Berikan tepat satu dari `halaqahId` atau `classId` (400 `invalid_scope`). `date` bawaan hari ini. `items` adalah butir ibadah aktif; `done[itemId]` bernilai true, false, atau null bila belum dicatat. `canRecord`: pengelola, atau guru mentor halaqah itu (untuk lembar kelas hanya pengelola).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    date?: string;
+                    halaqahId?: string;
+                    classId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                /** @enum {string} */
+                                kind: "daily" | "weekly";
+                                sort: number;
+                                active: boolean;
+                            }[];
+                            canRecord: boolean;
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                done: {
+                                    [key: string]: boolean | null;
+                                };
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan lembar ibadah harian
+         * @description Izin: `tahfidz:read` ditambah pengelola (`tahfidz:manage`) atau guru mentor halaqah tiap siswa; guru lain 403 `forbidden`. Tanggal tidak boleh belum tiba (409 `future_date`). Siswa harus aktif dan anggota halaqah atau terdaftar di kelas pada tahun ajaran tanggal itu; butir harus aktif (400 `invalid_reference`). Mengganti catatan yang sudah ada (satu catatan per siswa per butir per tanggal). Maksimal 500 baris.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        date: string;
+                        records: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** Format: uuid */
+                            itemId: string;
+                            done: boolean;
+                            /** @default null */
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/tahfidz/ibadah-report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Laporan ibadah
+         * @description Izin: `tahfidz:read`; modul `tahfidz`. Berikan tepat satu dari `halaqahId`, `classId`, atau `studentId` (400 `invalid_scope`). Rentang `from`..`to` bawaan 30 hari terakhir, maksimal 366 hari (400 `invalid_range`). Per siswa per butir: `total` = jumlah hari yang tercatat, `done` = yang dikerjakan, `percent` = done/total (dua desimal; 0 bila belum ada catatan). Butir mencakup yang aktif dan yang punya catatan pada rentang itu.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    halaqahId?: string;
+                    classId?: string;
+                    studentId?: string;
+                    from?: string;
+                    to?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            from: string;
+                            to: string;
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                /** @enum {string} */
+                                kind: "daily" | "weekly";
+                            }[];
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                done: number;
+                                total: number;
+                                percent: number;
+                                items: {
+                                    /** Format: uuid */
+                                    itemId: string;
+                                    done: number;
+                                    total: number;
+                                    percent: number;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/partners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar mitra PKL
+         * @description Izin: `pkl:read`; modul `internship`. `placementCount` = jumlah penempatan di mitra itu.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            field: string | null;
+                            address: string | null;
+                            contactName: string | null;
+                            phone: string | null;
+                            email: string | null;
+                            active: boolean;
+                            /** @description Jumlah penempatan di mitra ini */
+                            placementCount: number;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah mitra PKL
+         * @description Izin: `pkl:manage`; modul `internship`. Nama mitra unik per sekolah (409 `conflict`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        field?: string | null;
+                        address?: string | null;
+                        contactName?: string | null;
+                        phone?: string | null;
+                        email?: ("" | string) | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            field: string | null;
+                            address: string | null;
+                            contactName: string | null;
+                            phone: string | null;
+                            email: string | null;
+                            active: boolean;
+                            /** @description Jumlah penempatan di mitra ini */
+                            placementCount: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/partners/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah mitra PKL
+         * @description Izin: `pkl:manage`; modul `internship`. 404 `not_found`; nama bentrok 409 `conflict`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        field?: string | null;
+                        address?: string | null;
+                        contactName?: string | null;
+                        phone?: string | null;
+                        email?: ("" | string) | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            field: string | null;
+                            address: string | null;
+                            contactName: string | null;
+                            phone: string | null;
+                            email: string | null;
+                            active: boolean;
+                            /** @description Jumlah penempatan di mitra ini */
+                            placementCount: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus mitra PKL
+         * @description Izin: `pkl:manage`; modul `internship`. 404 `not_found`; 409 `in_use` bila sudah ada penempatan di mitra itu.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/periods": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar periode PKL
+         * @description Izin: `pkl:read`; modul `internship`. Terbaru dahulu.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            name: string;
+                            startsOn: string;
+                            endsOn: string;
+                            placementCount: number;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah periode PKL
+         * @description Izin: `pkl:manage`; modul `internship`. Tanggal mulai harus <= tanggal selesai (400 `validation`); tahun ajaran harus milik sekolah (400 `invalid_reference`); nama unik per tahun ajaran (409 `conflict`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        academicYearId: string;
+                        name: string;
+                        /** Format: date */
+                        startsOn: string;
+                        /** Format: date */
+                        endsOn: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            name: string;
+                            startsOn: string;
+                            endsOn: string;
+                            placementCount: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/periods/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah periode PKL
+         * @description Izin: `pkl:manage`; modul `internship`. Validasi seperti saat menambah; 404 `not_found`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        academicYearId: string;
+                        name: string;
+                        /** Format: date */
+                        startsOn: string;
+                        /** Format: date */
+                        endsOn: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            name: string;
+                            startsOn: string;
+                            endsOn: string;
+                            placementCount: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus periode PKL
+         * @description Izin: `pkl:manage`; modul `internship`. 404 `not_found`; 409 `in_use` bila sudah ada penempatan.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/placements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar penempatan PKL
+         * @description Izin: `pkl:read`; modul `internship`. Filter `periodId`, `partnerId`, `status`, dan `q` (nama siswa atau mitra). `finalScore` null bila belum ada nilai; `canWrite` menandai penempatan yang boleh diisi pengguna ini.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    periodId?: string;
+                    partnerId?: string;
+                    status?: "planned" | "active" | "completed" | "cancelled";
+                    q?: string;
+                    limit?: number;
+                    offset?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                periodId: string;
+                                periodName: string;
+                                /** Format: uuid */
+                                studentId: string;
+                                studentName: string;
+                                className: string | null;
+                                /** Format: uuid */
+                                partnerId: string;
+                                partnerName: string;
+                                /** Format: uuid */
+                                supervisorTeacherId: string | null;
+                                /** @description Nama guru pembimbing dari sekolah */
+                                supervisorName: string | null;
+                                industrySupervisorName: string | null;
+                                industrySupervisorPhone: string | null;
+                                /** @enum {string} */
+                                status: "planned" | "active" | "completed" | "cancelled";
+                                journalCount: number;
+                                lastJournalDate: string | null;
+                                /** @description Nilai akhir tertimbang; null bila belum ada nilai */
+                                finalScore: number | null;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                                /** @description Tautan pembimbing industri sedang aktif */
+                                hasAccessLink: boolean;
+                                /** @description Pengguna ini boleh mengisi jurnal, kunjungan, nilai sekolah, dan tautan penempatan ini */
+                                canWrite: boolean;
+                            }[];
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tempatkan siswa PKL (massal)
+         * @description Izin: `pkl:manage`; modul `internship`. Satu siswa hanya boleh satu penempatan per periode: yang sudah ditempatkan dilaporkan di `skipped` (alasan `already_placed`), sisanya dibuat. Periode, mitra aktif, siswa aktif, dan guru pembimbing harus milik sekolah ini (400 `invalid_reference`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        periodId: string;
+                        /** Format: uuid */
+                        partnerId: string;
+                        studentIds: string[];
+                        /** Format: uuid */
+                        supervisorTeacherId?: string | null;
+                        industrySupervisorName?: string | null;
+                        industrySupervisorPhone?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            created: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                studentId: string;
+                            }[];
+                            skipped: {
+                                /** Format: uuid */
+                                studentId: string;
+                                /** @enum {string} */
+                                reason: "already_placed";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/placements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail penempatan PKL
+         * @description Izin: `pkl:read`; modul `internship`. 404 `not_found`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            periodId: string;
+                            periodName: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            studentName: string;
+                            className: string | null;
+                            /** Format: uuid */
+                            partnerId: string;
+                            partnerName: string;
+                            /** Format: uuid */
+                            supervisorTeacherId: string | null;
+                            /** @description Nama guru pembimbing dari sekolah */
+                            supervisorName: string | null;
+                            industrySupervisorName: string | null;
+                            industrySupervisorPhone: string | null;
+                            /** @enum {string} */
+                            status: "planned" | "active" | "completed" | "cancelled";
+                            journalCount: number;
+                            lastJournalDate: string | null;
+                            /** @description Nilai akhir tertimbang; null bila belum ada nilai */
+                            finalScore: number | null;
+                            /** @enum {string|null} */
+                            predicate: "A" | "B" | "C" | "D" | null;
+                            /** @description Tautan pembimbing industri sedang aktif */
+                            hasAccessLink: boolean;
+                            /** @description Pengguna ini boleh mengisi jurnal, kunjungan, nilai sekolah, dan tautan penempatan ini */
+                            canWrite: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah penempatan PKL
+         * @description Izin: `pkl:manage`; modul `internship`. Ubah mitra, guru pembimbing, pembimbing industri, dan/atau status. Status mengikuti alur: planned -> active|cancelled; active -> completed|cancelled; completed dan cancelled tidak bisa diubah lagi (409 `invalid_transition`). Penempatan batal mencabut tautan pembimbing industri.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        partnerId?: string;
+                        /** Format: uuid */
+                        supervisorTeacherId?: string | null;
+                        industrySupervisorName?: string | null;
+                        industrySupervisorPhone?: string | null;
+                        /** @enum {string} */
+                        status?: "planned" | "active" | "completed" | "cancelled";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            periodId: string;
+                            periodName: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            studentName: string;
+                            className: string | null;
+                            /** Format: uuid */
+                            partnerId: string;
+                            partnerName: string;
+                            /** Format: uuid */
+                            supervisorTeacherId: string | null;
+                            /** @description Nama guru pembimbing dari sekolah */
+                            supervisorName: string | null;
+                            industrySupervisorName: string | null;
+                            industrySupervisorPhone: string | null;
+                            /** @enum {string} */
+                            status: "planned" | "active" | "completed" | "cancelled";
+                            journalCount: number;
+                            lastJournalDate: string | null;
+                            /** @description Nilai akhir tertimbang; null bila belum ada nilai */
+                            finalScore: number | null;
+                            /** @enum {string|null} */
+                            predicate: "A" | "B" | "C" | "D" | null;
+                            /** @description Tautan pembimbing industri sedang aktif */
+                            hasAccessLink: boolean;
+                            /** @description Pengguna ini boleh mengisi jurnal, kunjungan, nilai sekolah, dan tautan penempatan ini */
+                            canWrite: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus penempatan PKL
+         * @description Izin: `pkl:manage`; modul `internship`. Hanya penempatan berstatus planned tanpa jurnal; selain itu 409 `not_deletable` (gunakan status cancelled). Kunjungan dan nilai ikut terhapus.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/placements/{id}/access-link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buat tautan pembimbing industri
+         * @description Izin: `pkl:manage` atau guru pembimbing penempatan itu; modul `internship`. Membuat token acak (32 byte, base64url); hanya hash SHA-256 yang disimpan dan tautan lama otomatis tidak berlaku. `token` dan `path` hanya tampil SATU KALI. Penempatan batal: 409 `placement_cancelled`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            token: string;
+                            path: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Cabut tautan pembimbing industri
+         * @description Izin: `pkl:manage` atau guru pembimbing penempatan itu; modul `internship`. Tautan langsung tidak berlaku.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/placements/{id}/journals": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Jurnal harian penempatan
+         * @description Izin: `pkl:read`; modul `internship`. Opsional `from`/`to`; terbaru dahulu.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            date: string;
+                            activity: string;
+                            present: boolean;
+                            /** @enum {string} */
+                            source: "staff" | "industry";
+                            recordedBy: string | null;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Isi jurnal harian (upsert per hari)
+         * @description Izin: `pkl:manage` atau guru pembimbing penempatan itu; modul `internship`. Satu entri per hari: tanggal yang sama menimpa entri lama. Tanggal tidak boleh di masa depan (400 `date_in_future`) dan harus dalam periode PKL ditambah toleransi 7 hari (400 `date_out_of_period`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        date: string;
+                        activity: string;
+                        /** @default true */
+                        present?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            date: string;
+                            activity: string;
+                            present: boolean;
+                            /** @enum {string} */
+                            source: "staff" | "industry";
+                            recordedBy: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/journals/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Hapus entri jurnal
+         * @description Izin: `pkl:manage` atau guru pembimbing penempatan jurnal itu; modul `internship`. 404 `not_found`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/placements/{id}/visits": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kunjungan monitoring penempatan
+         * @description Izin: `pkl:read`; modul `internship`. Terbaru dahulu.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            date: string;
+                            /** Format: uuid */
+                            teacherId: string | null;
+                            teacherName: string | null;
+                            notes: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Catat kunjungan monitoring
+         * @description Izin: `pkl:manage` atau guru pembimbing penempatan itu; modul `internship`. `teacherId` kosong = guru pencatat (bila pengguna terdaftar sebagai guru).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        date: string;
+                        /** Format: uuid */
+                        teacherId?: string | null;
+                        notes: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            date: string;
+                            /** Format: uuid */
+                            teacherId: string | null;
+                            teacherName: string | null;
+                            notes: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/visits/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Hapus catatan kunjungan
+         * @description Izin: `pkl:manage` atau guru pembimbing penempatan kunjungan itu; modul `internship`. 404 `not_found`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/aspects": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar aspek penilaian PKL
+         * @description Izin: `pkl:read`; modul `internship`. Berurutan menurut `sort`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            weight: number;
+                            sort: number;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah aspek penilaian
+         * @description Izin: `pkl:manage`; modul `internship`. Bobot 1..100 (relatif; nilai akhir dinormalisasi). Nama unik (409 `conflict`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        weight: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            weight: number;
+                            sort: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/aspects/defaults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buat aspek penilaian bawaan
+         * @description Izin: `pkl:manage`; modul `internship`. Hanya bila belum ada aspek (409 `not_empty`): Disiplin 20, Kompetensi teknis 30, Etika kerja 20, Kerja sama 15, Laporan 15.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            weight: number;
+                            sort: number;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/aspects/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah aspek penilaian
+         * @description Izin: `pkl:manage`; modul `internship`. 404 `not_found`; nama bentrok 409 `conflict`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        weight: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            weight: number;
+                            sort: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus aspek penilaian
+         * @description Izin: `pkl:manage`; modul `internship`. 404 `not_found`; 409 `in_use` bila sudah ada nilai.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/placements/{id}/scores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lembar nilai penempatan
+         * @description Izin: `pkl:read`; modul `internship`. Nilai per aspek dari penilai sekolah dan industri, serta hasil: nilai per aspek = rata-rata penilai yang ada, nilai akhir = rata-rata tertimbang aspek yang bernilai (2 desimal), predikat A >= 90, B >= 80, C >= 70, selain itu D.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            aspects: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                weight: number;
+                                school: {
+                                    value: number;
+                                    note: string | null;
+                                } | null;
+                                industry: {
+                                    value: number;
+                                    note: string | null;
+                                } | null;
+                            }[];
+                            result: {
+                                perAspect: {
+                                    /** Format: uuid */
+                                    aspectId: string;
+                                    value: number | null;
+                                }[];
+                                final: number | null;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Isi nilai dari sekolah
+         * @description Izin: `pkl:manage` atau guru pembimbing penempatan itu; modul `internship`. Menyimpan nilai penilai `school` (upsert per aspek), nilai 0..100 bulat. Aspek harus milik sekolah (400 `invalid_reference`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        records: {
+                            /** Format: uuid */
+                            aspectId: string;
+                            value: number;
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            aspects: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                weight: number;
+                                school: {
+                                    value: number;
+                                    note: string | null;
+                                } | null;
+                                industry: {
+                                    value: number;
+                                    note: string | null;
+                                } | null;
+                            }[];
+                            result: {
+                                perAspect: {
+                                    /** Format: uuid */
+                                    aspectId: string;
+                                    value: number | null;
+                                }[];
+                                final: number | null;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/periods/{id}/report": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rekap PKL per periode
+         * @description Izin: `pkl:read`; modul `internship`. Per penempatan (tanpa yang dibatalkan): nilai akhir, predikat, jumlah hari jurnal, hari hadir, dan kunjungan; ringkasan berisi rata-rata nilai dan jumlah belum dinilai.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            period: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                startsOn: string;
+                                endsOn: string;
+                            };
+                            rows: {
+                                /** Format: uuid */
+                                placementId: string;
+                                studentName: string;
+                                className: string | null;
+                                partnerName: string;
+                                /** @enum {string} */
+                                status: "planned" | "active" | "completed" | "cancelled";
+                                final: number | null;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                                journalDays: number;
+                                presentDays: number;
+                                visits: number;
+                            }[];
+                            summary: {
+                                total: number;
+                                scored: number;
+                                unscored: number;
+                                average: number | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/pkl/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tampilan tautan pembimbing industri (publik)
+         * @description Tanpa login; token ada di path. Memuat sekolah, siswa, mitra, periode, 30 jurnal terakhir, aspek beserta nilai dari industri, dan `canWrite` (false bila periode sudah lewat lebih dari 14 hari atau penempatan dibatalkan). Token salah, dicabut, atau penempatan batal dijawab seragam 404 `not_found`. Dibatasi 60 permintaan per menit per IP.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            school: {
+                                name: string;
+                            };
+                            student: {
+                                name: string;
+                                className: string | null;
+                            };
+                            partner: {
+                                name: string;
+                            };
+                            period: {
+                                name: string;
+                                startsOn: string;
+                                endsOn: string;
+                            };
+                            /** @enum {string} */
+                            status: "planned" | "active" | "completed";
+                            journals: {
+                                date: string;
+                                activity: string;
+                                present: boolean;
+                            }[];
+                            aspects: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                weight: number;
+                                industry: {
+                                    value: number;
+                                    note: string | null;
+                                } | null;
+                            }[];
+                            canWrite: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/pkl/{token}/journal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Isi jurnal lewat tautan (publik)
+         * @description Tanpa login. Satu entri per hari (tanggal sama menimpa). Tanggal tidak boleh di masa depan (400 `date_in_future`) dan harus dalam periode ± 7 hari (400 `date_out_of_period`). 403 `link_read_only` bila periode sudah lewat lebih dari 14 hari. Token tak dikenal: 404 `not_found`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        date: string;
+                        activity: string;
+                        /** @default true */
+                        present?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/pkl/{token}/scores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Isi nilai industri lewat tautan (publik)
+         * @description Tanpa login. Menyimpan nilai penilai `industry` (upsert per aspek), nilai 0..100 bulat. 403 `link_read_only` bila periode sudah lewat lebih dari 14 hari. Token tak dikenal: 404 `not_found`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        records: {
+                            /** Format: uuid */
+                            aspectId: string;
+                            value: number;
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;

@@ -156,6 +156,98 @@ export async function invoiceRows(
   return { items, total: totalRow?.n ?? 0 };
 }
 
+/* ---------- Keringanan dan cicilan ---------- */
+
+export interface DiscountRuleLite {
+  name: string;
+  kind: 'percent' | 'amount';
+  value: number;
+}
+
+/**
+ * Diskon dari sekumpulan aturan atas satu nominal: persen dihitung per aturan dan dibulatkan ke bawah, ditambah
+ * nominal tetap, lalu dibatasi paling banyak sebesar nominal.
+ */
+export function discountFor(amount: number, rules: DiscountRuleLite[]): number {
+  let total = 0;
+  for (const r of rules) total += r.kind === 'percent' ? Math.floor((r.value * amount) / 100) : r.value;
+  return Math.min(amount, total);
+}
+
+/** Bagi rata `total` menjadi `n` bagian; sisa pembagian masuk ke bagian pertama. */
+export function splitEven(total: number, n: number): number[] {
+  const base = Math.floor(total / n);
+  const parts = Array.from({ length: n }, () => base);
+  parts[0] = base + (total - base * n);
+  return parts;
+}
+
+/**
+ * Bagi `discount` secara proporsional terhadap `amounts` (floor per bagian, sisa ke bagian pertama). Jumlahnya selalu
+ * sama dengan `discount`, dan tiap bagian tidak melebihi nominalnya (kelebihan dialirkan ke bagian berikutnya).
+ */
+export function splitDiscount(discount: number, amounts: number[]): number[] {
+  const total = amounts.reduce((a, b) => a + b, 0);
+  if (total === 0 || discount <= 0) return amounts.map(() => 0);
+  const parts = amounts.map((a) => Math.floor((discount * a) / total));
+  parts[0] = discount - parts.slice(1).reduce((a, b) => a + b, 0);
+  let overflow = 0;
+  for (let i = 0; i < parts.length; i++) {
+    const cap = amounts[i] as number;
+    if ((parts[i] as number) > cap) {
+      overflow += (parts[i] as number) - cap;
+      parts[i] = cap;
+    }
+  }
+  for (let i = 0; i < parts.length && overflow > 0; i++) {
+    const room = (amounts[i] as number) - (parts[i] as number);
+    const add = Math.min(room, overflow);
+    parts[i] = (parts[i] as number) + add;
+    overflow -= add;
+  }
+  return parts;
+}
+
+/** Tanggal TTTT-BB-HH ditambah `months` bulan; hari dijepit ke akhir bulan tujuan (31 Jan + 1 bulan = 28/29 Feb). */
+export function addMonths(date: string, months: number): string {
+  const [y, m, d] = date.split('-').map(Number) as [number, number, number];
+  const index = y * 12 + (m - 1) + months;
+  const year = Math.floor(index / 12);
+  const month = (index % 12) + 1;
+  const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const pad = (n: number, w = 2) => String(n).padStart(w, '0');
+  return `${pad(year, 4)}-${pad(month)}-${pad(Math.min(d, lastDay))}`;
+}
+
+export interface InstallmentPart {
+  period: string;
+  title: string;
+  amount: number;
+  discount: number;
+  dueDate: string;
+}
+
+/** Rincian cicilan 1..n: periode `C01`.., judul "<dasar> (cicilan i/n) <akhiran>", nominal, diskon, dan jatuh tempo bulanan. */
+export function installmentParts(opts: {
+  base: string;
+  suffix: string;
+  amount: number;
+  discount: number;
+  installments: number;
+  firstDueDate: string;
+}): InstallmentPart[] {
+  const { installments: n } = opts;
+  const amounts = splitEven(opts.amount, n);
+  const discounts = splitDiscount(opts.discount, amounts);
+  return amounts.map((amount, i) => ({
+    period: `C${String(i + 1).padStart(2, '0')}`,
+    title: `${opts.base} (cicilan ${i + 1}/${n})${opts.suffix ? ` ${opts.suffix}` : ''}`,
+    amount,
+    discount: discounts[i] as number,
+    dueDate: addMonths(opts.firstDueDate, i),
+  }));
+}
+
 /** Jumlah terbayar per tagihan (kwitansi tidak batal) untuk tagihan yang sudah dikunci. */
 export async function paidFor(tx: Tx, invoiceIds: string[]) {
   const map = new Map<string, number>();

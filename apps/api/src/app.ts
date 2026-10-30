@@ -20,6 +20,8 @@ import { paymentConfig } from './payment-config';
 import { academicStructureRoutes } from './routes/academic-structure';
 import { academicYearRoutes } from './routes/academic-years';
 import { accountRoutes } from './routes/account';
+import { admissionRoutes } from './routes/admissions';
+import { admissionPublicRoutes } from './routes/admissions-public';
 import { attendanceReportRoutes } from './routes/attendance-report';
 import { registerAuthRoutes } from './routes/auth';
 import { billingRoutes } from './routes/billing';
@@ -27,16 +29,20 @@ import { calendarRoutes } from './routes/calendar';
 import { curriculumRoutes } from './routes/curriculum';
 import { extracurricularRoutes } from './routes/extracurricular';
 import { financeRoutes } from './routes/finance';
+import { financeDiscountRoutes } from './routes/finance-discounts';
 import { gateRoutes } from './routes/gate';
 import { gradingRoutes } from './routes/grading';
 import { guardianRoutes } from './routes/guardians';
 import { invitationRoutes } from './routes/invitations';
 import { lessonAttendanceRoutes } from './routes/lesson-attendance';
+import { letterRoutes } from './routes/letters';
 import { liveRoutes } from './routes/live';
 import { meRoutes } from './routes/me';
 import { memberRoutes } from './routes/members';
 import { messagingRoutes } from './routes/messaging';
 import { peopleRoutes } from './routes/people';
+import { pklRoutes } from './routes/pkl';
+import { pklPublicRoutes } from './routes/pkl-public';
 import { platformRoutes } from './routes/platform';
 import { platformCatalogRoutes } from './routes/platform-catalog';
 import { platformMessagingRoutes } from './routes/platform-messaging';
@@ -46,6 +52,7 @@ import { roleRoutes } from './routes/roles';
 import { scheduleRoutes } from './routes/schedule';
 import { semesterRoutes } from './routes/semesters';
 import { studentImportRoutes } from './routes/student-import';
+import { tahfidzRoutes } from './routes/tahfidz';
 import { teacherImportRoutes } from './routes/teacher-import';
 
 export { paymentConfig };
@@ -110,6 +117,8 @@ export async function buildApp(env: Env) {
         { name: 'Identity', description: 'Akun dan keanggotaan' },
         { name: 'Academic', description: 'Data akademik' },
         { name: 'Finance', description: 'Keuangan sekolah: tarif, tagihan, kwitansi, dan laporan' },
+        { name: 'Admissions', description: 'SPMB: periode, pendaftar, verifikasi, dan daftar ulang' },
+        { name: 'Admissions (publik)', description: 'Pendaftaran SPMB tanpa login, lewat slug sekolah' },
         { name: 'Billing', description: 'Katalog, pendaftaran, dan pembayaran' },
         { name: 'Platform', description: 'Konsol staf Edusync' },
       ],
@@ -184,11 +193,18 @@ export async function buildApp(env: Env) {
   await app.register(attendanceReportRoutes);
   await app.register(gateRoutes);
   await app.register(lessonAttendanceRoutes);
+  await app.register(letterRoutes);
   await app.register(extracurricularRoutes);
   await app.register(gradingRoutes);
   await app.register(reportCardRoutes);
   await app.register(financeRoutes);
+  await app.register(financeDiscountRoutes);
+  await app.register(admissionRoutes);
+  await app.register(admissionPublicRoutes);
   await app.register(liveRoutes);
+  await app.register(tahfidzRoutes);
+  await app.register(pklRoutes);
+  await app.register(pklPublicRoutes);
   await app.register(messagingRoutes, { env });
   await app.register(platformMessagingRoutes, { env });
   await app.register(semesterRoutes);

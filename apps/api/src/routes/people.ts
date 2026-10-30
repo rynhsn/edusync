@@ -81,7 +81,7 @@ async function currentClasses(tx: Tx, studentIds: string[]) {
 }
 
 /** Tempatkan siswa di kelas (pada tahun ajaran kelas itu) atau cabut dari kelas tahun ajaran aktif. */
-async function placeStudent(tx: Tx, ctx: TenantContext, studentId: string, classId: string | null) {
+export async function placeStudent(tx: Tx, ctx: TenantContext, studentId: string, classId: string | null) {
   if (classId === null) {
     const [active] = await tx
       .select({ id: academicYear.id })

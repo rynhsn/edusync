@@ -464,9 +464,9 @@ describe('buat tagihan massal', () => {
     const first = await generate({ feeTypeId: ids.spp, period: '2026-08', dueDate: DUE_AUG });
     expect(first.statusCode).toBe(200);
     // Ani, Budi (tingkat 7: 150.000), Citra dan Fajar (tarif umum: 100.000); alumni tidak ikut.
-    expect(first.json()).toEqual({ created: 4, skipped: 0, missingPlan: [] });
+    expect(first.json()).toEqual({ created: 4, skipped: 0, free: 0, discounted: 0, missingPlan: [] });
     const again = await generate({ feeTypeId: ids.spp, period: '2026-08', dueDate: DUE_AUG });
-    expect(again.json()).toEqual({ created: 0, skipped: 4, missingPlan: [] });
+    expect(again.json()).toEqual({ created: 0, skipped: 4, free: 0, discounted: 0, missingPlan: [] });
 
     const list = await invoices('&period=2026-08');
     expect(list.total).toBe(4);
@@ -523,7 +523,7 @@ describe('buat tagihan massal', () => {
       classId: ids.class8A,
       dueDate: DUE_SEP,
     });
-    expect(sep.json()).toEqual({ created: 1, skipped: 0, missingPlan: [] });
+    expect(sep.json()).toEqual({ created: 1, skipped: 0, free: 0, discounted: 0, missingPlan: [] });
     ids.citraSep = (await invoices('&period=2026-09')).items[0]!.id;
   });
 

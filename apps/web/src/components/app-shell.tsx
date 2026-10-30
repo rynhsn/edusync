@@ -3,27 +3,38 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Award,
+  BookHeart,
   BookMarked,
   BookOpen,
+  BriefcaseBusiness,
   CalendarDays,
   CalendarRange,
   ChevronsUpDown,
   ClipboardCheck,
   ClipboardList,
+  ClipboardSignature,
   Clock,
   DoorOpen,
+  Factory,
   FileText,
   GraduationCap,
+  HardHat,
   Landmark,
   LayoutDashboard,
   LogOut,
+  Mail,
   MessageCircle,
+  MoonStar,
+  PenLine,
   Receipt,
   School,
+  ScrollText,
   Settings2,
   ShieldCheck,
   SlidersHorizontal,
+  Sprout,
   Trophy,
+  UserPlus,
   UserRound,
   Users,
   Wallet,
@@ -185,6 +196,32 @@ export const NAV_GROUPS = [
     ],
   },
   {
+    key: 'groupGuidance',
+    items: [
+      {
+        href: '/tahfidz',
+        labelKey: 'tahfidz',
+        icon: BookHeart,
+        permission: 'tahfidz:read',
+        module: 'tahfidz',
+      },
+      {
+        href: '/tahfidz/ibadah',
+        labelKey: 'ibadah',
+        icon: MoonStar,
+        permission: 'tahfidz:read',
+        module: 'tahfidz',
+      },
+      {
+        href: '/tahfidz/settings',
+        labelKey: 'ibadahSettings',
+        icon: Sprout,
+        permission: 'tahfidz:manage',
+        module: 'tahfidz',
+      },
+    ],
+  },
+  {
     key: 'groupFinance',
     items: [
       { href: '/finance', labelKey: 'cashier', icon: Wallet, permission: 'finance:pay', module: 'finance' },
@@ -208,6 +245,79 @@ export const NAV_GROUPS = [
         icon: Landmark,
         permission: 'finance:read',
         module: 'finance',
+      },
+    ],
+  },
+  {
+    key: 'groupInternship',
+    items: [
+      {
+        href: '/pkl',
+        labelKey: 'pkl',
+        icon: BriefcaseBusiness,
+        permission: 'pkl:read',
+        module: 'internship',
+      },
+      {
+        href: '/pkl/partners',
+        labelKey: 'pklPartners',
+        icon: Factory,
+        permission: 'pkl:read',
+        module: 'internship',
+      },
+      {
+        href: '/pkl/settings',
+        labelKey: 'pklSettings',
+        icon: HardHat,
+        permission: 'pkl:manage',
+        module: 'internship',
+      },
+    ],
+  },
+  {
+    key: 'groupAdmissions',
+    items: [
+      {
+        href: '/admissions',
+        labelKey: 'admissions',
+        icon: UserPlus,
+        permission: 'admission:read',
+        module: 'admissions',
+      },
+      {
+        href: '/admissions/periods',
+        labelKey: 'admissionPeriods',
+        icon: ClipboardSignature,
+        permission: 'admission:manage',
+        module: 'admissions',
+      },
+    ],
+  },
+  {
+    key: 'groupAdministration',
+    items: [
+      {
+        href: '/letters',
+        labelKey: 'letters',
+        icon: Mail,
+        permission: 'letter:read',
+        module: 'administration',
+      },
+      {
+        href: '/letters/templates',
+        labelKey: 'letterTemplates',
+        icon: ScrollText,
+        permission: 'letter:manage',
+        module: 'administration',
+      },
+      {
+        // Dapat dibuka pengelola surat atau penandatangan (untuk tanda tangannya sendiri).
+        href: '/letters/signers',
+        labelKey: 'letterSigners',
+        icon: PenLine,
+        permission: 'letter:manage',
+        orPermission: 'letter:sign',
+        module: 'administration',
       },
     ],
   },
@@ -359,7 +469,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {NAV_GROUPS.map((group) => {
               const items = group.items.filter(
                 (n) =>
-                  (n.permission === null || permissions.has(n.permission)) &&
+                  (n.permission === null ||
+                    permissions.has(n.permission) ||
+                    ('orPermission' in n && permissions.has(n.orPermission))) &&
                   (!('module' in n) || school.modules.includes(n.module)),
               );
               if (items.length === 0) return null;

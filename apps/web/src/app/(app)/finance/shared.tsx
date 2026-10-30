@@ -1,12 +1,16 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { BadgePercent, Layers } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
 import { Badge } from '@/components/ui/badge';
 import { SelectField } from '@/components/ui/select-field';
+import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { formatCalendarDate } from '@/lib/format-date';
+import { formatRupiah } from '@/lib/money';
 
 export const METHODS = ['cash', 'transfer', 'other'] as const;
 export type Method = (typeof METHODS)[number];
@@ -55,6 +59,108 @@ export function StatusBadge({ status, overdue }: { status: InvoiceStatus; overdu
       {t(STATUS_KEY[status])}
       {overdue && status !== 'paid' && status !== 'void' ? ` · ${t('overdue')}` : ''}
     </Badge>
+  );
+}
+
+/* ---------- Cicilan dan keringanan ---------- */
+
+/** Pilihan jumlah cicilan; "lunas sekali" = tanpa cicilan. */
+export const INSTALLMENT_CHOICES = [2, 3, 4, 6, 10, 12] as const;
+
+/** Nomor dan jumlah cicilan dari periode `C01`.. dan judul "... (cicilan i/n) ..."; null bila bukan cicilan. */
+export function installmentInfo(
+  period: string | null | undefined,
+  title: string,
+): { index: number; total: number | null } | null {
+  const fromTitle = /\(cicilan (\d+)\/(\d+)\)/i.exec(title);
+  if (fromTitle) return { index: Number(fromTitle[1]), total: Number(fromTitle[2]) };
+  const fromPeriod = /^C(\d{2})$/.exec(period ?? '');
+  return fromPeriod ? { index: Number(fromPeriod[1]), total: null } : null;
+}
+
+/** Tambah bulan ke tanggal TTTT-BB-HH; hari dijepit ke akhir bulan tujuan (31 Jan + 1 = 28/29 Feb). */
+export function addMonthsIso(iso: string, months: number) {
+  const [y, m, d] = iso.split('-').map(Number) as [number, number, number];
+  const target = new Date(y, m - 1 + months, 1);
+  const last = new Date(target.getFullYear(), target.getMonth() + 1, 0).getDate();
+  return `${target.getFullYear()}-${pad(target.getMonth() + 1)}-${pad(Math.min(d, last))}`;
+}
+
+/** Lencana "Cicilan i/N" berwarna biru-hijau. */
+export function InstallmentBadge({ period, title }: { period: string | null | undefined; title: string }) {
+  const t = useTranslations('finance');
+  const info = installmentInfo(period, title);
+  if (!info) return null;
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full bg-sky-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-sky-800 dark:bg-sky-500/15 dark:text-sky-300">
+      <Layers className="size-3" aria-hidden="true" />
+      {info.total
+        ? t('installmentBadge', { index: info.index, total: info.total })
+        : t('installmentBadgeOpen', { index: info.index })}
+    </span>
+  );
+}
+
+/** Tanda diskon dengan keterangan alasan (tooltip dan teks pembaca layar). Kosong bila tanpa diskon. */
+export function DiscountMark({ amount, reason }: { amount: number; reason: string | null | undefined }) {
+  const t = useTranslations('finance');
+  if (amount <= 0) return null;
+  const rupiah = formatRupiah(amount);
+  const text = reason
+    ? t('discountMarkReason', { amount: rupiah, reason })
+    : t('discountMarkNoReason', { amount: rupiah });
+  return (
+    <span
+      title={text}
+      className="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2 py-0.5 text-xs font-medium whitespace-nowrap text-amber-800 dark:bg-amber-500/15 dark:text-amber-300"
+    >
+      <BadgePercent className="size-3" aria-hidden="true" />
+      <span className="sr-only">{text}</span>
+      <span aria-hidden="true">{t('discountMarkTitle', { amount: rupiah })}</span>
+    </span>
+  );
+}
+
+/**
+ * Mini-linimasa jadwal cicilan: titik bernomor yang tersambung garis, dengan jatuh tempo pertama dan
+ * terakhir di bawahnya.
+ */
+export function InstallmentTimeline({
+  count,
+  firstDue,
+  locale,
+}: {
+  count: number;
+  firstDue: string;
+  locale: Locale;
+}) {
+  const t = useTranslations('finance');
+  if (count < 2 || !firstDue) return null;
+  const last = addMonthsIso(firstDue, count - 1);
+  return (
+    <div
+      className="grid gap-1.5"
+      role="img"
+      aria-label={t('splitPreview', {
+        first: formatCalendarDate(locale, firstDue),
+        last: formatCalendarDate(locale, last),
+      })}
+    >
+      <ol className="flex items-center" aria-hidden="true">
+        {Array.from({ length: count }, (_, i) => i + 1).map((n, i) => (
+          <li key={n} className="flex min-w-0 flex-1 items-center last:flex-none">
+            <span className="bg-primary/15 text-primary ring-primary/30 flex size-6 shrink-0 items-center justify-center rounded-full text-[10px] font-semibold ring-1">
+              {i + 1}
+            </span>
+            {i < count - 1 && <span className="bg-primary/25 h-0.5 min-w-1 flex-1" />}
+          </li>
+        ))}
+      </ol>
+      <div className="text-muted-foreground flex justify-between text-xs" aria-hidden="true">
+        <span>{formatCalendarDate(locale, firstDue)}</span>
+        <span>{formatCalendarDate(locale, last)}</span>
+      </div>
+    </div>
   );
 }
 

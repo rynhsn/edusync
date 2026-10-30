@@ -7,11 +7,13 @@ import {
   desc,
   enrollment,
   eq,
+  finDiscountRule,
   finFeePlan,
   finFeeType,
   finInvoice,
   finPayment,
   finPaymentItem,
+  finStudentDiscount,
   gte,
   inArray,
   isNull,
@@ -28,7 +30,16 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { todayInJakarta } from '../attendance-lib';
-import { type InvoiceView, invoiceRows, PERIOD_PATTERN, paidFor, periodLabel } from '../finance-lib';
+import {
+  discountFor,
+  type InstallmentPart,
+  type InvoiceView,
+  installmentParts,
+  invoiceRows,
+  PERIOD_PATTERN,
+  paidFor,
+  periodLabel,
+} from '../finance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { notifyPayment } from '../messaging-lib';
@@ -450,6 +461,12 @@ export async function financeRoutes(instance: FastifyInstance) {
     period: z.string().nullable().describe('TTTT-BB untuk biaya bulanan; null untuk lainnya'),
     classId: z.uuid().nullable(),
     dueDate: z.iso.date(),
+    installments: z
+      .number()
+      .int()
+      .nullable()
+      .optional()
+      .describe('Cicilan 2..12, hanya untuk jenis biaya non-bulanan; kosong = satu tagihan'),
   });
 
   app.post(
@@ -466,13 +483,22 @@ export async function financeRoutes(instance: FastifyInstance) {
           'dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (siswa, tahun, jenis biaya, periode) ' +
           'dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026". Galat: 400 `period_required` ' +
           '(`period` wajib TTTT-BB untuk jenis `monthly`, dan harus null untuk jenis lain), 400 `invalid_reference`, ' +
-          '409 `inactive` (jenis biaya nonaktif).',
+          '409 `inactive` (jenis biaya nonaktif). Tarif bernominal 0 = gratis: tagihan tidak dibuat dan dihitung di ' +
+          '`free`. Keringanan: aturan aktif yang dipasang pada siswa di tahun ajaran itu dan berlaku untuk jenis biaya ' +
+          'ini (jenis kosong atau sama) dijumlahkan (persen dibulatkan ke bawah per aturan + nominal tetap, maksimal ' +
+          'sebesar nominal) menjadi `discount` tagihan baru, nama aturan digabung di `discountReason`; `discounted` = ' +
+          'jumlah tagihan baru yang berdiskon (tagihan yang sudah ada tidak diubah). `installments` (2..12, hanya jenis ' +
+          'non-bulanan; 400 `installments_invalid`) membuat N tagihan berperiode `C01`..`C12` dengan nominal dibagi ' +
+          'rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; siswa ' +
+          'yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati.',
         headers: schoolHeader,
         body: generateBody,
         response: {
           200: z.object({
             created: z.number().int(),
             skipped: z.number().int(),
+            free: z.number().int().describe('Siswa bertarif 0 (gratis); tagihan tidak dibuat'),
+            discounted: z.number().int().describe('Jumlah tagihan baru yang berdiskon'),
             missingPlan: z.array(
               z.object({
                 studentId: z.uuid(),
@@ -511,6 +537,14 @@ export async function financeRoutes(instance: FastifyInstance) {
           );
         }
         if (!fee.active) throw new HttpError(409, 'inactive', 'Jenis biaya ini tidak aktif.');
+        const installments = b.installments ?? null;
+        if (installments !== null && (fee.kind === 'monthly' || installments < 2 || installments > 12)) {
+          throw new HttpError(
+            400,
+            'installments_invalid',
+            'Cicilan hanya untuk biaya non-bulanan dan harus 2 sampai 12 kali.',
+          );
+        }
         if (b.classId) {
           const [cls] = await tx.select().from(classRoom).where(eq(classRoom.id, b.classId));
           if (!cls || cls.academicYearId !== year.id) {
@@ -549,16 +583,46 @@ export async function financeRoutes(instance: FastifyInstance) {
           .orderBy(asc(student.name), asc(student.id));
 
         const existing = await tx
-          .select({ studentId: finInvoice.studentId })
+          .select({ studentId: finInvoice.studentId, period: finInvoice.period })
           .from(finInvoice)
+          .where(and(eq(finInvoice.academicYearId, year.id), eq(finInvoice.feeTypeId, fee.id)));
+        // Mode cicilan: siswa dengan tagihan apa pun (utuh atau cicilan) dilewati. Mode biasa: periode yang sama,
+        // atau sudah dicicil (periode C..) agar tidak tertagih dua kali.
+        const have = new Set(
+          existing
+            .filter(
+              (e) =>
+                installments !== null ||
+                (e.period ?? null) === b.period ||
+                (e.period !== null && /^C\d{2}$/.test(e.period)),
+            )
+            .map((e) => e.studentId),
+        );
+
+        // Keringanan aktif yang terpasang pada tahun ajaran ini dan berlaku untuk jenis biaya ini.
+        const assigned = await tx
+          .select({
+            studentId: finStudentDiscount.studentId,
+            name: finDiscountRule.name,
+            kind: finDiscountRule.kind,
+            value: finDiscountRule.value,
+          })
+          .from(finStudentDiscount)
+          .innerJoin(finDiscountRule, eq(finDiscountRule.id, finStudentDiscount.ruleId))
           .where(
             and(
-              eq(finInvoice.academicYearId, year.id),
-              eq(finInvoice.feeTypeId, fee.id),
-              b.period === null ? isNull(finInvoice.period) : eq(finInvoice.period, b.period),
+              eq(finStudentDiscount.academicYearId, year.id),
+              eq(finDiscountRule.active, true),
+              sql`(${finDiscountRule.feeTypeId} is null or ${finDiscountRule.feeTypeId} = ${fee.id})`,
             ),
-          );
-        const have = new Set(existing.map((e) => e.studentId));
+          )
+          .orderBy(asc(finDiscountRule.name));
+        const rulesByStudent = new Map<string, typeof assigned>();
+        for (const a of assigned) {
+          const list = rulesByStudent.get(a.studentId) ?? [];
+          list.push(a);
+          rulesByStudent.set(a.studentId, list);
+        }
 
         const title = b.period ? `${fee.name} ${periodLabel(b.period)}` : `${fee.name} ${year.name}`;
         const missingPlan: {
@@ -570,6 +634,7 @@ export async function financeRoutes(instance: FastifyInstance) {
         }[] = [];
         const toCreate: (typeof finInvoice.$inferInsert)[] = [];
         let skipped = 0;
+        let free = 0;
         for (const s of roster) {
           if (have.has(s.id)) {
             skipped++;
@@ -586,17 +651,57 @@ export async function financeRoutes(instance: FastifyInstance) {
             });
             continue;
           }
-          toCreate.push({
+          if (amount === 0) {
+            free++;
+            continue;
+          }
+          const rules = rulesByStudent.get(s.id) ?? [];
+          const discount = discountFor(amount, rules);
+          const discountReason =
+            rules.length > 0 && discount > 0
+              ? rules
+                  .map((r) => r.name)
+                  .join(', ')
+                  .slice(0, 300)
+              : null;
+          const base = {
             schoolId: ctx.schoolId,
             studentId: s.id,
             academicYearId: year.id,
             feeTypeId: fee.id,
-            period: b.period,
-            title,
-            amount,
-            dueDate: b.dueDate,
-            createdBy: ctx.userId,
-          });
+          };
+          if (installments === null) {
+            toCreate.push({
+              ...base,
+              period: b.period,
+              title,
+              amount,
+              discount,
+              discountReason,
+              dueDate: b.dueDate,
+              createdBy: ctx.userId,
+            });
+          } else {
+            for (const part of installmentParts({
+              base: fee.name,
+              suffix: year.name,
+              amount,
+              discount,
+              installments,
+              firstDueDate: b.dueDate,
+            })) {
+              toCreate.push({
+                ...base,
+                period: part.period,
+                title: part.title,
+                amount: part.amount,
+                discount: part.discount,
+                discountReason: part.discount > 0 ? discountReason : null,
+                dueDate: part.dueDate,
+                createdBy: ctx.userId,
+              });
+            }
+          }
         }
 
         let created = 0;
@@ -609,7 +714,11 @@ export async function financeRoutes(instance: FastifyInstance) {
           created += inserted.length;
         }
         skipped += toCreate.length - created;
+        const discounted = toCreate.filter((r) => (r.discount ?? 0) > 0).length;
         await audit(tx, ctx, 'finance.invoice_generate', 'fin_invoice', fee.id, {
+          installments,
+          free,
+          discounted,
           academicYearId: year.id,
           period: b.period,
           classId: b.classId,
@@ -617,7 +726,7 @@ export async function financeRoutes(instance: FastifyInstance) {
           skipped,
           missingPlan: missingPlan.length,
         });
-        return { created, skipped, missingPlan };
+        return { created, skipped, free, discounted, missingPlan };
       });
     },
   );
@@ -764,6 +873,104 @@ export async function financeRoutes(instance: FastifyInstance) {
         await audit(tx, ctx, 'finance.invoice_void', 'fin_invoice', inv.id, { reason: request.body.reason });
         return (await invoiceViewOf(tx, inv.id))!;
       });
+    },
+  );
+
+  app.post(
+    '/v1/finance/invoices/:id/split',
+    {
+      onRequest: manageGate,
+      schema: {
+        tags: tag,
+        summary: 'Pecah tagihan menjadi cicilan',
+        description:
+          'Izin: `finance:manage`; modul `finance`. Memecah satu tagihan terbuka yang belum punya pembayaran aktif ' +
+          'menjadi `installments` (2..12) tagihan berperiode `C01`.., nominal dibagi rata (sisa ke cicilan pertama), ' +
+          'diskon dibagi proporsional, jatuh tempo `firstDueDate` + (i-1) bulan. Tagihan asal dibatalkan (void, alasan ' +
+          '"dipecah menjadi cicilan"). Atomik. Galat: 409 `has_payments`, 409 `invoice_void`, 409 `conflict` bila ' +
+          'tagihan cicilan jenis itu sudah ada, 404 `not_found`.',
+        headers: schoolHeader,
+        params: idParams,
+        body: z.object({
+          installments: z.number().int().min(2).max(12),
+          firstDueDate: z.iso.date(),
+        }),
+        response: {
+          200: z.object({ voided: invoiceSchema, invoices: z.array(invoiceSchema) }),
+          400: errorSchema,
+          404: errorSchema,
+          409: errorSchema,
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const b = request.body;
+      return conflictAs409('Tagihan cicilan untuk jenis biaya ini sudah ada.', () =>
+        tenant(request, async (tx) => {
+          const inv = await lockInvoice(tx, request.params.id);
+          if (inv.status === 'void') {
+            throw new HttpError(409, 'invoice_void', 'Tagihan ini sudah dibatalkan.');
+          }
+          const paid = (await paidFor(tx, [inv.id])).get(inv.id) ?? 0;
+          if (paid > 0) {
+            throw new HttpError(
+              409,
+              'has_payments',
+              'Tagihan ini sudah punya pembayaran; batalkan kwitansinya terlebih dahulu.',
+            );
+          }
+          const parts: InstallmentPart[] = installmentParts({
+            base: inv.title,
+            suffix: '',
+            amount: inv.amount,
+            discount: inv.discount,
+            installments: b.installments,
+            firstDueDate: b.firstDueDate,
+          });
+          await tx
+            .update(finInvoice)
+            .set({ status: 'void', voidReason: 'dipecah menjadi cicilan' })
+            .where(eq(finInvoice.id, inv.id));
+          const created = await tx
+            .insert(finInvoice)
+            .values(
+              parts.map((part) => ({
+                schoolId: ctx.schoolId,
+                studentId: inv.studentId,
+                academicYearId: inv.academicYearId,
+                feeTypeId: inv.feeTypeId,
+                period: part.period,
+                title: part.title,
+                amount: part.amount,
+                discount: part.discount,
+                discountReason: part.discount > 0 ? inv.discountReason : null,
+                dueDate: part.dueDate,
+                createdBy: ctx.userId,
+              })),
+            )
+            .returning({ id: finInvoice.id });
+          await audit(tx, ctx, 'finance.invoice_split', 'fin_invoice', inv.id, {
+            installments: b.installments,
+            firstDueDate: b.firstDueDate,
+            children: created.map((c) => c.id),
+          });
+          const voided = (await invoiceViewOf(tx, inv.id))!;
+          const { items } = await invoiceRows(tx, {
+            studentId: inv.studentId,
+            academicYearId: inv.academicYearId,
+            feeTypeId: inv.feeTypeId,
+          });
+          const ids = new Set(created.map((c) => c.id));
+          return {
+            voided,
+            invoices: items
+              .filter((i) => ids.has(i.id))
+              .sort((a, b2) => (a.period ?? '').localeCompare(b2.period ?? '')),
+          };
+        }),
+      );
     },
   );
 

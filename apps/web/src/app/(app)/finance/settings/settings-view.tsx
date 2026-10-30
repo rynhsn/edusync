@@ -22,6 +22,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatRupiah } from '@/lib/money';
 import { digitsOnly, KIND_KEY, KINDS, type Kind, useFinanceYear, YearSelect } from '../shared';
+import { DiscountsCard } from './discounts-card';
 
 interface FeeDraft {
   id: string | null;
@@ -413,6 +414,11 @@ export function FinanceSettingsView() {
               </div>
             )}
           </Card>
+
+          <DiscountsCard
+            feeTypes={feeList.map((f) => ({ id: f.id, name: f.name }))}
+            classes={(classes.data ?? []).map((c) => ({ id: c.id, name: c.name }))}
+          />
         </>
       )}
 

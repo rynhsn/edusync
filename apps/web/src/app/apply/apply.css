@@ -1,0 +1,181 @@
+/*
+ * Gaya khas SPMB: aksen oranye hangat berpasangan dengan teal tema. Dipakai halaman publik /apply dan
+ * poster cetak di layar admin. Semua animasi dimatikan lewat prefers-reduced-motion.
+ */
+.apply-root {
+  --ap-orange: oklch(0.72 0.17 52);
+  --ap-orange-soft: oklch(0.96 0.04 70);
+  --ap-orange-ink: oklch(0.45 0.13 45);
+  --ap-teal-soft: oklch(0.95 0.035 190);
+}
+.dark .apply-root {
+  --ap-orange: oklch(0.78 0.15 58);
+  --ap-orange-soft: oklch(0.3 0.05 55);
+  --ap-orange-ink: oklch(0.86 0.1 65);
+  --ap-teal-soft: oklch(0.28 0.04 195);
+}
+
+.ap-hero-bg {
+  background:
+    radial-gradient(
+      60% 80% at 85% 0%,
+      color-mix(in oklab, var(--ap-orange) 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(50% 70% at 0% 100%, color-mix(in oklab, var(--primary) 18%, transparent), transparent 70%),
+    var(--background);
+}
+
+@keyframes ap-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ap-step-forward {
+  from {
+    opacity: 0;
+    transform: translateX(22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ap-step-back {
+  from {
+    opacity: 0;
+    transform: translateX(-22px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes ap-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+@keyframes ap-draw {
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+@keyframes ap-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  70% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@keyframes ap-confetti {
+  0% {
+    transform: translate3d(0, -20px, 0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--dx, 0), 280px, 0) rotate(var(--rot, 360deg));
+    opacity: 0;
+  }
+}
+
+.ap-rise {
+  animation: ap-rise 0.5s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.ap-step-forward {
+  animation: ap-step-forward 0.32s ease-out both;
+}
+.ap-step-back {
+  animation: ap-step-back 0.32s ease-out both;
+}
+.ap-float {
+  animation: ap-float 6s ease-in-out infinite;
+}
+.ap-float-slow {
+  animation: ap-float 9s ease-in-out infinite;
+}
+.ap-check-circle {
+  stroke-dasharray: 190;
+  stroke-dashoffset: 190;
+  animation: ap-draw 0.7s ease-out 0.1s forwards;
+}
+.ap-check-mark {
+  stroke-dasharray: 48;
+  stroke-dashoffset: 48;
+  animation: ap-draw 0.4s ease-out 0.7s forwards;
+}
+.ap-pop {
+  animation: ap-pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2) both;
+}
+.ap-confetti {
+  position: absolute;
+  top: 0;
+  width: 8px;
+  height: 14px;
+  border-radius: 2px;
+  opacity: 0;
+  animation: ap-confetti 2.4s ease-out forwards;
+  pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ap-rise,
+  .ap-step-forward,
+  .ap-step-back,
+  .ap-float,
+  .ap-float-slow,
+  .ap-pop {
+    animation: none;
+  }
+  .ap-check-circle,
+  .ap-check-mark {
+    animation: none;
+    stroke-dashoffset: 0;
+  }
+  .ap-confetti {
+    display: none;
+  }
+}
+
+/* Cetak: hanya area bertanda .print-area yang tampil (bukti pendaftaran, poster tautan pendaftaran). */
+@media print {
+  @page {
+    size: A4;
+    margin: 14mm;
+  }
+  body * {
+    visibility: hidden !important;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible !important;
+  }
+  .print-area {
+    position: absolute !important;
+    inset: 0 auto auto 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: #fff !important;
+    color: #111 !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}
