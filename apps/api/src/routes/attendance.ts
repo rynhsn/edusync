@@ -31,12 +31,12 @@ const gate = (permission: 'attendance:read' | 'attendance:manage') => [
 ];
 
 /** Tanggal hari ini menurut zona waktu sekolah (Asia/Jakarta), TTTT-BB-HH. */
-function todayInJakarta() {
+export function todayInJakarta() {
   return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 }
 
 /** Libur atau jeda cakupan sekolah pada tanggal itu (bila ada). */
-async function closureOn(tx: Tx, date: string) {
+export async function closureOn(tx: Tx, date: string) {
   const [c] = await tx
     .select({ type: calendarEvent.type, title: calendarEvent.title })
     .from(calendarEvent)
@@ -53,7 +53,7 @@ async function closureOn(tx: Tx, date: string) {
 }
 
 /** Siswa aktif yang terdaftar di kelas (pada tahun ajaran kelas itu), urut nama. */
-async function rosterOf(tx: Tx, classId: string) {
+export async function rosterOf(tx: Tx, classId: string) {
   const [cls] = await tx.select().from(classRoom).where(eq(classRoom.id, classId));
   if (!cls) throw new HttpError(404, 'not_found', 'Kelas tidak ditemukan.');
   const rows = await tx

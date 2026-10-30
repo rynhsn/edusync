@@ -204,6 +204,20 @@
       "when": 1793316869792,
       "tag": "0028_schedule_attendance_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1793332619666,
+      "tag": "0029_kiosk_attendance",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1793332624040,
+      "tag": "0030_kiosk_attendance_rls",
+      "breakpoints": true
     }
   ]
 }

@@ -79,7 +79,8 @@
     "schedule_read": "View schedule",
     "schedule_manage": "Manage schedule",
     "attendance_read": "View attendance",
-    "attendance_manage": "Manage attendance"
+    "attendance_manage": "Manage attendance",
+    "attendance_configure": "Configure attendance devices, cards, hours and duty roster"
   },
   "dashboard": {
     "greeting": "Hello, {name}",

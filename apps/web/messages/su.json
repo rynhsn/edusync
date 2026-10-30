@@ -79,7 +79,8 @@
     "schedule_read": "Ningali jadwal",
     "schedule_manage": "Ngatur jadwal",
     "attendance_read": "Ningali absénsi",
-    "attendance_manage": "Ngatur absénsi"
+    "attendance_manage": "Ngatur absénsi",
+    "attendance_configure": "Ngatur parangkat, kartu, jam, jeung piket absénsi"
   },
   "dashboard": {
     "greeting": "Wilujeng sumping, {name}",

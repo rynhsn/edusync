@@ -79,7 +79,8 @@
     "schedule_read": "Melihat jadwal",
     "schedule_manage": "Mengelola jadwal",
     "attendance_read": "Melihat absensi",
-    "attendance_manage": "Mengelola absensi"
+    "attendance_manage": "Mengelola absensi",
+    "attendance_configure": "Mengatur perangkat, kartu, jam, dan piket absensi"
   },
   "dashboard": {
     "greeting": "Halo, {name}",

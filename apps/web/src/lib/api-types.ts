@@ -2632,7 +2632,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "audit:read")[];
                     };
                 };
             };
@@ -3168,7 +3168,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "audit:read")[];
                     };
                 };
             };
@@ -6970,6 +6970,1960 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/attendance/policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kebijakan absensi gerbang
+         * @description Izin: `attendance:read`. Jam terlambat, jam mulai pulang, jeda tap ganda, metode yang diizinkan. Bila sekolah belum menyimpannya, nilai bawaan dikembalikan.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            lateAfter: string;
+                            departureFrom: string;
+                            debounceSeconds: number;
+                            methods: ("rfid" | "qr" | "manual")[];
+                            notifyParents: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah kebijakan absensi gerbang
+         * @description Izin: `attendance:configure`. `lateAfter` harus lebih awal dari `departureFrom`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        lateAfter: string;
+                        departureFrom: string;
+                        debounceSeconds: number;
+                        methods: ("rfid" | "qr" | "manual")[];
+                        notifyParents: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            lateAfter: string;
+                            departureFrom: string;
+                            debounceSeconds: number;
+                            methods: ("rfid" | "qr" | "manual")[];
+                            notifyParents: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/attendance/devices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar perangkat kiosk
+         * @description Izin: `attendance:configure`. Kunci lengkap tidak pernah ditampilkan ulang.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            keyPrefix: string;
+                            active: boolean;
+                            lastSeenAt: string | null;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Daftarkan perangkat kiosk
+         * @description Izin: `attendance:configure`. Kunci API (`key`) hanya muncul pada respons ini; simpan di perangkat kiosk. Kiosk memakainya lewat header `x-device-key`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            key: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/attendance/devices/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Hapus perangkat
+         * @description Izin: `attendance:configure`. Perangkat yang sudah pernah mencatat tap tidak bisa dihapus (409 `in_use`); nonaktifkan saja.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Ubah nama atau status perangkat
+         * @description Izin: `attendance:configure`. Perangkat nonaktif ditolak saat tap.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/attendance/devices/{id}/rotate-key": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Ganti kunci perangkat
+         * @description Izin: `attendance:configure`. Kunci lama langsung tidak berlaku; kunci baru hanya muncul sekali.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            key: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/attendance/cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar kartu RFID/QR
+         * @description Izin: `attendance:configure`. Bisa disaring per siswa.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    studentId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            studentName: string;
+                            /** @enum {string} */
+                            kind: "rfid" | "qr";
+                            code: string;
+                            active: boolean;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Daftarkan kartu siswa
+         * @description Izin: `attendance:configure`. Kartu `rfid` wajib membawa `code` (UID kartu dari pembaca). Kartu `qr` dibuatkan token acak. Kode yang sama tidak boleh dipakai dua siswa (409 `conflict`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        studentId: string;
+                        /** @enum {string} */
+                        kind: "rfid" | "qr";
+                        code?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "rfid" | "qr";
+                            code: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/attendance/cards/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Hapus kartu
+         * @description Izin: `attendance:configure`. Kartu hilang: hapus lalu daftarkan kartu baru.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/kiosk/info": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Info untuk layar kiosk
+         * @description Autentikasi: header `x-device-key`. Nama sekolah dan perangkat, metode yang aktif, dan jam server (untuk mendeteksi jam perangkat yang melenceng).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Kunci API perangkat kiosk */
+                    "x-device-key": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            school: string;
+                            device: string;
+                            methods: string[];
+                            serverTime: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/kiosk/tap": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Catat tap kartu
+         * @description Autentikasi: header `x-device-key`. `code` adalah UID kartu RFID atau isi QR. Arah masuk/pulang ditentukan dari jam tap terhadap kebijakan. `result`: `in`, `out`, `already_in` (sudah tap masuk), `duplicate` (tap berulang dalam jeda), `replayed` (clientId sudah pernah diterima). Tap offline dikirim ulang dengan `at` asli dan `clientId` tetap (maksimal 48 jam ke belakang). Kartu tak dikenal: 404 `unknown_card`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Kunci API perangkat kiosk */
+                    "x-device-key": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                        /** Format: date-time */
+                        at?: string;
+                        clientId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            result: "in" | "out" | "already_in" | "duplicate" | "replayed";
+                            /** @enum {string} */
+                            direction: "in" | "out";
+                            late: boolean;
+                            at: string;
+                            student: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                className: string | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gate/scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pindai kartu dari ponsel guru piket
+         * @description Izin: `attendance:read`, dan pengguna harus guru piket hari ini atau punya `attendance:configure` (403 `not_on_duty`). Hasilnya sama dengan tap kiosk; sumbernya tetap jenis kartunya.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            result: "in" | "out" | "already_in" | "duplicate" | "replayed";
+                            /** @enum {string} */
+                            direction: "in" | "out";
+                            late: boolean;
+                            at: string;
+                            student: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                className: string | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gate/manual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Absensi gerbang manual oleh guru piket
+         * @description Izin: `attendance:read`, dan pengguna harus guru piket hari ini atau punya `attendance:configure`. `kind` `in`/`out` mencatat tap dengan sumber manual; `excused`, `sick`, `absent` mengisi status harian tanpa tap. Hanya untuk hari ini.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        studentId: string;
+                        /** @enum {string} */
+                        kind: "in" | "out" | "excused" | "sick" | "absent";
+                        /** @default null */
+                        note?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            result: "in" | "out" | "already_in" | "duplicate" | "replayed";
+                            /** @enum {string} */
+                            direction: "in" | "out";
+                            late: boolean;
+                            at: string;
+                            student: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                className: string | null;
+                            };
+                        } | {
+                            /** @enum {string} */
+                            result: "marked";
+                            /** @enum {string} */
+                            status: "present" | "late" | "excused" | "sick" | "absent";
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gate/daily": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Absensi gerbang harian
+         * @description Izin: `attendance:read`. Semua siswa aktif di tahun ajaran aktif (bisa disaring per kelas) dengan status, jam masuk, dan jam pulang; `status` null berarti belum ada catatan. `summary` menghitung per status.
+         */
+        get: {
+            parameters: {
+                query: {
+                    date: string;
+                    classId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            closed: {
+                                /** @enum {string} */
+                                type: "holiday" | "break";
+                                title: string;
+                            } | null;
+                            summary: {
+                                total: number;
+                                present: number;
+                                late: number;
+                                excused: number;
+                                sick: number;
+                                absent: number;
+                                notYet: number;
+                            };
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                className: string;
+                                /** @enum {string|null} */
+                                status: "present" | "late" | "excused" | "sick" | "absent" | null;
+                                checkInAt: string | null;
+                                checkOutAt: string | null;
+                                note: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/duty-roster": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Jadwal guru piket
+         * @description Izin: `attendance:read`. Guru yang bertugas per tanggal dalam rentang (maksimal 93 hari).
+         */
+        get: {
+            parameters: {
+                query: {
+                    from: string;
+                    to: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            /** Format: uuid */
+                            teacherId: string;
+                            teacherName: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Tetapkan guru piket satu tanggal
+         * @description Izin: `attendance:configure`. Mengganti seluruh petugas pada tanggal itu; daftar kosong mengosongkannya.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        date: string;
+                        teacherIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/duty-roster/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Apakah saya piket hari ini
+         * @description Izin: `attendance:read`. `canCover` benar bila pengguna piket hari ini atau punya `attendance:configure`; itulah yang membuka absensi gerbang manual dan penggantian absensi kelas.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            onDuty: boolean;
+                            canCover: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/lessons": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Jam pelajaran pada satu tanggal
+         * @description Izin: `attendance:read`; modul `attendance`. Sel jadwal pada hari itu di tahun ajaran aktif, dengan jumlah siswa yang sudah diabsen. Guru biasa melihat jam miliknya; pengurus dan guru piket (hari ini) melihat semua sehingga bisa menggantikan. `mine` menandai jam milik pengguna.
+         */
+        get: {
+            parameters: {
+                query: {
+                    date: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            closed: {
+                                /** @enum {string} */
+                                type: "holiday" | "break";
+                                title: string;
+                            } | null;
+                            canCover: boolean;
+                            lessons: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                                subjectName: string;
+                                teacherName: string;
+                                periodNumber: number;
+                                startsAt: string;
+                                endsAt: string;
+                                mine: boolean;
+                                total: number;
+                                filled: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/lesson-attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lembar absensi satu jam pelajaran
+         * @description Izin: `attendance:read`; modul `attendance`. Siswa kelas itu dengan status jam ini dan status gerbang (`gate`, null bila belum tap), sehingga yang hadir di gerbang tetapi tidak di kelas terlihat. `canRecord` menyatakan apakah pengguna boleh mengisi; `substitute` bila pengisiannya menggantikan guru jadwal.
+         */
+        get: {
+            parameters: {
+                query: {
+                    scheduleEntryId: string;
+                    date: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            canRecord: boolean;
+                            substitute: boolean;
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** @enum {string|null} */
+                                status: "present" | "excused" | "sick" | "absent" | null;
+                                note: string | null;
+                                /** @enum {string|null} */
+                                gate: "present" | "late" | "excused" | "sick" | "absent" | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan absensi satu jam pelajaran
+         * @description Izin: `attendance:read` ditambah salah satu: guru yang tertulis di jadwal itu, guru piket hari ini (menggantikan, ditandai `substitute`), atau `attendance:configure`; selain itu 403 `not_your_lesson`. Tanggal harus hari yang sama dengan hari jadwal (400 `invalid_date`), tidak boleh belum tiba (409 `future_date`) atau libur/jeda (409 `school_closed`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        scheduleEntryId: string;
+                        /** Format: date */
+                        date: string;
+                        records: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** @enum {string} */
+                            status: "present" | "excused" | "sick" | "absent";
+                            /** @default null */
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                            substitute: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;

@@ -20,6 +20,7 @@ export const PERMISSIONS = [
   'schedule:manage',
   'attendance:read',
   'attendance:manage',
+  'attendance:configure',
   'audit:read',
 ] as const;
 
@@ -86,6 +87,7 @@ export const SYSTEM_ROLES = {
       'schedule:manage',
       'attendance:read',
       'attendance:manage',
+      'attendance:configure',
     ],
   },
   teacher: {

@@ -763,3 +763,159 @@ export const classAttendance = pgTable(
     index('class_attendance_class_date_idx').on(t.classId, t.date),
   ],
 );
+
+/* ---------- Absensi gerbang (RFID, QR, manual), piket, dan absensi per jam pelajaran ---------- */
+
+/** Kebijakan absensi gerbang, satu baris per sekolah. Jam dalam zona waktu sekolah (Asia/Jakarta), format HH:MM. */
+export const attendancePolicy = pgTable('attendance_policy', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  /** Tap masuk setelah jam ini dihitung terlambat. */
+  lateAfter: text('late_after').notNull().default('07:15'),
+  /** Tap sejak jam ini dihitung pulang; sebelumnya dihitung masuk. */
+  departureFrom: text('departure_from').notNull().default('12:00'),
+  /** Tap kedua dari siswa yang sama dalam rentang ini diabaikan. */
+  debounceSeconds: integer('debounce_seconds').notNull().default(30),
+  /** Metode yang diizinkan: rfid, qr, manual. */
+  methods: jsonb('methods').$type<string[]>().notNull().default(['rfid', 'qr', 'manual']),
+  /** Kirim laporan ke wali (diwujudkan oleh pengirim pesan; di sini hanya pengaturannya). */
+  notifyParents: boolean('notify_parents').notNull().default(false),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Perangkat kiosk. Kunci API hanya tampil sekali saat dibuat; yang disimpan hanya hash-nya. */
+export const attendanceDevice = pgTable(
+  'attendance_device',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    keyHash: text('key_hash').notNull(),
+    keyPrefix: text('key_prefix').notNull(),
+    active: boolean('active').notNull().default(true),
+    lastSeenAt: timestamp('last_seen_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('attendance_device_key_uq').on(t.keyHash)],
+);
+
+/** Kartu siswa: RFID (UID kartu) atau QR (token acak). Satu siswa boleh punya beberapa kartu. */
+export const attendanceCard = pgTable(
+  'attendance_card',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    kind: text('kind', { enum: ['rfid', 'qr'] }).notNull(),
+    code: text('code').notNull(),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('attendance_card_code_uq').on(t.schoolId, t.code),
+    index('attendance_card_student_idx').on(t.studentId),
+  ],
+);
+
+/** Catatan tap gerbang. Tidak boleh diubah atau dihapus (dijaga trigger); koreksi lewat absensi harian. */
+export const tapEvent = pgTable(
+  'tap_event',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    direction: text('direction', { enum: ['in', 'out'] }).notNull(),
+    source: text('source', { enum: ['rfid', 'qr', 'manual'] }).notNull(),
+    at: timestamp('at', { withTimezone: true }).notNull(),
+    deviceId: uuid('device_id').references(() => attendanceDevice.id),
+    /** Pengguna yang mencatat (manual atau QR dari ponsel guru). */
+    recordedBy: text('recorded_by'),
+    /** Id dari perangkat untuk mencegah dobel saat tap offline dikirim ulang. */
+    clientId: text('client_id'),
+  },
+  (t) => [
+    unique('tap_event_client_uq').on(t.schoolId, t.clientId),
+    index('tap_event_student_at_idx').on(t.studentId, t.at),
+  ],
+);
+
+/** Hasil absensi gerbang per siswa per tanggal, dihitung dari tap atau diisi manual oleh piket. */
+export const dailyAttendance = pgTable(
+  'daily_attendance',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    date: date('date').notNull(),
+    checkInAt: timestamp('check_in_at', { withTimezone: true }),
+    checkOutAt: timestamp('check_out_at', { withTimezone: true }),
+    status: text('status', { enum: ['present', 'late', 'excused', 'sick', 'absent'] }).notNull(),
+    note: text('note'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('daily_attendance_student_date_uq').on(t.studentId, t.date),
+    index('daily_attendance_school_date_idx').on(t.schoolId, t.date),
+  ],
+);
+
+/** Jadwal guru piket: siapa bertugas pada tanggal berapa. */
+export const dutyRoster = pgTable(
+  'duty_roster',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    date: date('date').notNull(),
+    teacherId: uuid('teacher_id')
+      .notNull()
+      .references(() => teacher.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.date, t.teacherId] }),
+    index('duty_roster_school_date_idx').on(t.schoolId, t.date),
+  ],
+);
+
+/** Absensi per jam pelajaran (satu sel jadwal pada satu tanggal). `substitute` = diisi bukan oleh guru jadwalnya. */
+export const lessonAttendance = pgTable(
+  'lesson_attendance',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    scheduleEntryId: uuid('schedule_entry_id')
+      .notNull()
+      .references(() => scheduleEntry.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    date: date('date').notNull(),
+    status: text('status', { enum: ['present', 'excused', 'sick', 'absent'] }).notNull(),
+    note: text('note'),
+    recordedBy: text('recorded_by').notNull(),
+    substitute: boolean('substitute').notNull().default(false),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('lesson_attendance_uq').on(t.scheduleEntryId, t.studentId, t.date),
+    index('lesson_attendance_school_date_idx').on(t.schoolId, t.date),
+  ],
+);
