@@ -167,13 +167,13 @@ Lihat `README.md`. Konfigurasi penting di `.env`: `DATABASE_*_URL` (owner/app/pl
 | M0 | Fondasi: monorepo, RLS, yayasan dan unit, login, peran rangkap, audit, antrean, tampilan, 3 bahasa | **Selesai** |
 | M1 | Pendaftaran dan langganan, konsol staf, subdomain sekolah, sesi per alamat | **Selesai** (mode simulasi; Midtrans sandbox belum diuji akun sungguhan) |
 | M2 | Master data, kalender, bank data kurikulum, jurusan, siklus hidup siswa, impor Excel | **Tahap 1 selesai:** jurusan, kelas, mapel, guru, siswa + penempatan kelas, penugasan guru, tahun ajaran aktif (CRUD, API + layar). Tahap 2: impor Excel (500 siswa dengan laporan error per baris), kalender akademik, bank data kurikulum, wali, guru lintas unit |
-| M3 | Jadwal, absensi (kiosk RFID), ekskul, WhatsApp | 1000 tap/menit tanpa duplikat; hitung ulang kebijakan benar |
-| M4 | Nilai dan penilaian | Rapor satu kelas dibuat sebagai job |
+| M3 | Jadwal, absensi (kiosk RFID), ekskul, WhatsApp | **Selesai:** jadwal, absensi gerbang (kiosk RFID, piket), absensi per jam, ekskul, notifikasi WhatsApp (adaptor whatsapp-web.js belum diuji dengan nomor sungguhan; beban 1000 tap/menit belum diuji) |
+| M4 | Nilai dan penilaian | **Selesai:** komponen nilai berbobot, penilaian per mapel, input nilai, rekap, rapor (wali kelas, finalisasi snapshot, PDF, leger). Rapor satu kelas dibuat di browser, bukan job; PDF belum dilihat langsung |
 | M5 | Tahfidz dan ibadah | Musyrif mencatat satu halaqah; wali melihat progres |
 | M6 | Administrasi | Surat bertanda tangan QR diverifikasi publik; surat dicabut terlihat |
 | M7 | PKL dan prakerin | Satu siswa melewati penempatan, jurnal, penilaian, sertifikat |
 | M8 | SPMB | Pendaftar diterima otomatis menjadi siswa |
-| M9 | SPP dan tagihan | Satu unit gratis dan satu unit dengan cicilan + beasiswa dari konfigurasi yang sama |
+| M9 | SPP dan tagihan | **Dasar selesai:** jenis biaya, tarif per tingkat, tagihan massal, kasir, kwitansi, laporan tunggakan dan kas harian. Belum: cicilan terjadwal, beasiswa, pembayaran online wali |
 | M10 | Website, pengumuman, domain sendiri (situs publik + SPMB) | Lighthouse ≥ 90; satu unit tampil di domain luar dengan HTTPS otomatis |
 | M11 | Portal wali/siswa, dashboard kepala sekolah dan yayasan | Wali melihat absensi, nilai, tahfidz, tagihan anaknya |
 | M12 | Rilis: uji beban, tinjauan keamanan, latihan pemulihan, produksi | Daftar periksa rilis lengkap |
@@ -220,3 +220,25 @@ Pilot Miftahul Huda (SMP IT + SMK, ±15 guru, sebagian lintas unit) masuk akal s
 - **Jadwal:** `lesson_period` (jam ke-N dan rentang waktunya, tanpa tumpang tindih, bisa dibuat otomatis), `schedule_entry` (kelas + hari + jam = mapel). Gurunya selalu guru pengampu dari penugasan di halaman Kelas. Bentrok dicegah dua kali: pemeriksaan di API (pesan menyebut kelas yang bentrok) dan batasan unik di database (kelas per jam, guru per jam per tahun ajaran). Tampilan per kelas (bisa diisi) dan per guru (baca).
 - **Absensi harian:** `class_attendance` (satu baris per siswa per tanggal: hadir/izin/sakit/alpa). Hari libur/jeda sekolah dari kalender akademik tidak bisa diisi, tanggal yang belum tiba ditolak (zona Asia/Jakarta), dan siswa harus anggota kelas. Rekap per kelas dalam rentang tanggal.
 - **Belum:** pembatasan guru hanya ke kelas yang ia ampu (saat ini semua pemegang `attendance:manage` bisa mengisi kelas mana pun), absensi per sesi/jam pelajaran, kiosk RFID (kartu, perangkat, tap mentah, kebijakan jam), notifikasi WhatsApp ke wali, ekskul, laporan PDF/Excel.
+
+### Catatan M3 lanjutan (absensi gerbang, ekskul, WhatsApp)
+- **Absensi gerbang hanya tap kartu RFID.** Perangkat kiosk (tablet/PC layar penuh di `/kiosk`) memakai kunci API sendiri (hash disimpan, tampil sekali); pembaca USB bekerja seperti papan ketik. `tap_event` tidak bisa diubah/dihapus oleh peran aplikasi (trigger). Arah masuk/pulang ditentukan jam tap terhadap kebijakan sekolah; tap ganda dalam jeda diabaikan; tap offline dikirim ulang dengan `clientId` sehingga tidak ganda. QR dan absen gerbang manual sempat dibuat lalu dicopot atas keputusan produk.
+- **Pendaftaran kartu cepat:** tap berurutan per kelas dan impor Excel (NIS + kode kartu, hasil sebagian per baris).
+- **Guru piket:** jadwal piket per tanggal; piket (dan pemegang `attendance:configure`) dapat menggantikan guru yang berhalangan mengisi absensi per jam, ditandai `substitute`. Guru biasa hanya mengisi jam yang ia ampu.
+- **Absensi per jam** (`lesson_attendance`) menggantikan absensi harian kelas lama; rekap menggabungkan gerbang + jam dan menghitung "bolos kelas" (hadir di gerbang, alpa di jam).
+- **Ekskul:** anggota per tahun ajaran, pertemuan + absensi, penilaian predikat A–D per semester (dipakai rapor); pembina boleh mengelola ekskulnya sendiri.
+- **WhatsApp:** inti di `packages/db/src/messaging.ts` (`enqueueMessagesSafe` dalam savepoint, tidak pernah menggagalkan transaksi utama; dedupe per peristiwa dan nomor), pengirim di worker (satu sesi per sekolah, jendela waktu, jeda acak, backoff, klaim atomik), penjadwal pengingat belum tiba dan tunggakan. Mode `MESSAGING_PROVIDER=log` untuk uji tanpa WhatsApp. Pengiriman nyata butuh `WA_CHROME_PATH`. Risiko: pustaka tidak resmi, nomor dapat diblokir; sediakan jalur WhatsApp Business API resmi bila sekolah menuntut.
+
+### Catatan M4 (penilaian dan rapor)
+- **Nilai akhir** = rata-rata tertimbang komponen yang punya skor (bobot dinormalisasi atas komponen yang terisi); predikat dari ambang A/B/C per sekolah; KKM per sekolah. Logika murni di `packages/contracts/src/grading.ts` dan diuji.
+- Guru hanya menilai pasangan kelas+mapel yang ia ampu (`teaching_assignment`); pemegang `grade:configure`, kepala sekolah, dan kurikulum melihat semua.
+- **Rapor:** wali kelas per kelas; catatan wali; dokumen dihitung langsung saat draf dan dibekukan sebagai snapshot saat final (nilai yang diubah kemudian tidak mengubah rapor final); buka kembali hanya oleh pengelola. PDF dan leger Excel dibuat di browser.
+
+### Catatan M5 (keuangan sekolah)
+- Tabel `fin_*` (terpisah dari tagihan langganan platform). Uang bilangan bulat rupiah. Status bayar tidak disimpan, dihitung dari kwitansi aktif. Pembayaran mengunci baris tagihan (`FOR UPDATE`) dan nomor kwitansi atomik per sekolah per tahun (`KWT-YYYY-NNNNNN`), jadi tidak ada ganda atau bolong walau konkuren. Pembatalan kwitansi memulihkan sisa.
+- Bendahara mendapat izin penuh keuangan; kepala sekolah dan operator hanya baca.
+
+### Belum dan perlu keputusan/akun
+- Midtrans sandbox sungguhan, SMTP sungguhan, verifikasi dua langkah staf, E2E Playwright, hosting produksi.
+- Tiga PDF (rapor, kwitansi, tunggakan) belum pernah dilihat langsung: unduh dan periksa sebelum dipakai.
+- Wali lintas unit, libur nasional otomatis, portal wali/siswa (M11), modul M5–M8, M10 pada tabel di atas.

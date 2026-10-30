@@ -76,7 +76,7 @@ Mengosongkan database sama sekali: `docker compose down -v`, lalu ulangi langkah
 
 - `apps/api` Fastify + Zod. OpenAPI dibuat otomatis dari skema route.
 - `apps/web` Next.js, Tailwind, shadcn/ui, tiga bahasa (id, en, su).
-- `apps/worker` pekerja latar belakang (pg-boss): email, outbox, siklus penagihan.
+- `apps/worker` pekerja latar belakang (pg-boss): email, outbox, siklus penagihan, pengirim pesan WhatsApp.
 - `packages/db` skema Drizzle, migrasi, kebijakan RLS.
 - `packages/contracts` katalog izin, katalog harga, aturan bersama.
 - `packages/billing` pendaftaran, pembayaran, langganan, konsol staf.
@@ -89,3 +89,9 @@ Request tenant memakai peran `edusync_app` (tunduk pada RLS) dan `withTenant(db,
 ## Pembayaran
 
 Bawaan: penyedia `dev` (tanpa uang, hanya lokal). Midtrans sandbox: isi `PAYMENT_PROVIDER=midtrans` dan `MIDTRANS_SERVER_KEY` di `.env`. Jangan pernah meng-commit kunci tersebut.
+
+## Modul dan layar penting
+
+- **Kiosk absensi:** buka `/kiosk` di tablet/PC gerbang, tempel kunci perangkat dari Pengaturan absensi › Perangkat. Pembaca RFID USB cukup dicolok.
+- **WhatsApp:** jalankan worker dengan `MESSAGING_PROVIDER=log` (bawaan di dev) untuk uji tanpa mengirim. Untuk kirim sungguhan: `MESSAGING_PROVIDER=whatsapp`, `WA_CHROME_PATH` (jalur Chrome/Chromium), lalu hubungkan nomor lewat halaman Notifikasi WhatsApp (pindai QR). Gunakan nomor khusus sekolah.
+- **Seed contoh:** `pnpm --filter @edusync/api seed:dev` memberi sekolah contoh semua modul, jenis biaya dan tarif, serta pengaturan rapor.
