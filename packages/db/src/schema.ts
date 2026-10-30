@@ -738,7 +738,7 @@ export const scheduleEntry = pgTable(
   ],
 );
 
-/* ---------- Absensi gerbang (RFID, QR, manual), piket, dan absensi per jam pelajaran ---------- */
+/* ---------- Absensi gerbang (tap kartu RFID), piket, dan absensi per jam pelajaran ---------- */
 
 /** Kebijakan absensi gerbang, satu baris per sekolah. Jam dalam zona waktu sekolah (Asia/Jakarta), format HH:MM. */
 export const attendancePolicy = pgTable('attendance_policy', {
@@ -751,8 +751,6 @@ export const attendancePolicy = pgTable('attendance_policy', {
   departureFrom: text('departure_from').notNull().default('12:00'),
   /** Tap kedua dari siswa yang sama dalam rentang ini diabaikan. */
   debounceSeconds: integer('debounce_seconds').notNull().default(30),
-  /** Metode yang diizinkan: rfid, qr, manual. */
-  methods: jsonb('methods').$type<string[]>().notNull().default(['rfid', 'qr', 'manual']),
   /** Kirim laporan ke wali (diwujudkan oleh pengirim pesan; di sini hanya pengaturannya). */
   notifyParents: boolean('notify_parents').notNull().default(false),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -776,7 +774,7 @@ export const attendanceDevice = pgTable(
   (t) => [unique('attendance_device_key_uq').on(t.keyHash)],
 );
 
-/** Kartu siswa: RFID (UID kartu) atau QR (token acak). Satu siswa boleh punya beberapa kartu. */
+/** Kartu RFID siswa (UID kartu). Satu siswa boleh punya beberapa kartu. */
 export const attendanceCard = pgTable(
   'attendance_card',
   {
@@ -787,7 +785,7 @@ export const attendanceCard = pgTable(
     studentId: uuid('student_id')
       .notNull()
       .references(() => student.id),
-    kind: text('kind', { enum: ['rfid', 'qr'] }).notNull(),
+    kind: text('kind', { enum: ['rfid'] }).notNull(),
     code: text('code').notNull(),
     active: boolean('active').notNull().default(true),
     createdAt: createdAt(),
@@ -813,7 +811,7 @@ export const tapEvent = pgTable(
     source: text('source', { enum: ['rfid', 'qr', 'manual'] }).notNull(),
     at: timestamp('at', { withTimezone: true }).notNull(),
     deviceId: uuid('device_id').references(() => attendanceDevice.id),
-    /** Pengguna yang mencatat (manual atau QR dari ponsel guru). */
+    /** Pengguna yang mencatat (baris lama dari absensi manual); tap kiosk kosong. */
     recordedBy: text('recorded_by'),
     /** Id dari perangkat untuk mencegah dobel saat tap offline dikirim ulang. */
     clientId: text('client_id'),

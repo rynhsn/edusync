@@ -27,10 +27,10 @@ import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { closureOn } from '../attendance-lib';
-import { isOnDuty, jakarta, loadPolicy, METHODS, recordTap, requireDuty } from '../gate';
+import { isOnDuty, jakarta, loadPolicy, recordTap } from '../gate';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
-import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
+import { audit, conflictAs409, guarded, idParams, isUniqueViolation, ok, schoolHeader } from './helpers';
 
 const tag = ['Gate attendance'];
 const time = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, 'Format jam HH:MM');
@@ -45,7 +45,6 @@ const policySchema = z.object({
   lateAfter: time,
   departureFrom: time,
   debounceSeconds: z.number().int().min(0).max(600),
-  methods: z.array(z.enum(METHODS)).min(1),
   notifyParents: z.boolean(),
 });
 
@@ -111,8 +110,8 @@ function tapTime(at: string | undefined) {
 }
 
 /**
- * Absensi gerbang: kebijakan jam, perangkat kiosk, kartu (RFID/QR), tap, absensi manual oleh guru piket, jadwal
- * piket, dan absensi harian. Modul `attendance`.
+ * Absensi gerbang: kebijakan jam, perangkat kiosk, kartu RFID, tap kartu di kiosk, jadwal piket, dan absensi
+ * harian. Modul `attendance`.
  */
 export async function gateRoutes(instance: FastifyInstance) {
   const app = instance.withTypeProvider<ZodTypeProvider>();
@@ -133,7 +132,7 @@ export async function gateRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Kebijakan absensi gerbang',
         description:
-          'Izin: `attendance:read`. Jam terlambat, jam mulai pulang, jeda tap ganda, metode yang diizinkan. ' +
+          'Izin: `attendance:read`. Jam terlambat, jam mulai pulang, jeda tap ganda, dan pengaturan notifikasi wali. ' +
           'Bila sekolah belum menyimpannya, nilai bawaan dikembalikan.',
         headers: schoolHeader,
         response: { 200: policySchema, ...guarded },
@@ -355,7 +354,7 @@ export async function gateRoutes(instance: FastifyInstance) {
     id: z.uuid(),
     studentId: z.uuid(),
     studentName: z.string(),
-    kind: z.enum(['rfid', 'qr']),
+    kind: z.literal('rfid'),
     code: z.string(),
     active: z.boolean(),
   });
@@ -366,7 +365,7 @@ export async function gateRoutes(instance: FastifyInstance) {
       onRequest: gate('attendance:configure'),
       schema: {
         tags: tag,
-        summary: 'Daftar kartu RFID/QR',
+        summary: 'Daftar kartu RFID',
         description: 'Izin: `attendance:configure`. Bisa disaring per siswa.',
         headers: schoolHeader,
         querystring: z.object({ studentId: z.uuid().optional() }),
@@ -400,16 +399,18 @@ export async function gateRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Daftarkan kartu siswa',
         description:
-          'Izin: `attendance:configure`. Kartu `rfid` wajib membawa `code` (UID kartu dari pembaca). Kartu `qr` dibuatkan ' +
-          'token acak. Kode yang sama tidak boleh dipakai dua siswa (409 `conflict`).',
+          'Izin: `attendance:configure`. Mendaftarkan kartu RFID; `code` adalah UID kartu dari pembaca (disimpan huruf ' +
+          'besar). Kode yang sama tidak boleh dipakai dua siswa (409 `conflict`). Untuk banyak kartu sekaligus ' +
+          'gunakan `/v1/attendance/cards/bulk`.',
         headers: schoolHeader,
-        body: z.object({
-          studentId: z.uuid(),
-          kind: z.enum(['rfid', 'qr']),
-          code: z.string().trim().min(4).max(64).optional(),
-        }),
+        body: z
+          .object({
+            studentId: z.uuid(),
+            code: z.string().trim().min(4).max(64),
+          })
+          .strict(),
         response: {
-          201: z.object({ id: z.uuid(), kind: z.enum(['rfid', 'qr']), code: z.string() }),
+          201: z.object({ id: z.uuid(), code: z.string() }),
           400: errorSchema,
           409: errorSchema,
           ...guarded,
@@ -418,27 +419,134 @@ export async function gateRoutes(instance: FastifyInstance) {
     },
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
-      const { studentId, kind } = request.body;
-      if (kind === 'rfid' && !request.body.code) {
-        throw new HttpError(400, 'code_required', 'Kartu RFID butuh kode kartu.');
-      }
-      const code =
-        kind === 'qr'
-          ? `esq_${randomBytes(18).toString('base64url')}`
-          : (request.body.code as string).toUpperCase();
+      const { studentId } = request.body;
+      const code = request.body.code.toUpperCase();
       const row = await conflictAs409('Kode kartu ini sudah dipakai.', () =>
         tenant(request, async (tx) => {
           const [s] = await tx.select({ id: student.id }).from(student).where(eq(student.id, studentId));
           if (!s) throw new HttpError(400, 'invalid_reference', 'Siswa tidak ditemukan.');
           const [c] = await tx
             .insert(attendanceCard)
-            .values({ schoolId: ctx.schoolId, studentId, kind, code })
+            .values({ schoolId: ctx.schoolId, studentId, kind: 'rfid', code })
             .returning({ id: attendanceCard.id });
-          await audit(tx, ctx, 'attendance.card.create', 'student', studentId, { kind });
+          await audit(tx, ctx, 'attendance.card.create', 'student', studentId, { kind: 'rfid' });
           return c as { id: string };
         }),
       );
-      return reply.code(201).send({ id: row.id, kind, code });
+      return reply.code(201).send({ id: row.id, code });
+    },
+  );
+
+  const bulkReason = z.enum(['student_not_found', 'code_taken', 'student_has_card', 'invalid_code']);
+
+  app.post(
+    '/v1/attendance/cards/bulk',
+    {
+      onRequest: gate('attendance:configure'),
+      schema: {
+        tags: tag,
+        summary: 'Daftarkan kartu RFID siswa secara massal',
+        description:
+          'Izin: `attendance:configure`. Maksimal 500 baris `{nis, code}`; siswa dicari lewat NIS di sekolah ini ' +
+          'dan harus aktif. Hasilnya sebagian: tiap baris diproses sendiri, baris yang gagal tidak membatalkan ' +
+          'baris lain. `created` adalah jumlah kartu yang terdaftar; `failed` memuat `row` (indeks 1-based pada ' +
+          '`items`), `nis`, `code` (sudah huruf besar), dan `reason`: `student_not_found` (NIS tidak ada atau siswa ' +
+          'tidak aktif), `code_taken` (kode sudah dipakai kartu lain atau muncul lebih dulu dalam batch yang sama), ' +
+          '`student_has_card` (siswa sudah punya kartu RFID aktif), `invalid_code` (kode kurang dari 4 karakter ' +
+          'atau mengandung spasi). Satu entri audit ringkas dicatat. Kode disimpan huruf besar.',
+        headers: schoolHeader,
+        body: z.object({
+          items: z
+            .array(
+              z.object({
+                nis: z.string().trim().min(1).max(40),
+                code: z.string().trim().min(1).max(64),
+              }),
+            )
+            .min(1)
+            .max(500),
+        }),
+        response: {
+          200: z.object({
+            created: z.number().int(),
+            failed: z.array(
+              z.object({ row: z.number().int(), nis: z.string(), code: z.string(), reason: bulkReason }),
+            ),
+          }),
+          400: errorSchema,
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const { items } = request.body;
+      return tenant(request, async (tx) => {
+        const failed: { row: number; nis: string; code: string; reason: z.infer<typeof bulkReason> }[] = [];
+        let created = 0;
+        for (const [i, item] of items.entries()) {
+          const row = i + 1;
+          const code = item.code.toUpperCase();
+          const fail = (reason: z.infer<typeof bulkReason>) =>
+            failed.push({ row, nis: item.nis, code, reason });
+          if (code.length < 4 || /\s/.test(code)) {
+            fail('invalid_code');
+            continue;
+          }
+          const [stu] = await tx
+            .select({ id: student.id })
+            .from(student)
+            .where(and(eq(student.nis, item.nis), eq(student.status, 'active'), isNull(student.deletedAt)))
+            .limit(1);
+          if (!stu) {
+            fail('student_not_found');
+            continue;
+          }
+          // Kode yang sudah masuk dari baris sebelumnya dalam batch ini ikut terbaca di sini (transaksi sama).
+          const [taken] = await tx
+            .select({ id: attendanceCard.id })
+            .from(attendanceCard)
+            .where(eq(attendanceCard.code, code))
+            .limit(1);
+          if (taken) {
+            fail('code_taken');
+            continue;
+          }
+          const [has] = await tx
+            .select({ id: attendanceCard.id })
+            .from(attendanceCard)
+            .where(
+              and(
+                eq(attendanceCard.studentId, stu.id),
+                eq(attendanceCard.kind, 'rfid'),
+                eq(attendanceCard.active, true),
+              ),
+            )
+            .limit(1);
+          if (has) {
+            fail('student_has_card');
+            continue;
+          }
+          try {
+            // Savepoint: pelanggaran unique (balapan dengan pendaftaran lain) hanya membatalkan baris ini.
+            await tx.transaction((sp) =>
+              sp
+                .insert(attendanceCard)
+                .values({ schoolId: ctx.schoolId, studentId: stu.id, kind: 'rfid', code }),
+            );
+          } catch (error) {
+            if (!isUniqueViolation(error)) throw error;
+            fail('code_taken');
+            continue;
+          }
+          created++;
+        }
+        await audit(tx, ctx, 'attendance.card.bulk', 'school', ctx.schoolId, {
+          created,
+          failed: failed.length,
+        });
+        return { created, failed };
+      });
     },
   );
 
@@ -481,14 +589,13 @@ export async function gateRoutes(instance: FastifyInstance) {
         tags: ['Kiosk'],
         summary: 'Info untuk layar kiosk',
         description:
-          'Autentikasi: header `x-device-key`. Nama sekolah dan perangkat, metode yang aktif, dan jam server ' +
+          'Autentikasi: header `x-device-key`. Nama sekolah dan perangkat, dan jam server ' +
           '(untuk mendeteksi jam perangkat yang melenceng).',
         headers: deviceHeader,
         response: {
           200: z.object({
             school: z.string(),
             device: z.string(),
-            methods: z.array(z.string()),
             serverTime: z.string(),
           }),
           401: errorSchema,
@@ -504,11 +611,9 @@ export async function gateRoutes(instance: FastifyInstance) {
           .update(attendanceDevice)
           .set({ lastSeenAt: new Date() })
           .where(eq(attendanceDevice.id, d.id));
-        const policy = await loadPolicy(tx);
         return {
           school: s?.name ?? '',
           device: d.name,
-          methods: policy.methods,
           serverTime: new Date().toISOString(),
         };
       });
@@ -523,7 +628,7 @@ export async function gateRoutes(instance: FastifyInstance) {
         tags: ['Kiosk'],
         summary: 'Catat tap kartu',
         description:
-          'Autentikasi: header `x-device-key`. `code` adalah UID kartu RFID atau isi QR. Arah masuk/pulang ditentukan ' +
+          'Autentikasi: header `x-device-key`. `code` adalah UID kartu RFID (huruf besar/kecil sama). Arah masuk/pulang ditentukan ' +
           'dari jam tap terhadap kebijakan. `result`: `in`, `out`, `already_in` (sudah tap masuk), `duplicate` (tap ' +
           'berulang dalam jeda), `replayed` (clientId sudah pernah diterima). Tap offline dikirim ulang dengan `at` ' +
           'asli dan `clientId` tetap (maksimal 48 jam ke belakang). Kartu tak dikenal: 404 `unknown_card`.',
@@ -553,13 +658,7 @@ export async function gateRoutes(instance: FastifyInstance) {
           .where(
             and(eq(attendanceCard.code, request.body.code.toUpperCase()), eq(attendanceCard.active, true)),
           );
-        const [qr] = card
-          ? []
-          : await tx
-              .select()
-              .from(attendanceCard)
-              .where(and(eq(attendanceCard.code, request.body.code), eq(attendanceCard.active, true)));
-        const found = card ?? qr;
+        const found = card;
         if (!found) throw new HttpError(404, 'unknown_card', 'Kartu tidak dikenal.');
         await tx
           .update(attendanceDevice)
@@ -570,7 +669,6 @@ export async function gateRoutes(instance: FastifyInstance) {
           { schoolId },
           {
             studentId: found.studentId,
-            source: found.kind,
             at,
             deviceId: d.id,
             ...(request.body.clientId ? { clientId: request.body.clientId } : {}),
@@ -581,107 +679,7 @@ export async function gateRoutes(instance: FastifyInstance) {
     },
   );
 
-  /* ---------- Gerbang oleh staf (guru piket / pengurus) ---------- */
-
-  app.post(
-    '/v1/gate/scan',
-    {
-      onRequest: gate('attendance:read'),
-      schema: {
-        tags: tag,
-        summary: 'Pindai kartu dari ponsel guru piket',
-        description:
-          'Izin: `attendance:read`, dan pengguna harus guru piket hari ini atau punya `attendance:configure` ' +
-          '(403 `not_on_duty`). Hasilnya sama dengan tap kiosk; sumbernya tetap jenis kartunya.',
-        headers: schoolHeader,
-        body: z.object({ code: z.string().trim().min(1).max(128) }),
-        response: { 200: tapResponse, 404: errorSchema, 409: errorSchema, ...guarded },
-      },
-    },
-    async (request) => {
-      const ctx = request.ctx as TenantContext;
-      const at = new Date();
-      return tenant(request, async (tx) => {
-        await requireDuty(tx, ctx, jakarta(at).date);
-        const wanted = [request.body.code, request.body.code.toUpperCase()];
-        const [found] = await tx
-          .select()
-          .from(attendanceCard)
-          .where(and(inArray(attendanceCard.code, wanted), eq(attendanceCard.active, true)));
-        if (!found) throw new HttpError(404, 'unknown_card', 'Kartu tidak dikenal.');
-        return recordTap(
-          tx,
-          ctx,
-          { studentId: found.studentId, source: found.kind, at, recordedBy: ctx.userId },
-          await loadPolicy(tx),
-        );
-      });
-    },
-  );
-
-  app.post(
-    '/v1/gate/manual',
-    {
-      onRequest: gate('attendance:read'),
-      schema: {
-        tags: tag,
-        summary: 'Absensi gerbang manual oleh guru piket',
-        description:
-          'Izin: `attendance:read`, dan pengguna harus guru piket hari ini atau punya `attendance:configure`. ' +
-          '`kind` `in`/`out` mencatat tap dengan sumber manual; `excused`, `sick`, `absent` mengisi status harian ' +
-          'tanpa tap. Hanya untuk hari ini.',
-        headers: schoolHeader,
-        body: z.object({
-          studentId: z.uuid(),
-          kind: z.enum(['in', 'out', 'excused', 'sick', 'absent']),
-          note: z.string().trim().max(200).nullable().default(null),
-        }),
-        response: {
-          200: tapResponse.or(z.object({ result: z.literal('marked'), status: statusEnum })),
-
-          404: errorSchema,
-          409: errorSchema,
-          ...guarded,
-        },
-      },
-    },
-    async (request) => {
-      const ctx = request.ctx as TenantContext;
-      const { studentId, kind, note } = request.body;
-      const at = new Date();
-      const { date } = jakarta(at);
-      return tenant(request, async (tx) => {
-        await requireDuty(tx, ctx, date);
-        const policy = await loadPolicy(tx);
-        if (kind === 'in' || kind === 'out') {
-          const res = await recordTap(
-            tx,
-            ctx,
-            { studentId, source: 'manual', at, direction: kind, recordedBy: ctx.userId },
-            policy,
-          );
-          await audit(tx, ctx, 'gate.manual', 'student', studentId, { kind, result: res.result });
-          return res;
-        }
-        if (!policy.methods.includes('manual')) {
-          throw new HttpError(409, 'method_disabled', 'Metode absensi ini dinonaktifkan oleh sekolah.');
-        }
-        const closed = await closureOn(tx, date);
-        if (closed) throw new HttpError(409, 'school_closed', `Tanggal itu ${closed.title}.`);
-        const [s] = await tx.select({ id: student.id }).from(student).where(eq(student.id, studentId));
-        if (!s) throw new HttpError(404, 'not_found', 'Siswa tidak ditemukan.');
-        await tx
-          .insert(dailyAttendance)
-          .values({ schoolId: ctx.schoolId, studentId, date, status: kind, note })
-          .onConflictDoUpdate({
-            target: [dailyAttendance.studentId, dailyAttendance.date],
-            set: { status: kind, note, updatedAt: new Date() },
-          });
-        await audit(tx, ctx, 'gate.manual', 'student', studentId, { kind });
-        return { result: 'marked' as const, status: kind };
-      });
-    },
-  );
+  /* ---------- Absensi harian ---------- */
 
   app.get(
     '/v1/gate/daily',
@@ -868,7 +866,7 @@ export async function gateRoutes(instance: FastifyInstance) {
         summary: 'Apakah saya piket hari ini',
         description:
           'Izin: `attendance:read`. `canCover` benar bila pengguna piket hari ini atau punya `attendance:configure`; ' +
-          'itulah yang membuka absensi gerbang manual dan penggantian absensi kelas.',
+          'itulah yang membuka penggantian absensi per jam pelajaran.',
         headers: schoolHeader,
         response: {
           200: z.object({ date: z.string(), onDuty: z.boolean(), canCover: z.boolean() }),

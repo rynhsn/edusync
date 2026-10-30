@@ -18,14 +18,10 @@ import { closureOn } from './attendance-lib';
 import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
 
-export const METHODS = ['rfid', 'qr', 'manual'] as const;
-export type Method = (typeof METHODS)[number];
-
 export const DEFAULT_POLICY = {
   lateAfter: '07:15',
   departureFrom: '12:00',
   debounceSeconds: 30,
-  methods: ['rfid', 'qr', 'manual'] as string[],
   notifyParents: false,
 };
 export type Policy = typeof DEFAULT_POLICY;
@@ -58,7 +54,6 @@ export async function loadPolicy(tx: Tx): Promise<Policy> {
     lateAfter: row.lateAfter,
     departureFrom: row.departureFrom,
     debounceSeconds: row.debounceSeconds,
-    methods: row.methods,
     notifyParents: row.notifyParents,
   };
 }
@@ -67,12 +62,8 @@ export type TapResult = 'in' | 'out' | 'already_in' | 'duplicate' | 'replayed';
 
 export interface TapInput {
   studentId: string;
-  source: Method;
   at: Date;
-  /** Arah dipaksa (absen manual); tanpa ini arah ditentukan dari jam tap. */
-  direction?: 'in' | 'out';
   deviceId?: string;
-  recordedBy?: string;
   clientId?: string;
 }
 
@@ -82,9 +73,6 @@ export interface TapInput {
  * (kirim ulang dari perangkat offline) tidak dicatat dua kali. Hasilnya langsung memperbarui absensi harian.
  */
 export async function recordTap(tx: Tx, ctx: { schoolId: string }, input: TapInput, policy: Policy) {
-  if (!policy.methods.includes(input.source)) {
-    throw new HttpError(409, 'method_disabled', 'Metode absensi ini dinonaktifkan oleh sekolah.');
-  }
   const { date, time } = jakarta(input.at);
   const closed = await closureOn(tx, date);
   if (closed) throw new HttpError(409, 'school_closed', `Tanggal itu ${closed.title}.`);
@@ -105,7 +93,7 @@ export async function recordTap(tx: Tx, ctx: { schoolId: string }, input: TapInp
     .orderBy(desc(enrollment.createdAt))
     .limit(1);
   const info = { id: stu.id, name: stu.name, className: cls?.name ?? null };
-  const direction = input.direction ?? (time < policy.departureFrom ? 'in' : 'out');
+  const direction: 'in' | 'out' = time < policy.departureFrom ? 'in' : 'out';
   const done = (result: TapResult, late = false) => ({
     result,
     direction,
@@ -146,10 +134,10 @@ export async function recordTap(tx: Tx, ctx: { schoolId: string }, input: TapInp
     schoolId: ctx.schoolId,
     studentId: stu.id,
     direction,
-    source: input.source,
+    source: 'rfid',
     at: input.at,
     deviceId: input.deviceId ?? null,
-    recordedBy: input.recordedBy ?? null,
+    recordedBy: null,
     clientId: input.clientId ?? null,
   });
 
@@ -185,11 +173,4 @@ export async function isOnDuty(tx: Tx, ctx: TenantContext, date: string) {
     .where(and(eq(dutyRoster.date, date), eq(teacher.memberId, ctx.memberId)))
     .limit(1);
   return !!row;
-}
-
-/** Pengurus (attendance:configure) atau guru yang sedang piket pada tanggal itu. */
-export async function requireDuty(tx: Tx, ctx: TenantContext, date: string) {
-  if (ctx.permissions.has('attendance:configure')) return;
-  if (await isOnDuty(tx, ctx, date)) return;
-  throw new HttpError(403, 'not_on_duty', 'Hanya guru piket hari itu atau pengurus absensi yang boleh.');
 }

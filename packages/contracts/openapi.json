@@ -13887,7 +13887,7 @@
         "tags": [
           "Gate attendance"
         ],
-        "description": "Izin: `attendance:read`. Jam terlambat, jam mulai pulang, jeda tap ganda, metode yang diizinkan. Bila sekolah belum menyimpannya, nilai bawaan dikembalikan.",
+        "description": "Izin: `attendance:read`. Jam terlambat, jam mulai pulang, jeda tap ganda, dan pengaturan notifikasi wali. Bila sekolah belum menyimpannya, nilai bawaan dikembalikan.",
         "parameters": [
           {
             "schema": {
@@ -13922,18 +13922,6 @@
                       "minimum": 0,
                       "maximum": 600
                     },
-                    "methods": {
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "rfid",
-                          "qr",
-                          "manual"
-                        ]
-                      }
-                    },
                     "notifyParents": {
                       "type": "boolean"
                     }
@@ -13942,7 +13930,6 @@
                     "lateAfter",
                     "departureFrom",
                     "debounceSeconds",
-                    "methods",
                     "notifyParents"
                   ],
                   "additionalProperties": false
@@ -14042,18 +14029,6 @@
                     "minimum": 0,
                     "maximum": 600
                   },
-                  "methods": {
-                    "minItems": 1,
-                    "type": "array",
-                    "items": {
-                      "type": "string",
-                      "enum": [
-                        "rfid",
-                        "qr",
-                        "manual"
-                      ]
-                    }
-                  },
                   "notifyParents": {
                     "type": "boolean"
                   }
@@ -14062,7 +14037,6 @@
                   "lateAfter",
                   "departureFrom",
                   "debounceSeconds",
-                  "methods",
                   "notifyParents"
                 ]
               }
@@ -14103,18 +14077,6 @@
                       "minimum": 0,
                       "maximum": 600
                     },
-                    "methods": {
-                      "minItems": 1,
-                      "type": "array",
-                      "items": {
-                        "type": "string",
-                        "enum": [
-                          "rfid",
-                          "qr",
-                          "manual"
-                        ]
-                      }
-                    },
                     "notifyParents": {
                       "type": "boolean"
                     }
@@ -14123,7 +14085,6 @@
                     "lateAfter",
                     "departureFrom",
                     "debounceSeconds",
-                    "methods",
                     "notifyParents"
                   ],
                   "additionalProperties": false
@@ -14999,7 +14960,7 @@
     },
     "/v1/attendance/cards": {
       "get": {
-        "summary": "Daftar kartu RFID/QR",
+        "summary": "Daftar kartu RFID",
         "tags": [
           "Gate attendance"
         ],
@@ -15053,8 +15014,7 @@
                       "kind": {
                         "type": "string",
                         "enum": [
-                          "rfid",
-                          "qr"
+                          "rfid"
                         ]
                       },
                       "code": {
@@ -15149,7 +15109,7 @@
         "tags": [
           "Gate attendance"
         ],
-        "description": "Izin: `attendance:configure`. Kartu `rfid` wajib membawa `code` (UID kartu dari pembaca). Kartu `qr` dibuatkan token acak. Kode yang sama tidak boleh dipakai dua siswa (409 `conflict`).",
+        "description": "Izin: `attendance:configure`. Mendaftarkan kartu RFID; `code` adalah UID kartu dari pembaca (disimpan huruf besar). Kode yang sama tidak boleh dipakai dua siswa (409 `conflict`). Untuk banyak kartu sekaligus gunakan `/v1/attendance/cards/bulk`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -15162,13 +15122,6 @@
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
-                  "kind": {
-                    "type": "string",
-                    "enum": [
-                      "rfid",
-                      "qr"
-                    ]
-                  },
                   "code": {
                     "type": "string",
                     "minLength": 4,
@@ -15177,8 +15130,9 @@
                 },
                 "required": [
                   "studentId",
-                  "kind"
-                ]
+                  "code"
+                ],
+                "additionalProperties": false
               }
             }
           }
@@ -15209,20 +15163,12 @@
                       "format": "uuid",
                       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                     },
-                    "kind": {
-                      "type": "string",
-                      "enum": [
-                        "rfid",
-                        "qr"
-                      ]
-                    },
                     "code": {
                       "type": "string"
                     }
                   },
                   "required": [
                     "id",
-                    "kind",
                     "code"
                   ],
                   "additionalProperties": false
@@ -15327,6 +15273,222 @@
             }
           },
           "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/attendance/cards/bulk": {
+      "post": {
+        "summary": "Daftarkan kartu RFID siswa secara massal",
+        "tags": [
+          "Gate attendance"
+        ],
+        "description": "Izin: `attendance:configure`. Maksimal 500 baris `{nis, code}`; siswa dicari lewat NIS di sekolah ini dan harus aktif. Hasilnya sebagian: tiap baris diproses sendiri, baris yang gagal tidak membatalkan baris lain. `created` adalah jumlah kartu yang terdaftar; `failed` memuat `row` (indeks 1-based pada `items`), `nis`, `code` (sudah huruf besar), dan `reason`: `student_not_found` (NIS tidak ada atau siswa tidak aktif), `code_taken` (kode sudah dipakai kartu lain atau muncul lebih dulu dalam batch yang sama), `student_has_card` (siswa sudah punya kartu RFID aktif), `invalid_code` (kode kurang dari 4 karakter atau mengandung spasi). Satu entri audit ringkas dicatat. Kode disimpan huruf besar.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "items": {
+                    "minItems": 1,
+                    "maxItems": 500,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "nis": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 40
+                        },
+                        "code": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 64
+                        }
+                      },
+                      "required": [
+                        "nis",
+                        "code"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "items"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "created": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "failed": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "row": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "nis": {
+                            "type": "string"
+                          },
+                          "code": {
+                            "type": "string"
+                          },
+                          "reason": {
+                            "type": "string",
+                            "enum": [
+                              "student_not_found",
+                              "code_taken",
+                              "student_has_card",
+                              "invalid_code"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "row",
+                          "nis",
+                          "code",
+                          "reason"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "created",
+                    "failed"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -15519,7 +15681,7 @@
         "tags": [
           "Kiosk"
         ],
-        "description": "Autentikasi: header `x-device-key`. Nama sekolah dan perangkat, metode yang aktif, dan jam server (untuk mendeteksi jam perangkat yang melenceng).",
+        "description": "Autentikasi: header `x-device-key`. Nama sekolah dan perangkat, dan jam server (untuk mendeteksi jam perangkat yang melenceng).",
         "parameters": [
           {
             "schema": {
@@ -15545,12 +15707,6 @@
                     "device": {
                       "type": "string"
                     },
-                    "methods": {
-                      "type": "array",
-                      "items": {
-                        "type": "string"
-                      }
-                    },
                     "serverTime": {
                       "type": "string"
                     }
@@ -15558,7 +15714,6 @@
                   "required": [
                     "school",
                     "device",
-                    "methods",
                     "serverTime"
                   ],
                   "additionalProperties": false
@@ -15639,7 +15794,7 @@
         "tags": [
           "Kiosk"
         ],
-        "description": "Autentikasi: header `x-device-key`. `code` adalah UID kartu RFID atau isi QR. Arah masuk/pulang ditentukan dari jam tap terhadap kebijakan. `result`: `in`, `out`, `already_in` (sudah tap masuk), `duplicate` (tap berulang dalam jeda), `replayed` (clientId sudah pernah diterima). Tap offline dikirim ulang dengan `at` asli dan `clientId` tetap (maksimal 48 jam ke belakang). Kartu tak dikenal: 404 `unknown_card`.",
+        "description": "Autentikasi: header `x-device-key`. `code` adalah UID kartu RFID (huruf besar/kecil sama). Arah masuk/pulang ditentukan dari jam tap terhadap kebijakan. `result`: `in`, `out`, `already_in` (sudah tap masuk), `duplicate` (tap berulang dalam jeda), `replayed` (clientId sudah pernah diterima). Tap offline dikirim ulang dengan `at` asli dan `clientId` tetap (maksimal 48 jam ke belakang). Kartu tak dikenal: 404 `unknown_card`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -15776,529 +15931,6 @@
                     "error"
                   ],
                   "additionalProperties": false
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/gate/scan": {
-      "post": {
-        "summary": "Pindai kartu dari ponsel guru piket",
-        "tags": [
-          "Gate attendance"
-        ],
-        "description": "Izin: `attendance:read`, dan pengguna harus guru piket hari ini atau punya `attendance:configure` (403 `not_on_duty`). Hasilnya sama dengan tap kiosk; sumbernya tetap jenis kartunya.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "code": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 128
-                  }
-                },
-                "required": [
-                  "code"
-                ]
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "header",
-            "name": "x-school-id",
-            "required": true,
-            "description": "Sekolah yang sedang dipakai"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "result": {
-                      "type": "string",
-                      "enum": [
-                        "in",
-                        "out",
-                        "already_in",
-                        "duplicate",
-                        "replayed"
-                      ]
-                    },
-                    "direction": {
-                      "type": "string",
-                      "enum": [
-                        "in",
-                        "out"
-                      ]
-                    },
-                    "late": {
-                      "type": "boolean"
-                    },
-                    "at": {
-                      "type": "string"
-                    },
-                    "student": {
-                      "type": "object",
-                      "properties": {
-                        "id": {
-                          "type": "string",
-                          "format": "uuid",
-                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                        },
-                        "name": {
-                          "type": "string"
-                        },
-                        "className": {
-                          "nullable": true,
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "id",
-                        "name",
-                        "className"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "result",
-                    "direction",
-                    "late",
-                    "at",
-                    "student"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "403": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "error": {
-                      "type": "object",
-                      "properties": {
-                        "code": {
-                          "type": "string"
-                        },
-                        "message": {
-                          "type": "string"
-                        }
-                      },
-                      "required": [
-                        "code",
-                        "message"
-                      ],
-                      "additionalProperties": false
-                    }
-                  },
-                  "required": [
-                    "error"
-                  ],
-                  "additionalProperties": false
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/gate/manual": {
-      "post": {
-        "summary": "Absensi gerbang manual oleh guru piket",
-        "tags": [
-          "Gate attendance"
-        ],
-        "description": "Izin: `attendance:read`, dan pengguna harus guru piket hari ini atau punya `attendance:configure`. `kind` `in`/`out` mencatat tap dengan sumber manual; `excused`, `sick`, `absent` mengisi status harian tanpa tap. Hanya untuk hari ini.",
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "studentId": {
-                    "type": "string",
-                    "format": "uuid",
-                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                  },
-                  "kind": {
-                    "type": "string",
-                    "enum": [
-                      "in",
-                      "out",
-                      "excused",
-                      "sick",
-                      "absent"
-                    ]
-                  },
-                  "note": {
-                    "default": null,
-                    "nullable": true,
-                    "type": "string",
-                    "maxLength": 200
-                  }
-                },
-                "required": [
-                  "studentId",
-                  "kind"
-                ]
-              }
-            }
-          }
-        },
-        "parameters": [
-          {
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-            },
-            "in": "header",
-            "name": "x-school-id",
-            "required": true,
-            "description": "Sekolah yang sedang dipakai"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Default Response",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "anyOf": [
-                    {
-                      "type": "object",
-                      "properties": {
-                        "result": {
-                          "type": "string",
-                          "enum": [
-                            "in",
-                            "out",
-                            "already_in",
-                            "duplicate",
-                            "replayed"
-                          ]
-                        },
-                        "direction": {
-                          "type": "string",
-                          "enum": [
-                            "in",
-                            "out"
-                          ]
-                        },
-                        "late": {
-                          "type": "boolean"
-                        },
-                        "at": {
-                          "type": "string"
-                        },
-                        "student": {
-                          "type": "object",
-                          "properties": {
-                            "id": {
-                              "type": "string",
-                              "format": "uuid",
-                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-                            },
-                            "name": {
-                              "type": "string"
-                            },
-                            "className": {
-                              "nullable": true,
-                              "type": "string"
-                            }
-                          },
-                          "required": [
-                            "id",
-                            "name",
-                            "className"
-                          ],
-                          "additionalProperties": false
-                        }
-                      },
-                      "required": [
-                        "result",
-                        "direction",
-                        "late",
-                        "at",
-                        "student"
-                      ],
-                      "additionalProperties": false
-                    },
-                    {
-                      "type": "object",
-                      "properties": {
-                        "result": {
-                          "type": "string",
-                          "enum": [
-                            "marked"
-                          ]
-                        },
-                        "status": {
-                          "type": "string",
-                          "enum": [
-                            "present",
-                            "late",
-                            "excused",
-                            "sick",
-                            "absent"
-                          ]
-                        }
-                      },
-                      "required": [
-                        "result",
-                        "status"
-                      ],
-                      "additionalProperties": false
-                    }
-                  ]
                 }
               }
             }
@@ -17040,7 +16672,7 @@
         "tags": [
           "Gate attendance"
         ],
-        "description": "Izin: `attendance:read`. `canCover` benar bila pengguna piket hari ini atau punya `attendance:configure`; itulah yang membuka absensi gerbang manual dan penggantian absensi kelas.",
+        "description": "Izin: `attendance:read`. `canCover` benar bila pengguna piket hari ini atau punya `attendance:configure`; itulah yang membuka penggantian absensi per jam pelajaran.",
         "parameters": [
           {
             "schema": {

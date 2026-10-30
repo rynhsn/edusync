@@ -270,10 +270,9 @@ describe('perangkat dan kartu', () => {
     expect(list[0]).toMatchObject({ name: 'Gerbang utama', keyPrefix: ids.key.slice(0, 8), active: true });
     expect(JSON.stringify(list)).not.toContain(ids.key);
 
-    expect((await kiosk('GET', '/v1/kiosk/info', ids.key)).json()).toMatchObject({
-      device: 'Gerbang utama',
-      methods: ['rfid', 'qr', 'manual'],
-    });
+    const info = (await kiosk('GET', '/v1/kiosk/info', ids.key)).json();
+    expect(info).toMatchObject({ device: 'Gerbang utama' });
+    expect(info).not.toHaveProperty('methods');
     expect((await kiosk('GET', '/v1/kiosk/info', 'esk_salah-salah-salah-salah')).statusCode).toBe(401);
     expect((await app.inject('/v1/kiosk/info')).statusCode).toBe(401);
 
@@ -289,22 +288,34 @@ describe('perangkat dan kartu', () => {
     expect((await kiosk('GET', '/v1/kiosk/info', ids.key)).statusCode).toBe(200);
   });
 
-  it('kartu RFID wajib berkode, kode unik, QR dibuatkan token, siswa lain sekolah ditolak', async () => {
+  it('kartu RFID: kode unik huruf besar, tanpa kind, qr ditolak, siswa lain sekolah ditolak', async () => {
     const [ani, budi, citra] = ids.siswa;
     const post = (body: object, cookie = adminCookie, sid = schoolId) =>
       call('POST', '/v1/attendance/cards', cookie, body, sid);
-    expect((await post({ studentId: ani, kind: 'rfid' })).json().error.code).toBe('code_required');
-    const rfid = await post({ studentId: ani, kind: 'rfid', code: 'a1b2c3d4' });
+    expect((await post({ studentId: ani })).statusCode).toBe(400);
+    const rfid = await post({ studentId: ani, code: 'a1b2c3d4' });
     expect(rfid.statusCode).toBe(201);
-    expect(rfid.json().code).toBe('A1B2C3D4');
-    expect((await post({ studentId: budi, kind: 'rfid', code: 'A1B2C3D4' })).statusCode).toBe(409);
-    expect((await post({ studentId: budi, kind: 'rfid', code: 'B0B0B0B0' })).statusCode).toBe(201);
-    expect((await post({ studentId: citra, kind: 'qr' })).json().code).toMatch(/^esq_/);
+    expect(rfid.json()).toEqual({ id: expect.any(String), code: 'A1B2C3D4' });
+    expect((await post({ studentId: budi, code: 'A1B2C3D4' })).statusCode).toBe(409);
+    expect((await post({ studentId: budi, code: 'B0B0B0B0' })).statusCode).toBe(201);
+    expect((await post({ studentId: citra, code: 'C1C1C1C1' })).statusCode).toBe(201);
+    // Kartu QR tidak ada lagi: kind apa pun ditolak validasi.
+    expect((await post({ studentId: citra, kind: 'qr' })).statusCode).toBe(400);
+    expect((await post({ studentId: citra, kind: 'qr', code: 'QRQR1234' })).statusCode).toBe(400);
+    expect((await post({ studentId: citra, kind: 'rfid', code: 'D1D1D1D1' })).statusCode).toBe(400);
     // Siswa sekolah ini tidak terlihat dari sekolah lain.
-    expect(
-      (await post({ studentId: ani, kind: 'rfid', code: 'ZZZZ9999' }, otherCookie, otherId)).statusCode,
-    ).toBe(400);
+    expect((await post({ studentId: ani, code: 'ZZZZ9999' }, otherCookie, otherId)).statusCode).toBe(400);
     expect((await call('GET', '/v1/attendance/cards', teacherACookie)).statusCode).toBe(403);
+  });
+
+  it('tidak ada kartu qr lama; daftar kartu hanya rfid', async () => {
+    const rows = await app.platformDb.execute(
+      sql`select count(*)::int as n from attendance_card where kind = 'qr'`,
+    );
+    expect((rows.rows[0] as { n: number }).n).toBe(0);
+    const list = (await call('GET', '/v1/attendance/cards', adminCookie)).json();
+    expect(list).toHaveLength(3);
+    expect(list.every((c: { kind: string }) => c.kind === 'rfid')).toBe(true);
   });
 });
 
@@ -327,7 +338,7 @@ describe('tap kiosk', () => {
     expect((await tap('B0B0B0B0', '13:10:00', { clientId: 'dev1-0001' })).json().result).toBe('replayed');
   });
 
-  it('kartu tak dikenal, waktu di luar rentang, metode dinonaktifkan', async () => {
+  it('kartu tak dikenal, waktu di luar rentang, siswa ketiga masuk lewat kartunya', async () => {
     expect((await tap('00000000', '06:00:00')).json().error.code).toBe('unknown_card');
     const future = await kiosk('POST', '/v1/kiosk/tap', ids.key, {
       code: 'A1B2C3D4',
@@ -339,14 +350,10 @@ describe('tap kiosk', () => {
       at: new Date(Date.now() - 5 * 86_400_000).toISOString(),
     });
     expect(old.json().error.code).toBe('invalid_time');
-
-    const policy = (await call('GET', '/v1/attendance/policy', adminCookie)).json();
-    await call('PUT', '/v1/attendance/policy', adminCookie, { ...policy, methods: ['rfid'] });
-    const qr = (await call('GET', '/v1/attendance/cards?studentId=' + ids.siswa[2], adminCookie)).json()[0]
-      .code;
-    expect((await tap(qr, '06:40:00')).json().error.code).toBe('method_disabled');
-    await call('PUT', '/v1/attendance/policy', adminCookie, { ...policy, methods: ['rfid', 'qr', 'manual'] });
-    expect((await tap(qr, '06:40:00')).json().result).toBe('in');
+    expect((await tap('c1c1c1c1', '06:40:00')).json()).toMatchObject({
+      result: 'in',
+      student: { name: 'Citra' },
+    });
   });
 
   it('rekap harian dan catatan tap tidak bisa diubah aplikasi', async () => {
@@ -380,13 +387,8 @@ describe('tap kiosk', () => {
   });
 });
 
-describe('guru piket', () => {
-  it('hanya guru piket atau pengurus yang boleh absen gerbang manual', async () => {
-    const [ani] = ids.siswa;
-    const body = { studentId: ani, kind: 'sick' };
-    expect((await call('POST', '/v1/gate/manual', teacherBCookie, body)).json().error.code).toBe(
-      'not_on_duty',
-    );
+describe('jadwal guru piket', () => {
+  it('hanya pengurus yang menetapkan jadwal; guru piket mendapat canCover', async () => {
     expect((await call('GET', '/v1/duty-roster/me', teacherBCookie)).json()).toMatchObject({
       onDuty: false,
       canCover: false,
@@ -414,16 +416,14 @@ describe('guru piket', () => {
       await call('GET', `/v1/duty-roster?from=${today()}&to=${today()}`, teacherACookie)
     ).json();
     expect(roster).toEqual([{ date: today(), teacherId: ids.guruB, teacherName: 'Guru B' }]);
+  });
 
-    const marked = await call('POST', '/v1/gate/manual', teacherBCookie, body);
-    expect(marked.json()).toMatchObject({ result: 'marked', status: 'sick' });
-    const scan = await call('POST', '/v1/gate/scan', teacherBCookie, { code: 'b0b0b0b0' });
-    expect(scan.json()).toMatchObject({ result: 'in', student: { name: 'Budi' } });
-    const daily = (await call('GET', `/v1/gate/daily?date=${today()}`, teacherACookie)).json();
-    expect(daily.students.find((s: { name: string }) => s.name === 'Ani').status).toBe('sick');
+  it('endpoint scan dan absen manual gerbang sudah dicopot', async () => {
+    expect((await call('POST', '/v1/gate/scan', teacherBCookie, { code: 'b0b0b0b0' })).statusCode).toBe(404);
     expect(
-      (await call('POST', '/v1/gate/scan', teacherACookie, { code: 'b0b0b0b0' })).json().error.code,
-    ).toBe('not_on_duty');
+      (await call('POST', '/v1/gate/manual', adminCookie, { studentId: ids.siswa[0], kind: 'sick' }))
+        .statusCode,
+    ).toBe(404);
   });
 });
 

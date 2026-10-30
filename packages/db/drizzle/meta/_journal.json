@@ -225,6 +225,13 @@
       "when": 1793347274657,
       "tag": "0031_drop_class_attendance",
       "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1793347949803,
+      "tag": "0032_rfid_only",
+      "breakpoints": true
     }
   ]
 }

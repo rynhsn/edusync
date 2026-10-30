@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Copy, Plus, Printer, RotateCw, Trash2 } from 'lucide-react';
+import { Copy, FileSpreadsheet, Plus, RotateCw, ScanLine, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -22,8 +22,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { QuickRegister } from './quick-register';
 
-const METHODS = ['rfid', 'qr', 'manual'] as const;
 type Tab = 'policy' | 'devices' | 'cards' | 'roster';
 const TABS: Tab[] = ['policy', 'devices', 'cards', 'roster'];
 
@@ -50,7 +50,17 @@ function PolicyPanel() {
   const save = useMutation({
     mutationFn: async () => {
       if (!value) return;
-      return unwrap(await api.PUT('/v1/attendance/policy', { params: header, body: value }));
+      return unwrap(
+        await api.PUT('/v1/attendance/policy', {
+          params: header,
+          body: {
+            lateAfter: value.lateAfter,
+            departureFrom: value.departureFrom,
+            debounceSeconds: value.debounceSeconds,
+            notifyParents: value.notifyParents,
+          },
+        }),
+      );
     },
     onSuccess: () => {
       setError(null);
@@ -108,21 +118,6 @@ function PolicyPanel() {
         </div>
         <p className="text-muted-foreground -mt-2 text-xs">{t('policyHint')}</p>
 
-        <fieldset className="grid gap-2">
-          <legend className="mb-1 text-sm font-medium">{t('methods')}</legend>
-          {METHODS.map((m) => (
-            <Label key={m} className="flex items-center gap-2 font-normal">
-              <Checkbox
-                checked={value.methods.includes(m)}
-                onCheckedChange={(next) =>
-                  set({ methods: next ? [...value.methods, m] : value.methods.filter((x) => x !== m) })
-                }
-              />
-              {t(`method.${m}`)}
-            </Label>
-          ))}
-        </fieldset>
-
         <Label className="flex items-center gap-2 font-normal">
           <Checkbox checked={value.notifyParents} onCheckedChange={(next) => set({ notifyParents: next })} />
           {t('notifyParents')}
@@ -134,7 +129,7 @@ function PolicyPanel() {
           </Alert>
         )}
         <div>
-          <Button type="submit" disabled={!draft || value.methods.length === 0 || save.isPending}>
+          <Button type="submit" disabled={!draft || save.isPending}>
             {t('save')}
           </Button>
         </div>
@@ -327,8 +322,8 @@ function CardsPanel() {
   const te = useTranslations();
   const { school, header } = useCtx();
   const queryClient = useQueryClient();
+  const [mode, setMode] = useState<'list' | 'quick'>('list');
   const [studentId, setStudentId] = useState('');
-  const [kind, setKind] = useState<'rfid' | 'qr'>('rfid');
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -350,12 +345,7 @@ function CardsPanel() {
 
   const create = useMutation({
     mutationFn: async () =>
-      unwrap(
-        await api.POST('/v1/attendance/cards', {
-          params: header,
-          body: { studentId, kind, ...(kind === 'rfid' ? { code } : {}) },
-        }),
-      ),
+      unwrap(await api.POST('/v1/attendance/cards', { params: header, body: { studentId, code } })),
     onSuccess: () => {
       setCode('');
       setError(null);
@@ -373,65 +363,57 @@ function CardsPanel() {
 
   return (
     <div className="grid gap-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-muted-foreground max-w-2xl text-sm">{t('cardsHint')}</p>
-        <Link href="/attendance-settings/cards/print" className={buttonVariants({ variant: 'outline' })}>
-          <Printer className="size-4" /> {t('printQr.link')}
+      <p className="text-muted-foreground max-w-2xl text-sm">{t('cardsHint')}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        <Button
+          variant={mode === 'quick' ? 'secondary' : 'default'}
+          onClick={() => setMode(mode === 'quick' ? 'list' : 'quick')}
+        >
+          <ScanLine className="size-4" /> {t('quick.button')}
+        </Button>
+        <Link href="/attendance-settings/cards/import" className={buttonVariants({ variant: 'outline' })}>
+          <FileSpreadsheet className="size-4" /> {t('cardImport.link')}
         </Link>
-      </div>
-      <FormDialog
-        trigger={
-          <Button className="justify-self-start">
-            <Plus className="size-4" /> {t('addCard')}
-          </Button>
-        }
-        title={t('addCard')}
-        submitLabel={t('create')}
-        error={error}
-        onOpenChange={() => {
-          setStudentId('');
-          setCode('');
-          setKind('rfid');
-          setError(null);
-        }}
-        disabled={!studentId || (kind === 'rfid' && code.trim().length < 4)}
-        onSubmit={() => create.mutateAsync()}
-      >
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2 sm:col-span-2">
-            <Label htmlFor="card-search">{t('searchStudent')}</Label>
-            <Input
-              id="card-search"
-              value={search}
-              placeholder={t('searchStudentPlaceholder')}
-              onChange={(e) => setSearch(e.target.value)}
-            />
-          </div>
-          <div className="grid gap-2 sm:col-span-2">
-            <Label htmlFor="card-student">{t('student')}</Label>
-            <SelectField id="card-student" value={studentId} onChange={(e) => setStudentId(e.target.value)}>
-              <option value="">{t('chooseStudent')}</option>
-              {(students.data?.items ?? []).map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name}
-                  {s.nis ? ` (${s.nis})` : ''}
-                </option>
-              ))}
-            </SelectField>
-          </div>
-          <div className="grid gap-2">
-            <Label htmlFor="card-kind">{t('cardKind')}</Label>
-            <SelectField
-              id="card-kind"
-              value={kind}
-              onChange={(e) => setKind(e.target.value as 'rfid' | 'qr')}
-            >
-              <option value="rfid">RFID</option>
-              <option value="qr">QR</option>
-            </SelectField>
-          </div>
-          {kind === 'rfid' ? (
-            <div className="grid gap-2">
+        <FormDialog
+          trigger={
+            <Button variant="outline">
+              <Plus className="size-4" /> {t('addCard')}
+            </Button>
+          }
+          title={t('addCard')}
+          submitLabel={t('create')}
+          error={error}
+          onOpenChange={() => {
+            setStudentId('');
+            setCode('');
+            setError(null);
+          }}
+          disabled={!studentId || code.trim().length < 4}
+          onSubmit={() => create.mutateAsync()}
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid gap-2 sm:col-span-2">
+              <Label htmlFor="card-search">{t('searchStudent')}</Label>
+              <Input
+                id="card-search"
+                value={search}
+                placeholder={t('searchStudentPlaceholder')}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </div>
+            <div className="grid gap-2 sm:col-span-2">
+              <Label htmlFor="card-student">{t('student')}</Label>
+              <SelectField id="card-student" value={studentId} onChange={(e) => setStudentId(e.target.value)}>
+                <option value="">{t('chooseStudent')}</option>
+                {(students.data?.items ?? []).map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.name}
+                    {s.nis ? ` (${s.nis})` : ''}
+                  </option>
+                ))}
+              </SelectField>
+            </div>
+            <div className="grid gap-2 sm:col-span-2">
               <Label htmlFor="card-code">{t('cardCode')}</Label>
               <Input
                 id="card-code"
@@ -441,11 +423,11 @@ function CardsPanel() {
                 onChange={(e) => setCode(e.target.value)}
               />
             </div>
-          ) : (
-            <p className="text-muted-foreground self-end pb-2 text-xs">{t('qrAuto')}</p>
-          )}
-        </div>
-      </FormDialog>
+          </div>
+        </FormDialog>
+      </div>
+
+      {mode === 'quick' && <QuickRegister />}
 
       {cards.isPending && <Skeleton className="h-32 w-full" />}
       {cards.data?.length === 0 && (
@@ -457,7 +439,6 @@ function CardsPanel() {
             <TableHeader>
               <TableRow>
                 <TableHead>{t('student')}</TableHead>
-                <TableHead>{t('cardKind')}</TableHead>
                 <TableHead>{t('cardCode')}</TableHead>
                 <TableHead className="w-12" />
               </TableRow>
@@ -466,9 +447,6 @@ function CardsPanel() {
               {cards.data.map((c) => (
                 <TableRow key={c.id}>
                   <TableCell className="font-medium">{c.studentName}</TableCell>
-                  <TableCell>
-                    <Badge variant="secondary">{c.kind.toUpperCase()}</Badge>
-                  </TableCell>
                   <TableCell className="text-muted-foreground font-mono text-xs break-all">
                     {c.code}
                   </TableCell>
@@ -563,10 +541,10 @@ function RosterPanel() {
   );
 }
 
-export function AttendanceSettingsView() {
+export function AttendanceSettingsView({ initialTab = 'policy' }: { initialTab?: Tab }) {
   const t = useTranslations('gate');
   const { can } = useSchool();
-  const [tab, setTab] = useState<Tab>('policy');
+  const [tab, setTab] = useState<Tab>(initialTab);
 
   if (!can('attendance:configure')) {
     return (

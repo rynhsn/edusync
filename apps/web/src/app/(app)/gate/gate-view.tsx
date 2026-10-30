@@ -1,29 +1,18 @@
 'use client';
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Camera, CameraOff, ChevronDown, ScanLine } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { useRef, useState } from 'react';
-import { toast } from 'sonner';
+import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
-import { QrScanner } from '@/components/qr-scanner';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Input } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, schoolHeader, unwrap } from '@/lib/api';
-import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 
 const STATUS_STYLE: Record<string, string> = {
@@ -34,7 +23,6 @@ const STATUS_STYLE: Record<string, string> = {
   absent: 'bg-red-600/15 text-red-700 dark:text-red-300',
 };
 const SUMMARY = ['present', 'late', 'excused', 'sick', 'absent', 'notYet'] as const;
-const KINDS = ['in', 'out', 'excused', 'sick', 'absent'] as const;
 
 const todayIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 const clock = (iso: string | null) =>
@@ -42,19 +30,14 @@ const clock = (iso: string | null) =>
     ? new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })
     : '–';
 
-/** Gerbang hari ini: ringkasan kehadiran, pindai kartu, dan koreksi manual oleh guru piket. Menyegarkan sendiri. */
+/** Gerbang hari ini: ringkasan kehadiran dan status masuk/pulang dari tap kartu di kiosk. Menyegarkan sendiri. */
 export function GateView() {
   const t = useTranslations('gate');
-  const te = useTranslations();
   const { school } = useSchool();
-  const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
   const date = todayIso();
-  const scanRef = useRef<HTMLInputElement>(null);
   const [classId, setClassId] = useState('');
   const [q, setQ] = useState('');
-  const [code, setCode] = useState('');
-  const [camera, setCamera] = useState(false);
 
   const me = useQuery({
     queryKey: ['duty-me', school.schoolId],
@@ -83,29 +66,6 @@ export function GateView() {
         }),
       ),
   });
-  const canCover = me.data?.canCover ?? false;
-  const refresh = () => queryClient.invalidateQueries({ queryKey: ['gate-daily', school.schoolId] });
-
-  const scan = useMutation({
-    mutationFn: async (value: string) =>
-      unwrap(await api.POST('/v1/gate/scan', { params: header, body: { code: value } })),
-    onSuccess: (r) => {
-      toast.success(`${r.student.name} — ${t(`result.${r.result}`)}`);
-      refresh();
-    },
-    onError: (e) => toast.error(te(errorKey(e))),
-    onSettled: () => {
-      setCode('');
-      scanRef.current?.focus();
-    },
-  });
-  const mark = useMutation({
-    mutationFn: async (v: { studentId: string; kind: (typeof KINDS)[number] }) =>
-      unwrap(await api.POST('/v1/gate/manual', { params: header, body: { ...v, note: null } })),
-    onSuccess: refresh,
-    onError: (e) => toast.error(te(errorKey(e))),
-  });
-
   const students = (daily.data?.students ?? []).filter((s) =>
     q.trim() ? s.name.toLowerCase().includes(q.trim().toLowerCase()) : true,
   );
@@ -143,31 +103,6 @@ export function GateView() {
       )}
 
       <div className="flex flex-wrap items-center gap-3">
-        {canCover && (
-          <form
-            className="relative sm:w-72"
-            onSubmit={(e) => {
-              e.preventDefault();
-              if (code.trim()) scan.mutate(code.trim());
-            }}
-          >
-            <ScanLine className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-            <Input
-              ref={scanRef}
-              aria-label={t('scanLabel')}
-              className="pl-8"
-              placeholder={t('scanPlaceholder')}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-            />
-          </form>
-        )}
-        {canCover && (
-          <Button variant="outline" onClick={() => setCamera((v) => !v)}>
-            {camera ? <CameraOff className="size-4" /> : <Camera className="size-4" />}
-            {camera ? t('scanner.stop') : t('scanner.start')}
-          </Button>
-        )}
         <SelectField
           aria-label={t('class')}
           className="sm:w-48"
@@ -190,16 +125,6 @@ export function GateView() {
         />
       </div>
 
-      {canCover && camera && (
-        <QrScanner
-          active
-          className="h-56 w-full max-w-sm"
-          onScan={(value) => {
-            if (!scan.isPending) scan.mutate(value);
-          }}
-        />
-      )}
-
       {daily.isPending && <Skeleton className="h-48 w-full" />}
       {daily.data && students.length === 0 && (
         <Card className="text-muted-foreground p-10 text-center text-sm">{t('noStudents')}</Card>
@@ -214,7 +139,6 @@ export function GateView() {
                 <TableHead>{t('status')}</TableHead>
                 <TableHead>{t('checkIn')}</TableHead>
                 <TableHead>{t('checkOut')}</TableHead>
-                {canCover && <TableHead className="w-28" />}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -236,25 +160,6 @@ export function GateView() {
                   </TableCell>
                   <TableCell className="tabular-nums">{clock(s.checkInAt)}</TableCell>
                   <TableCell className="tabular-nums">{clock(s.checkOutAt)}</TableCell>
-                  {canCover && (
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger render={<Button size="sm" variant="outline" />}>
-                          {t('mark')} <ChevronDown className="size-3.5" />
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          {KINDS.map((kind) => (
-                            <DropdownMenuItem
-                              key={kind}
-                              onClick={() => mark.mutate({ studentId: s.studentId, kind })}
-                            >
-                              {t(`kind.${kind}`)}
-                            </DropdownMenuItem>
-                          ))}
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  )}
                 </TableRow>
               ))}
             </TableBody>
