@@ -173,9 +173,9 @@ Lihat `README.md`. Konfigurasi penting di `.env`: `DATABASE_*_URL` (owner/app/pl
 | M6 | Administrasi | **Selesai (API + layar):** templat, penomoran, surat keluar/masuk, tanda tangan QR + hash SHA-256, verifikasi publik `/verify/{token}`, pencabutan. PDF belum dilihat di layar |
 | M7 | PKL dan prakerin | **Selesai (API + layar):** mitra, periode, penempatan, jurnal, kunjungan, aspek nilai, tautan publik pembimbing, sertifikat PDF (belum dilihat di layar) |
 | M8 | SPMB | **Selesai (API + layar):** periode, formulir publik `/apply`, dokumen, kode pelacakan, alur status, terima otomatis menjadi siswa. Halaman publik terverifikasi di browser |
-| M9 | SPP dan tagihan | **Dasar selesai:** jenis biaya, tarif per tingkat, tagihan massal, kasir, kwitansi, laporan tunggakan dan kas harian. **Ditambah:** cicilan (pecah tagihan), aturan keringanan/beasiswa, gratis. Belum: denda keterlambatan, pembayaran online wali |
-| M10 | Website, pengumuman, domain sendiri (situs publik + SPMB) | Lighthouse ≥ 90; satu unit tampil di domain luar dengan HTTPS otomatis |
-| M11 | Portal wali/siswa, dashboard kepala sekolah dan yayasan | Wali melihat absensi, nilai, tahfidz, tagihan anaknya |
+| M9 | SPP dan tagihan | **Dasar selesai:** jenis biaya, tarif per tingkat, tagihan massal, kasir, kwitansi, laporan tunggakan dan kas harian. **Ditambah:** cicilan (pecah tagihan), aturan keringanan/beasiswa, gratis. Denda keterlambatan selesai (pengaturan, pratinjau, terapkan). Belum: pembayaran online wali (butuh akun Midtrans) |
+| M10 | Website, pengumuman, domain sendiri (situs publik + SPMB) — **Selesai tanpa domain sendiri:** pengumuman/agenda, profil situs, situs publik di /site (terverifikasi di browser). Belum: domain luar + HTTPS otomatis, Lighthouse | Lighthouse ≥ 90; satu unit tampil di domain luar dengan HTTPS otomatis |
+| M11 | Portal wali/siswa, dashboard kepala sekolah dan yayasan — **Portal selesai (API+layar, layar belum diuji login):** undangan, akun, ringkasan per anak. Belum: dashboard kepala sekolah/yayasan | Wali melihat absensi, nilai, tahfidz, tagihan anaknya |
 | M12 | Rilis: uji beban, tinjauan keamanan, latihan pemulihan, produksi | Daftar periksa rilis lengkap |
 
 Pilot Miftahul Huda (SMP IT + SMK, ±15 guru, sebagian lintas unit) masuk akal setelah M2–M4, memakai aktivasi komplimen.
@@ -248,3 +248,9 @@ Pilot Miftahul Huda (SMP IT + SMK, ±15 guru, sebagian lintas unit) masuk akal s
 - Endpoint publik (SPMB, tautan PKL, verifikasi surat) memakai peran platform hanya untuk mencari sekolah dari slug/token.
 - Tes: API 312, web 129, contracts 111, worker 36, db 18. Lint dan typecheck bersih.
 - **Belum diverifikasi di browser:** semua layar yang butuh login (tahfidz, surat, SPMB admin, PKL, diskon SPP), PDF (surat, sertifikat, rapor, kwitansi), mode gelap/mobile layar baru.
+
+### Catatan denda, portal, pengumuman dan situs
+- Denda: dihitung murni (computeLateFee), diterbitkan sebagai tagihan denda idempoten per tagihan induk, satu kali.
+- Portal: izin portal:read, peran bawaan guardian dan student, tautan akun lewat portal_link; semua data dibatasi per anak. Undangan admin memakai izin student:manage.
+- Situs publik: /site (host sekolah) dan /site/[slug]; hanya tampil bila profil terbit dan modul website aktif. Tes: API 358, web 166, contracts 120.
+- Belum diverifikasi di browser: layar yang butuh login (portal, pengumuman admin, pengaturan situs, denda).

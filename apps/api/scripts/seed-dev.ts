@@ -5,6 +5,7 @@ import {
   admissionCounter,
   admissionPeriod,
   and,
+  announcement,
   application,
   applicationStatusLog,
   assignRoles,
@@ -33,6 +34,7 @@ import {
   platformStaff,
   reportSetting,
   school,
+  schoolProfile,
   seedSchoolRoles,
   signerCredential,
   student,
@@ -596,6 +598,66 @@ for (const s of [smp]) {
       .values({ schoolId: s.id, year, last: samples.length })
       .onConflictDoNothing();
   }
+}
+
+// Situs publik dan pengumuman contoh untuk SMP.
+await db
+  .insert(schoolProfile)
+  .values({
+    schoolId: smp.id,
+    tagline: 'Cerdas, berakhlak, dan cinta Al-Quran',
+    about: 'SMP IT Miftahul Huda memadukan kurikulum nasional dengan pembinaan tahfidz dan akhlak.',
+    vision: 'Mencetak generasi beriman, berilmu, dan berkarakter.',
+    mission: 'Pembelajaran bermutu, pembiasaan ibadah, dan kemitraan dengan orang tua.',
+    address: 'Jl. Pendidikan No. 1, Bandung',
+    phone: '022-1234567',
+    email: 'info@miftahulhuda.example',
+    accentColor: '#0f766e',
+    published: true,
+  })
+  .onConflictDoNothing();
+const hasAnn = await db
+  .select({ id: announcement.id })
+  .from(announcement)
+  .where(eq(announcement.schoolId, smp.id))
+  .limit(1);
+if (hasAnn.length === 0) {
+  const now = new Date();
+  const in10 = new Date(Date.now() + 10 * 86_400_000).toISOString().slice(0, 10);
+  await db.insert(announcement).values([
+    {
+      schoolId: smp.id,
+      title: 'Penerimaan murid baru dibuka',
+      body: 'Pendaftaran gelombang 1 sudah dibuka. Daftar lewat tombol di situs ini.',
+      category: 'news',
+      audience: 'all',
+      pinned: true,
+      status: 'published',
+      publishedAt: now,
+      createdBy: 'seed',
+    },
+    {
+      schoolId: smp.id,
+      title: 'Pekan ujian tengah semester',
+      body: 'Ujian tengah semester dilaksanakan sesuai jadwal kelas.',
+      category: 'agenda',
+      audience: 'all',
+      eventDate: in10,
+      status: 'published',
+      publishedAt: now,
+      createdBy: 'seed',
+    },
+    {
+      schoolId: smp.id,
+      title: 'Rapat guru internal',
+      body: 'Rapat evaluasi bulanan untuk guru dan staf.',
+      category: 'notice',
+      audience: 'staff',
+      status: 'published',
+      publishedAt: now,
+      createdBy: 'seed',
+    },
+  ]);
 }
 
 const guru = await ensureUser('guru@edusync.test', 'Guru Contoh');
