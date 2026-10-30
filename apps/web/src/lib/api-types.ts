@@ -10960,6 +10960,84 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/grading/my-assignments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pasangan kelas dan mapel yang boleh dilihat pengguna
+         * @description Izin: `grade:read`; modul `grades`. `all: true` untuk pemegang `grade:configure`, kepala sekolah, dan kurikulum (semua kelas dan mapel; `items` kosong). Pengguna lain mendapat pasangan (kelas, mapel) yang ia ampu, dipakai web untuk menyaring pilihan mapel.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            all: boolean;
+                            items: {
+                                /** Format: uuid */
+                                classId: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/assessments": {
         parameters: {
             query?: never;
@@ -14678,6 +14756,204 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/live/snapshot": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ringkasan hidup hari ini
+         * @description Anggota sekolah mana pun boleh memanggil (tanpa izin khusus). Tiap bagian null bila modulnya tidak aktif ATAU pengguna tidak punya izinnya: `attendance` dan `lessons` (modul `attendance` + `attendance:read`), `finance` (modul `finance` + `finance:read`), `messaging` (modul `messaging` + `message:read`), `extracurricular` (modul `extracurricular` + `extracurricular:read`). `date`/`time` menurut Asia/Jakarta. `closed` = libur atau jeda kalender sekolah hari ini. `attendance` dihitung seperti `summary` pada `/v1/gate/daily` (siswa aktif di tahun ajaran aktif, tanpa daftar siswa). `lessons.running` = jam yang sedang berlangsung menurut jadwal hari ini di tahun ajaran aktif (maksimal 30; kosong pada hari libur/Minggu); `currentPeriod` nomor jam yang berlangsung, `nextPeriodStartsAt` jam mulai jam berikutnya (HH:MM), `unfilled` = jumlah sel jadwal hari ini yang sudah mulai tetapi belum ada satu pun catatan absensi jamnya. `finance` = agregat tagihan tidak batal semua tahun ajaran (`openInvoices` yang masih bersisa, `outstanding` total sisa, `overdueOutstanding` sisa yang jatuh temponya sebelum hari ini) dan `paidToday` = total kwitansi tidak batal hari ini (rupiah). `messaging.queued` = pesan antre/sedang dikirim; `failed24h` = pesan gagal yang dibuat 24 jam terakhir. `extracurricular.sessionsToday` = pertemuan ekstrakurikuler bertanggal hari ini. Ringan dan hanya agregat; aman dipanggil berkala.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Tanggal hari ini menurut Asia/Jakarta, TTTT-BB-HH */
+                            date: string;
+                            /** @description Jam sekarang menurut Asia/Jakarta, HH:MM */
+                            time: string;
+                            closed: {
+                                /** @enum {string} */
+                                type: "holiday" | "break";
+                                title: string;
+                            } | null;
+                            attendance: {
+                                total: number;
+                                present: number;
+                                late: number;
+                                excused: number;
+                                sick: number;
+                                absent: number;
+                                notYet: number;
+                            } | null;
+                            lessons: {
+                                running: {
+                                    className: string;
+                                    subjectName: string;
+                                    periodNumber: number;
+                                    startsAt: string;
+                                    endsAt: string;
+                                }[];
+                                currentPeriod: number | null;
+                                nextPeriodStartsAt: string | null;
+                                unfilled: number;
+                            } | null;
+                            finance: {
+                                openInvoices: number;
+                                outstanding: number;
+                                overdueOutstanding: number;
+                                paidToday: number;
+                            } | null;
+                            messaging: {
+                                queued: number;
+                                failed24h: number;
+                            } | null;
+                            extracurricular: {
+                                sessionsToday: number;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/live/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Aliran tap gerbang terbaru
+         * @description Anggota sekolah mana pun boleh memanggil, tetapi peristiwa hanya diisi bila modul `attendance` aktif dan pengguna punya `attendance:read`; selain itu `events` kosong. Sumber: tap gerbang hari ini (Asia/Jakarta); `kind` `arrival` (tap masuk) atau `departure` (tap pulang), urut waktu naik. `after` (ISO) = hanya tap setelahnya (eksklusif); tanpa `after` dikembalikan tap 10 menit terakhir (maksimal `limit`, yang terbaru). `limit` 1-50, bawaan 20. `cursor` = waktu tap terbesar yang dikembalikan, atau `after` (atau sekarang) bila kosong; kirim kembali sebagai `after` pada panggilan berikutnya. `studentName` hanya diisi bila pengguna punya `attendance:read` (selalu terpenuhi di sini); tampilan peta sebaiknya mengabaikan nama dan hanya memakai `className`. Kueri dibatasi ke hari ini sehingga aman dipanggil tiap beberapa detik.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    after?: string;
+                    limit?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            events: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "arrival" | "departure";
+                                at: string;
+                                className: string | null;
+                                studentName: string | null;
+                            }[];
+                            cursor: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/messaging/settings": {
         parameters: {
             query?: never;
@@ -15155,6 +15431,11 @@ export interface paths {
                             updatedAt: string | null;
                             /** @description Saklar global platform menyala dan penyedia pesan adalah WhatsApp (bukan mode log) */
                             providerActive: boolean;
+                            /**
+                             * @description `disabled` bila saklar global platform mati; `log` bila penyedia efektif adalah mode uji (pesan dicatat, tidak dikirim); selain itu `whatsapp`
+                             * @enum {string}
+                             */
+                            provider: "whatsapp" | "log" | "disabled";
                         };
                     };
                 };
@@ -15239,6 +15520,11 @@ export interface paths {
                             updatedAt: string | null;
                             /** @description Saklar global platform menyala dan penyedia pesan adalah WhatsApp (bukan mode log) */
                             providerActive: boolean;
+                            /**
+                             * @description `disabled` bila saklar global platform mati; `log` bila penyedia efektif adalah mode uji (pesan dicatat, tidak dikirim); selain itu `whatsapp`
+                             * @enum {string}
+                             */
+                            provider: "whatsapp" | "log" | "disabled";
                         };
                     };
                 };
@@ -15321,6 +15607,11 @@ export interface paths {
                             updatedAt: string | null;
                             /** @description Saklar global platform menyala dan penyedia pesan adalah WhatsApp (bukan mode log) */
                             providerActive: boolean;
+                            /**
+                             * @description `disabled` bila saklar global platform mati; `log` bila penyedia efektif adalah mode uji (pesan dicatat, tidak dikirim); selain itu `whatsapp`
+                             * @enum {string}
+                             */
+                            provider: "whatsapp" | "log" | "disabled";
                         };
                     };
                 };

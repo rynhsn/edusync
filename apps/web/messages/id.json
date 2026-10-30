@@ -8,7 +8,9 @@
     "pickDate": "Pilih tanggal",
     "clearDate": "Hapus tanggal",
     "cancel": "Batal",
-    "close": "Tutup"
+    "close": "Tutup",
+    "confirm": "Ya, lanjutkan",
+    "confirmDelete": "Ya, hapus"
   },
   "auth": {
     "title": "Masuk ke Edusync",
@@ -113,7 +115,11 @@
     "subtitle": "Ringkasan akan terisi seiring modul ditambahkan.",
     "accessTitle": "Akses Anda di sekolah ini",
     "accessDescription": "Gabungan izin dari semua peran yang Anda pegang.",
-    "noPermissions": "Belum ada izin."
+    "noPermissions": "Belum ada izin.",
+    "viewLabel": "Pilih tampilan beranda",
+    "viewMap": "Tampilan peta",
+    "viewStandard": "Tampilan standar",
+    "subtitleMap": "Denyut sekolah hari ini, langsung dari data."
   },
   "academicYears": {
     "title": "Tahun ajaran",
@@ -1470,7 +1476,10 @@
     "month09": "September",
     "month10": "Oktober",
     "month11": "November",
-    "month12": "Desember"
+    "month12": "Desember",
+    "missingPlanStudents": "Belum ada tarif untuk tingkat ini, sehingga tagihan siswa berikut tidak dibuat:",
+    "missingPlanMore": "dan {count} lainnya",
+    "missingPlanSettings": "Atur tarif di Pengaturan keuangan"
   },
   "messaging": {
     "title": "Notifikasi WhatsApp",
@@ -1587,7 +1596,8 @@
     "retry": "Kirim ulang",
     "pageOf": "Halaman {page} dari {pages}",
     "prev": "Sebelumnya",
-    "next": "Berikutnya"
+    "next": "Berikutnya",
+    "providerLog": "Mode uji: pesan dicatat tetapi tidak dikirim ke WhatsApp"
   },
   "platformMessaging": {
     "title": "Pesan WhatsApp",
@@ -1622,5 +1632,62 @@
       "failed": "Gagal",
       "disconnected": "Terputus"
     }
+  },
+  "schoolMap": {
+    "mapLabel": "Peta sekolah hidup. {summary}",
+    "live": "Langsung",
+    "paused": "Dijeda",
+    "waiting": "Menunggu data",
+    "closedBanner": "Libur: {title}",
+    "periodStarted": "Jam ke-{n} dimulai",
+    "reducedCount": "{present} dari {total} hadir",
+    "dutyShort": "Piket",
+    "b_gate": "Gerbang",
+    "b_classes": "Gedung kelas",
+    "b_teachers": "Ruang guru",
+    "b_office": "TU dan keuangan",
+    "b_field": "Lapangan",
+    "b_mail": "Pesan",
+    "phase_night": "Suasana malam",
+    "phase_morning": "Suasana pagi",
+    "phase_noon": "Suasana siang",
+    "phase_evening": "Suasana sore",
+    "summaryNone": "Data langsung belum tersedia",
+    "summaryClosed": "Sekolah libur: {title}",
+    "summaryAttendance": "{present} dari {total} siswa hadir, {late} terlambat",
+    "summaryLessons": "{running} kelas sedang berlangsung",
+    "gateMain": "{present} dari {total} siswa hadir",
+    "gateLate": "{late} terlambat",
+    "gateNotYet": "{notYet} belum tiba",
+    "classesMain": "{running} kelas berlangsung",
+    "classesUnfilled": "{unfilled} jam belum diabsen",
+    "teachersOnDuty": "Anda piket hari ini",
+    "teachersOffDuty": "Anda tidak piket hari ini",
+    "teachersLink": "Buka daftar guru",
+    "officeMain": "Tunggakan {amount}",
+    "officeOverdue": "{amount} lewat jatuh tempo",
+    "fieldMain": "{count} pertemuan ekskul hari ini",
+    "mailMain": "{queued} pesan antre",
+    "mailFailed": "{failed} pesan gagal dalam 24 jam",
+    "unavailable": "Data langsung belum bisa dimuat.",
+    "retry": "Coba lagi",
+    "statsTitle": "Angka hari ini",
+    "statPresent": "Hadir",
+    "statLate": "Terlambat",
+    "statNotYet": "Belum tiba",
+    "statRunning": "Kelas berlangsung",
+    "activityTitle": "Aktivitas terbaru",
+    "activityEmpty": "Belum ada aktivitas hari ini.",
+    "anonymous": "Seorang siswa",
+    "arrivalLine": "{who} tiba di gerbang",
+    "departureLine": "{who} pulang",
+    "deskTitle": "Meja hari ini",
+    "deskLoading": "Memuat jam pelajaran...",
+    "deskClosed": "Hari ini libur.",
+    "deskEmpty": "Tidak ada jam pelajaran Anda hari ini.",
+    "deskFilled": "{filled} dari {total} sudah diabsen",
+    "deskDone": "Selesai",
+    "deskFill": "Isi absensi",
+    "modulesTitle": "Pintasan modul"
   }
 }

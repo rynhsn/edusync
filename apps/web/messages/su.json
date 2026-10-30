@@ -8,7 +8,9 @@
     "pickDate": "Pilih tanggal",
     "clearDate": "Piceun tanggal",
     "cancel": "Batal",
-    "close": "Tutup"
+    "close": "Tutup",
+    "confirm": "Leres, teraskeun",
+    "confirmDelete": "Leres, piceun"
   },
   "auth": {
     "title": "Lebet ka Edusync",
@@ -113,7 +115,11 @@
     "subtitle": "Ringkesan bakal pinuh saluyu jeung modul nu ditambahkeun.",
     "accessTitle": "Aksés Anjeun di sakola ieu",
     "accessDescription": "Gabungan idin tina sakabéh peran nu dicepeng.",
-    "noPermissions": "Can aya idin."
+    "noPermissions": "Can aya idin.",
+    "viewLabel": "Pilih tampilan béranda",
+    "viewMap": "Tampilan peta",
+    "viewStandard": "Tampilan baku",
+    "subtitleMap": "Denyut sakola poé ieu, langsung tina data."
   },
   "academicYears": {
     "title": "Taun pangajaran",
@@ -1470,7 +1476,10 @@
     "month09": "Séptémber",
     "month10": "Oktober",
     "month11": "Nopémber",
-    "month12": "Désémber"
+    "month12": "Désémber",
+    "missingPlanStudents": "Can aya tarif pikeun tingkat ieu, jadi tagihan siswa ieu henteu dijieun:",
+    "missingPlanMore": "jeung {count} deui",
+    "missingPlanSettings": "Atur tarif di Setélan keuangan"
   },
   "messaging": {
     "title": "Béwara WhatsApp",
@@ -1587,7 +1596,8 @@
     "retry": "Kirim deui",
     "pageOf": "Kaca {page} ti {pages}",
     "prev": "Samemehna",
-    "next": "Saterusna"
+    "next": "Saterusna",
+    "providerLog": "Mode uji: pesen dicatet tapi henteu dikirim ka WhatsApp"
   },
   "platformMessaging": {
     "title": "Pesen WhatsApp",
@@ -1622,5 +1632,62 @@
       "failed": "Gagal",
       "disconnected": "Peuting"
     }
+  },
+  "schoolMap": {
+    "mapLabel": "Peta sakola hirup. {summary}",
+    "live": "Langsung",
+    "paused": "Dieureunkeun",
+    "waiting": "Ngadagoan data",
+    "closedBanner": "Libur: {title}",
+    "periodStarted": "Jam ka-{n} dimimitian",
+    "reducedCount": "{present} ti {total} hadir",
+    "dutyShort": "Piket",
+    "b_gate": "Gerbang",
+    "b_classes": "Gedong kelas",
+    "b_teachers": "Rohangan guru",
+    "b_office": "TU jeung kauangan",
+    "b_field": "Lapang",
+    "b_mail": "Talatah",
+    "phase_night": "Suasana peuting",
+    "phase_morning": "Suasana isuk",
+    "phase_noon": "Suasana beurang",
+    "phase_evening": "Suasana sore",
+    "summaryNone": "Data langsung can sayogi",
+    "summaryClosed": "Sakola libur: {title}",
+    "summaryAttendance": "{present} ti {total} murid hadir, {late} telat",
+    "summaryLessons": "{running} kelas keur lumangsung",
+    "gateMain": "{present} ti {total} murid hadir",
+    "gateLate": "{late} telat",
+    "gateNotYet": "{notYet} can datang",
+    "classesMain": "{running} kelas lumangsung",
+    "classesUnfilled": "{unfilled} jam can diabsén",
+    "teachersOnDuty": "Anjeun piket poé ieu",
+    "teachersOffDuty": "Anjeun teu piket poé ieu",
+    "teachersLink": "Buka daptar guru",
+    "officeMain": "Tunggakan {amount}",
+    "officeOverdue": "{amount} ngalangkungan jatuh tempo",
+    "fieldMain": "{count} pasamoan ekskul poé ieu",
+    "mailMain": "{queued} talatah ngantri",
+    "mailFailed": "{failed} talatah gagal dina 24 jam",
+    "unavailable": "Data langsung can bisa dimuat.",
+    "retry": "Cobaan deui",
+    "statsTitle": "Angka poé ieu",
+    "statPresent": "Hadir",
+    "statLate": "Telat",
+    "statNotYet": "Can datang",
+    "statRunning": "Kelas lumangsung",
+    "activityTitle": "Kagiatan panganyarna",
+    "activityEmpty": "Can aya kagiatan poé ieu.",
+    "anonymous": "Saurang murid",
+    "arrivalLine": "{who} datang di gerbang",
+    "departureLine": "{who} muih",
+    "deskTitle": "Méja poé ieu",
+    "deskLoading": "Nuju muka jam pelajaran...",
+    "deskClosed": "Poé ieu libur.",
+    "deskEmpty": "Teu aya jam pelajaran anjeun poé ieu.",
+    "deskFilled": "{filled} ti {total} geus diabsén",
+    "deskDone": "Réngsé",
+    "deskFill": "Eusian absénsi",
+    "modulesTitle": "Jalan pintas modul"
   }
 }

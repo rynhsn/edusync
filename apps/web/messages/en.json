@@ -8,7 +8,9 @@
     "pickDate": "Pick a date",
     "clearDate": "Clear date",
     "cancel": "Cancel",
-    "close": "Close"
+    "close": "Close",
+    "confirm": "Yes, continue",
+    "confirmDelete": "Yes, delete"
   },
   "auth": {
     "title": "Sign in to Edusync",
@@ -113,7 +115,11 @@
     "subtitle": "The overview will fill in as modules are added.",
     "accessTitle": "Your access at this school",
     "accessDescription": "Combined permissions from all the roles you hold.",
-    "noPermissions": "No permissions yet."
+    "noPermissions": "No permissions yet.",
+    "viewLabel": "Choose home view",
+    "viewMap": "Map view",
+    "viewStandard": "Standard view",
+    "subtitleMap": "Today's pulse of the school, live from the data."
   },
   "academicYears": {
     "title": "Academic years",
@@ -1470,7 +1476,10 @@
     "month09": "September",
     "month10": "October",
     "month11": "November",
-    "month12": "December"
+    "month12": "December",
+    "missingPlanStudents": "No fee plan exists for this level, so invoices were not created for these students:",
+    "missingPlanMore": "and {count} more",
+    "missingPlanSettings": "Set fee plans in Finance settings"
   },
   "messaging": {
     "title": "WhatsApp notifications",
@@ -1587,7 +1596,8 @@
     "retry": "Resend",
     "pageOf": "Page {page} of {pages}",
     "prev": "Previous",
-    "next": "Next"
+    "next": "Next",
+    "providerLog": "Test mode: messages are logged but not sent to WhatsApp"
   },
   "platformMessaging": {
     "title": "WhatsApp messages",
@@ -1622,5 +1632,62 @@
       "failed": "Failed",
       "disconnected": "Disconnected"
     }
+  },
+  "schoolMap": {
+    "mapLabel": "Living school map. {summary}",
+    "live": "Live",
+    "paused": "Paused",
+    "waiting": "Waiting for data",
+    "closedBanner": "Closed: {title}",
+    "periodStarted": "Period {n} begins",
+    "reducedCount": "{present} of {total} present",
+    "dutyShort": "On duty",
+    "b_gate": "Gate",
+    "b_classes": "Classroom building",
+    "b_teachers": "Staff room",
+    "b_office": "Admin and finance",
+    "b_field": "Field",
+    "b_mail": "Messages",
+    "phase_night": "Night scene",
+    "phase_morning": "Morning scene",
+    "phase_noon": "Midday scene",
+    "phase_evening": "Evening scene",
+    "summaryNone": "Live data is not available yet",
+    "summaryClosed": "School is closed: {title}",
+    "summaryAttendance": "{present} of {total} students present, {late} late",
+    "summaryLessons": "{running} classes in session",
+    "gateMain": "{present} of {total} students present",
+    "gateLate": "{late} late",
+    "gateNotYet": "{notYet} not yet arrived",
+    "classesMain": "{running} classes in session",
+    "classesUnfilled": "{unfilled} periods without attendance",
+    "teachersOnDuty": "You are on duty today",
+    "teachersOffDuty": "You are not on duty today",
+    "teachersLink": "Open the teacher list",
+    "officeMain": "Outstanding {amount}",
+    "officeOverdue": "{amount} overdue",
+    "fieldMain": "{count} extracurricular sessions today",
+    "mailMain": "{queued} messages queued",
+    "mailFailed": "{failed} messages failed in 24 hours",
+    "unavailable": "Live data could not be loaded.",
+    "retry": "Try again",
+    "statsTitle": "Today's numbers",
+    "statPresent": "Present",
+    "statLate": "Late",
+    "statNotYet": "Not yet arrived",
+    "statRunning": "Classes in session",
+    "activityTitle": "Recent activity",
+    "activityEmpty": "No activity yet today.",
+    "anonymous": "A student",
+    "arrivalLine": "{who} arrived at the gate",
+    "departureLine": "{who} went home",
+    "deskTitle": "Today's desk",
+    "deskLoading": "Loading periods...",
+    "deskClosed": "The school is closed today.",
+    "deskEmpty": "You have no periods today.",
+    "deskFilled": "{filled} of {total} marked",
+    "deskDone": "Done",
+    "deskFill": "Take attendance",
+    "modulesTitle": "Module shortcuts"
   }
 }

@@ -32,6 +32,7 @@ import { gradingRoutes } from './routes/grading';
 import { guardianRoutes } from './routes/guardians';
 import { invitationRoutes } from './routes/invitations';
 import { lessonAttendanceRoutes } from './routes/lesson-attendance';
+import { liveRoutes } from './routes/live';
 import { meRoutes } from './routes/me';
 import { memberRoutes } from './routes/members';
 import { messagingRoutes } from './routes/messaging';
@@ -187,6 +188,7 @@ export async function buildApp(env: Env) {
   await app.register(gradingRoutes);
   await app.register(reportCardRoutes);
   await app.register(financeRoutes);
+  await app.register(liveRoutes);
   await app.register(messagingRoutes, { env });
   await app.register(platformMessagingRoutes, { env });
   await app.register(semesterRoutes);

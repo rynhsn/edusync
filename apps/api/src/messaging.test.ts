@@ -663,12 +663,18 @@ describe('pemicu: pembayaran', () => {
     const inv = await invoice('Gedung', 100_000);
     expect((await pay(inv, 100_000)).statusCode).toBe(201);
     expect(await messagesFor()).toHaveLength(0);
-    expect((await call('GET', '/v1/messaging/account', adminCookie)).json().providerActive).toBe(false);
+    expect((await call('GET', '/v1/messaging/account', adminCookie)).json()).toMatchObject({
+      providerActive: false,
+      provider: 'disabled',
+    });
 
     expect((await put({ enabled: true, provider: 'whatsapp', maxQueuedPerSchool: 500 })).statusCode).toBe(
       200,
     );
-    expect((await call('GET', '/v1/messaging/account', adminCookie)).json().providerActive).toBe(true);
+    expect((await call('GET', '/v1/messaging/account', adminCookie)).json()).toMatchObject({
+      providerActive: true,
+      provider: 'whatsapp',
+    });
     const inv2 = await invoice('Seragam', 50_000);
     expect((await pay(inv2, 50_000)).statusCode).toBe(201);
     expect(await messagesFor()).toHaveLength(1);
@@ -678,7 +684,10 @@ describe('pemicu: pembayaran', () => {
     const inv3 = await invoice('Buku', 10_000);
     expect((await pay(inv3, 10_000)).statusCode).toBe(201);
     expect(await messagesFor()).toHaveLength(1);
-    expect((await call('GET', '/v1/messaging/account', adminCookie)).json().providerActive).toBe(false);
+    expect((await call('GET', '/v1/messaging/account', adminCookie)).json()).toMatchObject({
+      providerActive: false,
+      provider: 'log',
+    });
     await put({ enabled: true, provider: 'log', maxQueuedPerSchool: 500 });
   });
 });

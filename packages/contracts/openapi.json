@@ -22446,6 +22446,137 @@
         }
       }
     },
+    "/v1/grading/my-assignments": {
+      "get": {
+        "summary": "Pasangan kelas dan mapel yang boleh dilihat pengguna",
+        "tags": [
+          "Grading"
+        ],
+        "description": "Izin: `grade:read`; modul `grades`. `all: true` untuk pemegang `grade:configure`, kepala sekolah, dan kurikulum (semua kelas dan mapel; `items` kosong). Pengguna lain mendapat pasangan (kelas, mapel) yang ia ampu, dipakai web untuk menyaring pilihan mapel.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "all": {
+                      "type": "boolean"
+                    },
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "classId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "subjectId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          }
+                        },
+                        "required": [
+                          "classId",
+                          "subjectId"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "all",
+                    "items"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/assessments": {
       "get": {
         "summary": "Daftar penilaian",
@@ -30874,6 +31005,495 @@
         }
       }
     },
+    "/v1/live/snapshot": {
+      "get": {
+        "summary": "Ringkasan hidup hari ini",
+        "tags": [
+          "Live"
+        ],
+        "description": "Anggota sekolah mana pun boleh memanggil (tanpa izin khusus). Tiap bagian null bila modulnya tidak aktif ATAU pengguna tidak punya izinnya: `attendance` dan `lessons` (modul `attendance` + `attendance:read`), `finance` (modul `finance` + `finance:read`), `messaging` (modul `messaging` + `message:read`), `extracurricular` (modul `extracurricular` + `extracurricular:read`). `date`/`time` menurut Asia/Jakarta. `closed` = libur atau jeda kalender sekolah hari ini. `attendance` dihitung seperti `summary` pada `/v1/gate/daily` (siswa aktif di tahun ajaran aktif, tanpa daftar siswa). `lessons.running` = jam yang sedang berlangsung menurut jadwal hari ini di tahun ajaran aktif (maksimal 30; kosong pada hari libur/Minggu); `currentPeriod` nomor jam yang berlangsung, `nextPeriodStartsAt` jam mulai jam berikutnya (HH:MM), `unfilled` = jumlah sel jadwal hari ini yang sudah mulai tetapi belum ada satu pun catatan absensi jamnya. `finance` = agregat tagihan tidak batal semua tahun ajaran (`openInvoices` yang masih bersisa, `outstanding` total sisa, `overdueOutstanding` sisa yang jatuh temponya sebelum hari ini) dan `paidToday` = total kwitansi tidak batal hari ini (rupiah). `messaging.queued` = pesan antre/sedang dikirim; `failed24h` = pesan gagal yang dibuat 24 jam terakhir. `extracurricular.sessionsToday` = pertemuan ekstrakurikuler bertanggal hari ini. Ringan dan hanya agregat; aman dipanggil berkala.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "date": {
+                      "type": "string",
+                      "description": "Tanggal hari ini menurut Asia/Jakarta, TTTT-BB-HH"
+                    },
+                    "time": {
+                      "type": "string",
+                      "description": "Jam sekarang menurut Asia/Jakarta, HH:MM"
+                    },
+                    "closed": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "holiday",
+                            "break"
+                          ]
+                        },
+                        "title": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "type",
+                        "title"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "attendance": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "present": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "late": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "excused": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "sick": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "absent": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "notYet": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "total",
+                        "present",
+                        "late",
+                        "excused",
+                        "sick",
+                        "absent",
+                        "notYet"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "lessons": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "running": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "className": {
+                                "type": "string"
+                              },
+                              "subjectName": {
+                                "type": "string"
+                              },
+                              "periodNumber": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991
+                              },
+                              "startsAt": {
+                                "type": "string"
+                              },
+                              "endsAt": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "className",
+                              "subjectName",
+                              "periodNumber",
+                              "startsAt",
+                              "endsAt"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "currentPeriod": {
+                          "nullable": true,
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "nextPeriodStartsAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "unfilled": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "running",
+                        "currentPeriod",
+                        "nextPeriodStartsAt",
+                        "unfilled"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "finance": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "openInvoices": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "outstanding": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "overdueOutstanding": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "paidToday": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "openInvoices",
+                        "outstanding",
+                        "overdueOutstanding",
+                        "paidToday"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "messaging": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "queued": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "failed24h": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "queued",
+                        "failed24h"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "extracurricular": {
+                      "nullable": true,
+                      "type": "object",
+                      "properties": {
+                        "sessionsToday": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "sessionsToday"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "date",
+                    "time",
+                    "closed",
+                    "attendance",
+                    "lessons",
+                    "finance",
+                    "messaging",
+                    "extracurricular"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/live/events": {
+      "get": {
+        "summary": "Aliran tap gerbang terbaru",
+        "tags": [
+          "Live"
+        ],
+        "description": "Anggota sekolah mana pun boleh memanggil, tetapi peristiwa hanya diisi bila modul `attendance` aktif dan pengguna punya `attendance:read`; selain itu `events` kosong. Sumber: tap gerbang hari ini (Asia/Jakarta); `kind` `arrival` (tap masuk) atau `departure` (tap pulang), urut waktu naik. `after` (ISO) = hanya tap setelahnya (eksklusif); tanpa `after` dikembalikan tap 10 menit terakhir (maksimal `limit`, yang terbaru). `limit` 1-50, bawaan 20. `cursor` = waktu tap terbesar yang dikembalikan, atau `after` (atau sekarang) bila kosong; kirim kembali sebagai `after` pada panggilan berikutnya. `studentName` hanya diisi bila pengguna punya `attendance:read` (selalu terpenuhi di sini); tampilan peta sebaiknya mengabaikan nama dan hanya memakai `className`. Kueri dibatasi ke hari ini sehingga aman dipanggil tiap beberapa detik.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+            },
+            "in": "query",
+            "name": "after",
+            "required": false
+          },
+          {
+            "schema": {
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 50
+            },
+            "in": "query",
+            "name": "limit",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "events": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "arrival",
+                              "departure"
+                            ]
+                          },
+                          "at": {
+                            "type": "string"
+                          },
+                          "className": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "studentName": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "kind",
+                          "at",
+                          "className",
+                          "studentName"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "cursor": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "events",
+                    "cursor"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/messaging/settings": {
       "get": {
         "summary": "Pengaturan notifikasi",
@@ -31820,6 +32440,15 @@
                     "providerActive": {
                       "type": "boolean",
                       "description": "Saklar global platform menyala dan penyedia pesan adalah WhatsApp (bukan mode log)"
+                    },
+                    "provider": {
+                      "type": "string",
+                      "enum": [
+                        "whatsapp",
+                        "log",
+                        "disabled"
+                      ],
+                      "description": "`disabled` bila saklar global platform mati; `log` bila penyedia efektif adalah mode uji (pesan dicatat, tidak dikirim); selain itu `whatsapp`"
                     }
                   },
                   "required": [
@@ -31829,7 +32458,8 @@
                     "phone",
                     "lastError",
                     "updatedAt",
-                    "providerActive"
+                    "providerActive",
+                    "provider"
                   ],
                   "additionalProperties": false
                 }
@@ -31969,6 +32599,15 @@
                     "providerActive": {
                       "type": "boolean",
                       "description": "Saklar global platform menyala dan penyedia pesan adalah WhatsApp (bukan mode log)"
+                    },
+                    "provider": {
+                      "type": "string",
+                      "enum": [
+                        "whatsapp",
+                        "log",
+                        "disabled"
+                      ],
+                      "description": "`disabled` bila saklar global platform mati; `log` bila penyedia efektif adalah mode uji (pesan dicatat, tidak dikirim); selain itu `whatsapp`"
                     }
                   },
                   "required": [
@@ -31978,7 +32617,8 @@
                     "phone",
                     "lastError",
                     "updatedAt",
-                    "providerActive"
+                    "providerActive",
+                    "provider"
                   ],
                   "additionalProperties": false
                 }
@@ -32118,6 +32758,15 @@
                     "providerActive": {
                       "type": "boolean",
                       "description": "Saklar global platform menyala dan penyedia pesan adalah WhatsApp (bukan mode log)"
+                    },
+                    "provider": {
+                      "type": "string",
+                      "enum": [
+                        "whatsapp",
+                        "log",
+                        "disabled"
+                      ],
+                      "description": "`disabled` bila saklar global platform mati; `log` bila penyedia efektif adalah mode uji (pesan dicatat, tidak dikirim); selain itu `whatsapp`"
                     }
                   },
                   "required": [
@@ -32127,7 +32776,8 @@
                     "phone",
                     "lastError",
                     "updatedAt",
-                    "providerActive"
+                    "providerActive",
+                    "provider"
                   ],
                   "additionalProperties": false
                 }

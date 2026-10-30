@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Ban, Download, FilePlus2, Pencil, Search, X } from 'lucide-react';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -47,6 +48,20 @@ interface GenerateResult {
 
 /** missingPlan bisa berupa jumlah atau daftar (siswa/tingkat tanpa tarif); yang ditampilkan hanya jumlahnya. */
 const countOf = (v: unknown) => (Array.isArray(v) ? v.length : typeof v === 'number' ? v : 0);
+
+const MISSING_SHOWN = 10;
+
+interface MissingStudent {
+  studentId: string;
+  name: string;
+  className: string;
+}
+
+/** Daftar siswa tanpa tarif; kosong bila API mengirim bentuk lain. */
+const missingStudents = (v: unknown): MissingStudent[] =>
+  Array.isArray(v)
+    ? v.filter((s): s is MissingStudent => !!s && typeof s === 'object' && 'studentId' in s)
+    : [];
 
 /** Daftar tagihan dengan saringan, ubah diskon/jatuh tempo, pembatalan, pembuatan tagihan massal, dan ekspor. */
 export function InvoicesView() {
@@ -655,6 +670,30 @@ export function InvoicesView() {
                 {t('resultMissingPlan', { count: countOf(genResult.missingPlan) })}
               </li>
             </ul>
+          )}
+          {genResult && missingStudents(genResult.missingPlan).length > 0 && (
+            <div className="grid gap-2 text-sm">
+              <p className="text-muted-foreground">{t('missingPlanStudents')}</p>
+              <ul className="grid list-disc gap-0.5 pl-5">
+                {missingStudents(genResult.missingPlan)
+                  .slice(0, MISSING_SHOWN)
+                  .map((s) => (
+                    <li key={s.studentId}>
+                      {s.name} <span className="text-muted-foreground">({s.className})</span>
+                    </li>
+                  ))}
+              </ul>
+              {missingStudents(genResult.missingPlan).length > MISSING_SHOWN && (
+                <p className="text-muted-foreground">
+                  {t('missingPlanMore', {
+                    count: missingStudents(genResult.missingPlan).length - MISSING_SHOWN,
+                  })}
+                </p>
+              )}
+              <Link href="/finance/settings" className="text-primary font-medium underline">
+                {t('missingPlanSettings')}
+              </Link>
+            </div>
           )}
           <DialogFooter>
             <Button onClick={() => setGenResult(null)}>{t('close')}</Button>

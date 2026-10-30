@@ -483,6 +483,16 @@ describe('penilaian', () => {
     expect(principalView.every((a: { canInput: boolean }) => !a.canInput)).toBe(true);
   });
 
+  it('my-assignments: guru hanya pasangan yang diampu, configure/kepala sekolah semua', async () => {
+    const mat = (await call('GET', '/v1/grading/my-assignments', matCookie)).json();
+    expect(mat).toEqual({ all: false, items: [{ classId: ids.class7A, subjectId: ids.mat }] });
+    const ipa = (await call('GET', '/v1/grading/my-assignments', ipaCookie)).json();
+    expect(ipa).toEqual({ all: false, items: [{ classId: ids.class7B, subjectId: ids.ipa }] });
+    for (const c of [adminCookie, principalCookie, curriculumCookie]) {
+      expect((await call('GET', '/v1/grading/my-assignments', c)).json()).toEqual({ all: true, items: [] });
+    }
+  });
+
   it('ubah penilaian: otorisasi, skor maksimum tidak di bawah skor yang ada', async () => {
     const body = { componentId: ids.tugas, title: 'Tugas 1 (revisi)', date: '2026-08-02', maxScore: 100 };
     const upd = await call('PUT', `/v1/assessments/${ids.matTugas}`, matCookie, body);

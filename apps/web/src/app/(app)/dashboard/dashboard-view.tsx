@@ -1,18 +1,62 @@
 'use client';
 
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, LayoutGrid, Map as MapIcon } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { NAV_GROUPS, useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
+import { SchoolMapView } from '@/components/school-map/school-map-view';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { useDashboardView } from './view-mode';
 
+/** Pilih antara peta sekolah hidup dan tampilan standar; pilihan diingat di peramban. */
 export function DashboardView() {
+  const t = useTranslations('dashboard');
+  const { school, userName } = useSchool();
+  const [view, setView] = useDashboardView();
+
+  const toggle = (
+    <fieldset className="bg-muted flex items-center gap-0.5 rounded-lg p-0.5 m-0 min-w-0 border-0">
+      <legend className="sr-only">{t('viewLabel')}</legend>
+      <Button
+        size="sm"
+        variant={view === 'map' ? 'default' : 'ghost'}
+        aria-pressed={view === 'map'}
+        onClick={() => setView('map')}
+      >
+        <MapIcon aria-hidden /> {t('viewMap')}
+      </Button>
+      <Button
+        size="sm"
+        variant={view === 'standard' ? 'default' : 'ghost'}
+        aria-pressed={view === 'standard'}
+        onClick={() => setView('standard')}
+      >
+        <LayoutGrid aria-hidden /> {t('viewStandard')}
+      </Button>
+    </fieldset>
+  );
+
+  return (
+    <PageBody>
+      <PageHeader
+        title={t('greeting', { name: userName })}
+        description={`${school.schoolName} · ${t(view === 'map' ? 'subtitleMap' : 'subtitle')}`}
+        actions={toggle}
+      />
+      {view === 'map' ? <SchoolMapView /> : <StandardDashboard />}
+    </PageBody>
+  );
+}
+
+/** Tampilan standar: pintasan menu dan daftar izin (dashboard sebelumnya). */
+function StandardDashboard() {
   const t = useTranslations('dashboard');
   const tp = useTranslations('permissions');
   const tn = useTranslations('nav');
-  const { school, userName, can, hasModule } = useSchool();
+  const { school, can, hasModule } = useSchool();
 
   const label = (permission: string) => {
     const key = permission.replace(':', '_');
@@ -30,12 +74,7 @@ export function DashboardView() {
     .filter((g) => g.items.length > 0);
 
   return (
-    <PageBody>
-      <PageHeader
-        title={t('greeting', { name: userName })}
-        description={`${school.schoolName} · ${t('subtitle')}`}
-      />
-
+    <>
       {groups.map((g) => (
         <section key={g.key} className="grid gap-3">
           <h2 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">{tn(g.key)}</h2>
@@ -75,6 +114,6 @@ export function DashboardView() {
           </div>
         </CardContent>
       </Card>
-    </PageBody>
+    </>
   );
 }

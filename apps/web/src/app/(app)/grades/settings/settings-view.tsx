@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -140,6 +141,7 @@ interface Form {
 /** Kartu komponen nilai (tugas, UH, UTS, UAS, dst.) beserta bobotnya; total bobot idealnya 100. */
 function ComponentsCard() {
   const t = useTranslations('grades');
+  const tc = useTranslations('common');
   const te = useTranslations();
   const { school } = useSchool();
   const queryClient = useQueryClient();
@@ -269,18 +271,19 @@ function ComponentsCard() {
                     >
                       <Pencil className="size-4" />
                     </Button>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label={t('delete')}
-                      disabled={remove.isPending}
-                      onClick={() => {
-                        if (window.confirm(t('confirmDeleteComponent', { name: c.name })))
-                          remove.mutate(c.id);
-                      }}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
+                    <ConfirmDialog
+                      trigger={
+                        <Button size="icon-sm" variant="ghost" aria-label={t('delete')}>
+                          <Trash2 className="size-4" />
+                        </Button>
+                      }
+                      title={t('delete')}
+                      description={t('confirmDeleteComponent', { name: c.name })}
+                      confirmLabel={tc('confirmDelete')}
+                      destructive
+                      pending={remove.isPending}
+                      onConfirm={() => remove.mutateAsync(c.id)}
+                    />
                   </TableCell>
                 </TableRow>
               ))}

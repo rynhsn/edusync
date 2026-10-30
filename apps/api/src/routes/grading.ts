@@ -527,6 +527,34 @@ export async function gradingRoutes(instance: FastifyInstance) {
   /* ---------- Penilaian ---------- */
 
   app.get(
+    '/v1/grading/my-assignments',
+    {
+      onRequest: readGate,
+      schema: {
+        tags: tag,
+        summary: 'Pasangan kelas dan mapel yang boleh dilihat pengguna',
+        description:
+          'Izin: `grade:read`; modul `grades`. `all: true` untuk pemegang `grade:configure`, kepala sekolah, dan ' +
+          'kurikulum (semua kelas dan mapel; `items` kosong). Pengguna lain mendapat pasangan (kelas, mapel) yang ia ' +
+          'ampu, dipakai web untuk menyaring pilihan mapel.',
+        headers: schoolHeader,
+        response: {
+          200: z.object({
+            all: z.boolean(),
+            items: z.array(z.object({ classId: z.uuid(), subjectId: z.uuid() })),
+          }),
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      if (isWide(ctx)) return { all: true, items: [] };
+      return tenant(request, async (tx) => ({ all: false, items: await myAssignments(tx, ctx) }));
+    },
+  );
+
+  app.get(
     '/v1/assessments',
     {
       onRequest: readGate,

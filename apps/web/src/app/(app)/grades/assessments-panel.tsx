@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -42,6 +43,7 @@ const emptyForm = (componentId = ''): Form => ({ componentId, title: '', date: t
 /** Daftar penilaian untuk satu semester, kelas, dan mata pelajaran; membuka lembar input nilai. */
 export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
   const t = useTranslations('grades');
+  const tc = useTranslations('common');
   const te = useTranslations();
   const locale = useLocale() as Locale;
   const { school, can } = useSchool();
@@ -218,17 +220,19 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
                           >
                             <Pencil className="size-4" />
                           </Button>
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={t('delete')}
-                            disabled={remove.isPending}
-                            onClick={() => {
-                              if (window.confirm(t('confirmDelete', { title: a.title }))) remove.mutate(a.id);
-                            }}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
+                          <ConfirmDialog
+                            trigger={
+                              <Button size="icon-sm" variant="ghost" aria-label={t('delete')}>
+                                <Trash2 className="size-4" />
+                              </Button>
+                            }
+                            title={t('delete')}
+                            description={t('confirmDelete', { title: a.title })}
+                            confirmLabel={tc('confirmDelete')}
+                            destructive
+                            pending={remove.isPending}
+                            onConfirm={() => remove.mutateAsync(a.id)}
+                          />
                         </>
                       )}
                     </TableCell>

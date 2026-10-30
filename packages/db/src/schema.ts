@@ -821,6 +821,7 @@ export const tapEvent = pgTable(
   (t) => [
     unique('tap_event_client_uq').on(t.schoolId, t.clientId),
     index('tap_event_student_at_idx').on(t.studentId, t.at),
+    index('tap_event_school_at_idx').on(t.schoolId, t.at),
   ],
 );
 

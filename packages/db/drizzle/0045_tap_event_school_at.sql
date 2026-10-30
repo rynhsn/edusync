@@ -1,0 +1,1 @@
+CREATE INDEX "tap_event_school_at_idx" ON "tap_event" USING btree ("school_id","at");

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { TriangleAlert } from 'lucide-react';
+import { Info, TriangleAlert } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
@@ -173,7 +173,13 @@ export function ConnectionPanel() {
 
   return (
     <div className="grid gap-6">
-      {!a.providerActive && (
+      {a.provider === 'log' && (
+        <Alert>
+          <Info />
+          <AlertDescription>{t('providerLog')}</AlertDescription>
+        </Alert>
+      )}
+      {a.provider === 'disabled' && (
         <Alert>
           <TriangleAlert />
           <AlertDescription>{t('providerInactive')}</AlertDescription>

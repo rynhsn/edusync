@@ -50,9 +50,21 @@ export function GradesView() {
     enabled: can('subject:read'),
     queryFn: async () => unwrap(await api.GET('/v1/subjects', { params: header })),
   });
+  // Guru tanpa grade:configure hanya melihat mapel yang ia ampu pada kelas terpilih.
+  const restricted = !can('grade:configure');
+  const mine = useQuery({
+    queryKey: ['grading-my-assignments', school.schoolId],
+    enabled: restricted,
+    queryFn: async () => unwrap(await api.GET('/v1/grading/my-assignments', { params: header })),
+  });
   const classList = classes.data ?? [];
-  const subjectList = subjects.data ?? [];
   const classId = classList.some((c) => c.id === classChoice) ? classChoice : (classList[0]?.id ?? '');
+  const subjectList = (subjects.data ?? []).filter(
+    (s) =>
+      !restricted ||
+      mine.data?.all ||
+      mine.data?.items.some((a) => a.classId === classId && a.subjectId === s.id),
+  );
   const subjectId = subjectList.some((s) => s.id === subjectChoice)
     ? subjectChoice
     : (subjectList[0]?.id ?? '');

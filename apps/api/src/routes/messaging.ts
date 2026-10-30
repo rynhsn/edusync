@@ -29,7 +29,7 @@ import { z } from 'zod';
 import type { Env } from '../env';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
-import { maskPhone, providerActive } from '../messaging-lib';
+import { effectiveProvider, maskPhone, providerActive } from '../messaging-lib';
 import { audit, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const tag = ['Messaging'];
@@ -78,6 +78,11 @@ const accountSchema = z.object({
   providerActive: z
     .boolean()
     .describe('Saklar global platform menyala dan penyedia pesan adalah WhatsApp (bukan mode log)'),
+  provider: z
+    .enum(['whatsapp', 'log', 'disabled'])
+    .describe(
+      '`disabled` bila saklar global platform mati; `log` bila penyedia efektif adalah mode uji (pesan dicatat, tidak dikirim); selain itu `whatsapp`',
+    ),
 });
 
 const messageItemSchema = z.object({
@@ -310,6 +315,11 @@ export async function messagingRoutes(instance: FastifyInstance, options: { env:
       lastError: row?.lastError ?? null,
       updatedAt: row?.updatedAt.toISOString() ?? null,
       providerActive: providerActive(env, platform),
+      provider: !platform.enabled
+        ? ('disabled' as const)
+        : effectiveProvider(env, platform) === 'log'
+          ? ('log' as const)
+          : ('whatsapp' as const),
     };
   };
 
