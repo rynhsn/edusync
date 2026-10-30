@@ -17,6 +17,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { notifyReportCards } from '../messaging-lib';
 import {
   buildDocument,
   documentSummary,
@@ -504,6 +505,13 @@ export async function reportCardRoutes(instance: FastifyInstance) {
               },
             });
         }
+        await notifyReportCards(tx, ctx.schoolId, {
+          semesterId,
+          semesterName: sem.name,
+          className: cls.name,
+          schoolName: c.schoolName,
+          students: stuRows.map((s) => ({ id: s.id, name: s.name })),
+        });
         await audit(tx, ctx, 'report_card.finalize', 'class', classId, {
           semesterId,
           count: c.roster.length,

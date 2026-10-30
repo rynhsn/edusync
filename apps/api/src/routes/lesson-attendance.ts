@@ -23,6 +23,7 @@ import { closureOn, rosterOf, todayInJakarta } from '../attendance-lib';
 import { isOnDuty, jakarta, weekdayOf } from '../gate';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { notifySkippedClass } from '../messaging-lib';
 import { audit, guarded, schoolHeader } from './helpers';
 
 const STATUSES = ['present', 'excused', 'sick', 'absent'] as const;
@@ -318,6 +319,16 @@ export async function lessonAttendanceRoutes(instance: FastifyInstance) {
               },
             });
         }
+        await notifySkippedClass(tx, ctx.schoolId, {
+          scheduleEntryId,
+          classId: entry.classId,
+          subjectId: entry.subjectId,
+          periodId: entry.periodId,
+          date,
+          absent: records
+            .filter((r) => r.status === 'absent')
+            .map((r) => ({ id: r.studentId, name: rows.find((x) => x.id === r.studentId)?.name ?? '' })),
+        });
         await audit(tx, ctx, 'lesson_attendance.save', 'schedule_entry', scheduleEntryId, {
           date,
           count: records.length,

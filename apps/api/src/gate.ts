@@ -22,7 +22,6 @@ export const DEFAULT_POLICY = {
   lateAfter: '07:15',
   departureFrom: '12:00',
   debounceSeconds: 30,
-  notifyParents: false,
 };
 export type Policy = typeof DEFAULT_POLICY;
 
@@ -54,7 +53,6 @@ export async function loadPolicy(tx: Tx): Promise<Policy> {
     lateAfter: row.lateAfter,
     departureFrom: row.departureFrom,
     debounceSeconds: row.debounceSeconds,
-    notifyParents: row.notifyParents,
   };
 }
 

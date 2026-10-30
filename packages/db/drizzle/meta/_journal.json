@@ -288,6 +288,34 @@
       "when": 1793352358277,
       "tag": "0040_finance_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 41,
+      "version": "7",
+      "when": 1793353550067,
+      "tag": "0041_messaging",
+      "breakpoints": true
+    },
+    {
+      "idx": 42,
+      "version": "7",
+      "when": 1793353551931,
+      "tag": "0042_messaging_rls",
+      "breakpoints": true
+    },
+    {
+      "idx": 43,
+      "version": "7",
+      "when": 1793353715508,
+      "tag": "0043_messaging_cleanup",
+      "breakpoints": true
+    },
+    {
+      "idx": 44,
+      "version": "7",
+      "when": 1793353761428,
+      "tag": "0044_messaging_platform_switch",
+      "breakpoints": true
     }
   ]
 }

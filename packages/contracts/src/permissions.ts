@@ -31,6 +31,8 @@ export const PERMISSIONS = [
   'finance:read',
   'finance:pay',
   'finance:manage',
+  'message:read',
+  'message:manage',
   'audit:read',
 ] as const;
 
@@ -63,6 +65,7 @@ export const SYSTEM_ROLES = {
       'grade:read',
       'report_card:read',
       'finance:read',
+      'message:read',
       'audit:read',
     ],
   },
@@ -119,6 +122,8 @@ export const SYSTEM_ROLES = {
       'report_card:read',
       'report_card:manage',
       'finance:read',
+      'message:read',
+      'message:manage',
     ],
   },
   teacher: {

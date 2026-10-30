@@ -31,6 +31,7 @@ import { todayInJakarta } from '../attendance-lib';
 import { type InvoiceView, invoiceRows, PERIOD_PATTERN, paidFor, periodLabel } from '../finance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { notifyPayment } from '../messaging-lib';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const tag = ['Finance'];
@@ -1005,7 +1006,9 @@ export async function financeRoutes(instance: FastifyInstance) {
           total,
           invoices: ids.length,
         });
-        return receiptView(tx, pay!.id);
+        const view = await receiptView(tx, pay!.id);
+        await notifyPayment(tx, ctx.schoolId, pay!.id, view);
+        return view;
       });
       return reply.code(201).send(created);
     },

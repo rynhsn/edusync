@@ -30,6 +30,7 @@ import { closureOn } from '../attendance-lib';
 import { isOnDuty, jakarta, loadPolicy, recordTap } from '../gate';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { notifyTap } from '../messaging-lib';
 import { audit, conflictAs409, guarded, idParams, isUniqueViolation, ok, schoolHeader } from './helpers';
 
 const tag = ['Gate attendance'];
@@ -45,7 +46,6 @@ const policySchema = z.object({
   lateAfter: time,
   departureFrom: time,
   debounceSeconds: z.number().int().min(0).max(600),
-  notifyParents: z.boolean(),
 });
 
 const tapResponse = z.object({
@@ -132,7 +132,7 @@ export async function gateRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Kebijakan absensi gerbang',
         description:
-          'Izin: `attendance:read`. Jam terlambat, jam mulai pulang, jeda tap ganda, dan pengaturan notifikasi wali. ' +
+          'Izin: `attendance:read`. Jam terlambat, jam mulai pulang, dan jeda tap ganda. ' +
           'Bila sekolah belum menyimpannya, nilai bawaan dikembalikan.',
         headers: schoolHeader,
         response: { 200: policySchema, ...guarded },
@@ -664,7 +664,7 @@ export async function gateRoutes(instance: FastifyInstance) {
           .update(attendanceDevice)
           .set({ lastSeenAt: new Date() })
           .where(eq(attendanceDevice.id, d.id));
-        return recordTap(
+        const tapped = await recordTap(
           tx,
           { schoolId },
           {
@@ -675,6 +675,9 @@ export async function gateRoutes(instance: FastifyInstance) {
           },
           await loadPolicy(tx),
         );
+        // Pemberitahuan ke wali (gagal pun tidak menggagalkan tap).
+        await notifyTap(tx, schoolId, tapped);
+        return tapped;
       });
     },
   );

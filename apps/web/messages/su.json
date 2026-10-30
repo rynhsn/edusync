@@ -63,7 +63,8 @@
     "cashier": "Kasir",
     "invoices": "Tagihan",
     "financeSettings": "Jenis biaya & tarif",
-    "financeReports": "Laporan kauangan"
+    "financeReports": "Laporan kauangan",
+    "messaging": "Béwara WhatsApp"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -103,7 +104,9 @@
     "report_card_manage": "Ngurus rapor (setélan, muka deui)",
     "finance_read": "Ningali kauangan",
     "finance_pay": "Narima pamayaran",
-    "finance_manage": "Ngatur kauangan (tarif, tagihan, ngabolaykeun)"
+    "finance_manage": "Ngatur kauangan (tarif, tagihan, ngabolaykeun)",
+    "message_read": "Ningali béwara WhatsApp",
+    "message_manage": "Ngatur béwara WhatsApp"
   },
   "dashboard": {
     "greeting": "Wilujeng sumping, {name}",
@@ -188,7 +191,9 @@
     "invoice_void": "Tagihan ieu geus dibolaykeun.",
     "has_payments": "Geus aya pamayaran, jadi teu bisa dirobah atawa dihapus.",
     "period_required": "Pilih periode pikeun biaya bulanan.",
-    "plan_missing": "Tarif pikeun biaya ieu can diatur."
+    "plan_missing": "Tarif pikeun biaya ieu can diatur.",
+    "invalid_placeholder": "Citakan maké gaganti anu teu kasebut pikeun kajadian ieu.",
+    "invalid_phone": "Nomer telepon teu valid. Paké format 08xx atawa 62xx."
   },
   "theme": {
     "label": "Tema",
@@ -214,7 +219,8 @@
     "parent_portal": "Portal wali jeung murid",
     "announcements": "Pengumuman jeung agénda",
     "extracurricular": "Ekstrakurikuler",
-    "finance": "Kauangan sakola"
+    "finance": "Kauangan sakola",
+    "messaging": "Béwara WhatsApp"
   },
   "tiers": {
     "t300": "Dugi ka 300 murid",
@@ -316,7 +322,8 @@
     "groupConfig": "Konfigurasi",
     "groupWatch": "Pangawasan",
     "catalog": "Paket jeung harga",
-    "payments": "Pamayaran"
+    "payments": "Pamayaran",
+    "messaging": "Pesen WhatsApp"
   },
   "registerStatus": {
     "title": "Status pamayaran",
@@ -879,7 +886,6 @@
     "departureFrom": "Mulih mimiti",
     "debounce": "Jeda tap dua kali (detik)",
     "policyHint": "Tap saméméh jam mulih dianggap lebet; saréngséna dianggap mulih. Lebet saatos wates telat ditandaan telat.",
-    "notifyParents": "Kirim laporan kahadiran ka wali murid (merlukeun pangirim pesen)",
     "save": "Simpen",
     "create": "Jieun",
     "delete": "Piceun",
@@ -1036,7 +1042,9 @@
         "student_has_card": "Siswa geus boga kartu",
         "invalid_code": "Kode teu valid (sahanteuna 4 karakter, tanpa spasi)"
       }
-    }
+    },
+    "notifyMoved": "Béwara ka kolot murid ayeuna diatur di",
+    "notifyMovedLink": "Béwara WhatsApp."
   },
   "extracurricular": {
     "title": "Ekstrakurikuler",
@@ -1463,5 +1471,156 @@
     "month10": "Oktober",
     "month11": "Nopémber",
     "month12": "Désémber"
+  },
+  "messaging": {
+    "title": "Béwara WhatsApp",
+    "subtitle": "Kirim béja kahadiran, pamayaran, jeung rapor ka kolot murid ngaliwatan WhatsApp.",
+    "readOnly": "Anjeun ngan bisa ningali.",
+    "noAccess": "Anjeun teu boga idin pikeun ningali béwara.",
+    "tab": {
+      "connection": "Sambungan",
+      "settings": "Pangaturan",
+      "history": "Riwayat"
+    },
+    "event": {
+      "arrival": "Murid datang",
+      "departure": "Murid balik",
+      "absent": "Acan datang",
+      "skipped_class": "Bolos pelajaran",
+      "payment": "Pamayaran ditarima",
+      "overdue": "Tagihan kalarung",
+      "report_card": "Rapor kaluar"
+    },
+    "eventHint": {
+      "arrival": "Dikirim nalika murid tap asup di gerbang.",
+      "departure": "Dikirim nalika murid tap balik.",
+      "absent": "Dikirim dina jam panginget lamun murid acan kacatet hadir.",
+      "skipped_class": "Dikirim lamun murid aya di sakola tapi teu milu hiji jam pelajaran.",
+      "payment": "Dikirim sanggeus pamayaran dicatet.",
+      "overdue": "Dikirim pikeun tagihan anu geus lawas ti tanggal tempo.",
+      "report_card": "Dikirim nalika rapor difinalkeun."
+    },
+    "placeholder": {
+      "student": "Ngaran murid",
+      "class": "Kelas",
+      "school": "Sakola",
+      "time": "Jam",
+      "date": "Tanggal",
+      "subject": "Pelajaran",
+      "amount": "Jumlah",
+      "receipt": "No. kuitansi",
+      "title": "Judul tagihan",
+      "due": "Tanggal tempo",
+      "semester": "Semester"
+    },
+    "status": {
+      "ready": "Nyambung",
+      "qr": "Ngadagoan dipindai",
+      "connecting": "Nuju nyambung",
+      "failed": "Gagal",
+      "disconnected": "Peuting"
+    },
+    "msgStatus": {
+      "queued": "Ngantri",
+      "sending": "Ngirim",
+      "sent": "Kakirim",
+      "failed": "Gagal",
+      "skipped": "Kaliwatan"
+    },
+    "qrAlt": "Kode QR pikeun nyambungkeun WhatsApp",
+    "testQueued": "Pesen uji asup antrian.",
+    "testTitle": "Kirim pesen uji",
+    "testHint": "Kirim hiji pesen ka nomer anjeun pikeun mastikeun sambungan jalan.",
+    "testNeedsReady": "Aya sanggeus WhatsApp nyambung.",
+    "testPhone": "Nomer tujuan",
+    "testText": "Eusi pesen",
+    "testSend": "Kirim pesen uji",
+    "providerInactive": "Pangiriman dipareuman ku pangurus platform.",
+    "connectionTitle": "Kaayaan WhatsApp",
+    "connectionHint": "Hiji nomer WhatsApp dipaké pikeun sakabéh pesen sakola ieu.",
+    "connectedPhone": "Nomer nyambung",
+    "lastError": "Kasalahan panungtungan",
+    "qrTitle": "Pindai pikeun nyambungkeun",
+    "qrStep1": "Buka WhatsApp di telepon sakola.",
+    "qrStep2": "Ketok Parabot nu numbu.",
+    "qrStep3": "Ketok Numbukeun parabot.",
+    "qrStep4": "Arahkeun kaméra ka kode QR ieu.",
+    "qrRefresh": "Kode diganti otomatis; kaca mariksa unggal 3 detik.",
+    "connect": "Sambungkeun WhatsApp",
+    "disconnect": "Peuntaskeun",
+    "riskNote": "Perhatikeun: maké WhatsApp teu resmi bisa ngabalukarkeun nomer diblokir. Paké nomer husus sakola, lain nomer pribadi.",
+    "templateSaved": "Citakan disimpen.",
+    "templateReset": "Citakan dibalikkeun ka bawaan.",
+    "templateDefault": "Bawaan",
+    "templateBody": "Eusi pesen",
+    "insertPlaceholder": "Selapkeun",
+    "preview": "Pratayang (data conto)",
+    "save": "Simpen",
+    "resetDefault": "Balikkeun ka bawaan",
+    "settingsSaved": "Pangaturan disimpen.",
+    "enabled": "Hurungkeun béwara",
+    "enabledHint": "Lamun dipareuman, euweuh pesen anu dijieun.",
+    "windowStart": "Kirim ti jam",
+    "windowEnd": "Kirim nepi ka jam",
+    "windowHint": "Pesen di luar waktu ieu ngadagoan nepi ka waktu saterusna.",
+    "delayMin": "Jeda acak minimum (detik)",
+    "delayMax": "Jeda acak maksimum (detik)",
+    "delayHint": "Jeda antar pesen dipilih acak dina rentang ieu supaya teu siga robot.",
+    "delayInvalid": "Jeda minimum teu meunang leuwih ti maksimum.",
+    "absentAt": "Jam panginget acan datang",
+    "absentOff": "Pareum",
+    "absentHint": "Dina jam ieu kolot murid anu acan kacatet hadir dibéjaan.",
+    "templatesTitle": "Kajadian jeung citakan pesen",
+    "templatesHint": "Klik ngaran gaganti pikeun nyelapkeunana kana téks pesen.",
+    "retryQueued": "Pesen dikirim deui.",
+    "filterStatus": "Status",
+    "filterEvent": "Kajadian",
+    "allStatuses": "Kabéh status",
+    "allEvents": "Kabéh kajadian",
+    "noMessages": "Acan aya pesen.",
+    "colTime": "Waktu",
+    "colEvent": "Kajadian",
+    "colStudent": "Murid",
+    "colPhone": "Nomer",
+    "colStatus": "Status",
+    "colDetail": "Rincian",
+    "retry": "Kirim deui",
+    "pageOf": "Kaca {page} ti {pages}",
+    "prev": "Samemehna",
+    "next": "Saterusna"
+  },
+  "platformMessaging": {
+    "title": "Pesen WhatsApp",
+    "subtitle": "Pangaturan global ngirim pesen jeung ngawaskeun akun sakola.",
+    "readOnly": "Peran anjeun ngan bisa ningali.",
+    "saved": "Parobahan disimpen.",
+    "settingsTitle": "Pangiriman",
+    "enabled": "Hurungkeun pangiriman pesen",
+    "enabledHint": "Saklar global pikeun sakabéh sakola. Lamun pareum, euweuh pesen anu dikirim.",
+    "provider": "Panyadia",
+    "providerWhatsapp": "WhatsApp",
+    "providerLog": "Log uji (teu ngirim)",
+    "providerHint": "Log uji ngan nyatet pesen tanpa ngirimna; dipaké pikeun nguji.",
+    "maxQueued": "Wates antrian per sakola",
+    "maxQueuedHint": "Pesen anyar ditolak lamun antrian sakola geus sakitu.",
+    "save": "Simpen",
+    "stats24h": "Pesen 24 jam ka tukang",
+    "stats24hHint": "Jumlah pesen sakabéh sakola numutkeun status.",
+    "accounts": "Akun WhatsApp sakola",
+    "accountsHint": "Jumlah akun numutkeun kaayaan sambungan.",
+    "msgStatus": {
+      "queued": "Ngantri",
+      "sending": "Ngirim",
+      "sent": "Kakirim",
+      "failed": "Gagal",
+      "skipped": "Kaliwatan"
+    },
+    "accountStatus": {
+      "ready": "Nyambung",
+      "qr": "Ngadagoan dipindai",
+      "connecting": "Nuju nyambung",
+      "failed": "Gagal",
+      "disconnected": "Peuting"
+    }
   }
 }

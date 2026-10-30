@@ -39,6 +39,7 @@ export const DEFAULT_CATALOG: readonly CatalogItem[] = [
   { kind: 'module', key: 'announcements', name: 'Pengumuman dan agenda', priceMonthly: 25_000, sort: 21 },
   { kind: 'module', key: 'extracurricular', name: 'Ekstrakurikuler', priceMonthly: 50_000, sort: 22 },
   { kind: 'module', key: 'finance', name: 'Keuangan sekolah', priceMonthly: 75_000, sort: 23 },
+  { kind: 'module', key: 'messaging', name: 'Notifikasi WhatsApp', priceMonthly: 40_000, sort: 24 },
 ];
 
 /** Modul yang dipilih bersama modul lain. Memilih yang bergantung otomatis menambah syaratnya. */

@@ -63,7 +63,8 @@
     "cashier": "Kasir",
     "invoices": "Tagihan",
     "financeSettings": "Jenis biaya & tarif",
-    "financeReports": "Laporan keuangan"
+    "financeReports": "Laporan keuangan",
+    "messaging": "Notifikasi WhatsApp"
   },
   "roles": {
     "school_admin": "Admin sekolah",
@@ -103,7 +104,9 @@
     "report_card_manage": "Mengelola rapor (pengaturan, buka kembali)",
     "finance_read": "Melihat keuangan",
     "finance_pay": "Menerima pembayaran",
-    "finance_manage": "Mengelola keuangan (tarif, tagihan, pembatalan)"
+    "finance_manage": "Mengelola keuangan (tarif, tagihan, pembatalan)",
+    "message_read": "Melihat notifikasi WhatsApp",
+    "message_manage": "Mengelola notifikasi WhatsApp"
   },
   "dashboard": {
     "greeting": "Halo, {name}",
@@ -188,7 +191,9 @@
     "invoice_void": "Tagihan ini sudah dibatalkan.",
     "has_payments": "Sudah ada pembayaran, jadi tidak dapat diubah atau dihapus.",
     "period_required": "Pilih periode untuk biaya bulanan.",
-    "plan_missing": "Tarif untuk biaya ini belum diatur."
+    "plan_missing": "Tarif untuk biaya ini belum diatur.",
+    "invalid_placeholder": "Templat memuat pengganti yang tidak dikenal untuk peristiwa ini.",
+    "invalid_phone": "Nomor telepon tidak valid. Gunakan format 08xx atau 62xx."
   },
   "theme": {
     "label": "Tema",
@@ -214,7 +219,8 @@
     "parent_portal": "Portal wali dan siswa",
     "announcements": "Pengumuman dan agenda",
     "extracurricular": "Ekstrakurikuler",
-    "finance": "Keuangan sekolah"
+    "finance": "Keuangan sekolah",
+    "messaging": "Notifikasi WhatsApp"
   },
   "tiers": {
     "t300": "Sampai 300 siswa",
@@ -316,7 +322,8 @@
     "groupConfig": "Konfigurasi",
     "groupWatch": "Pengawasan",
     "catalog": "Paket dan harga",
-    "payments": "Pembayaran"
+    "payments": "Pembayaran",
+    "messaging": "Pesan WhatsApp"
   },
   "registerStatus": {
     "title": "Status pembayaran",
@@ -879,7 +886,6 @@
     "departureFrom": "Pulang mulai",
     "debounce": "Jeda tap ganda (detik)",
     "policyHint": "Tap sebelum jam pulang dihitung masuk; setelahnya dihitung pulang. Tap masuk setelah batas terlambat ditandai terlambat.",
-    "notifyParents": "Kirim laporan kehadiran ke wali murid (butuh pengirim pesan)",
     "save": "Simpan",
     "create": "Buat",
     "delete": "Hapus",
@@ -1036,7 +1042,9 @@
         "student_has_card": "Siswa sudah punya kartu",
         "invalid_code": "Kode tidak valid (minimal 4 karakter, tanpa spasi)"
       }
-    }
+    },
+    "notifyMoved": "Notifikasi ke wali murid kini diatur di",
+    "notifyMovedLink": "Notifikasi WhatsApp."
   },
   "extracurricular": {
     "title": "Ekstrakurikuler",
@@ -1463,5 +1471,156 @@
     "month10": "Oktober",
     "month11": "November",
     "month12": "Desember"
+  },
+  "messaging": {
+    "title": "Notifikasi WhatsApp",
+    "subtitle": "Kirim kabar kehadiran, pembayaran, dan rapor ke wali murid lewat WhatsApp.",
+    "readOnly": "Anda hanya dapat melihat.",
+    "noAccess": "Anda tidak punya izin untuk melihat notifikasi.",
+    "tab": {
+      "connection": "Koneksi",
+      "settings": "Pengaturan",
+      "history": "Riwayat"
+    },
+    "event": {
+      "arrival": "Siswa tiba",
+      "departure": "Siswa pulang",
+      "absent": "Belum tiba",
+      "skipped_class": "Bolos pelajaran",
+      "payment": "Pembayaran diterima",
+      "overdue": "Tagihan jatuh tempo",
+      "report_card": "Rapor terbit"
+    },
+    "eventHint": {
+      "arrival": "Dikirim saat siswa tap masuk di gerbang.",
+      "departure": "Dikirim saat siswa tap pulang.",
+      "absent": "Dikirim pada jam pengingat bila siswa belum tercatat hadir.",
+      "skipped_class": "Dikirim bila siswa hadir di sekolah tetapi tidak mengikuti satu jam pelajaran.",
+      "payment": "Dikirim setelah pembayaran dicatat.",
+      "overdue": "Dikirim untuk tagihan yang lewat jatuh tempo.",
+      "report_card": "Dikirim saat rapor difinalisasi."
+    },
+    "placeholder": {
+      "student": "Nama siswa",
+      "class": "Kelas",
+      "school": "Sekolah",
+      "time": "Jam",
+      "date": "Tanggal",
+      "subject": "Pelajaran",
+      "amount": "Jumlah",
+      "receipt": "No. kwitansi",
+      "title": "Judul tagihan",
+      "due": "Jatuh tempo",
+      "semester": "Semester"
+    },
+    "status": {
+      "ready": "Terhubung",
+      "qr": "Menunggu pemindaian",
+      "connecting": "Menyambung",
+      "failed": "Gagal",
+      "disconnected": "Terputus"
+    },
+    "msgStatus": {
+      "queued": "Antre",
+      "sending": "Mengirim",
+      "sent": "Terkirim",
+      "failed": "Gagal",
+      "skipped": "Dilewati"
+    },
+    "qrAlt": "Kode QR untuk menautkan WhatsApp",
+    "testQueued": "Pesan uji masuk antrean.",
+    "testTitle": "Kirim pesan uji",
+    "testHint": "Kirim satu pesan ke nomor Anda untuk memastikan sambungan berfungsi.",
+    "testNeedsReady": "Tersedia setelah WhatsApp terhubung.",
+    "testPhone": "Nomor tujuan",
+    "testText": "Isi pesan",
+    "testSend": "Kirim pesan uji",
+    "providerInactive": "Pengiriman dinonaktifkan oleh pengelola platform.",
+    "connectionTitle": "Status WhatsApp",
+    "connectionHint": "Satu nomor WhatsApp dipakai untuk semua pesan sekolah ini.",
+    "connectedPhone": "Nomor tersambung",
+    "lastError": "Galat terakhir",
+    "qrTitle": "Pindai untuk menautkan",
+    "qrStep1": "Buka WhatsApp di ponsel nomor sekolah.",
+    "qrStep2": "Ketuk Perangkat tertaut.",
+    "qrStep3": "Ketuk Tautkan perangkat.",
+    "qrStep4": "Arahkan kamera ke kode QR ini.",
+    "qrRefresh": "Kode diperbarui otomatis; halaman memeriksa setiap 3 detik.",
+    "connect": "Hubungkan WhatsApp",
+    "disconnect": "Putuskan",
+    "riskNote": "Perhatian: memakai WhatsApp tidak resmi dapat membuat nomor diblokir. Gunakan nomor khusus sekolah, bukan nomor pribadi.",
+    "templateSaved": "Templat disimpan.",
+    "templateReset": "Templat dikembalikan ke bawaan.",
+    "templateDefault": "Bawaan",
+    "templateBody": "Isi pesan",
+    "insertPlaceholder": "Sisipkan",
+    "preview": "Pratinjau (data contoh)",
+    "save": "Simpan",
+    "resetDefault": "Kembalikan ke bawaan",
+    "settingsSaved": "Pengaturan disimpan.",
+    "enabled": "Aktifkan notifikasi",
+    "enabledHint": "Bila nonaktif, tidak ada pesan yang dibuat.",
+    "windowStart": "Kirim mulai jam",
+    "windowEnd": "Kirim sampai jam",
+    "windowHint": "Pesan di luar jendela ini menunggu hingga jendela berikutnya.",
+    "delayMin": "Jeda acak minimum (detik)",
+    "delayMax": "Jeda acak maksimum (detik)",
+    "delayHint": "Jeda antar-pesan dipilih acak di rentang ini agar tidak terlihat seperti robot.",
+    "delayInvalid": "Jeda minimum tidak boleh melebihi maksimum.",
+    "absentAt": "Jam pengingat belum tiba",
+    "absentOff": "Nonaktif",
+    "absentHint": "Pada jam ini wali murid siswa yang belum tercatat hadir diberi tahu.",
+    "templatesTitle": "Peristiwa dan templat pesan",
+    "templatesHint": "Klik nama pengganti untuk menyisipkannya ke teks pesan.",
+    "retryQueued": "Pesan dikirim ulang.",
+    "filterStatus": "Status",
+    "filterEvent": "Peristiwa",
+    "allStatuses": "Semua status",
+    "allEvents": "Semua peristiwa",
+    "noMessages": "Belum ada pesan.",
+    "colTime": "Waktu",
+    "colEvent": "Peristiwa",
+    "colStudent": "Siswa",
+    "colPhone": "Nomor",
+    "colStatus": "Status",
+    "colDetail": "Detail",
+    "retry": "Kirim ulang",
+    "pageOf": "Halaman {page} dari {pages}",
+    "prev": "Sebelumnya",
+    "next": "Berikutnya"
+  },
+  "platformMessaging": {
+    "title": "Pesan WhatsApp",
+    "subtitle": "Pengaturan global pengiriman pesan dan pemantauan akun sekolah.",
+    "readOnly": "Peran Anda hanya dapat melihat.",
+    "saved": "Perubahan disimpan.",
+    "settingsTitle": "Pengiriman",
+    "enabled": "Aktifkan pengiriman pesan",
+    "enabledHint": "Saklar global untuk semua sekolah. Bila mati, tidak ada pesan yang dikirim.",
+    "provider": "Penyedia",
+    "providerWhatsapp": "WhatsApp",
+    "providerLog": "Log uji (tidak mengirim)",
+    "providerHint": "Log uji hanya mencatat pesan tanpa mengirimnya; dipakai untuk pengujian.",
+    "maxQueued": "Batas antrean per sekolah",
+    "maxQueuedHint": "Pesan baru ditolak bila antrean sekolah sudah sebanyak ini.",
+    "save": "Simpan",
+    "stats24h": "Pesan 24 jam terakhir",
+    "stats24hHint": "Jumlah pesan semua sekolah menurut status.",
+    "accounts": "Akun WhatsApp sekolah",
+    "accountsHint": "Jumlah akun menurut status sambungan.",
+    "msgStatus": {
+      "queued": "Antre",
+      "sending": "Mengirim",
+      "sent": "Terkirim",
+      "failed": "Gagal",
+      "skipped": "Dilewati"
+    },
+    "accountStatus": {
+      "ready": "Terhubung",
+      "qr": "Menunggu pemindaian",
+      "connecting": "Menyambung",
+      "failed": "Gagal",
+      "disconnected": "Terputus"
+    }
   }
 }

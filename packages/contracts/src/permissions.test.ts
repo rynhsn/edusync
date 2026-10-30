@@ -55,3 +55,22 @@ describe('izin keuangan', () => {
     expect(has('treasurer', 'student:read')).toBe(true);
   });
 });
+
+describe('izin pesan', () => {
+  const has = (role: keyof typeof SYSTEM_ROLES, p: string) =>
+    (SYSTEM_ROLES[role].permissions as readonly string[]).includes(p);
+  it('dibagi sesuai peran bawaan', () => {
+    expect(isPermission('message:read')).toBe(true);
+    expect(isPermission('message:manage')).toBe(true);
+    expect(has('school_admin', 'message:read')).toBe(true);
+    expect(has('school_admin', 'message:manage')).toBe(true);
+    expect(has('principal', 'message:read')).toBe(true);
+    expect(has('principal', 'message:manage')).toBe(false);
+    expect(has('operator', 'message:read')).toBe(true);
+    expect(has('operator', 'message:manage')).toBe(true);
+    for (const role of ['curriculum', 'treasurer', 'teacher'] as const) {
+      expect(has(role, 'message:read')).toBe(false);
+      expect(has(role, 'message:manage')).toBe(false);
+    }
+  });
+});

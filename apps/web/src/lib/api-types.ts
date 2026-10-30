@@ -2632,7 +2632,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "audit:read")[];
                     };
                 };
             };
@@ -3168,7 +3168,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "audit:read")[];
                     };
                 };
             };
@@ -6855,7 +6855,7 @@ export interface paths {
         };
         /**
          * Kebijakan absensi gerbang
-         * @description Izin: `attendance:read`. Jam terlambat, jam mulai pulang, jeda tap ganda, dan pengaturan notifikasi wali. Bila sekolah belum menyimpannya, nilai bawaan dikembalikan.
+         * @description Izin: `attendance:read`. Jam terlambat, jam mulai pulang, dan jeda tap ganda. Bila sekolah belum menyimpannya, nilai bawaan dikembalikan.
          */
         get: {
             parameters: {
@@ -6879,7 +6879,6 @@ export interface paths {
                             lateAfter: string;
                             departureFrom: string;
                             debounceSeconds: number;
-                            notifyParents: boolean;
                         };
                     };
                 };
@@ -6933,7 +6932,6 @@ export interface paths {
                         lateAfter: string;
                         departureFrom: string;
                         debounceSeconds: number;
-                        notifyParents: boolean;
                     };
                 };
             };
@@ -6948,7 +6946,6 @@ export interface paths {
                             lateAfter: string;
                             departureFrom: string;
                             debounceSeconds: number;
-                            notifyParents: boolean;
                         };
                     };
                 };
@@ -14674,6 +14671,1177 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pengaturan notifikasi
+         * @description Izin: `message:read`; modul `messaging`. Bila sekolah belum menyimpan pengaturan, nilai bawaan (mati) dikembalikan.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Saklar utama notifikasi sekolah */
+                            enabled: boolean;
+                            /** @description Jeda acak minimum antar pesan (detik) */
+                            delayMinSeconds: number;
+                            /** @description Jeda acak maksimum antar pesan (detik) */
+                            delayMaxSeconds: number;
+                            /** @description Awal jendela kirim (Asia/Jakarta) */
+                            windowStart: string;
+                            /** @description Akhir jendela kirim (Asia/Jakarta) */
+                            windowEnd: string;
+                            /** @description Jam pengingat "belum tiba"; null = nonaktif */
+                            absentNoticeAt: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah pengaturan notifikasi
+         * @description Izin: `message:manage`; modul `messaging`. `delayMaxSeconds` harus >= `delayMinSeconds` (400 `invalid_delay`) dan `windowStart` harus lebih awal dari `windowEnd` (400 `invalid_window`). Saat `enabled` pertama kali menjadi true dan sekolah belum punya templat sama sekali, seluruh templat bawaan dibuat dan diaktifkan.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Saklar utama notifikasi sekolah */
+                        enabled: boolean;
+                        /** @description Jeda acak minimum antar pesan (detik) */
+                        delayMinSeconds: number;
+                        /** @description Jeda acak maksimum antar pesan (detik) */
+                        delayMaxSeconds: number;
+                        /** @description Awal jendela kirim (Asia/Jakarta) */
+                        windowStart: string;
+                        /** @description Akhir jendela kirim (Asia/Jakarta) */
+                        windowEnd: string;
+                        /** @description Jam pengingat "belum tiba"; null = nonaktif */
+                        absentNoticeAt: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Saklar utama notifikasi sekolah */
+                            enabled: boolean;
+                            /** @description Jeda acak minimum antar pesan (detik) */
+                            delayMinSeconds: number;
+                            /** @description Jeda acak maksimum antar pesan (detik) */
+                            delayMaxSeconds: number;
+                            /** @description Awal jendela kirim (Asia/Jakarta) */
+                            windowStart: string;
+                            /** @description Akhir jendela kirim (Asia/Jakarta) */
+                            windowEnd: string;
+                            /** @description Jam pengingat "belum tiba"; null = nonaktif */
+                            absentNoticeAt: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar templat pesan
+         * @description Izin: `message:read`; modul `messaging`. Satu entri per peristiwa (`arrival`, `departure`, `absent`, `skipped_class`, `payment`, `overdue`, `report_card`). Peristiwa tanpa templat milik sekolah memakai isi bawaan dan berstatus mati (`enabled` false, `isDefault` true).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            eventKey: "arrival" | "departure" | "absent" | "skipped_class" | "payment" | "overdue" | "report_card";
+                            /** @description Templat yang berlaku (milik sekolah, atau bawaan bila belum ada) */
+                            body: string;
+                            /** @description Peristiwa ini mengirim pesan; tanpa templat milik sekolah = mati */
+                            enabled: boolean;
+                            /** @description Isi sama dengan templat bawaan */
+                            isDefault: boolean;
+                            defaultBody: string;
+                            /** @description Pengganti {{nama}} yang boleh dipakai pada peristiwa ini */
+                            placeholders: string[];
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan templat pesan satu peristiwa
+         * @description Izin: `message:manage`; modul `messaging`. `body` 1..1000 karakter. Pengganti `{{nama}}` yang tidak dikenal untuk peristiwa itu ditolak: 400 `invalid_placeholder`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        eventKey: "arrival" | "departure" | "absent" | "skipped_class" | "payment" | "overdue" | "report_card";
+                        body: string;
+                        enabled: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            eventKey: "arrival" | "departure" | "absent" | "skipped_class" | "payment" | "overdue" | "report_card";
+                            /** @description Templat yang berlaku (milik sekolah, atau bawaan bila belum ada) */
+                            body: string;
+                            /** @description Peristiwa ini mengirim pesan; tanpa templat milik sekolah = mati */
+                            enabled: boolean;
+                            /** @description Isi sama dengan templat bawaan */
+                            isDefault: boolean;
+                            defaultBody: string;
+                            /** @description Pengganti {{nama}} yang boleh dipakai pada peristiwa ini */
+                            placeholders: string[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/templates/{eventKey}/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kembalikan templat ke bawaan
+         * @description Izin: `message:manage`; modul `messaging`. Isi templat diganti templat bawaan; status `enabled` tidak berubah, dan peristiwa yang belum punya templat milik sekolah tetap mati.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    eventKey: "arrival" | "departure" | "absent" | "skipped_class" | "payment" | "overdue" | "report_card";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            eventKey: "arrival" | "departure" | "absent" | "skipped_class" | "payment" | "overdue" | "report_card";
+                            /** @description Templat yang berlaku (milik sekolah, atau bawaan bila belum ada) */
+                            body: string;
+                            /** @description Peristiwa ini mengirim pesan; tanpa templat milik sekolah = mati */
+                            enabled: boolean;
+                            /** @description Isi sama dengan templat bawaan */
+                            isDefault: boolean;
+                            defaultBody: string;
+                            /** @description Pengganti {{nama}} yang boleh dipakai pada peristiwa ini */
+                            placeholders: string[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Status sambungan WhatsApp
+         * @description Izin: `message:read`; modul `messaging`. `status` ditulis worker (`disconnected`, `connecting`, `qr`, `ready`, `failed`); `qr` terisi hanya saat `qr` untuk dipindai dari ponsel. `providerActive` false berarti saklar global platform mati atau penyedia pesan sedang mode log, sehingga WhatsApp tidak tersambung.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            desiredState: "on" | "off";
+                            /** @enum {string} */
+                            status: "disconnected" | "connecting" | "qr" | "ready" | "failed";
+                            qr: string | null;
+                            phone: string | null;
+                            lastError: string | null;
+                            /** Format: date-time */
+                            updatedAt: string | null;
+                            /** @description Saklar global platform menyala dan penyedia pesan adalah WhatsApp (bukan mode log) */
+                            providerActive: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/account/connect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Sambungkan WhatsApp
+         * @description Izin: `message:manage`; modul `messaging`. Menyetel `desiredState` menjadi `on`; worker lalu menyiapkan QR yang tampil di `GET /v1/messaging/account`. Status tidak diubah oleh API.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            desiredState: "on" | "off";
+                            /** @enum {string} */
+                            status: "disconnected" | "connecting" | "qr" | "ready" | "failed";
+                            qr: string | null;
+                            phone: string | null;
+                            lastError: string | null;
+                            /** Format: date-time */
+                            updatedAt: string | null;
+                            /** @description Saklar global platform menyala dan penyedia pesan adalah WhatsApp (bukan mode log) */
+                            providerActive: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/account/disconnect": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Putuskan WhatsApp
+         * @description Izin: `message:manage`; modul `messaging`. Menyetel `desiredState` menjadi `off` dan mengosongkan QR. Status tidak diubah oleh API; worker yang menutup sambungan.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            desiredState: "on" | "off";
+                            /** @enum {string} */
+                            status: "disconnected" | "connecting" | "qr" | "ready" | "failed";
+                            qr: string | null;
+                            phone: string | null;
+                            lastError: string | null;
+                            /** Format: date-time */
+                            updatedAt: string | null;
+                            /** @description Saklar global platform menyala dan penyedia pesan adalah WhatsApp (bukan mode log) */
+                            providerActive: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kirim pesan uji
+         * @description Izin: `message:manage`; modul `messaging`. Memasukkan satu pesan (peristiwa `test`) ke antrean untuk nomor itu. Nomor tidak valid: 400 `invalid_phone`. Pesan tetap menunggu worker dan sambungan WhatsApp.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        phone: string;
+                        text: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            queued: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Riwayat pesan
+         * @description Izin: `message:read`; modul `messaging`. Terbaru dulu. Nomor tujuan disamarkan. `counts` menghitung seluruh pesan yang cocok dengan `eventKey`/`studentId` (tanpa menyaring `status`); status `sending` dihitung sebagai `queued`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "queued" | "sending" | "sent" | "failed" | "skipped";
+                    eventKey?: string;
+                    studentId?: string;
+                    limit?: number;
+                    offset?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                eventKey: string;
+                                studentName: string | null;
+                                /** @description Disamarkan, mis. 6281****678 */
+                                toPhone: string;
+                                /** @enum {string} */
+                                status: "queued" | "sending" | "sent" | "failed" | "skipped";
+                                detail: string | null;
+                                attempts: number;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: date-time */
+                                sentAt: string | null;
+                            }[];
+                            total: number;
+                            counts: {
+                                queued: number;
+                                sent: number;
+                                failed: number;
+                                skipped: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/messaging/messages/{id}/retry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kirim ulang pesan
+         * @description Izin: `message:manage`; modul `messaging`. Hanya pesan `failed` atau `skipped`; dikembalikan ke `queued` dengan percobaan 0. Selain itu 409 `not_retryable`; pesan tidak ada: 404 `not_found`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/platform/messaging": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pengaturan notifikasi WhatsApp (global)
+         * @description Staf platform (baca). Bawaan: menyala, penyedia `whatsapp` di produksi dan `log` di tempat lain, batas 500 pesan antre per sekolah. Variabel lingkungan `MESSAGING_PROVIDER` pada worker menimpa `provider`. Statistik: pesan dibuat dalam 24 jam terakhir (status `sending` dihitung `queued`) dan jumlah sambungan per status.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Saklar global: mati = tak ada pesan dibuat atau dikirim di semua sekolah */
+                            enabled: boolean;
+                            /**
+                             * @description `log` hanya mencatat pesan (pengembangan/uji)
+                             * @enum {string}
+                             */
+                            provider: "whatsapp" | "log";
+                            /** @description Batas pesan antre per sekolah */
+                            maxQueuedPerSchool: number;
+                            messages24h: {
+                                queued: number;
+                                sent: number;
+                                failed: number;
+                                skipped: number;
+                            };
+                            accounts: {
+                                ready: number;
+                                qr: number;
+                                connecting: number;
+                                failed: number;
+                                disconnected: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah pengaturan notifikasi WhatsApp (global)
+         * @description Staf platform (admin). Berlaku untuk pesan berikutnya tanpa restart. Penyedia `log` dilarang di produksi: 400 `invalid_provider`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Saklar global: mati = tak ada pesan dibuat atau dikirim di semua sekolah */
+                        enabled: boolean;
+                        /**
+                         * @description `log` hanya mencatat pesan (pengembangan/uji)
+                         * @enum {string}
+                         */
+                        provider: "whatsapp" | "log";
+                        /** @description Batas pesan antre per sekolah */
+                        maxQueuedPerSchool: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Saklar global: mati = tak ada pesan dibuat atau dikirim di semua sekolah */
+                            enabled: boolean;
+                            /**
+                             * @description `log` hanya mencatat pesan (pengembangan/uji)
+                             * @enum {string}
+                             */
+                            provider: "whatsapp" | "log";
+                            /** @description Batas pesan antre per sekolah */
+                            maxQueuedPerSchool: number;
+                            messages24h: {
+                                queued: number;
+                                sent: number;
+                                failed: number;
+                                skipped: number;
+                            };
+                            accounts: {
+                                ready: number;
+                                qr: number;
+                                connecting: number;
+                                failed: number;
+                                disconnected: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;

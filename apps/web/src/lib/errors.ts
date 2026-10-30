@@ -55,6 +55,8 @@ const KNOWN = [
   'has_payments',
   'period_required',
   'plan_missing',
+  'invalid_placeholder',
+  'invalid_phone',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

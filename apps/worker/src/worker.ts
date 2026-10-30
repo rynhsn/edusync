@@ -5,6 +5,7 @@ import { PgBoss } from 'pg-boss';
 import type { Env } from './env';
 import { emailSendHandler } from './handlers';
 import { createMailer } from './mailer';
+import { startMessaging } from './messaging';
 
 export async function startWorker(env: Env) {
   await setupJobs(env.DATABASE_JOBS_URL);
@@ -59,9 +60,13 @@ export async function startWorker(env: Env) {
   const billingTimer = setInterval(runBillingCycle, env.BILLING_CYCLE_MS);
   void runBillingCycle();
 
+  // Pesan WhatsApp ke wali murid: sinkronisasi akun, pengirim antrean, dan penjadwal.
+  const messaging = startMessaging(platform.db, env);
+
   return {
     boss,
     stop: async () => {
+      await messaging.stop();
       clearInterval(timer);
       clearInterval(billingTimer);
       while (billingBusy) await new Promise((r) => setTimeout(r, 50));

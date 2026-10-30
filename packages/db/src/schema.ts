@@ -755,8 +755,6 @@ export const attendancePolicy = pgTable('attendance_policy', {
   departureFrom: text('departure_from').notNull().default('12:00'),
   /** Tap kedua dari siswa yang sama dalam rentang ini diabaikan. */
   debounceSeconds: integer('debounce_seconds').notNull().default(30),
-  /** Kirim laporan ke wali (diwujudkan oleh pengirim pesan; di sini hanya pengaturannya). */
-  notifyParents: boolean('notify_parents').notNull().default(false),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -1303,4 +1301,94 @@ export const finCounter = pgTable(
     last: integer('last').notNull().default(0),
   },
   (t) => [primaryKey({ columns: [t.schoolId, t.year] })],
+);
+
+/* ---------- Pesan ke wali murid (WhatsApp) ---------- */
+
+/** Pengaturan pesan per sekolah. Satu baris per sekolah; tanpa baris berarti nilai bawaan dan pesan mati. */
+export const msgSetting = pgTable('msg_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  /** Saklar utama sekolah. Mati = tak ada pesan yang dibuat. */
+  enabled: boolean('enabled').notNull().default(false),
+  /** Jeda acak antar pesan (detik) agar nomor tidak tampak seperti robot. */
+  delayMinSeconds: integer('delay_min_seconds').notNull().default(5),
+  delayMaxSeconds: integer('delay_max_seconds').notNull().default(15),
+  /** Pesan hanya dikirim di dalam jendela waktu ini (Asia/Jakarta, HH:MM); di luarnya ditahan. */
+  windowStart: text('window_start').notNull().default('06:00'),
+  windowEnd: text('window_end').notNull().default('20:00'),
+  /** Jam pengingat "belum tiba" (HH:MM); null = nonaktif. */
+  absentNoticeAt: text('absent_notice_at').default('09:00'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Templat pesan per peristiwa. Tanpa baris, templat bawaan dari packages/contracts dipakai dan peristiwa mati. */
+export const msgTemplate = pgTable(
+  'msg_template',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    /** arrival, departure, absent, skipped_class, payment, overdue, report_card. */
+    eventKey: text('event_key').notNull(),
+    body: text('body').notNull(),
+    enabled: boolean('enabled').notNull().default(true),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.schoolId, t.eventKey] })],
+);
+
+/**
+ * Sambungan WhatsApp sebuah sekolah. API menulis `desiredState` (permintaan pengguna); worker menjalankan
+ * kliennya dan menulis `status`, `qr`, dan `phone` (lewat peran platform).
+ */
+export const waAccount = pgTable('wa_account', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  desiredState: text('desired_state', { enum: ['on', 'off'] })
+    .notNull()
+    .default('off'),
+  status: text('status', { enum: ['disconnected', 'connecting', 'qr', 'ready', 'failed'] })
+    .notNull()
+    .default('disconnected'),
+  /** Isi QR untuk dipindai dari ponsel (hanya saat status 'qr'). */
+  qr: text('qr'),
+  /** Nomor yang tersambung (digit, kode negara). */
+  phone: text('phone'),
+  lastError: text('last_error'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Antrean dan riwayat pesan keluar. Satu baris per penerima per peristiwa. */
+export const msgMessage = pgTable(
+  'msg_message',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    eventKey: text('event_key').notNull(),
+    studentId: uuid('student_id').references(() => student.id),
+    guardianId: uuid('guardian_id').references(() => guardian.id),
+    toPhone: text('to_phone').notNull(),
+    body: text('body').notNull(),
+    status: text('status', { enum: ['queued', 'sending', 'sent', 'failed', 'skipped'] })
+      .notNull()
+      .default('queued'),
+    /** Alasan dilewati atau pesan galat terakhir. */
+    detail: text('detail'),
+    attempts: integer('attempts').notNull().default(0),
+    /** Mencegah pesan ganda untuk peristiwa yang sama (mis. arrival:{student}:{tanggal}:{guardian}). */
+    dedupeKey: text('dedupe_key'),
+    notBefore: timestamp('not_before', { withTimezone: true }).notNull().defaultNow(),
+    sentAt: timestamp('sent_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('msg_message_dedupe_uq').on(t.schoolId, t.dedupeKey),
+    index('msg_message_queue_idx').on(t.status, t.notBefore),
+    index('msg_message_school_created_idx').on(t.schoolId, t.createdAt),
+  ],
 );

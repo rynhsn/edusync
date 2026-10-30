@@ -19,9 +19,19 @@ const schema = z.object({
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   EMAIL_FROM: z.string().default('Edusync <noreply@edusync.test>'),
+  /** Pengirim pesan wali murid: 'log' hanya mencatat (bawaan dev/test), 'whatsapp' memakai whatsapp-web.js (bawaan production). */
+  MESSAGING_PROVIDER: z.enum(['log', 'whatsapp']).optional(),
+  /** Jalur Chrome/Chromium untuk whatsapp-web.js; wajib bila provider whatsapp. */
+  WA_CHROME_PATH: z.string().optional(),
+  /** Folder sesi WhatsApp (satu subfolder per sekolah). */
+  WA_SESSION_DIR: z.string().default('./.wa-sessions'),
 });
 
-export type Env = z.infer<typeof schema>;
+export type Env = Omit<z.infer<typeof schema>, 'MESSAGING_PROVIDER'> & {
+  MESSAGING_PROVIDER: 'log' | 'whatsapp';
+};
+
+const defaultProvider = (nodeEnv: string) => (nodeEnv === 'production' ? 'whatsapp' : 'log');
 
 export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
   const parsed = schema.safeParse(source);
@@ -29,5 +39,8 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     const fields = parsed.error.issues.map((i) => i.path.join('.')).join(', ');
     throw new Error(`Konfigurasi worker tidak valid: ${fields}`);
   }
-  return parsed.data;
+  return {
+    ...parsed.data,
+    MESSAGING_PROVIDER: parsed.data.MESSAGING_PROVIDER ?? defaultProvider(parsed.data.NODE_ENV),
+  };
 }

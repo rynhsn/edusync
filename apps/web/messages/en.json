@@ -63,7 +63,8 @@
     "cashier": "Cashier",
     "invoices": "Invoices",
     "financeSettings": "Fee types & rates",
-    "financeReports": "Finance reports"
+    "financeReports": "Finance reports",
+    "messaging": "WhatsApp notifications"
   },
   "roles": {
     "school_admin": "School admin",
@@ -103,7 +104,9 @@
     "report_card_manage": "Manage report cards (settings, reopen)",
     "finance_read": "View finance",
     "finance_pay": "Receive payments",
-    "finance_manage": "Manage finance (rates, invoices, voids)"
+    "finance_manage": "Manage finance (rates, invoices, voids)",
+    "message_read": "View WhatsApp notifications",
+    "message_manage": "Manage WhatsApp notifications"
   },
   "dashboard": {
     "greeting": "Hello, {name}",
@@ -188,7 +191,9 @@
     "invoice_void": "This invoice has been voided.",
     "has_payments": "Payments already exist, so this cannot be changed or deleted.",
     "period_required": "Choose a period for monthly fees.",
-    "plan_missing": "No rate has been set for this fee."
+    "plan_missing": "No rate has been set for this fee.",
+    "invalid_placeholder": "The template uses a placeholder that is not available for this event.",
+    "invalid_phone": "Invalid phone number. Use the 08xx or 62xx format."
   },
   "theme": {
     "label": "Theme",
@@ -214,7 +219,8 @@
     "parent_portal": "Parent and student portal",
     "announcements": "Announcements and calendar",
     "extracurricular": "Extracurriculars",
-    "finance": "School finance"
+    "finance": "School finance",
+    "messaging": "WhatsApp notifications"
   },
   "tiers": {
     "t300": "Up to 300 students",
@@ -316,7 +322,8 @@
     "groupConfig": "Configuration",
     "groupWatch": "Oversight",
     "catalog": "Plans and pricing",
-    "payments": "Payments"
+    "payments": "Payments",
+    "messaging": "WhatsApp messages"
   },
   "registerStatus": {
     "title": "Payment status",
@@ -879,7 +886,6 @@
     "departureFrom": "Departure from",
     "debounce": "Double-tap interval (seconds)",
     "policyHint": "Taps before the departure time count as arrival; later taps count as departure. Arrivals after the late time are marked late.",
-    "notifyParents": "Send attendance reports to guardians (needs a message sender)",
     "save": "Save",
     "create": "Create",
     "delete": "Delete",
@@ -1036,7 +1042,9 @@
         "student_has_card": "Student already has a card",
         "invalid_code": "Invalid code (at least 4 characters, no spaces)"
       }
-    }
+    },
+    "notifyMoved": "Parent notifications are now set up in",
+    "notifyMovedLink": "WhatsApp notifications."
   },
   "extracurricular": {
     "title": "Extracurriculars",
@@ -1463,5 +1471,156 @@
     "month10": "October",
     "month11": "November",
     "month12": "December"
+  },
+  "messaging": {
+    "title": "WhatsApp notifications",
+    "subtitle": "Send attendance, payment, and report card updates to parents over WhatsApp.",
+    "readOnly": "You can only view.",
+    "noAccess": "You do not have permission to view notifications.",
+    "tab": {
+      "connection": "Connection",
+      "settings": "Settings",
+      "history": "History"
+    },
+    "event": {
+      "arrival": "Student arrived",
+      "departure": "Student left",
+      "absent": "Not arrived",
+      "skipped_class": "Skipped class",
+      "payment": "Payment received",
+      "overdue": "Invoice overdue",
+      "report_card": "Report card issued"
+    },
+    "eventHint": {
+      "arrival": "Sent when a student taps in at the gate.",
+      "departure": "Sent when a student taps out.",
+      "absent": "Sent at the reminder time if a student is not marked present.",
+      "skipped_class": "Sent when a student is at school but misses a lesson.",
+      "payment": "Sent after a payment is recorded.",
+      "overdue": "Sent for invoices past their due date.",
+      "report_card": "Sent when a report card is finalized."
+    },
+    "placeholder": {
+      "student": "Student name",
+      "class": "Class",
+      "school": "School",
+      "time": "Time",
+      "date": "Date",
+      "subject": "Subject",
+      "amount": "Amount",
+      "receipt": "Receipt no.",
+      "title": "Invoice title",
+      "due": "Due date",
+      "semester": "Semester"
+    },
+    "status": {
+      "ready": "Connected",
+      "qr": "Waiting for scan",
+      "connecting": "Connecting",
+      "failed": "Failed",
+      "disconnected": "Disconnected"
+    },
+    "msgStatus": {
+      "queued": "Queued",
+      "sending": "Sending",
+      "sent": "Sent",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "qrAlt": "QR code to link WhatsApp",
+    "testQueued": "Test message queued.",
+    "testTitle": "Send a test message",
+    "testHint": "Send one message to your own number to check the connection works.",
+    "testNeedsReady": "Available once WhatsApp is connected.",
+    "testPhone": "Recipient number",
+    "testText": "Message",
+    "testSend": "Send test message",
+    "providerInactive": "Sending is disabled by the platform operator.",
+    "connectionTitle": "WhatsApp status",
+    "connectionHint": "One WhatsApp number is used for all messages from this school.",
+    "connectedPhone": "Connected number",
+    "lastError": "Last error",
+    "qrTitle": "Scan to link",
+    "qrStep1": "Open WhatsApp on the school phone.",
+    "qrStep2": "Tap Linked devices.",
+    "qrStep3": "Tap Link a device.",
+    "qrStep4": "Point the camera at this QR code.",
+    "qrRefresh": "The code refreshes automatically; this page checks every 3 seconds.",
+    "connect": "Connect WhatsApp",
+    "disconnect": "Disconnect",
+    "riskNote": "Warning: using unofficial WhatsApp access can get the number banned. Use a number dedicated to the school, not a personal one.",
+    "templateSaved": "Template saved.",
+    "templateReset": "Template reset to default.",
+    "templateDefault": "Default",
+    "templateBody": "Message text",
+    "insertPlaceholder": "Insert",
+    "preview": "Preview (sample data)",
+    "save": "Save",
+    "resetDefault": "Reset to default",
+    "settingsSaved": "Settings saved.",
+    "enabled": "Enable notifications",
+    "enabledHint": "When off, no messages are created.",
+    "windowStart": "Send from",
+    "windowEnd": "Send until",
+    "windowHint": "Messages outside this window wait until the next one opens.",
+    "delayMin": "Minimum random delay (seconds)",
+    "delayMax": "Maximum random delay (seconds)",
+    "delayHint": "The gap between messages is random within this range so it does not look automated.",
+    "delayInvalid": "The minimum delay cannot exceed the maximum.",
+    "absentAt": "Not-arrived reminder time",
+    "absentOff": "Disabled",
+    "absentHint": "At this time, parents of students not yet marked present are notified.",
+    "templatesTitle": "Events and message templates",
+    "templatesHint": "Click a placeholder name to insert it into the message text.",
+    "retryQueued": "Message queued again.",
+    "filterStatus": "Status",
+    "filterEvent": "Event",
+    "allStatuses": "All statuses",
+    "allEvents": "All events",
+    "noMessages": "No messages yet.",
+    "colTime": "Time",
+    "colEvent": "Event",
+    "colStudent": "Student",
+    "colPhone": "Number",
+    "colStatus": "Status",
+    "colDetail": "Detail",
+    "retry": "Resend",
+    "pageOf": "Page {page} of {pages}",
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "platformMessaging": {
+    "title": "WhatsApp messages",
+    "subtitle": "Global message sending settings and school account monitoring.",
+    "readOnly": "Your role can only view.",
+    "saved": "Changes saved.",
+    "settingsTitle": "Sending",
+    "enabled": "Enable message sending",
+    "enabledHint": "Global switch for all schools. When off, no messages are sent.",
+    "provider": "Provider",
+    "providerWhatsapp": "WhatsApp",
+    "providerLog": "Test log (does not send)",
+    "providerHint": "The test log only records messages without sending them; use it for testing.",
+    "maxQueued": "Queue limit per school",
+    "maxQueuedHint": "New messages are rejected once a school queue reaches this size.",
+    "save": "Save",
+    "stats24h": "Messages in the last 24 hours",
+    "stats24hHint": "Messages across all schools by status.",
+    "accounts": "School WhatsApp accounts",
+    "accountsHint": "Number of accounts by connection status.",
+    "msgStatus": {
+      "queued": "Queued",
+      "sending": "Sending",
+      "sent": "Sent",
+      "failed": "Failed",
+      "skipped": "Skipped"
+    },
+    "accountStatus": {
+      "ready": "Connected",
+      "qr": "Waiting for scan",
+      "connecting": "Connecting",
+      "failed": "Failed",
+      "disconnected": "Disconnected"
+    }
   }
 }

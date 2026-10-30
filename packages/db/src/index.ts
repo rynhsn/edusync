@@ -17,5 +17,6 @@ export {
 } from 'drizzle-orm';
 export * from './catalog';
 export * from './client';
+export * from './messaging';
 export * from './roles';
 export * from './schema';

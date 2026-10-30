@@ -11,3 +11,4 @@ coverage/
 .codegraph/
 .mcp.json
 .turbo/
+.wa-sessions/

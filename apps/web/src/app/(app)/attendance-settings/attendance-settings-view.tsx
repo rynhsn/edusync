@@ -57,7 +57,6 @@ function PolicyPanel() {
             lateAfter: value.lateAfter,
             departureFrom: value.departureFrom,
             debounceSeconds: value.debounceSeconds,
-            notifyParents: value.notifyParents,
           },
         }),
       );
@@ -118,10 +117,12 @@ function PolicyPanel() {
         </div>
         <p className="text-muted-foreground -mt-2 text-xs">{t('policyHint')}</p>
 
-        <Label className="flex items-center gap-2 font-normal">
-          <Checkbox checked={value.notifyParents} onCheckedChange={(next) => set({ notifyParents: next })} />
-          {t('notifyParents')}
-        </Label>
+        <p className="text-muted-foreground -mt-2 text-xs">
+          {t('notifyMoved')}{' '}
+          <Link href="/messaging" className="text-foreground underline underline-offset-2">
+            {t('notifyMovedLink')}
+          </Link>
+        </p>
 
         {error && (
           <Alert variant="destructive">

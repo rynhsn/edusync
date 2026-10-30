@@ -31,6 +31,8 @@ const schema = z
     WEB_URL: z.string().url().default('http://localhost:3000'),
     PAYMENT_PROVIDER: z.enum(['dev', 'midtrans']).default('dev'),
     PAYMENT_DEV_SECRET: z.string().min(16).default('dev-only-payment-secret-do-not-use'),
+    /** Penyedia pesan WhatsApp untuk worker (log = hanya catat). Kosong = ikut pengaturan platform. */
+    MESSAGING_PROVIDER: z.enum(['log', 'whatsapp']).optional(),
     MIDTRANS_SERVER_KEY: z.string().optional(),
     MIDTRANS_SNAP_URL: z.string().url().default('https://app.sandbox.midtrans.com/snap/v1/transactions'),
   })
