@@ -108,7 +108,16 @@
     "finance_pay": "Narima pamayaran",
     "finance_manage": "Ngatur kauangan (tarif, tagihan, ngabolaykeun)",
     "message_read": "Ningali béwara WhatsApp",
-    "message_manage": "Ngatur béwara WhatsApp"
+    "message_manage": "Ngatur béwara WhatsApp",
+    "tahfidz_read": "Ningali tahfidz jeung ibadah",
+    "tahfidz_manage": "Ngatur tahfidz jeung ibadah",
+    "letter_read": "Ningali surat",
+    "letter_manage": "Ngatur surat",
+    "letter_sign": "Nandatanganan surat",
+    "pkl_read": "Ningali PKL",
+    "pkl_manage": "Ngatur PKL",
+    "admission_read": "Ningali pendaftaran murid anyar",
+    "admission_manage": "Ngatur pendaftaran murid anyar"
   },
   "dashboard": {
     "greeting": "Wilujeng sumping, {name}",

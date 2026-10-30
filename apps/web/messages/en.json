@@ -108,7 +108,16 @@
     "finance_pay": "Receive payments",
     "finance_manage": "Manage finance (rates, invoices, voids)",
     "message_read": "View WhatsApp notifications",
-    "message_manage": "Manage WhatsApp notifications"
+    "message_manage": "Manage WhatsApp notifications",
+    "tahfidz_read": "View Quran memorization and worship",
+    "tahfidz_manage": "Manage Quran memorization and worship",
+    "letter_read": "View letters",
+    "letter_manage": "Manage letters",
+    "letter_sign": "Sign letters",
+    "pkl_read": "View internships",
+    "pkl_manage": "Manage internships",
+    "admission_read": "View new student applications",
+    "admission_manage": "Manage new student applications"
   },
   "dashboard": {
     "greeting": "Hello, {name}",

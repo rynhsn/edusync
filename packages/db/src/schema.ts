@@ -1393,3 +1393,551 @@ export const msgMessage = pgTable(
     index('msg_message_school_created_idx').on(t.schoolId, t.createdAt),
   ],
 );
+
+/* ---------- Tahfidz dan ibadah (modul `tahfidz`) ---------- */
+
+/** Halaqah (kelompok setoran hafalan) dengan satu musyrif/pembina. */
+export const halaqah = pgTable(
+  'halaqah',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    name: text('name').notNull(),
+    mentorTeacherId: uuid('mentor_teacher_id').references(() => teacher.id),
+    scheduleNote: text('schedule_note'),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('halaqah_year_name_uq').on(t.academicYearId, t.name)],
+);
+
+/** Satu siswa berada di paling banyak satu halaqah per tahun ajaran. */
+export const halaqahMember = pgTable(
+  'halaqah_member',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    halaqahId: uuid('halaqah_id')
+      .notNull()
+      .references(() => halaqah.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('halaqah_member_student_year_uq').on(t.studentId, t.academicYearId),
+    index('halaqah_member_halaqah_idx').on(t.halaqahId),
+  ],
+);
+
+/** Target hafalan per siswa per semester (jumlah ayat baru/ziyadah dan ayat murajaah). */
+export const hafalanTarget = pgTable(
+  'hafalan_target',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    ziyadahAyahs: integer('ziyadah_ayahs').notNull().default(0),
+    murajaahAyahs: integer('murajaah_ayahs').notNull().default(0),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('hafalan_target_uq').on(t.studentId, t.semesterId)],
+);
+
+/** Satu setoran: rentang ayat (surah:ayat sampai surah:ayat) pada satu tanggal. Nomor surah 1..114 dari packages/contracts. */
+export const hafalanEntry = pgTable(
+  'hafalan_entry',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    halaqahId: uuid('halaqah_id').references(() => halaqah.id),
+    date: date('date').notNull(),
+    kind: text('kind', { enum: ['ziyadah', 'murajaah'] }).notNull(),
+    surahFrom: integer('surah_from').notNull(),
+    ayahFrom: integer('ayah_from').notNull(),
+    surahTo: integer('surah_to').notNull(),
+    ayahTo: integer('ayah_to').notNull(),
+    quality: text('quality', { enum: ['fluent', 'fair', 'repeat'] })
+      .notNull()
+      .default('fluent'),
+    note: text('note'),
+    recordedBy: text('recorded_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('hafalan_entry_student_date_idx').on(t.studentId, t.date)],
+);
+
+/** Butir ibadah yang dipantau (mis. Dhuha, puasa Senin-Kamis). */
+export const ibadahItem = pgTable(
+  'ibadah_item',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    kind: text('kind', { enum: ['daily', 'weekly'] })
+      .notNull()
+      .default('daily'),
+    sort: integer('sort').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('ibadah_item_name_uq').on(t.schoolId, t.name)],
+);
+
+export const ibadahLog = pgTable(
+  'ibadah_log',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    itemId: uuid('item_id')
+      .notNull()
+      .references(() => ibadahItem.id),
+    date: date('date').notNull(),
+    done: boolean('done').notNull(),
+    note: text('note'),
+    recordedBy: text('recorded_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('ibadah_log_uq').on(t.studentId, t.itemId, t.date),
+    index('ibadah_log_item_date_idx').on(t.itemId, t.date),
+  ],
+);
+
+/* ---------- Administrasi: surat dan tanda tangan QR (modul `administration`) ---------- */
+
+export const letterTemplate = pgTable(
+  'letter_template',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    kind: text('kind', { enum: ['letter', 'certificate'] })
+      .notNull()
+      .default('letter'),
+    /** Isi surat dengan pengganti {{...}} (mis. {{nama}}, {{kelas}}, {{tanggal}}). */
+    body: text('body').notNull(),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('letter_template_name_uq').on(t.schoolId, t.name)],
+);
+
+/** Penandatangan (mis. Kepala Sekolah): terhubung ke anggota; gambar tanda tangan (data URL PNG/JPG, maks. 150 KB) bersifat privat. */
+export const signerCredential = pgTable(
+  'signer_credential',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    memberId: uuid('member_id')
+      .notNull()
+      .references(() => member.id),
+    name: text('name').notNull(),
+    nip: text('nip'),
+    title: text('title').notNull(),
+    signatureData: text('signature_data'),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('signer_member_uq').on(t.schoolId, t.memberId)],
+);
+
+/** Surat keluar/masuk. Nomor surat berurutan per arah per tahun. */
+export const letter = pgTable(
+  'letter',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    direction: text('direction', { enum: ['outgoing', 'incoming'] }).notNull(),
+    number: text('number').notNull(),
+    subject: text('subject').notNull(),
+    /** Penerima (surat keluar) atau pengirim (surat masuk). */
+    party: text('party').notNull(),
+    letterDate: date('letter_date').notNull(),
+    body: text('body'),
+    templateId: uuid('template_id').references(() => letterTemplate.id),
+    studentId: uuid('student_id').references(() => student.id),
+    /** Hanya surat masuk: catatan disposisi dan tujuan. */
+    dispositionNote: text('disposition_note'),
+    status: text('status', { enum: ['draft', 'signed', 'revoked'] })
+      .notNull()
+      .default('draft'),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('letter_number_uq').on(t.schoolId, t.direction, t.number),
+    index('letter_school_date_idx').on(t.schoolId, t.letterDate),
+  ],
+);
+
+export const letterCounter = pgTable(
+  'letter_counter',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    direction: text('direction').notNull(),
+    year: integer('year').notNull(),
+    last: integer('last').notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.schoolId, t.direction, t.year] })],
+);
+
+/** Penandatanganan sederhana (bukan tanda tangan elektronik tersertifikasi): token acak untuk QR dan hash PDF. */
+export const signedDocument = pgTable(
+  'signed_document',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    letterId: uuid('letter_id')
+      .notNull()
+      .references(() => letter.id),
+    signerId: uuid('signer_id')
+      .notNull()
+      .references(() => signerCredential.id),
+    token: text('token').notNull(),
+    pdfSha256: text('pdf_sha256'),
+    signerName: text('signer_name').notNull(),
+    signerTitle: text('signer_title').notNull(),
+    signedAt: timestamp('signed_at', { withTimezone: true }).notNull().defaultNow(),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    revokedReason: text('revoked_reason'),
+  },
+  (t) => [unique('signed_document_token_uq').on(t.token), index('signed_document_letter_idx').on(t.letterId)],
+);
+
+/* ---------- PKL dan prakerin (modul `internship`) ---------- */
+
+export const pklPartner = pgTable(
+  'pkl_partner',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    field: text('field'),
+    address: text('address'),
+    contactName: text('contact_name'),
+    phone: text('phone'),
+    email: text('email'),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('pkl_partner_name_uq').on(t.schoolId, t.name)],
+);
+
+export const pklPeriod = pgTable(
+  'pkl_period',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    name: text('name').notNull(),
+    startsOn: date('starts_on').notNull(),
+    endsOn: date('ends_on').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('pkl_period_name_uq').on(t.schoolId, t.academicYearId, t.name)],
+);
+
+export const pklPlacement = pgTable(
+  'pkl_placement',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    periodId: uuid('period_id')
+      .notNull()
+      .references(() => pklPeriod.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    partnerId: uuid('partner_id')
+      .notNull()
+      .references(() => pklPartner.id),
+    /** Guru pembimbing dari sekolah. */
+    supervisorTeacherId: uuid('supervisor_teacher_id').references(() => teacher.id),
+    industrySupervisorName: text('industry_supervisor_name'),
+    industrySupervisorPhone: text('industry_supervisor_phone'),
+    status: text('status', { enum: ['planned', 'active', 'completed', 'cancelled'] })
+      .notNull()
+      .default('planned'),
+    /** Hash SHA-256 dari token tautan terbatas pembimbing industri (token asli hanya tampil sekali). */
+    accessTokenHash: text('access_token_hash'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('pkl_placement_student_period_uq').on(t.periodId, t.studentId),
+    index('pkl_placement_partner_idx').on(t.partnerId),
+  ],
+);
+
+export const pklJournal = pgTable(
+  'pkl_journal',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    placementId: uuid('placement_id')
+      .notNull()
+      .references(() => pklPlacement.id),
+    date: date('date').notNull(),
+    activity: text('activity').notNull(),
+    present: boolean('present').notNull().default(true),
+    /** Siapa mencatat: 'staff' (pengguna sekolah) atau 'industry' (tautan pembimbing industri). */
+    source: text('source', { enum: ['staff', 'industry'] }).notNull(),
+    recordedBy: text('recorded_by'),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('pkl_journal_day_uq').on(t.placementId, t.date)],
+);
+
+export const pklVisit = pgTable('pkl_visit', {
+  id: id(),
+  schoolId: uuid('school_id')
+    .notNull()
+    .references(() => school.id),
+  placementId: uuid('placement_id')
+    .notNull()
+    .references(() => pklPlacement.id),
+  date: date('date').notNull(),
+  teacherId: uuid('teacher_id').references(() => teacher.id),
+  notes: text('notes').notNull(),
+  createdAt: createdAt(),
+});
+
+/** Aspek penilaian PKL dengan bobot (nilai akhir = rata-rata tertimbang). */
+export const pklAspect = pgTable(
+  'pkl_aspect',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    weight: integer('weight').notNull(),
+    sort: integer('sort').notNull().default(0),
+  },
+  (t) => [unique('pkl_aspect_name_uq').on(t.schoolId, t.name)],
+);
+
+export const pklScore = pgTable(
+  'pkl_score',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    placementId: uuid('placement_id')
+      .notNull()
+      .references(() => pklPlacement.id),
+    aspectId: uuid('aspect_id')
+      .notNull()
+      .references(() => pklAspect.id),
+    /** Penilai: guru pembimbing (school) atau pembimbing industri. Nilai 0..100. */
+    assessor: text('assessor', { enum: ['school', 'industry'] }).notNull(),
+    value: integer('value').notNull(),
+    note: text('note'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('pkl_score_uq').on(t.placementId, t.aspectId, t.assessor)],
+);
+
+/* ---------- SPMB: penerimaan murid baru (modul `admissions`) ---------- */
+
+export const admissionPeriod = pgTable(
+  'admission_period',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    name: text('name').notNull(),
+    /** Tingkat kelas yang dibuka (cocok dengan class_room.level). */
+    level: text('level').notNull(),
+    opensOn: date('opens_on').notNull(),
+    closesOn: date('closes_on').notNull(),
+    quota: integer('quota'),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('admission_period_name_uq').on(t.schoolId, t.name)],
+);
+
+export const application = pgTable(
+  'application',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    periodId: uuid('period_id')
+      .notNull()
+      .references(() => admissionPeriod.id),
+    /** Nomor pendaftaran, mis. SPMB-2026-0001 (berurutan per sekolah per tahun). */
+    regNumber: text('reg_number').notNull(),
+    /** Hash SHA-256 dari kode pelacakan milik pendaftar (kode asli hanya tampil sekali saat mendaftar). */
+    trackingCodeHash: text('tracking_code_hash').notNull(),
+    fullName: text('full_name').notNull(),
+    gender: text('gender', { enum: ['L', 'P'] }).notNull(),
+    birthPlace: text('birth_place'),
+    birthDate: date('birth_date').notNull(),
+    nisn: text('nisn'),
+    previousSchool: text('previous_school'),
+    address: text('address'),
+    programId: uuid('program_id').references(() => program.id),
+    guardianName: text('guardian_name').notNull(),
+    guardianPhone: text('guardian_phone').notNull(),
+    guardianEmail: text('guardian_email'),
+    status: text('status', {
+      enum: ['submitted', 'verified', 'accepted', 'rejected', 'enrolled', 'withdrawn'],
+    })
+      .notNull()
+      .default('submitted'),
+    decisionNote: text('decision_note'),
+    /** Terisi setelah status 'enrolled': siswa yang dibuat otomatis. */
+    studentId: uuid('student_id').references(() => student.id),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('application_reg_uq').on(t.schoolId, t.regNumber),
+    index('application_period_status_idx').on(t.periodId, t.status),
+  ],
+);
+
+/** Dokumen pendaftar. Disimpan sebagai base64 di database (maks. 2 MB asli), privat; hanya terbaca staf berizin. */
+export const applicationDocument = pgTable('application_document', {
+  id: id(),
+  schoolId: uuid('school_id')
+    .notNull()
+    .references(() => school.id),
+  applicationId: uuid('application_id')
+    .notNull()
+    .references(() => application.id),
+  kind: text('kind', { enum: ['family_card', 'birth_certificate', 'diploma', 'photo', 'other'] }).notNull(),
+  fileName: text('file_name').notNull(),
+  mime: text('mime').notNull(),
+  size: integer('size').notNull(),
+  dataBase64: text('data_base64').notNull(),
+  createdAt: createdAt(),
+});
+
+export const applicationStatusLog = pgTable('application_status_log', {
+  id: id(),
+  schoolId: uuid('school_id')
+    .notNull()
+    .references(() => school.id),
+  applicationId: uuid('application_id')
+    .notNull()
+    .references(() => application.id),
+  fromStatus: text('from_status'),
+  toStatus: text('to_status').notNull(),
+  note: text('note'),
+  actor: text('actor'),
+  createdAt: createdAt(),
+});
+
+export const admissionCounter = pgTable(
+  'admission_counter',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    year: integer('year').notNull(),
+    last: integer('last').notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.schoolId, t.year] })],
+);
+
+/* ---------- SPP lanjutan: beasiswa/keringanan ---------- */
+
+/** Aturan keringanan/beasiswa yang dipasang ke siswa dan dipakai saat tagihan dibuat. */
+export const finDiscountRule = pgTable(
+  'fin_discount_rule',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    kind: text('kind', { enum: ['percent', 'amount'] }).notNull(),
+    /** Persen (1..100) atau nominal rupiah. */
+    value: integer('value').notNull(),
+    /** Kosong = berlaku untuk semua jenis biaya. */
+    feeTypeId: uuid('fee_type_id').references(() => finFeeType.id),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('fin_discount_rule_name_uq').on(t.schoolId, t.name)],
+);
+
+export const finStudentDiscount = pgTable(
+  'fin_student_discount',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    ruleId: uuid('rule_id')
+      .notNull()
+      .references(() => finDiscountRule.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    reason: text('reason'),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('fin_student_discount_uq').on(t.studentId, t.ruleId, t.academicYearId)],
+);

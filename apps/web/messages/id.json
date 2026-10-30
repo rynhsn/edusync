@@ -108,7 +108,16 @@
     "finance_pay": "Menerima pembayaran",
     "finance_manage": "Mengelola keuangan (tarif, tagihan, pembatalan)",
     "message_read": "Melihat notifikasi WhatsApp",
-    "message_manage": "Mengelola notifikasi WhatsApp"
+    "message_manage": "Mengelola notifikasi WhatsApp",
+    "tahfidz_read": "Melihat tahfidz dan ibadah",
+    "tahfidz_manage": "Mengelola tahfidz dan ibadah",
+    "letter_read": "Melihat surat",
+    "letter_manage": "Mengelola surat",
+    "letter_sign": "Menandatangani surat",
+    "pkl_read": "Melihat PKL",
+    "pkl_manage": "Mengelola PKL",
+    "admission_read": "Melihat pendaftaran murid baru",
+    "admission_manage": "Mengelola pendaftaran murid baru"
   },
   "dashboard": {
     "greeting": "Halo, {name}",
