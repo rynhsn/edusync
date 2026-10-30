@@ -169,11 +169,11 @@ Lihat `README.md`. Konfigurasi penting di `.env`: `DATABASE_*_URL` (owner/app/pl
 | M2 | Master data, kalender, bank data kurikulum, jurusan, siklus hidup siswa, impor Excel | **Tahap 1 selesai:** jurusan, kelas, mapel, guru, siswa + penempatan kelas, penugasan guru, tahun ajaran aktif (CRUD, API + layar). Tahap 2: impor Excel (500 siswa dengan laporan error per baris), kalender akademik, bank data kurikulum, wali, guru lintas unit |
 | M3 | Jadwal, absensi (kiosk RFID), ekskul, WhatsApp | **Selesai:** jadwal, absensi gerbang (kiosk RFID, piket), absensi per jam, ekskul, notifikasi WhatsApp (adaptor whatsapp-web.js belum diuji dengan nomor sungguhan; beban 1000 tap/menit belum diuji) |
 | M4 | Nilai dan penilaian | **Selesai:** komponen nilai berbobot, penilaian per mapel, input nilai, rekap, rapor (wali kelas, finalisasi snapshot, PDF, leger). Rapor satu kelas dibuat di browser, bukan job; PDF belum dilihat langsung |
-| M5 | Tahfidz dan ibadah | Musyrif mencatat satu halaqah; wali melihat progres |
-| M6 | Administrasi | Surat bertanda tangan QR diverifikasi publik; surat dicabut terlihat |
-| M7 | PKL dan prakerin | Satu siswa melewati penempatan, jurnal, penilaian, sertifikat |
-| M8 | SPMB | Pendaftar diterima otomatis menjadi siswa |
-| M9 | SPP dan tagihan | **Dasar selesai:** jenis biaya, tarif per tingkat, tagihan massal, kasir, kwitansi, laporan tunggakan dan kas harian. Belum: cicilan terjadwal, beasiswa, pembayaran online wali |
+| M5 | Tahfidz dan ibadah | **Selesai (API + layar):** halaqah, target, setoran per surah/ayat, peta 30 juz, lembar ibadah harian. Belum: tampilan wali (M11) |
+| M6 | Administrasi | **Selesai (API + layar):** templat, penomoran, surat keluar/masuk, tanda tangan QR + hash SHA-256, verifikasi publik `/verify/{token}`, pencabutan. PDF belum dilihat di layar |
+| M7 | PKL dan prakerin | **Selesai (API + layar):** mitra, periode, penempatan, jurnal, kunjungan, aspek nilai, tautan publik pembimbing, sertifikat PDF (belum dilihat di layar) |
+| M8 | SPMB | **Selesai (API + layar):** periode, formulir publik `/apply`, dokumen, kode pelacakan, alur status, terima otomatis menjadi siswa. Halaman publik terverifikasi di browser |
+| M9 | SPP dan tagihan | **Dasar selesai:** jenis biaya, tarif per tingkat, tagihan massal, kasir, kwitansi, laporan tunggakan dan kas harian. **Ditambah:** cicilan (pecah tagihan), aturan keringanan/beasiswa, gratis. Belum: denda keterlambatan, pembayaran online wali |
 | M10 | Website, pengumuman, domain sendiri (situs publik + SPMB) | Lighthouse ≥ 90; satu unit tampil di domain luar dengan HTTPS otomatis |
 | M11 | Portal wali/siswa, dashboard kepala sekolah dan yayasan | Wali melihat absensi, nilai, tahfidz, tagihan anaknya |
 | M12 | Rilis: uji beban, tinjauan keamanan, latihan pemulihan, produksi | Daftar periksa rilis lengkap |
@@ -242,3 +242,9 @@ Pilot Miftahul Huda (SMP IT + SMK, ±15 guru, sebagian lintas unit) masuk akal s
 - Midtrans sandbox sungguhan, SMTP sungguhan, verifikasi dua langkah staf, E2E Playwright, hosting produksi.
 - Tiga PDF (rapor, kwitansi, tunggakan) belum pernah dilihat langsung: unduh dan periksa sebelum dipakai.
 - Wali lintas unit, libur nasional otomatis, portal wali/siswa (M11), modul M5–M8, M10 pada tabel di atas.
+
+### Catatan M5–M9 (tahfidz, administrasi, PKL, SPMB, keringanan SPP)
+- Semua tabel baru memakai RLS; rujukan lintas-sekolah divalidasi di API. Modul dikendalikan lewat entitlement (`tahfidz`, `administration`, `internship`, `admissions`) dan paket Pro memuatnya.
+- Endpoint publik (SPMB, tautan PKL, verifikasi surat) memakai peran platform hanya untuk mencari sekolah dari slug/token.
+- Tes: API 312, web 129, contracts 111, worker 36, db 18. Lint dan typecheck bersih.
+- **Belum diverifikasi di browser:** semua layar yang butuh login (tahfidz, surat, SPMB admin, PKL, diskon SPP), PDF (surat, sertifikat, rapor, kwitansi), mode gelap/mobile layar baru.
