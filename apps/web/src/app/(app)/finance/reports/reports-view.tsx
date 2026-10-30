@@ -22,6 +22,7 @@ import { formatRupiah } from '@/lib/money';
 import { buildExport, saveBlob } from '@/lib/sheet';
 import { buildArrearsRows, buildDailyRows, safeSheetName, sumArrears } from '../pdf/format';
 import type { ArrearsReport, DailyReport } from '../pdf/types';
+import { LateFeesPanel } from './late-fees-panel';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const isoOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -47,7 +48,7 @@ export function ReportsView() {
   const allowed = can('finance:read');
 
   const today = isoOf(new Date());
-  const [tab, setTab] = useState<'arrears' | 'daily'>('arrears');
+  const [tab, setTab] = useState<'arrears' | 'daily' | 'lateFees'>('arrears');
   const [yearChoice, setYearChoice] = useState('');
   const [classId, setClassId] = useState('');
   const [asOf, setAsOf] = useState(today);
@@ -202,7 +203,7 @@ export function ReportsView() {
                 <FileText className="size-4" /> {t('exportPdf')}
               </Button>
             </>
-          ) : (
+          ) : tab === 'lateFees' ? null : (
             <Button
               variant="outline"
               disabled={!dailyData || dailyData.totals.receipts === 0}
@@ -215,19 +216,21 @@ export function ReportsView() {
       />
 
       <div className="flex gap-2">
-        {(['arrears', 'daily'] as const).map((k) => (
+        {(['arrears', 'daily', 'lateFees'] as const).map((k) => (
           <Button
             key={k}
             variant={tab === k ? 'default' : 'outline'}
             aria-pressed={tab === k}
             onClick={() => setTab(k)}
           >
-            {k === 'arrears' ? t('tabArrears') : t('tabDaily')}
+            {k === 'arrears' ? t('tabArrears') : k === 'daily' ? t('tabDaily') : t('tabLateFees')}
           </Button>
         ))}
       </div>
 
-      {tab === 'arrears' ? (
+      {tab === 'lateFees' ? (
+        <LateFeesPanel />
+      ) : tab === 'arrears' ? (
         <>
           <div className="flex flex-wrap items-center gap-3">
             <SelectField

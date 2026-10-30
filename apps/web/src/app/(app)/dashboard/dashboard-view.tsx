@@ -9,6 +9,7 @@ import { SchoolMapView } from '@/components/school-map/school-map-view';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AnnouncementsWidget } from './announcements-widget';
 import { useDashboardView } from './view-mode';
 
 /** Pilih antara peta sekolah hidup dan tampilan standar; pilihan diingat di peramban. */
@@ -75,6 +76,7 @@ function StandardDashboard() {
 
   return (
     <>
+      <AnnouncementsWidget />
       {groups.map((g) => (
         <section key={g.key} className="grid gap-3">
           <h2 className="text-muted-foreground text-xs font-medium tracking-wide uppercase">{tn(g.key)}</h2>

@@ -124,6 +124,9 @@ if (sub) {
           'administration',
           'admissions',
           'internship',
+          'parent_portal',
+          'announcements',
+          'website',
         ].map((moduleKey) => ({
           schoolId: s.id,
           moduleKey,

@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
+import { homePathFor } from '@/lib/portal-access';
 import { goToSchool, useSite } from '@/lib/site';
 
 /**
@@ -50,7 +51,11 @@ export function GatewayView() {
   useEffect(() => {
     if (!site.ready || me.isPending || me.isError) return;
     if (me.data === null) return void router.replace('/login');
-    if (site.kind === 'school') return void router.replace('/dashboard');
+    if (site.kind === 'school') {
+      // Wali/siswa mendarat di portal, staf di dasbor.
+      const here = me.data.memberships.find((m) => m.schoolSlug === site.slug);
+      return void router.replace(here ? homePathFor(here.permissions) : '/dashboard');
+    }
     if (staff.isPending) return;
     if (staff.data) return void router.replace('/platform');
     if (owner.isPending) return;
@@ -58,7 +63,7 @@ export function GatewayView() {
     const first = [...me.data.memberships].sort((a, b) => a.schoolName.localeCompare(b.schoolName))[0];
     if (!first || moving.current) return;
     moving.current = true;
-    goToSchool(site, first.schoolSlug).catch(() => {
+    goToSchool(site, first.schoolSlug, homePathFor(first.permissions)).catch(() => {
       moving.current = false;
       setMoveFailed(true);
     });

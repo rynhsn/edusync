@@ -22,6 +22,7 @@ import { academicYearRoutes } from './routes/academic-years';
 import { accountRoutes } from './routes/account';
 import { admissionRoutes } from './routes/admissions';
 import { admissionPublicRoutes } from './routes/admissions-public';
+import { announcementRoutes } from './routes/announcements';
 import { attendanceReportRoutes } from './routes/attendance-report';
 import { registerAuthRoutes } from './routes/auth';
 import { billingRoutes } from './routes/billing';
@@ -30,6 +31,7 @@ import { curriculumRoutes } from './routes/curriculum';
 import { extracurricularRoutes } from './routes/extracurricular';
 import { financeRoutes } from './routes/finance';
 import { financeDiscountRoutes } from './routes/finance-discounts';
+import { financeLateFeeRoutes } from './routes/finance-late-fee';
 import { gateRoutes } from './routes/gate';
 import { gradingRoutes } from './routes/grading';
 import { guardianRoutes } from './routes/guardians';
@@ -47,6 +49,8 @@ import { platformRoutes } from './routes/platform';
 import { platformCatalogRoutes } from './routes/platform-catalog';
 import { platformMessagingRoutes } from './routes/platform-messaging';
 import { platformPaymentRoutes } from './routes/platform-payments';
+import { portalRoutes } from './routes/portal';
+import { portalPublicRoutes } from './routes/portal-public';
 import { reportCardRoutes } from './routes/report-card';
 import { roleRoutes } from './routes/roles';
 import { scheduleRoutes } from './routes/schedule';
@@ -119,6 +123,12 @@ export async function buildApp(env: Env) {
         { name: 'Finance', description: 'Keuangan sekolah: tarif, tagihan, kwitansi, dan laporan' },
         { name: 'Admissions', description: 'SPMB: periode, pendaftar, verifikasi, dan daftar ulang' },
         { name: 'Admissions (publik)', description: 'Pendaftaran SPMB tanpa login, lewat slug sekolah' },
+        { name: 'Announcements', description: 'Pengumuman, agenda, dan umpan dasbor staf' },
+        { name: 'Site', description: 'Profil situs publik sekolah' },
+        {
+          name: 'Situs sekolah (publik)',
+          description: 'Beranda dan pengumuman sekolah tanpa login, lewat slug',
+        },
         { name: 'Billing', description: 'Katalog, pendaftaran, dan pembayaran' },
         { name: 'Platform', description: 'Konsol staf Edusync' },
       ],
@@ -199,9 +209,11 @@ export async function buildApp(env: Env) {
   await app.register(reportCardRoutes);
   await app.register(financeRoutes);
   await app.register(financeDiscountRoutes);
+  await app.register(financeLateFeeRoutes);
   await app.register(admissionRoutes);
   await app.register(admissionPublicRoutes);
   await app.register(liveRoutes);
+  await app.register(announcementRoutes);
   await app.register(tahfidzRoutes);
   await app.register(pklRoutes);
   await app.register(pklPublicRoutes);
@@ -214,6 +226,8 @@ export async function buildApp(env: Env) {
   await app.register(studentImportRoutes);
   await app.register(teacherImportRoutes);
   await app.register(invitationRoutes, { env });
+  await app.register(portalRoutes, { env });
+  await app.register(portalPublicRoutes, { env });
 
   return app;
 }

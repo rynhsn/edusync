@@ -2632,7 +2632,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "admission:read" | "admission:manage" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "admission:read" | "admission:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read")[];
                     };
                 };
             };
@@ -3168,7 +3168,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "admission:read" | "admission:manage" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "admission:read" | "admission:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read")[];
                     };
                 };
             };
@@ -18036,6 +18036,400 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/finance/late-fee-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pengaturan denda keterlambatan
+         * @description Izin: `finance:read`; modul `finance`. Bila belum pernah diatur, mengembalikan bawaan (`mode` `none`, tanpa denda).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * @description `none` = tanpa denda; `flat` = nominal tetap; `percent` = persen dari sisa tagihan
+                             * @enum {string}
+                             */
+                            mode: "none" | "flat" | "percent";
+                            /** @description Rupiah (flat) atau persen 1..100 (percent) */
+                            value: number;
+                            /** @description Hari toleransi setelah jatuh tempo */
+                            graceDays: number;
+                            /** @description Batas denda per tagihan (rupiah); kosong = tanpa batas */
+                            capAmount: number | null;
+                            /**
+                             * Format: uuid
+                             * @description Jenis biaya untuk tagihan denda
+                             */
+                            feeTypeId: string | null;
+                            feeTypeName: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah pengaturan denda keterlambatan
+         * @description Izin: `finance:manage`; modul `finance`. `mode`: `none` (tanpa denda), `flat` (nominal `value` rupiah > 0), `percent` (`value` 1..100 persen dari sisa tagihan, dibulatkan). `graceDays` 0..365 hari toleransi setelah jatuh tempo; `capAmount` batas denda per tagihan (kosong = tanpa batas). `feeTypeId` jenis biaya untuk tagihan denda, wajib bila mode bukan `none`. Galat: 400 `invalid_reference` bila jenis biaya bukan milik sekolah. Perubahan hanya memengaruhi penerbitan denda berikutnya.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        mode: "none" | "flat" | "percent";
+                        value: number;
+                        graceDays: number;
+                        /** @default null */
+                        capAmount?: number | null;
+                        /**
+                         * Format: uuid
+                         * @default null
+                         */
+                        feeTypeId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * @description `none` = tanpa denda; `flat` = nominal tetap; `percent` = persen dari sisa tagihan
+                             * @enum {string}
+                             */
+                            mode: "none" | "flat" | "percent";
+                            /** @description Rupiah (flat) atau persen 1..100 (percent) */
+                            value: number;
+                            /** @description Hari toleransi setelah jatuh tempo */
+                            graceDays: number;
+                            /** @description Batas denda per tagihan (rupiah); kosong = tanpa batas */
+                            capAmount: number | null;
+                            /**
+                             * Format: uuid
+                             * @description Jenis biaya untuk tagihan denda
+                             */
+                            feeTypeId: string | null;
+                            feeTypeName: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/late-fees/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pratinjau denda keterlambatan
+         * @description Izin: `finance:read`; modul `finance`. Daftar tagihan (belum lunas, tidak batal) yang sudah lewat jatuh tempo + toleransi, dengan denda terhitung dari sisa tagihan saat ini dan penanda `fined` bila tagihan dendanya sudah dibuat. Tagihan denda sendiri tidak dikenai denda. Kosong dan `enabled` false bila denda dimatikan atau jenis biaya denda belum diatur. Hari ini menurut zona Jakarta.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: date */
+                            today: string;
+                            /** @description Denda aktif dan jenis biaya denda sudah diatur */
+                            enabled: boolean;
+                            items: {
+                                /** Format: uuid */
+                                invoiceId: string;
+                                /** Format: uuid */
+                                studentId: string;
+                                studentName: string;
+                                nis: string | null;
+                                className: string | null;
+                                title: string;
+                                feeTypeName: string;
+                                /** Format: date */
+                                dueDate: string;
+                                outstanding: number;
+                                /** @description Hari sejak jatuh tempo (hari ini - jatuh tempo) */
+                                daysLate: number;
+                                /** @description Denda terhitung dalam rupiah (> 0) */
+                                lateFee: number;
+                                /** @description Sudah dikenai denda (tagihan denda untuk tagihan ini sudah dibuat) */
+                                fined: boolean;
+                                /** Format: uuid */
+                                fineInvoiceId: string | null;
+                            }[];
+                            /** @description Tagihan yang belum dikenai denda */
+                            pendingCount: number;
+                            /** @description Jumlah denda yang akan dibuat */
+                            pendingTotal: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/late-fees/apply": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Terbitkan tagihan denda
+         * @description Izin: `finance:manage`; modul `finance`. Membuat tagihan denda ("Denda <judul tagihan>", jenis biaya dari pengaturan, jatuh tempo hari ini + 7 hari) untuk setiap tagihan yang kena denda pada pratinjau, atau hanya untuk `invoiceIds` bila diisi. Idempoten per tagihan induk (`period` `denda-<id tagihan induk>`): tagihan yang sudah dikenai denda dilewati dan dihitung di `skipped`. Nominal denda dibekukan saat dibuat. Galat: 400 `late_fee_disabled` bila denda dimatikan atau jenis biaya denda belum diatur.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * @description Batasi pada tagihan induk ini; kosong = semua tagihan yang kena denda
+                         * @default null
+                         */
+                        invoiceIds?: string[] | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Jumlah tagihan denda yang dibuat */
+                            created: number;
+                            /** @description Dilewati karena sudah dikenai denda */
+                            skipped: number;
+                            /** @description Jumlah rupiah denda yang dibuat */
+                            total: number;
+                            /** @description Id tagihan denda yang dibuat */
+                            invoiceIds: string[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/admissions/periods": {
         parameters: {
             query?: never;
@@ -19766,6 +20160,1273 @@ export interface paths {
                 };
                 /** @description Default Response */
                 403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/announcements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar pengumuman dan agenda
+         * @description Izin: `announcement:read`; modul `announcements`. Saringan `status`, `category`, `audience`. Urutan: yang disematkan dulu, lalu terbaru.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "draft" | "published";
+                    category?: "news" | "agenda" | "notice";
+                    audience?: "public" | "portal" | "staff" | "all";
+                    limit?: number;
+                    offset?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                title: string;
+                                body: string;
+                                /** @enum {string} */
+                                category: "news" | "agenda" | "notice";
+                                /** @enum {string} */
+                                audience: "public" | "portal" | "staff" | "all";
+                                /** Format: date */
+                                eventDate: string | null;
+                                pinned: boolean;
+                                /** @enum {string} */
+                                status: "draft" | "published";
+                                publishedAt: string | null;
+                                expiresAt: string | null;
+                                /** @description Sudah melewati `expiresAt` */
+                                expired: boolean;
+                                createdAt: string;
+                                updatedAt: string;
+                            }[];
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat pengumuman
+         * @description Izin: `announcement:manage`; modul `announcements`. `body` teks biasa (HTML ditolak 400 `validation`). Agenda wajib `eventDate`. Status `published` mengisi `publishedAt` otomatis. Ditulis ke audit.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title: string;
+                        /** @description Teks biasa (tanpa HTML), maks. 5000 karakter */
+                        body: string;
+                        /**
+                         * @default news
+                         * @enum {string}
+                         */
+                        category?: "news" | "agenda" | "notice";
+                        /**
+                         * @default all
+                         * @enum {string}
+                         */
+                        audience?: "public" | "portal" | "staff" | "all";
+                        /**
+                         * Format: date
+                         * @description Tanggal acara; wajib untuk kategori agenda
+                         */
+                        eventDate?: string | null;
+                        /** @default false */
+                        pinned?: boolean;
+                        /**
+                         * @default draft
+                         * @enum {string}
+                         */
+                        status?: "draft" | "published";
+                        /**
+                         * Format: date-time
+                         * @description Setelah waktu ini pengumuman tidak tampil lagi; kosong = tanpa batas
+                         */
+                        expiresAt?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            body: string;
+                            /** @enum {string} */
+                            category: "news" | "agenda" | "notice";
+                            /** @enum {string} */
+                            audience: "public" | "portal" | "staff" | "all";
+                            /** Format: date */
+                            eventDate: string | null;
+                            pinned: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "published";
+                            publishedAt: string | null;
+                            expiresAt: string | null;
+                            /** @description Sudah melewati `expiresAt` */
+                            expired: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/announcements/feed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Umpan pengumuman untuk dasbor staf
+         * @description Izin: `announcement:read`; modul `announcements`. Hanya yang terbit, belum kadaluarsa, dan audiens `staff` atau `all`. Disematkan dulu, lalu terbaru.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    limit?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                title: string;
+                                body: string;
+                                /** @enum {string} */
+                                category: "news" | "agenda" | "notice";
+                                /** @enum {string} */
+                                audience: "public" | "portal" | "staff" | "all";
+                                /** Format: date */
+                                eventDate: string | null;
+                                pinned: boolean;
+                                /** @enum {string} */
+                                status: "draft" | "published";
+                                publishedAt: string | null;
+                                expiresAt: string | null;
+                                /** @description Sudah melewati `expiresAt` */
+                                expired: boolean;
+                                createdAt: string;
+                                updatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/announcements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail pengumuman
+         * @description Izin: `announcement:read`; modul `announcements`. 404 `not_found` bila tidak ada.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            body: string;
+                            /** @enum {string} */
+                            category: "news" | "agenda" | "notice";
+                            /** @enum {string} */
+                            audience: "public" | "portal" | "staff" | "all";
+                            /** Format: date */
+                            eventDate: string | null;
+                            pinned: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "published";
+                            publishedAt: string | null;
+                            expiresAt: string | null;
+                            /** @description Sudah melewati `expiresAt` */
+                            expired: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah pengumuman
+         * @description Izin: `announcement:manage`; modul `announcements`. Mengganti seluruh isi. `publishedAt` tetap bila sudah terbit; berubah ke terbit mengisinya, kembali ke draf mengosongkannya. 404 `not_found`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title: string;
+                        /** @description Teks biasa (tanpa HTML), maks. 5000 karakter */
+                        body: string;
+                        /**
+                         * @default news
+                         * @enum {string}
+                         */
+                        category?: "news" | "agenda" | "notice";
+                        /**
+                         * @default all
+                         * @enum {string}
+                         */
+                        audience?: "public" | "portal" | "staff" | "all";
+                        /**
+                         * Format: date
+                         * @description Tanggal acara; wajib untuk kategori agenda
+                         */
+                        eventDate?: string | null;
+                        /** @default false */
+                        pinned?: boolean;
+                        /**
+                         * @default draft
+                         * @enum {string}
+                         */
+                        status?: "draft" | "published";
+                        /**
+                         * Format: date-time
+                         * @description Setelah waktu ini pengumuman tidak tampil lagi; kosong = tanpa batas
+                         */
+                        expiresAt?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            body: string;
+                            /** @enum {string} */
+                            category: "news" | "agenda" | "notice";
+                            /** @enum {string} */
+                            audience: "public" | "portal" | "staff" | "all";
+                            /** Format: date */
+                            eventDate: string | null;
+                            pinned: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "published";
+                            publishedAt: string | null;
+                            expiresAt: string | null;
+                            /** @description Sudah melewati `expiresAt` */
+                            expired: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus pengumuman
+         * @description Izin: `announcement:manage`; modul `announcements`. 404 `not_found`. Ditulis ke audit.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/announcements/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Terbitkan pengumuman
+         * @description Izin: `announcement:manage`; modul `announcements`. Mengisi `publishedAt` bila sebelumnya draf; sudah terbit tidak mengubah apa pun. 404 `not_found`. Ditulis ke audit.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            body: string;
+                            /** @enum {string} */
+                            category: "news" | "agenda" | "notice";
+                            /** @enum {string} */
+                            audience: "public" | "portal" | "staff" | "all";
+                            /** Format: date */
+                            eventDate: string | null;
+                            pinned: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "published";
+                            publishedAt: string | null;
+                            expiresAt: string | null;
+                            /** @description Sudah melewati `expiresAt` */
+                            expired: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/announcements/{id}/unpublish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tarik pengumuman ke draf
+         * @description Izin: `announcement:manage`; modul `announcements`. Mengembalikan ke draf dan mengosongkan `publishedAt`; sudah draf tidak mengubah apa pun. 404 `not_found`. Ditulis ke audit.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            body: string;
+                            /** @enum {string} */
+                            category: "news" | "agenda" | "notice";
+                            /** @enum {string} */
+                            audience: "public" | "portal" | "staff" | "all";
+                            /** Format: date */
+                            eventDate: string | null;
+                            pinned: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "published";
+                            publishedAt: string | null;
+                            expiresAt: string | null;
+                            /** @description Sudah melewati `expiresAt` */
+                            expired: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/site/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Profil situs sekolah
+         * @description Izin: `announcement:manage`; modul `website`. Bila belum pernah disimpan, semua kolom kosong dan `published` = false.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            tagline: string | null;
+                            about: string | null;
+                            vision: string | null;
+                            mission: string | null;
+                            address: string | null;
+                            phone: string | null;
+                            email: string | null;
+                            whatsapp: string | null;
+                            mapUrl: string | null;
+                            accentColor: string | null;
+                            published: boolean;
+                            updatedAt: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan profil situs sekolah
+         * @description Izin: `announcement:manage`; modul `website`. Mengganti seluruh profil. `accentColor` berformat #RRGGBB, `mapUrl` harus http(s), teks tanpa HTML (400 `validation`). `published` = false menyembunyikan situs publik (404). Ditulis ke audit.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        tagline?: string | null;
+                        about?: string | null;
+                        vision?: string | null;
+                        mission?: string | null;
+                        address?: string | null;
+                        phone?: string | null;
+                        email?: ("" | string) | null;
+                        whatsapp?: string | null;
+                        mapUrl?: ("" | string) | null;
+                        accentColor?: ("" | string) | null;
+                        /** @default false */
+                        published?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            tagline: string | null;
+                            about: string | null;
+                            vision: string | null;
+                            mission: string | null;
+                            address: string | null;
+                            phone: string | null;
+                            email: string | null;
+                            whatsapp: string | null;
+                            mapUrl: string | null;
+                            accentColor: string | null;
+                            published: boolean;
+                            updatedAt: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/site/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Beranda situs sekolah (publik)
+         * @description Tanpa login. Profil, nama sekolah, jenjang yang sedang dibuka SPMB (kosong bila modul SPMB tidak aktif), 6 berita/pemberitahuan publik terbaru, dan agenda mendatang (tanggal acara hari ini WIB atau setelahnya). Pengumuman hanya yang terbit, belum kadaluarsa, dan audiens `public`/`all`; kosong bila modul `announcements` tidak aktif. 404 `not_found` seragam untuk sekolah yang tidak ada, ditangguhkan, tanpa modul `website`, atau profilnya belum terbit.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            school: {
+                                name: string;
+                                slug: string;
+                            };
+                            profile: {
+                                tagline: string | null;
+                                about: string | null;
+                                vision: string | null;
+                                mission: string | null;
+                                address: string | null;
+                                phone: string | null;
+                                email: string | null;
+                                whatsapp: string | null;
+                                mapUrl: string | null;
+                                accentColor: string | null;
+                            };
+                            admission: {
+                                enabled: boolean;
+                                openLevels: string[];
+                            };
+                            announcements: {
+                                /** Format: uuid */
+                                id: string;
+                                title: string;
+                                excerpt: string;
+                                /** @enum {string} */
+                                category: "news" | "agenda" | "notice";
+                                /** Format: date */
+                                eventDate: string | null;
+                                pinned: boolean;
+                                publishedAt: string | null;
+                            }[];
+                            agenda: {
+                                /** Format: uuid */
+                                id: string;
+                                title: string;
+                                excerpt: string;
+                                /** @enum {string} */
+                                category: "news" | "agenda" | "notice";
+                                /** Format: date */
+                                eventDate: string | null;
+                                pinned: boolean;
+                                publishedAt: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/site/{slug}/announcements": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar pengumuman situs (publik)
+         * @description Tanpa login. Hanya yang terbit, belum kadaluarsa, dan audiens `public`/`all`. Saringan `category`. Disematkan dulu, lalu terbaru. Modul `announcements` tidak aktif: daftar kosong. 404 `not_found` seragam seperti beranda situs.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    category?: "news" | "agenda" | "notice";
+                    limit?: number;
+                    offset?: number;
+                };
+                header?: never;
+                path: {
+                    slug: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                title: string;
+                                excerpt: string;
+                                /** @enum {string} */
+                                category: "news" | "agenda" | "notice";
+                                /** Format: date */
+                                eventDate: string | null;
+                                pinned: boolean;
+                                publishedAt: string | null;
+                            }[];
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/site/{slug}/announcements/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail pengumuman situs (publik)
+         * @description Tanpa login. 404 `not_found` seragam bila sekolah/situs tidak tersedia, atau pengumuman tidak ada, masih draf, kadaluarsa, atau bukan untuk audiens publik.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    slug: string;
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            /** @enum {string} */
+                            category: "news" | "agenda" | "notice";
+                            /** Format: date */
+                            eventDate: string | null;
+                            pinned: boolean;
+                            publishedAt: string | null;
+                            body: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -28901,6 +30562,1776 @@ export interface paths {
                 };
                 /** @description Default Response */
                 403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/invites": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Undangan portal yang belum dipakai
+         * @description Izin: `student:manage`; modul `parent_portal`. Undangan yang sudah dipakai atau dicabut tidak tampil; yang kedaluwarsa tetap tampil dengan `expired` true agar bisa dibuat ulang. Token tidak pernah ditampilkan lagi.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "guardian" | "student";
+                            /**
+                             * Format: uuid
+                             * @description Id wali (kind guardian) atau siswa (kind student)
+                             */
+                            targetId: string;
+                            targetName: string;
+                            email: string | null;
+                            /** Format: date-time */
+                            expiresAt: string;
+                            expired: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat undangan portal untuk wali atau siswa
+         * @description Izin: `student:manage`; modul `parent_portal`. Membuat undangan sekali pakai yang berlaku 14 hari untuk satu wali (`kind` guardian + `guardianId`, wali harus punya minimal satu siswa) atau satu siswa (`kind` student + `studentId`). Token acak dikembalikan sekali di `token` dan `link` (hanya hash yang disimpan); bila `email` diisi, tautan juga dikirim ke email itu dan akun yang dibuat wajib memakai email itu. Undangan lama yang belum dipakai untuk target yang sama dicabut otomatis. 400 `invalid_reference` bila wali/siswa tidak ada; 409 `already_linked` bila target sudah punya akun portal.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        kind: "guardian" | "student";
+                        /** Format: uuid */
+                        guardianId?: string;
+                        /** Format: uuid */
+                        studentId?: string;
+                        email?: ("" | string) | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "guardian" | "student";
+                            /**
+                             * Format: uuid
+                             * @description Id wali (kind guardian) atau siswa (kind student)
+                             */
+                            targetId: string;
+                            targetName: string;
+                            email: string | null;
+                            /** Format: date-time */
+                            expiresAt: string;
+                            expired: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** @description Token mentah; hanya ditampilkan sekali saat undangan dibuat */
+                            token: string;
+                            /** @description Tautan penerimaan undangan di subdomain sekolah */
+                            link: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/invites/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Cabut undangan portal
+         * @description Izin: `student:manage`; modul `parent_portal`. Hanya undangan yang belum dipakai; tautan langsung tidak berlaku. Akun yang sudah dibuat dicabut lewat `DELETE /v1/portal/accounts/{id}`. 404 bila tidak ada atau sudah dipakai.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Akun portal wali dan siswa
+         * @description Izin: `student:manage`; modul `parent_portal`. Akun yang sudah menerima undangan, beserta wali/siswa yang ditautkan dan status keanggotaannya (`disabled` bila dinonaktifkan).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description Id tautan portal
+                             */
+                            id: string;
+                            /** Format: uuid */
+                            memberId: string;
+                            /** @enum {string} */
+                            kind: "guardian" | "student";
+                            /** Format: uuid */
+                            targetId: string;
+                            targetName: string;
+                            userName: string;
+                            userEmail: string;
+                            /** @enum {string} */
+                            status: "active" | "disabled";
+                            /** Format: date-time */
+                            createdAt: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Cabut akun portal
+         * @description Izin: `student:manage`; modul `parent_portal`. Menghapus tautan portal dan peran wali/siswa dari anggota itu; bila tidak ada peran lain, keanggotaannya dinonaktifkan sehingga tidak bisa masuk lagi. Akun masuk (user) tidak dihapus. Wali/siswa bisa diundang ulang setelahnya. 404 bila tautan tidak ada.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Profil akun portal dan daftar anak
+         * @description Izin: `portal:read`; modul `parent_portal`. Untuk wali: anak yang terhubung lewat data wali. Untuk siswa: dirinya saja. Akun tanpa tautan portal (mis. admin) mendapat `linked` false dan daftar kosong. `sections` menandai bagian portal yang modulnya aktif.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            linked: boolean;
+                            /** @enum {string|null} */
+                            kind: "guardian" | "student" | null;
+                            user: {
+                                name: string;
+                                email: string;
+                            };
+                            school: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            };
+                            guardian: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                phone: string | null;
+                                email: string | null;
+                            } | null;
+                            /** @description Modul sekolah yang aktif untuk tiap bagian portal; bagian nonaktif dikembalikan kosong */
+                            sections: {
+                                attendance: boolean;
+                                grades: boolean;
+                                finance: boolean;
+                                tahfidz: boolean;
+                                announcements: boolean;
+                            };
+                            children: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                nis: string | null;
+                                nisn: string | null;
+                                /** @enum {string} */
+                                gender: "L" | "P";
+                                /** @enum {string} */
+                                status: "active" | "graduated" | "transferred" | "dropped";
+                                className: string | null;
+                                level: string | null;
+                                academicYear: string | null;
+                                relation: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/children/{studentId}/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ikhtisar satu anak
+         * @description Izin: `portal:read`; modul `parent_portal`. Satu panggilan untuk beranda portal: kelas, absensi gerbang 30 hari terakhir (jumlah per status dan persentase hadir = (hadir + terlambat) dari hari tercatat), tagihan terbuka dan total tunggakan (lewat jatuh tempo), skor terbaru, rapor yang sudah final, ringkasan tahfidz, dan pengumuman terbaru. Tiap bagian punya `available`; bila modul sekolahnya tidak aktif bagian itu kosong (bukan galat). 404 `not_found` bila anak bukan milik akun ini, tidak ada, atau akun bukan akun portal.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            child: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                nis: string | null;
+                                nisn: string | null;
+                                /** @enum {string} */
+                                gender: "L" | "P";
+                                /** @enum {string} */
+                                status: "active" | "graduated" | "transferred" | "dropped";
+                                className: string | null;
+                                level: string | null;
+                                academicYear: string | null;
+                            };
+                            /** @description Modul sekolah yang aktif untuk tiap bagian portal; bagian nonaktif dikembalikan kosong */
+                            sections: {
+                                attendance: boolean;
+                                grades: boolean;
+                                finance: boolean;
+                                tahfidz: boolean;
+                                announcements: boolean;
+                            };
+                            attendance: {
+                                /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                                available: boolean;
+                                /** Format: date */
+                                from: string;
+                                /** Format: date */
+                                to: string;
+                                counts: {
+                                    present: number;
+                                    late: number;
+                                    excused: number;
+                                    sick: number;
+                                    absent: number;
+                                };
+                                recorded: number;
+                                percent: number | null;
+                                recentDays: {
+                                    /** Format: date */
+                                    date: string;
+                                    /** @enum {string} */
+                                    status: "present" | "late" | "excused" | "sick" | "absent";
+                                    /** Format: date-time */
+                                    checkInAt: string | null;
+                                    /** Format: date-time */
+                                    checkOutAt: string | null;
+                                }[];
+                            };
+                            invoices: {
+                                /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                                available: boolean;
+                                openCount: number;
+                                outstandingTotal: number;
+                                overdueTotal: number;
+                                upcoming: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    title: string;
+                                    feeTypeName: string;
+                                    period: string | null;
+                                    amount: number;
+                                    discount: number;
+                                    discountReason: string | null;
+                                    paid: number;
+                                    outstanding: number;
+                                    /** Format: date */
+                                    dueDate: string;
+                                    /** @enum {string} */
+                                    status: "unpaid" | "partial" | "paid" | "void";
+                                    overdue: boolean;
+                                }[];
+                            };
+                            grades: {
+                                /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                                available: boolean;
+                                recentScores: {
+                                    subject: string;
+                                    title: string;
+                                    component: string;
+                                    /** Format: date */
+                                    date: string;
+                                    value: number;
+                                    maxScore: number;
+                                }[];
+                            };
+                            reportCards: {
+                                /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                                available: boolean;
+                                items: {
+                                    /** Format: uuid */
+                                    semesterId: string;
+                                    semesterName: string;
+                                    academicYear: string;
+                                    className: string;
+                                    /** Format: date-time */
+                                    finalizedAt: string | null;
+                                    average: number | null;
+                                    subjectsGraded: number;
+                                    subjectsTotal: number;
+                                }[];
+                            };
+                            tahfidz: {
+                                /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                                available: boolean;
+                                halaqah: string | null;
+                                ayahs: number;
+                                percent: number;
+                                juzComplete: number;
+                                streakDays: number;
+                                /** Format: date */
+                                lastEntryDate: string | null;
+                                percentOfTarget: number | null;
+                            };
+                            announcements: {
+                                /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                                available: boolean;
+                                items: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    title: string;
+                                    /** @enum {string} */
+                                    category: "news" | "agenda" | "notice";
+                                    /** Format: date */
+                                    eventDate: string | null;
+                                    pinned: boolean;
+                                    /** Format: date-time */
+                                    publishedAt: string | null;
+                                    excerpt: string;
+                                }[];
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/children/{studentId}/attendance": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Absensi gerbang seorang anak
+         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `attendance` (bila tidak aktif `available` false dan data kosong). Rentang bawaan: 30 hari terakhir sampai hari ini (maksimal 366 hari, 400 `invalid_range`). `percent` = (hadir + terlambat) dari hari tercatat. Hari tanpa catatan tidak tampil.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    from?: string;
+                    to?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                            available: boolean;
+                            /** Format: date */
+                            from: string;
+                            /** Format: date */
+                            to: string;
+                            counts: {
+                                present: number;
+                                late: number;
+                                excused: number;
+                                sick: number;
+                                absent: number;
+                            };
+                            recorded: number;
+                            percent: number | null;
+                            days: {
+                                /** Format: date */
+                                date: string;
+                                /** @enum {string} */
+                                status: "present" | "late" | "excused" | "sick" | "absent";
+                                /** Format: date-time */
+                                checkInAt: string | null;
+                                /** Format: date-time */
+                                checkOutAt: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/children/{studentId}/grades": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Nilai seorang anak
+         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `grades` (bila tidak aktif `available` false dan data kosong). Nilai akhir per mapel dihitung dengan rumus yang sama dengan rekap penilaian dan rapor, untuk semester `semesterId` (bawaan: semester aktif, atau yang terbaru). `semesters` memuat pilihan semester; `recentScores` adalah skor terbaru terlepas dari semester. 404 bila `semesterId` bukan milik sekolah ini.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    semesterId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                            available: boolean;
+                            semester: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            } | null;
+                            semesters: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                academicYear: string;
+                                isActive: boolean;
+                            }[];
+                            kkm: number | null;
+                            average: number | null;
+                            subjects: {
+                                /** Format: uuid */
+                                subjectId: string;
+                                name: string;
+                                final: number | null;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                                belowKkm: boolean;
+                                components: {
+                                    name: string;
+                                    weight: number;
+                                    average: number | null;
+                                }[];
+                            }[];
+                            recentScores: {
+                                subject: string;
+                                title: string;
+                                component: string;
+                                /** Format: date */
+                                date: string;
+                                value: number;
+                                maxScore: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/children/{studentId}/invoices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tagihan dan kwitansi seorang anak
+         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `finance` (bila tidak aktif `available` false dan data kosong). Tagihan tanpa yang dibatalkan (terlama jatuh tempo dulu) beserta jumlah terbayar, sisa, dan tunggakan, memakai perhitungan keuangan sekolah; `receipts` adalah kwitansi yang tidak batal (terbaru dulu, maksimal 50) dengan rincian tagihan yang dibayar.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                            available: boolean;
+                            openCount: number;
+                            outstandingTotal: number;
+                            overdueTotal: number;
+                            invoices: {
+                                /** Format: uuid */
+                                id: string;
+                                title: string;
+                                feeTypeName: string;
+                                period: string | null;
+                                amount: number;
+                                discount: number;
+                                discountReason: string | null;
+                                paid: number;
+                                outstanding: number;
+                                /** Format: date */
+                                dueDate: string;
+                                /** @enum {string} */
+                                status: "unpaid" | "partial" | "paid" | "void";
+                                overdue: boolean;
+                            }[];
+                            receipts: {
+                                /** Format: uuid */
+                                id: string;
+                                receiptNo: string;
+                                /** Format: date-time */
+                                paidAt: string;
+                                /** @enum {string} */
+                                method: "cash" | "transfer" | "other";
+                                total: number;
+                                items: {
+                                    /** Format: uuid */
+                                    invoiceId: string;
+                                    title: string;
+                                    amount: number;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/children/{studentId}/report-cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rapor final seorang anak
+         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `grades` (bila tidak aktif `available` false dan daftar kosong). Hanya rapor berstatus final; draft tidak pernah tampil. Dokumen lengkap per semester lewat `/report-cards/{semesterId}`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                            available: boolean;
+                            items: {
+                                /** Format: uuid */
+                                semesterId: string;
+                                semesterName: string;
+                                academicYear: string;
+                                className: string;
+                                /** Format: date-time */
+                                finalizedAt: string | null;
+                                average: number | null;
+                                subjectsGraded: number;
+                                subjectsTotal: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/children/{studentId}/report-cards/{semesterId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dokumen rapor final satu semester
+         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                    semesterId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            status: "draft" | "final";
+                            school: {
+                                name: string;
+                                address: string | null;
+                                city: string | null;
+                            };
+                            semester: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                academicYear: string;
+                            };
+                            student: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                nis: string | null;
+                                nisn: string | null;
+                                className: string;
+                                level: string;
+                            };
+                            subjects: {
+                                /** Format: uuid */
+                                subjectId: string;
+                                name: string;
+                                kkm: number;
+                                final: number | null;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                                description: string | null;
+                                belowKkm: boolean;
+                            }[];
+                            extracurriculars: {
+                                name: string;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                                note: string | null;
+                            }[];
+                            attendance: {
+                                sick: number;
+                                excused: number;
+                                absent: number;
+                                late: number;
+                            };
+                            homeroomNote: string | null;
+                            homeroomTeacher: {
+                                name: string;
+                                nip: string | null;
+                            } | null;
+                            principal: {
+                                name: string;
+                                nip: string | null;
+                            } | null;
+                            rank: {
+                                position: number;
+                                of: number;
+                            } | null;
+                            generatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/children/{studentId}/tahfidz": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Progres tahfidz seorang anak
+         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `tahfidz` (bila tidak aktif `available` false dan data kosong). Rumus sama dengan progres tahfidz sekolah: ayat unik dari setoran ziyadah (selain `repeat`), juz lengkap, target dan capaian semester aktif, 30 hari terakhir, hari beruntun, ayat lanjutan, dan 15 setoran terakhir.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description false bila modul sekolah untuk bagian ini tidak aktif */
+                            available: boolean;
+                            halaqah: string | null;
+                            coverage: {
+                                ayahs: number;
+                                percent: number;
+                                juzComplete: number;
+                                juzCompleteList: number[];
+                            };
+                            semester: {
+                                /** Format: uuid */
+                                id: string | null;
+                                name: string | null;
+                                target: {
+                                    ziyadahAyahs: number;
+                                    murajaahAyahs: number;
+                                };
+                                done: {
+                                    ziyadahAyahs: number;
+                                    murajaahAyahs: number;
+                                };
+                                percentOfTarget: number | null;
+                            };
+                            last30Days: {
+                                /** Format: date */
+                                date: string;
+                                ziyadahAyahs: number;
+                                murajaahAyahs: number;
+                            }[];
+                            streakDays: number;
+                            /** Format: date */
+                            lastEntryDate: string | null;
+                            next: {
+                                surah: number;
+                                ayah: number;
+                            } | null;
+                            recentEntries: {
+                                /** Format: date */
+                                date: string;
+                                /** @enum {string} */
+                                kind: "ziyadah" | "murajaah";
+                                /** @enum {string} */
+                                quality: "fluent" | "fair" | "repeat";
+                                surahFrom: number;
+                                ayahFrom: number;
+                                surahTo: number;
+                                ayahTo: number;
+                                ayahCount: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/portal-invites/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lihat undangan portal dari tautan
+         * @description Publik, hanya untuk pemegang token. Mengembalikan sekolah, jenis (wali/siswa), nama yang ditautkan, dan email yang dikunci undangan (null bila bebas), serta apakah email itu sudah punya akun. 410 `invitation_invalid` bila token salah, sudah dipakai, kedaluwarsa, dicabut, atau sekolah ditangguhkan; 403 `module_disabled` bila portal tidak aktif.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            schoolName: string;
+                            schoolSlug: string;
+                            /** @enum {string} */
+                            kind: "guardian" | "student";
+                            targetName: string;
+                            email: string | null;
+                            accountExists: boolean;
+                            /** Format: date-time */
+                            expiresAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/portal-invites/{token}/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Terima undangan portal dan buat akun
+         * @description Publik, hanya untuk pemegang token; sekali pakai. Membuat akun masuk baru (nama, email, kata sandi 12-128 karakter) lalu keanggotaan sekolah dengan peran `guardian`/`student` dan tautan portal ke wali/siswa undangan. Bila undangan mengunci email, `email` harus sama (400 `email_mismatch`). Bila email sudah punya akun, kata sandi akun itu dipakai untuk memastikan pemiliknya (401 `invalid_credentials` bila salah) dan akun yang sama ditautkan; 409 `already_member` bila akun itu sudah anggota sekolah ini, 409 `already_linked` bila target sudah punya akun. Setelah berhasil, masuk lewat halaman login sekolah. 410 `invitation_invalid` bila token tidak berlaku.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        /** Format: email */
+                        email: string;
+                        password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            schoolSlug: string;
+                            /** @enum {string} */
+                            kind: "guardian" | "student";
+                            email: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };

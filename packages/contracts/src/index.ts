@@ -1,6 +1,7 @@
 export * from './admission';
 export * from './calendar';
 export * from './catalog';
+export * from './finance-late-fee';
 export * from './grading';
 export * from './letters';
 export * from './messaging';

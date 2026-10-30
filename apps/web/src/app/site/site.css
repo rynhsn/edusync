@@ -1,0 +1,279 @@
+/*
+ * Gaya situs publik sekolah. Warna aksen sekolah masuk lewat --site-accent dan --site-accent-ink
+ * (ditetapkan di elemen .site-root), sisanya diturunkan dari token tema sehingga mode gelap ikut otomatis.
+ * Teks berwarna aksen dicampur dengan warna teks tema (--sa-text) agar kontrasnya terjaga di dua mode.
+ */
+.site-root {
+  --sa: var(--site-accent, #0f766e);
+  --sa-ink: var(--site-accent-ink, #fff);
+  --sa-text: color-mix(in oklab, var(--sa) 58%, var(--foreground));
+  --sa-soft: color-mix(in oklab, var(--sa) 10%, var(--background));
+  --sa-soft-2: color-mix(in oklab, var(--sa) 18%, var(--background));
+  --sa-line: color-mix(in oklab, var(--sa) 28%, var(--border));
+}
+.dark .site-root {
+  --sa-soft: color-mix(in oklab, var(--sa) 16%, var(--background));
+  --sa-soft-2: color-mix(in oklab, var(--sa) 26%, var(--background));
+}
+
+/* ---------- Tombol ---------- */
+.site-btn,
+.site-btn-ghost {
+  display: inline-flex;
+  min-height: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.6rem 1.25rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.2;
+  text-align: center;
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    background-color 0.18s ease;
+  outline: none;
+}
+.site-btn {
+  background: var(--sa);
+  color: var(--sa-ink);
+  box-shadow: 0 6px 18px -8px color-mix(in oklab, var(--sa) 80%, transparent);
+}
+.site-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px -10px color-mix(in oklab, var(--sa) 90%, transparent);
+}
+.site-btn-ghost {
+  border: 1.5px solid var(--sa-line);
+  background: color-mix(in oklab, var(--background) 70%, transparent);
+  color: var(--foreground);
+  backdrop-filter: blur(6px);
+}
+.site-btn-ghost:hover {
+  background: var(--sa-soft);
+}
+.site-btn:focus-visible,
+.site-btn-ghost:focus-visible,
+.site-link:focus-visible {
+  box-shadow:
+    0 0 0 3px var(--background),
+    0 0 0 5px var(--sa);
+}
+.site-link {
+  border-radius: 0.5rem;
+  outline: none;
+}
+
+/* ---------- Hero ---------- */
+.site-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background:
+    radial-gradient(70% 90% at 90% -10%, color-mix(in oklab, var(--sa) 30%, transparent), transparent 70%),
+    radial-gradient(60% 80% at -10% 110%, color-mix(in oklab, var(--sa) 20%, transparent), transparent 70%),
+    var(--background);
+}
+.site-hero::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-image: radial-gradient(color-mix(in oklab, var(--sa) 35%, transparent) 1.2px, transparent 1.4px);
+  background-size: 22px 22px;
+  mask-image: linear-gradient(to bottom left, #000 0%, transparent 55%);
+  -webkit-mask-image: linear-gradient(to bottom left, #000 0%, transparent 55%);
+  opacity: 0.55;
+}
+.site-blob {
+  position: absolute;
+  z-index: -1;
+  border-radius: 999px;
+  background: color-mix(in oklab, var(--sa) 22%, transparent);
+  filter: blur(40px);
+}
+
+/* ---------- Kartu ---------- */
+.site-card {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--card);
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease,
+    border-color 0.2s ease;
+}
+a.site-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--sa-line);
+  box-shadow: 0 16px 36px -22px color-mix(in oklab, var(--sa) 70%, transparent);
+}
+a.site-card:focus-visible {
+  outline: none;
+  box-shadow:
+    0 0 0 3px var(--background),
+    0 0 0 5px var(--sa);
+}
+.site-feature {
+  background:
+    linear-gradient(135deg, color-mix(in oklab, var(--sa) 16%, var(--card)), var(--card) 70%), var(--card);
+}
+
+.site-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border-radius: 999px;
+  padding: 0.2rem 0.65rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  background: var(--sa-soft-2);
+  color: var(--sa-text);
+}
+.site-chip[data-cat="notice"] {
+  background: color-mix(in oklab, oklch(0.8 0.16 80) 22%, var(--background));
+  color: color-mix(in oklab, oklch(0.6 0.15 70) 55%, var(--foreground));
+}
+.site-chip[data-cat="agenda"] {
+  background: color-mix(in oklab, oklch(0.7 0.16 300) 18%, var(--background));
+  color: color-mix(in oklab, oklch(0.55 0.18 300) 55%, var(--foreground));
+}
+
+/* Ubin tanggal agenda */
+.site-date {
+  display: grid;
+  width: 3.75rem;
+  flex-shrink: 0;
+  place-items: center;
+  border-radius: 1rem;
+  padding: 0.5rem 0;
+  background: var(--sa);
+  color: var(--sa-ink);
+  line-height: 1;
+  box-shadow: 0 8px 18px -10px color-mix(in oklab, var(--sa) 80%, transparent);
+}
+.site-date b {
+  font-family: var(--font-heading);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+.site-date span {
+  margin-top: 0.15rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  opacity: 0.9;
+}
+
+/* Garis waktu agenda */
+.site-timeline {
+  position: relative;
+}
+.site-timeline::before {
+  content: "";
+  position: absolute;
+  top: 1.5rem;
+  bottom: 1.5rem;
+  left: 1.875rem;
+  width: 2px;
+  background: linear-gradient(to bottom, var(--sa-line), transparent);
+}
+
+.site-eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--sa-text);
+}
+
+.site-pulse {
+  position: relative;
+  display: inline-block;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 999px;
+  background: #22c55e;
+}
+.site-pulse::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: inherit;
+  animation: site-ping 1.8s ease-out infinite;
+}
+
+/* Isi pengumuman */
+.site-prose p {
+  margin: 0 0 1.1em;
+  line-height: 1.8;
+  white-space: pre-line;
+  overflow-wrap: anywhere;
+}
+
+/* ---------- Animasi ---------- */
+@keyframes site-rise {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes site-float {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--r, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(var(--r, 0deg));
+  }
+}
+@keyframes site-ping {
+  0% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(3);
+    opacity: 0;
+  }
+}
+.site-rise {
+  animation: site-rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: var(--d, 0ms);
+}
+.site-float {
+  animation: site-float 7s ease-in-out infinite;
+}
+.site-float-slow {
+  animation: site-float 10s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .site-rise,
+  .site-float,
+  .site-float-slow {
+    animation: none;
+  }
+  .site-pulse::after {
+    animation: none;
+    opacity: 0;
+  }
+  .site-btn,
+  .site-btn-ghost,
+  .site-card {
+    transition: none;
+  }
+  a.site-card:hover,
+  .site-btn:hover {
+    transform: none;
+  }
+}

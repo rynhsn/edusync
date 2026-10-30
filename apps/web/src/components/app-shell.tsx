@@ -17,12 +17,16 @@ import {
   DoorOpen,
   Factory,
   FileText,
+  Globe,
   GraduationCap,
   HardHat,
+  HeartHandshake,
+  KeyRound,
   Landmark,
   LayoutDashboard,
   LogOut,
   Mail,
+  Megaphone,
   MessageCircle,
   MoonStar,
   PenLine,
@@ -62,6 +66,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
+import { isPortalOnly, isPortalPath } from '@/lib/portal-access';
 import { goToSchool, useSite } from '@/lib/site';
 import { cn } from '@/lib/utils';
 
@@ -322,6 +327,44 @@ export const NAV_GROUPS = [
     ],
   },
   {
+    key: 'groupPortal',
+    items: [
+      {
+        href: '/portal',
+        labelKey: 'portal',
+        icon: HeartHandshake,
+        permission: 'portal:read',
+        module: 'parent_portal',
+      },
+      {
+        href: '/portal-admin',
+        labelKey: 'portalAdmin',
+        icon: KeyRound,
+        permission: 'student:manage',
+        module: 'parent_portal',
+      },
+    ],
+  },
+  {
+    key: 'groupWebsite',
+    items: [
+      {
+        href: '/announcements',
+        labelKey: 'announcements',
+        icon: Megaphone,
+        permission: 'announcement:read',
+        module: 'announcements',
+      },
+      {
+        href: '/site-settings',
+        labelKey: 'siteSettings',
+        icon: Globe,
+        permission: 'announcement:manage',
+        module: 'website',
+      },
+    ],
+  },
+  {
     key: 'groupAccess',
     items: [
       { href: '/members', labelKey: 'members', icon: Users, permission: 'member:read' },
@@ -366,6 +409,15 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (onMainHost) router.replace('/');
   }, [onMainHost, router]);
 
+  // Wali/siswa (hanya izin portal) tidak punya halaman staf: apa pun alamatnya, arahkan ke portal.
+  const portalSlug = site.ready && site.kind === 'school' ? site.slug : '';
+  const portalMembership = me.data?.memberships.find((m) => m.schoolSlug === portalSlug);
+  const portalOnly = !!portalMembership && isPortalOnly(portalMembership.permissions);
+  const strayFromPortal = portalOnly && !isPortalPath(pathname);
+  useEffect(() => {
+    if (strayFromPortal) router.replace('/portal');
+  }, [strayFromPortal, router]);
+
   async function signOut() {
     await authClient.signOut();
     queryClient.clear();
@@ -374,7 +426,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
   const roleLabel = (key: string) => (tr.has(key as never) ? tr(key as never) : key);
 
-  if (!site.ready || me.isPending || unauthenticated || onMainHost) {
+  if (!site.ready || me.isPending || unauthenticated || onMainHost || strayFromPortal) {
     return (
       <Centered>
         <Skeleton className="h-8 w-48" />
@@ -424,6 +476,51 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   };
   const initials = user.name.slice(0, 2).toUpperCase();
   const roles = school.roles.map(roleLabel).join(', ') || tr('none');
+
+  // Kerangka ringan untuk wali/siswa: tanpa menu samping, nyaman di ponsel.
+  if (portalOnly) {
+    return (
+      <SchoolContext.Provider value={value}>
+        <div className="flex flex-1 flex-col">
+          <header className="bg-background/90 sticky top-0 z-20 flex items-center justify-between gap-2 border-b p-3 backdrop-blur">
+            <div className="flex min-w-0 items-center gap-3">
+              <Logo />
+              <span className="text-muted-foreground hidden truncate text-sm sm:inline">
+                {school.schoolName}
+              </span>
+            </div>
+            <div className="flex items-center gap-1">
+              <LanguageSwitcher />
+              <ThemeToggle />
+              <DropdownMenu>
+                <DropdownMenuTrigger
+                  render={<Button variant="ghost" className="h-auto gap-2 py-1" aria-label={user.name} />}
+                >
+                  <Avatar className="size-7">
+                    <AvatarFallback>{initials}</AvatarFallback>
+                  </Avatar>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-56">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="font-normal">
+                      <span className="block text-sm font-medium">{user.name}</span>
+                      <span className="text-muted-foreground block text-xs">{user.email}</span>
+                      <span className="text-muted-foreground block text-xs">{roles}</span>
+                    </DropdownMenuLabel>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="size-4" /> {tc('signOut')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </header>
+          <main className="flex-1 p-4 md:p-8">{children}</main>
+        </div>
+      </SchoolContext.Provider>
+    );
+  }
 
   return (
     <SchoolContext.Provider value={value}>

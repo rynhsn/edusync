@@ -84,6 +84,16 @@ const KNOWN = [
   'date_out_of_period',
   'placement_cancelled',
   'not_deletable',
+  'late_fee_disabled',
+  'portal_not_linked',
+  'invite_used',
+  'invite_expired',
+  'invite_revoked',
+  'email_taken',
+  'already_linked',
+  'email_mismatch',
+  'invalid_credentials',
+  'account_exists',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];
