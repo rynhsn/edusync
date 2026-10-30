@@ -53,7 +53,8 @@
     "groupAcademic": "Learning",
     "lessons": "Lesson attendance",
     "gate": "Gate & duty",
-    "attendanceSettings": "Attendance settings"
+    "attendanceSettings": "Attendance settings",
+    "extracurricular": "Extracurriculars"
   },
   "roles": {
     "school_admin": "School admin",
@@ -83,7 +84,9 @@
     "schedule_manage": "Manage schedule",
     "attendance_read": "View attendance",
     "attendance_manage": "Manage attendance",
-    "attendance_configure": "Configure attendance devices, cards, hours and duty roster"
+    "attendance_configure": "Configure attendance devices, cards, hours and duty roster",
+    "extracurricular_read": "View extracurriculars",
+    "extracurricular_manage": "Manage extracurriculars"
   },
   "dashboard": {
     "greeting": "Hello, {name}",
@@ -157,7 +160,8 @@
     "invalid_time": "The tap time is outside the accepted range.",
     "invalid_date": "That date is not a day of this lesson’s schedule.",
     "invalid_device": "The device key is not valid.",
-    "student_inactive": "This student is not active."
+    "student_inactive": "This student is not active.",
+    "not_coach": "Only this activity’s coach or an administrator may do this."
   },
   "theme": {
     "label": "Theme",
@@ -181,7 +185,8 @@
     "tahfidz": "Quran memorization and worship",
     "internship": "Internship",
     "parent_portal": "Parent and student portal",
-    "announcements": "Announcements and calendar"
+    "announcements": "Announcements and calendar",
+    "extracurricular": "Extracurriculars"
   },
   "tiers": {
     "t300": "Up to 300 students",
@@ -1001,5 +1006,119 @@
         "invalid_code": "Invalid code (at least 4 characters, no spaces)"
       }
     }
+  },
+  "extracurricular": {
+    "title": "Extracurriculars",
+    "subtitle": "Activities outside lessons: members, sessions, attendance, assessment, and reports.",
+    "addTitle": "Add extracurricular",
+    "editTitle": "Edit extracurricular",
+    "searchPlaceholder": "Search by name",
+    "allCategories": "All categories",
+    "categoryLabel": "Category",
+    "category": {
+      "sport": "Sport",
+      "art": "Arts",
+      "religion": "Religious",
+      "science": "Science",
+      "scout": "Scouting",
+      "other": "Other"
+    },
+    "description": "Description",
+    "coach": "Coach",
+    "coachType": "Coach type",
+    "coachTeacher": "School teacher",
+    "coachExternal": "External coach",
+    "coachNone": "No coach yet",
+    "chooseTeacher": "Choose a teacher",
+    "externalName": "External coach name",
+    "weekday": "Day",
+    "noWeekday": "No fixed schedule",
+    "weekdays": {
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday"
+    },
+    "startsAt": "Start",
+    "endsAt": "End",
+    "schedule": "Schedule",
+    "noSchedule": "Not scheduled",
+    "location": "Location",
+    "status": "Status",
+    "active": "Active",
+    "inactive": "Inactive",
+    "membersCount": "Members",
+    "empty": "No extracurriculars yet.",
+    "notFound": "Extracurricular not found.",
+    "back": "Back",
+    "tab": {
+      "members": "Members",
+      "sessions": "Sessions & attendance",
+      "assessment": "Assessment",
+      "report": "Report"
+    },
+    "addMembers": "Add members",
+    "addMembersHint": "Pick a class, then tick the students who join.",
+    "class": "Class",
+    "chooseClass": "Choose a class",
+    "searchStudent": "Search student name",
+    "noStudents": "No active students in this class.",
+    "alreadyMember": "Already a member",
+    "selectedCount": "{count, plural, one {# student selected} other {# students selected}}",
+    "addSelected": "Add",
+    "membersAdded": "{count} members added.",
+    "noMembers": "No members yet.",
+    "student": "Student",
+    "nis": "Student ID",
+    "className": "Class",
+    "joinedOn": "Joined",
+    "remove": "Remove",
+    "removed": "Member removed.",
+    "newSession": "New session",
+    "sessionDate": "Date",
+    "topic": "Topic",
+    "topicHint": "E.g. basic drills, performance, meeting",
+    "sessionCreated": "Session created.",
+    "sessionDeleted": "Session deleted.",
+    "noSessions": "No sessions yet.",
+    "filled": "Filled {filled}/{total}",
+    "openSheet": "Open attendance",
+    "noTopic": "No topic",
+    "attStatus": "Attendance",
+    "present": "Present",
+    "excused": "Excused",
+    "sick": "Sick",
+    "absent": "Absent",
+    "short": {
+      "present": "P",
+      "excused": "E",
+      "sick": "S",
+      "absent": "A"
+    },
+    "allPresent": "All present",
+    "saveAttendance": "Save attendance",
+    "attendanceSaved": "Attendance saved ({count} students).",
+    "unsaved": "You have unsaved changes.",
+    "readOnlySheet": "You can only view this attendance sheet.",
+    "semester": "Semester",
+    "chooseSemester": "Choose a semester",
+    "noSemesters": "No semesters yet. Create one under Academic years.",
+    "predicate": "Grade",
+    "noPredicate": "Not graded",
+    "note": "Remarks",
+    "saveAssessment": "Save assessment",
+    "assessmentSaved": "Assessment saved.",
+    "from": "From",
+    "to": "To",
+    "totalSessions": "Total sessions: {count}",
+    "attended": "Attendance",
+    "exportExcel": "Export Excel",
+    "exportEmpty": "Nothing to export.",
+    "invalidRange": "Invalid date range.",
+    "deleteTitle": "Delete",
+    "recorded": "Recorded"
   }
 }

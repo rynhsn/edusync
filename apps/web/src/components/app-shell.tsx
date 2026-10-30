@@ -16,6 +16,7 @@ import {
   School,
   Settings2,
   ShieldCheck,
+  Trophy,
   UserRound,
   Users,
 } from 'lucide-react';
@@ -129,6 +130,13 @@ export const NAV_GROUPS = [
         icon: Settings2,
         permission: 'attendance:configure',
         module: 'attendance',
+      },
+      {
+        href: '/extracurriculars',
+        labelKey: 'extracurricular',
+        icon: Trophy,
+        permission: 'extracurricular:read',
+        module: 'extracurricular',
       },
     ],
   },

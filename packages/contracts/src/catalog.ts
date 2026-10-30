@@ -37,6 +37,7 @@ export const DEFAULT_CATALOG: readonly CatalogItem[] = [
   { kind: 'module', key: 'internship', name: 'PKL dan prakerin', priceMonthly: 50_000, sort: 19 },
   { kind: 'module', key: 'parent_portal', name: 'Portal wali dan siswa', priceMonthly: 50_000, sort: 20 },
   { kind: 'module', key: 'announcements', name: 'Pengumuman dan agenda', priceMonthly: 25_000, sort: 21 },
+  { kind: 'module', key: 'extracurricular', name: 'Ekstrakurikuler', priceMonthly: 50_000, sort: 22 },
 ];
 
 /** Modul yang dipilih bersama modul lain. Memilih yang bergantung otomatis menambah syaratnya. */

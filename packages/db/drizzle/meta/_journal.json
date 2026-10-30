@@ -232,6 +232,20 @@
       "when": 1793347949803,
       "tag": "0032_rfid_only",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1793348733076,
+      "tag": "0033_extracurricular",
+      "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1793348734642,
+      "tag": "0034_extracurricular_rls",
+      "breakpoints": true
     }
   ]
 }

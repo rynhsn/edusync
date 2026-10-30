@@ -86,7 +86,7 @@ if (sub) {
     await db
       .insert(entitlement)
       .values(
-        ['schedule', 'attendance', 'grades'].map((moduleKey) => ({
+        ['schedule', 'attendance', 'grades', 'extracurricular'].map((moduleKey) => ({
           schoolId: s.id,
           moduleKey,
           subscriptionId: sub.id,

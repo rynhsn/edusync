@@ -53,7 +53,8 @@
     "groupAcademic": "Kegiatan belajar",
     "lessons": "Absensi per jam",
     "gate": "Gerbang & piket",
-    "attendanceSettings": "Pengaturan absensi"
+    "attendanceSettings": "Pengaturan absensi",
+    "extracurricular": "Ekstrakurikuler"
   },
   "roles": {
     "school_admin": "Admin sekolah",
@@ -83,7 +84,9 @@
     "schedule_manage": "Mengelola jadwal",
     "attendance_read": "Melihat absensi",
     "attendance_manage": "Mengelola absensi",
-    "attendance_configure": "Mengatur perangkat, kartu, jam, dan piket absensi"
+    "attendance_configure": "Mengatur perangkat, kartu, jam, dan piket absensi",
+    "extracurricular_read": "Melihat ekstrakurikuler",
+    "extracurricular_manage": "Mengelola ekstrakurikuler"
   },
   "dashboard": {
     "greeting": "Halo, {name}",
@@ -157,7 +160,8 @@
     "invalid_time": "Waktu tap di luar rentang yang diterima.",
     "invalid_date": "Tanggal itu bukan hari jadwal pelajaran ini.",
     "invalid_device": "Kunci perangkat tidak valid.",
-    "student_inactive": "Siswa ini tidak aktif."
+    "student_inactive": "Siswa ini tidak aktif.",
+    "not_coach": "Hanya guru pembina ekstrakurikuler ini atau pengurusnya yang boleh."
   },
   "theme": {
     "label": "Tema",
@@ -181,7 +185,8 @@
     "tahfidz": "Tahfidz dan ibadah",
     "internship": "PKL dan prakerin",
     "parent_portal": "Portal wali dan siswa",
-    "announcements": "Pengumuman dan agenda"
+    "announcements": "Pengumuman dan agenda",
+    "extracurricular": "Ekstrakurikuler"
   },
   "tiers": {
     "t300": "Sampai 300 siswa",
@@ -1001,5 +1006,119 @@
         "invalid_code": "Kode tidak valid (minimal 4 karakter, tanpa spasi)"
       }
     }
+  },
+  "extracurricular": {
+    "title": "Ekstrakurikuler",
+    "subtitle": "Kegiatan di luar jam pelajaran: anggota, pertemuan, absensi, penilaian, dan laporan.",
+    "addTitle": "Tambah ekstrakurikuler",
+    "editTitle": "Ubah ekstrakurikuler",
+    "searchPlaceholder": "Cari nama ekstrakurikuler",
+    "allCategories": "Semua kategori",
+    "categoryLabel": "Kategori",
+    "category": {
+      "sport": "Olahraga",
+      "art": "Seni",
+      "religion": "Keagamaan",
+      "science": "Sains",
+      "scout": "Kepramukaan",
+      "other": "Lainnya"
+    },
+    "description": "Deskripsi",
+    "coach": "Pembina",
+    "coachType": "Jenis pembina",
+    "coachTeacher": "Guru sekolah",
+    "coachExternal": "Pembina luar sekolah",
+    "coachNone": "Belum ada pembina",
+    "chooseTeacher": "Pilih guru",
+    "externalName": "Nama pembina luar",
+    "weekday": "Hari",
+    "noWeekday": "Tanpa jadwal tetap",
+    "weekdays": {
+      "1": "Senin",
+      "2": "Selasa",
+      "3": "Rabu",
+      "4": "Kamis",
+      "5": "Jumat",
+      "6": "Sabtu",
+      "7": "Minggu"
+    },
+    "startsAt": "Mulai",
+    "endsAt": "Selesai",
+    "schedule": "Jadwal",
+    "noSchedule": "Belum dijadwalkan",
+    "location": "Lokasi",
+    "status": "Status",
+    "active": "Aktif",
+    "inactive": "Nonaktif",
+    "membersCount": "Anggota",
+    "empty": "Belum ada ekstrakurikuler.",
+    "notFound": "Ekstrakurikuler tidak ditemukan.",
+    "back": "Kembali",
+    "tab": {
+      "members": "Anggota",
+      "sessions": "Pertemuan & absensi",
+      "assessment": "Penilaian",
+      "report": "Laporan"
+    },
+    "addMembers": "Tambah anggota",
+    "addMembersHint": "Pilih kelas, lalu centang siswa yang ikut.",
+    "class": "Kelas",
+    "chooseClass": "Pilih kelas",
+    "searchStudent": "Cari nama siswa",
+    "noStudents": "Tidak ada siswa aktif pada kelas ini.",
+    "alreadyMember": "Sudah anggota",
+    "selectedCount": "{count} siswa dipilih",
+    "addSelected": "Tambahkan",
+    "membersAdded": "{count} anggota ditambahkan.",
+    "noMembers": "Belum ada anggota.",
+    "student": "Siswa",
+    "nis": "NIS",
+    "className": "Kelas",
+    "joinedOn": "Bergabung",
+    "remove": "Keluarkan",
+    "removed": "Anggota dikeluarkan.",
+    "newSession": "Pertemuan baru",
+    "sessionDate": "Tanggal",
+    "topic": "Topik",
+    "topicHint": "Mis. latihan dasar, pentas, rapat",
+    "sessionCreated": "Pertemuan dibuat.",
+    "sessionDeleted": "Pertemuan dihapus.",
+    "noSessions": "Belum ada pertemuan.",
+    "filled": "Terisi {filled}/{total}",
+    "openSheet": "Buka absensi",
+    "noTopic": "Tanpa topik",
+    "attStatus": "Kehadiran",
+    "present": "Hadir",
+    "excused": "Izin",
+    "sick": "Sakit",
+    "absent": "Alpa",
+    "short": {
+      "present": "H",
+      "excused": "I",
+      "sick": "S",
+      "absent": "A"
+    },
+    "allPresent": "Semua hadir",
+    "saveAttendance": "Simpan absensi",
+    "attendanceSaved": "Absensi disimpan ({count} siswa).",
+    "unsaved": "Ada perubahan yang belum disimpan.",
+    "readOnlySheet": "Anda hanya dapat melihat absensi ini.",
+    "semester": "Semester",
+    "chooseSemester": "Pilih semester",
+    "noSemesters": "Belum ada semester. Buat di menu Tahun ajaran.",
+    "predicate": "Predikat",
+    "noPredicate": "Belum dinilai",
+    "note": "Keterangan",
+    "saveAssessment": "Simpan penilaian",
+    "assessmentSaved": "Penilaian disimpan.",
+    "from": "Dari",
+    "to": "Sampai",
+    "totalSessions": "Jumlah pertemuan: {count}",
+    "attended": "Kehadiran",
+    "exportExcel": "Ekspor Excel",
+    "exportEmpty": "Tidak ada data untuk diekspor.",
+    "invalidRange": "Rentang tanggal tidak valid.",
+    "deleteTitle": "Hapus",
+    "recorded": "Tercatat"
   }
 }

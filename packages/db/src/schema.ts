@@ -891,3 +891,121 @@ export const lessonAttendance = pgTable(
     index('lesson_attendance_school_date_idx').on(t.schoolId, t.date),
   ],
 );
+
+/* ---------- Ekstrakurikuler (modul `extracurricular`) ---------- */
+
+export const EXTRACURRICULAR_CATEGORIES = ['sport', 'art', 'religion', 'science', 'scout', 'other'] as const;
+
+/** Kegiatan ekstrakurikuler. Pembina: guru sekolah (`coachTeacherId`) atau pelatih luar (`externalCoach`). */
+export const extracurricular = pgTable(
+  'extracurricular',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    category: text('category', { enum: EXTRACURRICULAR_CATEGORIES }).notNull().default('other'),
+    description: text('description'),
+    coachTeacherId: uuid('coach_teacher_id').references(() => teacher.id),
+    externalCoach: text('external_coach'),
+    /** 1 = Senin … 7 = Minggu. */
+    weekday: integer('weekday'),
+    startsAt: text('starts_at'),
+    endsAt: text('ends_at'),
+    location: text('location'),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('extracurricular_school_name_uq').on(t.schoolId, t.name)],
+);
+
+/** Anggota ekstrakurikuler per tahun ajaran. */
+export const extracurricularMember = pgTable(
+  'extracurricular_member',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    extracurricularId: uuid('extracurricular_id')
+      .notNull()
+      .references(() => extracurricular.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    joinedOn: date('joined_on').notNull().default(sql`current_date`),
+  },
+  (t) => [
+    unique('extracurricular_member_uq').on(t.extracurricularId, t.studentId, t.academicYearId),
+    index('extracurricular_member_student_idx').on(t.studentId),
+  ],
+);
+
+/** Satu pertemuan (latihan) ekstrakurikuler pada satu tanggal. */
+export const extracurricularSession = pgTable(
+  'extracurricular_session',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    extracurricularId: uuid('extracurricular_id')
+      .notNull()
+      .references(() => extracurricular.id),
+    date: date('date').notNull(),
+    topic: text('topic'),
+    recordedBy: text('recorded_by').notNull(),
+  },
+  (t) => [unique('extracurricular_session_uq').on(t.extracurricularId, t.date)],
+);
+
+/** Absensi anggota pada satu pertemuan. */
+export const extracurricularAttendance = pgTable(
+  'extracurricular_attendance',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    sessionId: uuid('session_id')
+      .notNull()
+      .references(() => extracurricularSession.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    status: text('status', { enum: ['present', 'excused', 'sick', 'absent'] }).notNull(),
+    note: text('note'),
+    recordedBy: text('recorded_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('extracurricular_attendance_uq').on(t.sessionId, t.studentId)],
+);
+
+/** Predikat ekstrakurikuler per siswa per semester (bahan rapor). */
+export const extracurricularAssessment = pgTable(
+  'extracurricular_assessment',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    extracurricularId: uuid('extracurricular_id')
+      .notNull()
+      .references(() => extracurricular.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    predicate: text('predicate', { enum: ['A', 'B', 'C', 'D'] }).notNull(),
+    note: text('note'),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('extracurricular_assessment_uq').on(t.extracurricularId, t.studentId, t.semesterId)],
+);

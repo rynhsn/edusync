@@ -53,7 +53,8 @@
     "groupAcademic": "Kagiatan diajar",
     "lessons": "Absénsi per jam",
     "gate": "Gerbang & piket",
-    "attendanceSettings": "Pangaturan absénsi"
+    "attendanceSettings": "Pangaturan absénsi",
+    "extracurricular": "Ekstrakurikuler"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -83,7 +84,9 @@
     "schedule_manage": "Ngatur jadwal",
     "attendance_read": "Ningali absénsi",
     "attendance_manage": "Ngatur absénsi",
-    "attendance_configure": "Ngatur parangkat, kartu, jam, jeung piket absénsi"
+    "attendance_configure": "Ngatur parangkat, kartu, jam, jeung piket absénsi",
+    "extracurricular_read": "Ningali ekstrakurikuler",
+    "extracurricular_manage": "Ngokolakeun ekstrakurikuler"
   },
   "dashboard": {
     "greeting": "Wilujeng sumping, {name}",
@@ -157,7 +160,8 @@
     "invalid_time": "Waktu tap di luar rentang nu ditampa.",
     "invalid_date": "Tanggal éta lain poé jadwal pelajaran ieu.",
     "invalid_device": "Konci parangkat teu valid.",
-    "student_inactive": "Murid ieu teu aktif."
+    "student_inactive": "Murid ieu teu aktif.",
+    "not_coach": "Ngan guru pembina ekstrakurikuler ieu atawa pangurusna anu diidinan."
   },
   "theme": {
     "label": "Tema",
@@ -181,7 +185,8 @@
     "tahfidz": "Tahfidz jeung ibadah",
     "internship": "PKL jeung prakerin",
     "parent_portal": "Portal wali jeung murid",
-    "announcements": "Pengumuman jeung agénda"
+    "announcements": "Pengumuman jeung agénda",
+    "extracurricular": "Ekstrakurikuler"
   },
   "tiers": {
     "t300": "Dugi ka 300 murid",
@@ -1001,5 +1006,119 @@
         "invalid_code": "Kode teu valid (sahanteuna 4 karakter, tanpa spasi)"
       }
     }
+  },
+  "extracurricular": {
+    "title": "Ekstrakurikuler",
+    "subtitle": "Kagiatan di luar jam pelajaran: anggota, patepungan, absénsi, penilaian, jeung laporan.",
+    "addTitle": "Tambah ekstrakurikuler",
+    "editTitle": "Robah ekstrakurikuler",
+    "searchPlaceholder": "Milarian ngaran ekstrakurikuler",
+    "allCategories": "Sadaya kategori",
+    "categoryLabel": "Kategori",
+    "category": {
+      "sport": "Olahraga",
+      "art": "Seni",
+      "religion": "Kaagamaan",
+      "science": "Élmu pangaweruh",
+      "scout": "Pramuka",
+      "other": "Lianna"
+    },
+    "description": "Pedaran",
+    "coach": "Pembina",
+    "coachType": "Jinis pembina",
+    "coachTeacher": "Guru sakola",
+    "coachExternal": "Pembina ti luar sakola",
+    "coachNone": "Acan aya pembina",
+    "chooseTeacher": "Pilih guru",
+    "externalName": "Ngaran pembina ti luar",
+    "weekday": "Poé",
+    "noWeekday": "Teu aya jadwal tetep",
+    "weekdays": {
+      "1": "Senén",
+      "2": "Salasa",
+      "3": "Rebo",
+      "4": "Kemis",
+      "5": "Jumaah",
+      "6": "Saptu",
+      "7": "Minggu"
+    },
+    "startsAt": "Mimiti",
+    "endsAt": "Réngsé",
+    "schedule": "Jadwal",
+    "noSchedule": "Acan dijadwalkeun",
+    "location": "Tempat",
+    "status": "Status",
+    "active": "Aktif",
+    "inactive": "Teu aktif",
+    "membersCount": "Anggota",
+    "empty": "Acan aya ekstrakurikuler.",
+    "notFound": "Ekstrakurikuler teu kapanggih.",
+    "back": "Balik",
+    "tab": {
+      "members": "Anggota",
+      "sessions": "Patepungan & absénsi",
+      "assessment": "Penilaian",
+      "report": "Laporan"
+    },
+    "addMembers": "Tambah anggota",
+    "addMembersHint": "Pilih kelas, terus centang siswa anu milu.",
+    "class": "Kelas",
+    "chooseClass": "Pilih kelas",
+    "searchStudent": "Milarian ngaran siswa",
+    "noStudents": "Euweuh siswa aktif di kelas ieu.",
+    "alreadyMember": "Geus jadi anggota",
+    "selectedCount": "{count} murid dipilih",
+    "addSelected": "Tambahkeun",
+    "membersAdded": "{count} anggota geus ditambahkeun.",
+    "noMembers": "Acan aya anggota.",
+    "student": "Siswa",
+    "nis": "NIS",
+    "className": "Kelas",
+    "joinedOn": "Gabung",
+    "remove": "Kaluarkeun",
+    "removed": "Anggota geus dikaluarkeun.",
+    "newSession": "Patepungan anyar",
+    "sessionDate": "Tanggal",
+    "topic": "Topik",
+    "topicHint": "Contona latihan dasar, pintonan, rapat",
+    "sessionCreated": "Patepungan geus dijieun.",
+    "sessionDeleted": "Patepungan geus dihapus.",
+    "noSessions": "Acan aya patepungan.",
+    "filled": "Eusi {filled}/{total}",
+    "openSheet": "Buka absénsi",
+    "noTopic": "Teu aya topik",
+    "attStatus": "Kahadiran",
+    "present": "Hadir",
+    "excused": "Idin",
+    "sick": "Gering",
+    "absent": "Alpa",
+    "short": {
+      "present": "H",
+      "excused": "I",
+      "sick": "G",
+      "absent": "A"
+    },
+    "allPresent": "Sadayana hadir",
+    "saveAttendance": "Simpen absénsi",
+    "attendanceSaved": "Absénsi disimpen ({count} siswa).",
+    "unsaved": "Aya parobahan anu acan disimpen.",
+    "readOnlySheet": "Anjeun ngan bisa ningali lambar absénsi ieu.",
+    "semester": "Semester",
+    "chooseSemester": "Pilih semester",
+    "noSemesters": "Acan aya semester. Jieun di menu Taun ajar.",
+    "predicate": "Predikat",
+    "noPredicate": "Acan dinilai",
+    "note": "Katerangan",
+    "saveAssessment": "Simpen penilaian",
+    "assessmentSaved": "Penilaian geus disimpen.",
+    "from": "Ti",
+    "to": "Dugi ka",
+    "totalSessions": "Jumlah patepungan: {count}",
+    "attended": "Kahadiran",
+    "exportExcel": "Ékspor Excel",
+    "exportEmpty": "Euweuh data pikeun diékspor.",
+    "invalidRange": "Rentang tanggal teu valid.",
+    "deleteTitle": "Hapus",
+    "recorded": "Kacatet"
   }
 }

@@ -44,6 +44,7 @@ const KNOWN = [
   'invalid_date',
   'invalid_device',
   'student_inactive',
+  'not_coach',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];
