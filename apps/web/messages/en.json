@@ -1067,7 +1067,7 @@
     "searchStudent": "Search student name",
     "noStudents": "No active students in this class.",
     "alreadyMember": "Already a member",
-    "selectedCount": "{count, plural, one {# student selected} other {# students selected}}",
+    "selectedCount": "{count} selected",
     "addSelected": "Add",
     "membersAdded": "{count} members added.",
     "noMembers": "No members yet.",

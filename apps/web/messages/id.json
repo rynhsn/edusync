@@ -1067,7 +1067,7 @@
     "searchStudent": "Cari nama siswa",
     "noStudents": "Tidak ada siswa aktif pada kelas ini.",
     "alreadyMember": "Sudah anggota",
-    "selectedCount": "{count} siswa dipilih",
+    "selectedCount": "{count} dipilih",
     "addSelected": "Tambahkan",
     "membersAdded": "{count} anggota ditambahkan.",
     "noMembers": "Belum ada anggota.",
