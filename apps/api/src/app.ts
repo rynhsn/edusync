@@ -37,6 +37,7 @@ import { peopleRoutes } from './routes/people';
 import { platformRoutes } from './routes/platform';
 import { platformCatalogRoutes } from './routes/platform-catalog';
 import { platformPaymentRoutes } from './routes/platform-payments';
+import { reportCardRoutes } from './routes/report-card';
 import { roleRoutes } from './routes/roles';
 import { scheduleRoutes } from './routes/schedule';
 import { semesterRoutes } from './routes/semesters';
@@ -180,6 +181,7 @@ export async function buildApp(env: Env) {
   await app.register(lessonAttendanceRoutes);
   await app.register(extracurricularRoutes);
   await app.register(gradingRoutes);
+  await app.register(reportCardRoutes);
   await app.register(semesterRoutes);
   await app.register(calendarRoutes);
   await app.register(curriculumRoutes);

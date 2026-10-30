@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Award,
+  BookMarked,
   BookOpen,
   CalendarDays,
   CalendarRange,
@@ -11,6 +12,7 @@ import {
   ClipboardList,
   Clock,
   DoorOpen,
+  FileText,
   GraduationCap,
   LayoutDashboard,
   LogOut,
@@ -152,6 +154,20 @@ export const NAV_GROUPS = [
         labelKey: 'gradeSettings',
         icon: SlidersHorizontal,
         permission: 'grade:configure',
+        module: 'grades',
+      },
+      {
+        href: '/report-cards',
+        labelKey: 'reportCards',
+        icon: BookMarked,
+        permission: 'report_card:read',
+        module: 'grades',
+      },
+      {
+        href: '/report-cards/settings',
+        labelKey: 'reportCardSettings',
+        icon: FileText,
+        permission: 'report_card:manage',
         module: 'grades',
       },
     ],

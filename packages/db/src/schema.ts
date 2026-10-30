@@ -426,6 +426,8 @@ export const classRoom = pgTable(
     programId: uuid('program_id').references(() => program.id),
     name: text('name').notNull(),
     level: text('level').notNull(),
+    /** Wali kelas (guru). Boleh kosong; rapor memakainya untuk hak akses dan tanda tangan. */
+    homeroomTeacherId: uuid('homeroom_teacher_id').references(() => teacher.id),
     createdAt: createdAt(),
   },
   (t) => [
@@ -1088,4 +1090,65 @@ export const score = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [unique('score_assessment_student_uq').on(t.assessmentId, t.studentId)],
+);
+
+/* ---------- Rapor (modul `grades`) ---------- */
+
+/** Pengaturan rapor sekolah: penanda tangan, alamat, deskripsi capaian per predikat, dan tampilan peringkat. */
+export const reportSetting = pgTable('report_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  principalName: text('principal_name'),
+  principalNip: text('principal_nip'),
+  city: text('city'),
+  address: text('address'),
+  descA: text('desc_a')
+    .notNull()
+    .default('Menunjukkan penguasaan yang sangat baik pada seluruh capaian pembelajaran.'),
+  descB: text('desc_b')
+    .notNull()
+    .default('Menunjukkan penguasaan yang baik pada sebagian besar capaian pembelajaran.'),
+  descC: text('desc_c')
+    .notNull()
+    .default(
+      'Menunjukkan penguasaan yang cukup pada capaian pembelajaran; perlu peningkatan pada beberapa bagian.',
+    ),
+  descD: text('desc_d')
+    .notNull()
+    .default('Perlu bimbingan lebih lanjut untuk mencapai capaian pembelajaran.'),
+  showRank: boolean('show_rank').notNull().default(false),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Rapor satu siswa pada satu semester. `snapshot` menyimpan dokumen beku saat status `final`. */
+export const reportCard = pgTable(
+  'report_card',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    homeroomNote: text('homeroom_note'),
+    status: text('status', { enum: ['draft', 'final'] })
+      .notNull()
+      .default('draft'),
+    finalizedAt: timestamp('finalized_at', { withTimezone: true }),
+    finalizedBy: text('finalized_by'),
+    snapshot: jsonb('snapshot'),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('report_card_semester_student_uq').on(t.semesterId, t.studentId),
+    index('report_card_class_idx').on(t.classId, t.semesterId),
+  ],
 );

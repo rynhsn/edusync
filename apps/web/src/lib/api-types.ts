@@ -2632,7 +2632,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "audit:read")[];
                     };
                 };
             };
@@ -3168,7 +3168,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "audit:read")[];
                     };
                 };
             };
@@ -4058,7 +4058,7 @@ export interface paths {
         };
         /**
          * Daftar kelas
-         * @description Izin: `class:read`. Tanpa `academicYearId`, semua tahun ajaran ditampilkan.
+         * @description Izin: `class:read`. Tanpa `academicYearId`, semua tahun ajaran ditampilkan. Memuat wali kelas (`homeroomTeacherId`, `homeroomTeacherName`).
          */
         get: {
             parameters: {
@@ -4090,6 +4090,12 @@ export interface paths {
                             programName: string | null;
                             name: string;
                             level: string;
+                            /**
+                             * Format: uuid
+                             * @description Wali kelas (guru), bila ada
+                             */
+                            homeroomTeacherId: string | null;
+                            homeroomTeacherName: string | null;
                             studentCount: number;
                         }[];
                     };
@@ -4127,7 +4133,7 @@ export interface paths {
         put?: never;
         /**
          * Buat kelas
-         * @description Izin: `class:manage`. Kelas terikat pada satu tahun ajaran; nama harus unik pada tahun ajaran itu. Tahun ajaran dan jurusan harus milik sekolah ini.
+         * @description Izin: `class:manage`. Kelas terikat pada satu tahun ajaran; nama harus unik pada tahun ajaran itu. Tahun ajaran, jurusan, dan wali kelas (`homeroomTeacherId`, opsional) harus milik sekolah ini (400 `invalid_reference`).
          */
         post: {
             parameters: {
@@ -4151,6 +4157,11 @@ export interface paths {
                         programId?: string | null;
                         name: string;
                         level: string;
+                        /**
+                         * Format: uuid
+                         * @description Wali kelas; null mengosongkan, tanpa bidang ini wali kelas tidak berubah
+                         */
+                        homeroomTeacherId?: string | null;
                     };
                 };
             };
@@ -4171,6 +4182,12 @@ export interface paths {
                             programName: string | null;
                             name: string;
                             level: string;
+                            /**
+                             * Format: uuid
+                             * @description Wali kelas (guru), bila ada
+                             */
+                            homeroomTeacherId: string | null;
+                            homeroomTeacherName: string | null;
                             studentCount: number;
                         };
                     };
@@ -4249,7 +4266,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah kelas
-         * @description Izin: `class:manage`. Tahun ajaran kelas tidak dapat dipindah.
+         * @description Izin: `class:manage`. Tahun ajaran kelas tidak dapat dipindah. `homeroomTeacherId` null mengosongkan wali kelas; bila dihilangkan, wali kelas tidak berubah; guru harus milik sekolah ini (400 `invalid_reference`).
          */
         put: {
             parameters: {
@@ -4273,6 +4290,11 @@ export interface paths {
                         programId?: string | null;
                         name: string;
                         level: string;
+                        /**
+                         * Format: uuid
+                         * @description Wali kelas; null mengosongkan, tanpa bidang ini wali kelas tidak berubah
+                         */
+                        homeroomTeacherId?: string | null;
                     };
                 };
             };
@@ -4293,6 +4315,12 @@ export interface paths {
                             programName: string | null;
                             name: string;
                             level: string;
+                            /**
+                             * Format: uuid
+                             * @description Wali kelas (guru), bila ada
+                             */
+                            homeroomTeacherId: string | null;
+                            homeroomTeacherName: string | null;
                             studentCount: number;
                         };
                     };
@@ -11821,6 +11849,791 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/report-cards/settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pengaturan rapor
+         * @description Izin: `report_card:read`; modul `grades`. Penanda tangan, kota, alamat, deskripsi capaian per predikat (A-D), dan tampilan peringkat. Sekolah yang belum mengaturnya mendapat nilai bawaan (deskripsi bawaan bahasa Indonesia, tanpa peringkat).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Nama kepala sekolah untuk tanda tangan */
+                            principalName: string | null;
+                            principalNip: string | null;
+                            /** @description Kota tempat rapor diterbitkan */
+                            city: string | null;
+                            /** @description Alamat sekolah pada kop rapor */
+                            address: string | null;
+                            /** @description Deskripsi capaian untuk predikat A */
+                            descA: string;
+                            descB: string;
+                            descC: string;
+                            descD: string;
+                            /** @description Tampilkan peringkat kelas pada rapor */
+                            showRank: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah pengaturan rapor
+         * @description Izin: `report_card:manage`; modul `grades`. Mengganti seluruh pengaturan. Teks kosong pada nama, NIP, kota, dan alamat disimpan sebagai kosong (null); deskripsi capaian wajib terisi (400 galat validasi).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @default null */
+                        principalName?: string | null;
+                        /** @default null */
+                        principalNip?: string | null;
+                        /** @default null */
+                        city?: string | null;
+                        /** @default null */
+                        address?: string | null;
+                        descA: string;
+                        descB: string;
+                        descC: string;
+                        descD: string;
+                        /** @default false */
+                        showRank?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Nama kepala sekolah untuk tanda tangan */
+                            principalName: string | null;
+                            principalNip: string | null;
+                            /** @description Kota tempat rapor diterbitkan */
+                            city: string | null;
+                            /** @description Alamat sekolah pada kop rapor */
+                            address: string | null;
+                            /** @description Deskripsi capaian untuk predikat A */
+                            descA: string;
+                            descB: string;
+                            descC: string;
+                            descD: string;
+                            /** @description Tampilkan peringkat kelas pada rapor */
+                            showRank: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/report-cards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar rapor satu kelas
+         * @description Izin: `report_card:read`; modul `grades`. Siswa aktif kelas (urut nama) dengan status rapor, ada tidaknya catatan wali kelas, rata-rata nilai akhir mapel, dan kelengkapan nilai (`subjectsGraded` dari `subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). Rapor final memakai snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    classId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            studentId: string;
+                            name: string;
+                            nis: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "final";
+                            hasNote: boolean;
+                            average: number | null;
+                            subjectsGraded: number;
+                            subjectsTotal: number;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/report-cards/{studentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Dokumen rapor satu siswa
+         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu.
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            status: "draft" | "final";
+                            school: {
+                                name: string;
+                                address: string | null;
+                                city: string | null;
+                            };
+                            semester: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                academicYear: string;
+                            };
+                            student: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                nis: string | null;
+                                nisn: string | null;
+                                className: string;
+                                level: string;
+                            };
+                            subjects: {
+                                /** Format: uuid */
+                                subjectId: string;
+                                name: string;
+                                kkm: number;
+                                final: number | null;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                                /** @description Deskripsi capaian otomatis menurut predikat */
+                                description: string | null;
+                                belowKkm: boolean;
+                            }[];
+                            extracurriculars: {
+                                name: string;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                                note: string | null;
+                            }[];
+                            attendance: {
+                                sick: number;
+                                excused: number;
+                                absent: number;
+                                late: number;
+                            };
+                            homeroomNote: string | null;
+                            homeroomTeacher: {
+                                name: string;
+                                nip: string | null;
+                            } | null;
+                            principal: {
+                                name: string;
+                                nip: string | null;
+                            } | null;
+                            /** @description Hanya bila pengaturan menampilkan peringkat */
+                            rank: {
+                                position: number;
+                                of: number;
+                            } | null;
+                            /** @description Waktu dokumen disusun (saat final: waktu finalisasi) */
+                            generatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/report-cards/note": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Simpan catatan wali kelas
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas siswa itu (selain itu 403). `note` maksimal 500 karakter; null atau teks kosong menghapus catatan. Ditolak 409 `report_final` bila rapor sudah final (buka kembali dulu). 404 `not_found` bila siswa tidak terdaftar di kelas pada tahun ajaran semester itu.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        studentId: string;
+                        note: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                            note: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/report-cards/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Finalkan rapor satu kelas
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif kelas: dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        classId: string;
+                        /**
+                         * @description Finalkan walau nilai ada yang belum lengkap
+                         * @default false
+                         */
+                        force?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            finalized: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/report-cards/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buka kembali rapor satu kelas
+         * @description Izin: `report_card:manage`; modul `grades`. Mengembalikan rapor final kelas itu ke draft dan membuang snapshot-nya; catatan wali kelas tetap. `reopened` = jumlah rapor yang dibuka. Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        classId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            reopened: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;

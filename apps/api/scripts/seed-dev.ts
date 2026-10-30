@@ -9,6 +9,7 @@ import {
   gradingSetting,
   member,
   platformStaff,
+  reportSetting,
   school,
   seedSchoolRoles,
   subscription,
@@ -112,6 +113,17 @@ for (const s of [smp, smk]) {
         { name: 'UAS', weight: 30 },
       ].map((c, sort) => ({ schoolId: s.id, ...c, sort })),
     )
+    .onConflictDoNothing();
+}
+
+// Pengaturan rapor contoh (kepala sekolah dan kota); deskripsi capaian memakai nilai bawaan.
+for (const [s, principalName, city] of [
+  [smp, 'Drs. H. Ahmad Fauzi, M.Pd.', 'Bandung'],
+  [smk, 'Hj. Siti Rahmawati, S.Pd.', 'Bandung'],
+] as const) {
+  await db
+    .insert(reportSetting)
+    .values({ schoolId: s.id, principalName, principalNip: '197001012000031001', city })
     .onConflictDoNothing();
 }
 

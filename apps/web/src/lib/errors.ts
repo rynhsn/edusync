@@ -48,6 +48,8 @@ const KNOWN = [
   'not_empty',
   'score_exceeds_max',
   'invalid_score',
+  'report_final',
+  'grades_incomplete',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

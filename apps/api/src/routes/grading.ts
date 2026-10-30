@@ -1,4 +1,3 @@
-import { componentAverage, finalGrade, type Predicate, predicateOf } from '@edusync/contracts';
 import {
   and,
   asc,
@@ -26,6 +25,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { rosterOf } from '../attendance-lib';
+import { computeGrades, loadComponents, loadSettings, round2 } from '../grading-lib';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
@@ -47,18 +47,8 @@ const DEFAULT_COMPONENTS = [
   { name: 'UAS', weight: 30 },
 ] as const;
 
-const DEFAULT_SETTINGS = { kkm: 75, predicateA: 90, predicateB: 80, predicateC: 70 };
-
-interface GradingSettings {
-  kkm: number;
-  predicateA: number;
-  predicateB: number;
-  predicateC: number;
-}
-
 const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', message);
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
-const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 
 const settingsSchema = z.object({
   kkm: z
@@ -218,25 +208,6 @@ export async function gradingRoutes(instance: FastifyInstance) {
     return a;
   }
 
-  async function loadSettings(tx: Tx): Promise<GradingSettings> {
-    const [s] = await tx.select().from(gradingSetting);
-    return s
-      ? { kkm: s.kkm, predicateA: s.predicateA, predicateB: s.predicateB, predicateC: s.predicateC }
-      : { ...DEFAULT_SETTINGS };
-  }
-
-  function loadComponents(tx: Tx) {
-    return tx
-      .select({
-        id: gradeComponent.id,
-        name: gradeComponent.name,
-        weight: gradeComponent.weight,
-        sort: gradeComponent.sort,
-      })
-      .from(gradeComponent)
-      .orderBy(asc(gradeComponent.sort), asc(gradeComponent.name));
-  }
-
   /* ---------- Tampilan penilaian ---------- */
 
   async function assessmentViews(
@@ -327,89 +298,6 @@ export async function gradingRoutes(instance: FastifyInstance) {
       total: totals.find((t) => t.classId === r.a.classId)?.n ?? 0,
       canInput: configure || (input && teaches(mine, r.a.classId, r.a.subjectId)),
     }));
-  }
-
-  /* ---------- Perhitungan nilai ---------- */
-
-  interface StudentGrade {
-    perComponent: { componentId: string; average: number | null }[];
-    final: number | null;
-    predicate: Predicate | null;
-  }
-
-  /**
-   * Nilai per mapel per siswa untuk satu kelas pada satu semester. Skor kosong atau tanpa baris skor diabaikan;
-   * rumus bobot dan predikat ada di `@edusync/contracts`.
-   */
-  async function computeGrades(
-    tx: Tx,
-    p: {
-      semesterId: string;
-      classId: string;
-      subjectIds: string[];
-      studentIds: string[];
-      components: { id: string; weight: number }[];
-      settings: GradingSettings;
-    },
-  ) {
-    const assessments = p.subjectIds.length
-      ? await tx
-          .select({
-            id: assessment.id,
-            subjectId: assessment.subjectId,
-            componentId: assessment.componentId,
-            maxScore: assessment.maxScore,
-          })
-          .from(assessment)
-          .where(
-            and(
-              eq(assessment.semesterId, p.semesterId),
-              eq(assessment.classId, p.classId),
-              inArray(assessment.subjectId, p.subjectIds),
-            ),
-          )
-      : [];
-    const scores = assessments.length
-      ? await tx
-          .select({ assessmentId: score.assessmentId, studentId: score.studentId, value: score.value })
-          .from(score)
-          .where(
-            inArray(
-              score.assessmentId,
-              assessments.map((a) => a.id),
-            ),
-          )
-      : [];
-    const scoreOf = new Map(scores.map((s) => [`${s.assessmentId}:${s.studentId}`, s.value]));
-
-    const gradeOf = (subjectId: string, studentId: string): StudentGrade => {
-      const groups = p.components.map((c) => ({
-        componentId: c.id,
-        weight: c.weight,
-        scores: assessments
-          .filter((a) => a.subjectId === subjectId && a.componentId === c.id)
-          .map((a) => ({ value: scoreOf.get(`${a.id}:${studentId}`) ?? null, max: a.maxScore })),
-      }));
-      const final = finalGrade(groups);
-      return {
-        perComponent: groups.map((g) => {
-          const avg = componentAverage(g.scores);
-          return { componentId: g.componentId, average: avg === null ? null : round2(avg) };
-        }),
-        final,
-        predicate: final === null ? null : predicateOf(final, p.settings),
-      };
-    };
-
-    /** subjectId -> studentId -> hasil */
-    const result = new Map<string, Map<string, StudentGrade>>();
-    for (const subjectId of p.subjectIds) {
-      result.set(
-        subjectId,
-        new Map(p.studentIds.map((studentId) => [studentId, gradeOf(subjectId, studentId)])),
-      );
-    }
-    return result;
   }
 
   /* ---------- Pengaturan ---------- */

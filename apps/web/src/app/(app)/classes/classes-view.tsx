@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Layers, Plus, Trash2, UserCheck } from 'lucide-react';
+import { Layers, Pencil, Plus, Trash2, UserCheck } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -153,6 +153,8 @@ function Assignments({ classId }: { classId: string }) {
   );
 }
 
+const emptyDraft = { name: '', level: '', programId: '', homeroomTeacherId: '' };
+
 export function ClassesView() {
   const t = useTranslations('classes');
   const tm = useTranslations('masterData');
@@ -163,7 +165,10 @@ export function ClassesView() {
   const manage = can('class:manage');
 
   const [yearChoice, setYearChoice] = useState('');
-  const [draft, setDraft] = useState({ name: '', level: '', programId: '' });
+  const [draft, setDraft] = useState(emptyDraft);
+  const [editing, setEditing] = useState<string | null>(null);
+  const [editDraft, setEditDraft] = useState(emptyDraft);
+  const [editError, setEditError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [assignFor, setAssignFor] = useState<{ id: string; name: string } | null>(null);
   const [programDraft, setProgramDraft] = useState({ code: '', name: '' });
@@ -178,6 +183,12 @@ export function ClassesView() {
   const programs = useQuery({
     queryKey: ['programs', school.schoolId],
     queryFn: async () => unwrap(await api.GET('/v1/programs', { params: header })),
+  });
+  // Calon wali kelas: guru aktif. Bila pengguna tak boleh melihat guru, isian disembunyikan.
+  const teachers = useQuery({
+    queryKey: ['teachers', school.schoolId, ''],
+    enabled: can('teacher:read'),
+    queryFn: async () => unwrap(await api.GET('/v1/teachers', { params: { ...header, query: {} } })),
   });
   const classes = useQuery({
     queryKey: ['classes', school.schoolId, yearId],
@@ -198,15 +209,35 @@ export function ClassesView() {
             programId: draft.programId || null,
             name: draft.name,
             level: draft.level,
+            homeroomTeacherId: draft.homeroomTeacherId || null,
           },
         }),
       ),
     onSuccess: () => {
-      setDraft({ name: '', level: draft.level, programId: draft.programId });
+      setDraft({ ...emptyDraft, level: draft.level, programId: draft.programId });
       toast.success(tm('created'));
       refreshClasses();
     },
     onError: (e) => setError(te(errorKey(e))),
+  });
+  const updateClass = useMutation({
+    mutationFn: async () =>
+      unwrap(
+        await api.PUT('/v1/classes/{id}', {
+          params: { ...header, path: { id: editing ?? '' } },
+          body: {
+            programId: editDraft.programId || null,
+            name: editDraft.name,
+            level: editDraft.level,
+            homeroomTeacherId: editDraft.homeroomTeacherId || null,
+          },
+        }),
+      ),
+    onSuccess: () => {
+      toast.success(tm('saved'));
+      refreshClasses();
+    },
+    onError: (e) => setEditError(te(errorKey(e))),
   });
   const removeClass = useMutation({
     mutationFn: async (id: string) =>
@@ -238,6 +269,67 @@ export function ClassesView() {
   });
 
   const hasYears = (years.data?.length ?? 0) > 0;
+
+  /** Isian kelas yang sama untuk dialog tambah dan ubah. */
+  const fields = (prefix: string, value: typeof emptyDraft, set: (next: typeof emptyDraft) => void) => (
+    <div className="grid gap-4 sm:grid-cols-2">
+      <div className="grid gap-2">
+        <Label htmlFor={`${prefix}-name`}>{tm('name')}</Label>
+        <Input
+          id={`${prefix}-name`}
+          required
+          maxLength={80}
+          value={value.name}
+          onChange={(e) => set({ ...value, name: e.target.value })}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor={`${prefix}-level`}>{t('level')}</Label>
+        <Input
+          id={`${prefix}-level`}
+          required
+          maxLength={20}
+          placeholder={t('levelHint')}
+          value={value.level}
+          onChange={(e) => set({ ...value, level: e.target.value })}
+        />
+      </div>
+      <div className="grid gap-2 sm:col-span-2">
+        <Label htmlFor={`${prefix}-program`}>{t('program')}</Label>
+        <SelectField
+          id={`${prefix}-program`}
+          value={value.programId}
+          onChange={(e) => set({ ...value, programId: e.target.value })}
+        >
+          <option value="">{t('noProgram')}</option>
+          {programs.data?.map((p) => (
+            <option key={p.id} value={p.id}>
+              {p.name}
+            </option>
+          ))}
+        </SelectField>
+      </div>
+      {teachers.data && (
+        <div className="grid gap-2 sm:col-span-2">
+          <Label htmlFor={`${prefix}-homeroom`}>{t('homeroomTeacher')}</Label>
+          <SelectField
+            id={`${prefix}-homeroom`}
+            value={value.homeroomTeacherId}
+            onChange={(e) => set({ ...value, homeroomTeacherId: e.target.value })}
+          >
+            <option value="">{t('noHomeroom')}</option>
+            {teachers.data
+              .filter((x) => x.status === 'active' || x.id === value.homeroomTeacherId)
+              .map((x) => (
+                <option key={x.id} value={x.id}>
+                  {x.name}
+                </option>
+              ))}
+          </SelectField>
+        </div>
+      )}
+    </div>
+  );
 
   return (
     <PageBody>
@@ -335,44 +427,7 @@ export function ClassesView() {
                 onOpenChange={() => setError(null)}
                 onSubmit={() => createClass.mutateAsync()}
               >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="class-name">{tm('name')}</Label>
-                    <Input
-                      id="class-name"
-                      required
-                      maxLength={80}
-                      value={draft.name}
-                      onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="class-level">{t('level')}</Label>
-                    <Input
-                      id="class-level"
-                      required
-                      maxLength={20}
-                      placeholder={t('levelHint')}
-                      value={draft.level}
-                      onChange={(e) => setDraft({ ...draft, level: e.target.value })}
-                    />
-                  </div>
-                  <div className="grid gap-2 sm:col-span-2">
-                    <Label htmlFor="class-program">{t('program')}</Label>
-                    <SelectField
-                      id="class-program"
-                      value={draft.programId}
-                      onChange={(e) => setDraft({ ...draft, programId: e.target.value })}
-                    >
-                      <option value="">{t('noProgram')}</option>
-                      {programs.data?.map((p) => (
-                        <option key={p.id} value={p.id}>
-                          {p.name}
-                        </option>
-                      ))}
-                    </SelectField>
-                  </div>
-                </div>
+                {fields('class', draft, setDraft)}
               </FormDialog>
             )}
           </>
@@ -414,8 +469,9 @@ export function ClassesView() {
                     <TableHead>{tm('name')}</TableHead>
                     <TableHead>{t('level')}</TableHead>
                     <TableHead>{t('program')}</TableHead>
+                    <TableHead>{t('homeroomTeacher')}</TableHead>
                     <TableHead>{t('studentsHeading')}</TableHead>
-                    <TableHead className="w-28" />
+                    <TableHead className="w-36" />
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -426,6 +482,7 @@ export function ClassesView() {
                         <Badge variant="outline">{c.level}</Badge>
                       </TableCell>
                       <TableCell>{c.programName ?? tm('none')}</TableCell>
+                      <TableCell>{c.homeroomTeacherName ?? tm('none')}</TableCell>
                       <TableCell className="tabular-nums">{c.studentCount}</TableCell>
                       <TableCell className="text-right whitespace-nowrap">
                         <Button
@@ -437,6 +494,26 @@ export function ClassesView() {
                         >
                           <UserCheck className="size-4" />
                         </Button>
+                        {manage && (
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={tm('edit')}
+                            title={tm('edit')}
+                            onClick={() => {
+                              setEditError(null);
+                              setEditDraft({
+                                name: c.name,
+                                level: c.level,
+                                programId: c.programId ?? '',
+                                homeroomTeacherId: c.homeroomTeacherId ?? '',
+                              });
+                              setEditing(c.id);
+                            }}
+                          >
+                            <Pencil className="size-4" />
+                          </Button>
+                        )}
                         {manage && (
                           <Button
                             size="icon-sm"
@@ -457,6 +534,19 @@ export function ClassesView() {
           )}
         </>
       )}
+
+      <FormDialog
+        open={editing !== null}
+        title={t('editTitle')}
+        submitLabel={tm('save')}
+        error={editError}
+        onOpenChange={(o) => {
+          if (!o) setEditing(null);
+        }}
+        onSubmit={() => updateClass.mutateAsync()}
+      >
+        {fields('class-edit', editDraft, setEditDraft)}
+      </FormDialog>
 
       <Dialog open={!!assignFor} onOpenChange={(open) => !open && setAssignFor(null)}>
         <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-xl">

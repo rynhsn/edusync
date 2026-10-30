@@ -41,6 +41,8 @@ const classSchema = z.object({
   programName: z.string().nullable(),
   name: z.string(),
   level: z.string(),
+  homeroomTeacherId: z.uuid().nullable().describe('Wali kelas (guru), bila ada'),
+  homeroomTeacherName: z.string().nullable(),
   studentCount: z.number().int(),
 });
 const classBody = z.object({
@@ -48,6 +50,11 @@ const classBody = z.object({
   programId: z.uuid().nullable().default(null),
   name,
   level: z.string().trim().min(1).max(20),
+  homeroomTeacherId: z
+    .uuid()
+    .nullable()
+    .optional()
+    .describe('Wali kelas; null mengosongkan, tanpa bidang ini wali kelas tidak berubah'),
 });
 const assignmentSchema = z.object({
   subjectId: z.uuid(),
@@ -69,12 +76,13 @@ async function requireRefs(
     classId?: string;
     subjectId?: string;
     teacherId?: string;
+    homeroomTeacherId?: string | null | undefined;
   },
 ) {
   const exists = async (rows: Promise<unknown[]>, what: string) => {
     if ((await rows).length === 0) throw new HttpError(400, 'invalid_reference', `${what} tidak ditemukan.`);
   };
-  const { academicYearId, programId, classId, subjectId, teacherId } = refs;
+  const { academicYearId, programId, classId, subjectId, teacherId, homeroomTeacherId } = refs;
   if (academicYearId) {
     await exists(
       tx.select({ id: academicYear.id }).from(academicYear).where(eq(academicYear.id, academicYearId)),
@@ -95,6 +103,12 @@ async function requireRefs(
   }
   if (teacherId) {
     await exists(tx.select({ id: teacher.id }).from(teacher).where(eq(teacher.id, teacherId)), 'Guru');
+  }
+  if (homeroomTeacherId) {
+    await exists(
+      tx.select({ id: teacher.id }).from(teacher).where(eq(teacher.id, homeroomTeacherId)),
+      'Wali kelas',
+    );
   }
 }
 
@@ -342,7 +356,9 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Daftar kelas',
-        description: 'Izin: `class:read`. Tanpa `academicYearId`, semua tahun ajaran ditampilkan.',
+        description:
+          'Izin: `class:read`. Tanpa `academicYearId`, semua tahun ajaran ditampilkan. Memuat wali kelas ' +
+          '(`homeroomTeacherId`, `homeroomTeacherName`).',
         headers: schoolHeader,
         querystring: z.object({ academicYearId: z.uuid().optional() }),
         response: { 200: z.array(classSchema), ...guarded },
@@ -359,9 +375,12 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
             programName: program.name,
             name: classRoom.name,
             level: classRoom.level,
+            homeroomTeacherId: classRoom.homeroomTeacherId,
+            homeroomTeacherName: teacher.name,
           })
           .from(classRoom)
           .leftJoin(program, eq(program.id, classRoom.programId))
+          .leftJoin(teacher, eq(teacher.id, classRoom.homeroomTeacherId))
           .where(academicYearId ? eq(classRoom.academicYearId, academicYearId) : undefined)
           .orderBy(asc(classRoom.level), asc(classRoom.name));
         const counts = await tx
@@ -383,9 +402,12 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         programName: program.name,
         name: classRoom.name,
         level: classRoom.level,
+        homeroomTeacherId: classRoom.homeroomTeacherId,
+        homeroomTeacherName: teacher.name,
       })
       .from(classRoom)
       .leftJoin(program, eq(program.id, classRoom.programId))
+      .leftJoin(teacher, eq(teacher.id, classRoom.homeroomTeacherId))
       .where(eq(classRoom.id, id));
     if (!r) throw notFound('Kelas');
     const [c] = await tx.select({ n: count() }).from(enrollment).where(eq(enrollment.classId, id));
@@ -401,7 +423,8 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         summary: 'Buat kelas',
         description:
           'Izin: `class:manage`. Kelas terikat pada satu tahun ajaran; nama harus unik pada tahun ajaran itu. ' +
-          'Tahun ajaran dan jurusan harus milik sekolah ini.',
+          'Tahun ajaran, jurusan, dan wali kelas (`homeroomTeacherId`, opsional) harus milik sekolah ini ' +
+          '(400 `invalid_reference`).',
         headers: schoolHeader,
         body: classBody,
         response: { 201: classSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -424,7 +447,11 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         return reply.code(201).send(row);
       } catch (error) {
         if (isForeignKeyViolation(error)) {
-          throw new HttpError(400, 'invalid_reference', 'Tahun ajaran atau jurusan tidak ditemukan.');
+          throw new HttpError(
+            400,
+            'invalid_reference',
+            'Tahun ajaran, jurusan, atau wali kelas tidak ditemukan.',
+          );
         }
         throw error;
       }
@@ -438,7 +465,9 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Ubah kelas',
-        description: 'Izin: `class:manage`. Tahun ajaran kelas tidak dapat dipindah.',
+        description:
+          'Izin: `class:manage`. Tahun ajaran kelas tidak dapat dipindah. `homeroomTeacherId` null mengosongkan wali ' +
+          'kelas; bila dihilangkan, wali kelas tidak berubah; guru harus milik sekolah ini (400 `invalid_reference`).',
         headers: schoolHeader,
         params: idParams,
         body: classBody.omit({ academicYearId: true }),
@@ -463,7 +492,7 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         );
       } catch (error) {
         if (isForeignKeyViolation(error))
-          throw new HttpError(400, 'invalid_reference', 'Jurusan tidak ditemukan.');
+          throw new HttpError(400, 'invalid_reference', 'Jurusan atau wali kelas tidak ditemukan.');
         throw error;
       }
     },

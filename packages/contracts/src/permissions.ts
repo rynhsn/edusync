@@ -26,6 +26,8 @@ export const PERMISSIONS = [
   'grade:read',
   'grade:input',
   'grade:configure',
+  'report_card:read',
+  'report_card:manage',
   'audit:read',
 ] as const;
 
@@ -56,6 +58,7 @@ export const SYSTEM_ROLES = {
       'attendance:read',
       'extracurricular:read',
       'grade:read',
+      'report_card:read',
       'audit:read',
     ],
   },
@@ -77,6 +80,8 @@ export const SYSTEM_ROLES = {
       'extracurricular:manage',
       'grade:read',
       'grade:configure',
+      'report_card:read',
+      'report_card:manage',
     ],
   },
   treasurer: { name: 'Bendahara', permissions: ['academic_year:read', 'student:read'] },
@@ -104,6 +109,8 @@ export const SYSTEM_ROLES = {
       'grade:read',
       'grade:configure',
       'grade:input',
+      'report_card:read',
+      'report_card:manage',
     ],
   },
   teacher: {
@@ -119,6 +126,7 @@ export const SYSTEM_ROLES = {
       'extracurricular:read',
       'grade:read',
       'grade:input',
+      'report_card:read',
     ],
   },
 } as const satisfies Record<string, SystemRole>;
