@@ -242,6 +242,10 @@ export const catalogItem = pgTable(
     priceMonthly: integer('price_monthly').notNull(),
     sort: integer('sort').notNull().default(0),
     active: boolean('active').notNull().default(true),
+    /** Kunci modul yang menjadi syarat (hanya untuk kind=module). */
+    requires: jsonb('requires').$type<string[]>().notNull().default([]),
+    /** Batas siswa aktif (hanya untuk kind=tier); kosong = tanpa batas. */
+    maxStudents: integer('max_students'),
   },
   (t) => [primaryKey({ columns: [t.kind, t.key] })],
 );
@@ -1958,6 +1962,8 @@ export const finLateFeeSetting = pgTable('fin_late_fee_setting', {
   graceDays: integer('grace_days').notNull().default(0),
   /** Batas denda per tagihan dalam rupiah; kosong = tanpa batas. */
   capAmount: integer('cap_amount'),
+  /** Lama (hari) dari penerbitan sampai jatuh tempo tagihan denda. */
+  dueDays: integer('due_days').notNull().default(7),
   /** Jenis biaya untuk tagihan denda yang dibuat. */
   feeTypeId: uuid('fee_type_id').references(() => finFeeType.id),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -2059,4 +2065,125 @@ export const schoolProfile = pgTable('school_profile', {
   accentColor: text('accent_color'),
   published: boolean('published').notNull().default(false),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/* ---------- Data dinamis: pengaturan per sekolah dan acuan platform ---------- */
+
+/** Pengaturan umum satu unit (zona waktu ada di `school.timezone`). */
+export const schoolSetting = pgTable('school_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  /** Hari efektif pelajaran: 1 = Senin ... 7 = Minggu. */
+  workingDays: jsonb('working_days').$type<number[]>().notNull().default([1, 2, 3, 4, 5, 6]),
+  /** Nama semester dalam urutan (mis. Ganjil, Genap; atau Catur wulan 1..3). */
+  semesterNames: jsonb('semester_names').$type<string[]>().notNull().default(['Ganjil', 'Genap']),
+  lessonDefaultStart: text('lesson_default_start').notNull().default('07:00'),
+  lessonDefaultMinutes: integer('lesson_default_minutes').notNull().default(40),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Daftar tingkat kelas milik unit (mis. 7, 8, 9 atau X, XI, XII). `code` dipakai di kelas, tarif, dan SPMB. */
+export const schoolLevel = pgTable(
+  'school_level',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    code: text('code').notNull(),
+    label: text('label').notNull(),
+    sort: integer('sort').notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('school_level_uq').on(t.schoolId, t.code)],
+);
+
+/** Metode pembayaran yang dikelola sekolah (tunai, transfer, QRIS, ...). */
+export const finPaymentMethod = pgTable(
+  'fin_payment_method',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    key: text('key').notNull(),
+    label: text('label').notNull(),
+    active: boolean('active').notNull().default(true),
+    sort: integer('sort').notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('fin_payment_method_uq').on(t.schoolId, t.key)],
+);
+
+/** Kategori ekskul yang dikelola sekolah, lengkap dengan ikon dan warna. */
+export const extracurricularCategory = pgTable(
+  'extracurricular_category',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    key: text('key').notNull(),
+    label: text('label').notNull(),
+    /** Nama ikon dari daftar tetap di web (mis. trophy, palette, book). */
+    icon: text('icon').notNull().default('trophy'),
+    /** Salah satu nada di kit tampilan (teal, sky, violet, amber, rose, emerald, slate). */
+    tone: text('tone').notNull().default('teal'),
+    sort: integer('sort').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('extracurricular_category_uq').on(t.schoolId, t.key)],
+);
+
+/** Ambang predikat nilai PKL per sekolah. */
+export const pklSetting = pgTable('pkl_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  thresholdA: integer('threshold_a').notNull().default(90),
+  thresholdB: integer('threshold_b').notNull().default(80),
+  thresholdC: integer('threshold_c').notNull().default(70),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/**
+ * Format penomoran surat. Pola memakai variabel {seq} (urut, 3 digit), {code} (kode sekolah), {roman} (bulan
+ * Romawi), {month}, {year}.
+ */
+export const letterSetting = pgTable('letter_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  schoolCode: text('school_code'),
+  numberPattern: text('number_pattern').notNull().default('{seq}/{code}/{roman}/{year}'),
+  agendaPattern: text('agenda_pattern').notNull().default('{seq}/{year}'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Jenis dokumen yang diminta saat pendaftaran murid baru. */
+export const admissionDocumentType = pgTable(
+  'admission_document_type',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    key: text('key').notNull(),
+    label: text('label').notNull(),
+    required: boolean('required').notNull().default(false),
+    active: boolean('active').notNull().default(true),
+    sort: integer('sort').notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('admission_document_type_uq').on(t.schoolId, t.key)],
+);
+
+/** Jenjang pendidikan global (sd, smp, sma, smk, ...) yang dikelola platform; dipakai bank kurikulum. */
+export const refSchoolLevel = pgTable('ref_school_level', {
+  key: text('key').primaryKey(),
+  name: text('name').notNull(),
+  sort: integer('sort').notNull().default(0),
+  active: boolean('active').notNull().default(true),
 });

@@ -351,6 +351,20 @@
       "when": 1793400800000,
       "tag": "0049_portal_site_latefee_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1793419405374,
+      "tag": "0050_dynamic_settings",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1793500000000,
+      "tag": "0051_dynamic_settings_rls",
+      "breakpoints": true
     }
   ]
 }

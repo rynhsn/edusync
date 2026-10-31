@@ -42,6 +42,7 @@ export const PERMISSIONS = [
   'pkl:manage',
   'admission:read',
   'admission:manage',
+  'school:manage',
   'portal:read',
   'announcement:read',
   'announcement:manage',
@@ -160,6 +161,7 @@ export const SYSTEM_ROLES = {
       'admission:manage',
       'announcement:read',
       'announcement:manage',
+      'school:manage',
     ],
   },
   teacher: {

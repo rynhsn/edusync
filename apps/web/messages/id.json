@@ -146,7 +146,8 @@
     "admission_manage": "Mengelola pendaftaran murid baru",
     "portal_read": "Membuka portal wali/siswa",
     "announcement_read": "Melihat pengumuman",
-    "announcement_manage": "Mengelola pengumuman dan situs"
+    "announcement_manage": "Mengelola pengumuman dan situs",
+    "school_manage": "Mengelola pengaturan sekolah"
   },
   "dashboard": {
     "greeting": "Halo, {name}",

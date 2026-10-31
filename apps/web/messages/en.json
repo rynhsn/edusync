@@ -146,7 +146,8 @@
     "admission_manage": "Manage new student applications",
     "portal_read": "Open the guardian/student portal",
     "announcement_read": "View announcements",
-    "announcement_manage": "Manage announcements and website"
+    "announcement_manage": "Manage announcements and website",
+    "school_manage": "Manage school settings"
   },
   "dashboard": {
     "greeting": "Hello, {name}",

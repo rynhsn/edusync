@@ -146,7 +146,8 @@
     "admission_manage": "Ngatur pendaftaran murid anyar",
     "portal_read": "Muka portal wali/siswa",
     "announcement_read": "Ningali pengumuman",
-    "announcement_manage": "Ngatur pengumuman jeung situs"
+    "announcement_manage": "Ngatur pengumuman jeung situs",
+    "school_manage": "Ngatur setélan sakola"
   },
   "dashboard": {
     "greeting": "Wilujeng sumping, {name}",
