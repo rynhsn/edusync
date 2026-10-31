@@ -1,15 +1,18 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { CalendarRange, ClipboardCheck, ListFilter, Settings2 } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { SelectField } from '@/components/ui/select-field';
+import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyPanel, MODULE_TONE, Toolbar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { cn } from '@/lib/utils';
 import { AssessmentsPanel } from './assessments-panel';
 import { RecapPanel } from './recap-panel';
 
@@ -72,9 +75,21 @@ export function GradesView() {
 
   return (
     <PageBody>
-      <PageHeader title={t('title')} description={t('subtitle')} />
+      <PageHeader
+        icon={ClipboardCheck}
+        tone={MODULE_TONE.academic}
+        title={t('title')}
+        description={t('subtitle')}
+        actions={
+          !restricted && (
+            <Button variant="outline" nativeButton={false} render={<Link href="/grades/settings" />}>
+              <Settings2 className="size-4" /> {t('settingsTitle')}
+            </Button>
+          )
+        }
+      />
 
-      <div className="flex flex-wrap items-center gap-3">
+      <Toolbar>
         <SelectField
           aria-label={t('semester')}
           className="sm:w-56"
@@ -114,31 +129,48 @@ export function GradesView() {
             </option>
           ))}
         </SelectField>
-        <div className="ml-auto inline-flex gap-1">
+        <div className="bg-muted ml-auto inline-flex rounded-xl p-0.5">
           {(['assessments', 'recap'] as const).map((m) => (
-            <Button
+            <button
               key={m}
-              variant={mode === m ? 'default' : 'outline'}
+              type="button"
               aria-pressed={mode === m}
               onClick={() => setMode(m)}
+              className={cn(
+                'focus-visible:ring-ring/60 rounded-[10px] px-3 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2',
+                mode === m
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
             >
               {t(`mode_${m}`)}
-            </Button>
+            </button>
           ))}
         </div>
-      </div>
+      </Toolbar>
 
-      {!ready ? (
-        <Alert>
-          <AlertDescription>{t('pickFilters')}</AlertDescription>
-        </Alert>
+      {semesters.data?.length === 0 ? (
+        <EmptyPanel
+          icon={CalendarRange}
+          tone={MODULE_TONE.academic}
+          title={t('noSemestersTitle')}
+          body={t('noSemesters')}
+        />
+      ) : !ready ? (
+        semesters.isPending ? (
+          <Skeleton className="h-48 rounded-2xl" />
+        ) : (
+          <EmptyPanel
+            icon={ListFilter}
+            tone={MODULE_TONE.academic}
+            title={t('pickFiltersTitle')}
+            body={t('pickFilters')}
+          />
+        )
       ) : mode === 'assessments' ? (
         <AssessmentsPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
       ) : (
         <RecapPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
-      )}
-      {semesters.data?.length === 0 && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{t('noSemesters')}</Card>
       )}
     </PageBody>
   );

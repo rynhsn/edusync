@@ -11,18 +11,18 @@ import { FormDialog } from '@/components/form-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EmptyPanel, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatRupiah } from '@/lib/money';
 import { digitsOnly, useFinanceYear, YearSelect } from '../shared';
+import { ListSkeleton, RowMenu, SectionCard } from '../ui';
 
 type RuleKind = 'percent' | 'amount';
 
@@ -264,21 +264,12 @@ export function DiscountsCard({
 
   return (
     <>
-      <Card className="relative gap-4 overflow-hidden p-4">
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute -top-10 -right-10 size-40 rounded-full bg-orange-400/10 blur-2xl dark:bg-orange-400/10"
-        />
-        <div className="relative flex flex-wrap items-start justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-orange-100 text-orange-700 dark:bg-orange-500/15 dark:text-orange-300">
-              <GraduationCap className="size-5" aria-hidden="true" />
-            </span>
-            <div>
-              <h2 className="font-heading text-lg font-semibold">{t('discountRules')}</h2>
-              <p className="text-muted-foreground text-sm">{t('discountRulesHint')}</p>
-            </div>
-          </div>
+      <SectionCard
+        icon={GraduationCap}
+        tone="violet"
+        title={t('discountRules')}
+        description={t('discountRulesHint')}
+        actions={
           <FormDialog
             trigger={
               <Button>
@@ -297,56 +288,39 @@ export function DiscountsCard({
           >
             {ruleFields}
           </FormDialog>
-        </div>
-
-        {rules.isPending && <Skeleton className="h-24 w-full" />}
+        }
+      >
+        {rules.isPending && <ListSkeleton rows={2} />}
         {rules.isError && (
           <Alert variant="destructive">
             <AlertDescription>{te(errorKey(rules.error))}</AlertDescription>
           </Alert>
         )}
         {rules.data?.length === 0 && (
-          <div className="text-muted-foreground flex flex-col items-center gap-2 rounded-xl border border-dashed p-6 text-center text-sm">
-            <BadgePercent className="size-8 text-orange-500/70" aria-hidden="true" />
-            {t('noDiscountRules')}
-          </div>
+          <EmptyPanel
+            icon={BadgePercent}
+            tone="violet"
+            title={t('noDiscountRulesTitle')}
+            body={t('noDiscountRules')}
+          />
         )}
         {ruleList.length > 0 && (
-          <div className="overflow-x-auto">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>{tm('name')}</TableHead>
-                  <TableHead>{t('ruleKind')}</TableHead>
-                  <TableHead>{t('appliesTo')}</TableHead>
-                  <TableHead>{t('status')}</TableHead>
-                  <TableHead className="w-24" />
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {ruleList.map((r) => (
-                  <TableRow key={r.id}>
-                    <TableCell className="font-medium">
-                      {r.name}
-                      <span className="text-muted-foreground block text-xs font-normal">
-                        {t('assignedCount', { count: r.assignedCount })}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <RuleChip kind={r.kind} value={r.value} />
-                    </TableCell>
-                    <TableCell>{r.feeTypeName ?? t('allFeeTypesRule')}</TableCell>
-                    <TableCell>
-                      <Badge variant={r.active ? 'secondary' : 'outline'}>
-                        {r.active ? t('active') : t('inactive')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right whitespace-nowrap">
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={tm('edit')}
-                        onClick={() => {
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {ruleList.map((r) => (
+              <li
+                key={r.id}
+                className={`bg-background grid gap-3 rounded-xl border p-3 ${r.active ? '' : 'opacity-70'}`}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <RuleChip kind={r.kind} value={r.value} />
+                  <RowMenu
+                    label={t('rowActions')}
+                    items={[
+                      {
+                        key: 'edit',
+                        label: tm('edit'),
+                        icon: Pencil,
+                        onClick: () => {
                           setError(null);
                           setRule({
                             id: r.id,
@@ -356,24 +330,36 @@ export function DiscountsCard({
                             feeTypeId: r.feeTypeId ?? '',
                             active: r.active,
                           });
-                        }}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={tm('delete')}
-                        onClick={() => setDeleting({ id: r.id, name: r.name })}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
+                        },
+                      },
+                      {
+                        key: 'delete',
+                        label: tm('delete'),
+                        icon: Trash2,
+                        destructive: true,
+                        onClick: () => setDeleting({ id: r.id, name: r.name }),
+                      },
+                    ]}
+                  />
+                </div>
+                <div className="min-w-0">
+                  <p className="truncate font-medium">{r.name}</p>
+                  <p className="text-muted-foreground truncate text-xs">
+                    {r.feeTypeName ?? t('allFeeTypesRule')}
+                  </p>
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <ToneBadge tone={r.active ? 'emerald' : 'slate'}>
+                    {r.active ? t('active') : t('inactive')}
+                  </ToneBadge>
+                  <ToneBadge tone="sky" dot={false}>
+                    <Users className="size-3" aria-hidden="true" />
+                    {t('assignedCount', { count: r.assignedCount })}
+                  </ToneBadge>
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
 
         {/* Pasang ke siswa */}
@@ -556,7 +542,7 @@ export function DiscountsCard({
             </div>
           )}
         </div>
-      </Card>
+      </SectionCard>
 
       <FormDialog
         open={!!rule.id}

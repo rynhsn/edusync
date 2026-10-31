@@ -1,12 +1,12 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { BadgePercent, Layers } from 'lucide-react';
+import { BadgePercent, Banknote, Landmark, Layers, type LucideIcon, Wallet } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
-import { Badge } from '@/components/ui/badge';
 import { SelectField } from '@/components/ui/select-field';
+import { ToneBadge } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { formatCalendarDate } from '@/lib/format-date';
@@ -15,6 +15,9 @@ import { formatRupiah } from '@/lib/money';
 export const METHODS = ['cash', 'transfer', 'other'] as const;
 export type Method = (typeof METHODS)[number];
 export const METHOD_KEY = { cash: 'methodCash', transfer: 'methodTransfer', other: 'methodOther' } as const;
+
+/** Ikon tiap metode bayar (dipakai kartu pilihan metode di kasir). */
+export const METHOD_ICON: Record<Method, LucideIcon> = { cash: Banknote, transfer: Landmark, other: Wallet };
 
 export const KINDS = ['monthly', 'one_time', 'yearly'] as const;
 export type Kind = (typeof KINDS)[number];
@@ -50,15 +53,24 @@ export function paidAtIso(date: string): string | undefined {
   return new Date(y, m - 1, d, 12).toISOString();
 }
 
-/** Badge status tagihan; tagihan lewat jatuh tempo ditandai merah. */
+/** Lencana status bernada: lunas hijau, sebagian biru, terbuka kuning, lewat tempo merah, batal abu-abu. */
 export function StatusBadge({ status, overdue }: { status: InvoiceStatus; overdue?: boolean }) {
   const t = useTranslations('finance');
-  const variant = overdue && status !== 'paid' && status !== 'void' ? 'destructive' : 'secondary';
+  const late = !!overdue && status !== 'paid' && status !== 'void';
+  const tone = late
+    ? 'rose'
+    : status === 'paid'
+      ? 'emerald'
+      : status === 'partial'
+        ? 'sky'
+        : status === 'void'
+          ? 'slate'
+          : 'amber';
   return (
-    <Badge variant={status === 'void' ? 'outline' : variant}>
+    <ToneBadge tone={tone}>
       {t(STATUS_KEY[status])}
-      {overdue && status !== 'paid' && status !== 'void' ? ` · ${t('overdue')}` : ''}
-    </Badge>
+      {late ? ` · ${t('overdue')}` : ''}
+    </ToneBadge>
   );
 }
 

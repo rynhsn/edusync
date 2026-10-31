@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Layers, Pencil, Plus, SlidersHorizontal, Target, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -9,15 +9,18 @@ import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
+import { RowMenu } from '@/components/row-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EmptyPanel, IconTile, MODULE_TONE, TONES, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { cn } from '@/lib/utils';
+import { COMPONENT_TONES, predicateTone } from '../grade-ui';
 
 const KEYS = ['kkm', 'predicateA', 'predicateB', 'predicateC'] as const;
 type Key = (typeof KEYS)[number];
@@ -90,12 +93,35 @@ function ThresholdsCard() {
       </Alert>
     );
 
+  // Pratinjau rentang predikat dari isian saat ini (hanya bila isian sah dan berurutan).
+  const bands = valid
+    ? ([
+        { p: 'A', range: `≥ ${n.a}` },
+        { p: 'B', range: `${n.b} – ${n.a}` },
+        { p: 'C', range: `${n.c} – ${n.b}` },
+        { p: 'D', range: `< ${n.c}` },
+      ] as const)
+    : null;
+
   return (
-    <Card className="gap-4 p-4">
-      <div>
-        <h2 className="font-heading text-lg font-semibold">{t('thresholdsTitle')}</h2>
-        <p className="text-muted-foreground text-sm">{t('thresholdsHint')}</p>
+    <Card className="gap-4 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+      <div className="flex items-start gap-3">
+        <IconTile icon={Target} tone={MODULE_TONE.academic} />
+        <div>
+          <h2 className="font-heading text-lg font-semibold">{t('thresholdsTitle')}</h2>
+          <p className="text-muted-foreground text-sm">{t('thresholdsHint')}</p>
+        </div>
       </div>
+      {bands && (
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+          {bands.map((b) => (
+            <div key={b.p} className={cn('rounded-xl px-3 py-2', TONES[predicateTone(b.p)].soft)}>
+              <p className="font-heading text-lg leading-none font-semibold">{b.p}</p>
+              <p className="mt-1 text-xs tabular-nums opacity-80">{b.range}</p>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {KEYS.map((k) => (
           <div key={k} className="grid gap-2">
@@ -149,6 +175,7 @@ function ComponentsCard() {
   const [editing, setEditing] = useState<string | null>(null);
   const [form, setForm] = useState<Form>({ name: '', weight: '', sort: '' });
   const [formError, setFormError] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
 
   const key = ['grading-components', school.schoolId];
   const list = useQuery({
@@ -219,11 +246,14 @@ function ComponentsCard() {
   }
 
   return (
-    <Card className="gap-4 p-4">
+    <Card className="gap-4 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h2 className="font-heading text-lg font-semibold">{t('componentsTitle')}</h2>
-          <p className="text-muted-foreground text-sm">{t('componentsHint')}</p>
+        <div className="flex items-start gap-3">
+          <IconTile icon={Layers} tone="amber" />
+          <div>
+            <h2 className="font-heading text-lg font-semibold">{t('componentsTitle')}</h2>
+            <p className="text-muted-foreground text-sm">{t('componentsHint')}</p>
+          </div>
         </div>
         <Button
           onClick={() =>
@@ -234,68 +264,106 @@ function ComponentsCard() {
         </Button>
       </div>
 
-      {list.isPending && <Skeleton className="h-32 w-full" />}
+      {list.isPending && <Skeleton className="h-32 w-full rounded-xl" />}
       {list.data && items.length === 0 && (
-        <div className="text-muted-foreground grid justify-items-center gap-3 p-8 text-center text-sm">
-          <p>{t('noComponents')}</p>
-          <Button variant="outline" disabled={defaults.isPending} onClick={() => defaults.mutate()}>
-            {t('applyDefaults')}
-          </Button>
-        </div>
+        <EmptyPanel
+          icon={Layers}
+          tone="amber"
+          title={t('noComponentsTitle')}
+          body={t('noComponents')}
+          action={
+            <Button variant="outline" disabled={defaults.isPending} onClick={() => defaults.mutate()}>
+              {t('applyDefaults')}
+            </Button>
+          }
+        />
       )}
       {items.length > 0 && (
         <>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('componentName')}</TableHead>
-                <TableHead className="text-right">{t('weight')}</TableHead>
-                <TableHead className="text-right">{t('sort')}</TableHead>
-                <TableHead className="w-24" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {items.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.name}</TableCell>
-                  <TableCell className="text-right tabular-nums">{c.weight}%</TableCell>
-                  <TableCell className="text-right tabular-nums">{c.sort}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label={t('edit')}
-                      onClick={() =>
-                        openDialog(c.id, { name: c.name, weight: String(c.weight), sort: String(c.sort) })
-                      }
-                    >
-                      <Pencil className="size-4" />
-                    </Button>
-                    <ConfirmDialog
-                      trigger={
-                        <Button size="icon-sm" variant="ghost" aria-label={t('delete')}>
-                          <Trash2 className="size-4" />
-                        </Button>
-                      }
-                      title={t('delete')}
-                      description={t('confirmDeleteComponent', { name: c.name })}
-                      confirmLabel={tc('confirmDelete')}
-                      destructive
-                      pending={remove.isPending}
-                      onConfirm={() => remove.mutateAsync(c.id)}
-                    />
-                  </TableCell>
-                </TableRow>
+          <div className="grid gap-2">
+            <div
+              role="img"
+              aria-label={`${t('totalWeight')}: ${total}%`}
+              className="bg-muted flex h-3 overflow-hidden rounded-full"
+            >
+              {items.map((c, i) => (
+                <div
+                  key={c.id}
+                  title={`${c.name} ${c.weight}%`}
+                  className={cn(
+                    'h-full border-r border-background last:border-0',
+                    TONES[COMPONENT_TONES[i % COMPONENT_TONES.length] ?? 'sky'].bar,
+                  )}
+                  style={{ width: `${Math.min(100, c.weight)}%` }}
+                />
               ))}
-              <TableRow className="bg-muted/40 font-medium">
-                <TableCell>{t('totalWeight')}</TableCell>
-                <TableCell className={`text-right tabular-nums ${total === 100 ? '' : 'text-red-600'}`}>
-                  {total}%
-                </TableCell>
-                <TableCell colSpan={2} />
-              </TableRow>
-            </TableBody>
-          </Table>
+            </div>
+            <p
+              className={cn(
+                'text-xs font-medium tabular-nums',
+                total === 100 ? TONES.emerald.text : TONES.rose.text,
+              )}
+            >
+              {t('totalWeight')}: {total}%
+            </p>
+          </div>
+          <ul className="divide-y rounded-xl border">
+            {items.map((c, i) => (
+              <li key={c.id} className="flex items-center gap-3 px-3.5 py-3">
+                <span
+                  aria-hidden
+                  className={cn(
+                    'size-3 shrink-0 rounded-full',
+                    TONES[COMPONENT_TONES[i % COMPONENT_TONES.length] ?? 'sky'].bar,
+                  )}
+                />
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-medium">{c.name}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {t('sort')} {c.sort}
+                  </p>
+                </div>
+                <ToneBadge
+                  tone={COMPONENT_TONES[i % COMPONENT_TONES.length]}
+                  dot={false}
+                  className="tabular-nums"
+                >
+                  {c.weight}%
+                </ToneBadge>
+                <RowMenu
+                  label={`${t('rowActions')}: ${c.name}`}
+                  items={[
+                    {
+                      key: 'edit',
+                      label: t('edit'),
+                      icon: Pencil,
+                      onSelect: () =>
+                        openDialog(c.id, { name: c.name, weight: String(c.weight), sort: String(c.sort) }),
+                    },
+                    {
+                      key: 'delete',
+                      label: t('delete'),
+                      icon: Trash2,
+                      destructive: true,
+                      onSelect: () => setDeleting({ id: c.id, name: c.name }),
+                    },
+                  ]}
+                />
+              </li>
+            ))}
+          </ul>
+          <ConfirmDialog
+            open={deleting !== null}
+            onOpenChange={(o) => {
+              if (!o) setDeleting(null);
+            }}
+            title={t('delete')}
+            description={deleting ? t('confirmDeleteComponent', { name: deleting.name }) : undefined}
+            confirmLabel={tc('confirmDelete')}
+            destructive
+            pending={remove.isPending}
+            onConfirm={() => (deleting ? remove.mutateAsync(deleting.id) : Promise.resolve())}
+          />
           {total !== 100 && (
             <Alert variant="destructive">
               <AlertDescription>{t('weightWarning', { total })}</AlertDescription>
@@ -354,7 +422,12 @@ export function GradeSettingsView() {
   const t = useTranslations('grades');
   return (
     <PageBody>
-      <PageHeader title={t('settingsTitle')} description={t('settingsSubtitle')} />
+      <PageHeader
+        icon={SlidersHorizontal}
+        tone={MODULE_TONE.academic}
+        title={t('settingsTitle')}
+        description={t('settingsSubtitle')}
+      />
       <ThresholdsCard />
       <ComponentsCard />
     </PageBody>

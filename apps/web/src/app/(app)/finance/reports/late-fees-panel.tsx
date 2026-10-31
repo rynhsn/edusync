@@ -1,24 +1,23 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, Hourglass } from 'lucide-react';
+import { AlarmClock, CircleCheck, Hourglass, ReceiptText } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EmptyPanel, PersonCell, StatCard, ToneBadge } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { formatRupiah } from '@/lib/money';
+import { ENTER, ListSkeleton, Money, StatSkeleton } from '../ui';
 
 /** Pratinjau tagihan yang kena denda keterlambatan, dengan tombol untuk menerbitkan tagihan dendanya. */
 export function LateFeesPanel() {
@@ -71,50 +70,68 @@ export function LateFeesPanel() {
           <AlertDescription>{applyError}</AlertDescription>
         </Alert>
       )}
-      {preview.isPending && <Skeleton className="h-48 w-full" />}
+      {preview.isPending && (
+        <>
+          <StatSkeleton count={2} />
+          <ListSkeleton rows={3} />
+        </>
+      )}
 
       {data && !data.enabled && (
-        <Card className="flex flex-col items-center gap-3 border-dashed p-10 text-center text-sm">
-          <Hourglass className="size-8 text-rose-500/70" aria-hidden="true" />
-          <p className="text-muted-foreground max-w-md">{t('lateFeeDisabled')}</p>
-          {can('finance:manage') && (
-            <Button variant="outline" nativeButton={false} render={<Link href="/finance/settings" />}>
-              {t('lateFeeOpenSettings')}
-            </Button>
-          )}
-        </Card>
+        <EmptyPanel
+          icon={Hourglass}
+          tone="rose"
+          title={t('lateFeeDisabledTitle')}
+          body={t('lateFeeDisabled')}
+          action={
+            can('finance:manage') ? (
+              <Button variant="outline" nativeButton={false} render={<Link href="/finance/settings" />}>
+                {t('lateFeeOpenSettings')}
+              </Button>
+            ) : undefined
+          }
+        />
       )}
 
       {data?.enabled && (
-        <>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-            <div className="rounded-xl border bg-card p-4">
-              <p className="text-muted-foreground text-xs">{t('lateFeePendingCount')}</p>
-              <p className="font-heading text-2xl font-semibold tabular-nums">{data.pendingCount}</p>
-            </div>
-            <div className="rounded-xl border bg-card p-4">
-              <p className="text-muted-foreground text-xs">{t('lateFeePendingTotal')}</p>
-              <p className="font-heading text-2xl font-semibold text-rose-600 tabular-nums dark:text-rose-400">
-                {formatRupiah(data.pendingTotal)}
-              </p>
-            </div>
-            <div className="flex items-center md:col-span-2 md:justify-end">
-              {can('finance:manage') && (
-                <Button disabled={!canApply || apply.isPending} onClick={() => setConfirming(true)}>
-                  {t('lateFeeApply')}
+        <div className={`grid gap-6 ${ENTER}`}>
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-[1fr_1fr_auto] sm:items-stretch">
+            <StatCard
+              label={t('lateFeePendingCount')}
+              value={data.pendingCount}
+              icon={ReceiptText}
+              tone="sky"
+            />
+            <StatCard
+              label={t('lateFeePendingTotal')}
+              value={<Money value={data.pendingTotal} />}
+              icon={AlarmClock}
+              tone="rose"
+            />
+            {can('finance:manage') && (
+              <div className="flex items-center">
+                <Button
+                  size="lg"
+                  className="h-11 w-full px-5 sm:w-auto"
+                  disabled={!canApply || apply.isPending}
+                  onClick={() => setConfirming(true)}
+                >
+                  <AlarmClock className="size-4" /> {t('lateFeeApply')}
                 </Button>
-              )}
-            </div>
+              </div>
+            )}
           </div>
 
           {items.length === 0 ? (
-            <Card className="text-muted-foreground flex flex-col items-center gap-2 p-10 text-center text-sm">
-              <CheckCircle2 className="size-8 text-emerald-500/70" aria-hidden="true" />
-              {t('lateFeeNone')}
-            </Card>
+            <EmptyPanel
+              icon={CircleCheck}
+              tone="emerald"
+              title={t('lateFeeNone')}
+              body={t('lateFeeNoneHint')}
+            />
           ) : (
-            <Card className="overflow-hidden p-0">
-              <div className="overflow-x-auto">
+            <>
+              <div className="bg-card hidden overflow-hidden rounded-2xl border md:block">
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -131,10 +148,10 @@ export function LateFeesPanel() {
                     {items.map((i) => (
                       <TableRow key={i.invoiceId}>
                         <TableCell>
-                          <div className="font-medium">{i.studentName}</div>
-                          <div className="text-muted-foreground text-xs">
-                            {[i.nis, i.className].filter(Boolean).join(' · ')}
-                          </div>
+                          <PersonCell
+                            name={i.studentName}
+                            sub={[i.nis, i.className].filter(Boolean).join(' · ')}
+                          />
                         </TableCell>
                         <TableCell>
                           <div>{i.title}</div>
@@ -144,32 +161,70 @@ export function LateFeesPanel() {
                           {formatCalendarDate(locale, i.dueDate)}
                         </TableCell>
                         <TableCell className="text-right tabular-nums">{i.daysLate}</TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {formatRupiah(i.outstanding)}
+                        <TableCell className="text-right">
+                          <Money value={i.outstanding} />
                         </TableCell>
-                        <TableCell className="text-right font-semibold text-rose-600 tabular-nums dark:text-rose-400">
-                          {formatRupiah(i.lateFee)}
+                        <TableCell className="text-right font-semibold">
+                          <Money value={i.lateFee} negative />
                         </TableCell>
                         <TableCell>
-                          <Badge variant={i.fined ? 'secondary' : 'outline'}>
+                          <ToneBadge tone={i.fined ? 'slate' : 'amber'}>
                             {i.fined ? t('lateFeeFined') : t('lateFeeNotFined')}
-                          </Badge>
+                          </ToneBadge>
                         </TableCell>
                       </TableRow>
                     ))}
                     <TableRow className="bg-muted/40 font-medium">
                       <TableCell colSpan={5}>{t('lateFeePendingTotal')}</TableCell>
-                      <TableCell className="text-right tabular-nums">
-                        {formatRupiah(data.pendingTotal)}
+                      <TableCell className="text-right">
+                        <Money value={data.pendingTotal} />
                       </TableCell>
                       <TableCell />
                     </TableRow>
                   </TableBody>
                 </Table>
               </div>
-            </Card>
+
+              <ul className="grid gap-2 md:hidden">
+                {items.map((i) => (
+                  <li key={i.invoiceId} className="bg-card grid gap-3 rounded-xl border p-3">
+                    <div className="flex items-start justify-between gap-2">
+                      <PersonCell
+                        name={i.studentName}
+                        sub={[i.nis, i.className].filter(Boolean).join(' · ')}
+                      />
+                      <ToneBadge tone={i.fined ? 'slate' : 'amber'}>
+                        {i.fined ? t('lateFeeFined') : t('lateFeeNotFined')}
+                      </ToneBadge>
+                    </div>
+                    <p className="text-sm">
+                      {i.title}
+                      <span className="text-muted-foreground block text-xs">{i.feeTypeName}</span>
+                    </p>
+                    <dl className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <dt className="text-muted-foreground">{t('lateFeeDaysLate')}</dt>
+                        <dd className="font-medium tabular-nums">{i.daysLate}</dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">{t('lateFeeOutstanding')}</dt>
+                        <dd className="font-medium">
+                          <Money value={i.outstanding} />
+                        </dd>
+                      </div>
+                      <div>
+                        <dt className="text-muted-foreground">{t('lateFeeAmount')}</dt>
+                        <dd className="font-semibold">
+                          <Money value={i.lateFee} negative />
+                        </dd>
+                      </div>
+                    </dl>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
-        </>
+        </div>
       )}
 
       <ConfirmDialog

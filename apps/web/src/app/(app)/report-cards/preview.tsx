@@ -1,8 +1,10 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { TONES, ToneBadge, UserAvatar } from '@/components/ui-kit';
+import { cn } from '@/lib/utils';
+import { PredicateBadge, ScoreChip } from '../grades/grade-ui';
 import { formatGrade } from './pdf/format';
 import type { ReportCardDoc } from './pdf/types';
 
@@ -12,20 +14,23 @@ export function ReportCardPreview({ doc }: { doc: ReportCardDoc }) {
   const { student, semester } = doc;
 
   return (
-    <div className="grid gap-5 text-sm">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <p className="font-heading text-lg font-semibold">{student.name}</p>
-          <p className="text-muted-foreground">
-            {[student.nis && `${t('nis')} ${student.nis}`, student.className].filter(Boolean).join(' · ')}
-          </p>
-          <p className="text-muted-foreground">
-            {semester.name} · {semester.academicYear}
-          </p>
+    <div className="grid gap-5 text-sm motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+      <div className="flex flex-wrap items-start justify-between gap-3 rounded-2xl bg-violet-50 p-4 dark:bg-violet-500/10">
+        <div className="flex min-w-0 items-center gap-3.5">
+          <UserAvatar name={student.name} size="lg" />
+          <div className="min-w-0">
+            <p className="font-heading text-lg font-semibold">{student.name}</p>
+            <p className="text-muted-foreground">
+              {[student.nis && `${t('nis')} ${student.nis}`, student.className].filter(Boolean).join(' · ')}
+            </p>
+            <p className="text-muted-foreground">
+              {semester.name} · {semester.academicYear}
+            </p>
+          </div>
         </div>
-        <Badge variant={doc.status === 'final' ? 'secondary' : 'outline'}>
+        <ToneBadge tone={doc.status === 'final' ? 'emerald' : 'amber'}>
           {t(doc.status === 'final' ? 'statusFinal' : 'statusDraft')}
-        </Badge>
+        </ToneBadge>
       </div>
 
       <section className="grid gap-2">
@@ -46,12 +51,12 @@ export function ReportCardPreview({ doc }: { doc: ReportCardDoc }) {
                 <TableRow key={s.subjectId}>
                   <TableCell className="font-medium">{s.name}</TableCell>
                   <TableCell className="text-right tabular-nums">{s.kkm}</TableCell>
-                  <TableCell
-                    className={`text-right font-semibold tabular-nums ${s.belowKkm ? 'text-red-600' : ''}`}
-                  >
-                    {formatGrade(s.final)}
+                  <TableCell className="text-right">
+                    <ScoreChip predicate={s.predicate} below={s.belowKkm}>
+                      {formatGrade(s.final)}
+                    </ScoreChip>
                   </TableCell>
-                  <TableCell>{s.predicate ?? '-'}</TableCell>
+                  <TableCell>{s.predicate ? <PredicateBadge predicate={s.predicate} /> : '-'}</TableCell>
                   <TableCell className="text-muted-foreground min-w-48 whitespace-normal">
                     {s.description ?? '-'}
                   </TableCell>
@@ -83,8 +88,14 @@ export function ReportCardPreview({ doc }: { doc: ReportCardDoc }) {
         <h3 className="font-medium">{t('attendance')}</h3>
         <div className="grid grid-cols-3 gap-3">
           {(['sick', 'excused', 'absent'] as const).map((k) => (
-            <div key={k} className="bg-card rounded-lg border p-3">
-              <p className="text-muted-foreground text-xs">{t(`att_${k}`)}</p>
+            <div
+              key={k}
+              className={cn(
+                'rounded-xl p-3',
+                TONES[k === 'sick' ? 'amber' : k === 'excused' ? 'sky' : 'rose'].soft,
+              )}
+            >
+              <p className="text-xs opacity-80">{t(`att_${k}`)}</p>
               <p className="font-heading text-xl font-semibold tabular-nums">{doc.attendance[k]}</p>
             </div>
           ))}

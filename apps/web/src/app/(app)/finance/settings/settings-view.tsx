@@ -1,27 +1,27 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Coins, Pencil, Plus, Settings2, Tags, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EmptyPanel, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatRupiah } from '@/lib/money';
 import { digitsOnly, KIND_KEY, KINDS, type Kind, useFinanceYear, YearSelect } from '../shared';
+import { ListSkeleton, Money, RowMenu, SectionCard } from '../ui';
 import { DiscountsCard } from './discounts-card';
 import { LateFeeCard } from './late-fee-card';
 
@@ -56,6 +56,8 @@ export function FinanceSettingsView() {
   const [fee, setFee] = useState<FeeDraft>(EMPTY_FEE);
   const [plan, setPlan] = useState<PlanDraft>(EMPTY_PLAN);
   const [error, setError] = useState<string | null>(null);
+  const [deletingFee, setDeletingFee] = useState<{ id: string; name: string } | null>(null);
+  const [deletingPlan, setDeletingPlan] = useState<{ id: string; name: string } | null>(null);
 
   const feeTypes = useQuery({
     queryKey: ['finance', school.schoolId, 'fee-types'],
@@ -231,9 +233,48 @@ export function FinanceSettingsView() {
     </div>
   );
 
+  type PlanRow = NonNullable<typeof plans.data>[number];
+  const planMenu = (p: PlanRow) => (
+    <RowMenu
+      label={t('rowActions')}
+      items={[
+        {
+          key: 'edit',
+          label: tm('edit'),
+          icon: Pencil,
+          onClick: () => {
+            setError(null);
+            setPlan({
+              feeTypeId: p.feeTypeId,
+              level: p.level ?? '',
+              amount: String(p.amount),
+              editing: true,
+            });
+          },
+        },
+        {
+          key: 'delete',
+          label: tm('delete'),
+          icon: Trash2,
+          destructive: true,
+          onClick: () =>
+            setDeletingPlan({
+              id: p.id,
+              name: `${feeName(p.feeTypeId)} · ${p.level ?? t('allLevels')}`,
+            }),
+        },
+      ]}
+    />
+  );
+
   return (
     <PageBody>
-      <PageHeader title={t('settingsTitle')} description={t('settingsSubtitle')} />
+      <PageHeader
+        icon={Settings2}
+        tone={MODULE_TONE.finance}
+        title={t('settingsTitle')}
+        description={t('settingsSubtitle')}
+      />
 
       {!manage && (
         <Alert variant="destructive">
@@ -243,12 +284,12 @@ export function FinanceSettingsView() {
 
       {manage && (
         <>
-          <Card className="gap-4 p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="font-heading text-lg font-semibold">{t('feeTypes')}</h2>
-                <p className="text-muted-foreground text-sm">{t('feeTypesHint')}</p>
-              </div>
+          <SectionCard
+            icon={Tags}
+            tone="amber"
+            title={t('feeTypes')}
+            description={t('feeTypesHint')}
+            actions={
               <FormDialog
                 trigger={
                   <Button>
@@ -266,75 +307,69 @@ export function FinanceSettingsView() {
               >
                 {feeFields}
               </FormDialog>
-            </div>
-
-            {feeTypes.isPending && <Skeleton className="h-24 w-full" />}
+            }
+          >
+            {feeTypes.isPending && <ListSkeleton rows={3} />}
             {feeTypes.isError && (
               <Alert variant="destructive">
                 <AlertDescription>{te(errorKey(feeTypes.error))}</AlertDescription>
               </Alert>
             )}
             {feeTypes.data?.length === 0 && (
-              <p className="text-muted-foreground text-sm">{t('noFeeTypes')}</p>
+              <EmptyPanel icon={Tags} tone="amber" title={t('noFeeTypes')} body={t('noFeeTypesHint')} />
             )}
             {feeList.length > 0 && (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{tm('name')}</TableHead>
-                      <TableHead>{t('kind')}</TableHead>
-                      <TableHead>{t('status')}</TableHead>
-                      <TableHead className="w-24" />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {feeList.map((f) => (
-                      <TableRow key={f.id}>
-                        <TableCell className="font-medium">{f.name}</TableCell>
-                        <TableCell>{t(KIND_KEY[f.kind])}</TableCell>
-                        <TableCell>
-                          <Badge variant={f.active ? 'secondary' : 'outline'}>
-                            {f.active ? t('active') : t('inactive')}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={tm('edit')}
-                            onClick={() => {
-                              setError(null);
-                              setFee({ id: f.id, name: f.name, kind: f.kind, active: f.active });
-                            }}
-                          >
-                            <Pencil className="size-4" />
-                          </Button>
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={tm('delete')}
-                            disabled={removeFee.isPending}
-                            onClick={() => removeFee.mutate(f.id)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+              <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                {feeList.map((f) => (
+                  <li
+                    key={f.id}
+                    className={`bg-background flex items-start gap-3 rounded-xl border p-3 ${f.active ? '' : 'opacity-70'}`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium">{f.name}</p>
+                      <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                        <ToneBadge tone="sky" dot={false}>
+                          {t(KIND_KEY[f.kind])}
+                        </ToneBadge>
+                        <ToneBadge tone={f.active ? 'emerald' : 'slate'}>
+                          {f.active ? t('active') : t('inactive')}
+                        </ToneBadge>
+                      </div>
+                    </div>
+                    <RowMenu
+                      label={t('rowActions')}
+                      items={[
+                        {
+                          key: 'edit',
+                          label: tm('edit'),
+                          icon: Pencil,
+                          onClick: () => {
+                            setError(null);
+                            setFee({ id: f.id, name: f.name, kind: f.kind, active: f.active });
+                          },
+                        },
+                        {
+                          key: 'delete',
+                          label: tm('delete'),
+                          icon: Trash2,
+                          destructive: true,
+                          onClick: () => setDeletingFee({ id: f.id, name: f.name }),
+                        },
+                      ]}
+                    />
+                  </li>
+                ))}
+              </ul>
             )}
-          </Card>
+          </SectionCard>
 
-          <Card className="gap-4 p-4">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <h2 className="font-heading text-lg font-semibold">{t('plans')}</h2>
-                <p className="text-muted-foreground text-sm">{t('plansHint')}</p>
-              </div>
-              <div className="flex flex-wrap items-center gap-2">
+          <SectionCard
+            icon={Coins}
+            tone="emerald"
+            title={t('plans')}
+            description={t('plansHint')}
+            actions={
+              <>
                 <YearSelect className="sm:w-44" years={years} yearId={yearId} onChange={setYear} />
                 <FormDialog
                   trigger={
@@ -354,67 +389,67 @@ export function FinanceSettingsView() {
                 >
                   {planFields}
                 </FormDialog>
-              </div>
-            </div>
-
-            {plans.isPending && <Skeleton className="h-24 w-full" />}
+              </>
+            }
+          >
+            {plans.isPending && <ListSkeleton rows={3} />}
             {plans.isError && (
               <Alert variant="destructive">
                 <AlertDescription>{te(errorKey(plans.error))}</AlertDescription>
               </Alert>
             )}
-            {plans.data?.length === 0 && <p className="text-muted-foreground text-sm">{t('noPlans')}</p>}
-            {planList.length > 0 && (
-              <div className="overflow-x-auto">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>{t('feeType')}</TableHead>
-                      <TableHead>{t('level')}</TableHead>
-                      <TableHead className="text-right">{t('amount')}</TableHead>
-                      <TableHead className="w-24" />
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {planList.map((p) => (
-                      <TableRow key={p.id}>
-                        <TableCell className="font-medium">{feeName(p.feeTypeId)}</TableCell>
-                        <TableCell>{p.level ?? t('allLevels')}</TableCell>
-                        <TableCell className="text-right">{formatRupiah(p.amount)}</TableCell>
-                        <TableCell className="text-right whitespace-nowrap">
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={tm('edit')}
-                            onClick={() => {
-                              setError(null);
-                              setPlan({
-                                feeTypeId: p.feeTypeId,
-                                level: p.level ?? '',
-                                amount: String(p.amount),
-                                editing: true,
-                              });
-                            }}
-                          >
-                            <Pencil className="size-4" />
-                          </Button>
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={tm('delete')}
-                            disabled={removePlan.isPending}
-                            onClick={() => removePlan.mutate(p.id)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+            {plans.data?.length === 0 && (
+              <EmptyPanel icon={Coins} tone="emerald" title={t('noPlans')} body={t('noPlansHint')} />
             )}
-          </Card>
+            {planList.length > 0 && (
+              <>
+                <div className="hidden overflow-hidden rounded-xl border md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('feeType')}</TableHead>
+                        <TableHead>{t('level')}</TableHead>
+                        <TableHead className="text-right">{t('amount')}</TableHead>
+                        <TableHead className="w-10">
+                          <span className="sr-only">{t('rowActions')}</span>
+                        </TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {planList.map((p) => (
+                        <TableRow key={p.id}>
+                          <TableCell className="font-medium">{feeName(p.feeTypeId)}</TableCell>
+                          <TableCell>
+                            <ToneBadge tone={p.level ? 'violet' : 'slate'} dot={false}>
+                              {p.level ?? t('allLevels')}
+                            </ToneBadge>
+                          </TableCell>
+                          <TableCell className="text-right font-semibold">
+                            <Money value={p.amount} />
+                          </TableCell>
+                          <TableCell className="text-right">{planMenu(p)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+                <ul className="grid gap-2 md:hidden">
+                  {planList.map((p) => (
+                    <li key={p.id} className="bg-background flex items-center gap-3 rounded-xl border p-3">
+                      <div className="min-w-0 flex-1">
+                        <p className="truncate font-medium">{feeName(p.feeTypeId)}</p>
+                        <ToneBadge tone={p.level ? 'violet' : 'slate'} dot={false} className="mt-1">
+                          {p.level ?? t('allLevels')}
+                        </ToneBadge>
+                      </div>
+                      <Money value={p.amount} className="font-semibold" />
+                      {planMenu(p)}
+                    </li>
+                  ))}
+                </ul>
+              </>
+            )}
+          </SectionCard>
 
           <DiscountsCard
             feeTypes={feeList.map((f) => ({ id: f.id, name: f.name }))}
@@ -447,6 +482,26 @@ export function FinanceSettingsView() {
       >
         {planFields}
       </FormDialog>
+
+      <ConfirmDialog
+        open={!!deletingFee}
+        destructive
+        title={`${tm('delete')} · ${deletingFee?.name ?? ''}`}
+        confirmLabel={tm('delete')}
+        pending={removeFee.isPending}
+        onOpenChange={(o) => !o && setDeletingFee(null)}
+        onConfirm={() => (deletingFee ? removeFee.mutateAsync(deletingFee.id) : Promise.resolve())}
+      />
+
+      <ConfirmDialog
+        open={!!deletingPlan}
+        destructive
+        title={`${tm('delete')} · ${deletingPlan?.name ?? ''}`}
+        confirmLabel={tm('delete')}
+        pending={removePlan.isPending}
+        onOpenChange={(o) => !o && setDeletingPlan(null)}
+        onConfirm={() => (deletingPlan ? removePlan.mutateAsync(deletingPlan.id) : Promise.resolve())}
+      />
     </PageBody>
   );
 }

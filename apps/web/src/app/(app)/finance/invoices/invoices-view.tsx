@@ -1,7 +1,21 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Ban, CalendarClock, Download, FilePlus2, Layers, Pencil, Search, X } from 'lucide-react';
+import {
+  AlarmClock,
+  Ban,
+  CalendarClock,
+  CircleCheck,
+  Download,
+  FilePlus2,
+  FileText,
+  Hourglass,
+  Layers,
+  Pencil,
+  Search,
+  Wallet,
+  X,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
@@ -10,16 +24,22 @@ import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  EmptyPanel,
+  MODULE_TONE,
+  PersonCell,
+  StatCard,
+  StatGrid,
+  ToneBadge,
+  Toolbar,
+} from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
@@ -42,6 +62,7 @@ import {
   useFinanceYear,
   YearSelect,
 } from '../shared';
+import { ENTER, ListSkeleton, type MenuAction, Money, RowMenu, StatSkeleton } from '../ui';
 
 const PAGE = 25;
 
@@ -154,6 +175,31 @@ export function InvoicesView() {
     queryKey: ['finance', school.schoolId, 'invoices', query],
     enabled: !!yearId,
     queryFn: async () => unwrap(await api.GET('/v1/finance/invoices', { params: { ...header, query } })),
+  });
+  // Ringkasan seluruh tagihan yang lolos saringan (semua halaman, tanpa tagihan batal).
+  const { limit: _limit, offset: _offset, ...summaryQuery } = query;
+  const summary = useQuery({
+    queryKey: ['finance', school.schoolId, 'invoices-summary', summaryQuery],
+    enabled: !!yearId,
+    queryFn: async () => {
+      const acc = { billed: 0, paid: 0, outstanding: 0, overdue: 0 };
+      for (let offset = 0, n = 0; n < 50; offset += 100, n++) {
+        const chunk = unwrap(
+          await api.GET('/v1/finance/invoices', {
+            params: { ...header, query: { ...summaryQuery, limit: 100, offset } },
+          }),
+        );
+        for (const x of chunk.items) {
+          if (x.status === 'void') continue;
+          acc.billed += x.amount - x.discount;
+          acc.paid += x.paid;
+          acc.outstanding += x.outstanding;
+          if (x.overdue) acc.overdue += x.outstanding;
+        }
+        if (chunk.items.length < 100 || offset + 100 >= chunk.total) break;
+      }
+      return acc;
+    },
   });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['finance', school.schoolId] });
 
@@ -304,10 +350,65 @@ export function InvoicesView() {
   const total = list.data?.total ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE));
   const resetPage = () => setPage(0);
+  const collected =
+    summary.data && summary.data.billed > 0 ? Math.round((summary.data.paid / summary.data.billed) * 100) : 0;
+
+  type Row = NonNullable<typeof list.data>['items'][number];
+  function invoiceActions(i: Row): MenuAction[] {
+    if (i.status === 'void') return [];
+    const items: MenuAction[] = [];
+    if (i.status === 'unpaid' && i.paid === 0 && !installmentInfo(i.period, i.title)) {
+      items.push({
+        key: 'split',
+        label: t('splitInstallments'),
+        icon: Layers,
+        onClick: () => {
+          setError(null);
+          setSplitting({
+            id: i.id,
+            title: `${i.studentName} · ${i.title}`,
+            count: '3',
+            firstDue: i.dueDate.slice(0, 10),
+          });
+        },
+      });
+    }
+    items.push(
+      {
+        key: 'edit',
+        label: tm('edit'),
+        icon: Pencil,
+        onClick: () => {
+          setError(null);
+          setEditing({
+            id: i.id,
+            title: i.title,
+            discount: String(i.discount),
+            discountReason: '',
+            dueDate: i.dueDate.slice(0, 10),
+          });
+        },
+      },
+      {
+        key: 'void',
+        label: t('voidInvoice'),
+        icon: Ban,
+        destructive: true,
+        onClick: () => {
+          setError(null);
+          setReason('');
+          setVoiding({ id: i.id, title: `${i.studentName} · ${i.title}` });
+        },
+      },
+    );
+    return items;
+  }
 
   return (
     <PageBody>
       <PageHeader
+        icon={FileText}
+        tone={MODULE_TONE.finance}
         title={t('invoicesTitle')}
         description={t('invoicesSubtitle')}
         actions={
@@ -436,7 +537,40 @@ export function InvoicesView() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3">
+      {summary.isPending && <StatSkeleton />}
+      {summary.data && (
+        <StatGrid className={ENTER}>
+          <StatCard
+            label={t('sumBilled')}
+            value={<Money value={summary.data.billed} />}
+            hint={t('sumBilledHint', { count: total })}
+            icon={Wallet}
+            tone="amber"
+          />
+          <StatCard
+            label={t('sumPaid')}
+            value={<Money value={summary.data.paid} />}
+            hint={t('sumCollected', { percent: collected })}
+            icon={CircleCheck}
+            tone="emerald"
+            progress={collected}
+          />
+          <StatCard
+            label={t('sumOutstanding')}
+            value={<Money value={summary.data.outstanding} />}
+            icon={Hourglass}
+            tone="sky"
+          />
+          <StatCard
+            label={t('sumOverdue')}
+            value={<Money value={summary.data.overdue} />}
+            icon={AlarmClock}
+            tone="rose"
+          />
+        </StatGrid>
+      )}
+
+      <Toolbar>
         <YearSelect
           className="sm:w-44"
           years={years}
@@ -509,7 +643,7 @@ export function InvoicesView() {
           ))}
         </SelectField>
         {student ? (
-          <Badge variant="secondary" className="h-8 gap-2 pr-1.5 pl-3 text-sm">
+          <ToneBadge tone="amber" className="h-8 gap-2 pr-1.5 pl-3 text-sm">
             {student.name}
             <button
               type="button"
@@ -522,7 +656,7 @@ export function InvoicesView() {
             >
               <X className="size-3.5" />
             </button>
-          </Badge>
+          </ToneBadge>
         ) : (
           <div className="relative w-full sm:w-64">
             <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
@@ -559,21 +693,21 @@ export function InvoicesView() {
             )}
           </div>
         )}
-      </div>
+      </Toolbar>
 
-      {list.isPending && <Skeleton className="h-40 w-full" />}
+      {list.isPending && <ListSkeleton rows={5} />}
       {list.isError && (
         <Alert variant="destructive">
           <AlertDescription>{te(errorKey(list.error))}</AlertDescription>
         </Alert>
       )}
       {list.data?.items.length === 0 && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{t('noInvoices')}</Card>
+        <EmptyPanel icon={FileText} tone="amber" title={t('noInvoices')} body={t('noInvoicesHint')} />
       )}
 
       {list.data && list.data.items.length > 0 && (
-        <Card className="overflow-hidden p-0">
-          <div className="overflow-x-auto">
+        <>
+          <div className={`bg-card hidden overflow-hidden rounded-2xl border md:block ${ENTER}`}>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -585,7 +719,11 @@ export function InvoicesView() {
                   <TableHead className="text-right">{t('paid')}</TableHead>
                   <TableHead className="text-right">{t('outstanding')}</TableHead>
                   <TableHead>{t('status')}</TableHead>
-                  {manage && <TableHead className="w-32" />}
+                  {manage && (
+                    <TableHead className="w-10">
+                      <span className="sr-only">{t('rowActions')}</span>
+                    </TableHead>
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -594,13 +732,13 @@ export function InvoicesView() {
                   return (
                     <TableRow key={i.id} className={i.status === 'void' ? 'text-muted-foreground' : ''}>
                       <TableCell>
-                        <span className="font-medium">{i.studentName}</span>
-                        <span className="text-muted-foreground block text-xs">
-                          {[i.nis, i.className].filter(Boolean).join(' · ')}
-                        </span>
+                        <PersonCell
+                          name={i.studentName}
+                          sub={[i.nis, i.className].filter(Boolean).join(' · ')}
+                        />
                       </TableCell>
                       <TableCell>
-                        {i.title}
+                        <span className={i.status === 'void' ? 'line-through' : ''}>{i.title}</span>
                         {(installmentInfo(i.period, i.title) || i.discount > 0) && (
                           <span className="mt-1 flex flex-wrap gap-1">
                             <InstallmentBadge period={i.period} title={i.title} />
@@ -608,76 +746,31 @@ export function InvoicesView() {
                           </span>
                         )}
                       </TableCell>
-                      <TableCell className={late ? 'text-destructive font-medium' : ''}>
+                      <TableCell
+                        className={
+                          late ? 'font-medium text-rose-600 dark:text-rose-400' : 'text-muted-foreground'
+                        }
+                      >
                         {formatCalendarDate(locale, i.dueDate.slice(0, 10))}
                       </TableCell>
-                      <TableCell className="text-right">{formatRupiah(i.amount)}</TableCell>
-                      <TableCell className="text-right">{formatRupiah(i.discount)}</TableCell>
-                      <TableCell className="text-right">{formatRupiah(i.paid)}</TableCell>
-                      <TableCell className={late ? 'text-destructive text-right font-medium' : 'text-right'}>
-                        {formatRupiah(i.outstanding)}
+                      <TableCell className="text-right">
+                        <Money value={i.amount} />
+                      </TableCell>
+                      <TableCell className="text-muted-foreground text-right">
+                        <Money value={i.discount} />
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Money value={i.paid} />
+                      </TableCell>
+                      <TableCell className="text-right font-semibold">
+                        <Money value={i.outstanding} negative={late} />
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={i.status} overdue={i.overdue} />
                       </TableCell>
                       {manage && (
-                        <TableCell className="text-right whitespace-nowrap">
-                          {i.status !== 'void' && (
-                            <>
-                              {i.status === 'unpaid' &&
-                                i.paid === 0 &&
-                                !installmentInfo(i.period, i.title) && (
-                                  <Button
-                                    size="icon-sm"
-                                    variant="ghost"
-                                    aria-label={t('splitInstallments')}
-                                    title={t('splitInstallments')}
-                                    onClick={() => {
-                                      setError(null);
-                                      setSplitting({
-                                        id: i.id,
-                                        title: `${i.studentName} · ${i.title}`,
-                                        count: '3',
-                                        firstDue: i.dueDate.slice(0, 10),
-                                      });
-                                    }}
-                                  >
-                                    <Layers className="size-4" />
-                                  </Button>
-                                )}
-                              <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                aria-label={tm('edit')}
-                                title={tm('edit')}
-                                onClick={() => {
-                                  setError(null);
-                                  setEditing({
-                                    id: i.id,
-                                    title: i.title,
-                                    discount: String(i.discount),
-                                    discountReason: '',
-                                    dueDate: i.dueDate.slice(0, 10),
-                                  });
-                                }}
-                              >
-                                <Pencil className="size-4" />
-                              </Button>
-                              <Button
-                                size="icon-sm"
-                                variant="ghost"
-                                aria-label={t('voidInvoice')}
-                                title={t('voidInvoice')}
-                                onClick={() => {
-                                  setError(null);
-                                  setReason('');
-                                  setVoiding({ id: i.id, title: `${i.studentName} · ${i.title}` });
-                                }}
-                              >
-                                <Ban className="size-4" />
-                              </Button>
-                            </>
-                          )}
+                        <TableCell className="text-right">
+                          <RowMenu label={t('rowActions')} items={invoiceActions(i)} />
                         </TableCell>
                       )}
                     </TableRow>
@@ -686,7 +779,59 @@ export function InvoicesView() {
               </TableBody>
             </Table>
           </div>
-        </Card>
+
+          <ul className={`grid gap-2 md:hidden ${ENTER}`}>
+            {list.data.items.map((i) => {
+              const late = i.overdue && i.status !== 'paid' && i.status !== 'void';
+              return (
+                <li
+                  key={i.id}
+                  className={`bg-card grid gap-3 rounded-xl border p-3 ${i.status === 'void' ? 'text-muted-foreground' : ''}`}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <PersonCell name={i.studentName} sub={[i.nis, i.className].filter(Boolean).join(' · ')} />
+                    {manage && <RowMenu label={t('rowActions')} items={invoiceActions(i)} />}
+                  </div>
+                  <div>
+                    <p className={i.status === 'void' ? 'font-medium line-through' : 'font-medium'}>
+                      {i.title}
+                    </p>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <StatusBadge status={i.status} overdue={i.overdue} />
+                      <InstallmentBadge period={i.period} title={i.title} />
+                      <DiscountMark amount={i.discount} reason={i.discountReason} />
+                    </div>
+                  </div>
+                  <dl className="grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                      <dt className="text-muted-foreground">{t('billed')}</dt>
+                      <dd className="font-medium">
+                        <Money value={i.amount - i.discount} />
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">{t('paid')}</dt>
+                      <dd className="font-medium">
+                        <Money value={i.paid} />
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">{t('outstanding')}</dt>
+                      <dd className="font-semibold">
+                        <Money value={i.outstanding} negative={late} />
+                      </dd>
+                    </div>
+                  </dl>
+                  <p
+                    className={`text-xs ${late ? 'text-rose-600 dark:text-rose-400' : 'text-muted-foreground'}`}
+                  >
+                    {t('dueDate')}: {formatCalendarDate(locale, i.dueDate.slice(0, 10))}
+                  </p>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
 
       {list.data && (
@@ -825,8 +970,11 @@ export function InvoicesView() {
           </DialogHeader>
           {genResult && (
             <ul className="grid gap-1 text-sm">
-              <li>{t('resultCreated', { count: genResult.created })}</li>
-              <li>{t('resultSkipped', { count: genResult.skipped })}</li>
+              <li className="flex items-center gap-2 font-medium text-emerald-700 dark:text-emerald-300">
+                <CircleCheck className="size-4" aria-hidden="true" />
+                {t('resultCreated', { count: genResult.created })}
+              </li>
+              <li className="text-muted-foreground">{t('resultSkipped', { count: genResult.skipped })}</li>
               {(genResult.free ?? 0) > 0 && <li>{t('resultFree', { count: genResult.free ?? 0 })}</li>}
               {(genResult.discounted ?? 0) > 0 && (
                 <li className="text-amber-700 dark:text-amber-300">

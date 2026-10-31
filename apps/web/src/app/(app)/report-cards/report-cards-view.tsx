@@ -1,17 +1,30 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Eye, FileSpreadsheet, Lock, LockOpen, MessageSquare } from 'lucide-react';
+import {
+  BadgeCheck,
+  CalendarRange,
+  Download,
+  Eye,
+  FileSpreadsheet,
+  Gauge,
+  ListChecks,
+  ListFilter,
+  Lock,
+  LockOpen,
+  MessageSquare,
+  ScrollText,
+  Users,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
+import { RowMenu } from '@/components/row-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -23,9 +36,19 @@ import {
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  EmptyPanel,
+  MODULE_TONE,
+  PersonCell,
+  StatCard,
+  StatGrid,
+  TONES,
+  ToneBadge,
+  Toolbar,
+} from '@/components/ui-kit';
 import { ApiError, api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { cn } from '@/lib/utils';
 import { downloadClassReportCardsPdf, downloadReportCardPdf, exportLedgerExcel } from './pdf/download';
 import { slugify } from './pdf/format';
 import type { ReportCardDoc } from './pdf/types';
@@ -387,38 +410,61 @@ export function ReportCardsView() {
   }
 
   const fmt = (n: number | null | undefined) => (n === null || n === undefined ? '-' : String(n));
+  const averages = rows.map((r) => r.average).filter((v): v is number => typeof v === 'number');
+  const classAverage = averages.length
+    ? Math.round((averages.reduce((a, b) => a + b, 0) / averages.length) * 100) / 100
+    : null;
+  const completeCount = rows.filter((r) => r.subjectsTotal > 0 && r.subjectsGraded >= r.subjectsTotal).length;
+  const pctOf = (n: number) => (rows.length ? (n / rows.length) * 100 : 0);
 
   return (
     <PageBody>
       <PageHeader
+        icon={ScrollText}
+        tone={MODULE_TONE.academic}
         title={t('title')}
         description={t('subtitle')}
         actions={
           ready && (
             <>
-              <Button variant="outline" disabled={ledgerBusy} onClick={downloadLedger}>
-                <FileSpreadsheet className="size-4" /> {t('ledger')}
-              </Button>
               <Button variant="outline" disabled={rows.length === 0 || !!progress} onClick={downloadAll}>
                 <Download className="size-4" />{' '}
                 {progress
                   ? t('downloadingAll', { done: progress.done, total: progress.total })
                   : t('downloadAll')}
               </Button>
-              {manage && (
-                <Button variant="outline" disabled={finalCount === 0} onClick={() => setDialog('reopen')}>
-                  <LockOpen className="size-4" /> {t('reopen')}
-                </Button>
-              )}
               <Button disabled={rows.length === 0 || allFinal} onClick={() => setDialog('finalize')}>
                 <Lock className="size-4" /> {t('finalizeClass')}
               </Button>
+              <RowMenu
+                label={t('classActions')}
+                items={[
+                  {
+                    key: 'ledger',
+                    label: t('ledger'),
+                    icon: FileSpreadsheet,
+                    disabled: ledgerBusy,
+                    onSelect: downloadLedger,
+                  },
+                  ...(manage
+                    ? [
+                        {
+                          key: 'reopen',
+                          label: t('reopen'),
+                          icon: LockOpen,
+                          disabled: finalCount === 0,
+                          onSelect: () => setDialog('reopen'),
+                        },
+                      ]
+                    : []),
+                ]}
+              />
             </>
           )
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3">
+      <Toolbar>
         <SelectField
           aria-label={t('semester')}
           className="sm:w-56"
@@ -445,17 +491,31 @@ export function ReportCardsView() {
             </option>
           ))}
         </SelectField>
-      </div>
+      </Toolbar>
 
       {semesters.data?.length === 0 && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{t('noSemesters')}</Card>
+        <EmptyPanel
+          icon={CalendarRange}
+          tone={MODULE_TONE.academic}
+          title={t('noSemestersTitle')}
+          body={t('noSemesters')}
+        />
       )}
       {semesters.data && semesters.data.length > 0 && !ready && !classes.isPending && (
-        <Alert>
-          <AlertDescription>{t('pickFilters')}</AlertDescription>
-        </Alert>
+        <EmptyPanel
+          icon={ListFilter}
+          tone={MODULE_TONE.academic}
+          title={t('pickFiltersTitle')}
+          body={t('pickFilters')}
+        />
       )}
-      {list.isPending && ready && <Skeleton className="h-48 w-full" />}
+      {list.isPending && ready && (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-busy>
+          {['a', 'b', 'c', 'd', 'e', 'f'].slice(0, 6).map((k) => (
+            <Skeleton key={k} className="h-40 rounded-2xl" />
+          ))}
+        </div>
+      )}
       {list.isError && (
         <Alert variant="destructive">
           <AlertDescription>{te(errorKey(list.error))}</AlertDescription>
@@ -463,85 +523,124 @@ export function ReportCardsView() {
       )}
 
       {list.data && rows.length === 0 && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{t('noStudents')}</Card>
+        <EmptyPanel
+          icon={Users}
+          tone={MODULE_TONE.academic}
+          title={t('noStudentsTitle')}
+          body={t('noStudents')}
+        />
       )}
       {rows.length > 0 && (
-        <Card className="overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10">#</TableHead>
-                <TableHead>{t('student')}</TableHead>
-                <TableHead className="text-right">{t('average')}</TableHead>
-                <TableHead className="text-right">{t('subjectsFilled')}</TableHead>
-                <TableHead>{t('status')}</TableHead>
-                <TableHead>{t('note')}</TableHead>
-                <TableHead className="w-36" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r, i) => {
-                const target = { studentId: r.studentId, name: r.name };
-                return (
-                  <TableRow key={r.studentId}>
-                    <TableCell className="text-muted-foreground tabular-nums">{i + 1}</TableCell>
-                    <TableCell>
-                      <div className="font-medium">{r.name}</div>
-                      {r.nis && <div className="text-muted-foreground font-mono text-xs">{r.nis}</div>}
-                    </TableCell>
-                    <TableCell className="text-right tabular-nums">{fmt(r.average)}</TableCell>
-                    <TableCell
-                      className={`text-right tabular-nums ${r.subjectsGraded < r.subjectsTotal ? 'text-amber-600' : ''}`}
-                    >
-                      {r.subjectsGraded}/{r.subjectsTotal}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={r.status === 'final' ? 'secondary' : 'outline'}>
-                        {t(r.status === 'final' ? 'statusFinal' : 'statusDraft')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={r.hasNote ? 'secondary' : 'outline'}>
-                        {t(r.hasNote ? 'noteYes' : 'noteNo')}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right whitespace-nowrap">
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={t('preview')}
-                        title={t('preview')}
-                        onClick={() => setPreview(target)}
+        <>
+          <StatGrid className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+            <StatCard
+              icon={Users}
+              tone={MODULE_TONE.academic}
+              label={t('statStudents')}
+              value={rows.length}
+            />
+            <StatCard
+              icon={BadgeCheck}
+              tone="emerald"
+              label={t('statFinalized')}
+              value={`${finalCount}/${rows.length}`}
+              hint={allFinal ? t('statAllFinal') : t('statDraftLeft', { count: rows.length - finalCount })}
+              progress={pctOf(finalCount)}
+            />
+            <StatCard
+              icon={ListChecks}
+              tone={completeCount === rows.length ? 'emerald' : 'amber'}
+              label={t('statComplete')}
+              value={`${completeCount}/${rows.length}`}
+              progress={pctOf(completeCount)}
+            />
+            <StatCard icon={Gauge} tone="sky" label={t('average')} value={fmt(classAverage)} />
+          </StatGrid>
+
+          <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+            {rows.map((r, i) => {
+              const target = { studentId: r.studentId, name: r.name };
+              const isFinal = r.status === 'final';
+              const complete = r.subjectsGraded >= r.subjectsTotal;
+              return (
+                <li
+                  key={r.studentId}
+                  style={{ animationDelay: `${Math.min(i, 9) * 30}ms` }}
+                  className="bg-card hover:border-foreground/20 grid gap-3.5 rounded-2xl border p-4 transition-colors motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:fill-mode-both motion-safe:duration-300"
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <PersonCell name={r.name} sub={r.nis} />
+                    <ToneBadge tone={isFinal ? 'emerald' : 'amber'}>
+                      {isFinal && <Lock aria-hidden className="size-3" />}
+                      {t(isFinal ? 'statusFinal' : 'statusDraft')}
+                    </ToneBadge>
+                  </div>
+
+                  <div className="flex items-end justify-between gap-4">
+                    <div>
+                      <p className="text-muted-foreground text-xs">{t('average')}</p>
+                      <p className="font-heading text-2xl leading-tight font-semibold tabular-nums">
+                        {fmt(r.average)}
+                      </p>
+                    </div>
+                    <div className="grid min-w-0 flex-1 gap-1 text-right">
+                      <p
+                        className={cn(
+                          'text-xs tabular-nums',
+                          complete ? 'text-muted-foreground' : TONES.amber.text,
+                        )}
                       >
-                        <Eye className="size-4" />
+                        {t('subjectsFilled')} {r.subjectsGraded}/{r.subjectsTotal}
+                      </p>
+                      <div className="bg-muted h-1.5 overflow-hidden rounded-full">
+                        <div
+                          className={cn(
+                            'h-full rounded-full transition-[width] duration-500',
+                            complete ? TONES.emerald.bar : TONES.amber.bar,
+                          )}
+                          style={{
+                            width: `${r.subjectsTotal ? Math.min(100, (r.subjectsGraded / r.subjectsTotal) * 100) : 0}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
+                    <ToneBadge tone={r.hasNote ? 'sky' : 'slate'} dot={false}>
+                      <MessageSquare aria-hidden className="size-3" />
+                      {t('note')}: {t(r.hasNote ? 'noteYes' : 'noteNo')}
+                    </ToneBadge>
+                    <div className="flex items-center gap-1">
+                      <Button size="sm" variant="outline" onClick={() => setPreview(target)}>
+                        <Eye className="size-3.5" /> {t('preview')}
                       </Button>
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={t('noteTitle')}
-                        title={r.status === 'final' ? t('noteLocked') : t('noteTitle')}
-                        disabled={r.status === 'final'}
-                        onClick={() => setNoteFor(target)}
-                      >
-                        <MessageSquare className="size-4" />
-                      </Button>
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={t('downloadPdf')}
-                        title={t('downloadPdf')}
-                        disabled={busyStudent === r.studentId}
-                        onClick={() => downloadOne(r.studentId)}
-                      >
-                        <Download className="size-4" />
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Card>
+                      <RowMenu
+                        label={`${t('rowActions')}: ${r.name}`}
+                        items={[
+                          {
+                            key: 'note',
+                            label: isFinal ? `${t('noteTitle')} (${t('noteLocked')})` : t('noteTitle'),
+                            icon: MessageSquare,
+                            disabled: isFinal,
+                            onSelect: () => setNoteFor(target),
+                          },
+                          {
+                            key: 'pdf',
+                            label: t('downloadPdf'),
+                            icon: Download,
+                            disabled: busyStudent === r.studentId,
+                            onSelect: () => downloadOne(r.studentId),
+                          },
+                        ]}
+                      />
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+        </>
       )}
 
       <PreviewDialog semesterId={semesterId} target={preview} onClose={() => setPreview(null)} />

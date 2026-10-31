@@ -1,21 +1,21 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { ArrowLeft, Users } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EmptyPanel, MODULE_TONE, PersonCell, TONES, ToneBadge } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
+import { cn } from '@/lib/utils';
 
 interface Row {
   value: string;
@@ -115,27 +115,49 @@ export function ScoreSheet({ assessmentId, onClose }: { assessmentId: string; on
   };
   const filled = Object.values(rows).filter((r) => r.value.trim() !== '').length;
 
+  const pct = students.length ? (filled / students.length) * 100 : 0;
+
   return (
-    <Card className="gap-4 p-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" variant="ghost" onClick={onClose}>
-            ← {t('back')}
-          </Button>
-          <div>
-            <div className="font-medium">{assessment.title}</div>
-            <div className="text-muted-foreground text-sm">
-              {formatCalendarDate(locale, assessment.date)} · {t('maxScore')}: {assessment.maxScore}
+    <div className="grid gap-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+      <div className="bg-card grid gap-3 rounded-2xl border p-4">
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex min-w-0 items-start gap-3">
+            <Button size="sm" variant="ghost" onClick={onClose}>
+              <ArrowLeft className="size-4" /> {t('back')}
+            </Button>
+            <div className="min-w-0">
+              <div className="font-heading truncate font-semibold">{assessment.title}</div>
+              <div className="text-muted-foreground text-sm">
+                {formatCalendarDate(locale, assessment.date)} · {t('maxScore')}: {assessment.maxScore}
+              </div>
             </div>
           </div>
+          <div className="flex items-center gap-2">
+            <ToneBadge tone={filled >= students.length && students.length > 0 ? 'emerald' : 'amber'}>
+              {t('filledOf', { filled, total: students.length })}
+            </ToneBadge>
+            {canInput && (
+              <Button disabled={!dirty || anyInvalid || save.isPending} onClick={() => save.mutate()}>
+                {t('save')}
+              </Button>
+            )}
+          </div>
         </div>
-        <div className="flex items-center gap-2">
-          <Badge variant="outline">{t('filledOf', { filled, total: students.length })}</Badge>
-          {canInput && (
-            <Button disabled={!dirty || anyInvalid || save.isPending} onClick={() => save.mutate()}>
-              {t('save')}
-            </Button>
-          )}
+        <div
+          role="progressbar"
+          aria-valuemin={0}
+          aria-valuemax={students.length}
+          aria-valuenow={filled}
+          aria-label={t('filledHeader')}
+          className="bg-muted h-1.5 overflow-hidden rounded-full"
+        >
+          <div
+            className={cn(
+              'h-full rounded-full transition-[width] duration-500',
+              pct >= 100 ? TONES.emerald.bar : TONES.violet.bar,
+            )}
+            style={{ width: `${pct}%` }}
+          />
         </div>
       </div>
       {!canInput && (
@@ -144,58 +166,82 @@ export function ScoreSheet({ assessmentId, onClose }: { assessmentId: string; on
         </Alert>
       )}
       {students.length === 0 ? (
-        <p className="text-muted-foreground p-6 text-center text-sm">{t('noStudents')}</p>
+        <EmptyPanel
+          icon={Users}
+          tone={MODULE_TONE.academic}
+          title={t('noStudentsTitle')}
+          body={t('noStudents')}
+        />
       ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-10">#</TableHead>
-              <TableHead>{t('student')}</TableHead>
-              <TableHead className="w-36">{t('score')}</TableHead>
-              <TableHead>{t('note')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+        <div className="bg-card overflow-hidden rounded-2xl border">
+          <div
+            aria-hidden
+            className="bg-muted/50 text-muted-foreground hidden grid-cols-[2rem_minmax(0,1.4fr)_9rem_minmax(0,1fr)] items-center gap-4 border-b px-4 py-2.5 text-xs font-medium md:grid"
+          >
+            <span>#</span>
+            <span>{t('student')}</span>
+            <span>{t('score')}</span>
+            <span>{t('note')}</span>
+          </div>
+          <ul className="divide-y">
             {students.map((s, i) => {
               const row = rows[s.studentId] ?? { value: '', note: '' };
               const bad = invalid(row.value);
+              const empty = row.value.trim() === '';
               return (
-                <TableRow key={s.studentId}>
-                  <TableCell className="text-muted-foreground tabular-nums">{i + 1}</TableCell>
-                  <TableCell>
-                    <div className="font-medium">{s.name}</div>
-                    {s.nis && <div className="text-muted-foreground font-mono text-xs">{s.nis}</div>}
-                  </TableCell>
-                  <TableCell>
+                <li
+                  key={s.studentId}
+                  className="grid grid-cols-[minmax(0,1fr)_7rem] items-start gap-x-4 gap-y-2 px-4 py-3 md:grid-cols-[2rem_minmax(0,1.4fr)_9rem_minmax(0,1fr)]"
+                >
+                  <span className="text-muted-foreground hidden pt-2 text-sm tabular-nums md:block">
+                    {i + 1}
+                  </span>
+                  <PersonCell name={s.name} sub={s.nis} className="md:pt-0.5" />
+                  <div>
                     <Input
                       data-score-row={i}
                       inputMode="decimal"
                       disabled={!canInput}
                       aria-label={`${t('score')} ${s.name}`}
                       aria-invalid={bad}
-                      className={bad ? 'text-destructive' : ''}
+                      placeholder={`/ ${max}`}
+                      className={cn(
+                        'text-right font-semibold tabular-nums',
+                        bad && 'text-destructive',
+                        !bad && !empty && 'border-violet-400/60 bg-violet-50/60 dark:bg-violet-500/10',
+                      )}
                       value={row.value}
                       onChange={(e) => patch(s.studentId, { value: e.target.value })}
                       onKeyDown={(e) => move(e, i)}
                     />
                     {bad && <p className="text-destructive mt-1 text-xs">{t('outOfRange', { max })}</p>}
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      disabled={!canInput}
-                      aria-label={`${t('note')} ${s.name}`}
-                      maxLength={200}
-                      value={row.note}
-                      onChange={(e) => patch(s.studentId, { note: e.target.value })}
-                    />
-                  </TableCell>
-                </TableRow>
+                  </div>
+                  <Input
+                    className="col-span-2 md:col-span-1"
+                    disabled={!canInput}
+                    aria-label={`${t('note')} ${s.name}`}
+                    placeholder={t('note')}
+                    maxLength={200}
+                    value={row.note}
+                    onChange={(e) => patch(s.studentId, { note: e.target.value })}
+                  />
+                </li>
               );
             })}
-          </TableBody>
-        </Table>
+          </ul>
+        </div>
       )}
-      {dirty && <p className="text-muted-foreground text-sm">{t('unsaved')}</p>}
-    </Card>
+      {dirty && canInput && (
+        <div
+          role="status"
+          className="bg-card sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-3 rounded-2xl border p-3 shadow-lg motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-2"
+        >
+          <p className="text-muted-foreground text-sm">{t('unsaved')}</p>
+          <Button disabled={anyInvalid || save.isPending} onClick={() => save.mutate()}>
+            {t('save')}
+          </Button>
+        </div>
+      )}
+    </div>
   );
 }

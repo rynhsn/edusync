@@ -1,7 +1,17 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Clock, Plus, Trash2 } from 'lucide-react';
+import {
+  BookOpen,
+  CalendarCheck,
+  CalendarDays,
+  Clock,
+  LayoutGrid,
+  Plus,
+  Shapes,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -9,7 +19,6 @@ import { useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -22,11 +31,31 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, TONES, type Tone, Toolbar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { cn } from '@/lib/utils';
 
 const WEEKDAYS = [1, 2, 3, 4, 5, 6] as const;
 type Weekday = (typeof WEEKDAYS)[number];
+const TONE = MODULE_TONE.academic;
+
+/** Warna mata pelajaran yang stabil menurut namanya, supaya satu mapel selalu sewarna di seluruh jadwal. */
+const SUBJECT_TONES: Tone[] = ['violet', 'sky', 'teal', 'amber', 'rose', 'emerald'];
+function subjectTone(name: string): Tone {
+  let h = 0;
+  for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return SUBJECT_TONES[h % SUBJECT_TONES.length] ?? 'violet';
+}
+
+/** Hari ini (Senin=1 ... Sabtu=6) menurut zona waktu sekolah; null pada hari Minggu. */
+function todayWeekday(): Weekday | null {
+  const short = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', weekday: 'short' }).format(
+    new Date(),
+  );
+  const n = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(short) + 1;
+  return n > 0 ? (n as Weekday) : null;
+}
 
 /** Dialog pengaturan jam pelajaran: buat otomatis, tambah, dan hapus. */
 function PeriodsDialog({
@@ -267,6 +296,8 @@ export function ScheduleView() {
   const manage = can('schedule:manage');
 
   const [mode, setMode] = useState<'class' | 'teacher'>('class');
+  const today = todayWeekday();
+  const [dayPick, setDayPick] = useState<Weekday>(today ?? 1);
   const [classChoice, setClassChoice] = useState('');
   const [teacherChoice, setTeacherChoice] = useState('');
   const [periodsOpen, setPeriodsOpen] = useState(false);
@@ -351,9 +382,76 @@ export function ScheduleView() {
     schedule.data?.find((e) => e.weekday === weekday && e.periodId === periodId);
   const noPeriods = periods.data?.length === 0;
 
+  const entries = schedule.data ?? [];
+  const periodList = periods.data ?? [];
+  const slotCount = periodList.length * WEEKDAYS.length;
+  const distinct = (pick: (e: (typeof entries)[number]) => string) => new Set(entries.map(pick)).size;
+  const todayCount = today ? entries.filter((e) => e.weekday === today).length : 0;
+  const editable = manage && mode === 'class';
+  const showGrid = periodList.length > 0 && !!target;
+
+  const openCell = (d: Weekday, p: (typeof periodList)[number]) => {
+    const e = entryAt(d, p.id);
+    setCellError(null);
+    setCell({
+      weekday: d,
+      periodId: p.id,
+      label: `${t(`days.${d}`)} · ${p.number}`,
+      subjectId: e?.subjectId ?? '',
+    });
+  };
+
+  /** Isi satu sel jadwal: kartu berwarna menurut mata pelajaran, atau slot kosong yang bisa diisi. */
+  const renderLesson = (d: Weekday, p: (typeof periodList)[number]) => {
+    const e = entryAt(d, p.id);
+    const inner = e ? (
+      <span
+        className={cn(
+          'relative block h-full min-h-14 overflow-hidden rounded-lg py-2 pr-2.5 pl-3.5 text-left',
+          TONES[subjectTone(e.subjectName)].soft,
+        )}
+      >
+        <span
+          aria-hidden
+          className={cn('absolute inset-y-0 left-0 w-1', TONES[subjectTone(e.subjectName)].bar)}
+        />
+        <span className="block text-sm leading-tight font-semibold break-words">
+          {mode === 'class' ? e.subjectName : e.className}
+        </span>
+        <span className="mt-0.5 block text-xs leading-tight break-words opacity-80">
+          {mode === 'class' ? e.teacherName : e.subjectName}
+        </span>
+      </span>
+    ) : (
+      <span
+        className={cn(
+          'text-muted-foreground/70 grid h-full min-h-14 place-items-center rounded-lg border border-dashed text-xs',
+          editable && 'group-hover/cell:border-violet-400 group-hover/cell:text-violet-600',
+        )}
+      >
+        {editable ? <Plus aria-hidden className="size-4" /> : <span aria-hidden>·</span>}
+      </span>
+    );
+    if (!editable) {
+      return e ? inner : <span className="sr-only">{t('free')}</span>;
+    }
+    return (
+      <button
+        type="button"
+        aria-label={`${t(e ? 'editCell' : 'fillCell')}: ${t(`days.${d}`)} · ${p.number}`}
+        className="group/cell focus-visible:ring-ring/60 block h-full w-full rounded-lg outline-none transition-transform focus-visible:ring-2 motion-safe:active:scale-[0.98]"
+        onClick={() => openCell(d, p)}
+      >
+        {inner}
+      </button>
+    );
+  };
+
   return (
     <PageBody>
       <PageHeader
+        icon={CalendarDays}
+        tone={TONE}
         title={t('title')}
         description={manage ? t('subtitle') : `${t('subtitle')} ${t('readOnly')}`}
         actions={
@@ -365,17 +463,62 @@ export function ScheduleView() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3">
+      {showGrid && !schedule.isPending && (
+        <StatGrid className="motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:duration-300">
+          <StatCard
+            icon={BookOpen}
+            tone={TONE}
+            label={t('statLessons')}
+            value={entries.length}
+            hint={t('statLessonsHint', { periods: periodList.length })}
+          />
+          <StatCard
+            icon={CalendarCheck}
+            tone="sky"
+            label={t('statToday')}
+            value={todayCount}
+            hint={today ? t(`days.${today as Weekday}`) : t('statWeekend')}
+          />
+          <StatCard
+            icon={mode === 'class' ? Shapes : Users}
+            tone="emerald"
+            label={mode === 'class' ? t('statSubjects') : t('statClasses')}
+            value={distinct((e) => (mode === 'class' ? e.subjectName : e.className))}
+          />
+          <StatCard
+            icon={LayoutGrid}
+            tone="amber"
+            label={t('statFill')}
+            value={`${slotCount ? Math.round((entries.length / slotCount) * 100) : 0}%`}
+            hint={t('statFillHint', { filled: entries.length, total: slotCount })}
+            progress={slotCount ? (entries.length / slotCount) * 100 : 0}
+          />
+        </StatGrid>
+      )}
+
+      <Toolbar>
         {can('teacher:read') && (
-          <SelectField
+          <fieldset
             aria-label={t('view')}
-            className="sm:w-40"
-            value={mode}
-            onChange={(e) => setMode(e.target.value as 'class' | 'teacher')}
+            className="bg-muted m-0 inline-flex min-w-0 rounded-xl border-0 p-0.5"
           >
-            <option value="class">{t('byClass')}</option>
-            <option value="teacher">{t('byTeacher')}</option>
-          </SelectField>
+            {(['class', 'teacher'] as const).map((m) => (
+              <button
+                key={m}
+                type="button"
+                aria-pressed={mode === m}
+                onClick={() => setMode(m)}
+                className={cn(
+                  'focus-visible:ring-ring/60 rounded-[10px] px-3 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2',
+                  mode === m
+                    ? 'bg-card text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground',
+                )}
+              >
+                {t(m === 'class' ? 'byClass' : 'byTeacher')}
+              </button>
+            ))}
+          </fieldset>
         )}
         {mode === 'class' ? (
           <SelectField
@@ -404,91 +547,160 @@ export function ScheduleView() {
             ))}
           </SelectField>
         )}
-      </div>
+      </Toolbar>
 
-      {(periods.isPending || years.isPending) && <Skeleton className="h-64 w-full" />}
+      {(periods.isPending || years.isPending || (!!target && schedule.isPending)) && (
+        <div className="grid gap-3" aria-busy>
+          <div className="grid grid-cols-3 gap-3 lg:grid-cols-6">
+            {['a', 'b', 'c', 'd', 'e', 'f'].slice(0, 6).map((k) => (
+              <Skeleton key={k} className="h-16 rounded-xl" />
+            ))}
+          </div>
+          <Skeleton className="h-56 rounded-2xl" />
+        </div>
+      )}
       {noPeriods && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">
-          {t('noPeriods')}
-          {manage && (
-            <div className="mt-4">
+        <EmptyPanel
+          icon={Clock}
+          tone={TONE}
+          title={t('noPeriodsTitle')}
+          body={t('noPeriods')}
+          action={
+            manage && (
               <Button onClick={() => setPeriodsOpen(true)}>
                 <Clock className="size-4" /> {t('periods')}
               </Button>
-            </div>
-          )}
-        </Card>
+            )
+          }
+        />
       )}
       {!periods.isPending && !years.isPending && classList.length === 0 && mode === 'class' && !noPeriods && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{t('noClasses')}</Card>
+        <EmptyPanel icon={Shapes} tone={TONE} title={t('noClassesTitle')} body={t('noClasses')} />
       )}
 
-      {periods.data && periods.data.length > 0 && target && (
-        <Card className="overflow-x-auto p-0">
-          <table className="w-full min-w-[44rem] border-collapse text-sm">
-            <thead>
-              <tr className="bg-muted/50 text-muted-foreground text-xs">
-                <th className="w-28 border-b px-3 py-2 text-left font-medium">{t('period')}</th>
-                {WEEKDAYS.map((d) => (
-                  <th key={d} className="border-b border-l px-3 py-2 text-left font-medium">
-                    {t(`days.${d}`)}
+      {showGrid && !schedule.isPending && (
+        <>
+          {/* Layar lebar: grid mingguan, kolom hari ini disorot. */}
+          <div className="bg-card hidden overflow-hidden rounded-2xl border lg:block motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+            <table className="w-full table-fixed border-collapse text-sm">
+              <caption className="sr-only">{t('title')}</caption>
+              <thead>
+                <tr>
+                  <th
+                    scope="col"
+                    className="text-muted-foreground w-24 border-b px-3 py-3 text-left text-xs font-medium"
+                  >
+                    {t('period')}
                   </th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {periods.data.map((p) => (
-                <tr key={p.id}>
-                  <th scope="row" className="border-b px-3 py-2 text-left align-top font-normal">
-                    <span className="font-medium">{p.number}</span>
-                    <span className="text-muted-foreground block text-xs tabular-nums">
-                      {p.startsAt}–{p.endsAt}
-                    </span>
-                  </th>
-                  {WEEKDAYS.map((d) => {
-                    const e = entryAt(d, p.id);
-                    const editable = manage && mode === 'class';
-                    const content = e ? (
-                      <>
-                        <span className="block font-medium">
-                          {mode === 'class' ? e.subjectName : e.className}
+                  {WEEKDAYS.map((d) => (
+                    <th
+                      key={d}
+                      scope="col"
+                      aria-current={d === today ? 'date' : undefined}
+                      className={cn(
+                        'border-b border-l px-3 py-3 text-left text-xs font-semibold',
+                        d === today ? cn(TONES[TONE].soft) : 'text-muted-foreground',
+                      )}
+                    >
+                      {t(`days.${d}`)}
+                      {d === today && (
+                        <span className="ml-1.5 rounded-full bg-violet-600 px-1.5 py-0.5 text-[10px] font-medium text-white dark:bg-violet-400 dark:text-violet-950">
+                          {t('today')}
                         </span>
-                        <span className="text-muted-foreground block text-xs">
-                          {mode === 'class' ? e.teacherName : e.subjectName}
-                        </span>
-                      </>
-                    ) : (
-                      <span className="text-muted-foreground/60 text-xs">{editable ? '+' : ''}</span>
-                    );
-                    return (
-                      <td key={d} className="h-14 border-b border-l p-0 align-top">
-                        {editable ? (
-                          <button
-                            type="button"
-                            className="hover:bg-accent/60 focus-visible:ring-ring/50 h-full w-full px-3 py-2 text-left outline-none focus-visible:ring-2 focus-visible:ring-inset"
-                            onClick={() => {
-                              setCellError(null);
-                              setCell({
-                                weekday: d,
-                                periodId: p.id,
-                                label: `${t(`days.${d}`)} · ${p.number}`,
-                                subjectId: e?.subjectId ?? '',
-                              });
-                            }}
-                          >
-                            {content}
-                          </button>
-                        ) : (
-                          <div className="px-3 py-2">{content}</div>
-                        )}
-                      </td>
-                    );
-                  })}
+                      )}
+                    </th>
+                  ))}
                 </tr>
+              </thead>
+              <tbody>
+                {periodList.map((p) => (
+                  <tr key={p.id}>
+                    <th scope="row" className="border-b px-3 py-2 text-left align-middle font-normal">
+                      <span className="flex items-center gap-2">
+                        <span
+                          aria-hidden
+                          className="font-heading bg-muted grid size-7 shrink-0 place-items-center rounded-lg text-sm font-semibold"
+                        >
+                          {p.number}
+                        </span>
+                        <span className="text-muted-foreground text-xs tabular-nums">
+                          {p.startsAt}
+                          <br />
+                          {p.endsAt}
+                        </span>
+                      </span>
+                    </th>
+                    {WEEKDAYS.map((d) => (
+                      <td
+                        key={d}
+                        className={cn(
+                          'h-[4.5rem] border-b border-l p-1.5 align-top',
+                          d === today && 'bg-violet-50/70 dark:bg-violet-500/[0.06]',
+                        )}
+                      >
+                        {renderLesson(d, p)}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Layar sempit: agenda harian dengan pemilih hari. */}
+          <div className="grid gap-3 lg:hidden motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+            <div
+              role="tablist"
+              aria-label={t('view')}
+              className="bg-card flex gap-1 overflow-x-auto rounded-2xl border p-1"
+            >
+              {WEEKDAYS.map((d) => (
+                <button
+                  key={d}
+                  type="button"
+                  role="tab"
+                  aria-selected={dayPick === d}
+                  onClick={() => setDayPick(d)}
+                  className={cn(
+                    'focus-visible:ring-ring/60 flex min-w-14 flex-1 flex-col items-center rounded-xl px-2 py-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-2',
+                    dayPick === d ? TONES[TONE].solid : 'text-muted-foreground hover:bg-muted',
+                  )}
+                >
+                  <span>{t(`days.${d}`).slice(0, 3)}</span>
+                  {d === today && (
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'mt-0.5 size-1 rounded-full',
+                        dayPick === d ? 'bg-current' : 'bg-violet-500',
+                      )}
+                    />
+                  )}
+                </button>
               ))}
-            </tbody>
-          </table>
-        </Card>
+            </div>
+            <p className="text-muted-foreground px-1 text-xs">
+              {t(`days.${dayPick}`)}
+              {dayPick === today && ` · ${t('today')}`} ·{' '}
+              {t('lessonsCount', { count: entries.filter((e) => e.weekday === dayPick).length })}
+            </p>
+            <ul className="grid gap-2">
+              {periodList.map((p) => (
+                <li key={p.id} className="flex items-stretch gap-3">
+                  <div className="w-14 shrink-0 pt-1 text-right">
+                    <p className="font-heading text-sm font-semibold">{p.number}</p>
+                    <p className="text-muted-foreground text-[11px] leading-tight tabular-nums">
+                      {p.startsAt}
+                      <br />
+                      {p.endsAt}
+                    </p>
+                  </div>
+                  <div className="min-w-0 flex-1">{renderLesson(dayPick, p)}</div>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </>
       )}
 
       <PeriodsDialog open={periodsOpen} onOpenChange={setPeriodsOpen} periods={periods.data ?? []} />

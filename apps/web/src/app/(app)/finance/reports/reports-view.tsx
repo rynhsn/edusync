@@ -1,7 +1,18 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Download, FileText } from 'lucide-react';
+import {
+  AlarmClock,
+  CalendarDays,
+  ChartColumn,
+  CircleCheck,
+  Download,
+  FileText,
+  Hourglass,
+  ReceiptText,
+  Users,
+  Wallet,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -9,11 +20,10 @@ import { useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { SelectField } from '@/components/ui/select-field';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EmptyPanel, MODULE_TONE, PersonCell, StatCard, StatGrid, Toolbar } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
@@ -22,21 +32,13 @@ import { formatRupiah } from '@/lib/money';
 import { buildExport, saveBlob } from '@/lib/sheet';
 import { buildArrearsRows, buildDailyRows, safeSheetName, sumArrears } from '../pdf/format';
 import type { ArrearsReport, DailyReport } from '../pdf/types';
+import { BarRow, ColumnChart, ENTER, ListSkeleton, Money, StatSkeleton } from '../ui';
 import { LateFeesPanel } from './late-fees-panel';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const isoOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const DAY_MS = 86_400_000;
 const METHOD_KEY = { cash: 'methodCash', transfer: 'methodTransfer', other: 'methodOther' } as const;
-
-function Stat({ label, value, tone }: { label: string; value: string | number; tone?: string }) {
-  return (
-    <div className="rounded-xl border bg-card p-4">
-      <p className="text-muted-foreground text-xs">{label}</p>
-      <p className={`font-heading text-2xl font-semibold tabular-nums ${tone ?? ''}`}>{value}</p>
-    </div>
-  );
-}
 
 /** Laporan keuangan: tunggakan per siswa dan kas harian, masing-masing dengan ekspor. */
 export function ReportsView() {
@@ -108,6 +110,20 @@ export function ReportsView() {
   const arrearsRows = arrears.data?.rows ?? [];
   const arrearsTotals = sumArrears(arrearsRows);
   const dailyData = daily.data;
+  const avgPerDay =
+    dailyData && dailyData.byDay.length > 0
+      ? Math.round(dailyData.totals.amount / dailyData.byDay.length)
+      : 0;
+  const byClass = [
+    ...arrearsRows
+      .reduce((m, r) => {
+        const cur = m.get(r.className) ?? { name: r.className, outstanding: 0, students: 0 };
+        cur.outstanding += r.outstanding;
+        cur.students += 1;
+        return m.set(r.className, cur);
+      }, new Map<string, { name: string; outstanding: number; students: number }>())
+      .values(),
+  ].sort((a, b) => b.outstanding - a.outstanding);
   const scope = `${year?.name ?? ''} · ${classList.find((c) => c.id === classId)?.name ?? t('allClasses')}`;
 
   async function exportArrearsExcel() {
@@ -176,7 +192,12 @@ export function ReportsView() {
   if (!allowed) {
     return (
       <PageBody>
-        <PageHeader title={t('title')} description={t('subtitle')} />
+        <PageHeader
+          icon={ChartColumn}
+          tone={MODULE_TONE.finance}
+          title={t('title')}
+          description={t('subtitle')}
+        />
         <Alert variant="destructive">
           <AlertDescription>{t('noPermission')}</AlertDescription>
         </Alert>
@@ -187,6 +208,8 @@ export function ReportsView() {
   return (
     <PageBody>
       <PageHeader
+        icon={ChartColumn}
+        tone={MODULE_TONE.finance}
         title={t('title')}
         description={t('subtitle')}
         actions={
@@ -215,16 +238,31 @@ export function ReportsView() {
         }
       />
 
-      <div className="flex gap-2">
-        {(['arrears', 'daily', 'lateFees'] as const).map((k) => (
-          <Button
+      <div
+        role="tablist"
+        aria-label={t('title')}
+        className="bg-muted inline-flex w-full max-w-full gap-1 overflow-x-auto rounded-xl p-1 sm:w-fit"
+      >
+        {(
+          [
+            ['arrears', Hourglass, t('tabArrears')],
+            ['daily', Wallet, t('tabDaily')],
+            ['lateFees', AlarmClock, t('tabLateFees')],
+          ] as const
+        ).map(([k, Icon, label]) => (
+          <button
             key={k}
-            variant={tab === k ? 'default' : 'outline'}
-            aria-pressed={tab === k}
+            type="button"
+            role="tab"
+            aria-selected={tab === k}
             onClick={() => setTab(k)}
+            className={`focus-visible:ring-ring/50 inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-3 sm:flex-none ${
+              tab === k ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
+            }`}
           >
-            {k === 'arrears' ? t('tabArrears') : k === 'daily' ? t('tabDaily') : t('tabLateFees')}
-          </Button>
+            <Icon className="size-4" aria-hidden="true" />
+            {label}
+          </button>
         ))}
       </div>
 
@@ -232,7 +270,7 @@ export function ReportsView() {
         <LateFeesPanel />
       ) : tab === 'arrears' ? (
         <>
-          <div className="flex flex-wrap items-center gap-3">
+          <Toolbar>
             <SelectField
               aria-label={t('academicYear')}
               className="sm:w-52"
@@ -264,89 +302,172 @@ export function ReportsView() {
             <div className="sm:w-52">
               <DatePicker aria-label={t('asOf')} value={asOf} onChange={(v) => v && setAsOf(v)} />
             </div>
-          </div>
+          </Toolbar>
 
           {arrears.error && (
             <Alert variant="destructive">
               <AlertDescription>{te(errorKey(arrears.error))}</AlertDescription>
             </Alert>
           )}
-          {arrears.isPending && !!yearId && <Skeleton className="h-48 w-full" />}
+          {arrears.isPending && !!yearId && (
+            <>
+              <StatSkeleton />
+              <ListSkeleton rows={4} />
+            </>
+          )}
 
           {arrears.data && (
-            <>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Stat label={t('studentsCount')} value={arrearsTotals.students} />
-                <Stat label={t('openInvoices')} value={arrearsTotals.openInvoices} />
-                <Stat label={t('outstanding')} value={money(arrearsTotals.outstanding)} />
-                <Stat
-                  label={t('overdue')}
-                  value={money(arrearsTotals.overdueOutstanding)}
-                  tone="text-red-600"
+            <div className={`grid gap-6 ${ENTER}`}>
+              <StatGrid>
+                <StatCard
+                  label={t('studentsCount')}
+                  value={arrearsTotals.students}
+                  icon={Users}
+                  tone="amber"
                 />
-              </div>
+                <StatCard
+                  label={t('openInvoices')}
+                  value={arrearsTotals.openInvoices}
+                  icon={ReceiptText}
+                  tone="sky"
+                />
+                <StatCard
+                  label={t('outstanding')}
+                  value={<Money value={arrearsTotals.outstanding} />}
+                  icon={Hourglass}
+                  tone="violet"
+                />
+                <StatCard
+                  label={t('overdue')}
+                  value={<Money value={arrearsTotals.overdueOutstanding} />}
+                  icon={AlarmClock}
+                  tone="rose"
+                  progress={
+                    arrearsTotals.outstanding > 0
+                      ? Math.round((arrearsTotals.overdueOutstanding / arrearsTotals.outstanding) * 100)
+                      : 0
+                  }
+                />
+              </StatGrid>
+
               {arrearsRows.length === 0 ? (
-                <Card className="text-muted-foreground p-10 text-center text-sm">{t('noArrears')}</Card>
+                <EmptyPanel
+                  icon={CircleCheck}
+                  tone="emerald"
+                  title={t('noArrears')}
+                  body={t('noArrearsHint')}
+                />
               ) : (
-                <Card className="overflow-hidden p-0">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-10">#</TableHead>
-                        <TableHead>{t('student')}</TableHead>
-                        <TableHead>{t('class')}</TableHead>
-                        <TableHead className="text-right">{t('openInvoices')}</TableHead>
-                        <TableHead className="text-right">{t('outstanding')}</TableHead>
-                        <TableHead className="text-right">{t('overdue')}</TableHead>
-                        <TableHead className="text-right">{t('oldestDue')}</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {arrearsRows.map((r, i) => (
-                        <TableRow key={r.studentId}>
-                          <TableCell className="text-muted-foreground tabular-nums">{i + 1}</TableCell>
-                          <TableCell>
-                            <div className="font-medium">{r.name}</div>
-                            {r.nis && <div className="text-muted-foreground font-mono text-xs">{r.nis}</div>}
-                          </TableCell>
-                          <TableCell>{r.className}</TableCell>
-                          <TableCell className="text-right tabular-nums">{r.openInvoices}</TableCell>
-                          <TableCell className="text-right tabular-nums">{money(r.outstanding)}</TableCell>
-                          <TableCell
-                            className={`text-right tabular-nums ${r.overdueOutstanding > 0 ? 'font-semibold text-red-600' : ''}`}
-                          >
-                            {money(r.overdueOutstanding)}
+                <>
+                  {byClass.length > 1 && (
+                    <section className="bg-card grid gap-3 rounded-2xl border p-4 sm:p-5">
+                      <h2 className="font-heading text-base font-semibold">{t('byClass')}</h2>
+                      <ul className="grid gap-3">
+                        {byClass.map((c) => (
+                          <BarRow
+                            key={c.name}
+                            label={c.name}
+                            sub={t('studentsN', { count: c.students })}
+                            value={c.outstanding}
+                            max={byClass[0]?.outstanding ?? 0}
+                            display={money(c.outstanding)}
+                            tone="amber"
+                          />
+                        ))}
+                      </ul>
+                    </section>
+                  )}
+
+                  <div className="bg-card hidden overflow-hidden rounded-2xl border md:block">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-10">#</TableHead>
+                          <TableHead>{t('student')}</TableHead>
+                          <TableHead>{t('class')}</TableHead>
+                          <TableHead className="text-right">{t('openInvoices')}</TableHead>
+                          <TableHead className="text-right">{t('outstanding')}</TableHead>
+                          <TableHead className="text-right">{t('overdue')}</TableHead>
+                          <TableHead className="text-right">{t('oldestDue')}</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {arrearsRows.map((r, i) => (
+                          <TableRow key={r.studentId}>
+                            <TableCell className="text-muted-foreground tabular-nums">{i + 1}</TableCell>
+                            <TableCell>
+                              <PersonCell name={r.name} sub={r.nis} />
+                            </TableCell>
+                            <TableCell>{r.className}</TableCell>
+                            <TableCell className="text-right tabular-nums">{r.openInvoices}</TableCell>
+                            <TableCell className="text-right">
+                              <Money value={r.outstanding} />
+                            </TableCell>
+                            <TableCell className="text-right font-semibold">
+                              <Money value={r.overdueOutstanding} negative />
+                            </TableCell>
+                            <TableCell className="text-muted-foreground text-right">
+                              {r.oldestDue ? date(r.oldestDue) : '-'}
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                        <TableRow className="bg-muted/40 font-medium">
+                          <TableCell />
+                          <TableCell>{t('totalRow')}</TableCell>
+                          <TableCell />
+                          <TableCell className="text-right tabular-nums">
+                            {arrearsTotals.openInvoices}
                           </TableCell>
                           <TableCell className="text-right">
-                            {r.oldestDue ? date(r.oldestDue) : '-'}
+                            <Money value={arrearsTotals.outstanding} />
                           </TableCell>
+                          <TableCell className="text-right">
+                            <Money value={arrearsTotals.overdueOutstanding} />
+                          </TableCell>
+                          <TableCell />
                         </TableRow>
-                      ))}
-                      <TableRow className="bg-muted/40 font-medium">
-                        <TableCell />
-                        <TableCell>{t('totalRow')}</TableCell>
-                        <TableCell />
-                        <TableCell className="text-right tabular-nums">
-                          {arrearsTotals.openInvoices}
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {money(arrearsTotals.outstanding)}
-                        </TableCell>
-                        <TableCell className="text-right tabular-nums">
-                          {money(arrearsTotals.overdueOutstanding)}
-                        </TableCell>
-                        <TableCell />
-                      </TableRow>
-                    </TableBody>
-                  </Table>
-                </Card>
+                      </TableBody>
+                    </Table>
+                  </div>
+
+                  <ul className="grid gap-2 md:hidden">
+                    {arrearsRows.map((r) => (
+                      <li key={r.studentId} className="bg-card grid gap-3 rounded-xl border p-3">
+                        <PersonCell name={r.name} sub={[r.nis, r.className].filter(Boolean).join(' · ')} />
+                        <dl className="grid grid-cols-3 gap-2 text-xs">
+                          <div>
+                            <dt className="text-muted-foreground">{t('openInvoices')}</dt>
+                            <dd className="font-medium tabular-nums">{r.openInvoices}</dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted-foreground">{t('outstanding')}</dt>
+                            <dd className="font-medium">
+                              <Money value={r.outstanding} />
+                            </dd>
+                          </div>
+                          <div>
+                            <dt className="text-muted-foreground">{t('overdue')}</dt>
+                            <dd className="font-semibold">
+                              <Money value={r.overdueOutstanding} negative />
+                            </dd>
+                          </div>
+                        </dl>
+                        {r.oldestDue && (
+                          <p className="text-muted-foreground text-xs">
+                            {t('oldestDue')}: {date(r.oldestDue)}
+                          </p>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </>
               )}
-            </>
+            </div>
           )}
         </>
       ) : (
         <>
-          <div className="flex flex-wrap items-center gap-3">
+          <Toolbar>
             <div className="sm:w-52">
               <DatePicker aria-label={t('from')} value={from} onChange={(v) => v && setFrom(v)} />
             </div>
@@ -354,7 +475,7 @@ export function ReportsView() {
             <div className="sm:w-52">
               <DatePicker aria-label={t('to')} value={to} onChange={(v) => v && setTo(v)} />
             </div>
-          </div>
+          </Toolbar>
 
           {!rangeValid && (
             <Alert variant="destructive">
@@ -366,61 +487,93 @@ export function ReportsView() {
               <AlertDescription>{te(errorKey(daily.error))}</AlertDescription>
             </Alert>
           )}
-          {rangeValid && daily.isPending && <Skeleton className="h-48 w-full" />}
+          {rangeValid && daily.isPending && (
+            <>
+              <StatSkeleton />
+              <ListSkeleton rows={3} />
+            </>
+          )}
 
           {dailyData && (
-            <>
-              <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-                <Stat label={t('receipts')} value={dailyData.totals.receipts} />
-                <Stat
-                  label={t('totalAmount')}
-                  value={money(dailyData.totals.amount)}
-                  tone="text-emerald-600"
+            <div className={`grid gap-6 ${ENTER}`}>
+              <StatGrid>
+                <StatCard
+                  label={t('receipts')}
+                  value={dailyData.totals.receipts}
+                  icon={ReceiptText}
+                  tone="sky"
                 />
-              </div>
+                <StatCard
+                  label={t('totalAmount')}
+                  value={<Money value={dailyData.totals.amount} />}
+                  icon={Wallet}
+                  tone="emerald"
+                />
+                <StatCard
+                  label={t('avgPerDay')}
+                  value={<Money value={avgPerDay} />}
+                  icon={ChartColumn}
+                  tone="amber"
+                />
+                <StatCard
+                  label={t('activeDays')}
+                  value={dailyData.byDay.length}
+                  icon={CalendarDays}
+                  tone="violet"
+                />
+              </StatGrid>
               {dailyData.totals.receipts === 0 ? (
-                <Card className="text-muted-foreground p-10 text-center text-sm">{t('noPayments')}</Card>
+                <EmptyPanel icon={Wallet} tone="amber" title={t('noPayments')} body={t('noPaymentsHint')} />
               ) : (
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <Card className="overflow-hidden p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t('byMethod')}</TableHead>
-                          <TableHead className="text-right">{t('receipts')}</TableHead>
-                          <TableHead className="text-right">{t('amount')}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
+                <>
+                  <section className="bg-card grid gap-3 rounded-2xl border p-4 sm:p-5">
+                    <h2 className="font-heading text-base font-semibold">{t('byDay')}</h2>
+                    <ColumnChart
+                      tone="emerald"
+                      ariaLabel={t('byDayChart')}
+                      points={dailyData.byDay.map((d) => ({
+                        label: date(d.date).replace(/,?\s\d{4}$/, ''),
+                        value: d.amount,
+                        title: `${date(d.date)}: ${money(d.amount)} (${d.receipts})`,
+                      }))}
+                    />
+                  </section>
+                  <div className="grid gap-4 lg:grid-cols-2">
+                    <section className="bg-card grid content-start gap-3 rounded-2xl border p-4 sm:p-5">
+                      <h2 className="font-heading text-base font-semibold">{t('byMethod')}</h2>
+                      <ul className="grid gap-3">
                         {dailyData.byMethod.map((m) => (
-                          <TableRow key={m.method}>
-                            <TableCell>{methodLabel(m.method)}</TableCell>
-                            <TableCell className="text-right tabular-nums">{m.receipts}</TableCell>
-                            <TableCell className="text-right tabular-nums">{money(m.amount)}</TableCell>
-                          </TableRow>
+                          <BarRow
+                            key={m.method}
+                            label={methodLabel(m.method)}
+                            sub={t('receiptsN', { count: m.receipts })}
+                            value={m.amount}
+                            max={dailyData.totals.amount}
+                            display={money(m.amount)}
+                            tone={
+                              m.method === 'cash' ? 'emerald' : m.method === 'transfer' ? 'sky' : 'violet'
+                            }
+                          />
                         ))}
-                      </TableBody>
-                    </Table>
-                  </Card>
-                  <Card className="overflow-hidden p-0">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>{t('byFeeType')}</TableHead>
-                          <TableHead className="text-right">{t('amount')}</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
+                      </ul>
+                    </section>
+                    <section className="bg-card grid content-start gap-3 rounded-2xl border p-4 sm:p-5">
+                      <h2 className="font-heading text-base font-semibold">{t('byFeeType')}</h2>
+                      <ul className="grid gap-3">
                         {dailyData.byFeeType.map((f) => (
-                          <TableRow key={f.feeTypeName}>
-                            <TableCell>{f.feeTypeName}</TableCell>
-                            <TableCell className="text-right tabular-nums">{money(f.amount)}</TableCell>
-                          </TableRow>
+                          <BarRow
+                            key={f.feeTypeName}
+                            label={f.feeTypeName}
+                            value={f.amount}
+                            max={dailyData.totals.amount}
+                            display={money(f.amount)}
+                            tone="amber"
+                          />
                         ))}
-                      </TableBody>
-                    </Table>
-                  </Card>
-                  <Card className="overflow-hidden p-0 lg:col-span-2">
+                      </ul>
+                    </section>
+                  </div>
+                  <div className="bg-card overflow-hidden rounded-2xl border">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -434,15 +587,17 @@ export function ReportsView() {
                           <TableRow key={d.date}>
                             <TableCell>{date(d.date)}</TableCell>
                             <TableCell className="text-right tabular-nums">{d.receipts}</TableCell>
-                            <TableCell className="text-right tabular-nums">{money(d.amount)}</TableCell>
+                            <TableCell className="text-right">
+                              <Money value={d.amount} />
+                            </TableCell>
                           </TableRow>
                         ))}
                       </TableBody>
                     </Table>
-                  </Card>
-                </div>
+                  </div>
+                </>
               )}
-            </>
+            </div>
           )}
         </>
       )}

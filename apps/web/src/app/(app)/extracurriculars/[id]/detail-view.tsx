@@ -1,17 +1,19 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
+import { CalendarClock, ClipboardCheck, FileBarChart, MapPin, UserRound, Users } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { StatCard, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
-import { hhmm } from '../shared';
+import { cn } from '@/lib/utils';
+import { CATEGORY_META, hhmm } from '../shared';
 import { AssessmentPanel } from './assessment-panel';
 import { MembersPanel } from './members-panel';
 import { ReportPanel } from './report-panel';
@@ -36,7 +38,12 @@ export function ExtracurricularDetailView({ id }: { id: string }) {
   if (list.isPending) {
     return (
       <PageBody>
-        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-20 w-full rounded-2xl" />
+        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {['a', 'b', 'c', 'd', 'e', 'f'].slice(0, 4).map((k) => (
+            <Skeleton key={k} className="h-24 rounded-2xl" />
+          ))}
+        </div>
       </PageBody>
     );
   }
@@ -63,41 +70,78 @@ export function ExtracurricularDetailView({ id }: { id: string }) {
         item.startsAt ? ` ${hhmm(item.startsAt)}${item.endsAt ? `–${hhmm(item.endsAt)}` : ''}` : ''
       }`
     : t('noSchedule');
-  const details = [
-    item.coachName ? `${t('coach')}: ${item.coachName}` : null,
-    schedule,
-    item.location ? `${t('location')}: ${item.location}` : null,
-  ].filter(Boolean);
+  const meta = CATEGORY_META[item.category];
+  const TAB_ICONS = {
+    members: Users,
+    sessions: CalendarClock,
+    assessment: ClipboardCheck,
+    report: FileBarChart,
+  } as const;
 
   return (
     <PageBody>
       <PageHeader
+        icon={meta.icon}
+        tone={meta.tone}
         title={item.name}
-        description={[...details, item.description].filter(Boolean).join(' · ')}
+        description={item.description ?? undefined}
         actions={
           <>
-            <Badge variant="outline">{t(`category.${item.category}`)}</Badge>
-            <Badge variant={item.active ? 'secondary' : 'outline'}>
+            <ToneBadge tone={meta.tone} dot={false}>
+              {t(`category.${item.category}`)}
+            </ToneBadge>
+            <ToneBadge tone={item.active ? 'emerald' : 'slate'}>
               {item.active ? t('active') : t('inactive')}
-            </Badge>
+            </ToneBadge>
             <Button variant="outline" nativeButton={false} render={<Link href="/extracurriculars" />}>
               ← {t('back')}
             </Button>
           </>
         }
       />
-      <div className="flex w-fit flex-wrap rounded-lg border p-0.5">
-        {TABS.map((k) => (
-          <Button
-            key={k}
-            size="sm"
-            variant={tab === k ? 'secondary' : 'ghost'}
-            aria-pressed={tab === k}
-            onClick={() => setTab(k)}
-          >
-            {t(`tab.${k}`)}
-          </Button>
-        ))}
+      <div className="grid grid-cols-2 gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 lg:grid-cols-4">
+        <StatCard icon={Users} tone={meta.tone} label={t('membersCount')} value={item.memberCount} />
+        <StatCard
+          icon={UserRound}
+          tone="sky"
+          label={t('coach')}
+          value={<span className="text-base">{item.coachName ?? item.externalCoach ?? '-'}</span>}
+        />
+        <StatCard
+          icon={CalendarClock}
+          tone="amber"
+          label={t('schedule')}
+          value={<span className="text-base">{schedule}</span>}
+        />
+        <StatCard
+          icon={MapPin}
+          tone="emerald"
+          label={t('location')}
+          value={<span className="text-base">{item.location ?? '-'}</span>}
+        />
+      </div>
+      <div role="tablist" className="bg-muted flex w-full gap-0.5 overflow-x-auto rounded-xl p-0.5 sm:w-fit">
+        {TABS.map((k) => {
+          const Icon = TAB_ICONS[k];
+          return (
+            <button
+              key={k}
+              type="button"
+              role="tab"
+              aria-selected={tab === k}
+              onClick={() => setTab(k)}
+              className={cn(
+                'focus-visible:ring-ring/60 inline-flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-sm font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-2',
+                tab === k
+                  ? 'bg-card text-foreground shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground',
+              )}
+            >
+              <Icon aria-hidden className="size-4" />
+              {t(`tab.${k}`)}
+            </button>
+          );
+        })}
       </div>
       {tab === 'members' && <MembersPanel id={id} canWrite={item.canManage} />}
       {tab === 'sessions' && <SessionsPanel id={id} canWrite={item.canManage} />}

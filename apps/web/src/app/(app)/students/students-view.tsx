@@ -1,25 +1,51 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Pencil, Plus, Search, Trash2, Upload, Users } from 'lucide-react';
+import {
+  Download,
+  GraduationCap,
+  Layers,
+  Pencil,
+  Plus,
+  Trash2,
+  Upload,
+  UserCheck,
+  UserMinus,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import {
+  ConfirmDelete,
+  DataRows,
+  ListSkeleton,
+  MonoText,
+  REVEAL,
+  RowMenu,
+  SearchBox,
+} from '@/components/master-kit';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  EmptyPanel,
+  MODULE_TONE,
+  PersonCell,
+  StatCard,
+  StatGrid,
+  type Tone,
+  ToneBadge,
+  Toolbar,
+} from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { buildExport, saveBlob } from '@/lib/sheet';
@@ -28,6 +54,12 @@ import { GuardiansPanel } from './guardians-panel';
 const PAGE = 25;
 const STATUSES = ['active', 'graduated', 'transferred', 'dropped'] as const;
 type Status = (typeof STATUSES)[number];
+const STATUS_TONE: Record<Status, Tone> = {
+  active: 'emerald',
+  graduated: 'sky',
+  transferred: 'amber',
+  dropped: 'slate',
+};
 const STATUS_KEY = {
   active: 'statusActive',
   graduated: 'statusGraduated',
@@ -183,6 +215,7 @@ export function StudentsView() {
   const [editing, setEditing] = useState<({ id: string; originalClassId: string } & Draft) | null>(null);
   const [guardiansFor, setGuardiansFor] = useState<{ id: string; name: string } | null>(null);
   const [exporting, setExporting] = useState(false);
+  const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
 
   // Kelas yang dapat dipilih: hanya tahun ajaran aktif, karena siswa ditempatkan pada tahun berjalan.
   const years = useQuery({
@@ -293,9 +326,68 @@ export function StudentsView() {
   const total = list.data?.total ?? 0;
   const pages = Math.max(1, Math.ceil(total / PAGE));
 
+  // Ringkasan: dua kueri ringan (limit 1) hanya untuk membaca `total`, ditambah data kelas yang sudah dimuat.
+  const statAll = useQuery({
+    queryKey: ['students', school.schoolId, 'stat', 'all'],
+    queryFn: async () =>
+      unwrap(await api.GET('/v1/students', { params: { ...header, query: { limit: 1 } } })),
+  });
+  const statActive = useQuery({
+    queryKey: ['students', school.schoolId, 'stat', 'active'],
+    queryFn: async () =>
+      unwrap(await api.GET('/v1/students', { params: { ...header, query: { status: 'active', limit: 1 } } })),
+  });
+  const allCount = statAll.data?.total;
+  const activeCount = statActive.data?.total;
+  const placed = classList.reduce((n, c) => n + c.studentCount, 0);
+  const unplaced = activeCount !== undefined && classes.data ? Math.max(0, activeCount - placed) : undefined;
+  const levels = new Map<string, number>();
+  for (const c of classList) levels.set(c.level, (levels.get(c.level) ?? 0) + c.studentCount);
+  const levelText = [...levels.entries()].map(([lv, n]) => `${lv}: ${n}`).join(' · ');
+  const hasFilters = !!(q.trim() || classFilter || statusFilter);
+  const activePercent = allCount ? Math.round(((activeCount ?? 0) / allCount) * 100) : 0;
+
+  const openEdit = (s: NonNullable<typeof list.data>['items'][number]) => {
+    setError(null);
+    setEditing({
+      id: s.id,
+      originalClassId: s.classId ?? '',
+      name: s.name,
+      nis: s.nis ?? '',
+      nisn: s.nisn ?? '',
+      gender: s.gender,
+      birthDate: s.birthDate ?? '',
+      status: s.status,
+      classId: s.classId ?? '',
+    });
+  };
+
+  const addButton = (
+    <FormDialog
+      size="wide"
+      trigger={
+        <Button>
+          <Plus className="size-4" /> {t('addTitle')}
+        </Button>
+      }
+      title={t('addTitle')}
+      submitLabel={tm('add')}
+      error={error}
+      onOpenChange={() => {
+        setDraft(EMPTY);
+        setError(null);
+      }}
+      onSubmit={() => create.mutateAsync()}
+    >
+      <StudentFields idPrefix="new" draft={draft} classes={classList} onChange={setDraft} />
+    </FormDialog>
+  );
+
   return (
     <PageBody>
       <PageHeader
+        icon={GraduationCap}
+        tone={MODULE_TONE.master}
         title={t('title')}
         description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
         actions={
@@ -308,44 +400,54 @@ export function StudentsView() {
                 <Button variant="outline" nativeButton={false} render={<Link href="/students/import" />}>
                   <Upload className="size-4" /> {t('importLink')}
                 </Button>
-                <FormDialog
-                  size="wide"
-                  trigger={
-                    <Button>
-                      <Plus className="size-4" /> {t('addTitle')}
-                    </Button>
-                  }
-                  title={t('addTitle')}
-                  submitLabel={tm('add')}
-                  error={error}
-                  onOpenChange={() => {
-                    setDraft(EMPTY);
-                    setError(null);
-                  }}
-                  onSubmit={() => create.mutateAsync()}
-                >
-                  <StudentFields idPrefix="new" draft={draft} classes={classList} onChange={setDraft} />
-                </FormDialog>
+                {addButton}
               </>
             )}
           </>
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative w-full sm:w-72">
-          <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-          <Input
-            aria-label={tm('search')}
-            className="pl-8"
-            value={q}
-            placeholder={t('searchPlaceholder')}
-            onChange={(e) => {
-              setQ(e.target.value);
-              setPage(0);
-            }}
-          />
-        </div>
+      <StatGrid className={REVEAL}>
+        <StatCard
+          icon={Users}
+          tone="teal"
+          label={t('statTotal')}
+          value={allCount ?? '…'}
+          hint={t('statTotalHint')}
+        />
+        <StatCard
+          icon={UserCheck}
+          tone="emerald"
+          label={t('statActive')}
+          value={activeCount ?? '…'}
+          progress={activePercent}
+          hint={allCount ? t('statActiveHint', { percent: activePercent }) : undefined}
+        />
+        <StatCard
+          icon={UserMinus}
+          tone="amber"
+          label={t('statNoClass')}
+          value={unplaced ?? '…'}
+          hint={t('statNoClassHint')}
+        />
+        <StatCard
+          icon={Layers}
+          tone="violet"
+          label={t('statLevels')}
+          value={classes.data ? levels.size : '…'}
+          hint={levelText || t('statLevelsEmpty')}
+        />
+      </StatGrid>
+
+      <Toolbar>
+        <SearchBox
+          value={q}
+          placeholder={t('searchPlaceholder')}
+          onChange={(v) => {
+            setQ(v);
+            setPage(0);
+          }}
+        />
         {classList.length > 0 && (
           <SelectField
             aria-label={t('class')}
@@ -380,120 +482,143 @@ export function StudentsView() {
             </option>
           ))}
         </SelectField>
-      </div>
+        {list.data && (
+          <span className="text-muted-foreground ml-auto px-1 text-sm tabular-nums">
+            {t('total', { count: total })}
+          </span>
+        )}
+      </Toolbar>
 
-      {list.isPending && <Skeleton className="h-40 w-full" />}
+      {list.isPending && <ListSkeleton rows={6} />}
       {list.isError && (
         <Alert variant="destructive">
           <AlertDescription>{tm('loadError')}</AlertDescription>
         </Alert>
       )}
-      {list.data?.items.length === 0 && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{tm('empty')}</Card>
-      )}
+      {list.data?.items.length === 0 &&
+        (hasFilters ? (
+          <EmptyPanel
+            icon={Users}
+            tone={MODULE_TONE.master}
+            title={t('emptyFilteredTitle')}
+            body={t('emptyFilteredBody')}
+            action={
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setQ('');
+                  setClassFilter('');
+                  setStatusFilter('');
+                  setPage(0);
+                }}
+              >
+                {t('clearFilters')}
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyPanel
+            icon={GraduationCap}
+            tone={MODULE_TONE.master}
+            title={t('emptyTitle')}
+            body={manage ? t('emptyBody') : tm('empty')}
+            action={
+              manage && (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {addButton}
+                  <Button variant="outline" nativeButton={false} render={<Link href="/students/import" />}>
+                    <Upload className="size-4" /> {t('importLink')}
+                  </Button>
+                </div>
+              )
+            }
+          />
+        ))}
 
       {list.data && list.data.items.length > 0 && (
-        <Card className="overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{tm('name')}</TableHead>
-                <TableHead>
-                  {t('nis')} / {t('nisn')}
-                </TableHead>
-                <TableHead>{t('class')}</TableHead>
-                <TableHead>{t('status')}</TableHead>
-                <TableHead className="w-36" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {list.data.items.map((s) => (
-                <TableRow key={s.id}>
-                  <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-xs">
-                    {[s.nis, s.nisn].filter(Boolean).join(' / ') || tm('none')}
-                  </TableCell>
-                  <TableCell>
-                    {s.className ? <Badge variant="outline">{s.className}</Badge> : tm('none')}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={s.status === 'active' ? 'secondary' : 'outline'}>
-                      {t(STATUS_KEY[s.status])}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right whitespace-nowrap">
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label={tg('button')}
-                      title={tg('button')}
-                      onClick={() => setGuardiansFor({ id: s.id, name: s.name })}
-                    >
-                      <Users className="size-4" />
-                    </Button>
-                    {manage && (
-                      <>
-                        <Button
-                          size="icon-sm"
-                          variant="ghost"
-                          aria-label={tm('edit')}
-                          onClick={() => {
-                            setError(null);
-                            setEditing({
-                              id: s.id,
-                              originalClassId: s.classId ?? '',
-                              name: s.name,
-                              nis: s.nis ?? '',
-                              nisn: s.nisn ?? '',
-                              gender: s.gender,
-                              birthDate: s.birthDate ?? '',
-                              status: s.status,
-                              classId: s.classId ?? '',
-                            });
-                          }}
-                        >
-                          <Pencil className="size-4" />
-                        </Button>
-                        <Button
-                          size="icon-sm"
-                          variant="ghost"
-                          aria-label={tm('delete')}
-                          disabled={remove.isPending}
-                          onClick={() => remove.mutate(s.id)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      </>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <DataRows
+          rows={list.data.items}
+          rowKey={(s) => s.id}
+          actionsHeader={tm('actions')}
+          onRowClick={manage ? openEdit : (s) => setGuardiansFor({ id: s.id, name: s.name })}
+          columns={[
+            {
+              key: 'name',
+              header: tm('name'),
+              cell: (s) => <PersonCell name={s.name} sub={s.gender === 'L' ? t('male') : t('female')} />,
+            },
+            {
+              key: 'nis',
+              header: `${t('nis')} / ${t('nisn')}`,
+              cell: (s) => <MonoText>{[s.nis, s.nisn].filter(Boolean).join(' / ') || tm('none')}</MonoText>,
+            },
+            {
+              key: 'class',
+              header: t('class'),
+              cell: (s) =>
+                s.className ? (
+                  <ToneBadge tone="sky" dot={false}>
+                    {s.className}
+                  </ToneBadge>
+                ) : (
+                  <span className="text-muted-foreground text-xs">{t('noClass')}</span>
+                ),
+            },
+            {
+              key: 'status',
+              header: t('status'),
+              cell: (s) => <ToneBadge tone={STATUS_TONE[s.status]}>{t(STATUS_KEY[s.status])}</ToneBadge>,
+            },
+          ]}
+          actions={(s) => (
+            <RowMenu
+              label={tm('actionsFor', { name: s.name })}
+              actions={[
+                {
+                  label: tg('button'),
+                  icon: Users,
+                  onSelect: () => setGuardiansFor({ id: s.id, name: s.name }),
+                },
+                ...(manage
+                  ? [
+                      { label: tm('edit'), icon: Pencil, onSelect: () => openEdit(s) },
+                      {
+                        label: tm('delete'),
+                        icon: Trash2,
+                        destructive: true,
+                        separated: true,
+                        onSelect: () => setDeleting({ id: s.id, name: s.name }),
+                      },
+                    ]
+                  : []),
+              ]}
+            />
+          )}
+        />
       )}
 
-      {list.data && (
-        <div className="flex flex-wrap items-center justify-between gap-2 text-sm">
-          <span className="text-muted-foreground">{t('total', { count: total })}</span>
-          <div className="flex items-center gap-2">
-            <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage(page - 1)}>
-              {t('prev')}
-            </Button>
-            <span className="text-muted-foreground">
-              {page + 1} / {pages}
-            </span>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={page + 1 >= pages}
-              onClick={() => setPage(page + 1)}
-            >
-              {t('next')}
-            </Button>
-          </div>
+      {list.data && pages > 1 && (
+        <div className="flex flex-wrap items-center justify-end gap-2 text-sm">
+          <Button size="sm" variant="outline" disabled={page === 0} onClick={() => setPage(page - 1)}>
+            {t('prev')}
+          </Button>
+          <span className="text-muted-foreground tabular-nums">
+            {page + 1} / {pages}
+          </span>
+          <Button size="sm" variant="outline" disabled={page + 1 >= pages} onClick={() => setPage(page + 1)}>
+            {t('next')}
+          </Button>
         </div>
       )}
+
+      <ConfirmDelete
+        name={deleting?.name ?? null}
+        onClose={() => setDeleting(null)}
+        pending={remove.isPending}
+        onConfirm={async () => {
+          if (deleting) await remove.mutateAsync(deleting.id);
+        }}
+      />
 
       <FormDialog
         size="wide"

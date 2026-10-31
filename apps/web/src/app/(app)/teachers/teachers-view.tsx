@@ -1,23 +1,48 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Download, Pencil, Plus, Search, Trash2, Upload } from 'lucide-react';
+import {
+  Download,
+  KeyRound,
+  Pencil,
+  Plus,
+  Presentation,
+  Trash2,
+  Upload,
+  UserCheck,
+  Users,
+  UserX,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import {
+  ConfirmDelete,
+  DataRows,
+  ListSkeleton,
+  MonoText,
+  REVEAL,
+  RowMenu,
+  SearchBox,
+} from '@/components/master-kit';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  EmptyPanel,
+  MODULE_TONE,
+  PersonCell,
+  StatCard,
+  StatGrid,
+  ToneBadge,
+  Toolbar,
+} from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { buildExport, saveBlob } from '@/lib/sheet';
@@ -86,6 +111,8 @@ export function TeachersView() {
   const manage = can('teacher:manage');
 
   const [q, setQ] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
@@ -148,9 +175,48 @@ export function TeachersView() {
     saveBlob(blob, `guru-${school.schoolSlug}-${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
 
+  // Ringkasan memakai daftar tanpa saringan (kunci yang sama dengan pemilih guru di halaman kelas).
+  const all = useQuery({
+    queryKey: ['teachers', school.schoolId, ''],
+    queryFn: async () => unwrap(await api.GET('/v1/teachers', { params: { ...header, query: {} } })),
+  });
+  const allRows = all.data ?? [];
+  const activeCount = allRows.filter((r) => r.status === 'active').length;
+  const linkedCount = allRows.filter((r) => r.memberId).length;
+  const activePercent = allRows.length ? Math.round((activeCount / allRows.length) * 100) : 0;
+  const rows = (list.data ?? []).filter((r) => !statusFilter || r.status === statusFilter);
+  const hasFilters = !!(q.trim() || statusFilter);
+
+  const openEdit = (r: NonNullable<typeof list.data>[number]) => {
+    setError(null);
+    setEditing({ id: r.id, name: r.name, nip: r.nip ?? '', status: r.status });
+  };
+
+  const addButton = (
+    <FormDialog
+      trigger={
+        <Button>
+          <Plus className="size-4" /> {t('addTitle')}
+        </Button>
+      }
+      title={t('addTitle')}
+      submitLabel={tm('add')}
+      error={error}
+      onOpenChange={() => {
+        setDraft(EMPTY);
+        setError(null);
+      }}
+      onSubmit={() => create.mutateAsync()}
+    >
+      <TeacherFields idPrefix="new" draft={draft} onChange={setDraft} />
+    </FormDialog>
+  );
+
   return (
     <PageBody>
       <PageHeader
+        icon={Presentation}
+        tone={MODULE_TONE.master}
         title={t('title')}
         description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
         actions={
@@ -163,103 +229,162 @@ export function TeachersView() {
                 <Button variant="outline" nativeButton={false} render={<Link href="/teachers/import" />}>
                   <Upload className="size-4" /> {t('importLink')}
                 </Button>
-                <FormDialog
-                  trigger={
-                    <Button>
-                      <Plus className="size-4" /> {t('addTitle')}
-                    </Button>
-                  }
-                  title={t('addTitle')}
-                  submitLabel={tm('add')}
-                  error={error}
-                  onOpenChange={() => {
-                    setDraft(EMPTY);
-                    setError(null);
-                  }}
-                  onSubmit={() => create.mutateAsync()}
-                >
-                  <TeacherFields idPrefix="new" draft={draft} onChange={setDraft} />
-                </FormDialog>
+                {addButton}
               </>
             )}
           </>
         }
       />
 
-      <div className="relative max-w-sm">
-        <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
-        <Input
-          aria-label={tm('search')}
-          className="pl-8"
-          value={q}
-          placeholder={t('searchPlaceholder')}
-          onChange={(e) => setQ(e.target.value)}
+      <StatGrid className={REVEAL}>
+        <StatCard
+          icon={Users}
+          tone="teal"
+          label={t('statTotal')}
+          value={all.data ? allRows.length : '…'}
+          hint={t('statTotalHint')}
         />
-      </div>
+        <StatCard
+          icon={UserCheck}
+          tone="emerald"
+          label={t('active')}
+          value={all.data ? activeCount : '…'}
+          progress={activePercent}
+          hint={all.data ? t('statActiveHint', { percent: activePercent }) : undefined}
+        />
+        <StatCard
+          icon={UserX}
+          tone="slate"
+          label={t('inactive')}
+          value={all.data ? allRows.length - activeCount : '…'}
+          hint={t('statInactiveHint')}
+        />
+        <StatCard
+          icon={KeyRound}
+          tone="sky"
+          label={t('statLinked')}
+          value={all.data ? linkedCount : '…'}
+          hint={t('statLinkedHint')}
+        />
+      </StatGrid>
 
-      {list.isPending && <Skeleton className="h-40 w-full" />}
+      <Toolbar>
+        <SearchBox value={q} placeholder={t('searchPlaceholder')} onChange={setQ} />
+        <SelectField
+          aria-label={t('status')}
+          className="sm:w-44"
+          value={statusFilter}
+          onChange={(e) => setStatusFilter(e.target.value)}
+        >
+          <option value="">{t('allStatus')}</option>
+          <option value="active">{t('active')}</option>
+          <option value="inactive">{t('inactive')}</option>
+        </SelectField>
+        {list.data && (
+          <span className="text-muted-foreground ml-auto px-1 text-sm tabular-nums">
+            {t('total', { count: rows.length })}
+          </span>
+        )}
+      </Toolbar>
+
+      {list.isPending && <ListSkeleton rows={6} />}
       {list.isError && (
         <Alert variant="destructive">
           <AlertDescription>{tm('loadError')}</AlertDescription>
         </Alert>
       )}
-      {list.data?.length === 0 && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{tm('empty')}</Card>
+      {list.data &&
+        rows.length === 0 &&
+        (hasFilters ? (
+          <EmptyPanel
+            icon={Users}
+            tone={MODULE_TONE.master}
+            title={t('emptyFilteredTitle')}
+            body={t('emptyFilteredBody')}
+            action={
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setQ('');
+                  setStatusFilter('');
+                }}
+              >
+                {t('clearFilters')}
+              </Button>
+            }
+          />
+        ) : (
+          <EmptyPanel
+            icon={Presentation}
+            tone={MODULE_TONE.master}
+            title={t('emptyTitle')}
+            body={manage ? t('emptyBody') : tm('empty')}
+            action={
+              manage && (
+                <div className="flex flex-wrap justify-center gap-2">
+                  {addButton}
+                  <Button variant="outline" nativeButton={false} render={<Link href="/teachers/import" />}>
+                    <Upload className="size-4" /> {t('importLink')}
+                  </Button>
+                </div>
+              )
+            }
+          />
+        ))}
+
+      {rows.length > 0 && (
+        <DataRows
+          rows={rows}
+          rowKey={(r) => r.id}
+          actionsHeader={tm('actions')}
+          onRowClick={manage ? openEdit : undefined}
+          columns={[
+            {
+              key: 'name',
+              header: tm('name'),
+              cell: (r) => <PersonCell name={r.name} sub={r.memberId ? t('hasAccount') : t('noAccount')} />,
+            },
+            { key: 'nip', header: t('nip'), cell: (r) => <MonoText>{r.nip ?? tm('none')}</MonoText> },
+            {
+              key: 'status',
+              header: t('status'),
+              cell: (r) => (
+                <ToneBadge tone={r.status === 'active' ? 'emerald' : 'slate'}>
+                  {r.status === 'active' ? t('active') : t('inactive')}
+                </ToneBadge>
+              ),
+            },
+          ]}
+          actions={
+            manage
+              ? (r) => (
+                  <RowMenu
+                    label={tm('actionsFor', { name: r.name })}
+                    actions={[
+                      { label: tm('edit'), icon: Pencil, onSelect: () => openEdit(r) },
+                      {
+                        label: tm('delete'),
+                        icon: Trash2,
+                        destructive: true,
+                        separated: true,
+                        onSelect: () => setDeleting({ id: r.id, name: r.name }),
+                      },
+                    ]}
+                  />
+                )
+              : undefined
+          }
+        />
       )}
 
-      {list.data && list.data.length > 0 && (
-        <Card className="overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{tm('name')}</TableHead>
-                <TableHead>{t('nip')}</TableHead>
-                <TableHead>{t('status')}</TableHead>
-                {manage && <TableHead className="w-24" />}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {list.data.map((r) => (
-                <TableRow key={r.id}>
-                  <TableCell className="font-medium">{r.name}</TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-xs">
-                    {r.nip ?? tm('none')}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={r.status === 'active' ? 'secondary' : 'outline'}>
-                      {r.status === 'active' ? t('active') : t('inactive')}
-                    </Badge>
-                  </TableCell>
-                  {manage && (
-                    <TableCell className="text-right whitespace-nowrap">
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={tm('edit')}
-                        onClick={() => {
-                          setError(null);
-                          setEditing({ id: r.id, name: r.name, nip: r.nip ?? '', status: r.status });
-                        }}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={tm('delete')}
-                        disabled={remove.isPending}
-                        onClick={() => remove.mutate(r.id)}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
-      )}
+      <ConfirmDelete
+        name={deleting?.name ?? null}
+        onClose={() => setDeleting(null)}
+        pending={remove.isPending}
+        onConfirm={async () => {
+          if (deleting) await remove.mutateAsync(deleting.id);
+        }}
+      />
 
       <FormDialog
         open={!!editing}

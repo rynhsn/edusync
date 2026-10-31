@@ -1,24 +1,48 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { Download, FileText } from 'lucide-react';
+import {
+  BookX,
+  CalendarDays,
+  ClipboardCheck,
+  DoorOpen,
+  Download,
+  FileText,
+  School,
+  Search,
+  UserCheck,
+  Users,
+  UserX,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { CountCell, ENTER, ProgressRing, STATUS_TONE, stagger } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Input } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  EmptyPanel,
+  MODULE_TONE,
+  PersonCell,
+  StatCard,
+  StatGrid,
+  TONES,
+  ToneBadge,
+  Toolbar,
+} from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { buildExport, saveBlob } from '@/lib/sheet';
+import { cn } from '@/lib/utils';
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const isoOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
@@ -26,15 +50,6 @@ const DAY_MS = 86_400_000;
 
 const DAY_KEYS = ['present', 'late', 'excused', 'sick', 'absent', 'notRecorded'] as const;
 const LESSON_KEYS = ['present', 'excused', 'sick', 'absent'] as const;
-
-function Stat({ label, value, hint, tone }: { label: string; value: number; hint?: string; tone?: string }) {
-  return (
-    <div className="rounded-xl border bg-card p-4" title={hint}>
-      <p className="text-muted-foreground text-xs">{label}</p>
-      <p className={`font-heading text-3xl font-semibold tabular-nums ${tone ?? ''}`}>{value}</p>
-    </div>
-  );
-}
 
 /** Rekap absensi: hari gerbang, jam pelajaran, dan bolos kelas per siswa dalam rentang tanggal, dengan ekspor. */
 export function ReportView() {
@@ -49,6 +64,7 @@ export function ReportView() {
   const [from, setFrom] = useState(`${today.slice(0, 8)}01`);
   const [to, setTo] = useState(today);
   const [generating, setGenerating] = useState(false);
+  const [search, setSearch] = useState('');
 
   const years = useQuery({
     queryKey: ['academic-years', school.schoolId],
@@ -172,9 +188,28 @@ export function ReportView() {
     }
   }
 
+  const q = search.trim().toLowerCase();
+  const shownRows = rows.filter(
+    (r) => q === '' || r.name.toLowerCase().includes(q) || (r.nis ?? '').toLowerCase().includes(q),
+  );
+  const rateOf = (d: { present: number; late: number; excused: number; sick: number; absent: number }) => {
+    const total = d.present + d.late + d.excused + d.sick + d.absent;
+    return total === 0 ? null : Math.round(((d.present + d.late) / total) * 100);
+  };
+  const overall = data ? rateOf(data.summary.days) : null;
+  const gateTotal = data
+    ? data.summary.days.present +
+      data.summary.days.late +
+      data.summary.days.excused +
+      data.summary.days.sick +
+      data.summary.days.absent
+    : 0;
+
   return (
     <PageBody>
       <PageHeader
+        icon={ClipboardCheck}
+        tone={MODULE_TONE.attendance}
         title={t('title')}
         description={t('subtitle')}
         actions={
@@ -189,7 +224,7 @@ export function ReportView() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3">
+      <Toolbar className="gap-3">
         <SelectField
           aria-label={t('class')}
           className="sm:w-52"
@@ -203,14 +238,29 @@ export function ReportView() {
             </option>
           ))}
         </SelectField>
-        <div className="sm:w-52">
-          <DatePicker aria-label={t('from')} value={from} onChange={(v) => v && setFrom(v)} />
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="w-44">
+            <DatePicker aria-label={t('from')} value={from} onChange={(v) => v && setFrom(v)} />
+          </div>
+          <span className="text-muted-foreground text-sm">–</span>
+          <div className="w-44">
+            <DatePicker aria-label={t('to')} value={to} onChange={(v) => v && setTo(v)} />
+          </div>
         </div>
-        <span className="text-muted-foreground text-sm">–</span>
-        <div className="sm:w-52">
-          <DatePicker aria-label={t('to')} value={to} onChange={(v) => v && setTo(v)} />
+        <div className="relative min-w-44 flex-1 sm:max-w-60">
+          <Search
+            aria-hidden
+            className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+          />
+          <Input
+            aria-label={t('search')}
+            placeholder={t('search')}
+            className="pl-9"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-      </div>
+      </Toolbar>
 
       {!rangeValid && (
         <Alert variant="destructive">
@@ -222,134 +272,259 @@ export function ReportView() {
           <AlertDescription>{te(errorKey(report.error))}</AlertDescription>
         </Alert>
       )}
-      {rangeValid && report.isPending && <Skeleton className="h-48 w-full" />}
+      {rangeValid && report.isPending && (
+        <div className="grid gap-4" aria-busy>
+          <div className="grid gap-3 lg:grid-cols-[18rem_1fr]">
+            <Skeleton className="h-36 rounded-2xl" />
+            <div className="grid grid-cols-2 gap-3 xl:grid-cols-3">
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <Skeleton key={i} className="h-[4.5rem] rounded-2xl" />
+              ))}
+            </div>
+          </div>
+          <Skeleton className="h-64 rounded-2xl" />
+        </div>
+      )}
 
       {data && (
         <>
-          <p className="text-muted-foreground text-sm">{range(data.from, data.to)}</p>
-          <div className="grid grid-cols-2 gap-3 md:grid-cols-4 xl:grid-cols-6">
-            <Stat label={t('studentsCount')} value={data.summary.students} />
-            <Stat label={t('effectiveDays')} value={data.effectiveDays} />
-            <Stat
-              label={`${t('present')} + ${t('late')}`}
-              value={data.summary.days.present + data.summary.days.late}
-              tone="text-emerald-600"
-            />
-            <Stat label={t('absent')} value={data.summary.days.absent} tone="text-red-600" />
-            <Stat label={`${t('lessonGroup')}: ${t('absent')}`} value={data.summary.lessons.absent} />
-            <Stat
-              label={t('skipped')}
-              value={data.summary.skipped}
-              hint={t('skippedHint')}
-              tone="text-red-600"
-            />
+          <p className="text-muted-foreground text-sm">
+            <span className="font-medium">{t('periodLabel')}:</span> {range(data.from, data.to)}
+          </p>
+          <div className={cn(ENTER, 'grid gap-3 lg:grid-cols-[18rem_1fr]')}>
+            <div className="bg-card flex items-center gap-4 rounded-2xl border p-4">
+              <ProgressRing value={overall ?? 0} size={88} stroke={9} tone="emerald">
+                <span className="font-heading text-lg font-semibold tabular-nums">
+                  {overall === null ? '–' : `${overall}%`}
+                </span>
+              </ProgressRing>
+              <div className="min-w-0">
+                <p className="font-heading font-semibold">{t('rateTitle')}</p>
+                <p className="text-muted-foreground mt-1 text-xs">
+                  {overall === null
+                    ? t('rateNone')
+                    : t('rateHint', {
+                        present: data.summary.days.present + data.summary.days.late,
+                        total: gateTotal,
+                      })}
+                </p>
+              </div>
+            </div>
+            <StatGrid className="xl:grid-cols-3 lg:grid-cols-3">
+              <StatCard
+                label={t('studentsCount')}
+                value={data.summary.students}
+                icon={Users}
+                tone={MODULE_TONE.attendance}
+              />
+              <StatCard
+                label={t('effectiveDays')}
+                value={data.effectiveDays}
+                icon={CalendarDays}
+                tone="slate"
+              />
+              <StatCard
+                label={`${t('present')} + ${t('late')}`}
+                value={data.summary.days.present + data.summary.days.late}
+                icon={UserCheck}
+                tone="emerald"
+              />
+              <StatCard label={t('absent')} value={data.summary.days.absent} icon={UserX} tone="rose" />
+              <StatCard
+                label={`${t('lessonGroup')}: ${t('absent')}`}
+                value={data.summary.lessons.absent}
+                icon={BookX}
+                tone="amber"
+              />
+              <StatCard
+                label={t('skipped')}
+                value={data.summary.skipped}
+                hint={t('skippedHint')}
+                icon={DoorOpen}
+                tone="rose"
+              />
+            </StatGrid>
           </div>
 
           {rows.length === 0 ? (
-            <Card className="text-muted-foreground p-10 text-center text-sm">
-              {!classes.isPending && classList.length === 0 ? t('noClasses') : t('noStudents')}
-            </Card>
+            !classes.isPending && classList.length === 0 ? (
+              <EmptyPanel
+                icon={School}
+                tone={MODULE_TONE.attendance}
+                title={t('noClassesTitle')}
+                body={t('noClasses')}
+              />
+            ) : (
+              <EmptyPanel
+                icon={Users}
+                tone={MODULE_TONE.attendance}
+                title={t('noStudentsTitle')}
+                body={t('noStudents')}
+              />
+            )
+          ) : shownRows.length === 0 ? (
+            <EmptyPanel icon={Search} tone="slate" title={t('noMatch')} />
           ) : (
-            <Card className="overflow-hidden p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead rowSpan={2} className="w-10 align-bottom">
-                      #
-                    </TableHead>
-                    <TableHead rowSpan={2} className="align-bottom">
-                      {t('student')}
-                    </TableHead>
-                    <TableHead rowSpan={2} className="align-bottom">
-                      {t('class')}
-                    </TableHead>
-                    <TableHead colSpan={DAY_KEYS.length} className="border-l text-center">
-                      {t('gateGroup')}
-                    </TableHead>
-                    <TableHead colSpan={LESSON_KEYS.length} className="border-l text-center">
-                      {t('lessonGroup')}
-                    </TableHead>
-                    <TableHead
-                      rowSpan={2}
-                      className="border-l text-right align-bottom"
-                      title={t('skippedHint')}
-                    >
-                      {t('skipped')}
-                    </TableHead>
-                  </TableRow>
-                  <TableRow>
-                    {DAY_KEYS.map((k, i) => (
-                      <TableHead key={`d-${k}`} className={`text-right ${i === 0 ? 'border-l' : ''}`}>
-                        {dayLabel(k)}
+            <section className="grid gap-3">
+              <p className="text-muted-foreground text-xs tabular-nums" aria-live="polite">
+                {t('shown', { shown: shownRows.length, total: rows.length })}
+              </p>
+
+              {/* Layar lebar: tabel bergaris dengan sel angka berwarna */}
+              <div className="bg-card hidden overflow-hidden rounded-2xl border md:block">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead rowSpan={2} className="w-10 align-bottom">
+                        #
                       </TableHead>
-                    ))}
-                    {LESSON_KEYS.map((k, i) => (
-                      <TableHead key={`l-${k}`} className={`text-right ${i === 0 ? 'border-l' : ''}`}>
-                        {lessonLabel(k)}
+                      <TableHead rowSpan={2} className="align-bottom">
+                        {t('student')}
                       </TableHead>
-                    ))}
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.map((r, i) => (
-                    <TableRow key={r.studentId}>
-                      <TableCell className="text-muted-foreground tabular-nums">{i + 1}</TableCell>
-                      <TableCell>
-                        <div className="font-medium">{r.name}</div>
-                        {r.nis && <div className="text-muted-foreground font-mono text-xs">{r.nis}</div>}
-                      </TableCell>
-                      <TableCell>{r.className}</TableCell>
+                      <TableHead rowSpan={2} className="align-bottom">
+                        {t('class')}
+                      </TableHead>
+                      <TableHead colSpan={DAY_KEYS.length} className="border-l text-center">
+                        {t('gateGroup')}
+                      </TableHead>
+                      <TableHead colSpan={LESSON_KEYS.length} className="border-l text-center">
+                        {t('lessonGroup')}
+                      </TableHead>
+                      <TableHead
+                        rowSpan={2}
+                        className="border-l text-right align-bottom"
+                        title={t('skippedHint')}
+                      >
+                        {t('skipped')}
+                      </TableHead>
+                      <TableHead rowSpan={2} className="border-l align-bottom">
+                        {t('present')}
+                      </TableHead>
+                    </TableRow>
+                    <TableRow>
+                      {DAY_KEYS.map((k, i) => (
+                        <TableHead key={`d-${k}`} className={cn('text-center', i === 0 && 'border-l')}>
+                          {dayLabel(k)}
+                        </TableHead>
+                      ))}
+                      {LESSON_KEYS.map((k, i) => (
+                        <TableHead key={`l-${k}`} className={cn('text-center', i === 0 && 'border-l')}>
+                          {lessonLabel(k)}
+                        </TableHead>
+                      ))}
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {shownRows.map((r, i) => {
+                      const rate = rateOf(r.days);
+                      return (
+                        <TableRow key={r.studentId}>
+                          <TableCell className="text-muted-foreground tabular-nums">{i + 1}</TableCell>
+                          <TableCell className="min-w-48">
+                            <PersonCell
+                              name={r.name}
+                              sub={r.nis ? <span className="font-mono">{r.nis}</span> : undefined}
+                            />
+                          </TableCell>
+                          <TableCell>{r.className}</TableCell>
+                          {DAY_KEYS.map((k, j) => (
+                            <TableCell key={`d-${k}`} className={cn('text-center', j === 0 && 'border-l')}>
+                              <CountCell
+                                value={r.days[k]}
+                                tone={STATUS_TONE[k === 'notRecorded' ? 'notYet' : k]}
+                              />
+                            </TableCell>
+                          ))}
+                          {LESSON_KEYS.map((k, j) => (
+                            <TableCell key={`l-${k}`} className={cn('text-center', j === 0 && 'border-l')}>
+                              <CountCell value={r.lessons[k]} tone={STATUS_TONE[k]} />
+                            </TableCell>
+                          ))}
+                          <TableCell className="border-l text-right">
+                            <CountCell value={r.skipped} tone="rose" />
+                          </TableCell>
+                          <TableCell className="border-l">
+                            <RateBar rate={rate} />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    <TableRow className="bg-muted/40 font-medium">
+                      <TableCell />
+                      <TableCell>{t('totalRow')}</TableCell>
+                      <TableCell />
                       {DAY_KEYS.map((k, j) => (
                         <TableCell
-                          key={`d-${k}`}
-                          className={`text-right tabular-nums ${j === 0 ? 'border-l' : ''}`}
+                          key={`td-${k}`}
+                          className={cn('text-center tabular-nums', j === 0 && 'border-l')}
                         >
-                          {r.days[k]}
+                          {data.summary.days[k]}
                         </TableCell>
                       ))}
                       {LESSON_KEYS.map((k, j) => (
                         <TableCell
-                          key={`l-${k}`}
-                          className={`text-right tabular-nums ${j === 0 ? 'border-l' : ''}`}
+                          key={`tl-${k}`}
+                          className={cn('text-center tabular-nums', j === 0 && 'border-l')}
                         >
-                          {r.lessons[k]}
+                          {data.summary.lessons[k]}
                         </TableCell>
                       ))}
-                      <TableCell
-                        className={`border-l text-right tabular-nums ${r.skipped > 0 ? 'font-semibold text-red-600' : ''}`}
-                      >
-                        {r.skipped}
+                      <TableCell className="border-l text-right tabular-nums">
+                        {data.summary.skipped}
+                      </TableCell>
+                      <TableCell className="border-l">
+                        <RateBar rate={overall} />
                       </TableCell>
                     </TableRow>
-                  ))}
-                  <TableRow className="bg-muted/40 font-medium">
-                    <TableCell />
-                    <TableCell>{t('totalRow')}</TableCell>
-                    <TableCell />
-                    {DAY_KEYS.map((k, j) => (
-                      <TableCell
-                        key={`td-${k}`}
-                        className={`text-right tabular-nums ${j === 0 ? 'border-l' : ''}`}
-                      >
-                        {data.summary.days[k]}
-                      </TableCell>
-                    ))}
-                    {LESSON_KEYS.map((k, j) => (
-                      <TableCell
-                        key={`tl-${k}`}
-                        className={`text-right tabular-nums ${j === 0 ? 'border-l' : ''}`}
-                      >
-                        {data.summary.lessons[k]}
-                      </TableCell>
-                    ))}
-                    <TableCell className="border-l text-right tabular-nums">{data.summary.skipped}</TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </Card>
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Layar sempit: kartu bertumpuk, tanpa scroll horizontal */}
+              <ul className="grid gap-3 md:hidden">
+                {shownRows.map((r, i) => (
+                  <li
+                    key={r.studentId}
+                    style={stagger(i)}
+                    className={cn(ENTER, 'bg-card grid gap-3 rounded-2xl border p-4')}
+                  >
+                    <div className="flex items-center justify-between gap-3">
+                      <PersonCell name={r.name} sub={[r.className, r.nis].filter(Boolean).join(' · ')} />
+                      <RateBar rate={rateOf(r.days)} compact />
+                    </div>
+                    <div className="flex flex-wrap gap-1.5">
+                      {DAY_KEYS.filter((k) => r.days[k] > 0).map((k) => (
+                        <ToneBadge key={k} tone={STATUS_TONE[k === 'notRecorded' ? 'notYet' : k]} dot={false}>
+                          {dayLabel(k)} {r.days[k]}
+                        </ToneBadge>
+                      ))}
+                      {r.skipped > 0 && (
+                        <ToneBadge tone="rose">
+                          {t('skipped')} {r.skipped}
+                        </ToneBadge>
+                      )}
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </section>
           )}
         </>
       )}
     </PageBody>
+  );
+}
+
+/** Persentase kehadiran sebagai angka dan bilah kecil; warna berubah menurut ambang. */
+function RateBar({ rate, compact }: { rate: number | null; compact?: boolean }) {
+  if (rate === null) return <span className="text-muted-foreground text-xs">–</span>;
+  const tone = rate >= 90 ? 'emerald' : rate >= 75 ? 'amber' : 'rose';
+  return (
+    <div className={cn('flex items-center gap-2', compact ? 'w-24' : 'w-28')}>
+      <div className="bg-muted h-1.5 flex-1 overflow-hidden rounded-full">
+        <div className={cn('h-full rounded-full', TONES[tone].bar)} style={{ width: `${rate}%` }} />
+      </div>
+      <span className="w-9 text-right text-xs font-medium tabular-nums">{rate}%</span>
+    </div>
   );
 }

@@ -8,7 +8,6 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
@@ -25,6 +24,7 @@ import {
   type LateFeeMode,
 } from '../late-fee';
 import { digitsOnly } from '../shared';
+import { SectionCard } from '../ui';
 
 /** Pengaturan denda keterlambatan: mode, nilai, toleransi, batas, dan jenis biaya tagihan denda. */
 export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string; active: boolean }[] }) {
@@ -65,21 +65,7 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
   const valid = isLateFeeDraftValid(draft);
 
   return (
-    <Card className="relative gap-4 overflow-hidden p-4">
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute -top-10 -right-10 size-40 rounded-full bg-rose-400/10 blur-2xl"
-      />
-      <div className="relative flex items-start gap-3">
-        <span className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300">
-          <Hourglass className="size-5" aria-hidden="true" />
-        </span>
-        <div>
-          <h2 className="font-heading text-lg font-semibold">{t('lateFeeTitle')}</h2>
-          <p className="text-muted-foreground text-sm">{t('lateFeeHint')}</p>
-        </div>
-      </div>
-
+    <SectionCard icon={Hourglass} tone="rose" title={t('lateFeeTitle')} description={t('lateFeeHint')}>
       {setting.isPending && <Skeleton className="h-24 w-full" />}
       {setting.isError && (
         <Alert variant="destructive">
@@ -198,6 +184,6 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
           </div>
         </form>
       )}
-    </Card>
+    </SectionCard>
   );
 }

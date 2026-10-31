@@ -126,6 +126,7 @@ if (sub) {
           'administration',
           'admissions',
           'internship',
+          'tahfidz',
           'parent_portal',
           'announcements',
           'website',

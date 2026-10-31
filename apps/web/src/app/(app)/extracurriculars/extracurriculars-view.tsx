@@ -1,27 +1,48 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Plus, Search, Trash2 } from 'lucide-react';
+import {
+  Activity,
+  CalendarClock,
+  MapPin,
+  Pencil,
+  Plus,
+  Search,
+  Trash2,
+  Trophy,
+  UserRound,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
+import { RowMenu } from '@/components/row-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  EmptyPanel,
+  IconTile,
+  MODULE_TONE,
+  PersonCell,
+  StatCard,
+  StatGrid,
+  TONES,
+  ToneBadge,
+  Toolbar,
+} from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
-import { CATEGORIES, type Category, hhmm, WEEKDAYS } from './shared';
+import { cn } from '@/lib/utils';
+import { CATEGORIES, CATEGORY_META, type Category, hhmm, WEEKDAYS } from './shared';
 
 type CoachType = 'none' | 'teacher' | 'external';
 
@@ -227,8 +248,8 @@ function toBody(d: Draft) {
 export function ExtracurricularsView() {
   const t = useTranslations('extracurricular');
   const tm = useTranslations('masterData');
+  const tc = useTranslations('common');
   const te = useTranslations();
-  const router = useRouter();
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
@@ -239,6 +260,7 @@ export function ExtracurricularsView() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
+  const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
 
   const list = useQuery({
     queryKey: ['extracurriculars', school.schoolId],
@@ -282,9 +304,13 @@ export function ExtracurricularsView() {
   });
 
   const needle = q.trim().toLowerCase();
-  const rows = (list.data ?? []).filter(
+  const all = list.data ?? [];
+  const rows = all.filter(
     (r) => (!category || r.category === category) && (!needle || r.name.toLowerCase().includes(needle)),
   );
+  const activeCount = all.filter((r) => r.active).length;
+  const memberTotal = all.reduce((n, r) => n + r.memberCount, 0);
+  const withCoach = all.filter((r) => r.coachName).length;
 
   const scheduleOf = (r: { weekday: number | null; startsAt: string | null; endsAt: string | null }) => {
     if (!r.weekday) return t('noSchedule');
@@ -295,6 +321,8 @@ export function ExtracurricularsView() {
   return (
     <PageBody>
       <PageHeader
+        icon={Trophy}
+        tone={MODULE_TONE.academic}
         title={t('title')}
         description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
         actions={
@@ -322,7 +350,28 @@ export function ExtracurricularsView() {
         }
       />
 
-      <div className="flex flex-wrap items-center gap-3">
+      {all.length > 0 && (
+        <StatGrid className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+          <StatCard icon={Trophy} tone={MODULE_TONE.academic} label={t('statTotal')} value={all.length} />
+          <StatCard
+            icon={Activity}
+            tone="emerald"
+            label={t('statActive')}
+            value={activeCount}
+            progress={(activeCount / all.length) * 100}
+          />
+          <StatCard icon={Users} tone="sky" label={t('membersCount')} value={memberTotal} />
+          <StatCard
+            icon={UserRound}
+            tone="amber"
+            label={t('statWithCoach')}
+            value={`${withCoach}/${all.length}`}
+            progress={(withCoach / all.length) * 100}
+          />
+        </StatGrid>
+      )}
+
+      <Toolbar>
         <div className="relative w-full max-w-sm">
           <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
           <Input
@@ -346,100 +395,176 @@ export function ExtracurricularsView() {
             </option>
           ))}
         </SelectField>
-      </div>
+      </Toolbar>
 
-      {list.isPending && <Skeleton className="h-40 w-full" />}
+      {list.isPending && (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-busy>
+          {['a', 'b', 'c', 'd', 'e', 'f'].slice(0, 6).map((k) => (
+            <Skeleton key={k} className="h-44 rounded-2xl" />
+          ))}
+        </div>
+      )}
       {list.isError && (
         <Alert variant="destructive">
           <AlertDescription>{tm('loadError')}</AlertDescription>
         </Alert>
       )}
       {list.data && rows.length === 0 && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{t('empty')}</Card>
+        <EmptyPanel
+          icon={Trophy}
+          tone={MODULE_TONE.academic}
+          title={t('emptyTitle')}
+          body={all.length === 0 ? t('empty') : t('emptyFiltered')}
+          action={
+            manage &&
+            all.length === 0 && (
+              <FormDialog
+                size="wide"
+                trigger={
+                  <Button>
+                    <Plus className="size-4" /> {t('addTitle')}
+                  </Button>
+                }
+                title={t('addTitle')}
+                submitLabel={tm('add')}
+                disabled={draft.coachType === 'teacher' && !draft.coachTeacherId}
+                error={error}
+                onOpenChange={() => {
+                  setDraft(EMPTY);
+                  setError(null);
+                }}
+                onSubmit={() => create.mutateAsync()}
+              >
+                <ExtracurricularFields idPrefix="empty" draft={draft} onChange={setDraft} />
+              </FormDialog>
+            )
+          }
+        />
       )}
 
       {rows.length > 0 && (
-        <Card className="overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{tm('name')}</TableHead>
-                <TableHead>{t('categoryLabel')}</TableHead>
-                <TableHead>{t('coach')}</TableHead>
-                <TableHead>{t('schedule')}</TableHead>
-                <TableHead>{t('location')}</TableHead>
-                <TableHead>{t('membersCount')}</TableHead>
-                <TableHead>{t('status')}</TableHead>
-                {manage && <TableHead className="w-24" />}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {rows.map((r) => (
-                <TableRow
-                  key={r.id}
-                  className="cursor-pointer"
-                  onClick={() => router.push(`/extracurriculars/${r.id}`)}
-                >
-                  <TableCell className="font-medium">
-                    <Link href={`/extracurriculars/${r.id}`} className="hover:underline">
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {rows.map((r, idx) => {
+            const meta = CATEGORY_META[r.category];
+            return (
+              <li
+                key={r.id}
+                style={{ animationDelay: `${Math.min(idx, 9) * 30}ms` }}
+                className={cn(
+                  'bg-card focus-within:ring-ring/50 group relative grid gap-3 rounded-2xl border p-4 transition-all hover:-translate-y-0.5 hover:shadow-md focus-within:ring-2 motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:fill-mode-both motion-safe:duration-300',
+                  !r.active && 'opacity-75',
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <IconTile icon={meta.icon} tone={meta.tone} />
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      href={`/extracurriculars/${r.id}`}
+                      className="font-heading block truncate font-semibold outline-none after:absolute after:inset-0 after:rounded-2xl"
+                    >
                       {r.name}
                     </Link>
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant="outline">{t(`category.${r.category}`)}</Badge>
-                  </TableCell>
-                  <TableCell>{r.coachName ?? tm('none')}</TableCell>
-                  <TableCell className="whitespace-nowrap">{scheduleOf(r)}</TableCell>
-                  <TableCell>{r.location ?? tm('none')}</TableCell>
-                  <TableCell className="tabular-nums">{r.memberCount}</TableCell>
-                  <TableCell>
-                    <Badge variant={r.active ? 'secondary' : 'outline'}>
-                      {r.active ? t('active') : t('inactive')}
-                    </Badge>
-                  </TableCell>
+                    <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                      <ToneBadge tone={meta.tone} dot={false}>
+                        {t(`category.${r.category}`)}
+                      </ToneBadge>
+                      {!r.active && <ToneBadge tone="slate">{t('inactive')}</ToneBadge>}
+                    </div>
+                  </div>
                   {manage && (
-                    <TableCell className="text-right whitespace-nowrap" onClick={(e) => e.stopPropagation()}>
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={tm('edit')}
-                        onClick={() => {
-                          setError(null);
-                          setEditing({
-                            id: r.id,
-                            name: r.name,
-                            category: r.category,
-                            description: r.description ?? '',
-                            coachType: r.coachTeacherId ? 'teacher' : r.externalCoach ? 'external' : 'none',
-                            coachTeacherId: r.coachTeacherId ?? '',
-                            externalCoach: r.externalCoach ?? '',
-                            weekday: r.weekday ? String(r.weekday) : '',
-                            startsAt: hhmm(r.startsAt),
-                            endsAt: hhmm(r.endsAt),
-                            location: r.location ?? '',
-                            active: r.active,
-                          });
-                        }}
-                      >
-                        <Pencil className="size-4" />
-                      </Button>
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={tm('delete')}
-                        disabled={remove.isPending}
-                        onClick={() => remove.mutate(r.id)}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </TableCell>
+                    <div className="relative z-10">
+                      <RowMenu
+                        label={`${t('rowActions')}: ${r.name}`}
+                        items={[
+                          {
+                            key: 'edit',
+                            label: tm('edit'),
+                            icon: Pencil,
+                            onSelect: () => {
+                              setError(null);
+                              setEditing({
+                                id: r.id,
+                                name: r.name,
+                                category: r.category,
+                                description: r.description ?? '',
+                                coachType: r.coachTeacherId
+                                  ? 'teacher'
+                                  : r.externalCoach
+                                    ? 'external'
+                                    : 'none',
+                                coachTeacherId: r.coachTeacherId ?? '',
+                                externalCoach: r.externalCoach ?? '',
+                                weekday: r.weekday ? String(r.weekday) : '',
+                                startsAt: hhmm(r.startsAt),
+                                endsAt: hhmm(r.endsAt),
+                                location: r.location ?? '',
+                                active: r.active,
+                              });
+                            },
+                          },
+                          {
+                            key: 'delete',
+                            label: tm('delete'),
+                            icon: Trash2,
+                            destructive: true,
+                            onSelect: () => setDeleting({ id: r.id, name: r.name }),
+                          },
+                        ]}
+                      />
+                    </div>
                   )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+                </div>
+
+                {r.description && (
+                  <p className="text-muted-foreground line-clamp-2 text-sm">{r.description}</p>
+                )}
+
+                <dl className="grid gap-1.5 text-sm">
+                  <div className="flex items-center gap-2">
+                    <dt className="sr-only">{t('schedule')}</dt>
+                    <CalendarClock aria-hidden className={cn('size-4 shrink-0', TONES[meta.tone].text)} />
+                    <dd className={cn(!r.weekday && 'text-muted-foreground')}>{scheduleOf(r)}</dd>
+                  </div>
+                  {r.location && (
+                    <div className="flex items-center gap-2">
+                      <dt className="sr-only">{t('location')}</dt>
+                      <MapPin aria-hidden className={cn('size-4 shrink-0', TONES[meta.tone].text)} />
+                      <dd className="truncate">{r.location}</dd>
+                    </div>
+                  )}
+                </dl>
+
+                <div className="flex items-center justify-between gap-3 border-t pt-3">
+                  {r.coachName ? (
+                    <PersonCell name={r.coachName} sub={t('coach')} className="flex-1" />
+                  ) : (
+                    <span className="text-muted-foreground flex-1 text-xs">
+                      {t('coach')}: {tm('none')}
+                    </span>
+                  )}
+                  <ToneBadge tone="slate" dot={false} className="shrink-0">
+                    <Users aria-hidden className="size-3" />
+                    {r.memberCount} {t('membersCount').toLowerCase()}
+                  </ToneBadge>
+                </div>
+              </li>
+            );
+          })}
+        </ul>
       )}
+
+      <ConfirmDialog
+        open={deleting !== null}
+        onOpenChange={(o) => {
+          if (!o) setDeleting(null);
+        }}
+        title={tm('delete')}
+        description={deleting ? t('confirmDelete', { name: deleting.name }) : undefined}
+        confirmLabel={tc('confirmDelete')}
+        destructive
+        pending={remove.isPending}
+        onConfirm={() => (deleting ? remove.mutateAsync(deleting.id) : Promise.resolve())}
+      />
 
       <FormDialog
         size="wide"

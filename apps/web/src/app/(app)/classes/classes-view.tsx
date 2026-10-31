@@ -1,17 +1,17 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Layers, Pencil, Plus, Trash2, UserCheck } from 'lucide-react';
+import { CalendarDays, Layers, Pencil, Plus, School, Trash2, UserCheck, Users, UserX } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import { ConfirmDelete, ListSkeleton, REVEAL, RowMenu, SearchBox } from '@/components/master-kit';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import {
   Dialog,
   DialogContent,
@@ -23,10 +23,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, TONES, Toolbar, UserAvatar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { cn } from '@/lib/utils';
 
 /** Guru pengampu mata pelajaran di satu kelas. */
 function Assignments({ classId }: { classId: string }) {
@@ -331,9 +331,56 @@ export function ClassesView() {
     </div>
   );
 
+  const [q, setQ] = useState('');
+  const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
+  const classRows = classes.data ?? [];
+  const needle = q.trim().toLowerCase();
+  const shown = classRows.filter(
+    (c) =>
+      !needle ||
+      c.name.toLowerCase().includes(needle) ||
+      c.level.toLowerCase().includes(needle) ||
+      (c.homeroomTeacherName ?? '').toLowerCase().includes(needle),
+  );
+  const totalStudents = classRows.reduce((n, c) => n + c.studentCount, 0);
+  const biggest = Math.max(1, ...classRows.map((c) => c.studentCount));
+  const noHomeroom = classRows.filter((c) => !c.homeroomTeacherId).length;
+  const average = classRows.length ? Math.round(totalStudents / classRows.length) : 0;
+
+  const openEdit = (c: (typeof classRows)[number]) => {
+    setEditError(null);
+    setEditDraft({
+      name: c.name,
+      level: c.level,
+      programId: c.programId ?? '',
+      homeroomTeacherId: c.homeroomTeacherId ?? '',
+    });
+    setEditing(c.id);
+  };
+
+  const addButton =
+    manage && hasYears ? (
+      <FormDialog
+        trigger={
+          <Button>
+            <Plus className="size-4" /> {t('addTitle')}
+          </Button>
+        }
+        title={t('addTitle')}
+        submitLabel={tm('add')}
+        error={error}
+        onOpenChange={() => setError(null)}
+        onSubmit={() => createClass.mutateAsync()}
+      >
+        {fields('class', draft, setDraft)}
+      </FormDialog>
+    ) : null;
+
   return (
     <PageBody>
       <PageHeader
+        icon={School}
+        tone={MODULE_TONE.master}
         title={t('title')}
         description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
         actions={
@@ -414,34 +461,63 @@ export function ClassesView() {
                 )}
               </DialogContent>
             </Dialog>
-            {manage && hasYears && (
-              <FormDialog
-                trigger={
-                  <Button>
-                    <Plus className="size-4" /> {t('addTitle')}
-                  </Button>
-                }
-                title={t('addTitle')}
-                submitLabel={tm('add')}
-                error={error}
-                onOpenChange={() => setError(null)}
-                onSubmit={() => createClass.mutateAsync()}
-              >
-                {fields('class', draft, setDraft)}
-              </FormDialog>
-            )}
+            {addButton}
           </>
         }
       />
 
-      {years.isPending && <Skeleton className="h-24 w-full" />}
+      {years.isPending && <ListSkeleton rows={3} stats={4} />}
       {years.data?.length === 0 && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{t('noYears')}</Card>
+        <EmptyPanel
+          icon={CalendarDays}
+          tone={MODULE_TONE.master}
+          title={t('noYearsTitle')}
+          body={t('noYears')}
+          action={
+            <Button variant="outline" nativeButton={false} render={<Link href="/academic-years" />}>
+              <CalendarDays className="size-4" /> {t('goYears')}
+            </Button>
+          }
+        />
       )}
 
       {hasYears && (
         <>
-          <div className="flex flex-wrap items-center gap-3">
+          {classes.data && (
+            <StatGrid className={REVEAL}>
+              <StatCard
+                icon={School}
+                tone="teal"
+                label={t('statClasses')}
+                value={classRows.length}
+                hint={t('statClassesHint')}
+              />
+              <StatCard
+                icon={Users}
+                tone="sky"
+                label={t('statStudents')}
+                value={totalStudents}
+                hint={t('statStudentsHint')}
+              />
+              <StatCard
+                icon={Users}
+                tone="violet"
+                label={t('statAverage')}
+                value={average}
+                progress={(average / biggest) * 100}
+                hint={t('statAverageHint', { max: biggest })}
+              />
+              <StatCard
+                icon={UserX}
+                tone={noHomeroom > 0 ? 'amber' : 'emerald'}
+                label={t('statNoHomeroom')}
+                value={noHomeroom}
+                hint={noHomeroom > 0 ? t('statNoHomeroomHint') : t('statAllHomeroom')}
+              />
+            </StatGrid>
+          )}
+
+          <Toolbar>
             <SelectField
               aria-label={t('year')}
               className="sm:w-52"
@@ -454,86 +530,138 @@ export function ClassesView() {
                 </option>
               ))}
             </SelectField>
-          </div>
+            <SearchBox value={q} placeholder={t('searchPlaceholder')} onChange={setQ} />
+            {classes.data && (
+              <span className="text-muted-foreground ml-auto px-1 text-sm tabular-nums">
+                {t('shown', { count: shown.length })}
+              </span>
+            )}
+          </Toolbar>
 
-          {classes.isPending && <Skeleton className="h-32 w-full" />}
-          {classes.data?.length === 0 && (
-            <Card className="text-muted-foreground p-10 text-center text-sm">{tm('empty')}</Card>
+          {classes.isPending && <ListSkeleton rows={4} />}
+          {classes.data && classRows.length === 0 && (
+            <EmptyPanel
+              icon={School}
+              tone={MODULE_TONE.master}
+              title={t('emptyTitle')}
+              body={manage ? t('emptyBody') : tm('empty')}
+              action={addButton}
+            />
+          )}
+          {classRows.length > 0 && shown.length === 0 && (
+            <EmptyPanel
+              icon={School}
+              tone={MODULE_TONE.master}
+              title={t('emptyFilteredTitle')}
+              body={t('emptyFilteredBody')}
+              action={
+                <Button variant="outline" onClick={() => setQ('')}>
+                  {t('clearFilters')}
+                </Button>
+              }
+            />
           )}
 
-          {classes.data && classes.data.length > 0 && (
-            <Card className="overflow-hidden p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{tm('name')}</TableHead>
-                    <TableHead>{t('level')}</TableHead>
-                    <TableHead>{t('program')}</TableHead>
-                    <TableHead>{t('homeroomTeacher')}</TableHead>
-                    <TableHead>{t('studentsHeading')}</TableHead>
-                    <TableHead className="w-36" />
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {classes.data.map((c) => (
-                    <TableRow key={c.id}>
-                      <TableCell className="font-medium">{c.name}</TableCell>
-                      <TableCell>
-                        <Badge variant="outline">{c.level}</Badge>
-                      </TableCell>
-                      <TableCell>{c.programName ?? tm('none')}</TableCell>
-                      <TableCell>{c.homeroomTeacherName ?? tm('none')}</TableCell>
-                      <TableCell className="tabular-nums">{c.studentCount}</TableCell>
-                      <TableCell className="text-right whitespace-nowrap">
-                        <Button
-                          size="icon-sm"
-                          variant="ghost"
-                          aria-label={t('assignments')}
-                          title={t('assignments')}
-                          onClick={() => setAssignFor({ id: c.id, name: c.name })}
-                        >
-                          <UserCheck className="size-4" />
-                        </Button>
-                        {manage && (
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={tm('edit')}
-                            title={tm('edit')}
-                            onClick={() => {
-                              setEditError(null);
-                              setEditDraft({
-                                name: c.name,
-                                level: c.level,
-                                programId: c.programId ?? '',
-                                homeroomTeacherId: c.homeroomTeacherId ?? '',
-                              });
-                              setEditing(c.id);
-                            }}
-                          >
-                            <Pencil className="size-4" />
-                          </Button>
-                        )}
-                        {manage && (
-                          <Button
-                            size="icon-sm"
-                            variant="ghost"
-                            aria-label={tm('delete')}
-                            disabled={removeClass.isPending}
-                            onClick={() => removeClass.mutate(c.id)}
-                          >
-                            <Trash2 className="size-4" />
-                          </Button>
-                        )}
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
+          {shown.length > 0 && (
+            <ul className={cn('grid gap-3 sm:grid-cols-2 xl:grid-cols-3', REVEAL)}>
+              {shown.map((c) => (
+                <li
+                  key={c.id}
+                  className="bg-card flex flex-col gap-3 rounded-2xl border p-4 transition-shadow hover:shadow-sm"
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      aria-hidden
+                      className={cn(
+                        'font-heading grid size-11 shrink-0 place-items-center rounded-xl text-sm font-semibold',
+                        TONES.teal.soft,
+                      )}
+                    >
+                      {c.level.slice(0, 4)}
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="font-heading truncate text-base font-semibold">{c.name}</p>
+                      <p className="text-muted-foreground truncate text-xs">
+                        {c.programName ?? t('noProgram')}
+                      </p>
+                    </div>
+                    <RowMenu
+                      label={tm('actionsFor', { name: c.name })}
+                      actions={[
+                        {
+                          label: t('assignments'),
+                          icon: UserCheck,
+                          onSelect: () => setAssignFor({ id: c.id, name: c.name }),
+                        },
+                        ...(manage
+                          ? [
+                              { label: tm('edit'), icon: Pencil, onSelect: () => openEdit(c) },
+                              {
+                                label: tm('delete'),
+                                icon: Trash2,
+                                destructive: true,
+                                separated: true,
+                                onSelect: () => setDeleting({ id: c.id, name: c.name }),
+                              },
+                            ]
+                          : []),
+                      ]}
+                    />
+                  </div>
+
+                  {c.homeroomTeacherName ? (
+                    <div className="flex items-center gap-2 text-sm">
+                      <UserAvatar name={c.homeroomTeacherName} size="sm" />
+                      <div className="min-w-0">
+                        <p className="text-muted-foreground text-[11px] leading-none">
+                          {t('homeroomTeacher')}
+                        </p>
+                        <p className="truncate font-medium">{c.homeroomTeacherName}</p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2 text-sm">
+                      <span
+                        aria-hidden
+                        className="bg-muted text-muted-foreground grid size-7 place-items-center rounded-full"
+                      >
+                        <UserX className="size-3.5" />
+                      </span>
+                      <span className="text-muted-foreground">{t('noHomeroom')}</span>
+                    </div>
+                  )}
+
+                  <div>
+                    <div className="mb-1 flex items-baseline justify-between text-xs">
+                      <span className="text-muted-foreground">{t('studentsHeading')}</span>
+                      <span className="font-medium tabular-nums">{c.studentCount}</span>
+                    </div>
+                    <div
+                      className="bg-muted h-1.5 overflow-hidden rounded-full"
+                      role="img"
+                      aria-label={t('students', { count: c.studentCount })}
+                    >
+                      <div
+                        className={cn('h-full rounded-full transition-[width] duration-500', TONES.sky.bar)}
+                        style={{ width: `${(c.studentCount / biggest) * 100}%` }}
+                      />
+                    </div>
+                  </div>
+                </li>
+              ))}
+            </ul>
           )}
         </>
       )}
+
+      <ConfirmDelete
+        name={deleting?.name ?? null}
+        onClose={() => setDeleting(null)}
+        pending={removeClass.isPending}
+        onConfirm={async () => {
+          if (deleting) await removeClass.mutateAsync(deleting.id);
+        }}
+      />
 
       <FormDialog
         open={editing !== null}

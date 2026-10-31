@@ -1,37 +1,102 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Copy, FileSpreadsheet, Plus, RotateCw, ScanLine, Trash2 } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import {
+  CalendarClock,
+  Clock3,
+  Copy,
+  CreditCard,
+  FileSpreadsheet,
+  KeyRound,
+  MonitorSmartphone,
+  Plus,
+  Power,
+  RotateCw,
+  ScanLine,
+  Search,
+  SlidersHorizontal,
+  Timer,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { ActionMenu, ENTER, stagger } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Badge } from '@/components/ui/badge';
 import { Button, buttonVariants } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import {
+  EmptyPanel,
+  IconTile,
+  MODULE_TONE,
+  PersonCell,
+  type Tone,
+  ToneBadge,
+  Toolbar,
+  UserAvatar,
+} from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { cn } from '@/lib/utils';
 import { QuickRegister } from './quick-register';
 
 type Tab = 'policy' | 'devices' | 'cards' | 'roster';
 const TABS: Tab[] = ['policy', 'devices', 'cards', 'roster'];
+const TAB_ICON = {
+  policy: SlidersHorizontal,
+  devices: MonitorSmartphone,
+  cards: CreditCard,
+  roster: CalendarClock,
+} as const;
+
+/** Perangkat dianggap daring bila aktif dan terakhir terlihat dalam 5 menit. */
+const ONLINE_WINDOW_MS = 5 * 60_000;
 
 const todayIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 
 function useCtx() {
   const { school } = useSchool();
   return { school, header: { header: schoolHeader(school.schoolId) } };
+}
+
+/** Kartu pengaturan bersekat: ikon, judul, penjelasan singkat, lalu isi. */
+function SettingCard({
+  icon,
+  tone,
+  title,
+  body,
+  children,
+}: {
+  icon: LucideIcon;
+  tone: Tone;
+  title: string;
+  body: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section className={cn(ENTER, 'bg-card grid content-start gap-4 rounded-2xl border p-5')}>
+      <div className="flex items-start gap-3">
+        <IconTile icon={icon} tone={tone} className="size-10" />
+        <div>
+          <h2 className="font-heading font-semibold">{title}</h2>
+          <p className="text-muted-foreground text-sm">{body}</p>
+        </div>
+      </div>
+      {children}
+    </section>
+  );
 }
 
 function PolicyPanel() {
@@ -70,40 +135,59 @@ function PolicyPanel() {
     onError: (e) => setError(te(errorKey(e))),
   });
 
-  if (!value) return <Skeleton className="h-60 w-full" />;
+  if (!value)
+    return (
+      <div className="grid gap-4 lg:grid-cols-2" aria-busy>
+        <Skeleton className="h-56 rounded-2xl" />
+        <Skeleton className="h-56 rounded-2xl" />
+      </div>
+    );
   const set = (patch: Partial<typeof value>) => setDraft({ ...value, ...patch });
 
   return (
-    <Card className="grid gap-5 p-5">
-      <form
-        className="grid max-w-2xl gap-5"
-        onSubmit={(e) => {
-          e.preventDefault();
-          save.mutate();
-        }}
-      >
-        <div className="grid gap-4 sm:grid-cols-3">
-          <div className="grid gap-2">
-            <Label htmlFor="late-after">{t('lateAfter')}</Label>
-            <Input
-              id="late-after"
-              type="time"
-              required
-              value={value.lateAfter}
-              onChange={(e) => set({ lateAfter: e.target.value })}
-            />
+    <form
+      className="grid gap-4"
+      onSubmit={(e) => {
+        e.preventDefault();
+        save.mutate();
+      }}
+    >
+      <div className="grid gap-4 lg:grid-cols-2">
+        <SettingCard
+          icon={Clock3}
+          tone={MODULE_TONE.attendance}
+          title={t('policyTimesTitle')}
+          body={t('policyTimesBody')}
+        >
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div className="grid content-start gap-2">
+              <Label htmlFor="late-after">{t('lateAfter')}</Label>
+              <Input
+                id="late-after"
+                type="time"
+                required
+                value={value.lateAfter}
+                onChange={(e) => set({ lateAfter: e.target.value })}
+              />
+              <p className="text-muted-foreground text-xs">{t('lateAfterHint')}</p>
+            </div>
+            <div className="grid content-start gap-2">
+              <Label htmlFor="departure-from">{t('departureFrom')}</Label>
+              <Input
+                id="departure-from"
+                type="time"
+                required
+                value={value.departureFrom}
+                onChange={(e) => set({ departureFrom: e.target.value })}
+              />
+              <p className="text-muted-foreground text-xs">{t('departureFromHint')}</p>
+            </div>
           </div>
-          <div className="grid gap-2">
-            <Label htmlFor="departure-from">{t('departureFrom')}</Label>
-            <Input
-              id="departure-from"
-              type="time"
-              required
-              value={value.departureFrom}
-              onChange={(e) => set({ departureFrom: e.target.value })}
-            />
-          </div>
-          <div className="grid gap-2">
+          <p className="text-muted-foreground bg-muted/50 rounded-lg px-3 py-2 text-xs">{t('policyHint')}</p>
+        </SettingCard>
+
+        <SettingCard icon={Timer} tone="amber" title={t('debounceTitle')} body={t('debounceBody')}>
+          <div className="grid content-start gap-2 sm:max-w-56">
             <Label htmlFor="debounce">{t('debounce')}</Label>
             <Input
               id="debounce"
@@ -113,29 +197,29 @@ function PolicyPanel() {
               value={value.debounceSeconds}
               onChange={(e) => set({ debounceSeconds: Number(e.target.value) })}
             />
+            <p className="text-muted-foreground text-xs">{t('debounceHint')}</p>
           </div>
-        </div>
-        <p className="text-muted-foreground -mt-2 text-xs">{t('policyHint')}</p>
+        </SettingCard>
+      </div>
 
-        <p className="text-muted-foreground -mt-2 text-xs">
-          {t('notifyMoved')}{' '}
-          <Link href="/messaging" className="text-foreground underline underline-offset-2">
-            {t('notifyMovedLink')}
-          </Link>
-        </p>
+      <p className="text-muted-foreground text-xs">
+        {t('notifyMoved')}{' '}
+        <Link href="/messaging" className="text-foreground underline underline-offset-2">
+          {t('notifyMovedLink')}
+        </Link>
+      </p>
 
-        {error && (
-          <Alert variant="destructive">
-            <AlertDescription>{error}</AlertDescription>
-          </Alert>
-        )}
-        <div>
-          <Button type="submit" disabled={!draft || save.isPending}>
-            {t('save')}
-          </Button>
-        </div>
-      </form>
-    </Card>
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
+      <div>
+        <Button type="submit" disabled={!draft || save.isPending}>
+          {t('save')}
+        </Button>
+      </div>
+    </form>
   );
 }
 
@@ -147,6 +231,7 @@ function DevicesPanel() {
   const [name, setName] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [shownKey, setShownKey] = useState<{ name: string; key: string } | null>(null);
+  const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
 
   const list = useQuery({
     queryKey: ['attendance-devices', school.schoolId],
@@ -230,7 +315,8 @@ function DevicesPanel() {
       </div>
 
       {shownKey && (
-        <Alert>
+        <Alert className="border-amber-500/40 bg-amber-50 dark:bg-amber-500/10">
+          <KeyRound className="size-4" />
           <AlertDescription className="grid gap-2">
             <span className="font-medium">{t('keyOnce', { name: shownKey.name })}</span>
             <span className="flex flex-wrap items-center gap-2">
@@ -253,67 +339,102 @@ function DevicesPanel() {
         </Alert>
       )}
 
-      {list.isPending && <Skeleton className="h-32 w-full" />}
+      {list.isPending && (
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3" aria-busy>
+          {[0, 1, 2].map((i) => (
+            <Skeleton key={i} className="h-36 rounded-2xl" />
+          ))}
+        </div>
+      )}
       {list.data?.length === 0 && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{t('noDevices')}</Card>
+        <EmptyPanel
+          icon={MonitorSmartphone}
+          tone={MODULE_TONE.attendance}
+          title={t('noDevices')}
+          body={t('noDevicesBody')}
+        />
       )}
       {list.data && list.data.length > 0 && (
-        <Card className="overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('deviceName')}</TableHead>
-                <TableHead>{t('keyPrefix')}</TableHead>
-                <TableHead>{t('lastSeen')}</TableHead>
-                <TableHead>{t('status')}</TableHead>
-                <TableHead className="w-40" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {list.data.map((d) => (
-                <TableRow key={d.id}>
-                  <TableCell className="font-medium">{d.name}</TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-xs">{d.keyPrefix}…</TableCell>
-                  <TableCell className="text-muted-foreground text-sm">
-                    {d.lastSeenAt ? new Date(d.lastSeenAt).toLocaleString() : t('never')}
-                  </TableCell>
-                  <TableCell>
-                    <Badge variant={d.active ? 'secondary' : 'outline'}>
-                      {d.active ? t('active') : t('inactive')}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right whitespace-nowrap">
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      onClick={() => toggle.mutate({ id: d.id, active: !d.active })}
-                    >
-                      {d.active ? t('deactivate') : t('activate')}
-                    </Button>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label={t('rotateKey')}
-                      title={t('rotateKey')}
-                      onClick={() => rotate.mutate({ id: d.id, name: d.name })}
-                    >
-                      <RotateCw className="size-4" />
-                    </Button>
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label={t('delete')}
-                      onClick={() => remove.mutate(d.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+          {list.data.map((d, i) => {
+            const online =
+              d.active && !!d.lastSeenAt && Date.now() - new Date(d.lastSeenAt).getTime() < ONLINE_WINDOW_MS;
+            return (
+              <li
+                key={d.id}
+                style={stagger(i)}
+                className={cn(
+                  ENTER,
+                  'bg-card grid content-start gap-3 rounded-2xl border p-4',
+                  !d.active && 'opacity-75',
+                )}
+              >
+                <div className="flex items-start gap-3">
+                  <IconTile
+                    icon={MonitorSmartphone}
+                    tone={online ? 'emerald' : d.active ? 'sky' : 'slate'}
+                    className="size-10"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-medium">{d.name}</p>
+                    <p className="text-muted-foreground font-mono text-xs">{d.keyPrefix}…</p>
+                  </div>
+                  <ActionMenu
+                    label={t('deviceActionsFor', { name: d.name })}
+                    items={[
+                      {
+                        label: d.active ? t('deactivate') : t('activate'),
+                        icon: Power,
+                        disabled: toggle.isPending,
+                        onSelect: () => toggle.mutate({ id: d.id, active: !d.active }),
+                      },
+                      {
+                        label: t('rotateKey'),
+                        icon: RotateCw,
+                        disabled: rotate.isPending,
+                        onSelect: () => rotate.mutate({ id: d.id, name: d.name }),
+                      },
+                      {
+                        label: t('delete'),
+                        icon: Trash2,
+                        destructive: true,
+                        onSelect: () => setDeleting({ id: d.id, name: d.name }),
+                      },
+                    ]}
+                  />
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  {!d.active ? (
+                    <ToneBadge tone="slate">{t('deviceOff')}</ToneBadge>
+                  ) : online ? (
+                    <ToneBadge tone="emerald">{t('online')}</ToneBadge>
+                  ) : (
+                    <ToneBadge tone="amber">{t('offline')}</ToneBadge>
+                  )}
+                </div>
+                <p className="text-muted-foreground text-xs">
+                  {t('lastSeenLabel', {
+                    when: d.lastSeenAt ? new Date(d.lastSeenAt).toLocaleString() : t('never'),
+                  })}
+                </p>
+              </li>
+            );
+          })}
+        </ul>
       )}
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(o) => !o && setDeleting(null)}
+        destructive
+        title={t('confirmDeleteDevice', { name: deleting?.name ?? '' })}
+        description={t('confirmDeleteDeviceBody')}
+        confirmLabel={t('delete')}
+        pending={remove.isPending}
+        onConfirm={async () => {
+          if (deleting) await remove.mutateAsync(deleting.id);
+        }}
+      />
     </div>
   );
 }
@@ -327,6 +448,8 @@ function CardsPanel() {
   const [studentId, setStudentId] = useState('');
   const [code, setCode] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [filter, setFilter] = useState('');
+  const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
 
   const [search, setSearch] = useState('');
   const students = useQuery({
@@ -361,6 +484,10 @@ function CardsPanel() {
     onSuccess: refresh,
     onError: (e) => toast.error(te(errorKey(e))),
   });
+
+  const all = cards.data ?? [];
+  const fq = filter.trim().toLowerCase();
+  const shown = all.filter((c) => fq === '' || c.studentName.toLowerCase().includes(fq));
 
   return (
     <div className="grid gap-4">
@@ -430,43 +557,78 @@ function CardsPanel() {
 
       {mode === 'quick' && <QuickRegister />}
 
-      {cards.isPending && <Skeleton className="h-32 w-full" />}
+      {cards.isPending && <Skeleton className="h-48 rounded-2xl" aria-busy />}
       {cards.data?.length === 0 && (
-        <Card className="text-muted-foreground p-10 text-center text-sm">{t('noCards')}</Card>
+        <EmptyPanel
+          icon={CreditCard}
+          tone={MODULE_TONE.attendance}
+          title={t('noCards')}
+          body={t('noCardsBody')}
+        />
       )}
       {cards.data && cards.data.length > 0 && (
-        <Card className="overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('student')}</TableHead>
-                <TableHead>{t('cardCode')}</TableHead>
-                <TableHead className="w-12" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {cards.data.map((c) => (
-                <TableRow key={c.id}>
-                  <TableCell className="font-medium">{c.studentName}</TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-xs break-all">
-                    {c.code}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      size="icon-sm"
-                      variant="ghost"
-                      aria-label={t('delete')}
-                      onClick={() => remove.mutate(c.id)}
-                    >
-                      <Trash2 className="size-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <section className="grid gap-3">
+          <Toolbar className="gap-3">
+            <div className="relative min-w-44 flex-1 sm:max-w-xs">
+              <Search
+                aria-hidden
+                className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+              />
+              <Input
+                aria-label={t('searchCards')}
+                placeholder={t('searchCards')}
+                className="pl-9"
+                value={filter}
+                onChange={(e) => setFilter(e.target.value)}
+              />
+            </div>
+            <p className="text-muted-foreground ml-auto text-xs tabular-nums" aria-live="polite">
+              {t('cardsCount', { count: all.length })}
+            </p>
+          </Toolbar>
+          <ul className="bg-card divide-y overflow-hidden rounded-2xl border">
+            {shown.map((c, i) => (
+              <li
+                key={c.id}
+                style={stagger(i)}
+                className={cn(
+                  ENTER,
+                  'hover:bg-muted/40 grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 gap-y-1 px-4 py-3 transition-colors sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto]',
+                )}
+              >
+                <PersonCell name={c.studentName} />
+                <code className="text-muted-foreground order-last col-span-2 font-mono text-xs break-all sm:order-none sm:col-span-1">
+                  {c.code}
+                </code>
+                <ActionMenu
+                  label={t('cardActionsFor', { name: c.studentName })}
+                  items={[
+                    {
+                      label: t('delete'),
+                      icon: Trash2,
+                      destructive: true,
+                      onSelect: () => setDeleting({ id: c.id, name: c.studentName }),
+                    },
+                  ]}
+                />
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
+
+      <ConfirmDialog
+        open={!!deleting}
+        onOpenChange={(o) => !o && setDeleting(null)}
+        destructive
+        title={t('confirmDeleteCard', { name: deleting?.name ?? '' })}
+        description={t('confirmDeleteCardBody')}
+        confirmLabel={t('delete')}
+        pending={remove.isPending}
+        onConfirm={async () => {
+          if (deleting) await remove.mutateAsync(deleting.id);
+        }}
+      />
     </div>
   );
 }
@@ -489,6 +651,7 @@ function RosterPanel() {
       unwrap(await api.GET('/v1/duty-roster', { params: { ...header, query: { from: date, to: date } } })),
   });
   const current = picked ?? (roster.data ?? []).map((r) => r.teacherId);
+  const active = (teachers.data ?? []).filter((x) => x.status === 'active');
 
   const save = useMutation({
     mutationFn: async () =>
@@ -502,8 +665,7 @@ function RosterPanel() {
   });
 
   return (
-    <Card className="grid max-w-2xl gap-4 p-5">
-      <p className="text-muted-foreground text-sm">{t('rosterHint')}</p>
+    <SettingCard icon={CalendarClock} tone="violet" title={t('tab.roster')} body={t('rosterHint')}>
       <div className="grid gap-2 sm:w-56">
         <Label htmlFor="roster-date">{t('date')}</Label>
         <DatePicker
@@ -518,27 +680,46 @@ function RosterPanel() {
         />
       </div>
       <fieldset className="grid gap-2">
-        <legend className="mb-1 text-sm font-medium">{t('dutyTeachers')}</legend>
-        {(teachers.data ?? [])
-          .filter((x) => x.status === 'active')
-          .map((x) => (
-            <Label key={x.id} className="flex items-center gap-2 font-normal">
-              <Checkbox
-                checked={current.includes(x.id)}
-                onCheckedChange={(next) =>
-                  setPicked(next ? [...current, x.id] : current.filter((i) => i !== x.id))
-                }
-              />
-              {x.name}
-            </Label>
-          ))}
+        <legend className="mb-1 flex w-full items-center justify-between gap-2 text-sm font-medium">
+          {t('dutyTeachers')}
+          <ToneBadge tone="violet" dot={false}>
+            <Users aria-hidden className="size-3" /> {t('rosterDutyCount', { count: current.length })}
+          </ToneBadge>
+        </legend>
+        {teachers.isPending && <Skeleton className="h-24 rounded-xl" />}
+        {teachers.data && active.length === 0 && (
+          <p className="text-muted-foreground text-sm">{t('noTeachers')}</p>
+        )}
+        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+          {active.map((x) => {
+            const on = current.includes(x.id);
+            return (
+              <Label
+                key={x.id}
+                className={cn(
+                  'flex cursor-pointer items-center gap-3 rounded-xl border p-2.5 font-normal transition-colors',
+                  on ? 'border-violet-500/50 bg-violet-50 dark:bg-violet-500/10' : 'hover:bg-muted/50',
+                )}
+              >
+                <Checkbox
+                  checked={on}
+                  onCheckedChange={(next) =>
+                    setPicked(next ? [...current, x.id] : current.filter((i) => i !== x.id))
+                  }
+                />
+                <UserAvatar name={x.name} size="sm" />
+                <span className="min-w-0 truncate">{x.name}</span>
+              </Label>
+            );
+          })}
+        </div>
       </fieldset>
       <div>
         <Button disabled={picked === null || save.isPending} onClick={() => save.mutate()}>
           {t('save')}
         </Button>
       </div>
-    </Card>
+    </SettingCard>
   );
 }
 
@@ -550,7 +731,7 @@ export function AttendanceSettingsView({ initialTab = 'policy' }: { initialTab?:
   if (!can('attendance:configure')) {
     return (
       <PageBody>
-        <PageHeader title={t('settingsTitle')} />
+        <PageHeader icon={SlidersHorizontal} tone={MODULE_TONE.attendance} title={t('settingsTitle')} />
         <Alert variant="destructive">
           <AlertDescription>{t('noAccess')}</AlertDescription>
         </Alert>
@@ -559,20 +740,31 @@ export function AttendanceSettingsView({ initialTab = 'policy' }: { initialTab?:
   }
   return (
     <PageBody>
-      <PageHeader title={t('settingsTitle')} description={t('settingsSubtitle')} />
-      <div className="flex w-fit flex-wrap rounded-lg border p-0.5">
-        {TABS.map((k) => (
-          <Button
-            key={k}
-            size="sm"
-            variant={tab === k ? 'secondary' : 'ghost'}
-            aria-pressed={tab === k}
-            onClick={() => setTab(k)}
-          >
-            {t(`tab.${k}`)}
-          </Button>
-        ))}
-      </div>
+      <PageHeader
+        icon={SlidersHorizontal}
+        tone={MODULE_TONE.attendance}
+        title={t('settingsTitle')}
+        description={t('settingsSubtitle')}
+      />
+      <fieldset className="m-0 max-w-full min-w-0 overflow-x-auto border-0 p-0">
+        <legend className="sr-only">{t('tabsLabel')}</legend>
+        <div className="flex w-fit gap-1 rounded-xl border p-1">
+          {TABS.map((k) => {
+            const Icon = TAB_ICON[k];
+            return (
+              <Button
+                key={k}
+                size="sm"
+                variant={tab === k ? 'secondary' : 'ghost'}
+                aria-pressed={tab === k}
+                onClick={() => setTab(k)}
+              >
+                <Icon className="size-4" /> {t(`tab.${k}`)}
+              </Button>
+            );
+          })}
+        </div>
+      </fieldset>
       {tab === 'policy' && <PolicyPanel />}
       {tab === 'devices' && <DevicesPanel />}
       {tab === 'cards' && <CardsPanel />}

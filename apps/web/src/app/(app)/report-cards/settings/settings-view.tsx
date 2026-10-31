@@ -1,6 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { PenLine, Settings2, Signature } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -13,8 +14,10 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { IconTile, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { predicateTone } from '../../grades/grade-ui';
 import { Textarea } from '../textarea';
 
 const TEXT_KEYS = ['principalName', 'principalNip', 'city', 'address'] as const;
@@ -112,9 +115,14 @@ export function ReportCardSettingsView() {
 
   return (
     <PageBody>
-      <PageHeader title={t('settingsTitle')} description={t('settingsSubtitle')} />
+      <PageHeader
+        icon={Settings2}
+        tone={MODULE_TONE.academic}
+        title={t('settingsTitle')}
+        description={t('settingsSubtitle')}
+      />
 
-      {settings.isPending && manage && <Skeleton className="h-64 w-full" />}
+      {settings.isPending && manage && <Skeleton className="h-64 w-full rounded-2xl" />}
       {settings.isError && (
         <Alert variant="destructive">
           <AlertDescription>{te(errorKey(settings.error))}</AlertDescription>
@@ -129,10 +137,13 @@ export function ReportCardSettingsView() {
             save.mutate();
           }}
         >
-          <Card className="gap-4 p-4">
-            <div>
-              <h2 className="font-heading text-lg font-semibold">{t('signerTitle')}</h2>
-              <p className="text-muted-foreground text-sm">{t('signerHint')}</p>
+          <Card className="gap-4 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+            <div className="flex items-start gap-3">
+              <IconTile icon={Signature} tone={MODULE_TONE.academic} />
+              <div>
+                <h2 className="font-heading text-lg font-semibold">{t('signerTitle')}</h2>
+                <p className="text-muted-foreground text-sm">{t('signerHint')}</p>
+              </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {TEXT_KEYS.map((k) => (
@@ -149,15 +160,27 @@ export function ReportCardSettingsView() {
             </div>
           </Card>
 
-          <Card className="gap-4 p-4">
-            <div>
-              <h2 className="font-heading text-lg font-semibold">{t('descTitle')}</h2>
-              <p className="text-muted-foreground text-sm">{t('descHint')}</p>
+          <Card className="gap-4 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+            <div className="flex items-start gap-3">
+              <IconTile icon={PenLine} tone="amber" />
+              <div>
+                <h2 className="font-heading text-lg font-semibold">{t('descTitle')}</h2>
+                <p className="text-muted-foreground text-sm">{t('descHint')}</p>
+              </div>
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {DESC_KEYS.map((k) => (
                 <div key={k} className="grid gap-2">
-                  <Label htmlFor={`rc-${k}`}>{t(`field_${k}`)}</Label>
+                  <Label htmlFor={`rc-${k}`} className="gap-2">
+                    <ToneBadge
+                      tone={predicateTone(k.slice(-1))}
+                      dot={false}
+                      className="font-heading font-semibold"
+                    >
+                      {k.slice(-1)}
+                    </ToneBadge>
+                    {t(`field_${k}`)}
+                  </Label>
                   <Textarea
                     id={`rc-${k}`}
                     rows={3}
@@ -170,7 +193,7 @@ export function ReportCardSettingsView() {
             </div>
           </Card>
 
-          <Card className="gap-3 p-4">
+          <Card className="gap-3 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
             <div className="flex items-start gap-3">
               <Checkbox
                 id="rc-showRank"
