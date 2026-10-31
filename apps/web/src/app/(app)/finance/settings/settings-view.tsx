@@ -6,8 +6,10 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FORM_GRID } from '@/components/form-field';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -161,7 +163,7 @@ export function FinanceSettingsView() {
   });
 
   const feeFields = (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className={FORM_GRID}>
       <div className="grid gap-2 sm:col-span-2">
         <Label htmlFor="fee-name">{tm('name')}</Label>
         <Input
@@ -198,7 +200,7 @@ export function FinanceSettingsView() {
   );
 
   const planFields = (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className={FORM_GRID}>
       <div className="grid gap-2">
         <Label htmlFor="plan-fee">{t('feeType')}</Label>
         <SelectField
@@ -286,6 +288,7 @@ export function FinanceSettingsView() {
         tone={MODULE_TONE.finance}
         title={t('settingsTitle')}
         description={t('settingsSubtitle')}
+        actions={<BackLink href="/finance" />}
       />
 
       {!manage && (

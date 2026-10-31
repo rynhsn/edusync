@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { StudentIllustration } from '@/app/apply/illustrations';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { LevelField } from '@/components/level-field';
@@ -262,27 +263,30 @@ export function PeriodsView() {
         title={t('periodsTitle')}
         description={manage ? t('periodsSubtitle') : `${t('periodsSubtitle')} ${t('readOnly')}`}
         actions={
-          manage && (
-            <FormDialog
-              size="wide"
-              trigger={
-                <Button>
-                  <Plus className="size-4" aria-hidden /> {t('addPeriod')}
-                </Button>
-              }
-              title={t('addPeriod')}
-              submitLabel={t('add')}
-              disabled={!complete(draft)}
-              error={error}
-              onOpenChange={() => {
-                setDraft(EMPTY);
-                setError(null);
-              }}
-              onSubmit={() => create.mutateAsync()}
-            >
-              <PeriodFields idPrefix="new" draft={draft} onChange={setDraft} />
-            </FormDialog>
-          )
+          <>
+            {manage && (
+              <FormDialog
+                size="wide"
+                trigger={
+                  <Button>
+                    <Plus className="size-4" aria-hidden /> {t('addPeriod')}
+                  </Button>
+                }
+                title={t('addPeriod')}
+                submitLabel={t('add')}
+                disabled={!complete(draft)}
+                error={error}
+                onOpenChange={() => {
+                  setDraft(EMPTY);
+                  setError(null);
+                }}
+                onSubmit={() => create.mutateAsync()}
+              >
+                <PeriodFields idPrefix="new" draft={draft} onChange={setDraft} />
+              </FormDialog>
+            )}
+            <BackLink href="/admissions" />
+          </>
         }
       />
 

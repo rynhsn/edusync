@@ -20,6 +20,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FORM_GRID } from '@/components/form-field';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { RowMenu } from '@/components/row-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -28,6 +29,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TimeField } from '@/components/ui/time-field';
 import {
   EmptyPanel,
   IconTile,
@@ -98,7 +100,7 @@ function ExtracurricularFields({
   });
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className={FORM_GRID}>
       <div className="grid gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
         <Input
@@ -194,20 +196,18 @@ function ExtracurricularFields({
       </div>
       <div className="grid gap-2">
         <Label htmlFor={`${idPrefix}-starts`}>{t('startsAt')}</Label>
-        <Input
+        <TimeField
           id={`${idPrefix}-starts`}
-          type="time"
           value={draft.startsAt}
-          onChange={(e) => onChange({ ...draft, startsAt: e.target.value })}
+          onChange={(v) => onChange({ ...draft, startsAt: v })}
         />
       </div>
       <div className="grid gap-2">
         <Label htmlFor={`${idPrefix}-ends`}>{t('endsAt')}</Label>
-        <Input
+        <TimeField
           id={`${idPrefix}-ends`}
-          type="time"
           value={draft.endsAt}
-          onChange={(e) => onChange({ ...draft, endsAt: e.target.value })}
+          onChange={(v) => onChange({ ...draft, endsAt: v })}
         />
       </div>
       <div className="grid gap-2">

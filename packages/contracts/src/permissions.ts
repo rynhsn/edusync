@@ -115,6 +115,7 @@ export const SYSTEM_ROLES = {
     name: 'Bendahara',
     permissions: [
       'academic_year:read',
+      'class:read',
       'student:read',
       'finance:read',
       'finance:pay',

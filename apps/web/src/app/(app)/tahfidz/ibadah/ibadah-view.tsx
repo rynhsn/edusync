@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -452,7 +453,11 @@ export function IbadahView() {
   return (
     <PageBody>
       <TahfidzBanner>
-        <PageHeader title={t('ibadahTitle')} description={t('ibadahSubtitle')} />
+        <PageHeader
+          title={t('ibadahTitle')}
+          description={t('ibadahSubtitle')}
+          actions={<BackLink href="/tahfidz" />}
+        />
       </TahfidzBanner>
       <div className="flex w-fit rounded-xl border p-0.5">
         {(['sheet', 'report'] as const).map((k) => (

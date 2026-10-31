@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FORM_GRID } from '@/components/form-field';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -81,7 +82,7 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
             if (valid && !save.isPending) save.mutate();
           }}
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={FORM_GRID}>
             <div className="grid gap-2">
               <Label htmlFor="lf-mode">{t('lateFeeMode')}</Label>
               <SelectField

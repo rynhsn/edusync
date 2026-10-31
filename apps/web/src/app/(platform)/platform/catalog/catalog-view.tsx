@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Pencil, Plus, Trash2 } from 'lucide-react';
+import { Package, Pencil, Plus, Trash2 } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useStaff } from '../../platform-shell';
+import { QueryError } from '../platform-kit';
 
 type Kind = 'base' | 'module' | 'tier';
 interface ItemDraft {
@@ -381,8 +382,8 @@ export function CatalogView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
-  if (catalog.isPending) return <Skeleton className="h-64 w-full" />;
-  if (!catalog.data) return null;
+  if (catalog.isPending) return <Skeleton className="h-64 w-full rounded-2xl" />;
+  if (!catalog.data) return <QueryError error={catalog.error} onRetry={() => catalog.refetch()} />;
   const { items, plans } = catalog.data;
   const modules = items.filter((i) => i.kind === 'module');
   const tiers = items.filter((i) => i.kind === 'tier');
@@ -391,6 +392,8 @@ export function CatalogView() {
   return (
     <PageBody>
       <PageHeader
+        icon={Package}
+        tone="violet"
         title={t('title')}
         description={canEdit ? t('subtitle') : `${t('subtitle')} ${t('readOnly')}`}
         actions={

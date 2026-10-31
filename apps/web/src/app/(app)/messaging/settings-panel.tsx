@@ -12,6 +12,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TimeField } from '@/components/ui/time-field';
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useMessagingCtx } from './shared';
@@ -20,7 +21,6 @@ import { useMessagingCtx } from './shared';
 const SAMPLE: Record<string, string> = {
   student: 'Ahmad Fauzi',
   class: '7A',
-  school: 'Sekolah Anda',
   time: '07:05',
   date: '12 Oktober 2026',
   subject: 'Matematika',
@@ -33,8 +33,9 @@ const SAMPLE: Record<string, string> = {
 
 const PLACEHOLDER_RE = /\{\{\s*([a-zA-Z_]+)\s*\}\}/g;
 
-function preview(body: string): string {
-  return body.replace(PLACEHOLDER_RE, (whole, name: string) => SAMPLE[name] ?? whole);
+function preview(body: string, schoolName: string): string {
+  const sample: Record<string, string> = { ...SAMPLE, school: schoolName };
+  return body.replace(PLACEHOLDER_RE, (whole, name: string) => sample[name] ?? whole);
 }
 
 interface TemplateRow {
@@ -57,7 +58,7 @@ function TemplateCard({
 }) {
   const t = useTranslations('messaging');
   const te = useTranslations();
-  const { header } = useMessagingCtx();
+  const { header, school } = useMessagingCtx();
   const [body, setBody] = useState(tpl.body);
   const [enabled, setEnabled] = useState(tpl.enabled);
   const [error, setError] = useState<string | null>(null);
@@ -153,7 +154,9 @@ function TemplateCard({
 
       <div className="grid gap-1">
         <p className="text-muted-foreground text-xs font-medium">{t('preview')}</p>
-        <p className="bg-muted/50 rounded-lg border p-3 text-sm whitespace-pre-wrap">{preview(body)}</p>
+        <p className="bg-muted/50 rounded-lg border p-3 text-sm whitespace-pre-wrap">
+          {preview(body, school.schoolName)}
+        </p>
       </div>
 
       {error && (
@@ -246,24 +249,20 @@ function GeneralSettings() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
             <Label htmlFor="msg-window-start">{t('windowStart')}</Label>
-            <Input
+            <TimeField
               id="msg-window-start"
-              type="time"
-              required
               disabled={!canManage}
               value={value.windowStart}
-              onChange={(e) => set({ windowStart: e.target.value })}
+              onChange={(v) => set({ windowStart: v })}
             />
           </div>
           <div className="grid gap-2">
             <Label htmlFor="msg-window-end">{t('windowEnd')}</Label>
-            <Input
+            <TimeField
               id="msg-window-end"
-              type="time"
-              required
               disabled={!canManage}
               value={value.windowEnd}
-              onChange={(e) => set({ windowEnd: e.target.value })}
+              onChange={(v) => set({ windowEnd: v })}
             />
           </div>
         </div>
@@ -304,12 +303,11 @@ function GeneralSettings() {
 
         <div className="grid gap-2 sm:w-1/2">
           <Label htmlFor="msg-absent-at">{t('absentAt')}</Label>
-          <Input
+          <TimeField
             id="msg-absent-at"
-            type="time"
             disabled={!canManage || value.absentNoticeAt === null}
             value={value.absentNoticeAt ?? ''}
-            onChange={(e) => set({ absentNoticeAt: e.target.value })}
+            onChange={(v) => set({ absentNoticeAt: v })}
           />
           <Label className="flex items-center gap-2 font-normal">
             <Checkbox

@@ -13,3 +13,5 @@ coverage/
 .wa-sessions/
 graphify-out/
 apps/worker/.wwebjs_cache/
+testsprite_tests/tmp/
+testsprite_tests/tmp/config.json

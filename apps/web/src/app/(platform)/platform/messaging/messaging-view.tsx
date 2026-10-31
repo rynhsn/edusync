@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CircleAlert, CircleCheck, CircleHelp } from 'lucide-react';
+import { CircleAlert, CircleCheck, CircleHelp, Send } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -15,9 +15,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { StatCard, type Tone } from '@/components/ui-kit';
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useStaff } from '../../platform-shell';
+import { QueryError } from '../platform-kit';
 
 type Provider = 'whatsapp' | 'log';
 
@@ -44,13 +46,21 @@ const CHROME_TONE = {
   not_found: 'text-destructive',
 } as const;
 
-function Stat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-lg border p-3">
-      <p className="text-muted-foreground text-xs">{label}</p>
-      <p className="font-heading text-2xl font-semibold tabular-nums">{value.toLocaleString()}</p>
-    </div>
-  );
+const STAT_TONE: Record<string, Tone> = {
+  queued: 'sky',
+  sending: 'sky',
+  sent: 'emerald',
+  failed: 'rose',
+  skipped: 'slate',
+  ready: 'emerald',
+  qr: 'amber',
+  connecting: 'sky',
+  disconnected: 'slate',
+};
+
+function Stat({ id, label, value }: { id: string; label: string; value: number }) {
+  const tone = value === 0 && id === 'failed' ? 'slate' : (STAT_TONE[id] ?? 'slate');
+  return <StatCard tone={tone} label={label} value={value.toLocaleString()} />;
 }
 
 export function PlatformMessagingView() {
@@ -122,8 +132,8 @@ export function PlatformMessagingView() {
     onError: (e) => setError(te(errorKey(e))),
   });
 
-  if (settings.isPending) return <Skeleton className="h-64 w-full" />;
-  if (!settings.data) return null;
+  if (settings.isPending) return <Skeleton className="h-64 w-full rounded-2xl" />;
+  if (!settings.data) return <QueryError error={settings.error} onRetry={() => settings.refetch()} />;
   const s = settings.data;
   const chrome = s.runtime?.chrome.status;
   const ChromeIcon = chrome ? CHROME_ICON[chrome] : CircleHelp;
@@ -133,6 +143,8 @@ export function PlatformMessagingView() {
   return (
     <PageBody>
       <PageHeader
+        icon={Send}
+        tone="emerald"
         title={t('title')}
         description={canEdit ? t('subtitle') : `${t('subtitle')} ${t('readOnly')}`}
       />
@@ -329,6 +341,7 @@ export function PlatformMessagingView() {
             {MESSAGE_STATUSES.map((k) => (
               <Stat
                 key={k}
+                id={k}
                 label={t(`msgStatus.${k}`)}
                 value={Number((s.messages24h as Record<string, number>)[k] ?? 0)}
               />
@@ -345,7 +358,7 @@ export function PlatformMessagingView() {
         <CardContent>
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
             {ACCOUNT_STATUSES.map((k) => (
-              <Stat key={k} label={t(`accountStatus.${k}`)} value={Number(s.accounts[k] ?? 0)} />
+              <Stat key={k} id={k} label={t(`accountStatus.${k}`)} value={Number(s.accounts[k] ?? 0)} />
             ))}
           </div>
         </CardContent>

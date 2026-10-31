@@ -185,6 +185,7 @@ export function RegisterForm() {
         }),
       );
       try {
+        sessionStorage.removeItem('edusync.payReturn');
         sessionStorage.setItem('edusync.pendingRegistration', created.registrationId);
       } catch {
         // Tanpa penyimpanan sesi, halaman status tetap bisa dibuka lewat tautan dari penyedia pembayaran.

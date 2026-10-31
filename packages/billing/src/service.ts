@@ -10,6 +10,7 @@ import {
   and,
   assignRoles,
   auditLog,
+  changeOrder,
   type Db,
   entitlement,
   eq,
@@ -18,6 +19,7 @@ import {
   gt,
   inArray,
   invoice,
+  isNull,
   loadBillingSettings,
   loadCatalog,
   lt,
@@ -27,11 +29,13 @@ import {
   school,
   seedSchoolRoles,
   slugReservation,
+  sql,
   subscription,
   type Tx,
   user,
 } from '@edusync/db';
 import { enqueue, QUEUES } from '@edusync/jobs';
+import { activateNewUnit, applyUpgradeOrder } from './changes';
 import { DomainError } from './errors';
 import { addMonths, applyRenewal } from './lifecycle';
 import type { PaymentEvent, PaymentProvider } from './provider';
@@ -39,6 +43,7 @@ import type { PaymentEvent, PaymentProvider } from './provider';
 export type PaymentOutcome =
   | 'activated'
   | 'renewed'
+  | 'upgraded'
   | 'duplicate'
   | 'unknown_invoice'
   | 'recorded'
@@ -74,6 +79,15 @@ async function releaseRegistration(tx: Tx, registrationId: string) {
     .set({ status: 'void' })
     .where(and(eq(invoice.registrationId, registrationId), eq(invoice.status, 'open')));
   await tx.delete(slugReservation).where(eq(slugReservation.registrationId, registrationId));
+  await tx
+    .update(changeOrder)
+    .set({ status: 'canceled' })
+    .where(
+      and(
+        eq(changeOrder.status, 'pending_payment'),
+        sql`${changeOrder.invoiceId} in (select id from invoice where registration_id = ${registrationId})`,
+      ),
+    );
 }
 
 export interface CreateRegistrationResult {
@@ -113,7 +127,13 @@ export async function createRegistration(
     const previous = await tx
       .select({ id: registration.id })
       .from(registration)
-      .where(and(eq(registration.userId, account.id), eq(registration.status, 'pending_payment')));
+      .where(
+        and(
+          eq(registration.userId, account.id),
+          eq(registration.status, 'pending_payment'),
+          isNull(registration.foundationId),
+        ),
+      );
     for (const p of previous) await releaseRegistration(tx, p.id);
     await tx.delete(slugReservation).where(lt(slugReservation.expiresAt, new Date()));
 
@@ -313,6 +333,10 @@ export async function handlePaymentEvent(
       if (inv.status === 'open') {
         await tx.update(invoice).set({ status: 'expired' }).where(eq(invoice.id, inv.id));
         if (inv.registrationId) await releaseRegistration(tx, inv.registrationId);
+        await tx
+          .update(changeOrder)
+          .set({ status: 'canceled' })
+          .where(and(eq(changeOrder.invoiceId, inv.id), eq(changeOrder.status, 'pending_payment')));
       }
       return 'failed';
     }
@@ -322,6 +346,12 @@ export async function handlePaymentEvent(
     if (inv.status === 'paid') return 'duplicate';
     if (!inv.registrationId) {
       if (!inv.foundationId) return 'recorded';
+      const [order] = await tx
+        .select()
+        .from(changeOrder)
+        .where(eq(changeOrder.invoiceId, inv.id))
+        .for('update');
+      if (order) return applyUpgradeOrder(tx, order, inv);
       await applyRenewal(tx, inv);
       return 'renewed';
     }
@@ -343,7 +373,9 @@ export async function handlePaymentEvent(
       .where(and(inArray(slugReservation.slug, slugs), gt(slugReservation.expiresAt, new Date())));
     if (taken.length > 0 || heldByOthers.some((h) => h.registrationId !== reg.id)) return 'needs_review';
 
-    await activateRegistration(tx, reg, inv);
+    // Pendaftaran yang sudah punya yayasan adalah pesanan unit baru untuk yayasan itu.
+    if (reg.foundationId) await activateNewUnit(tx, reg, inv);
+    else await activateRegistration(tx, reg, inv);
     return 'activated';
   });
 }

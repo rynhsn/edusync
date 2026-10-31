@@ -28,6 +28,7 @@ import { ActionMenu, ENTER, stagger } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FORM_GRID } from '@/components/form-field';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -37,6 +38,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TimeField } from '@/components/ui/time-field';
 import {
   EmptyPanel,
   IconTile,
@@ -158,26 +160,18 @@ function PolicyPanel() {
           title={t('policyTimesTitle')}
           body={t('policyTimesBody')}
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={FORM_GRID}>
             <div className="grid content-start gap-2">
               <Label htmlFor="late-after">{t('lateAfter')}</Label>
-              <Input
-                id="late-after"
-                type="time"
-                required
-                value={value.lateAfter}
-                onChange={(e) => set({ lateAfter: e.target.value })}
-              />
+              <TimeField id="late-after" value={value.lateAfter} onChange={(v) => set({ lateAfter: v })} />
               <p className="text-muted-foreground text-xs">{t('lateAfterHint')}</p>
             </div>
             <div className="grid content-start gap-2">
               <Label htmlFor="departure-from">{t('departureFrom')}</Label>
-              <Input
+              <TimeField
                 id="departure-from"
-                type="time"
-                required
                 value={value.departureFrom}
-                onChange={(e) => set({ departureFrom: e.target.value })}
+                onChange={(v) => set({ departureFrom: v })}
               />
               <p className="text-muted-foreground text-xs">{t('departureFromHint')}</p>
             </div>
@@ -518,7 +512,7 @@ function CardsPanel() {
           disabled={!studentId || code.trim().length < 4}
           onSubmit={() => create.mutateAsync()}
         >
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={FORM_GRID}>
             <div className="grid gap-2 sm:col-span-2">
               <Label htmlFor="card-search">{t('searchStudent')}</Label>
               <Input

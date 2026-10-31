@@ -186,9 +186,10 @@ describe('konsol staf platform', () => {
     await app.platformDb.insert(platformStaff).values({ userId: staff.id, role: 'read_only' });
 
     expect((await get('/v1/platform/me', staff.cookie)).json()).toEqual({ role: 'read_only' });
-    const list = (
-      await get(`/v1/platform/foundations?q=${encodeURIComponent('Yayasan baca')}`, staff.cookie)
-    ).json();
+    // Nama tetap dari proses uji lama bisa tersisa di DB bersama, jadi pilih yayasan milik tes ini lewat id.
+    const list = (await get(`/v1/platform/foundations?q=${encodeURIComponent('Yayasan baca')}`, staff.cookie))
+      .json()
+      .filter((x: { id: string }) => x.id === f.foundationId);
     expect(list).toHaveLength(1);
     expect(list[0].schools).toHaveLength(2);
     expect(list[0].subscription.status).toBe('active');
@@ -201,6 +202,14 @@ describe('konsol staf platform', () => {
       'attendance',
       'internship',
     ]);
+
+    // Ringkasan dipakai dasbor; DB dipakai bersama, jadi hanya periksa batas bawah dan bentuknya.
+    const overview = (await get('/v1/platform/overview', staff.cookie)).json();
+    expect(overview.foundations).toBeGreaterThanOrEqual(1);
+    expect(overview.activeUnits).toBeGreaterThanOrEqual(2);
+    expect(overview.activeSubscriptions).toBeGreaterThanOrEqual(1);
+    expect(overview.mrr).toBeGreaterThan(0);
+    expect((await get('/v1/platform/overview', f.owner.cookie)).statusCode).toBe(403);
 
     const blocked = await post(`/v1/platform/schools/${f.smp}/suspend`, staff.cookie, { reason: 'uji coba' });
     expect(blocked.statusCode).toBe(403);

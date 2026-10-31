@@ -3,17 +3,19 @@ import { DEFAULT_BILLING_SETTINGS, quoteUnits, type UnitSelection } from '@edusy
 import {
   and,
   auditLog,
+  changeOrder,
   type Db,
   entitlement,
   eq,
+  foundationOwner,
   inArray,
   invoice,
   isNull,
   loadBillingSettings,
   loadCatalog,
   lt,
-  registration,
   school,
+  sql,
   subscription,
   type Tx,
   user,
@@ -61,7 +63,31 @@ export async function applyRenewal(tx: Tx, inv: typeof invoice.$inferSelect, now
     .where(eq(school.foundationId, foundationId));
   const ids = schools.map((s) => s.id);
   if (ids.length > 0) {
+    // Modul yang sudah lepas pada periode lalu dibuang agar tidak hidup lagi oleh perpanjangan.
+    await tx
+      .delete(entitlement)
+      .where(and(inArray(entitlement.schoolId, ids), lt(entitlement.validUntil, sub.currentPeriodEnd)));
     await tx.update(entitlement).set({ validUntil: end }).where(inArray(entitlement.schoolId, ids));
+    // Penurunan terjadwal: modul yang dilepas berlaku sampai akhir periode lama, tingkat baru berlaku sekarang.
+    const scheduled = await tx
+      .select()
+      .from(changeOrder)
+      .where(and(eq(changeOrder.foundationId, foundationId), eq(changeOrder.status, 'scheduled')))
+      .for('update');
+    for (const order of scheduled) {
+      if (!order.schoolId) continue;
+      const remove = order.payload.removeModules ?? [];
+      if (remove.length > 0) {
+        await tx
+          .update(entitlement)
+          .set({ validUntil: sub.currentPeriodEnd })
+          .where(and(eq(entitlement.schoolId, order.schoolId), inArray(entitlement.moduleKey, remove)));
+      }
+      if (order.payload.tier) {
+        await tx.update(school).set({ studentTier: order.payload.tier }).where(eq(school.id, order.schoolId));
+      }
+      await tx.update(changeOrder).set({ status: 'applied' }).where(eq(changeOrder.id, order.id));
+    }
     await tx
       .update(school)
       .set({ status: 'active', suspendedReason: null })
@@ -73,6 +99,127 @@ export async function applyRenewal(tx: Tx, inv: typeof invoice.$inferSelect, now
     entityId: sub.id,
     details: { invoiceId: inv.id, foundationId, periodEnd: end.toISOString() },
   });
+}
+
+/** Syarat invoice terbuka milik perpanjangan: bukan pendaftaran dan bukan pesanan perubahan paket. */
+const openRenewal = (foundationId: string) =>
+  and(
+    eq(invoice.foundationId, foundationId),
+    isNull(invoice.registrationId),
+    eq(invoice.status, 'open'),
+    sql`not exists (select 1 from change_order c where c.invoice_id = ${invoice.id})`,
+  );
+
+/**
+ * Buat invoice perpanjangan satu langganan bila belum ada yang terbuka. Penurunan terjadwal ikut diperhitungkan
+ * sehingga tagihan memuat paket periode berikutnya. Mengembalikan invoice yang dipakai dan apakah baru dibuat.
+ */
+export async function createRenewalInvoice(
+  db: Db,
+  provider: PaymentProvider,
+  subscriptionId: string,
+  opts: { skipLocked?: boolean; payer?: { name: string; email: string } } = {},
+) {
+  const settings = await loadBillingSettings(db);
+  const result = await db.transaction(async (tx) => {
+    const [sub] = await tx
+      .select()
+      .from(subscription)
+      .where(eq(subscription.id, subscriptionId))
+      .for('update', opts.skipLocked ? { skipLocked: true } : {});
+    if (!sub) return null;
+
+    const [open] = await tx.select().from(invoice).where(openRenewal(sub.foundationId));
+    if (open) return { existing: open };
+
+    const schools = await tx.select().from(school).where(eq(school.foundationId, sub.foundationId));
+    const ents = await tx
+      .select({ schoolId: entitlement.schoolId, moduleKey: entitlement.moduleKey })
+      .from(entitlement)
+      .where(
+        inArray(
+          entitlement.schoolId,
+          schools.map((s) => s.id),
+        ),
+      );
+    const scheduled = await tx
+      .select()
+      .from(changeOrder)
+      .where(and(eq(changeOrder.foundationId, sub.foundationId), eq(changeOrder.status, 'scheduled')));
+    const units: (UnitSelection & { name: string })[] = schools.map((s) => {
+      const plan = scheduled.find((o) => o.schoolId === s.id)?.payload;
+      return {
+        name: s.name,
+        tier: plan?.tier ?? s.studentTier,
+        modules: ents
+          .filter((e) => e.schoolId === s.id && !plan?.removeModules?.includes(e.moduleKey))
+          .map((e) => e.moduleKey),
+      };
+    });
+    const quote = quoteUnits(await loadCatalog(db, { includeInactive: true }), units, sub.period, {
+      yearlyMonths: settings.yearlyMonths,
+    });
+
+    const [first] = await tx
+      .select({ name: user.name, email: user.email })
+      .from(foundationOwner)
+      .innerJoin(user, eq(user.id, foundationOwner.userId))
+      .where(eq(foundationOwner.foundationId, sub.foundationId))
+      .orderBy(foundationOwner.createdAt)
+      .limit(1);
+    const owner = opts.payer ?? first;
+    if (!owner) return null;
+
+    const orderId = `ren-${randomUUID()}`;
+    const [inv] = await tx
+      .insert(invoice)
+      .values({
+        foundationId: sub.foundationId,
+        amount: quote.total,
+        provider: provider.name,
+        providerRef: orderId,
+        lines: quote.lines,
+        dueAt: sub.currentPeriodEnd,
+      })
+      .returning();
+    return { inv: inv!, owner, orderId, amount: quote.total, periodEnd: sub.currentPeriodEnd };
+  });
+  if (!result) return null;
+  if ('existing' in result) return { invoice: result.existing, created: false };
+
+  // Penyedia dipanggil di luar transaksi; bila gagal, invoice dibatalkan dan dicoba lagi pada putaran berikutnya.
+  try {
+    const { paymentUrl } = await provider.createCharge({
+      orderId: result.orderId,
+      amount: result.amount,
+      customer: { name: result.owner.name, email: result.owner.email },
+      description: 'Perpanjangan langganan Edusync',
+      returnPath: '/account/billing',
+    });
+    await db.transaction(async (tx) => {
+      await tx.update(invoice).set({ paymentUrl }).where(eq(invoice.id, result.inv.id));
+      await enqueue(tx, QUEUES.emailSend, {
+        to: result.owner.email,
+        subject: 'Tagihan perpanjangan Edusync',
+        text:
+          `Halo ${result.owner.name},
+
+Langganan Edusync Anda berakhir pada ${result.periodEnd.toISOString().slice(0, 10)}.
+` +
+          `Tagihan perpanjangan: Rp ${result.amount.toLocaleString('id-ID')}.
+
+Bayar di: ${paymentUrl}
+
+` +
+          `Bila terlambat lebih dari ${settings.graceDays} hari, akses sekolah akan dihentikan sementara dan dibuka lagi setelah dibayar.`,
+      });
+    });
+    return { invoice: { ...result.inv, paymentUrl }, created: true };
+  } catch (error) {
+    console.error('[billing] gagal membuat tagihan perpanjangan', error);
+    await db.update(invoice).set({ status: 'void' }).where(eq(invoice.id, result.inv.id));
+    return null;
+  }
 }
 
 /**
@@ -93,94 +240,9 @@ export async function createRenewalInvoices(db: Db, provider: PaymentProvider, n
     );
 
   let created = 0;
-  for (const { id: subscriptionId } of candidates) {
-    const result = await db.transaction(async (tx) => {
-      const [sub] = await tx
-        .select()
-        .from(subscription)
-        .where(eq(subscription.id, subscriptionId))
-        .for('update', { skipLocked: true });
-      if (!sub) return null;
-
-      const [open] = await tx
-        .select({ id: invoice.id })
-        .from(invoice)
-        .where(
-          and(
-            eq(invoice.foundationId, sub.foundationId),
-            isNull(invoice.registrationId),
-            eq(invoice.status, 'open'),
-          ),
-        );
-      if (open) return null;
-
-      const schools = await tx.select().from(school).where(eq(school.foundationId, sub.foundationId));
-      const ents = await tx
-        .select({ schoolId: entitlement.schoolId, moduleKey: entitlement.moduleKey })
-        .from(entitlement)
-        .where(
-          inArray(
-            entitlement.schoolId,
-            schools.map((s) => s.id),
-          ),
-        );
-      const units: (UnitSelection & { name: string })[] = schools.map((s) => ({
-        name: s.name,
-        tier: s.studentTier,
-        modules: ents.filter((e) => e.schoolId === s.id).map((e) => e.moduleKey),
-      }));
-      const quote = quoteUnits(await loadCatalog(db, { includeInactive: true }), units, sub.period, {
-        yearlyMonths: settings.yearlyMonths,
-      });
-
-      const [reg] = await tx
-        .select()
-        .from(registration)
-        .where(eq(registration.foundationId, sub.foundationId));
-      const [owner] = reg ? await tx.select().from(user).where(eq(user.id, reg.userId)) : [];
-      if (!owner) return null;
-
-      const orderId = `ren-${randomUUID()}`;
-      const [inv] = await tx
-        .insert(invoice)
-        .values({
-          foundationId: sub.foundationId,
-          amount: quote.total,
-          provider: provider.name,
-          providerRef: orderId,
-          lines: quote.lines,
-          dueAt: sub.currentPeriodEnd,
-        })
-        .returning();
-      return { inv: inv!, owner, orderId, amount: quote.total, periodEnd: sub.currentPeriodEnd };
-    });
-    if (!result) continue;
-
-    // Penyedia dipanggil di luar transaksi; bila gagal, invoice dibatalkan dan dicoba lagi pada putaran berikutnya.
-    try {
-      const { paymentUrl } = await provider.createCharge({
-        orderId: result.orderId,
-        amount: result.amount,
-        customer: { name: result.owner.name, email: result.owner.email },
-        description: 'Perpanjangan langganan Edusync',
-        returnPath: '/dashboard',
-      });
-      await db.transaction(async (tx) => {
-        await tx.update(invoice).set({ paymentUrl }).where(eq(invoice.id, result.inv.id));
-        await enqueue(tx, QUEUES.emailSend, {
-          to: result.owner.email,
-          subject: 'Tagihan perpanjangan Edusync',
-          text:
-            `Halo ${result.owner.name},\n\nLangganan Edusync Anda berakhir pada ${result.periodEnd.toISOString().slice(0, 10)}.\n` +
-            `Tagihan perpanjangan: Rp ${result.amount.toLocaleString('id-ID')}.\n\nBayar di: ${paymentUrl}\n\n` +
-            `Bila terlambat lebih dari ${settings.graceDays} hari, akses sekolah akan dihentikan sementara dan dibuka lagi setelah dibayar.`,
-        });
-      });
-      created++;
-    } catch (error) {
-      console.error('[billing] gagal membuat tagihan perpanjangan', error);
-      await db.update(invoice).set({ status: 'void' }).where(eq(invoice.id, result.inv.id));
-    }
+  for (const { id } of candidates) {
+    const result = await createRenewalInvoice(db, provider, id, { skipLocked: true });
+    if (result?.created) created++;
   }
   return created;
 }

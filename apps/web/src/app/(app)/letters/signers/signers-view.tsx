@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
@@ -109,16 +110,19 @@ export function SignersView() {
         title={t('signersTitle')}
         description={t('signersDescription')}
         actions={
-          manage && (
-            <Button
-              onClick={() => {
-                setError(null);
-                setForm(EMPTY);
-              }}
-            >
-              <UserPlus className="size-4" /> {t('signerAdd')}
-            </Button>
-          )
+          <>
+            {manage && (
+              <Button
+                onClick={() => {
+                  setError(null);
+                  setForm(EMPTY);
+                }}
+              >
+                <UserPlus className="size-4" /> {t('signerAdd')}
+              </Button>
+            )}
+            <BackLink href="/letters" />
+          </>
         }
       />
 

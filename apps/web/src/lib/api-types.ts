@@ -842,7 +842,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            outcome: "activated" | "renewed" | "duplicate" | "unknown_invoice" | "recorded" | "failed" | "amount_mismatch" | "needs_review";
+                            outcome: "activated" | "renewed" | "upgraded" | "duplicate" | "unknown_invoice" | "recorded" | "failed" | "amount_mismatch" | "needs_review";
                         };
                     };
                 };
@@ -911,7 +911,7 @@ export interface paths {
                     content: {
                         "application/json": {
                             /** @enum {string} */
-                            outcome: "activated" | "renewed" | "duplicate" | "unknown_invoice" | "recorded" | "failed" | "amount_mismatch" | "needs_review";
+                            outcome: "activated" | "renewed" | "upgraded" | "duplicate" | "unknown_invoice" | "recorded" | "failed" | "amount_mismatch" | "needs_review";
                         };
                     };
                 };
@@ -963,6 +963,82 @@ export interface paths {
                         "application/json": {
                             /** @enum {string} */
                             role: "admin" | "read_only";
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/platform/overview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ringkasan konsol platform
+         * @description Staf platform. Cacah yayasan, unit aktif/tertangguhkan, langganan, invoice terbuka, pendaftaran tertunda, dan MRR perkiraan (rupiah per bulan) dari tagihan terbayar terakhir tiap langganan aktif, tanpa yang hanya komplimen.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            foundations: number;
+                            activeUnits: number;
+                            suspendedUnits: number;
+                            activeSubscriptions: number;
+                            pastDueSubscriptions: number;
+                            openInvoices: number;
+                            pendingRegistrations: number;
+                            mrr: number;
                         };
                     };
                 };
@@ -3791,7 +3867,7 @@ export interface paths {
         };
         /**
          * Langganan dan tagihan yayasan milik pengguna
-         * @description Untuk pemilik yayasan: status langganan, unit beserta modulnya, dan tagihan terbaru. Pengguna yang bukan pemilik mendapat daftar kosong. Tautan bayar hanya untuk tagihan yang masih terbuka.
+         * @description Untuk pemilik yayasan: status langganan, unit beserta modulnya (dan penurunan yang dijadwalkan), dan tagihan terbaru. Pengguna yang bukan pemilik mendapat daftar kosong. Tautan bayar hanya untuk tagihan yang masih terbuka.
          */
         get: {
             parameters: {
@@ -3820,6 +3896,8 @@ export interface paths {
                                     /** @enum {string} */
                                     period: "monthly" | "yearly";
                                     /** Format: date-time */
+                                    currentPeriodStart: string;
+                                    /** Format: date-time */
                                     currentPeriodEnd: string;
                                 } | null;
                                 schools: {
@@ -3833,10 +3911,16 @@ export interface paths {
                                     suspendedReason: "billing" | "staff" | null;
                                     tier: string;
                                     modules: string[];
+                                    scheduled: {
+                                        removeModules: string[];
+                                        tier: string | null;
+                                    } | null;
                                 }[];
                                 invoices: {
                                     /** Format: uuid */
                                     id: string;
+                                    /** @enum {string} */
+                                    kind: "registration" | "renewal" | "upgrade" | "new_unit";
                                     amount: number;
                                     currency: string;
                                     /** @enum {string} */
@@ -3855,6 +3939,676 @@ export interface paths {
                 };
                 /** @description Default Response */
                 401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/units/{schoolId}/change-quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hitung perubahan paket unit (tanpa menyimpan)
+         * @description Pemilik yayasan. Harga dari katalog server; modul syarat otomatis ikut. Penambahan modul dan kenaikan tingkat dihitung prorata untuk sisa periode dan berlaku setelah bayar; pelepasan modul dan penurunan tingkat berlaku di periode berikutnya tanpa biaya. Galat: invalid_selection, no_change, subscription_inactive, not_found.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    schoolId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        modules: string[];
+                        tier: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            addModules: string[];
+                            removeModules: string[];
+                            tier: string;
+                            currentTier: string;
+                            tierNow: boolean;
+                            tierNext: boolean;
+                            lines: {
+                                key: string;
+                                name: string;
+                                amount: number;
+                            }[];
+                            total: number;
+                            fraction: number;
+                            /** Format: date-time */
+                            periodEnd: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/units/{schoolId}/change": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tingkatkan paket, tambah modul, atau ubah tingkat siswa unit
+         * @description Pemilik yayasan. Membuat invoice "upgrade" bila ada biaya sekarang; setelah pembayaran terkonfirmasi (webhook/dev) hak modul dan tingkat unit diperbarui sekali saja. Penurunan dijadwalkan ke periode berikutnya dan menggantikan jadwal sebelumnya. Galat: invalid_selection, no_change, subscription_inactive, payment_unavailable.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    schoolId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        modules: string[];
+                        tier: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            invoiceId: string | null;
+                            amount: number;
+                            paymentUrl: string | null;
+                            appliedNow: boolean;
+                            scheduled: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/foundations/{foundationId}/units/quote": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Hitung biaya unit sekolah baru (tanpa menyimpan)
+         * @description Pemilik yayasan. Biaya penuh paket dikali sisa periode langganan yayasan (prorata). Galat: invalid_selection, subscription_inactive, not_found.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    foundationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        modules: string[];
+                        tier: string;
+                        name: string;
+                        slug: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            lines: {
+                                key: string;
+                                name: string;
+                                amount: number;
+                            }[];
+                            total: number;
+                            fraction: number;
+                            /** Format: date-time */
+                            periodEnd: string;
+                            modules: string[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/foundations/{foundationId}/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tambah unit sekolah ke yayasan dan buat invoice
+         * @description Pemilik yayasan. Subdomain dipesan 24 jam. Setelah pembayaran terkonfirmasi unit dibuat lengkap (peran bawaan, pemilik menjadi admin awal, hak modul tersambung ke langganan yayasan). Status dapat dipantau lewat GET /v1/registrations/{id}. Galat: invalid_selection, slug_taken, subscription_inactive, payment_unavailable.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    foundationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        modules: string[];
+                        tier: string;
+                        name: string;
+                        slug: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            registrationId: string;
+                            /** Format: uuid */
+                            invoiceId: string;
+                            amount: number;
+                            paymentUrl: string;
+                            /** Format: date-time */
+                            expiresAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/foundations/{foundationId}/renewal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Perpanjang langganan yayasan sekarang
+         * @description Pemilik yayasan. Mengembalikan tagihan perpanjangan yang sudah terbuka, atau membuatnya bila belum ada. Penurunan paket terjadwal ikut diperhitungkan. Galat: subscription_inactive, payment_unavailable.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    foundationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            invoiceId: string;
+                            amount: number;
+                            paymentUrl: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/foundations/{foundationId}/owners": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar pemilik yayasan
+         * @description Hanya untuk sesama pemilik yayasan. Galat: not_found.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    foundationId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            owners: {
+                                userId: string;
+                                name: string;
+                                email: string;
+                                /** Format: date-time */
+                                since: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
                     headers: {
                         [name: string]: unknown;
                     };

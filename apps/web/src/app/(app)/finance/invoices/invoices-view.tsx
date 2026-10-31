@@ -21,6 +21,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -413,126 +414,137 @@ export function InvoicesView() {
         description={t('invoicesSubtitle')}
         actions={
           <>
-            <Button variant="outline" disabled={exporting} onClick={exportExcel}>
-              <Download className="size-4" /> {exporting ? tm('exporting') : tm('export')}
-            </Button>
-            {manage && (
-              <FormDialog
-                size="wide"
-                trigger={
-                  <Button>
-                    <FilePlus2 className="size-4" /> {t('generate')}
-                  </Button>
-                }
-                title={t('generate')}
-                description={t('generateHint')}
-                submitLabel={t('generate')}
-                error={error}
-                disabled={!gen.feeTypeId || !gen.dueDate || (genMonthly && !gen.period)}
-                onOpenChange={() => {
-                  setGen({ feeTypeId: '', period: '', classId: '', dueDate: todayIso(), installments: '' });
-                  setError(null);
-                }}
-                onSubmit={() => generate.mutateAsync()}
-              >
-                <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid gap-2">
-                    <Label htmlFor="gen-fee">{t('feeType')}</Label>
-                    <SelectField
-                      id="gen-fee"
-                      value={gen.feeTypeId}
-                      placeholder={t('chooseFeeType')}
-                      onChange={(e) => {
-                        const f = feeList.find((x) => x.id === e.target.value);
-                        setGen({
-                          ...gen,
-                          feeTypeId: e.target.value,
-                          period: f?.kind === 'monthly' ? todayIso().slice(0, 7) : '',
-                          installments: '',
-                        });
-                      }}
-                    >
-                      {feeList
-                        .filter((f) => f.active)
-                        .map((f) => (
-                          <option key={f.id} value={f.id}>
-                            {f.name}
-                          </option>
-                        ))}
-                    </SelectField>
-                  </div>
-                  <div className="grid gap-2">
-                    <Label htmlFor="gen-class">{t('class')}</Label>
-                    <SelectField
-                      id="gen-class"
-                      value={gen.classId}
-                      onChange={(e) => setGen({ ...gen, classId: e.target.value })}
-                    >
-                      <option value="">{t('allClasses')}</option>
-                      {classList.map((c) => (
-                        <option key={c.id} value={c.id}>
-                          {c.name}
-                        </option>
-                      ))}
-                    </SelectField>
-                  </div>
-                  {genMonthly && (
-                    <div className="grid gap-2">
-                      <Label htmlFor="gen-period-month">{t('period')}</Label>
-                      <PeriodPicker
-                        idPrefix="gen-period"
-                        value={gen.period}
-                        onChange={(v) => setGen({ ...gen, period: v })}
-                      />
-                    </div>
-                  )}
-                  <div className="grid gap-2">
-                    <Label htmlFor="gen-due">{t('dueDate')}</Label>
-                    <DatePicker
-                      id="gen-due"
-                      value={gen.dueDate}
-                      onChange={(v) => setGen({ ...gen, dueDate: v })}
-                    />
-                  </div>
-                  {genFee && !genMonthly && (
-                    <div className="bg-muted/40 grid gap-3 rounded-xl border p-3 sm:col-span-2">
-                      <div className="grid gap-2 sm:grid-cols-2">
-                        <div className="grid gap-2">
-                          <Label htmlFor="gen-installments">{t('installments')}</Label>
-                          <SelectField
-                            id="gen-installments"
-                            value={gen.installments}
-                            onChange={(e) => setGen({ ...gen, installments: e.target.value })}
-                          >
-                            <option value="">{t('installmentsOnce')}</option>
-                            {INSTALLMENT_CHOICES.map((n) => (
-                              <option key={n} value={String(n)}>
-                                {t('installmentsN', { count: n })}
+            {
+              <>
+                <Button variant="outline" disabled={exporting} onClick={exportExcel}>
+                  <Download className="size-4" /> {exporting ? tm('exporting') : tm('export')}
+                </Button>
+                {manage && (
+                  <FormDialog
+                    size="wide"
+                    trigger={
+                      <Button>
+                        <FilePlus2 className="size-4" /> {t('generate')}
+                      </Button>
+                    }
+                    title={t('generate')}
+                    description={t('generateHint')}
+                    submitLabel={t('generate')}
+                    error={error}
+                    disabled={!gen.feeTypeId || !gen.dueDate || (genMonthly && !gen.period)}
+                    onOpenChange={() => {
+                      setGen({
+                        feeTypeId: '',
+                        period: '',
+                        classId: '',
+                        dueDate: todayIso(),
+                        installments: '',
+                      });
+                      setError(null);
+                    }}
+                    onSubmit={() => generate.mutateAsync()}
+                  >
+                    <div className="grid gap-4 sm:grid-cols-2">
+                      <div className="grid gap-2">
+                        <Label htmlFor="gen-fee">{t('feeType')}</Label>
+                        <SelectField
+                          id="gen-fee"
+                          value={gen.feeTypeId}
+                          placeholder={t('chooseFeeType')}
+                          onChange={(e) => {
+                            const f = feeList.find((x) => x.id === e.target.value);
+                            setGen({
+                              ...gen,
+                              feeTypeId: e.target.value,
+                              period: f?.kind === 'monthly' ? todayIso().slice(0, 7) : '',
+                              installments: '',
+                            });
+                          }}
+                        >
+                          {feeList
+                            .filter((f) => f.active)
+                            .map((f) => (
+                              <option key={f.id} value={f.id}>
+                                {f.name}
                               </option>
                             ))}
-                          </SelectField>
-                        </div>
-                        <p className="text-muted-foreground self-end text-xs">{t('installmentsHint')}</p>
+                        </SelectField>
                       </div>
-                      {genCount >= 2 && (
+                      <div className="grid gap-2">
+                        <Label htmlFor="gen-class">{t('class')}</Label>
+                        <SelectField
+                          id="gen-class"
+                          value={gen.classId}
+                          onChange={(e) => setGen({ ...gen, classId: e.target.value })}
+                        >
+                          <option value="">{t('allClasses')}</option>
+                          {classList.map((c) => (
+                            <option key={c.id} value={c.id}>
+                              {c.name}
+                            </option>
+                          ))}
+                        </SelectField>
+                      </div>
+                      {genMonthly && (
                         <div className="grid gap-2">
-                          <p className="flex items-center gap-1.5 text-sm font-medium">
-                            <CalendarClock className="text-primary size-4" aria-hidden="true" />
-                            {genAmount > 0
-                              ? t('installmentsPreview', {
-                                  count: genCount,
-                                  amount: formatRupiah(Math.floor(genAmount / genCount)),
-                                })
-                              : t('installmentsPreviewPlain', { count: genCount })}
-                          </p>
-                          <InstallmentTimeline count={genCount} firstDue={gen.dueDate} locale={locale} />
+                          <Label htmlFor="gen-period-month">{t('period')}</Label>
+                          <PeriodPicker
+                            idPrefix="gen-period"
+                            value={gen.period}
+                            onChange={(v) => setGen({ ...gen, period: v })}
+                          />
+                        </div>
+                      )}
+                      <div className="grid gap-2">
+                        <Label htmlFor="gen-due">{t('dueDate')}</Label>
+                        <DatePicker
+                          id="gen-due"
+                          value={gen.dueDate}
+                          onChange={(v) => setGen({ ...gen, dueDate: v })}
+                        />
+                      </div>
+                      {genFee && !genMonthly && (
+                        <div className="bg-muted/40 grid gap-3 rounded-xl border p-3 sm:col-span-2">
+                          <div className="grid gap-2 sm:grid-cols-2">
+                            <div className="grid gap-2">
+                              <Label htmlFor="gen-installments">{t('installments')}</Label>
+                              <SelectField
+                                id="gen-installments"
+                                value={gen.installments}
+                                onChange={(e) => setGen({ ...gen, installments: e.target.value })}
+                              >
+                                <option value="">{t('installmentsOnce')}</option>
+                                {INSTALLMENT_CHOICES.map((n) => (
+                                  <option key={n} value={String(n)}>
+                                    {t('installmentsN', { count: n })}
+                                  </option>
+                                ))}
+                              </SelectField>
+                            </div>
+                            <p className="text-muted-foreground self-end text-xs">{t('installmentsHint')}</p>
+                          </div>
+                          {genCount >= 2 && (
+                            <div className="grid gap-2">
+                              <p className="flex items-center gap-1.5 text-sm font-medium">
+                                <CalendarClock className="text-primary size-4" aria-hidden="true" />
+                                {genAmount > 0
+                                  ? t('installmentsPreview', {
+                                      count: genCount,
+                                      amount: formatRupiah(Math.floor(genAmount / genCount)),
+                                    })
+                                  : t('installmentsPreviewPlain', { count: genCount })}
+                              </p>
+                              <InstallmentTimeline count={genCount} firstDue={gen.dueDate} locale={locale} />
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
-                  )}
-                </div>
-              </FormDialog>
-            )}
+                  </FormDialog>
+                )}
+              </>
+            }
+            <BackLink href="/finance" />
           </>
         }
       />

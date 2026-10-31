@@ -102,6 +102,8 @@ const KNOWN = [
   'invalid_school_code',
   'document_required',
   'limit_reached',
+  'subscription_inactive',
+  'no_change',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

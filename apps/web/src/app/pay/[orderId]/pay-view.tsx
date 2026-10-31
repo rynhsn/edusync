@@ -24,9 +24,17 @@ export function PayView({ orderId }: { orderId: string }) {
     onSuccess: () => {
       // Pengguna kini menjadi anggota sekolah baru, jadi data akun lama dibuang.
       queryClient.invalidateQueries({ queryKey: ['me'] });
+      queryClient.invalidateQueries({ queryKey: ['account'] });
       // Sama seperti kembali dari penyedia sungguhan: lanjut ke halaman status pendaftaran.
       let registrationId: string | null = null;
       try {
+        // Pembayaran dari portal akun (upgrade, unit baru, perpanjangan) kembali ke portal.
+        const back = sessionStorage.getItem('edusync.payReturn');
+        if (back) {
+          sessionStorage.removeItem('edusync.payReturn');
+          router.replace(back);
+          return;
+        }
         registrationId = sessionStorage.getItem('edusync.pendingRegistration');
       } catch {
         // Tanpa penyimpanan sesi, pengguna memakai tombol dashboard di bawah.

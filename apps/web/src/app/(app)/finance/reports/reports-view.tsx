@@ -17,6 +17,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -223,28 +224,31 @@ export function ReportsView() {
         title={t('title')}
         description={t('subtitle')}
         actions={
-          tab === 'arrears' ? (
-            <>
-              <Button variant="outline" disabled={arrearsRows.length === 0} onClick={exportArrearsExcel}>
-                <Download className="size-4" /> {t('exportExcel')}
-              </Button>
+          <>
+            {tab === 'arrears' ? (
+              <>
+                <Button variant="outline" disabled={arrearsRows.length === 0} onClick={exportArrearsExcel}>
+                  <Download className="size-4" /> {t('exportExcel')}
+                </Button>
+                <Button
+                  variant="outline"
+                  disabled={arrearsRows.length === 0 || generating}
+                  onClick={exportArrearsPdf}
+                >
+                  <FileText className="size-4" /> {t('exportPdf')}
+                </Button>
+              </>
+            ) : tab === 'lateFees' ? null : (
               <Button
                 variant="outline"
-                disabled={arrearsRows.length === 0 || generating}
-                onClick={exportArrearsPdf}
+                disabled={!dailyData || dailyData.totals.receipts === 0}
+                onClick={exportDailyExcel}
               >
-                <FileText className="size-4" /> {t('exportPdf')}
+                <Download className="size-4" /> {t('exportExcel')}
               </Button>
-            </>
-          ) : tab === 'lateFees' ? null : (
-            <Button
-              variant="outline"
-              disabled={!dailyData || dailyData.totals.receipts === 0}
-              onClick={exportDailyExcel}
-            >
-              <Download className="size-4" /> {t('exportExcel')}
-            </Button>
-          )
+            )}
+            <BackLink href="/finance" />
+          </>
         }
       />
 

@@ -379,6 +379,27 @@
       "when": 1793700000000,
       "tag": "0053_admission_document_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 54,
+      "version": "7",
+      "when": 1793800000000,
+      "tag": "0054_change_order",
+      "breakpoints": true
+    },
+    {
+      "idx": 55,
+      "version": "7",
+      "when": 1793900000000,
+      "tag": "0055_dedupe_plan_modules",
+      "breakpoints": true
+    },
+    {
+      "idx": 56,
+      "version": "7",
+      "when": 1794000000000,
+      "tag": "0056_treasurer_class_read",
+      "breakpoints": true
     }
   ]
 }

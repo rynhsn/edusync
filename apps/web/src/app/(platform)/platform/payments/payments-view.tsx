@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Copy } from 'lucide-react';
+import { Copy, CreditCard } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useStaff } from '../../platform-shell';
+import { QueryError } from '../platform-kit';
 import { BillingSettingsCard } from './billing-settings-card';
 
 type Provider = 'dev' | 'midtrans';
@@ -63,8 +64,8 @@ export function PaymentsView() {
     onError: (e) => setError(te(errorKey(e))),
   });
 
-  if (settings.isPending) return <Skeleton className="h-64 w-full" />;
-  if (!settings.data) return null;
+  if (settings.isPending) return <Skeleton className="h-64 w-full rounded-2xl" />;
+  if (!settings.data) return <QueryError error={settings.error} onRetry={() => settings.refetch()} />;
   const s = settings.data;
 
   async function copyWebhook() {
@@ -75,6 +76,8 @@ export function PaymentsView() {
   return (
     <PageBody>
       <PageHeader
+        icon={CreditCard}
+        tone="amber"
         title={t('title')}
         description={canEdit ? t('subtitle') : `${t('subtitle')} ${t('readOnly')}`}
       />

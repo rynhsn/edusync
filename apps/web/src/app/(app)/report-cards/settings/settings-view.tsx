@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -120,6 +121,7 @@ export function ReportCardSettingsView() {
         tone={MODULE_TONE.academic}
         title={t('settingsTitle')}
         description={t('settingsSubtitle')}
+        actions={<BackLink href="/report-cards" />}
       />
 
       {settings.isPending && manage && <Skeleton className="h-64 w-full rounded-2xl" />}

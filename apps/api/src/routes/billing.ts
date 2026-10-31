@@ -29,6 +29,7 @@ const outcomeSchema = z.object({
   outcome: z.enum([
     'activated',
     'renewed',
+    'upgraded',
     'duplicate',
     'unknown_invoice',
     'recorded',

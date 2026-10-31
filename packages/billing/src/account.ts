@@ -1,4 +1,5 @@
 import {
+  changeOrder,
   type Db,
   desc,
   entitlement,
@@ -22,10 +23,11 @@ export async function ownedFoundations(db: Db, userId: string) {
   if (owned.length === 0) return [];
 
   const ids = owned.map((f) => f.id);
-  const [subs, schools, invoices] = await Promise.all([
+  const [subs, schools, invoices, orders] = await Promise.all([
     db.select().from(subscription).where(inArray(subscription.foundationId, ids)),
     db.select().from(school).where(inArray(school.foundationId, ids)),
     db.select().from(invoice).where(inArray(invoice.foundationId, ids)).orderBy(desc(invoice.createdAt)),
+    db.select().from(changeOrder).where(inArray(changeOrder.foundationId, ids)),
   ]);
   const ents =
     schools.length > 0
@@ -45,7 +47,12 @@ export async function ownedFoundations(db: Db, userId: string) {
     return {
       ...f,
       subscription: sub
-        ? { status: sub.status, period: sub.period, currentPeriodEnd: sub.currentPeriodEnd }
+        ? {
+            status: sub.status,
+            period: sub.period,
+            currentPeriodStart: sub.currentPeriodStart,
+            currentPeriodEnd: sub.currentPeriodEnd,
+          }
         : null,
       schools: schools
         .filter((s) => s.foundationId === f.id)
@@ -56,6 +63,10 @@ export async function ownedFoundations(db: Db, userId: string) {
           status: s.status,
           suspendedReason: s.suspendedReason,
           tier: s.studentTier,
+          scheduled: (() => {
+            const o = orders.find((x) => x.schoolId === s.id && x.status === 'scheduled');
+            return o ? { removeModules: o.payload.removeModules ?? [], tier: o.payload.tier ?? null } : null;
+          })(),
           modules: ents
             .filter((e) => e.schoolId === s.id)
             .map((e) => e.moduleKey)
@@ -66,6 +77,12 @@ export async function ownedFoundations(db: Db, userId: string) {
         .slice(0, 20)
         .map((i) => ({
           id: i.id,
+          kind: (orders.find((o) => o.invoiceId === i.id)?.kind ??
+            (i.registrationId ? 'registration' : 'renewal')) as
+            | 'registration'
+            | 'renewal'
+            | 'upgrade'
+            | 'new_unit',
           amount: i.amount,
           currency: i.currency,
           status: i.status,

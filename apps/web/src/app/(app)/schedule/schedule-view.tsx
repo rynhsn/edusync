@@ -31,6 +31,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TimeField } from '@/components/ui/time-field';
 import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, TONES, type Tone, Toolbar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
@@ -171,12 +172,10 @@ function PeriodsDialog({
             <p className="text-muted-foreground text-sm sm:col-span-3">{t('generateHint')}</p>
             <div className="grid gap-1.5">
               <Label htmlFor="gen-start">{t('firstStart')}</Label>
-              <Input
+              <TimeField
                 id="gen-start"
-                type="time"
-                required
                 value={gen.firstStart}
-                onChange={(e) => setGen({ ...gen, firstStart: e.target.value })}
+                onChange={(v) => setGen({ ...gen, firstStart: v })}
               />
             </div>
             <div className="grid gap-1.5">
@@ -256,25 +255,13 @@ function PeriodsDialog({
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="pd-start">{t('starts')}</Label>
-            <Input
-              id="pd-start"
-              type="time"
-              required
-              value={add.startsAt}
-              onChange={(e) => setAdd({ ...add, startsAt: e.target.value })}
-            />
+            <TimeField id="pd-start" value={add.startsAt} onChange={(v) => setAdd({ ...add, startsAt: v })} />
           </div>
           <div className="grid gap-1.5">
             <Label htmlFor="pd-end">{t('ends')}</Label>
-            <Input
-              id="pd-end"
-              type="time"
-              required
-              value={add.endsAt}
-              onChange={(e) => setAdd({ ...add, endsAt: e.target.value })}
-            />
+            <TimeField id="pd-end" value={add.endsAt} onChange={(v) => setAdd({ ...add, endsAt: v })} />
           </div>
-          <Button type="submit" variant="outline" disabled={create.isPending}>
+          <Button type="submit" variant="outline" disabled={create.isPending || !add.startsAt || !add.endsAt}>
             <Plus className="size-4" /> {t('addPeriod')}
           </Button>
         </form>

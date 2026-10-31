@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FORM_GRID, FORM_GRID_3 } from '@/components/form-field';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -184,7 +185,7 @@ export function DiscountsCard({
     !!ruleId && !!yearId && (scope === 'class' ? !!classId : picked.length > 0) && !assign.isPending;
 
   const ruleFields = (
-    <div className="grid gap-4 sm:grid-cols-2">
+    <div className={FORM_GRID}>
       <div className="grid gap-2 sm:col-span-2">
         <Label htmlFor="rule-name">{t('ruleName')}</Label>
         <Input
@@ -379,7 +380,7 @@ export function DiscountsCard({
               if (canAssign) assign.mutate();
             }}
           >
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className={FORM_GRID_3}>
               <div className="grid gap-2">
                 <Label htmlFor="as-rule">{t('rule')}</Label>
                 <SelectField

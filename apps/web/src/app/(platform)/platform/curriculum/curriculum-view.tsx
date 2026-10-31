@@ -30,6 +30,7 @@ import { ApiError, api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { useStaff } from '../../platform-shell';
+import { QueryError } from '../platform-kit';
 
 const KEY = ['platform-reference'];
 const num = (v: string) => Math.max(0, Math.round(Number(v) || 0));
@@ -195,8 +196,8 @@ export function CurriculumView() {
     onError: (e) => setError(failed(e)),
   });
 
-  if (ref.isPending) return <Skeleton className="h-64 w-full" />;
-  if (!ref.data) return null;
+  if (ref.isPending) return <Skeleton className="h-64 w-full rounded-2xl" />;
+  if (!ref.data) return <QueryError error={ref.error} onRetry={() => ref.refetch()} />;
   const { levels, curricula, subjects } = ref.data;
   const current = curricula.find((c) => c.key === (picked || curricula[0]?.key));
   const levelName = (key: string) => levels.find((l) => l.key === key)?.name ?? key;

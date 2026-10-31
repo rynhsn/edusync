@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useStaff } from '../../platform-shell';
+import { QueryError } from '../platform-kit';
 
 const FIELDS = ['graceDays', 'renewalLeadDays', 'reservationHours', 'yearlyMonths'] as const;
 type Draft = Record<(typeof FIELDS)[number], string>;
@@ -72,7 +73,8 @@ export function BillingSettingsCard() {
     onError: (e) => setError(te(errorKey(e))),
   });
 
-  if (settings.isPending || !draft) return <Skeleton className="h-64 w-full" />;
+  if (settings.isError) return <QueryError error={settings.error} onRetry={() => settings.refetch()} />;
+  if (settings.isPending || !draft) return <Skeleton className="h-64 w-full rounded-2xl" />;
   if (!settings.data) return null;
   const defaults = settings.data.defaults;
 

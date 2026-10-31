@@ -23,6 +23,7 @@ import { ActionMenu, ENTER, stagger } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FORM_GRID } from '@/components/form-field';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -31,6 +32,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
+import { TimeField } from '@/components/ui/time-field';
 import { EmptyPanel, IconTile, TONES, type Tone } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
@@ -367,15 +369,13 @@ function GeneralSettings() {
         </SettingCard>
 
         <SettingCard index={3} icon={Clock3} tone="amber" title={t('lessonTitle')} body={t('lessonBody')}>
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className={FORM_GRID}>
             <div className="grid content-start gap-2">
               <Label htmlFor="lesson-start">{t('lessonStart')}</Label>
-              <Input
+              <TimeField
                 id="lesson-start"
-                type="time"
-                required
                 value={value.lessonDefaultStart}
-                onChange={(e) => set({ lessonDefaultStart: e.target.value })}
+                onChange={(v) => set({ lessonDefaultStart: v })}
               />
             </div>
             <div className="grid content-start gap-2">
@@ -551,7 +551,7 @@ function LevelsPanel() {
               </Button>
             }
           >
-            <div className="grid gap-4 sm:grid-cols-2">
+            <div className={FORM_GRID}>
               <div className="grid content-start gap-2">
                 <Label htmlFor="level-code">{t('levelCode')}</Label>
                 <Input
@@ -680,7 +680,7 @@ function LevelsPanel() {
         }}
         onSubmit={() => update.mutateAsync()}
       >
-        <div className="grid gap-4 sm:grid-cols-2">
+        <div className={FORM_GRID}>
           <div className="grid content-start gap-2">
             <Label htmlFor="edit-level-label">{t('levelLabel')}</Label>
             <Input

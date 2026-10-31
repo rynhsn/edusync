@@ -4,6 +4,7 @@ import {
   listAudit,
   listFoundations,
   listPendingRegistrations,
+  platformOverview,
   setSchoolSuspended,
 } from '@edusync/billing';
 import type { FastifyInstance } from 'fastify';
@@ -68,6 +69,34 @@ export async function platformRoutes(instance: FastifyInstance) {
       },
     },
     async (request) => ({ role: request.staffRole as 'admin' | 'read_only' }),
+  );
+
+  app.get(
+    '/v1/platform/overview',
+    {
+      onRequest: [requireStaff('read_only')],
+      schema: {
+        tags: tag,
+        summary: 'Ringkasan konsol platform',
+        description:
+          'Staf platform. Cacah yayasan, unit aktif/tertangguhkan, langganan, invoice terbuka, pendaftaran tertunda, ' +
+          'dan MRR perkiraan (rupiah per bulan) dari tagihan terbayar terakhir tiap langganan aktif, tanpa yang hanya komplimen.',
+        response: {
+          200: z.object({
+            foundations: z.number().int(),
+            activeUnits: z.number().int(),
+            suspendedUnits: z.number().int(),
+            activeSubscriptions: z.number().int(),
+            pastDueSubscriptions: z.number().int(),
+            openInvoices: z.number().int(),
+            pendingRegistrations: z.number().int(),
+            mrr: z.number().int(),
+          }),
+          ...guarded,
+        },
+      },
+    },
+    async () => platformOverview(app.platformDb),
   );
 
   app.get(

@@ -1,6 +1,7 @@
 import {
   and,
   auditLog,
+  count,
   type Db,
   desc,
   entitlement,
@@ -31,14 +32,20 @@ export async function staffRoleOf(db: Db, userId: string): Promise<StaffRole | n
 
 export async function listFoundations(
   db: Db,
-  options: { q?: string | undefined; limit?: number | undefined } = {},
+  options: { q?: string | undefined; limit?: number | undefined; id?: string | undefined } = {},
 ) {
   const limit = Math.min(options.limit ?? 50, 200);
   const q = options.q?.trim();
   const rows = await db
     .select()
     .from(foundation)
-    .where(q ? or(ilike(foundation.name, `%${q}%`), ilike(foundation.slug, `%${q}%`)) : undefined)
+    .where(
+      options.id
+        ? eq(foundation.id, options.id)
+        : q
+          ? or(ilike(foundation.name, `%${q}%`), ilike(foundation.slug, `%${q}%`))
+          : undefined,
+    )
     .orderBy(desc(foundation.createdAt))
     .limit(limit);
   if (rows.length === 0) return [];
@@ -76,7 +83,7 @@ export async function listFoundations(
 export async function foundationDetail(db: Db, foundationId: string) {
   const [f] = await db.select().from(foundation).where(eq(foundation.id, foundationId));
   if (!f) throw new DomainError(404, 'not_found', 'Yayasan tidak ditemukan.');
-  const [summary] = await listFoundations(db, { limit: 1, q: f.slug });
+  const [summary] = await listFoundations(db, { limit: 1, id: foundationId });
   const invoices = await db
     .select()
     .from(invoice)
@@ -187,4 +194,72 @@ export async function listPendingRegistrations(db: Db, limit = 50) {
     .where(eq(registration.status, 'pending_payment'))
     .orderBy(desc(registration.createdAt))
     .limit(limit);
+}
+
+/**
+ * Ringkasan konsol: cacah yayasan, unit, tagihan terbuka, pendaftaran tertunda, dan MRR perkiraan.
+ * MRR = tagihan terbayar terakhir tiap langganan aktif (setara bulanan; tahunan dibagi 12), tanpa yang
+ * hanya dibayar komplimen. shortcut: tagihan terakhir sebagai proksi harga, belum memodelkan diskon/prorata.
+ */
+export async function platformOverview(db: Db) {
+  const [foundations] = await db.select({ n: count() }).from(foundation);
+  const schools = await db.select({ status: school.status, n: count() }).from(school).groupBy(school.status);
+  const subs = await db
+    .select({ status: subscription.status, n: count() })
+    .from(subscription)
+    .groupBy(subscription.status);
+  const [open] = await db.select({ n: count() }).from(invoice).where(eq(invoice.status, 'open'));
+  const [pending] = await db
+    .select({ n: count() })
+    .from(registration)
+    .where(eq(registration.status, 'pending_payment'));
+
+  const active = await db
+    .select({ foundationId: subscription.foundationId, period: subscription.period })
+    .from(subscription)
+    .where(eq(subscription.status, 'active'));
+  let mrr = 0;
+  if (active.length > 0) {
+    const paid = await db
+      .select()
+      .from(invoice)
+      .where(
+        and(
+          inArray(
+            invoice.foundationId,
+            active.map((a) => a.foundationId),
+          ),
+          eq(invoice.status, 'paid'),
+        ),
+      )
+      .orderBy(desc(invoice.paidAt));
+    const pays =
+      paid.length > 0
+        ? await db
+            .select()
+            .from(payment)
+            .where(
+              inArray(
+                payment.invoiceId,
+                paid.map((i) => i.id),
+              ),
+            )
+        : [];
+    for (const a of active) {
+      const last = paid.find((i) => i.foundationId === a.foundationId);
+      if (!last || !pays.some((p) => p.invoiceId === last.id && p.amount > 0)) continue;
+      mrr += Math.round(last.amount / (a.period === 'yearly' ? 12 : 1));
+    }
+  }
+  const n = (rows: { status: string; n: number }[], s: string) => rows.find((r) => r.status === s)?.n ?? 0;
+  return {
+    foundations: foundations?.n ?? 0,
+    activeUnits: n(schools, 'active'),
+    suspendedUnits: n(schools, 'suspended'),
+    activeSubscriptions: n(subs, 'active'),
+    pastDueSubscriptions: n(subs, 'past_due'),
+    openInvoices: open?.n ?? 0,
+    pendingRegistrations: pending?.n ?? 0,
+    mrr,
+  };
 }

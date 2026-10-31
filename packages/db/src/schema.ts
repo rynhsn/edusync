@@ -2194,3 +2194,32 @@ export const refSchoolLevel = pgTable('ref_school_level', {
   sort: integer('sort').notNull().default(0),
   active: boolean('active').notNull().default(true),
 });
+
+/* ---------- Perubahan paket yayasan (tingkatkan, tambah unit, jadwalkan penurunan) ---------- */
+
+/**
+ * Perubahan paket dari portal akun. `upgrade` dan `new_unit` menunggu pembayaran invoice-nya; `downgrade`
+ * tidak berbayar dan baru berlaku saat periode berikutnya (status 'scheduled' sampai diterapkan saat perpanjangan).
+ */
+export const changeOrder = pgTable(
+  'change_order',
+  {
+    id: id(),
+    foundationId: uuid('foundation_id')
+      .notNull()
+      .references(() => foundation.id),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: ['upgrade', 'new_unit', 'downgrade'] }).notNull(),
+    schoolId: uuid('school_id').references(() => school.id),
+    /** upgrade: modul tambahan dan tingkat baru; downgrade: modul yang dilepas dan tingkat baru (opsional). */
+    payload: jsonb('payload')
+      .$type<{ addModules?: string[]; removeModules?: string[]; tier?: string }>()
+      .notNull(),
+    status: text('status', { enum: ['pending_payment', 'scheduled', 'applied', 'canceled'] }).notNull(),
+    invoiceId: uuid('invoice_id').references(() => invoice.id),
+    createdAt: createdAt(),
+  },
+  (t) => [index('change_order_foundation_idx').on(t.foundationId)],
+);
