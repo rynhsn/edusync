@@ -187,7 +187,13 @@ const TABLES = [
 
 beforeAll(async () => {
   app = await buildApp(
-    loadEnv({ ...process.env, NODE_ENV: 'test', PAYMENT_PROVIDER: 'dev', MIDTRANS_SERVER_KEY: '' }),
+    loadEnv({
+      ...process.env,
+      NODE_ENV: 'test',
+      PAYMENT_PROVIDER: 'dev',
+      MIDTRANS_SERVER_KEY: '',
+      MESSAGING_PROVIDER: undefined,
+    }),
   );
   await app.ready();
   const db = app.platformDb;
