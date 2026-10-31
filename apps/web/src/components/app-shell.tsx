@@ -9,11 +9,14 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   CalendarRange,
+  ChevronDown,
+  ChevronRight,
   ChevronsUpDown,
   ClipboardCheck,
   ClipboardList,
   ClipboardSignature,
   Clock,
+  Database,
   DoorOpen,
   Factory,
   FileText,
@@ -27,6 +30,7 @@ import {
   LogOut,
   Mail,
   Megaphone,
+  Menu,
   MessageCircle,
   MoonStar,
   PenLine,
@@ -47,7 +51,7 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, useState } from 'react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
@@ -95,16 +99,25 @@ export function useSchool() {
   return ctx;
 }
 
-/** Menu diturunkan dari izin. Menambah modul berarti menambah satu baris di sini. */
-/** Menu dikelompokkan menurut fungsinya; kelompok tanpa menu yang boleh dilihat pengguna disembunyikan. */
+/**
+ * Menu diturunkan dari izin. Menambah modul berarti menambah satu baris di sini.
+ * Tiap kelompok adalah menu induk (bisa dilipat) dengan submenu di dalamnya; kelompok tanpa submenu yang
+ * boleh dilihat pengguna disembunyikan. Submenu bertanda `settings` ditaruh di bagian bawah kelompoknya.
+ */
 export const NAV_GROUPS = [
   {
     key: null,
+    icon: LayoutDashboard,
     items: [{ href: '/dashboard', labelKey: 'overview', icon: LayoutDashboard, permission: null }],
   },
   {
     key: 'groupMaster',
+    icon: Database,
     items: [
+      { href: '/students', labelKey: 'students', icon: GraduationCap, permission: 'student:read' },
+      { href: '/teachers', labelKey: 'teachers', icon: UserRound, permission: 'teacher:read' },
+      { href: '/classes', labelKey: 'classes', icon: School, permission: 'class:read' },
+      { href: '/subjects', labelKey: 'subjects', icon: BookOpen, permission: 'subject:read' },
       {
         href: '/academic-years',
         labelKey: 'academicYears',
@@ -112,22 +125,12 @@ export const NAV_GROUPS = [
         permission: 'academic_year:read',
       },
       { href: '/calendar', labelKey: 'calendar', icon: CalendarRange, permission: 'academic_year:read' },
-      { href: '/classes', labelKey: 'classes', icon: School, permission: 'class:read' },
-      { href: '/students', labelKey: 'students', icon: GraduationCap, permission: 'student:read' },
-      { href: '/teachers', labelKey: 'teachers', icon: UserRound, permission: 'teacher:read' },
-      { href: '/subjects', labelKey: 'subjects', icon: BookOpen, permission: 'subject:read' },
     ],
   },
   {
-    key: 'groupAcademic',
+    key: 'groupAttendance',
+    icon: ClipboardCheck,
     items: [
-      {
-        href: '/schedule',
-        labelKey: 'schedule',
-        icon: Clock,
-        permission: 'schedule:read',
-        module: 'schedule',
-      },
       {
         href: '/attendance',
         labelKey: 'attendance',
@@ -155,26 +158,26 @@ export const NAV_GROUPS = [
         icon: Settings2,
         permission: 'attendance:configure',
         module: 'attendance',
+        settings: true,
       },
+    ],
+  },
+  {
+    key: 'groupAcademic',
+    icon: BookOpen,
+    items: [
       {
-        href: '/extracurriculars',
-        labelKey: 'extracurricular',
-        icon: Trophy,
-        permission: 'extracurricular:read',
-        module: 'extracurricular',
+        href: '/schedule',
+        labelKey: 'schedule',
+        icon: Clock,
+        permission: 'schedule:read',
+        module: 'schedule',
       },
       {
         href: '/grades',
         labelKey: 'grades',
         icon: Award,
         permission: 'grade:read',
-        module: 'grades',
-      },
-      {
-        href: '/grades/settings',
-        labelKey: 'gradeSettings',
-        icon: SlidersHorizontal,
-        permission: 'grade:configure',
         module: 'grades',
       },
       {
@@ -185,23 +188,33 @@ export const NAV_GROUPS = [
         module: 'grades',
       },
       {
+        href: '/extracurriculars',
+        labelKey: 'extracurricular',
+        icon: Trophy,
+        permission: 'extracurricular:read',
+        module: 'extracurricular',
+      },
+      {
+        href: '/grades/settings',
+        labelKey: 'gradeSettings',
+        icon: SlidersHorizontal,
+        permission: 'grade:configure',
+        module: 'grades',
+        settings: true,
+      },
+      {
         href: '/report-cards/settings',
         labelKey: 'reportCardSettings',
         icon: FileText,
         permission: 'report_card:manage',
         module: 'grades',
-      },
-      {
-        href: '/messaging',
-        labelKey: 'messaging',
-        icon: MessageCircle,
-        permission: 'message:read',
-        module: 'messaging',
+        settings: true,
       },
     ],
   },
   {
     key: 'groupGuidance',
+    icon: BookHeart,
     items: [
       {
         href: '/tahfidz',
@@ -218,45 +231,6 @@ export const NAV_GROUPS = [
         module: 'tahfidz',
       },
       {
-        href: '/tahfidz/settings',
-        labelKey: 'ibadahSettings',
-        icon: Sprout,
-        permission: 'tahfidz:manage',
-        module: 'tahfidz',
-      },
-    ],
-  },
-  {
-    key: 'groupFinance',
-    items: [
-      { href: '/finance', labelKey: 'cashier', icon: Wallet, permission: 'finance:pay', module: 'finance' },
-      {
-        href: '/finance/invoices',
-        labelKey: 'invoices',
-        icon: Receipt,
-        permission: 'finance:read',
-        module: 'finance',
-      },
-      {
-        href: '/finance/settings',
-        labelKey: 'financeSettings',
-        icon: WalletCards,
-        permission: 'finance:manage',
-        module: 'finance',
-      },
-      {
-        href: '/finance/reports',
-        labelKey: 'financeReports',
-        icon: Landmark,
-        permission: 'finance:read',
-        module: 'finance',
-      },
-    ],
-  },
-  {
-    key: 'groupInternship',
-    items: [
-      {
         href: '/pkl',
         labelKey: 'pkl',
         icon: BriefcaseBusiness,
@@ -271,16 +245,55 @@ export const NAV_GROUPS = [
         module: 'internship',
       },
       {
+        href: '/tahfidz/settings',
+        labelKey: 'ibadahSettings',
+        icon: Sprout,
+        permission: 'tahfidz:manage',
+        module: 'tahfidz',
+        settings: true,
+      },
+      {
         href: '/pkl/settings',
         labelKey: 'pklSettings',
         icon: HardHat,
         permission: 'pkl:manage',
         module: 'internship',
+        settings: true,
+      },
+    ],
+  },
+  {
+    key: 'groupFinance',
+    icon: Wallet,
+    items: [
+      { href: '/finance', labelKey: 'cashier', icon: Wallet, permission: 'finance:pay', module: 'finance' },
+      {
+        href: '/finance/invoices',
+        labelKey: 'invoices',
+        icon: Receipt,
+        permission: 'finance:read',
+        module: 'finance',
+      },
+      {
+        href: '/finance/reports',
+        labelKey: 'financeReports',
+        icon: Landmark,
+        permission: 'finance:read',
+        module: 'finance',
+      },
+      {
+        href: '/finance/settings',
+        labelKey: 'financeSettings',
+        icon: WalletCards,
+        permission: 'finance:manage',
+        module: 'finance',
+        settings: true,
       },
     ],
   },
   {
     key: 'groupAdmissions',
+    icon: UserPlus,
     items: [
       {
         href: '/admissions',
@@ -295,24 +308,19 @@ export const NAV_GROUPS = [
         icon: ClipboardSignature,
         permission: 'admission:manage',
         module: 'admissions',
+        settings: true,
       },
     ],
   },
   {
     key: 'groupAdministration',
+    icon: Mail,
     items: [
       {
         href: '/letters',
         labelKey: 'letters',
         icon: Mail,
         permission: 'letter:read',
-        module: 'administration',
-      },
-      {
-        href: '/letters/templates',
-        labelKey: 'letterTemplates',
-        icon: ScrollText,
-        permission: 'letter:manage',
         module: 'administration',
       },
       {
@@ -324,29 +332,19 @@ export const NAV_GROUPS = [
         orPermission: 'letter:sign',
         module: 'administration',
       },
-    ],
-  },
-  {
-    key: 'groupPortal',
-    items: [
       {
-        href: '/portal',
-        labelKey: 'portal',
-        icon: HeartHandshake,
-        permission: 'portal:read',
-        module: 'parent_portal',
-      },
-      {
-        href: '/portal-admin',
-        labelKey: 'portalAdmin',
-        icon: KeyRound,
-        permission: 'student:manage',
-        module: 'parent_portal',
+        href: '/letters/templates',
+        labelKey: 'letterTemplates',
+        icon: ScrollText,
+        permission: 'letter:manage',
+        module: 'administration',
+        settings: true,
       },
     ],
   },
   {
-    key: 'groupWebsite',
+    key: 'groupCommunication',
+    icon: Megaphone,
     items: [
       {
         href: '/announcements',
@@ -356,22 +354,169 @@ export const NAV_GROUPS = [
         module: 'announcements',
       },
       {
+        href: '/messaging',
+        labelKey: 'messaging',
+        icon: MessageCircle,
+        permission: 'message:read',
+        module: 'messaging',
+      },
+      {
+        href: '/portal-admin',
+        labelKey: 'portalAdmin',
+        icon: KeyRound,
+        permission: 'student:manage',
+        module: 'parent_portal',
+      },
+      {
         href: '/site-settings',
         labelKey: 'siteSettings',
         icon: Globe,
         permission: 'announcement:manage',
         module: 'website',
+        settings: true,
       },
     ],
   },
   {
     key: 'groupAccess',
+    icon: ShieldCheck,
     items: [
       { href: '/members', labelKey: 'members', icon: Users, permission: 'member:read' },
       { href: '/roles', labelKey: 'roles', icon: ShieldCheck, permission: 'member:read' },
     ],
   },
 ] as const;
+
+type NavItem = (typeof NAV_GROUPS)[number]['items'][number];
+
+/** Menu samping bertingkat: menu induk yang bisa dilipat, submenu di dalamnya, pengaturan di bagian bawah. */
+function SidebarNav({
+  permissions,
+  modules,
+  pathname,
+}: {
+  permissions: Set<string>;
+  modules: string[];
+  pathname: string;
+}) {
+  const t = useTranslations('nav');
+  const [openGroups, setOpenGroups] = useState<string[]>([]);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  const allowed = (n: NavItem) =>
+    (n.permission === null ||
+      permissions.has(n.permission) ||
+      ('orPermission' in n && permissions.has(n.orPermission))) &&
+    (!('module' in n) || modules.includes(n.module));
+
+  const groups = NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter(allowed) as NavItem[] })).filter(
+    (g) => g.items.length > 0,
+  );
+
+  const matches = (href: string) =>
+    pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
+  const all = groups.flatMap((g) => g.items);
+  // Menu dengan alamat lebih spesifik (mis. /grades/settings) mengalahkan induknya (/grades).
+  const isActive = (n: NavItem) =>
+    matches(n.href) &&
+    !all.some((o) => o.href !== n.href && o.href.startsWith(`${n.href}/`) && matches(o.href));
+  const activeGroup = groups.find((g) => g.key !== null && g.items.some(isActive))?.key ?? null;
+  const activeItem = all.find(isActive);
+
+  // Kelompok yang berisi halaman aktif selalu terbuka; menu mobile menutup setelah berpindah halaman.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: hanya bereaksi pada perubahan halaman
+  useEffect(() => {
+    if (activeGroup) setOpenGroups((cur) => (cur.includes(activeGroup) ? cur : [...cur, activeGroup]));
+    setMobileOpen(false);
+  }, [pathname]);
+
+  const toggle = (key: string) =>
+    setOpenGroups((cur) => (cur.includes(key) ? cur.filter((k) => k !== key) : [...cur, key]));
+
+  const link = (n: NavItem, nested: boolean) => {
+    const active = isActive(n);
+    return (
+      <Link
+        key={n.href}
+        href={n.href}
+        aria-current={active ? 'page' : undefined}
+        className={cn(
+          'flex items-center gap-2.5 rounded-lg px-3 py-1.5 text-sm transition-colors',
+          nested ? 'pl-3' : 'py-2',
+          active
+            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+            : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
+        )}
+      >
+        {!nested && <n.icon className={cn('size-4', active && 'text-primary')} />}
+        {nested && 'settings' in n && <Settings2 className="size-3.5 opacity-70" aria-hidden />}
+        {t(n.labelKey)}
+      </Link>
+    );
+  };
+
+  return (
+    <div className="px-3 pb-3 md:px-4">
+      <button
+        type="button"
+        onClick={() => setMobileOpen((v) => !v)}
+        aria-expanded={mobileOpen}
+        aria-controls="sidebar-menu"
+        className="bg-card flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm font-medium md:hidden"
+      >
+        <span className="flex items-center gap-2">
+          <Menu className="size-4" aria-hidden />
+          {activeItem ? t(activeItem.labelKey) : t('menu')}
+        </span>
+        <ChevronDown className={cn('size-4 transition-transform', mobileOpen && 'rotate-180')} />
+      </button>
+
+      <nav
+        id="sidebar-menu"
+        aria-label={t('menu')}
+        className={cn('mt-2 grid gap-0.5 md:mt-0 md:grid', mobileOpen ? 'grid' : 'hidden')}
+      >
+        {groups.map((g) => {
+          if (g.key === null) return g.items.map((n) => link(n, false));
+          const open = openGroups.includes(g.key);
+          const regular = g.items.filter((n) => !('settings' in n));
+          const settings = g.items.filter((n) => 'settings' in n);
+          const current = activeGroup === g.key;
+          return (
+            <div key={g.key} className="grid gap-0.5">
+              <button
+                type="button"
+                onClick={() => toggle(g.key)}
+                aria-expanded={open}
+                aria-controls={`nav-${g.key}`}
+                className={cn(
+                  'flex w-full items-center gap-2.5 rounded-lg px-3 py-2 text-left text-sm transition-colors',
+                  current
+                    ? 'text-foreground font-medium'
+                    : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
+                )}
+              >
+                <g.icon className={cn('size-4', current && 'text-primary')} aria-hidden />
+                <span className="flex-1">{t(g.key)}</span>
+                <ChevronRight className={cn('size-3.5 transition-transform', open && 'rotate-90')} />
+              </button>
+              {open && (
+                <div
+                  id={`nav-${g.key}`}
+                  className="border-sidebar-border ml-5 grid gap-0.5 border-l pl-2 motion-safe:animate-in motion-safe:fade-in-0 motion-safe:slide-in-from-top-1"
+                >
+                  {regular.map((n) => link(n, true))}
+                  {settings.length > 0 && regular.length > 0 && <div className="bg-border my-1 ml-3 h-px" />}
+                  {settings.map((n) => link(n, true))}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
 
 function Centered({ children }: { children: React.ReactNode }) {
   return (
@@ -525,7 +670,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <SchoolContext.Provider value={value}>
       <div className="flex flex-1 flex-col md:flex-row">
-        <aside className="bg-sidebar text-sidebar-foreground border-b md:w-64 md:border-r md:border-b-0">
+        <aside className="bg-sidebar text-sidebar-foreground border-b md:sticky md:top-0 md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r md:border-b-0">
           <div className="flex items-center justify-between gap-2 p-3 md:flex-col md:items-stretch md:gap-5 md:p-4">
             <Logo />
 
@@ -559,56 +704,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             </DropdownMenu>
           </div>
 
-          <nav
-            className="flex gap-1 overflow-x-auto px-3 pb-3 md:flex-col md:gap-0.5 md:overflow-visible md:px-4"
-            aria-label={t('menu')}
-          >
-            {NAV_GROUPS.map((group) => {
-              const items = group.items.filter(
-                (n) =>
-                  (n.permission === null ||
-                    permissions.has(n.permission) ||
-                    ('orPermission' in n && permissions.has(n.orPermission))) &&
-                  (!('module' in n) || school.modules.includes(n.module)),
-              );
-              if (items.length === 0) return null;
-              return (
-                <div key={group.key ?? 'main'} className="contents md:mt-3 md:grid md:gap-0.5 md:first:mt-0">
-                  {group.key && (
-                    <p className="text-muted-foreground hidden px-3 pt-1 pb-1 text-xs font-medium tracking-wide uppercase md:block">
-                      {t(group.key)}
-                    </p>
-                  )}
-                  {items.map((n) => {
-                    const matches = (href: string) =>
-                      pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
-                    // Menu dengan alamat lebih spesifik (mis. /grades/settings) mengalahkan induknya (/grades).
-                    const active =
-                      matches(n.href) &&
-                      !items.some(
-                        (o) => o.href !== n.href && o.href.startsWith(`${n.href}/`) && matches(o.href),
-                      );
-                    return (
-                      <Link
-                        key={n.href}
-                        href={n.href}
-                        aria-current={active ? 'page' : undefined}
-                        className={cn(
-                          'flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors',
-                          active
-                            ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                            : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
-                        )}
-                      >
-                        <n.icon className={cn('size-4', active && 'text-primary')} />
-                        {t(n.labelKey)}
-                      </Link>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </nav>
+          <SidebarNav permissions={permissions} modules={school.modules} pathname={pathname} />
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">

@@ -67,9 +67,12 @@ function StandardDashboard() {
   // Pintasan ke menu yang boleh dibuka pengguna, dikelompokkan seperti menu samping.
   const groups = NAV_GROUPS.filter((g) => g.key !== null)
     .map((g) => ({
-      key: g.key as 'groupMaster' | 'groupAcademic' | 'groupAccess',
+      key: g.key as NonNullable<typeof g.key>,
       items: g.items.filter(
-        (n) => (n.permission === null || can(n.permission)) && (!('module' in n) || hasModule(n.module)),
+        (n) =>
+          !('settings' in n) &&
+          (n.permission === null || can(n.permission)) &&
+          (!('module' in n) || hasModule(n.module)),
       ),
     }))
     .filter((g) => g.items.length > 0);
