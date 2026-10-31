@@ -16,7 +16,9 @@
       "!apps/web/src/app/globals.css",
       "!Planning",
       "!.claude",
-      "!.codegraph",
+      "!graphify-out",
+      "!**/.wa-sessions",
+      "!**/.wwebjs_cache",
       "!pnpm-lock.yaml"
     ]
   },

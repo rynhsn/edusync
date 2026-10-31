@@ -71,6 +71,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import { isPortalOnly, isPortalPath } from '@/lib/portal-access';
+import { setSchoolTimezone } from '@/lib/school-time';
 import { goToSchool, useSite } from '@/lib/site';
 import { cn } from '@/lib/utils';
 
@@ -78,6 +79,8 @@ interface Membership {
   schoolId: string;
   schoolName: string;
   schoolSlug: string;
+  /** Zona waktu IANA sekolah; kosong pada respons lama (dianggap Asia/Jakarta). */
+  timezone?: string;
   roles: string[];
   permissions: string[];
   modules: string[];
@@ -125,6 +128,13 @@ export const NAV_GROUPS = [
         permission: 'academic_year:read',
       },
       { href: '/calendar', labelKey: 'calendar', icon: CalendarRange, permission: 'academic_year:read' },
+      {
+        href: '/school-settings',
+        labelKey: 'schoolSettings',
+        icon: Settings2,
+        permission: 'school:manage',
+        settings: true,
+      },
     ],
   },
   {
@@ -610,6 +620,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  setSchoolTimezone(school.timezone);
   const permissions = new Set(school.permissions);
   const user = me.data.user;
   const value: SchoolContextValue = {

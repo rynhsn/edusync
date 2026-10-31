@@ -20,10 +20,12 @@ import { EmptyPanel, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatRupiah } from '@/lib/money';
+import { useSchoolLevels } from '@/lib/school-settings';
 import { digitsOnly, KIND_KEY, KINDS, type Kind, useFinanceYear, YearSelect } from '../shared';
 import { ListSkeleton, Money, RowMenu, SectionCard } from '../ui';
 import { DiscountsCard } from './discounts-card';
 import { LateFeeCard } from './late-fee-card';
+import { PaymentMethodsCard } from './payment-methods-card';
 
 interface FeeDraft {
   id: string | null;
@@ -82,13 +84,23 @@ export function FinanceSettingsView() {
   const feeList = feeTypes.data ?? [];
   const planList = plans.data ?? [];
   const feeName = (id: string) => feeList.find((f) => f.id === id)?.name ?? '-';
-  // Tingkat diambil dari kelas pada tahun ajaran terpilih, ditambah tingkat yang sudah punya tarif.
-  const levels = [
-    ...new Set([
-      ...(classes.data ?? []).map((c) => c.level),
-      ...planList.flatMap((p) => (p.level ? [p.level] : [])),
-    ]),
-  ].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+  // Tingkat dari daftar tingkat sekolah (Pengaturan sekolah) bila sudah diatur; selain itu dari kelas pada tahun
+  // ajaran terpilih. Tingkat yang sudah punya tarif selalu ikut.
+  const schoolLevels = useSchoolLevels().data ?? [];
+  const levels =
+    schoolLevels.length > 0
+      ? [
+          ...new Set([
+            ...schoolLevels.map((l) => l.code),
+            ...planList.flatMap((p) => (p.level ? [p.level] : [])),
+          ]),
+        ]
+      : [
+          ...new Set([
+            ...(classes.data ?? []).map((c) => c.level),
+            ...planList.flatMap((p) => (p.level ? [p.level] : [])),
+          ]),
+        ].sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['finance', school.schoolId] });
 
   const saveFee = useMutation({
@@ -457,6 +469,8 @@ export function FinanceSettingsView() {
           />
 
           <LateFeeCard feeTypes={feeList.map((f) => ({ id: f.id, name: f.name, active: f.active }))} />
+
+          <PaymentMethodsCard />
         </>
       )}
 

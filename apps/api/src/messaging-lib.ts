@@ -8,6 +8,7 @@ import {
   inArray,
   lessonPeriod,
   type PlatformMessaging,
+  platformMessagingIn,
   school,
   subject,
   type Tx,
@@ -36,9 +37,6 @@ async function schoolName(tx: Tx, schoolId: string) {
   return s?.name ?? '';
 }
 
-/** Tap lebih tua dari ini (kiriman ulang offline) tidak lagi diberitahukan ke wali. */
-const STALE_TAP_MS = 6 * 3_600_000;
-
 /** Peristiwa arrival/departure dari hasil tap kiosk. Hasil selain `in`/`out` diabaikan. */
 export async function notifyTap(
   tx: Tx,
@@ -47,7 +45,9 @@ export async function notifyTap(
 ) {
   if (tapped.result !== 'in' && tapped.result !== 'out') return;
   const at = new Date(tapped.at);
-  if (Date.now() - at.getTime() > STALE_TAP_MS) return;
+  // Tap lebih tua dari batas pengaturan platform (kiriman ulang offline) tidak lagi diberitahukan ke wali.
+  const { retry } = await platformMessagingIn(tx);
+  if (Date.now() - at.getTime() > retry.staleTapHours * 3_600_000) return;
   const { date, time } = jakarta(at);
   const eventKey = tapped.result === 'in' ? 'arrival' : 'departure';
   await enqueueMessagesSafe(tx, {

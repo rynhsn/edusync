@@ -9,6 +9,7 @@ import {
   foundation,
   guardian,
   lessonPeriod,
+  loadPlatformMessaging,
   member,
   msgMessage,
   platformSetting,
@@ -157,6 +158,7 @@ const TABLES = [
   'audit_log',
   'fin_payment_item',
   'fin_payment',
+  'fin_payment_method',
   'fin_counter',
   'fin_invoice',
   'fin_fee_type',
@@ -782,5 +784,86 @@ describe('pengaturan platform', () => {
     );
     expect(saved.json()).toMatchObject({ enabled: true, provider: 'log', maxQueuedPerSchool: 123 });
     expect((await get(staffReadCookie)).json().maxQueuedPerSchool).toBe(123);
+  });
+
+  it('aturan kirim ulang: bawaan, validasi, tersimpan, dan dipertahankan bila tidak dikirim', async () => {
+    const get = (cookie: string) => call('GET', '/v1/platform/messaging', cookie, undefined, null);
+    const put = (payload: object) => call('PUT', '/v1/platform/messaging', staffAdminCookie, payload, null);
+    const base = { enabled: true, provider: 'log', maxQueuedPerSchool: 500 };
+    const originalRow = (
+      await app.platformDb.execute<{ value: unknown }>(
+        sql`select value from platform_setting where key = 'messaging'`,
+      )
+    ).rows[0]?.value;
+    try {
+      await app.platformDb.execute(sql`delete from platform_setting where key = 'messaging'`);
+      expect((await get(staffReadCookie)).json().retry).toEqual({
+        backoffMinutes: [1, 5, 30, 120, 360],
+        maxAttempts: 5,
+        expiryHours: 24,
+        staleTapHours: 6,
+      });
+
+      const retry = { backoffMinutes: [2, 10], maxAttempts: 3, expiryHours: 12, staleTapHours: 2 };
+      for (const bad of [
+        { ...retry, backoffMinutes: [] },
+        { ...retry, backoffMinutes: [0] },
+        { ...retry, backoffMinutes: Array.from({ length: 11 }, () => 5) },
+        { ...retry, maxAttempts: 0 },
+        { ...retry, maxAttempts: 21 },
+        { ...retry, expiryHours: 0 },
+        { ...retry, staleTapHours: 73 },
+      ]) {
+        expect((await put({ ...base, retry: bad })).statusCode).toBe(400);
+      }
+      const saved = await put({ ...base, retry });
+      expect(saved.statusCode).toBe(200);
+      expect(saved.json().retry).toEqual(retry);
+      // Tanpa bidang retry, aturan tersimpan tidak berubah.
+      const kept = await put({ ...base, maxQueuedPerSchool: 77 });
+      expect(kept.json()).toMatchObject({ maxQueuedPerSchool: 77, retry });
+      expect((await loadPlatformMessaging(app.platformDb)).retry).toEqual(retry);
+    } finally {
+      await app.platformDb.execute(sql`delete from platform_setting where key = 'messaging'`);
+      if (originalRow) {
+        await app.platformDb.execute(
+          sql`insert into platform_setting (key, value) values ('messaging', ${JSON.stringify(originalRow)}::jsonb)`,
+        );
+      }
+    }
+  });
+
+  it('status runtime worker (Chrome) tampil di konsol; null bila belum pernah melapor', async () => {
+    const get = () => call('GET', '/v1/platform/messaging', staffReadCookie, undefined, null);
+    const originalRow = (
+      await app.platformDb.execute<{ value: unknown }>(
+        sql`select value from platform_setting where key = 'messaging_runtime'`,
+      )
+    ).rows[0]?.value;
+    try {
+      await app.platformDb.execute(sql`delete from platform_setting where key = 'messaging_runtime'`);
+      expect((await get()).json().runtime).toBeNull();
+      const report = {
+        chrome: { status: 'not_configured', path: null },
+        provider: 'whatsapp',
+        checkedAt: '2026-11-04T03:00:00.000Z',
+      };
+      await app.platformDb.execute(
+        sql`insert into platform_setting (key, value) values ('messaging_runtime', ${JSON.stringify(report)}::jsonb)`,
+      );
+      expect((await get()).json().runtime).toEqual(report);
+      // Nilai rusak tidak merusak halaman.
+      await app.platformDb.execute(
+        sql`update platform_setting set value = '{"chrome": 5}'::jsonb where key = 'messaging_runtime'`,
+      );
+      expect((await get()).json().runtime).toBeNull();
+    } finally {
+      await app.platformDb.execute(sql`delete from platform_setting where key = 'messaging_runtime'`);
+      if (originalRow) {
+        await app.platformDb.execute(
+          sql`insert into platform_setting (key, value) values ('messaging_runtime', ${JSON.stringify(originalRow)}::jsonb)`,
+        );
+      }
+    }
   });
 });

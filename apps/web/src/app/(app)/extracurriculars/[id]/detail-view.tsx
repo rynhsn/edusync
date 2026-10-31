@@ -13,7 +13,8 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { CATEGORY_META, hhmm } from '../shared';
+import { categoryMeta, hhmm } from '../shared';
+import { useExtracurricularCategories } from '../use-categories';
 import { AssessmentPanel } from './assessment-panel';
 import { MembersPanel } from './members-panel';
 import { ReportPanel } from './report-panel';
@@ -27,6 +28,7 @@ export function ExtracurricularDetailView({ id }: { id: string }) {
   const { school } = useSchool();
   const header = { header: schoolHeader(school.schoolId) };
   const [tab, setTab] = useState<Tab>('members');
+  const categories = useExtracurricularCategories();
 
   // Tidak ada endpoint rinci; ekskul dicari dari daftar (kuncinya sama dengan halaman daftar).
   const list = useQuery({
@@ -70,7 +72,7 @@ export function ExtracurricularDetailView({ id }: { id: string }) {
         item.startsAt ? ` ${hhmm(item.startsAt)}${item.endsAt ? `–${hhmm(item.endsAt)}` : ''}` : ''
       }`
     : t('noSchedule');
-  const meta = CATEGORY_META[item.category];
+  const meta = categoryMeta(categories.data, item.category);
   const TAB_ICONS = {
     members: Users,
     sessions: CalendarClock,
@@ -88,7 +90,7 @@ export function ExtracurricularDetailView({ id }: { id: string }) {
         actions={
           <>
             <ToneBadge tone={meta.tone} dot={false}>
-              {t(`category.${item.category}`)}
+              {meta.label}
             </ToneBadge>
             <ToneBadge tone={item.active ? 'emerald' : 'slate'}>
               {item.active ? t('active') : t('inactive')}

@@ -1,4 +1,4 @@
-import { addDays, LATE_FEE_DUE_DAYS } from '@edusync/contracts';
+import { addDays } from '@edusync/contracts';
 import {
   academicYear,
   assignRoles,
@@ -183,6 +183,7 @@ afterAll(async () => {
       'audit_log',
       'fin_payment_item',
       'fin_payment',
+      'fin_payment_method',
       'fin_invoice',
       'fin_late_fee_setting',
       'fin_fee_plan',
@@ -264,6 +265,7 @@ describe('pengaturan denda', () => {
       mode: 'none',
       value: 0,
       graceDays: 0,
+      dueDays: 7,
       capAmount: null,
       feeTypeId: null,
       feeTypeName: null,
@@ -291,6 +293,8 @@ describe('pengaturan denda', () => {
     expect((await putSetting({ ...base, value: 0 })).statusCode).toBe(400);
     expect((await putSetting({ ...base, graceDays: -1 })).statusCode).toBe(400);
     expect((await putSetting({ ...base, graceDays: 366 })).statusCode).toBe(400);
+    expect((await putSetting({ ...base, dueDays: 0 })).statusCode).toBe(400);
+    expect((await putSetting({ ...base, dueDays: 366 })).statusCode).toBe(400);
     expect((await putSetting({ ...base, capAmount: 0 })).statusCode).toBe(400);
     expect((await putSetting({ ...base, feeTypeId: null })).statusCode).toBe(400);
     const foreign = await putSetting({ ...base, feeTypeId: ids.foreignFee });
@@ -298,12 +302,13 @@ describe('pengaturan denda', () => {
     expect(code(foreign)).toBe('invalid_reference');
 
     // Tersimpan, lalu diganti (upsert).
-    const saved = await putSetting({ ...base, graceDays: 2, capAmount: 50_000 });
+    const saved = await putSetting({ ...base, graceDays: 2, dueDays: 14, capAmount: 50_000 });
     expect(saved.statusCode).toBe(200);
     expect(saved.json()).toMatchObject({
       mode: 'flat',
       value: 10_000,
       graceDays: 2,
+      dueDays: 14,
       capAmount: 50_000,
       feeTypeId: ids.denda,
       feeTypeName: 'Denda SPP',
@@ -383,6 +388,7 @@ describe('denda keterlambatan', () => {
       mode: 'percent',
       value: 10,
       graceDays: 0,
+      dueDays: 10,
       capAmount: 15_000,
       feeTypeId: ids.denda,
     });
@@ -430,7 +436,7 @@ describe('denda keterlambatan', () => {
     const third = await apply();
     expect(third.json()).toMatchObject({ created: 0, skipped: 2, total: 0, invoiceIds: [] });
 
-    // Tagihan denda: jenis biaya, judul, nominal, periode, jatuh tempo hari ini + 7.
+    // Tagihan denda: jenis biaya, judul, nominal, periode, jatuh tempo hari ini + dueDays (10).
     const fines = await invoicesOf(ids.denda);
     expect(fines).toHaveLength(2);
     const aniFine = fines.find((f) => f.studentName === 'Ani')!;
@@ -440,7 +446,7 @@ describe('denda keterlambatan', () => {
       period: `denda-${ani.invoiceId}`,
       feeTypeId: ids.denda,
       status: 'unpaid',
-      dueDate: addDays(mid.today, LATE_FEE_DUE_DAYS),
+      dueDate: addDays(mid.today, 10),
     });
     expect(fines.find((f) => f.studentName === 'Budi')).toMatchObject({
       amount: 5_000,

@@ -4,7 +4,7 @@ import {
   signDevEvent,
   sweepSubscriptions,
 } from '@edusync/billing';
-import { inArray, outbox, platformStaff, sql, user } from '@edusync/db';
+import { inArray, invalidateBillingSettings, outbox, platformStaff, sql, user } from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp, paymentConfig } from './app';
 import { loadEnv } from './env';
@@ -401,5 +401,51 @@ describe('siklus langganan', () => {
     expect(await pay(inv?.provider_ref as string, inv?.amount as number, 'ren-ganda')).toBe('renewed');
     expect(await pay(inv?.provider_ref as string, inv?.amount as number, 'ren-ganda')).toBe('duplicate');
     expect(await pay(inv?.provider_ref as string, inv?.amount as number, 'ren-ganda-2')).toBe('duplicate');
+  });
+
+  it('parameter penagihan dari pengaturan platform: masa tenggang, pengingat, dan pengali tahunan', async () => {
+    const original = (
+      await app.platformDb.execute<{ value: unknown }>(
+        sql`select value from platform_setting where key = 'billing'`,
+      )
+    ).rows[0]?.value;
+    const setBilling = async (value: object | null) => {
+      await app.platformDb.execute(sql`delete from platform_setting where key = 'billing'`);
+      if (value) {
+        await app.platformDb.execute(
+          sql`insert into platform_setting (key, value) values ('billing', ${JSON.stringify(value)}::jsonb)`,
+        );
+      }
+      invalidateBillingSettings();
+    };
+    const f = await activatedFoundation('param');
+    const subStatus = async () =>
+      (
+        await app.platformDb.execute<{ status: string }>(
+          sql`select status from subscription where foundation_id = ${f.foundationId}`,
+        )
+      ).rows[0]?.status;
+    try {
+      // Masa tenggang 14 hari: 9 hari lewat tempo masih past_due, bukan suspended.
+      await setBilling({ graceDays: 14, renewalLeadDays: 1, reservationHours: 24, yearlyMonths: 10 });
+      await setPeriodEnd(f.foundationId, `now() - interval '9 days'`);
+      await sweepSubscriptions(app.platformDb);
+      expect(await subStatus()).toBe('past_due');
+      // Masa tenggang dipersingkat jadi 2 hari: kini ditangguhkan.
+      await setBilling({ graceDays: 2, renewalLeadDays: 1, reservationHours: 24, yearlyMonths: 10 });
+      await sweepSubscriptions(app.platformDb);
+      expect(await subStatus()).toBe('suspended');
+
+      // Pengingat 1 hari: berakhir 3 hari lagi belum ditagih; pengingat 5 hari: ditagih.
+      const g = await activatedFoundation('param2');
+      await setPeriodEnd(g.foundationId, `now() + interval '3 days'`);
+      await createRenewalInvoices(app.platformDb, provider);
+      expect(await renewalInvoice(g.foundationId)).toBeUndefined();
+      await setBilling({ graceDays: 7, renewalLeadDays: 5, reservationHours: 24, yearlyMonths: 10 });
+      await createRenewalInvoices(app.platformDb, provider);
+      expect((await renewalInvoice(g.foundationId))?.status).toBe('open');
+    } finally {
+      await setBilling((original as object | undefined) ?? null);
+    }
   });
 });

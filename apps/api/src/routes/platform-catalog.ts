@@ -20,11 +20,26 @@ const itemSchema = z.object({
   priceMonthly: z.number().int(),
   sort: z.number().int(),
   active: z.boolean(),
+  requires: z.array(z.string()).describe('Kunci modul syarat (hanya modul)'),
+  maxStudents: z.number().int().nullable().describe('Batas siswa aktif (hanya tingkat); null = tanpa batas'),
 });
 const itemBody = z.object({
   name: z.string().trim().min(1).max(80),
   priceMonthly: z.number().int().min(0).max(100_000_000),
   sort: z.number().int().min(0).max(1000),
+  requires: z
+    .array(z.string().min(1).max(40))
+    .max(20)
+    .optional()
+    .describe('Modul syarat; memilih modul ini otomatis menambah syaratnya. Tidak diisi = tidak diubah'),
+  maxStudents: z
+    .number()
+    .int()
+    .min(1)
+    .max(1_000_000)
+    .nullable()
+    .optional()
+    .describe('Batas siswa aktif untuk tingkat; null = tanpa batas. Tidak diisi = tidak diubah'),
 });
 const planSchema = z.object({
   key: z.string(),
@@ -45,6 +60,43 @@ const planBody = z.object({
 const ok = z.object({ ok: z.literal(true) });
 const tag = ['Platform'];
 const guarded = { 401: errorSchema, 403: errorSchema };
+
+/**
+ * Aturan ketergantungan dan batas tier. Syarat hanya untuk modul, harus modul yang ada di katalog, bukan dirinya
+ * sendiri, dan tidak boleh membentuk lingkaran. Batas siswa hanya untuk tingkat.
+ */
+async function assertItemRules(
+  tx: Tx,
+  item: { kind: string; key: string },
+  rules: { requires?: string[] | undefined; maxStudents?: number | null | undefined },
+) {
+  if (rules.maxStudents != null && item.kind !== 'tier') {
+    throw new HttpError(400, 'invalid_selection', 'Batas siswa hanya untuk tingkat siswa.');
+  }
+  const requires = rules.requires;
+  if (!requires) return;
+  if (requires.length > 0 && item.kind !== 'module') {
+    throw new HttpError(400, 'invalid_selection', 'Syarat modul hanya untuk modul.');
+  }
+  const rows = await tx.select().from(catalogItem).where(eq(catalogItem.kind, 'module'));
+  const graph = new Map(rows.map((r) => [r.key, r.key === item.key ? requires : r.requires]));
+  for (const need of requires) {
+    if (need === item.key)
+      throw new HttpError(400, 'invalid_selection', 'Modul tidak boleh menjadi syarat dirinya sendiri.');
+    if (!graph.has(need))
+      throw new HttpError(400, 'invalid_selection', `Modul syarat tidak ada di katalog: ${need}.`);
+  }
+  // Lingkaran: dari tiap syarat, apakah bisa kembali ke modul ini?
+  const seen = new Set<string>();
+  const stack = [...requires];
+  while (stack.length > 0) {
+    const k = stack.pop() as string;
+    if (k === item.key) throw new HttpError(400, 'invalid_selection', 'Syarat modul membentuk lingkaran.');
+    if (seen.has(k)) continue;
+    seen.add(k);
+    stack.push(...(graph.get(k) ?? []));
+  }
+}
 
 /** Paket hanya boleh berisi modul dan tingkat yang ada di katalog. */
 async function assertPlanContent(tx: Tx, modules: string[], tier: string) {
@@ -95,13 +147,19 @@ export async function platformCatalogRoutes(instance: FastifyInstance) {
           'Staf platform (admin). Kunci modul baru baru berguna bila fiturnya ada di kode; di katalog ia hanya menjadi ' +
           'pilihan yang bisa dibeli.',
         body: itemBody.extend({ kind: z.enum(KINDS), key: keySchema }),
-        response: { 201: itemSchema, 409: errorSchema, ...guarded },
+        response: { 201: itemSchema, 400: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request, reply) => {
       const staffId = request.userId as string;
+      const { requires, maxStudents, ...base } = request.body;
       const created = await db().transaction(async (tx) => {
-        const [row] = await tx.insert(catalogItem).values(request.body).onConflictDoNothing().returning();
+        await assertItemRules(tx, base, { requires, maxStudents });
+        const [row] = await tx
+          .insert(catalogItem)
+          .values({ ...base, requires: requires ?? [], maxStudents: maxStudents ?? null })
+          .onConflictDoNothing()
+          .returning();
         if (!row) throw new HttpError(409, 'conflict', 'Kunci itu sudah ada di katalog.');
         await tx.insert(auditLog).values({
           actorId: staffId,
@@ -128,7 +186,7 @@ export async function platformCatalogRoutes(instance: FastifyInstance) {
           'sudah dibuat tidak berubah. Modul inti (`base`) tidak boleh dinonaktifkan.',
         params: z.object({ kind: z.enum(['base', 'module', 'tier']), key: z.string() }),
         body: itemBody.extend({ active: z.boolean() }),
-        response: { 200: itemSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+        response: { 200: itemSchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
@@ -143,9 +201,15 @@ export async function platformCatalogRoutes(instance: FastifyInstance) {
           .from(catalogItem)
           .where(and(eq(catalogItem.kind, kind), eq(catalogItem.key, key)));
         if (!before) throw new HttpError(404, 'not_found', 'Item katalog tidak ditemukan.');
+        const { requires, maxStudents, ...base } = request.body;
+        await assertItemRules(tx, { kind, key }, { requires, maxStudents });
         const [row] = await tx
           .update(catalogItem)
-          .set(request.body)
+          .set({
+            ...base,
+            ...(requires !== undefined ? { requires } : {}),
+            ...(maxStudents !== undefined ? { maxStudents } : {}),
+          })
           .where(and(eq(catalogItem.kind, kind), eq(catalogItem.key, key)))
           .returning();
         await tx.insert(auditLog).values({
@@ -154,7 +218,13 @@ export async function platformCatalogRoutes(instance: FastifyInstance) {
           entityType: 'catalog_item',
           entityId: `${kind}:${key}`,
           details: {
-            before: { name: before.name, priceMonthly: before.priceMonthly, active: before.active },
+            before: {
+              name: before.name,
+              priceMonthly: before.priceMonthly,
+              active: before.active,
+              requires: before.requires,
+              maxStudents: before.maxStudents,
+            },
             after: request.body,
           },
         });

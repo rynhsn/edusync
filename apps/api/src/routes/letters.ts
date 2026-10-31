@@ -1,14 +1,17 @@
 import { randomBytes, timingSafeEqual } from 'node:crypto';
 import {
+  DEFAULT_AGENDA_PATTERN,
   DEFAULT_LETTER_TEMPLATES,
-  formatAgendaNumber,
-  formatLetterNumber,
+  DEFAULT_NUMBER_PATTERN,
   formatLongDateId,
   MAX_SIGNATURE_BYTES,
+  normalizeSchoolCode,
   parseSignatureDataUrl,
   renderLetter,
+  renderNumberPattern,
   schoolCodeFromSlug,
   unknownLetterPlaceholders,
+  validateNumberPattern,
 } from '@edusync/contracts';
 import {
   academicYear,
@@ -23,6 +26,7 @@ import {
   ilike,
   letter,
   letterCounter,
+  letterSetting,
   letterTemplate,
   lte,
   member,
@@ -325,6 +329,22 @@ async function nextSeq(tx: Tx, schoolId: string, direction: 'outgoing' | 'incomi
     })
     .returning({ last: letterCounter.last });
   return row!.last;
+}
+
+/** Format penomoran sekolah (bawaan bila belum diatur) dan kode efektifnya. */
+async function loadNumbering(tx: Tx, schoolId: string) {
+  const [setting] = await tx.select().from(letterSetting).where(eq(letterSetting.schoolId, schoolId));
+  const [s] = await tx.select({ slug: school.slug }).from(school).where(eq(school.id, schoolId));
+  const derivedCode = schoolCodeFromSlug(s?.slug ?? '');
+  const schoolCode = setting?.schoolCode ?? null;
+  return {
+    schoolCode,
+    derivedCode,
+    effectiveCode: schoolCode ?? derivedCode,
+    numberPattern: setting?.numberPattern ?? DEFAULT_NUMBER_PATTERN,
+    // Sekolah tanpa pengaturan tetap memakai bentuk lama AG/012/2026.
+    agendaPattern: setting?.agendaPattern ?? DEFAULT_AGENDA_PATTERN,
+  };
 }
 
 async function detailOf(tx: Tx, id: string) {
@@ -801,6 +821,98 @@ export async function letterRoutes(instance: FastifyInstance) {
     },
   );
 
+  /* ---------- Format penomoran ---------- */
+
+  const numberingSchema = z.object({
+    schoolCode: z
+      .string()
+      .nullable()
+      .describe('Kode sekolah pilihan admin; null bila memakai kode turunan dari alamat sekolah'),
+    effectiveCode: z.string().describe('Kode yang dipakai untuk {code}'),
+    derivedCode: z.string().describe('Kode turunan dari slug sekolah (cadangan bila schoolCode kosong)'),
+    numberPattern: z.string(),
+    agendaPattern: z.string(),
+  });
+
+  app.get(
+    '/v1/letters/numbering',
+    {
+      onRequest: readGate,
+      schema: {
+        tags: tag,
+        summary: 'Format penomoran surat',
+        description:
+          'Izin: `letter:read`; modul `administration`. Pola nomor surat keluar dan nomor agenda surat masuk. ' +
+          'Variabel: `{seq}` (urut, 3 digit minimal), `{code}` (kode sekolah), `{roman}` (bulan Romawi), `{month}` ' +
+          '(bulan 2 digit), `{year}`. Bila belum diatur: `{seq}/{code}/{roman}/{year}` dan `AG/{seq}/{year}`.',
+        headers: schoolHeader,
+        response: { 200: numberingSchema, ...guarded },
+      },
+    },
+    async (request) => tenant(request, (tx) => loadNumbering(tx, (request.ctx as TenantContext).schoolId)),
+  );
+
+  app.put(
+    '/v1/letters/numbering',
+    {
+      onRequest: manageGate,
+      schema: {
+        tags: tag,
+        summary: 'Ubah format penomoran surat',
+        description:
+          'Izin: `letter:manage`; modul `administration`. Kedua pola wajib memuat `{seq}` dan hanya boleh memakai ' +
+          'variabel yang dikenal (400 `invalid_pattern`). `schoolCode` (huruf kapital, angka, titik, strip; maks. 12 ' +
+          'karakter; 400 `invalid_school_code`) atau null untuk kembali ke kode turunan dari alamat sekolah. Hanya ' +
+          'berlaku untuk surat berikutnya; nomor yang sudah terbit tidak berubah. Urutan dihitung per tahun, jadi ' +
+          'pola tanpa `{year}` bisa bentrok (409 `conflict`) saat berganti tahun.',
+        headers: schoolHeader,
+        body: z.object({
+          schoolCode: z.string().trim().max(40).nullable(),
+          numberPattern: z.string().max(200),
+          agendaPattern: z.string().max(200),
+        }),
+        response: { 200: numberingSchema, 400: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const b = request.body;
+      for (const p of [b.numberPattern, b.agendaPattern]) {
+        if (!validateNumberPattern(p).ok) {
+          throw new HttpError(
+            400,
+            'invalid_pattern',
+            'Pola nomor wajib memuat {seq} dan hanya memakai {seq}, {code}, {roman}, {month}, {year}.',
+          );
+        }
+      }
+      let code: string | null = null;
+      if (b.schoolCode) {
+        code = normalizeSchoolCode(b.schoolCode);
+        if (!code) {
+          throw new HttpError(
+            400,
+            'invalid_school_code',
+            'Kode sekolah hanya huruf kapital, angka, titik, atau strip (maksimal 12 karakter).',
+          );
+        }
+      }
+      return tenant(request, async (tx) => {
+        const values = {
+          schoolCode: code,
+          numberPattern: b.numberPattern.trim(),
+          agendaPattern: b.agendaPattern.trim(),
+        };
+        await tx
+          .insert(letterSetting)
+          .values({ schoolId: ctx.schoolId, ...values })
+          .onConflictDoUpdate({ target: letterSetting.schoolId, set: { ...values, updatedAt: new Date() } });
+        await audit(tx, ctx, 'letter.numbering.update', 'letter_setting', ctx.schoolId, { ...values });
+        return loadNumbering(tx, ctx.schoolId);
+      });
+    },
+  );
+
   app.post(
     '/v1/letters',
     {
@@ -826,12 +938,14 @@ export async function letterRoutes(instance: FastifyInstance) {
           const { year, month } = yearMonth(input.letterDate);
           if (input.direction === 'outgoing') {
             await checkRefs(tx, input.templateId, input.studentId);
-            const [s] = await tx
-              .select({ slug: school.slug })
-              .from(school)
-              .where(eq(school.id, ctx.schoolId));
+            const numbering = await loadNumbering(tx, ctx.schoolId);
             const seq = await nextSeq(tx, ctx.schoolId, 'outgoing', year);
-            const number = formatLetterNumber(seq, schoolCodeFromSlug(s?.slug ?? ''), month, year);
+            const number = renderNumberPattern(numbering.numberPattern, {
+              seq,
+              code: numbering.effectiveCode,
+              month,
+              year,
+            });
             const [row] = await tx
               .insert(letter)
               .values({
@@ -850,8 +964,14 @@ export async function letterRoutes(instance: FastifyInstance) {
             await audit(tx, ctx, 'letter.create', 'letter', row!.id, { direction: 'outgoing', number });
             return detailOf(tx, row!.id);
           }
+          const numbering = await loadNumbering(tx, ctx.schoolId);
           const seq = await nextSeq(tx, ctx.schoolId, 'incoming', year);
-          const number = formatAgendaNumber(seq, year);
+          const number = renderNumberPattern(numbering.agendaPattern, {
+            seq,
+            code: numbering.effectiveCode,
+            month,
+            year,
+          });
           const body = [input.number ? `Nomor surat pengirim: ${input.number}` : null, input.body]
             .filter(Boolean)
             .join('\n\n');

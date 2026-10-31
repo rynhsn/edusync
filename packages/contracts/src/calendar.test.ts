@@ -68,3 +68,13 @@ describe('buildYearPlanner', () => {
     expect(buildYearPlanner({ startsOn: '2026-07-13', endsOn: '2027-06-30' }, [])).toHaveLength(12);
   });
 });
+
+describe('effectiveDays dengan hari efektif sekolah', () => {
+  const week = { startsOn: '2026-10-26', endsOn: '2026-11-01' }; // Senin-Minggu
+  it('daftar hari menggantikan 5/6', () => {
+    expect(effectiveDays(week, [], [1, 2, 3, 4, 5]).workdays).toBe(5);
+    expect(effectiveDays(week, [], [1, 2, 3, 4, 5, 6]).workdays).toBe(6);
+    expect(effectiveDays(week, [], [6, 7]).workdays).toBe(2);
+    expect(effectiveDays(week, [], [1, 2, 3, 4, 5, 6, 7]).workdays).toBe(7);
+  });
+});

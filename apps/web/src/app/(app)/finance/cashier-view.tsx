@@ -41,14 +41,12 @@ import {
   digitsOnly,
   InstallmentBadge,
   localDate,
-  METHOD_ICON,
-  METHOD_KEY,
-  METHODS,
-  type Method,
+  methodIcon,
   paidAtIso,
   StatusBadge,
   todayIso,
   useFinanceYear,
+  usePaymentMethods,
 } from './shared';
 import { ENTER, ListSkeleton, Money, RowMenu } from './ui';
 
@@ -75,7 +73,12 @@ export function CashierView() {
   const [student, setStudent] = useState<Picked | null>(null);
   // invoiceId -> jumlah yang dibayar (teks). Ada kuncinya = tagihan dicentang.
   const [amounts, setAmounts] = useState<Record<string, string>>({});
-  const [method, setMethod] = useState<Method>('cash');
+  const methods = usePaymentMethods();
+  // Pilihan kasir; kosong/tak aktif lagi = metode aktif pertama.
+  const [methodChoice, setMethod] = useState('');
+  const method = methods.active.some((m) => m.key === methodChoice)
+    ? methodChoice
+    : (methods.active[0]?.key ?? '');
   const [note, setNote] = useState('');
   const [paidAt, setPaidAt] = useState(todayIso());
   const [confirming, setConfirming] = useState(false);
@@ -120,7 +123,7 @@ export function CashierView() {
   const total = parsed.reduce((s, l) => s + l.amount, 0);
   const lineOk = (l: { amount: number; outstanding: number }) =>
     Number.isInteger(l.amount) && l.amount >= 1 && l.amount <= l.outstanding;
-  const valid = parsed.length > 0 && parsed.every(lineOk);
+  const valid = parsed.length > 0 && parsed.every(lineOk) && method !== '';
   const overdueTotal = open.filter((i) => i.overdue).reduce((s, i) => s + i.outstanding, 0);
   const allSelected = open.length > 0 && open.every((i) => i.id in amounts);
 
@@ -130,7 +133,7 @@ export function CashierView() {
     setDebounced('');
     setAmounts({});
     setNote('');
-    setMethod('cash');
+    setMethod('');
     setPaidAt(todayIso());
   }
 
@@ -453,7 +456,7 @@ export function CashierView() {
                 ) : (
                   <ul className="grid gap-2">
                     {statement.data.payments.map((p) => {
-                      const Icon = METHOD_ICON[p.method];
+                      const Icon = methodIcon(p.method);
                       return (
                         <li
                           key={p.id}
@@ -469,7 +472,7 @@ export function CashierView() {
                               {p.voided && <ToneBadge tone="slate">{t('voided')}</ToneBadge>}
                             </p>
                             <p className="text-muted-foreground text-xs">
-                              {formatCalendarDate(locale, localDate(p.paidAt))} · {t(METHOD_KEY[p.method])}
+                              {formatCalendarDate(locale, localDate(p.paidAt))} · {p.methodLabel}
                             </p>
                           </div>
                           <Money
@@ -551,18 +554,22 @@ export function CashierView() {
                 <span id="fin-method-label" className="text-sm font-medium">
                   {t('method')}
                 </span>
-                <div role="radiogroup" aria-labelledby="fin-method-label" className="grid grid-cols-3 gap-2">
-                  {METHODS.map((m) => {
-                    const Icon = METHOD_ICON[m];
-                    const sel = method === m;
+                <div
+                  role="radiogroup"
+                  aria-labelledby="fin-method-label"
+                  className="grid grid-cols-[repeat(auto-fit,minmax(6.5rem,1fr))] gap-2"
+                >
+                  {methods.active.map((m) => {
+                    const Icon = methodIcon(m.key);
+                    const sel = method === m.key;
                     return (
                       // biome-ignore lint/a11y/useSemanticElements: kartu pilihan metode bayar berbentuk tombol radio
                       <button
-                        key={m}
+                        key={m.key}
                         type="button"
                         role="radio"
                         aria-checked={sel}
-                        onClick={() => setMethod(m)}
+                        onClick={() => setMethod(m.key)}
                         className={cn(
                           'focus-visible:ring-ring/50 flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-medium transition-colors outline-none focus-visible:ring-3',
                           sel
@@ -571,7 +578,7 @@ export function CashierView() {
                         )}
                       >
                         <Icon className="size-5" aria-hidden="true" />
-                        {t(METHOD_KEY[m])}
+                        <span className="max-w-full truncate">{m.label}</span>
                       </button>
                     );
                   })}
@@ -617,7 +624,7 @@ export function CashierView() {
         description={t('confirmPayBody', {
           total: formatRupiah(total),
           name: studentName,
-          method: t(METHOD_KEY[method]),
+          method: methods.labelOf(method),
         })}
         confirmLabel={t('receivePayment')}
         pending={submit.isPending}

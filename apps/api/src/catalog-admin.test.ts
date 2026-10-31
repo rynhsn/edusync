@@ -1,4 +1,12 @@
-import { loadCatalog, platformStaff, sql, user } from '@edusync/db';
+import { quoteUnit, withRequirements } from '@edusync/contracts';
+import {
+  invalidateBillingSettings,
+  loadBillingSettings,
+  loadCatalog,
+  platformStaff,
+  sql,
+  user,
+} from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from './app';
 import { loadEnv } from './env';
@@ -41,6 +49,7 @@ const call = (method: 'GET' | 'POST' | 'PUT' | 'DELETE', url: string, cookie: st
   });
 
 let originalAttendance: { name: string; price: number; sort: number } | null = null;
+let originalBilling: unknown = null;
 
 beforeAll(async () => {
   app = await buildApp(
@@ -52,6 +61,10 @@ beforeAll(async () => {
   outsider = await makeUser('bukan-staf-katalog');
   const [a] = (await loadCatalog(app.platformDb)).filter((i) => i.key === 'attendance');
   originalAttendance = a ? { name: a.name, price: a.priceMonthly, sort: a.sort } : null;
+  const billing = await app.platformDb.execute<{ value: unknown }>(
+    sql`select value from platform_setting where key = 'billing'`,
+  );
+  originalBilling = billing.rows[0]?.value ?? null;
 });
 
 afterAll(async () => {
@@ -62,6 +75,13 @@ afterAll(async () => {
     );
   }
   await db.execute(sql`delete from catalog_item where key like ${`uji_%_${run}`}`);
+  await db.execute(sql`delete from platform_setting where key = 'billing'`);
+  if (originalBilling) {
+    await db.execute(
+      sql`insert into platform_setting (key, value) values ('billing', ${JSON.stringify(originalBilling)}::jsonb)`,
+    );
+  }
+  invalidateBillingSettings();
   await db.execute(sql`delete from plan_preset where key like ${`uji_%_${run}`}`);
   await db.execute(
     sql`delete from audit_log where actor_id in (${sql.join(
@@ -253,6 +273,192 @@ describe('katalog dan paket (staf platform)', () => {
       'catalog.plan.update',
       'catalog.plan.delete',
     ]);
+  });
+});
+
+describe('ketergantungan modul dan batas tingkat dari katalog', () => {
+  const mod = (key: string, extra: object = {}) =>
+    call('POST', '/v1/platform/catalog/items', admin, {
+      kind: 'module',
+      key,
+      name: key,
+      priceMonthly: 1000,
+      sort: 90,
+      ...extra,
+    });
+
+  it('syarat modul disimpan, tampil di katalog publik, dan dipakai perhitungan harga', async () => {
+    const base = `uji_dasar_${run}`;
+    const top = `uji_atas_${run}`;
+    expect((await mod(base)).json()).toMatchObject({ requires: [], maxStudents: null });
+    const created = await mod(top, { requires: [base] });
+    expect(created.statusCode).toBe(201);
+    expect(created.json().requires).toEqual([base]);
+
+    const pub = (await app.inject('/v1/catalog')).json();
+    expect(pub.requires[top]).toEqual([base]);
+    expect(pub.items.find((i: { key: string }) => i.key === top)).toMatchObject({ requires: [base] });
+    // Syarat bawaan yang sudah ada di katalog tetap berlaku.
+    expect(pub.requires.assessments).toEqual(['grades']);
+
+    const catalog = await loadCatalog(app.platformDb);
+    expect(withRequirements([top], catalog).sort()).toEqual([base, top].sort());
+    const quote = quoteUnit(catalog, { modules: [top], tier: 't300' }, 'monthly');
+    expect(quote.lines.map((l) => l.key)).toEqual(expect.arrayContaining([base, top]));
+    expect(quote.total).toBe(150_000 + 2000);
+
+    // Mengosongkan syarat benar-benar melepas ketergantungan (katalog menang atas bawaan).
+    const cleared = await call('PUT', `/v1/platform/catalog/items/module/${top}`, admin, {
+      name: top,
+      priceMonthly: 1000,
+      sort: 90,
+      active: true,
+      requires: [],
+    });
+    expect(cleared.json().requires).toEqual([]);
+    expect(withRequirements([top], await loadCatalog(app.platformDb))).toEqual([top]);
+    // Tanpa bidang requires, nilai tersimpan tidak berubah.
+    await call('PUT', `/v1/platform/catalog/items/module/${top}`, admin, {
+      name: top,
+      priceMonthly: 1000,
+      sort: 90,
+      active: true,
+      requires: [base],
+    });
+    const kept = await call('PUT', `/v1/platform/catalog/items/module/${top}`, admin, {
+      name: top,
+      priceMonthly: 2000,
+      sort: 90,
+      active: true,
+    });
+    expect(kept.json()).toMatchObject({ priceMonthly: 2000, requires: [base] });
+  });
+
+  it('menolak syarat tak valid: diri sendiri, tak dikenal, lingkaran, dan bukan modul', async () => {
+    const a = `uji_sa_${run}`;
+    const b = `uji_sb_${run}`;
+    await mod(a);
+    await mod(b, { requires: [a] });
+    const put = (key: string, requires: string[]) =>
+      call('PUT', `/v1/platform/catalog/items/module/${key}`, admin, {
+        name: key,
+        priceMonthly: 1,
+        sort: 1,
+        active: true,
+        requires,
+      });
+    expect((await put(a, [a])).statusCode).toBe(400);
+    expect((await put(a, ['hantu'])).statusCode).toBe(400);
+    const loop = await put(a, [b]);
+    expect(loop.statusCode).toBe(400);
+    expect(loop.json().error.message).toContain('lingkaran');
+    expect((await mod(`uji_sc_${run}`, { requires: ['tidak_ada'] })).statusCode).toBe(400);
+    // Tingkat tidak boleh punya syarat modul.
+    const tierWithReq = await call('POST', '/v1/platform/catalog/items', admin, {
+      kind: 'tier',
+      key: `uji_tr_${run}`,
+      name: 'T',
+      priceMonthly: 0,
+      sort: 1,
+      requires: [a],
+    });
+    expect(tierWithReq.statusCode).toBe(400);
+  });
+
+  it('batas siswa hanya untuk tingkat, tampil di katalog publik, dan bisa dikosongkan', async () => {
+    const key = `uji_tier_${run}`;
+    const made = await call('POST', '/v1/platform/catalog/items', admin, {
+      kind: 'tier',
+      key,
+      name: 'Tingkat Uji',
+      priceMonthly: 5000,
+      sort: 95,
+      maxStudents: 2500,
+    });
+    expect(made.statusCode).toBe(201);
+    expect(made.json().maxStudents).toBe(2500);
+    const seeded = (await app.inject('/v1/catalog')).json().items as {
+      key: string;
+      maxStudents: number | null;
+    }[];
+    expect(seeded.find((i) => i.key === key)?.maxStudents).toBe(2500);
+    expect(seeded.find((i) => i.key === 't300')?.maxStudents).toBe(300);
+
+    const upd = (maxStudents: number | null) =>
+      call('PUT', `/v1/platform/catalog/items/tier/${key}`, admin, {
+        name: 'Tingkat Uji',
+        priceMonthly: 5000,
+        sort: 95,
+        active: true,
+        maxStudents,
+      });
+    expect((await upd(null)).json().maxStudents).toBeNull();
+    expect((await upd(0)).statusCode).toBe(400);
+    const onModule = await mod(`uji_mb_${run}`, { maxStudents: 10 });
+    expect(onModule.statusCode).toBe(400);
+  });
+});
+
+describe('parameter penagihan (staf platform)', () => {
+  const body = { graceDays: 10, renewalLeadDays: 5, reservationHours: 48, yearlyMonths: 11 };
+
+  it('izin, validasi rentang, nilai berlaku, dan audit', async () => {
+    expect((await call('GET', '/v1/platform/billing-settings', outsider)).statusCode).toBe(403);
+    expect((await app.inject('/v1/platform/billing-settings')).statusCode).toBe(401);
+    expect((await call('PUT', '/v1/platform/billing-settings', readOnly, body)).statusCode).toBe(403);
+
+    await app.platformDb.execute(sql`delete from platform_setting where key = 'billing'`);
+    invalidateBillingSettings();
+    const def = await call('GET', '/v1/platform/billing-settings', readOnly);
+    expect(def.json()).toMatchObject({
+      graceDays: 7,
+      renewalLeadDays: 7,
+      reservationHours: 24,
+      yearlyMonths: 10,
+      defaults: { graceDays: 7, yearlyMonths: 10 },
+    });
+
+    for (const bad of [
+      { ...body, graceDays: -1 },
+      { ...body, graceDays: 91 },
+      { ...body, renewalLeadDays: 0 },
+      { ...body, reservationHours: 0 },
+      { ...body, yearlyMonths: 13 },
+      { ...body, yearlyMonths: 10.5 },
+    ]) {
+      expect((await call('PUT', '/v1/platform/billing-settings', admin, bad)).statusCode).toBe(400);
+    }
+    expect((await call('PUT', '/v1/platform/billing-settings', admin, { graceDays: 3 })).statusCode).toBe(
+      400,
+    );
+
+    const saved = await call('PUT', '/v1/platform/billing-settings', admin, body);
+    expect(saved.statusCode).toBe(200);
+    expect(saved.json()).toMatchObject(body);
+    expect(await loadBillingSettings(app.platformDb)).toEqual(body);
+    // Pengali tahunan langsung terbaca di katalog publik.
+    expect((await app.inject('/v1/catalog')).json().yearlyMonths).toBe(11);
+
+    const audit = await app.platformDb.execute<{ details: { before: object; after: object } }>(
+      sql`select details from audit_log where action = 'billing.platform_settings' and actor_id in (${sql.join(
+        userIds.map((u) => sql`${u}`),
+        sql`, `,
+      )})`,
+    );
+    expect(audit.rows).toHaveLength(1);
+    expect(audit.rows[0]?.details.after).toEqual(body);
+
+    // Nilai tersimpan yang rusak jatuh ke bawaan, tidak merusak penagihan.
+    await app.platformDb.execute(
+      sql`update platform_setting set value = '{"graceDays": -5, "yearlyMonths": "x"}'::jsonb where key = 'billing'`,
+    );
+    invalidateBillingSettings();
+    expect(await loadBillingSettings(app.platformDb)).toEqual({
+      graceDays: 7,
+      renewalLeadDays: 7,
+      reservationHours: 24,
+      yearlyMonths: 10,
+    });
   });
 });
 

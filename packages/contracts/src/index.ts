@@ -1,4 +1,5 @@
 export * from './admission';
+export * from './billing-settings';
 export * from './calendar';
 export * from './catalog';
 export * from './finance-late-fee';
@@ -9,3 +10,5 @@ export * from './permissions';
 export * from './pkl';
 export * from './quran';
 export * from './report-card';
+export * from './school-settings';
+export * from './timezone';

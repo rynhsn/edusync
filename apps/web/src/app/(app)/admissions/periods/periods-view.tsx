@@ -10,6 +10,7 @@ import { StudentIllustration } from '@/app/apply/illustrations';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { LevelField } from '@/components/level-field';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -23,8 +24,10 @@ import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
+import { todayIso as todayJakarta } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 import '@/app/apply/apply.css';
+import { DocumentTypesCard } from './document-types-card';
 
 interface Draft {
   name: string;
@@ -45,8 +48,6 @@ const EMPTY: Draft = {
   quota: '',
   active: true,
 };
-
-const todayJakarta = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 
 /** Posisi hari ini pada rentang buka-tutup, 0-100. */
 function windowProgress(opensOn: string, closesOn: string, today: string) {
@@ -89,13 +90,13 @@ function PeriodFields({
       </div>
       <div className="grid gap-2">
         <Label htmlFor={`${idPrefix}-level`}>{t('level')}</Label>
-        <Input
+        <LevelField
           id={`${idPrefix}-level`}
           required
           maxLength={30}
           placeholder="7"
           value={draft.level}
-          onChange={(e) => onChange({ ...draft, level: e.target.value })}
+          onChange={(level) => onChange({ ...draft, level })}
         />
       </div>
       <div className="grid gap-2">
@@ -541,6 +542,7 @@ export function PeriodsView() {
           </p>
         )}
       </div>
+      <DocumentTypesCard />
     </PageBody>
   );
 }

@@ -3,13 +3,16 @@
  * GET /v1/finance/reports/{arrears,daily}. Ganti dengan tipe turunan api-types bila sudah tersedia di sana.
  */
 
-export type PaymentMethod = 'cash' | 'transfer' | 'other';
+/** Kunci metode pembayaran (dinamis per sekolah). */
+export type PaymentMethod = string;
 
 export interface ReceiptDoc {
   id: string;
   receiptNo: string;
   paidAt: string;
   method: PaymentMethod;
+  /** Label dari pengaturan sekolah; bila kosong dipakai kunci. */
+  methodLabel?: string;
   total: number;
   note: string | null;
   voided: boolean;
@@ -38,7 +41,7 @@ export interface ArrearsReport {
 
 export interface DailyReport {
   totals: { receipts: number; amount: number };
-  byMethod: { method: string; receipts: number; amount: number }[];
+  byMethod: { method: string; methodLabel?: string; receipts: number; amount: number }[];
   byFeeType: { feeTypeName: string; amount: number }[];
   byDay: { date: string; receipts: number; amount: number }[];
 }

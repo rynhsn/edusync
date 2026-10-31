@@ -19,7 +19,7 @@ import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { useApply } from '../shared';
-import { DOC_KINDS, type DocFile, DocumentsStep } from './documents-step';
+import { type DocFile, DocumentsStep } from './documents-step';
 import { SuccessView } from './success-view';
 
 interface Draft {
@@ -183,6 +183,7 @@ export function ApplyForm() {
   const [step, setStep] = useState(0);
   const [direction, setDirection] = useState<'forward' | 'back'>('forward');
   const [docs, setDocs] = useState<DocFile[]>([]);
+  const [missingDocs, setMissingDocs] = useState<string[]>([]);
   const [consent, setConsent] = useState(false);
   const [errors, setErrors] = useState<Errors>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
@@ -264,6 +265,11 @@ export function ApplyForm() {
   }
 
   function onNext() {
+    if (step === 2) {
+      const missing = info.documentTypes.filter((d) => d.required && !docs.some((x) => x.kind === d.key));
+      setMissingDocs(missing.map((d) => d.key));
+      if (missing.length > 0) return;
+    }
     const found = validate(step);
     setErrors(found);
     if (Object.keys(found).length === 0) go(step + 1);
@@ -575,7 +581,12 @@ export function ApplyForm() {
           {step === 2 && (
             <div className="grid gap-5">
               <StepTitle title={t('docs.title')} body={t('docs.body')} />
-              <DocumentsStep docs={docs} onChange={setDocs} />
+              <DocumentsStep
+                types={info.documentTypes}
+                docs={docs}
+                missing={missingDocs}
+                onChange={setDocs}
+              />
             </div>
           )}
 
@@ -619,9 +630,9 @@ export function ApplyForm() {
                 title={t('form.steps.documents')}
                 onEdit={() => go(2)}
                 editLabel={t('form.edit')}
-                rows={DOC_KINDS.map((k) => [
-                  t(`docs.kind.${k}`),
-                  docs.find((d) => d.kind === k)?.fileName ?? t('docs.notUploaded'),
+                rows={info.documentTypes.map((k) => [
+                  k.label,
+                  docs.find((d) => d.kind === k.key)?.fileName ?? t('docs.notUploaded'),
                 ])}
               />
               <div className="grid gap-1.5">

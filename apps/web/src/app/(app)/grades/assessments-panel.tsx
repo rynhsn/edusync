@@ -28,11 +28,10 @@ import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
+import { todayIso } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 import { COMPONENT_TONES } from './grade-ui';
 import { ScoreSheet } from './score-sheet';
-
-const todayIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 
 interface Props {
   semesterId: string;

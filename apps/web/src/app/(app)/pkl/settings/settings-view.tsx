@@ -25,6 +25,7 @@ import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { periodProgress, todayIso, weightTotal } from '../lib';
 import { pklKey, usePklPeriods } from '../shared';
+import { ThresholdsCard } from './thresholds-card';
 
 interface PeriodDraft {
   id: string | null;
@@ -480,6 +481,8 @@ export function SettingsView() {
           </>
         )}
       </section>
+
+      <ThresholdsCard />
     </PageBody>
   );
 }

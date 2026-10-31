@@ -607,6 +607,8 @@ export const refSubject = pgTable(
     code: text('code').notNull(),
     name: text('name').notNull(),
     sort: integer('sort').notNull().default(0),
+    /** Kapan mapel acuan ini ditambahkan; dipakai membandingkan dengan waktu adopsi sekolah ("acuan baru"). */
+    createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [unique('ref_subject_uq').on(t.curriculumKey, t.levelGroup, t.code)],
 );
@@ -901,6 +903,7 @@ export const lessonAttendance = pgTable(
 
 /* ---------- Ekstrakurikuler (modul `extracurricular`) ---------- */
 
+/** Kategori bawaan (acuan awal; kategori sebenarnya dikelola sekolah di extracurricular_category). */
 export const EXTRACURRICULAR_CATEGORIES = ['sport', 'art', 'religion', 'science', 'scout', 'other'] as const;
 
 /** Kegiatan ekstrakurikuler. Pembina: guru sekolah (`coachTeacherId`) atau pelatih luar (`externalCoach`). */
@@ -912,7 +915,8 @@ export const extracurricular = pgTable(
       .notNull()
       .references(() => school.id),
     name: text('name').notNull(),
-    category: text('category', { enum: EXTRACURRICULAR_CATEGORIES }).notNull().default('other'),
+    /** Kunci kategori dari tabel extracurricular_category (dinamis per sekolah). */
+    category: text('category').notNull().default('other'),
     description: text('description'),
     coachTeacherId: uuid('coach_teacher_id').references(() => teacher.id),
     externalCoach: text('external_coach'),
@@ -1161,6 +1165,7 @@ export const reportCard = pgTable(
 
 /** Tagihan sekolah milik tenant; berbeda dari tagihan langganan platform (`invoice` di packages/billing). */
 export const FIN_FEE_KINDS = ['monthly', 'one_time', 'yearly'] as const;
+/** Kunci metode bawaan yang diisi malas untuk sekolah tanpa baris `fin_payment_method`. */
 export const FIN_PAYMENT_METHODS = ['cash', 'transfer', 'other'] as const;
 
 /** Jenis biaya (SPP, uang gedung, seragam, ...). */
@@ -1255,7 +1260,8 @@ export const finPayment = pgTable(
       .notNull()
       .references(() => student.id),
     paidAt: timestamp('paid_at', { withTimezone: true }).notNull().defaultNow(),
-    method: text('method', { enum: FIN_PAYMENT_METHODS }).notNull(),
+    /** Kunci metode dari `fin_payment_method` sekolah (dinamis; kunci nonaktif tetap sah untuk riwayat). */
+    method: text('method').notNull(),
     total: integer('total').notNull(),
     note: text('note'),
     recordedBy: text('recorded_by').notNull(),
@@ -1867,7 +1873,8 @@ export const applicationDocument = pgTable('application_document', {
   applicationId: uuid('application_id')
     .notNull()
     .references(() => application.id),
-  kind: text('kind', { enum: ['family_card', 'birth_certificate', 'diploma', 'photo', 'other'] }).notNull(),
+  /** Kunci jenis dokumen dari admission_document_type (dinamis per sekolah). */
+  kind: text('kind').notNull(),
   fileName: text('file_name').notNull(),
   mime: text('mime').notNull(),
   size: integer('size').notNull(),

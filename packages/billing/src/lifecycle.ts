@@ -1,5 +1,5 @@
 import { randomUUID } from 'node:crypto';
-import { quoteUnits, type UnitSelection } from '@edusync/contracts';
+import { DEFAULT_BILLING_SETTINGS, quoteUnits, type UnitSelection } from '@edusync/contracts';
 import {
   and,
   auditLog,
@@ -9,6 +9,7 @@ import {
   inArray,
   invoice,
   isNull,
+  loadBillingSettings,
   loadCatalog,
   lt,
   registration,
@@ -20,8 +21,9 @@ import {
 import { enqueue, QUEUES } from '@edusync/jobs';
 import type { PaymentProvider } from './provider';
 
-export const GRACE_DAYS = 7;
-export const RENEWAL_LEAD_DAYS = 7;
+/** Bawaan; nilai yang berlaku dibaca dari pengaturan platform 'billing' (loadBillingSettings). */
+export const GRACE_DAYS = DEFAULT_BILLING_SETTINGS.graceDays;
+export const RENEWAL_LEAD_DAYS = DEFAULT_BILLING_SETTINGS.renewalLeadDays;
 
 const DAY = 86_400_000;
 
@@ -78,7 +80,8 @@ export async function applyRenewal(tx: Tx, inv: typeof invoice.$inferSelect, now
  * Aman dijalankan berulang dan oleh banyak worker sekaligus (SKIP LOCKED).
  */
 export async function createRenewalInvoices(db: Db, provider: PaymentProvider, now = new Date()) {
-  const due = new Date(now.getTime() + RENEWAL_LEAD_DAYS * DAY);
+  const settings = await loadBillingSettings(db);
+  const due = new Date(now.getTime() + settings.renewalLeadDays * DAY);
   const candidates = await db
     .select({ id: subscription.id })
     .from(subscription)
@@ -126,7 +129,9 @@ export async function createRenewalInvoices(db: Db, provider: PaymentProvider, n
         tier: s.studentTier,
         modules: ents.filter((e) => e.schoolId === s.id).map((e) => e.moduleKey),
       }));
-      const quote = quoteUnits(await loadCatalog(db, { includeInactive: true }), units, sub.period);
+      const quote = quoteUnits(await loadCatalog(db, { includeInactive: true }), units, sub.period, {
+        yearlyMonths: settings.yearlyMonths,
+      });
 
       const [reg] = await tx
         .select()
@@ -168,7 +173,7 @@ export async function createRenewalInvoices(db: Db, provider: PaymentProvider, n
           text:
             `Halo ${result.owner.name},\n\nLangganan Edusync Anda berakhir pada ${result.periodEnd.toISOString().slice(0, 10)}.\n` +
             `Tagihan perpanjangan: Rp ${result.amount.toLocaleString('id-ID')}.\n\nBayar di: ${paymentUrl}\n\n` +
-            `Bila terlambat lebih dari ${GRACE_DAYS} hari, akses sekolah akan dihentikan sementara dan dibuka lagi setelah dibayar.`,
+            `Bila terlambat lebih dari ${settings.graceDays} hari, akses sekolah akan dihentikan sementara dan dibuka lagi setelah dibayar.`,
         });
       });
       created++;
@@ -191,7 +196,8 @@ export async function sweepSubscriptions(db: Db, now = new Date()) {
     .where(and(eq(subscription.status, 'active'), lt(subscription.currentPeriodEnd, now)))
     .returning({ id: subscription.id });
 
-  const cutoff = new Date(now.getTime() - GRACE_DAYS * DAY);
+  const { graceDays } = await loadBillingSettings(db);
+  const cutoff = new Date(now.getTime() - graceDays * DAY);
   const toSuspend = await db
     .update(subscription)
     .set({ status: 'suspended' })

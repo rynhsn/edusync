@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@edusync/billing": "workspace:*",
+    "@edusync/contracts": "workspace:*",
     "@edusync/db": "workspace:*",
     "@edusync/jobs": "workspace:*",
     "nodemailer": "^10.2.1",

@@ -90,7 +90,8 @@
     "portal": "Portal wali/murid",
     "portalAdmin": "Akun portal",
     "groupAttendance": "Kahadiran",
-    "groupCommunication": "Komunikasi jeung situs"
+    "groupCommunication": "Komunikasi jeung situs",
+    "schoolSettings": "Setélan sakola"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -286,7 +287,15 @@
     "already_linked": "Wali atawa murid ieu geus boga akun portal.",
     "email_mismatch": "Uleman ieu ukur pikeun email nu diuleman.",
     "invalid_credentials": "Kecap sandi akun nu geus aya teu cocog.",
-    "account_exists": "Email ieu geus kadaptar. Cobian deui."
+    "account_exists": "Email ieu geus kadaptar. Cobian deui.",
+    "invalid_method": "Cara mayar teu dipikanyaho atawa geus dipareuman.",
+    "last_active": "Sahenteuna kudu aya hiji cara mayar nu tetep hurung.",
+    "invalid_thresholds": "Ambang kudu wilangan bulat 1-100 jeung A leuwih gedé batan B, B leuwih gedé batan C.",
+    "invalid_pattern": "Pola nomer kudu ngandung '{seq}' sarta ngan ngagunakeun '{seq}', '{code}', '{roman}', '{month}', '{year}'.",
+    "invalid_school_code": "Kode sakola ngan meunang aksara kapital, angka, titik, atawa strip (pangpanjangna 12 karakter).",
+    "invalid_level": "Tingkat eta teu aya dina daptar tingkat sakola. Tambahkeun dina Setélan sakola.",
+    "document_required": "Dokumén wajib can diunggah. Lengkepan heula sateuacan ngirim.",
+    "limit_reached": "Wates jumlah geus kahontal."
   },
   "theme": {
     "label": "Tema",
@@ -349,7 +358,7 @@
     "period": "Periode tagihan",
     "monthly": "Bulanan",
     "yearly": "Taunan",
-    "yearlyNote": "Mayar 10 bulan, ngahémat 2 bulan",
+    "yearlyNote": "Mayar {months} bulan, ngahémat {saved} bulan",
     "summary": "Ringkesan",
     "total": "Total",
     "priceNote": "Harga conto pikeun pamekaran, can final.",
@@ -416,7 +425,8 @@
     "groupWatch": "Pangawasan",
     "catalog": "Paket jeung harga",
     "payments": "Pamayaran",
-    "messaging": "Pesen WhatsApp"
+    "messaging": "Pesen WhatsApp",
+    "curriculum": "Bank kurikulum"
   },
   "registerStatus": {
     "title": "Status pamayaran",
@@ -872,12 +882,9 @@
     "adopted": "{created} mata pelajaran ditambihkeun, {skipped} dilaliwatan.",
     "alreadyAdopted": "Geus dicandak",
     "none": "Pilih sahenteuna hiji mata pelajaran.",
-    "levels": {
-      "sd": "SD/MI",
-      "smp": "SMP/MTs",
-      "sma": "SMA/MA",
-      "smk": "SMK"
-    }
+    "updatesTitle": "Pembaruan rujukan",
+    "updatesHint": "Mapél rujukan anyar nu acan aya di sakola anjeun. Mapél nu geus aya, kaasup nu anjeun robah, teu keuna.",
+    "adoptNew": "Adopsi nu anyar ({count})"
   },
   "semesters": {
     "title": "Semester",
@@ -984,7 +991,16 @@
     "addPlanTitle": "Jieun paket",
     "delete": "Piceun",
     "deleted": "Paket dipiceun.",
-    "perMonth": "/bulan"
+    "perMonth": "/bulan",
+    "maxStudents": "Wates murid aktif",
+    "maxStudentsPlaceholder": "Kosong = taya wates",
+    "maxStudentsHint": "Jumlah murid aktif pangmaksimalna pikeun tingkat ieu. Kosongkeun lamun taya wates.",
+    "requires": "Sarat modul",
+    "requiresHint": "Milih modul ieu otomatis nambahan modul nu dicentang di dieu.",
+    "requiresShort": "Peryogi:",
+    "rules": "Aturan",
+    "unlimited": "Taya wates",
+    "upToStudents": "Pangmaksimalna {count} murid"
   },
   "platformPayments": {
     "title": "Pamayaran",
@@ -1053,7 +1069,8 @@
       "3": "Rebo",
       "4": "Kamis",
       "5": "Jumaah",
-      "6": "Saptu"
+      "6": "Saptu",
+      "7": "Minggu"
     },
     "noClasses": "Acan aya kelas dina taun pangajaran aktip.",
     "today": "Ayeuna",
@@ -1471,7 +1488,46 @@
     "statWithCoach": "Boga pembina",
     "emptyTitle": "Acan aya kagiatan",
     "emptyFiltered": "Euweuh ekstrakurikuler anu cocog jeung pamilarian atawa kategori ieu.",
-    "confirmDelete": "Hapus ekstrakurikuler \"{name}\"? Anggota jeung patepunganana milu kahapus."
+    "confirmDelete": "Hapus ekstrakurikuler \"{name}\"? Anggota jeung patepunganana milu kahapus.",
+    "categories": {
+      "manage": "Atur kategori",
+      "title": "Kategori ekstrakurikuler",
+      "description": "Atur ngaran, ikon, jeung warna kategori pikeun ngagolongkeun ekskul di sakola ieu.",
+      "add": "Tambah kategori",
+      "edit": "Robah kategori",
+      "name": "Ngaran kategori",
+      "icon": "Ikon",
+      "tone": "Warna",
+      "activeLabel": "Aktif (bisa dipilih pikeun ekskul anyar)",
+      "inactive": "Teu aktif",
+      "usedBy": "{count} ekskul",
+      "created": "Kategori geus ditambahkeun.",
+      "saved": "Kategori geus disimpen.",
+      "deleted": "Kategori geus dihapus.",
+      "deleteTitle": "Hapus kategori",
+      "confirmDelete": "Hapus kategori \"{name}\"? Kategori nu masih dipaké ekskul teu bisa dihapus.",
+      "icons": {
+        "trophy": "Piala",
+        "palette": "Palet",
+        "book": "Buku",
+        "flask": "Labu sains",
+        "tent": "Tenda",
+        "sparkles": "Bentang",
+        "music": "Musik",
+        "laptop": "Laptop",
+        "globe": "Globe",
+        "heart": "Haté"
+      },
+      "tones": {
+        "teal": "Hejo tosca",
+        "sky": "Biru langit",
+        "violet": "Wungu",
+        "amber": "Konéng jingga",
+        "rose": "Beureum ngora",
+        "emerald": "Hejo jamrud",
+        "slate": "Kulawu"
+      }
+    }
   },
   "grades": {
     "title": "Penilaian",
@@ -1935,7 +1991,21 @@
     "noPlansHint": "Tarif nangtukeun jumlah tagihan per jinis biaya jeung tingkat. Tambahkeun tarif munggaran.",
     "noDiscountRulesTitle": "Acan aya aturan keringanan",
     "lateFeeDisabledTitle": "Denda acan aktif",
-    "lateFeeNoneHint": "Sakabéh tagihan nu kalarung geus kakenaan denda atawa masih dina mangsa toléransi."
+    "lateFeeNoneHint": "Sakabéh tagihan nu kalarung geus kakenaan denda atawa masih dina mangsa toléransi.",
+    "lateFeeDueDays": "Tenggat tagihan denda (poé)",
+    "lateFeeDueDaysHint": "Tagihan denda anyar téh tumpak tempo sabaraha poé saatos diterbitkeun (1 nepi ka 365).",
+    "pmTitle": "Cara mayar",
+    "pmHint": "Pilihan nu mucunghul di kasir. Pareuman cara nu geus teu dipaké; kwitansi heubeul tetep mintonkeun labélna.",
+    "pmAdd": "Tambah cara mayar",
+    "pmEdit": "Robah cara mayar",
+    "pmLabel": "Ngaran cara mayar",
+    "pmLabelHint": "Upamana: QRIS, Kartu débit. Kodena dijieun otomatis tina ngaran jeung teu robah-robah.",
+    "pmUsed": "Dipaké ku {count} kwitansi",
+    "pmMoveUp": "Naékkeun {name}",
+    "pmMoveDown": "Handapkeun {name}",
+    "pmActivate": "Hurungkeun",
+    "pmDeactivate": "Pareuman",
+    "pmDeleteHint": "Cara mayar nu geus dipaké ku kwitansi teu bisa dipupus; pareuman wae."
   },
   "messaging": {
     "title": "Béwara WhatsApp",
@@ -2087,7 +2157,31 @@
       "connecting": "Nuju nyambung",
       "failed": "Gagal",
       "disconnected": "Peuting"
-    }
+    },
+    "retryTitle": "Aturan ngirim deui",
+    "retryHint": "Lumaku pikeun pesen satuluyna tanpa ngamimitian deui worker. Pesen nu gagal dicoba deui nurutkeun jeda di handap.",
+    "backoff": "Jeda antar percobaan (menit)",
+    "backoffHint": "Pisahkeun ku koma, upamana 1, 5, 30, 120, 360. Percobaan nu ngaleuwihan daptar maké jeda nu pamungkas.",
+    "backoffInvalid": "Eusian 1 nepi ka 10 wilangan bulat (1 nepi ka 10080 menit), dipisah koma.",
+    "maxAttempts": "Percobaan pangmaksimalna",
+    "maxAttemptsHint": "Sanggeus ieu pesen ditandaan gagal (1 nepi ka 20).",
+    "expiryHours": "Kadaluwarsa pesen (jam)",
+    "expiryHoursHint": "Pesen nu katahan leuwih lila ti ieu sabab WhatsApp sakola can siap dibuang (1 nepi ka 168).",
+    "staleTapHours": "Wates umur tap (jam)",
+    "staleTapHoursHint": "Tap kiosk nu leuwih heubeul ti ieu teu dibéjakeun deui ka wali (1 nepi ka 72).",
+    "runtimeTitle": "Status worker",
+    "runtimeHint": "Dilaporkeun ku worker pesen sorangan nalika ngamimitian jeung unggal sababaraha menit.",
+    "chrome": "Chrome pikeun WhatsApp",
+    "chromeStatus": {
+      "detected": "Chrome kapanggih",
+      "not_configured": "WA_CHROME_PATH can diatur",
+      "not_found": "Berkas Chrome teu kapanggih",
+      "unknown": "Can aya laporan"
+    },
+    "checkedAt": "Dipariksa {time}",
+    "runtimeStale": "laporan heubeul, worker meureun eureun",
+    "chromeFix": "Eusian WA_CHROME_PATH di .env worker ku jalur chrome.exe (atawa Chromium), tuluy mimitian deui worker.",
+    "runtimeNone": "Worker can ngalaporkeun. Pastikeun worker jalan maké panyadia WhatsApp."
   },
   "schoolMap": {
     "mapLabel": "Peta sakola hirup. {summary}",
@@ -2432,7 +2526,10 @@
         "tooLarge": "Ukuran berkas ngaleuwihan 2 MB.",
         "badType": "Ngan PDF, JPG, atawa PNG nu ditampi.",
         "unreadable": "Berkas teu bisa dibaca. Cobian berkas sejen."
-      }
+      },
+      "requiredMark": "(wajib)",
+      "optionalMark": "(opsional)",
+      "requiredError": "Dokumén ieu wajib diunggah."
     },
     "success": {
       "title": "Pendaptaran kakintun!",
@@ -2645,7 +2742,27 @@
     "qrAlt": "Kode QR ka kaca pendaptaran",
     "posterKicker": "Panampi murid anyar",
     "posterTitle": "Daptar ayeuna!",
-    "posterScan": "Pindai kode QR atawa buka alamat ieu"
+    "posterScan": "Pindai kode QR atawa buka alamat ieu",
+    "docTypes": {
+      "title": "Jinis dokumén pendaptaran",
+      "hint": "Atur dokumén nu dipménta dina formulir pendaptaran. Dokumén nu ditandaan wajib kudu diunggah sateuacan pendaptaran bisa dikirim.",
+      "add": "Tambah jinis dokumén",
+      "edit": "Robah jinis dokumén",
+      "delete": "Hapus jinis dokumén",
+      "name": "Ngaran dokumén",
+      "save": "Simpen",
+      "created": "Jinis dokumén geus ditambahkeun.",
+      "saved": "Jinis dokumén geus disimpen.",
+      "deleted": "Jinis dokumén geus dihapus.",
+      "confirmDelete": "Hapus jinis dokumén \"{name}\"? Jinis nu geus dipaké pendaptar teu bisa dihapus; nonaktifkeun wae.",
+      "required": "Wajib",
+      "optional": "Opsional",
+      "inactive": "Teu aktif",
+      "usedBy": "{count} berkas",
+      "requiredLabel": "Wajib diunggah",
+      "activeLabel": "Aktif (tampil dina formulir)",
+      "loadError": "Gagal ngamuat jinis dokumén."
+    }
   },
   "letters": {
     "title": "Surat",
@@ -2836,7 +2953,35 @@
     "templatesEmptyTitle": "Can aya citakan",
     "templatesEmptyBody": "Pasang tilu citakan bawaan (surat katerangan murid aktif, surat nimbalan kolot, jeung sértifikat basajan) terus saluyukeun sakahayang.",
     "installDefaults": "Pasang citakan bawaan",
-    "defaultsInstalled": "Citakan bawaan dipasang."
+    "defaultsInstalled": "Citakan bawaan dipasang.",
+    "numbering": {
+      "title": "Format nomer",
+      "hint": "Atur kode sakola jeung pola nomer surat kaluar sarta nomer agénda surat asup. Parobahan ngan lumaku pikeun surat salajengna; nomer nu geus kaluar teu robah.",
+      "code": "Kode sakola",
+      "codeHint": "Kosongkeun pikeun migunakeun kode otomatis tina alamat sakola ({code}).",
+      "codeInvalid": "Ngan aksara kapital, angka, titik, atawa strip (pangpanjangna 12 karakter).",
+      "outgoing": "Nomer surat kaluar",
+      "agenda": "Nomer agénda surat asup",
+      "example": "Conto",
+      "useDefault": "Pake bawaan",
+      "save": "Simpen format",
+      "saved": "Format nomer geus disimpen.",
+      "noYearWarning": "Pola tanpa '{year}' bisa gagal lamun urutan balik deui ka 001 taun hareup.",
+      "variables": {
+        "seq": "Urutan (sahenteuna 3 digit, mimiti ti 001 unggal taun)",
+        "code": "Kode sakola",
+        "roman": "Bulan Romawi (I-XII)",
+        "month": "Bulan 2 digit (01-12)",
+        "year": "Taun surat"
+      },
+      "reason": {
+        "empty": "Pola teu meunang kosong.",
+        "too_long": "Pola kapanjangan (pangpanjangna 100 karakter).",
+        "no_seq": "Pola kudu ngandung '{seq}'.",
+        "unknown_variable": "Aya variabel nu teu dikenal. Paké '{seq}', '{code}', '{roman}', '{month}', atawa '{year}'.",
+        "stray_brace": "Aya kurung kurawal nu teu papasangan."
+      }
+    }
   },
   "verify": {
     "pageTitle": "Vérifikasi surat",
@@ -3096,7 +3241,16 @@
     "presentDays": "Poé hadir",
     "visits": "Kunjungan",
     "reportTotal": "Panempatan",
-    "reportScored": "Geus dinilai"
+    "reportScored": "Geus dinilai",
+    "thresholds": {
+      "title": "Ambang predikat nilai",
+      "hint": "Nilai ahir PKL dibéré predikat nurutkeun wates minimal di handap. Parobahan langsung lumaku pikeun sakabéh panempatan, kaasup nu lawas.",
+      "min": "Nilai minimal {predicate}",
+      "below": "handapeun {value}",
+      "invalid": "Eusian wilangan bulat 1-100 jeung A leuwih gedé batan B, B leuwih gedé batan C.",
+      "save": "Simpen ambang",
+      "saved": "Ambang predikat geus disimpen."
+    }
   },
   "pklPublic": {
     "pageTitle": "Pembimbing industri PKL",
@@ -3541,5 +3695,166 @@
     "createAndEnter": "Jieun akun terus lebet",
     "acceptAndEnter": "Tarima terus lebet",
     "existingTitle": "Email ieu geus boga akun. Lebetkeun kecap sandina pikeun nyambungkeun."
+  },
+  "platformReference": {
+    "title": "Bank kurikulum",
+    "subtitle": "Rujukan global pikeun sakabéh sakola: jenjang, kurikulum, jeung mapél. Sakola nyalin mapél rujukan tuluy bébas ngarobahna, jadi parobahan di dieu moal nimpa data sakola.",
+    "readOnly": "Peran anjeun ngan bisa ningali.",
+    "name": "Ngaran",
+    "key": "Konci",
+    "sort": "Urutan",
+    "code": "Kode",
+    "level": "Jenjang",
+    "description": "Katerangan",
+    "active": "Aktif",
+    "inactive": "Teu aktif",
+    "activeHint": "Aktif (némbongan dina pilihan sakola jeung bisa diadopsi)",
+    "add": "Tambah",
+    "edit": "Robah",
+    "save": "Simpen",
+    "delete": "Pupus",
+    "saved": "Geus disimpen.",
+    "deleted": "Geus dipupus.",
+    "inUse": "Masih dipaké (mapél rujukan atawa sakola nu ngadopsi), jadi teu bisa dipupus. Nonaktifkeun jenjang lamun perlu.",
+    "addLevel": "Tambah jenjang",
+    "levelHint": "Konci teu bisa dirobah sanggeus dijieun. Conto: sd, smp, paket_c.",
+    "addCurriculum": "Tambah kurikulum",
+    "statLevels": "Jenjang aktif",
+    "statLevelsHint": "tina {total} jenjang",
+    "statCurricula": "Kurikulum",
+    "statSubjects": "Mapél rujukan",
+    "statAdoptions": "Adopsi sakola",
+    "statAdoptionsHint": "pasangan kurikulum jeung jenjang nu dicokot sakola",
+    "levelsTitle": "Jenjang",
+    "levelsHint": "Jenjang teu aktif disumputkeun tina pilihan sakola; adopsi nu geus aya teu robah.",
+    "levelUsage": "{subjects} mapél rujukan, {schools} adopsi sakola",
+    "deleteLevelTitle": "Pupus jenjang {name}?",
+    "deleteLevelBody": "Ngan bisa lamun euweuh mapél rujukan jeung euweuh sakola nu ngadopsina.",
+    "curriculaTitle": "Kurikulum jeung mapél rujukan",
+    "curriculaHint": "Pilih kurikulum pikeun ningali jeung ngatur mapél rujukanana per jenjang.",
+    "adoptedBy": "Diadopsi {count} sakola",
+    "emptyTitle": "Acan aya kurikulum",
+    "emptyBody": "Tambahkeun kurikulum kahiji, tuluy eusian mapél rujukanana.",
+    "allLevels": "Sadaya jenjang",
+    "addSubject": "Tambah mapél",
+    "noSubjects": "Acan aya mapél di dieu",
+    "noSubjectsBody": "Tambahkeun hiji-hiji atawa impor tina berkas CSV.",
+    "deleteSubjectTitle": "Pupus mapél rujukan {name}?",
+    "deleteCurTitle": "Pupus kurikulum {name}?",
+    "deleteCurBody": "Sakabéh mapél rujukanana milu dipupus. Ditolak lamun geus diadopsi sakola.",
+    "import": "Impor",
+    "importTitle": "Impor mapél ka {name}",
+    "importHint": "Hiji baris per mapél: kode, ngaran, urutan (opsional). Dipisah tab (témpél tina Excel), titik koma, atawa koma. Kode nu geus aya dirobah ngaranna.",
+    "importFile": "Berkas CSV",
+    "importPaste": "Atawa témpél eusi tabel",
+    "importCount": "{count} baris kabaca",
+    "imported": "{created} mapél ditambahkeun, {updated} dirobah."
+  },
+  "platformBilling": {
+    "title": "Parameter tagihan",
+    "subtitle": "Lumaku pikeun siklus tagihan jeung pendaftaran satuluyna tanpa ngamimitian deui. Invoice nu geus dijieun teu robah.",
+    "graceDays": {
+      "label": "Mangsa tenggang (poé)",
+      "hint": "Sakola tetep jalan sakitu poéna sanggeus periode béak saméméh ditangguhkeun."
+    },
+    "renewalLeadDays": {
+      "label": "Pangéling-ngéling perpanjangan (poé)",
+      "hint": "Invoice perpanjangan dijieun sakitu poéna saméméh periode béak."
+    },
+    "reservationHours": {
+      "label": "Mangsa pesenan pendaftaran (jam)",
+      "hint": "Subdomain jeung invoice pendaftaran lumaku sakitu jamna."
+    },
+    "yearlyMonths": {
+      "label": "Bayar taunan (bulan)",
+      "hint": "Langganan taunan diitung sakitu bulanna. Mangaruhan harga anyar jeung perpanjangan."
+    },
+    "range": "Eusian wilangan bulat {min} nepi ka {max}.",
+    "defaultValue": "bawaan {value}",
+    "save": "Simpen parameter",
+    "saved": "Parameter tagihan disimpen.",
+    "resetDefaults": "Eusian nilai bawaan"
+  },
+  "schoolSettings": {
+    "title": "Setélan sakola",
+    "subtitle": "Zona waktu, poé éféktif, semester, jam pelajaran, jeung daptar tingkat kelas pikeun unit ieu.",
+    "timezoneTitle": "Zona waktu",
+    "timezoneBody": "Dasar nangtukeun tanggal jeung jam di sakabéh aplikasi: absénsi, tagihan, talatah, jeung SPMB.",
+    "timezone": "Zona waktu sakola",
+    "nowThere": "Ayeuna di zona ieu",
+    "timezoneHint": "Ngarobah zona waktu teu ngarobah data baheula, ngan cara ngitung poé jeung jam ka hareup.",
+    "daysTitle": "Poé éféktif",
+    "daysBody": "Poé sakola diajar. Dipaké jadwal pelajaran, kalender akademik, jeung pangéling can sumping.",
+    "daysInvalid": "Pilih sahanteuna hiji poé.",
+    "daysCount": "{n} poé saminggu",
+    "semesterTitle": "Semester",
+    "semesterBody": "Ngaran jeung urutan semester dina sataun ajaran. Dipaké waktu nyieun semester otomatis.",
+    "semesterName": "Ngaran semester {n}",
+    "semesterInvalid": "Ngaran semester teu meunang kosong atawa sarua.",
+    "semesterHint": "Pangpangna {max} semester. Semester nu geus dijieun teu robah.",
+    "addSemester": "Tambah semester",
+    "moveUp": "Naékkeun {name}",
+    "moveDown": "Handapkeun {name}",
+    "removeSemester": "Hapus {name}",
+    "lessonTitle": "Jam pelajaran dasar",
+    "lessonBody": "Nilai awal waktu nyieun jam pelajaran otomatis dina jadwal.",
+    "lessonStart": "Jam pelajaran kahiji",
+    "lessonMinutes": "Menit per jam pelajaran",
+    "lessonPreview": "Conto tilu jam pelajaran kahiji",
+    "lessonHint": "Ngan eusian awal; jam pelajaran nu geus aya teu robah.",
+    "save": "Simpen",
+    "saved": "Setélan sakola geus disimpen.",
+    "discard": "Bolaykeun robahan",
+    "unsaved": "Aya robahan nu can disimpen.",
+    "readOnly": "Anjeun ngan bisa ningali setélan ieu.",
+    "days": {
+      "1": "Senén",
+      "2": "Salasa",
+      "3": "Rebo",
+      "4": "Kamis",
+      "5": "Jumaah",
+      "6": "Saptu",
+      "7": "Minggu"
+    },
+    "daysShort": {
+      "1": "Sen",
+      "2": "Sal",
+      "3": "Reb",
+      "4": "Kam",
+      "5": "Jum",
+      "6": "Sap",
+      "7": "Min"
+    },
+    "levelsTitle": "Tingkat kelas",
+    "levelsBody": "Daptar tingkat (upamana 7, 8, 9 atawa X, XI, XII). Dipaké dina kelas, tarif SPP, jeung periode SPMB sangkan panulisanna sarua.",
+    "levelsEmptyTitle": "Tingkat kelas can aya",
+    "levelsEmptyBody": "Eusian otomatis luyu jeung jenjang, atawa tambahan sorangan. Salila kosong, tingkat dina kelas, tarif, jeung SPMB bébas diketik.",
+    "stage": "Jenjang",
+    "stages": {
+      "sd": "SD / MI (kelas 1-6)",
+      "smp": "SMP / MTs (kelas 7-9)",
+      "sma": "SMA / MA (X-XII)",
+      "smk": "SMK (X-XII)"
+    },
+    "fillDefaults": "Eusian dasar",
+    "defaultsFilled": "Tingkat dasar geus ditambahkeun.",
+    "addLevel": "Tambah tingkat",
+    "addLevelBody": "Kodeu dipaké dina kelas jeung tarif, teu bisa dirobah sanggeus dijieun.",
+    "add": "Tambah",
+    "levelCode": "Kodeu",
+    "levelCodeHint": "Hurup, angka, titik, atawa garis. Upamana 7 atawa X.",
+    "levelLabel": "Ngaran tampilan",
+    "levelSort": "Urutan",
+    "levelSortHint": "Kosong = pangtungtung.",
+    "levelOrder": "Urutan {n}",
+    "levelAdded": "Tingkat geus ditambahkeun.",
+    "levelSaved": "Tingkat geus disimpen.",
+    "levelDeleted": "Tingkat geus dihapus.",
+    "levelActionsFor": "Aksi pikeun tingkat {name}",
+    "edit": "Robah",
+    "delete": "Hapus",
+    "editLevel": "Robah tingkat {code}",
+    "deleteLevelTitle": "Hapus tingkat {name}?",
+    "deleteLevelBody": "Tingkat nu masih dipaké kelas, tarif, atawa periode SPMB teu bisa dihapus."
   }
 }

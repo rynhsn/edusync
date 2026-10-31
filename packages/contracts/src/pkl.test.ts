@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { canPlacementTransition, DEFAULT_PKL_ASPECTS, pklPredicate, pklResult } from './pkl';
+import {
+  canPlacementTransition,
+  DEFAULT_PKL_ASPECTS,
+  pklPredicate,
+  pklResult,
+  validPklThresholds,
+} from './pkl';
 
 describe('aspek bawaan', () => {
   it('total bobot 100', () => {
@@ -42,6 +48,22 @@ describe('pklPredicate', () => {
     expect(pklPredicate(80)).toBe('B');
     expect(pklPredicate(70)).toBe('C');
     expect(pklPredicate(69.9)).toBe('D');
+  });
+
+  it('memakai ambang sekolah bila diberikan', () => {
+    const custom = { predicateA: 95, predicateB: 85, predicateC: 75 };
+    expect(pklPredicate(90, custom)).toBe('B');
+    expect(pklPredicate(85, custom)).toBe('B');
+    expect(pklPredicate(74.9, custom)).toBe('D');
+  });
+
+  it('validasi ambang: bulat 1-100 dan A > B > C', () => {
+    expect(validPklThresholds({ predicateA: 90, predicateB: 80, predicateC: 70 })).toBe(true);
+    expect(validPklThresholds({ predicateA: 80, predicateB: 80, predicateC: 70 })).toBe(false);
+    expect(validPklThresholds({ predicateA: 90, predicateB: 70, predicateC: 80 })).toBe(false);
+    expect(validPklThresholds({ predicateA: 101, predicateB: 80, predicateC: 70 })).toBe(false);
+    expect(validPklThresholds({ predicateA: 90, predicateB: 80, predicateC: 0 })).toBe(false);
+    expect(validPklThresholds({ predicateA: 90.5, predicateB: 80, predicateC: 70 })).toBe(false);
   });
 });
 

@@ -7,6 +7,7 @@ import {
   classRoom,
   eq,
   program,
+  schoolSetting,
   type Tx,
   withTenant,
 } from '@edusync/db';
@@ -93,10 +94,11 @@ export async function calendarRoutes(instance: FastifyInstance) {
         summary: 'Kalender akademik satu tahun ajaran',
         description:
           'Izin: `academic_year:read`. Acara urut tanggal, beserta hari efektif belajar: hari kerja (Senin–Jumat, atau ' +
-          'Senin–Sabtu dengan `daysPerWeek=6`) dikurangi libur dan jeda cakupan sekolah.',
+          'Senin–Sabtu dengan `daysPerWeek=6`) dikurangi libur dan jeda cakupan sekolah. Tanpa `daysPerWeek`, hari ' +
+          'efektif sekolah dari Pengaturan sekolah dipakai bila sudah disimpan; bila belum, Senin–Jumat.',
         headers: schoolHeader,
         params: idParams,
-        querystring: z.object({ daysPerWeek: z.coerce.number().int().min(5).max(6).default(5) }),
+        querystring: z.object({ daysPerWeek: z.coerce.number().int().min(5).max(6).optional() }),
         response: {
           200: z.object({
             events: z.array(eventSchema),
@@ -120,12 +122,20 @@ export async function calendarRoutes(instance: FastifyInstance) {
           .from(calendarEvent)
           .where(eq(calendarEvent.academicYearId, year.id))
           .orderBy(asc(calendarEvent.startsOn), asc(calendarEvent.title));
+        const [saved] = request.query.daysPerWeek
+          ? []
+          : await tx.select({ days: schoolSetting.workingDays }).from(schoolSetting);
+        const workDays = saved?.days ?? 5;
         const closures = events.filter(
           (e) => e.scope === 'school' && (e.type === 'holiday' || e.type === 'break'),
         );
         return {
           events: events.map(({ schoolId: _s, createdAt: _c, ...e }) => e),
-          days: effectiveDays(year, closures, request.query.daysPerWeek as 5 | 6),
+          days: effectiveDays(
+            year,
+            closures,
+            request.query.daysPerWeek ? (request.query.daysPerWeek as 5 | 6) : workDays,
+          ),
         };
       }),
   );

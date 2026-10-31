@@ -184,6 +184,7 @@ afterAll(async () => {
       'signed_document',
       'letter',
       'letter_counter',
+      'letter_setting',
       'letter_template',
       'signer_credential',
       'enrollment',
@@ -652,5 +653,82 @@ describe('lintas sekolah', () => {
     const sg = await call('POST', `/v1/letters/${l.id}/sign`, cookies.principal);
     const pub = await app.inject(`/v1/public/verify/${sg.json().token}`);
     expect(pub.json().issuer.schoolName).toBe('SMP IT Surat');
+  });
+});
+
+describe('format nomor surat', () => {
+  const put = (cookie: string, body: object, sid = schoolId) =>
+    call('PUT', '/v1/letters/numbering', cookie, body, sid);
+  const incoming = (letterDate: string) =>
+    call('POST', '/v1/letters', cookies.admin, {
+      direction: 'incoming',
+      subject: 'Undangan',
+      party: 'Dinas',
+      letterDate,
+    });
+
+  it('bawaan, izin, dan validasi', async () => {
+    const get = await call('GET', '/v1/letters/numbering', cookies.principal);
+    expect(get.statusCode).toBe(200);
+    expect(get.json()).toEqual({
+      schoolCode: null,
+      derivedCode: CODE,
+      effectiveCode: CODE,
+      numberPattern: '{seq}/{code}/{roman}/{year}',
+      agendaPattern: 'AG/{seq}/{year}',
+    });
+    const ok = { schoolCode: 'SMP-1', numberPattern: '{seq}/{code}/{year}', agendaPattern: '{seq}/{year}' };
+    expect((await put(cookies.principal, ok)).statusCode).toBe(403);
+    expect((await put(cookies.teacher, ok)).statusCode).toBe(403);
+    expect(
+      (await call('GET', '/v1/letters/numbering', cookies.noModule, undefined, noModuleId)).statusCode,
+    ).toBe(403);
+    for (const bad of [
+      { ...ok, numberPattern: '{code}/{year}' },
+      { ...ok, agendaPattern: '' },
+      { ...ok, numberPattern: '{seq}/{foo}' },
+      { ...ok, agendaPattern: '{seq}/{year' },
+    ]) {
+      const res = await put(cookies.operator, bad);
+      expect(res.statusCode).toBe(400);
+      expect(code(res)).toBe('invalid_pattern');
+    }
+    const badCode = await put(cookies.operator, { ...ok, schoolCode: 'a/b' });
+    expect(badCode.statusCode).toBe(400);
+    expect(code(badCode)).toBe('invalid_school_code');
+  });
+
+  it('pola dan kode kustom dipakai surat berikutnya; nomor lama tetap; sekolah lain terpisah', async () => {
+    const before = await newLetter({ letterDate: '2040-02-03' });
+    expect(before.json().number).toBe(`001/${CODE}/II/2040`);
+
+    const saved = await put(cookies.operator, {
+      schoolCode: 'smp-1',
+      numberPattern: 'No. {seq}/{code}/{month}/{year}',
+      agendaPattern: 'AGD-{seq}/{roman}/{year}',
+    });
+    expect(saved.statusCode).toBe(200);
+    expect(saved.json()).toMatchObject({ schoolCode: 'SMP-1', effectiveCode: 'SMP-1', derivedCode: CODE });
+
+    // Urutan melanjutkan penghitung yang ada.
+    expect((await newLetter({ letterDate: '2040-03-04' })).json().number).toBe('No. 002/SMP-1/03/2040');
+    expect((await incoming('2040-04-01')).json().number).toBe('AGD-001/IV/2040');
+    // Nomor yang sudah terbit tidak berubah.
+    const old = await call('GET', `/v1/letters/${before.json().id}`, cookies.admin);
+    expect(old.json().number).toBe(`001/${CODE}/II/2040`);
+
+    // Sekolah lain tidak ikut berubah.
+    const other = await call('GET', '/v1/letters/numbering', cookies.other, undefined, otherId);
+    expect(other.json().numberPattern).toBe('{seq}/{code}/{roman}/{year}');
+    expect(other.json().schoolCode).toBeNull();
+
+    // Kode kosong kembali ke kode turunan dari alamat sekolah.
+    const reset = await put(cookies.operator, {
+      schoolCode: null,
+      numberPattern: '{seq}/{code}/{roman}/{year}',
+      agendaPattern: 'AG/{seq}/{year}',
+    });
+    expect(reset.json()).toMatchObject({ schoolCode: null, effectiveCode: CODE });
+    expect((await newLetter({ letterDate: '2040-05-06' })).json().number).toBe(`003/${CODE}/V/2040`);
   });
 });

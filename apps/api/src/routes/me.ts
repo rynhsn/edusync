@@ -20,6 +20,9 @@ const membershipSchema = z.object({
   schoolId: z.uuid(),
   schoolName: z.string(),
   schoolSlug: z.string(),
+  timezone: z
+    .string()
+    .describe('Zona waktu IANA sekolah (mis. Asia/Jakarta); dasar tanggal "hari ini" di layar'),
   roles: z.array(z.string()),
   permissions: z.array(z.string()).describe('Gabungan izin dari semua peran di sekolah ini'),
   modules: z.array(z.string()).describe('Modul berbayar yang sedang aktif di sekolah ini'),
@@ -53,6 +56,7 @@ export async function meRoutes(instance: FastifyInstance) {
           schoolId: school.id,
           schoolName: school.name,
           schoolSlug: school.slug,
+          timezone: school.timezone,
           roleKey: role.key,
           permission: rolePermission.permission,
         })
@@ -69,6 +73,7 @@ export async function meRoutes(instance: FastifyInstance) {
           schoolId: r.schoolId,
           schoolName: r.schoolName,
           schoolSlug: r.schoolSlug,
+          timezone: r.timezone,
           roles: [],
           permissions: [],
           modules: [],

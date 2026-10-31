@@ -7,8 +7,14 @@ import { useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
-export const DOC_KINDS = ['family_card', 'birth_certificate', 'diploma', 'photo'] as const;
-export type DocKind = (typeof DOC_KINDS)[number];
+export type DocKind = string;
+
+/** Jenis dokumen yang diminta sekolah (dari info pendaftaran). */
+export interface DocType {
+  key: string;
+  label: string;
+  required: boolean;
+}
 
 /** Dokumen di memori saja (tidak pernah ditulis ke sessionStorage). */
 export interface DocFile {
@@ -58,11 +64,15 @@ const sizeLabel = (n: number) =>
 
 function Slot({
   kind,
+  label,
+  required,
   doc,
   onPick,
   onRemove,
 }: {
   kind: DocKind;
+  label: string;
+  required: boolean;
   doc: DocFile | undefined;
   onPick: (kind: DocKind, file: File) => Promise<Problem | null>;
   onRemove: (kind: DocKind) => void;
@@ -82,7 +92,12 @@ function Slot({
 
   return (
     <div className="grid gap-1.5">
-      <p className="text-sm font-medium">{t(`kind.${kind}`)}</p>
+      <p className="text-sm font-medium">
+        {label}{' '}
+        <span className={required ? 'text-destructive text-xs' : 'text-muted-foreground text-xs'}>
+          {required ? t('requiredMark') : t('optionalMark')}
+        </span>
+      </p>
       {doc ? (
         <div className="flex items-center gap-3 rounded-2xl border bg-[var(--ap-teal-soft)]/50 p-3">
           <div className="bg-background grid size-14 shrink-0 place-items-center overflow-hidden rounded-xl border">
@@ -114,7 +129,7 @@ function Slot({
         // biome-ignore lint/a11y/useSemanticElements: area seret-lepas; tombol sebenarnya ada di dalamnya
         <div
           role="group"
-          aria-label={t(`kind.${kind}`)}
+          aria-label={label}
           onDragOver={(e) => {
             e.preventDefault();
             setOver(true);
@@ -151,7 +166,7 @@ function Slot({
             className="sr-only"
             tabIndex={-1}
             accept="application/pdf,image/jpeg,image/png"
-            aria-label={t(`kind.${kind}`)}
+            aria-label={label}
             onChange={(e) => {
               void take(e.target.files?.[0]);
               e.target.value = '';
@@ -169,7 +184,18 @@ function Slot({
 }
 
 /** Langkah unggah dokumen: satu area seret-lepas per jenis dokumen. Berkas hanya hidup di memori halaman ini. */
-export function DocumentsStep({ docs, onChange }: { docs: DocFile[]; onChange: (docs: DocFile[]) => void }) {
+export function DocumentsStep({
+  types,
+  docs,
+  missing,
+  onChange,
+}: {
+  types: DocType[];
+  docs: DocFile[];
+  /** Kunci jenis wajib yang belum diunggah setelah mencoba lanjut. */
+  missing: string[];
+  onChange: (docs: DocFile[]) => void;
+}) {
   const t = useTranslations('apply.docs');
   const latest = useRef(docs);
   latest.current = docs;
@@ -195,8 +221,22 @@ export function DocumentsStep({ docs, onChange }: { docs: DocFile[]; onChange: (
         {t('rules')}
       </p>
       <div className="grid gap-5 sm:grid-cols-2">
-        {DOC_KINDS.map((k) => (
-          <Slot key={k} kind={k} doc={docs.find((d) => d.kind === k)} onPick={pick} onRemove={remove} />
+        {types.map((k) => (
+          <div key={k.key} className="grid gap-1.5">
+            <Slot
+              kind={k.key}
+              label={k.label}
+              required={k.required}
+              doc={docs.find((d) => d.kind === k.key)}
+              onPick={pick}
+              onRemove={remove}
+            />
+            {missing.includes(k.key) && (
+              <p role="alert" className="text-destructive text-xs font-medium">
+                {t('requiredError')}
+              </p>
+            )}
+          </div>
         ))}
       </div>
     </div>

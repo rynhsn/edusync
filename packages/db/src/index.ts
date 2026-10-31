@@ -11,10 +11,12 @@ export {
   isNull,
   lt,
   lte,
+  max,
   ne,
   or,
   sql,
 } from 'drizzle-orm';
+export * from './billing-settings';
 export * from './catalog';
 export * from './client';
 export * from './messaging';

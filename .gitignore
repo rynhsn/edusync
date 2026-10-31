@@ -8,7 +8,8 @@ coverage/
 *.log
 .DS_Store
 .claude/
-.codegraph/
 .mcp.json
 .turbo/
 .wa-sessions/
+graphify-out/
+apps/worker/.wwebjs_cache/

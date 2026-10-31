@@ -43,8 +43,8 @@ const FIRST_LOAD_MS = 10 * 60_000;
 const closedSchema = z.object({ type: z.enum(['holiday', 'break']), title: z.string() }).nullable();
 
 const snapshotSchema = z.object({
-  date: z.string().describe('Tanggal hari ini menurut Asia/Jakarta, TTTT-BB-HH'),
-  time: z.string().describe('Jam sekarang menurut Asia/Jakarta, HH:MM'),
+  date: z.string().describe('Tanggal hari ini menurut zona waktu sekolah, TTTT-BB-HH'),
+  time: z.string().describe('Jam sekarang menurut zona waktu sekolah, HH:MM'),
   closed: closedSchema,
   attendance: z
     .object({
@@ -130,7 +130,7 @@ export async function liveRoutes(instance: FastifyInstance) {
           'Anggota sekolah mana pun boleh memanggil (tanpa izin khusus). Tiap bagian null bila modulnya tidak aktif ATAU ' +
           'pengguna tidak punya izinnya: `attendance` dan `lessons` (modul `attendance` + `attendance:read`), `finance` ' +
           '(modul `finance` + `finance:read`), `messaging` (modul `messaging` + `message:read`), `extracurricular` ' +
-          '(modul `extracurricular` + `extracurricular:read`). `date`/`time` menurut Asia/Jakarta. `closed` = libur ' +
+          '(modul `extracurricular` + `extracurricular:read`). `date`/`time` menurut zona waktu sekolah. `closed` = libur ' +
           'atau jeda kalender sekolah hari ini. `attendance` dihitung seperti `summary` pada `/v1/gate/daily` (siswa aktif ' +
           'di tahun ajaran aktif, tanpa daftar siswa). `lessons.running` = jam yang sedang berlangsung menurut jadwal hari ' +
           'ini di tahun ajaran aktif (maksimal 30; kosong pada hari libur/Minggu); `currentPeriod` nomor jam yang ' +
@@ -148,8 +148,8 @@ export async function liveRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       const now = new Date();
-      const { date, time } = jakarta(now);
       return tenant(request, async (tx) => {
+        const { date, time } = jakarta(now);
         const modules = await activeModules(tx);
         const can = (module: string, permission: string) =>
           modules.has(module) && ctx.permissions.has(permission);
@@ -322,7 +322,7 @@ export async function liveRoutes(instance: FastifyInstance) {
         summary: 'Aliran tap gerbang terbaru',
         description:
           'Anggota sekolah mana pun boleh memanggil, tetapi peristiwa hanya diisi bila modul `attendance` aktif dan ' +
-          'pengguna punya `attendance:read`; selain itu `events` kosong. Sumber: tap gerbang hari ini (Asia/Jakarta); ' +
+          'pengguna punya `attendance:read`; selain itu `events` kosong. Sumber: tap gerbang hari ini (zona waktu sekolah); ' +
           '`kind` `arrival` (tap masuk) atau `departure` (tap pulang), urut waktu naik. `after` (ISO) = hanya tap ' +
           'setelahnya (eksklusif); tanpa `after` dikembalikan tap 10 menit terakhir (maksimal `limit`, yang terbaru). ' +
           '`limit` 1-50, bawaan 20. `cursor` = waktu tap terbesar yang dikembalikan, atau `after` (atau sekarang) bila ' +

@@ -8,6 +8,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import { LevelField } from '@/components/level-field';
 import { ConfirmDelete, ListSkeleton, REVEAL, RowMenu, SearchBox } from '@/components/master-kit';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -285,13 +286,12 @@ export function ClassesView() {
       </div>
       <div className="grid gap-2">
         <Label htmlFor={`${prefix}-level`}>{t('level')}</Label>
-        <Input
+        <LevelField
           id={`${prefix}-level`}
           required
-          maxLength={20}
           placeholder={t('levelHint')}
           value={value.level}
-          onChange={(e) => set({ ...value, level: e.target.value })}
+          onChange={(level) => set({ ...value, level })}
         />
       </div>
       <div className="grid gap-2 sm:col-span-2">

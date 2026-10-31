@@ -42,13 +42,15 @@ import {
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
-import { CATEGORIES, CATEGORY_META, type Category, hhmm, WEEKDAYS } from './shared';
+import { CategoriesManager } from './categories-manager';
+import { categoryMeta, hhmm, WEEKDAYS } from './shared';
+import { useExtracurricularCategories } from './use-categories';
 
 type CoachType = 'none' | 'teacher' | 'external';
 
 interface Draft {
   name: string;
-  category: Category;
+  category: string;
   description: string;
   coachType: CoachType;
   coachTeacherId: string;
@@ -62,7 +64,7 @@ interface Draft {
 
 const EMPTY: Draft = {
   name: '',
-  category: 'sport',
+  category: '',
   description: '',
   coachType: 'none',
   coachTeacherId: '',
@@ -88,6 +90,7 @@ function ExtracurricularFields({
   const tm = useTranslations('masterData');
   const { school, can } = useSchool();
   const header = { header: schoolHeader(school.schoolId) };
+  const categories = useExtracurricularCategories();
   const teachers = useQuery({
     queryKey: ['teachers', school.schoolId, ''],
     enabled: can('teacher:read'),
@@ -110,14 +113,16 @@ function ExtracurricularFields({
         <Label htmlFor={`${idPrefix}-category`}>{t('categoryLabel')}</Label>
         <SelectField
           id={`${idPrefix}-category`}
-          value={draft.category}
-          onChange={(e) => onChange({ ...draft, category: e.target.value as Category })}
+          value={draft.category || categories.data?.find((c) => c.active)?.key || ''}
+          onChange={(e) => onChange({ ...draft, category: e.target.value })}
         >
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {t(`category.${c}`)}
-            </option>
-          ))}
+          {categories.data
+            ?.filter((c) => c.active || c.key === draft.category)
+            .map((c) => (
+              <option key={c.key} value={c.key}>
+                {c.label}
+              </option>
+            ))}
         </SelectField>
       </div>
       <div className="grid gap-2 sm:col-span-2">
@@ -230,10 +235,10 @@ function ExtracurricularFields({
 }
 
 /** Badan permintaan tambah/ubah dari isian formulir. */
-function toBody(d: Draft) {
+function toBody(d: Draft, fallbackCategory: string) {
   return {
     name: d.name.trim(),
-    category: d.category,
+    category: d.category || fallbackCategory,
     description: d.description.trim() || null,
     coachTeacherId: d.coachType === 'teacher' ? d.coachTeacherId || null : null,
     externalCoach: d.coachType === 'external' ? d.externalCoach.trim() || null : null,
@@ -254,6 +259,8 @@ export function ExtracurricularsView() {
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
   const manage = can('extracurricular:manage');
+  const categories = useExtracurricularCategories();
+  const firstCategory = categories.data?.find((c) => c.active)?.key ?? '';
 
   const [q, setQ] = useState('');
   const [category, setCategory] = useState('');
@@ -270,7 +277,7 @@ export function ExtracurricularsView() {
 
   const create = useMutation({
     mutationFn: async () =>
-      unwrap(await api.POST('/v1/extracurriculars', { params: header, body: toBody(draft) })),
+      unwrap(await api.POST('/v1/extracurriculars', { params: header, body: toBody(draft, firstCategory) })),
     onSuccess: () => {
       setError(null);
       setDraft(EMPTY);
@@ -284,7 +291,7 @@ export function ExtracurricularsView() {
       unwrap(
         await api.PUT('/v1/extracurriculars/{id}', {
           params: { ...header, path: { id: v.id } },
-          body: toBody(v),
+          body: toBody(v, firstCategory),
         }),
       ),
     onSuccess: () => {
@@ -389,12 +396,13 @@ export function ExtracurricularsView() {
           onChange={(e) => setCategory(e.target.value)}
         >
           <option value="">{t('allCategories')}</option>
-          {CATEGORIES.map((c) => (
-            <option key={c} value={c}>
-              {t(`category.${c}`)}
+          {categories.data?.map((c) => (
+            <option key={c.key} value={c.key}>
+              {c.label}
             </option>
           ))}
         </SelectField>
+        {manage && <CategoriesManager />}
       </Toolbar>
 
       {list.isPending && (
@@ -445,7 +453,7 @@ export function ExtracurricularsView() {
       {rows.length > 0 && (
         <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {rows.map((r, idx) => {
-            const meta = CATEGORY_META[r.category];
+            const meta = categoryMeta(categories.data, r.category);
             return (
               <li
                 key={r.id}
@@ -466,7 +474,7 @@ export function ExtracurricularsView() {
                     </Link>
                     <div className="mt-1 flex flex-wrap items-center gap-1.5">
                       <ToneBadge tone={meta.tone} dot={false}>
-                        {t(`category.${r.category}`)}
+                        {meta.label}
                       </ToneBadge>
                       {!r.active && <ToneBadge tone="slate">{t('inactive')}</ToneBadge>}
                     </div>

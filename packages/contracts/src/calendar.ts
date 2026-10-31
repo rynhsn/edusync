@@ -30,7 +30,15 @@ export interface EffectiveDays {
  * Hari efektif dalam rentang tahun ajaran. `closures` adalah libur dan jeda cakupan sekolah; yang tumpang tindih
  * tidak dihitung ganda. Ujian dan kegiatan tidak mengurangi hari efektif.
  */
-export function effectiveDays(range: DayRange, closures: DayRange[], daysPerWeek: 5 | 6 = 5): EffectiveDays {
+export function effectiveDays(
+  range: DayRange,
+  closures: DayRange[],
+  daysPerWeek: 5 | 6 | readonly number[] = 5,
+): EffectiveDays {
+  // Angka 5/6 berarti Senin-Jumat/Sabtu; daftar berisi hari efektif sekolah (1 = Senin ... 7 = Minggu).
+  const work = new Set(
+    typeof daysPerWeek === 'number' ? Array.from({ length: daysPerWeek }, (_, i) => i + 1) : daysPerWeek,
+  );
   const from = parse(range.startsOn);
   const to = parse(range.endsOn);
   const closed = new Set<number>();
@@ -43,8 +51,8 @@ export function effectiveDays(range: DayRange, closures: DayRange[], daysPerWeek
   let nonEffective = 0;
   for (let d = from; d <= to; d += DAY) {
     total++;
-    const weekday = new Date(d).getUTCDay(); // 0 = Minggu
-    const isWork = weekday >= 1 && weekday <= daysPerWeek;
+    const weekday = new Date(d).getUTCDay() || 7; // 1 = Senin ... 7 = Minggu
+    const isWork = work.has(weekday);
     if (!isWork) continue;
     workdays++;
     if (closed.has(d)) nonEffective++;

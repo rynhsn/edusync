@@ -203,6 +203,7 @@ afterAll(async () => {
       'audit_log',
       'fin_payment_item',
       'fin_payment',
+      'fin_payment_method',
       'fin_invoice',
       'fin_student_discount',
       'fin_discount_rule',

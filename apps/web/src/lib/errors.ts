@@ -30,6 +30,7 @@ const KNOWN = [
   'invalid_reference',
   'invalid_event',
   'invalid_period',
+  'invalid_level',
   'server_key_required',
   'invalid_provider',
   'no_assignment',
@@ -85,6 +86,8 @@ const KNOWN = [
   'placement_cancelled',
   'not_deletable',
   'late_fee_disabled',
+  'invalid_method',
+  'last_active',
   'portal_not_linked',
   'invite_used',
   'invite_expired',
@@ -94,6 +97,11 @@ const KNOWN = [
   'email_mismatch',
   'invalid_credentials',
   'account_exists',
+  'invalid_thresholds',
+  'invalid_pattern',
+  'invalid_school_code',
+  'document_required',
+  'limit_reached',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

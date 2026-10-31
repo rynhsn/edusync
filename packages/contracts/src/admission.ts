@@ -29,7 +29,7 @@ export function canTransition(from: AdmissionStatus, to: AdmissionStatus): boole
 /** Ukuran maksimum satu dokumen pendaftar (byte asli, sebelum base64). */
 export const MAX_DOC_BYTES = 2 * 1024 * 1024;
 /** Jumlah maksimum dokumen per pendaftaran. */
-export const MAX_DOCS_PER_APPLICATION = 5;
+export const MAX_DOCS_PER_APPLICATION = 8;
 
 export type DocMime = 'application/pdf' | 'image/jpeg' | 'image/png';
 

@@ -100,6 +100,7 @@ export function RegisterForm() {
   const moduleName = (key: string, fallback: string) => (tm.has(key as never) ? tm(key as never) : fallback);
   const tierName = (key: string, fallback: string) => (tt.has(key as never) ? tt(key as never) : fallback);
 
+  const yearlyMonths = catalog.data?.yearlyMonths;
   const quote = useMemo(() => {
     if (items.length === 0) return null;
     try {
@@ -107,12 +108,13 @@ export function RegisterForm() {
         items,
         units.map((u) => ({ name: u.name || '…', modules: u.modules, tier: u.tier })),
         period,
+        yearlyMonths ? { yearlyMonths } : {},
       );
     } catch (e) {
       if (e instanceof QuoteError) return null;
       throw e;
     }
-  }, [items, units, period]);
+  }, [items, units, period, yearlyMonths]);
 
   const lineLabel = (line: QuoteLine) => {
     const [prefix, key] = line.key.includes(': ')
@@ -324,7 +326,7 @@ export function RegisterForm() {
           )}
           {catalog.data &&
             units.map((unit, index) => {
-              const extra = withRequirements(unit.modules).filter((m) => !unit.modules.includes(m));
+              const extra = withRequirements(unit.modules, items).filter((m) => !unit.modules.includes(m));
               return (
                 <Card key={unit.id}>
                   <CardHeader className="flex-row items-center justify-between">
@@ -497,7 +499,14 @@ export function RegisterForm() {
                   </button>
                 ))}
               </div>
-              {period === 'yearly' && <p className="text-primary text-xs font-medium">{t('yearlyNote')}</p>}
+              {period === 'yearly' && (catalog.data?.yearlyMonths ?? 10) < 12 && (
+                <p className="text-primary text-xs font-medium">
+                  {t('yearlyNote', {
+                    months: catalog.data?.yearlyMonths ?? 10,
+                    saved: 12 - (catalog.data?.yearlyMonths ?? 10),
+                  })}
+                </p>
+              )}
             </fieldset>
 
             <ul className="grid gap-2 text-sm">

@@ -131,7 +131,7 @@ export function ReceiptDocument({ receipt }: { receipt: ReceiptDoc }) {
             </View>
             <View style={styles.row}>
               <Text style={styles.label}>Metode</Text>
-              <Text style={styles.value}>{methodLabel(receipt.method)}</Text>
+              <Text style={styles.value}>{receipt.methodLabel ?? methodLabel(receipt.method)}</Text>
             </View>
           </View>
         </View>

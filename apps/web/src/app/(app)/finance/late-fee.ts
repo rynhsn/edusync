@@ -6,6 +6,7 @@ export interface LateFeeDraft {
   mode: LateFeeMode;
   value: string;
   graceDays: string;
+  dueDays: string;
   capAmount: string;
   feeTypeId: string;
 }
@@ -14,6 +15,7 @@ export const EMPTY_LATE_FEE: LateFeeDraft = {
   mode: 'none',
   value: '',
   graceDays: '0',
+  dueDays: '7',
   capAmount: '',
   feeTypeId: '',
 };
@@ -22,6 +24,7 @@ type Setting = {
   mode: LateFeeMode;
   value: number;
   graceDays: number;
+  dueDays: number;
   capAmount: number | null;
   feeTypeId: string | null;
 };
@@ -32,6 +35,7 @@ export function draftFromSetting(s: Setting): LateFeeDraft {
     mode: s.mode,
     value: s.mode === 'none' ? '' : String(s.value),
     graceDays: String(s.graceDays),
+    dueDays: String(s.dueDays),
     capAmount: s.capAmount === null ? '' : String(s.capAmount),
     feeTypeId: s.feeTypeId ?? '',
   };
@@ -44,6 +48,7 @@ export function bodyFromDraft(d: LateFeeDraft) {
       mode: 'none' as const,
       value: 0,
       graceDays: Number(d.graceDays) || 0,
+      dueDays: Number(d.dueDays) || 7,
       capAmount: null,
       feeTypeId: null,
     };
@@ -51,6 +56,7 @@ export function bodyFromDraft(d: LateFeeDraft) {
     mode: d.mode,
     value: Number(d.value),
     graceDays: Number(d.graceDays) || 0,
+    dueDays: Number(d.dueDays) || 7,
     capAmount: d.capAmount ? Number(d.capAmount) : null,
     feeTypeId: d.feeTypeId || null,
   };
@@ -63,6 +69,7 @@ export function isLateFeeDraftValid(d: LateFeeDraft): boolean {
   if (!Number.isInteger(v) || v < 1) return false;
   if (d.mode === 'percent' && v > 100) return false;
   if (Number(d.graceDays) > 365) return false;
+  if (!Number.isInteger(Number(d.dueDays)) || Number(d.dueDays) < 1 || Number(d.dueDays) > 365) return false;
   if (d.capAmount !== '' && Number(d.capAmount) < 1) return false;
   return d.feeTypeId !== '';
 }

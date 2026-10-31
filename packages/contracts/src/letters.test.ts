@@ -1,14 +1,19 @@
 import { describe, expect, it } from 'vitest';
 import {
+  DEFAULT_AGENDA_PATTERN,
   DEFAULT_LETTER_TEMPLATES,
+  DEFAULT_NUMBER_PATTERN,
   formatAgendaNumber,
   formatLetterNumber,
   formatLongDateId,
+  normalizeSchoolCode,
   parseSignatureDataUrl,
   renderLetter,
+  renderNumberPattern,
   romanMonth,
   schoolCodeFromSlug,
   unknownLetterPlaceholders,
+  validateNumberPattern,
 } from './letters';
 
 describe('romanMonth', () => {
@@ -29,6 +34,54 @@ describe('formatLetterNumber', () => {
   });
   it('nomor agenda', () => {
     expect(formatAgendaNumber(7, 2026)).toBe('AG/007/2026');
+  });
+});
+
+describe('renderNumberPattern', () => {
+  const v = { seq: 7, code: 'SMH', month: 3, year: 2026 };
+  it('mengisi semua variabel', () => {
+    expect(renderNumberPattern('{seq}/{code}/{roman}/{year}', v)).toBe('007/SMH/III/2026');
+    expect(renderNumberPattern('No. {seq}-{month}-{year} ({code})', v)).toBe('No. 007-03-2026 (SMH)');
+    expect(renderNumberPattern('{seq}/{seq}', { ...v, seq: 1234 })).toBe('1234/1234');
+  });
+  it('pola bawaan setara format lama', () => {
+    expect(renderNumberPattern(DEFAULT_NUMBER_PATTERN, v)).toBe(formatLetterNumber(7, 'SMH', 3, 2026));
+    expect(renderNumberPattern(DEFAULT_AGENDA_PATTERN, v)).toBe('AG/007/2026');
+  });
+  it('variabel tak dikenal dibiarkan; bulan di luar rentang melempar saat {roman} dipakai', () => {
+    expect(renderNumberPattern('{seq}{x}', v)).toBe('007{x}');
+    expect(() => renderNumberPattern('{roman}', { ...v, month: 13 })).toThrow(RangeError);
+  });
+});
+
+describe('validateNumberPattern', () => {
+  it('menerima pola sah', () => {
+    expect(validateNumberPattern(DEFAULT_NUMBER_PATTERN)).toEqual({ ok: true });
+    expect(validateNumberPattern('{seq}/{year}')).toEqual({ ok: true });
+    expect(validateNumberPattern('AG-{seq}')).toEqual({ ok: true });
+  });
+  it('menolak yang tanpa {seq}, kosong, terlalu panjang, variabel asing, atau kurung liar', () => {
+    const reason = (p: string) => {
+      const r = validateNumberPattern(p);
+      return r.ok ? 'ok' : r.reason;
+    };
+    expect(reason('{code}/{year}')).toBe('no_seq');
+    expect(reason('   ')).toBe('empty');
+    expect(reason(`{seq}${'x'.repeat(100)}`)).toBe('too_long');
+    expect(reason('{seq}/{foo}')).toBe('unknown_variable');
+    expect(reason('{seq}/{}')).toBe('unknown_variable');
+    expect(reason('{seq}/{year')).toBe('stray_brace');
+    expect(reason('{seq}}')).toBe('stray_brace');
+  });
+});
+
+describe('normalizeSchoolCode', () => {
+  it('huruf kapital, angka, titik, dan strip', () => {
+    expect(normalizeSchoolCode(' smp-1 ')).toBe('SMP-1');
+    expect(normalizeSchoolCode('MI.AL')).toBe('MI.AL');
+    expect(normalizeSchoolCode('a/b')).toBeNull();
+    expect(normalizeSchoolCode('')).toBeNull();
+    expect(normalizeSchoolCode('ABCDEFGHIJKLM')).toBeNull();
   });
 });
 

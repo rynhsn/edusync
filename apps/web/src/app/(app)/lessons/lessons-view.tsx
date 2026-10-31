@@ -15,6 +15,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, MODULE_TONE, PersonCell, StatCard, StatGrid, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { nowHm as schoolNowHm, todayIso } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 
 const STATUSES = ['present', 'excused', 'sick', 'absent'] as const;
@@ -26,8 +27,6 @@ const ACTIVE_STYLE: Record<Status, string> = {
   sick: 'bg-amber-500 text-white border-amber-500 hover:bg-amber-500/90',
   absent: 'bg-red-600 text-white border-red-600 hover:bg-red-600/90',
 };
-
-const todayIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 
 function LessonSheet({ entryId, date, onClose }: { entryId: string; date: string; onClose: () => void }) {
   const t = useTranslations('gate');
@@ -182,12 +181,7 @@ export function LessonsView() {
 
   const items = lessons.data?.lessons ?? [];
   const isToday = date === todayIso();
-  const nowHm = new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Jakarta',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date());
+  const nowHm = schoolNowHm();
   const complete = items.filter((l) => l.total > 0 && l.filled >= l.total).length;
 
   return (

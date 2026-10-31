@@ -1,8 +1,10 @@
+import { todayIn } from '@edusync/contracts';
 import {
   and,
   asc,
   calendarEvent,
   classRoom,
+  currentTimezone,
   enrollment,
   eq,
   gte,
@@ -17,10 +19,13 @@ import {
 import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
 
-/** Tanggal hari ini menurut zona waktu sekolah (Asia/Jakarta), TTTT-BB-HH. */
-export function todayInJakarta() {
-  return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+/** Tanggal hari ini menurut zona waktu sekolah (konteks tenant; di luar konteks Asia/Jakarta), TTTT-BB-HH. */
+export function todayInSchool(tz: string = currentTimezone()) {
+  return todayIn(tz);
 }
+
+/** @deprecated Nama lama; kini mengikuti zona waktu sekolah. Pakai `todayInSchool`. */
+export const todayInJakarta = todayInSchool;
 
 /** Libur atau jeda cakupan sekolah pada tanggal itu (bila ada). */
 export async function closureOn(tx: Tx, date: string) {

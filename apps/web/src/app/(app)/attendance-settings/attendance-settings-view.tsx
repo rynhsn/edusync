@@ -49,6 +49,7 @@ import {
 } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { todayIso } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 import { QuickRegister } from './quick-register';
 
@@ -63,8 +64,6 @@ const TAB_ICON = {
 
 /** Perangkat dianggap daring bila aktif dan terakhir terlihat dalam 5 menit. */
 const ONLINE_WINDOW_MS = 5 * 60_000;
-
-const todayIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 
 function useCtx() {
   const { school } = useSchool();

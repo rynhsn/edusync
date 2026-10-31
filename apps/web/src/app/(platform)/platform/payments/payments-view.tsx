@@ -18,6 +18,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useStaff } from '../../platform-shell';
+import { BillingSettingsCard } from './billing-settings-card';
 
 type Provider = 'dev' | 'midtrans';
 type Mode = 'sandbox' | 'production';
@@ -182,6 +183,8 @@ export function PaymentsView() {
           </form>
         </CardContent>
       </Card>
+
+      <BillingSettingsCard />
     </PageBody>
   );
 }

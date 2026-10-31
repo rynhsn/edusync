@@ -11,7 +11,7 @@ import type { Locale } from '@/i18n/config';
 import { formatCalendarDate } from '@/lib/format-date';
 import { downloadReceiptPdf } from './pdf/download';
 import type { ReceiptDoc } from './pdf/types';
-import { localDate, METHOD_KEY } from './shared';
+import { localDate } from './shared';
 import { Money } from './ui';
 
 export type Receipt = ReceiptDoc;
@@ -81,7 +81,7 @@ export function ReceiptDialog({
                 <dt className="text-muted-foreground">{t('paidAt')}</dt>
                 <dd>{formatCalendarDate(locale, localDate(receipt.paidAt))}</dd>
                 <dt className="text-muted-foreground">{t('method')}</dt>
-                <dd>{t(METHOD_KEY[receipt.method])}</dd>
+                <dd>{receipt.methodLabel ?? receipt.method}</dd>
                 {receipt.cashierName && (
                   <>
                     <dt className="text-muted-foreground">{t('cashier')}</dt>

@@ -2,7 +2,6 @@ import { type Db, enqueueMessages, sql } from '@edusync/db';
 import type { PlatformLoader } from './account-sync';
 import { type Loop, startLoop } from './loop';
 
-const JAKARTA_OFFSET_MS = 7 * 3_600_000;
 const DAY_MS = 86_400_000;
 const MONTHS = [
   'Januari',
@@ -18,14 +17,6 @@ const MONTHS = [
   'November',
   'Desember',
 ];
-
-/** Jam dinding Asia/Jakarta (UTC+7, tanpa DST) dari sebuah instan. */
-export function jakartaClock(now: Date) {
-  const local = new Date(now.getTime() + JAKARTA_OFFSET_MS);
-  const date = local.toISOString().slice(0, 10);
-  const minutes = local.getUTCHours() * 60 + local.getUTCMinutes();
-  return { date, minutes, weekday: local.getUTCDay() }; // 0 = Minggu
-}
 
 export const toMinutes = (hhmm: string) => {
   const [h, m] = hhmm.split(':').map(Number);
@@ -73,6 +64,8 @@ type AbsentRow = {
   student_id: string;
   student_name: string;
   class_name: string;
+  local_date: string;
+  local_minutes: number;
 };
 
 type OverdueRow = {
@@ -95,8 +88,8 @@ export class MessagingSchedulers {
   private readonly now: () => Date;
   /** Siswa yang sudah diproses hari ini (per proses) agar putaran menit-an tidak mengulang kueri wali. */
   private absentDone = new Set<string>();
-  private absentDoneDate = '';
-  private overdueDoneDate = '';
+  /** Sekolah yang pengingat tunggakannya sudah selesai pada tanggal lokalnya: `sekolah:tanggal`. */
+  private overdueDone = new Set<string>();
 
   constructor(
     private readonly db: Db,
@@ -138,39 +131,46 @@ export class MessagingSchedulers {
   }
 
   async runAbsent(): Promise<number> {
-    const { date, minutes, weekday } = jakartaClock(this.now());
-    if (weekday === 0) return 0; // Minggu bukan hari sekolah
-    if (this.absentDoneDate !== date) {
-      this.absentDoneDate = date;
-      this.absentDone = new Set();
-    }
+    const nowIso = this.now().toISOString();
 
-    // Sekolah aktif, pesan menyala, jam pengingat sudah lewat, tahun ajaran aktif mencakup hari ini, bukan libur/jeda.
+    // Tanggal dan jam dihitung per sekolah menurut zona waktunya (`school.timezone`). Sekolah aktif, pesan menyala,
+    // hari ini hari efektif sekolah (`school_setting.working_days`, bawaan Senin-Sabtu), tahun ajaran aktif mencakup
+    // hari ini, dan bukan libur/jeda. Jam pengingat dibandingkan di bawah dengan jam lokal sekolah.
     const rows = await this.db.execute<AbsentRow>(sql`
       select sc.id as school_id, sc.name as school_name, ms.absent_notice_at,
-             st.id as student_id, st.name as student_name, cr.name as class_name
+             st.id as student_id, st.name as student_name, cr.name as class_name,
+             lt.local::date::text as local_date,
+             (extract(hour from lt.local) * 60 + extract(minute from lt.local))::int as local_minutes
       from msg_setting ms
       join school sc on sc.id = ms.school_id and sc.status = 'active'
+      left join school_setting ss on ss.school_id = sc.id
+      join lateral (select (${nowIso}::timestamptz at time zone sc.timezone) as local) lt on true
       join academic_year ay on ay.school_id = sc.id and ay.is_active
-        and ${date}::date between ay.starts_on and ay.ends_on
+        and lt.local::date between ay.starts_on and ay.ends_on
       join enrollment en on en.academic_year_id = ay.id and en.school_id = sc.id
       join student st on st.id = en.student_id and st.status = 'active' and st.deleted_at is null
       join class_room cr on cr.id = en.class_id
       where ms.enabled and ms.absent_notice_at is not null and ${this.schoolFilter('sc.id')}
+        and coalesce(ss.working_days, '[1,2,3,4,5,6]'::jsonb) @> to_jsonb(extract(isodow from lt.local)::int)
         and not exists (
           select 1 from calendar_event ce
           where ce.school_id = sc.id and ce.scope = 'school' and ce.type in ('holiday', 'break')
-            and ${date}::date between ce.starts_on and ce.ends_on)
+            and lt.local::date between ce.starts_on and ce.ends_on)
         and not exists (
           select 1 from daily_attendance da
-          where da.student_id = st.id and da.date = ${date}::date
+          where da.student_id = st.id and da.date = lt.local::date
             and (da.check_in_at is not null or da.status in ('excused', 'sick')))
       order by sc.id, cr.name, st.name`);
+
+    // Buang kunci tanggal lampau agar himpunan tidak membengkak.
+    const todays = new Set(rows.rows.map((r) => r.local_date));
+    for (const k of this.absentDone) if (!todays.has(k.slice(-10))) this.absentDone.delete(k);
 
     let processed = 0;
     for (const r of rows.rows) {
       const noticeAt = toMinutes(r.absent_notice_at);
-      if (minutes < noticeAt) continue;
+      if (r.local_minutes < noticeAt) continue;
+      const date = r.local_date;
       const key = `absent:${r.student_id}:${date}`;
       if (this.absentDone.has(key)) continue;
       try {
@@ -198,13 +198,31 @@ export class MessagingSchedulers {
     return processed;
   }
 
-  /** (b) Pengingat tunggakan, sekali sehari mulai 08:00 Jakarta, maksimal sekali seminggu per tagihan. */
+  /** (b) Pengingat tunggakan, sekali sehari mulai 08:00 waktu sekolah, maksimal sekali seminggu per tagihan. */
   async runOverdue(): Promise<number> {
-    const { date, minutes } = jakartaClock(this.now());
-    if (minutes < (this.options.overdueAtMinutes ?? 8 * 60)) return 0;
-    if (this.overdueDoneDate === date) return 0;
+    const nowIso = this.now().toISOString();
+    const threshold = this.options.overdueAtMinutes ?? 8 * 60;
 
-    const week = isoWeekKey(date);
+    // Sekolah yang jam lokalnya sudah melewati batas dan belum diproses pada tanggal lokalnya.
+    const clocks = await this.db.execute<{
+      school_id: string;
+      local_date: string;
+      local_minutes: number;
+    }>(sql`
+      select sc.id as school_id, lt.local::date::text as local_date,
+             (extract(hour from lt.local) * 60 + extract(minute from lt.local))::int as local_minutes
+      from msg_setting ms
+      join school sc on sc.id = ms.school_id and sc.status = 'active'
+      join lateral (select (${nowIso}::timestamptz at time zone sc.timezone) as local) lt on true
+      where ms.enabled and ${this.schoolFilter('sc.id')}`);
+    const todays = new Set(clocks.rows.map((c) => c.local_date));
+    for (const k of this.overdueDone) if (!todays.has(k.slice(-10))) this.overdueDone.delete(k);
+    const eligible = clocks.rows.filter(
+      (c) => c.local_minutes >= threshold && !this.overdueDone.has(`${c.school_id}:${c.local_date}`),
+    );
+    if (eligible.length === 0) return 0;
+    const dateOf = new Map(eligible.map((c) => [c.school_id, c.local_date]));
+
     // Sisa = nilai - potongan - kwitansi tidak batal (sama dengan paidSql di apps/api/src/finance-lib.ts).
     const rows = await this.db.execute<OverdueRow>(sql`
       select * from (
@@ -217,15 +235,21 @@ export class MessagingSchedulers {
         from fin_invoice i
         join msg_setting ms on ms.school_id = i.school_id and ms.enabled
         join school sc on sc.id = i.school_id and sc.status = 'active'
+        join lateral (select (${nowIso}::timestamptz at time zone sc.timezone) as local) lt on true
         join student st on st.id = i.student_id and st.status = 'active' and st.deleted_at is null
-        where i.status = 'open' and i.due_date < ${date}::date and ${this.schoolFilter('i.school_id')}
+        where i.status = 'open' and i.due_date < lt.local::date
+          and i.school_id in (${sql.join(
+            eligible.map((c) => sql`${c.school_id}::uuid`),
+            sql`, `,
+          )})
       ) t
       where t.outstanding > 0
       order by t.school_id, t.due_date, t.id`);
 
     let processed = 0;
-    let failed = false;
+    const failedSchools = new Set<string>();
     for (const r of rows.rows) {
+      const week = isoWeekKey(dateOf.get(r.school_id) ?? '');
       try {
         await this.db.transaction((tx) =>
           enqueueMessages(tx, {
@@ -244,12 +268,14 @@ export class MessagingSchedulers {
         );
         processed++;
       } catch (error) {
-        failed = true;
+        failedSchools.add(r.school_id);
         this.options.log?.error(`[pesan] pengingat tunggakan ${r.id} gagal`, error);
       }
     }
-    // Bila ada yang gagal, coba lagi di putaran berikut (dedupe mencegah ganda).
-    if (!failed) this.overdueDoneDate = date;
+    // Sekolah yang gagal dicoba lagi di putaran berikut (dedupe mencegah ganda).
+    for (const c of eligible) {
+      if (!failedSchools.has(c.school_id)) this.overdueDone.add(`${c.school_id}:${c.local_date}`);
+    }
     return processed;
   }
 }

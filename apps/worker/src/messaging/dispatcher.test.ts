@@ -10,10 +10,18 @@ const platformOn = async () => ({ enabled: true, provider: 'log' as const, maxQu
 function make(
   sender: FakeSender,
   clock: { now: Date },
-  extra: { random?: () => number; enabled?: boolean } = {},
+  extra: {
+    random?: () => number;
+    enabled?: boolean;
+    retry?: { backoffMinutes: number[]; maxAttempts: number; expiryHours: number; staleTapHours: number };
+  } = {},
 ) {
   return new Dispatcher(fx.db, sender, {
-    getPlatform: async () => ({ ...(await platformOn()), enabled: extra.enabled ?? true }),
+    getPlatform: async () => ({
+      ...(await platformOn()),
+      enabled: extra.enabled ?? true,
+      ...(extra.retry ? { retry: extra.retry } : {}),
+    }),
     now: () => clock.now,
     random: extra.random ?? (() => 0),
     schoolIds: fx.schoolIds.slice(base),
@@ -115,6 +123,30 @@ describe('Dispatcher', () => {
     expect(last.attempts).toBe(5);
     expect(last.detail).toBe('timeout');
     expect(sender.calls).toHaveLength(5);
+  });
+
+  it('aturan kirim ulang dari pengaturan platform: jeda 2 menit (diulang) dan gagal pada percobaan ke-3', async () => {
+    const sid = await fx.newSchool();
+    const m = await fx.addMessage(sid);
+    const sender = new FakeSender();
+    sender.fallback = { ok: false, retryable: true, error: 'timeout' };
+    const clock = { now: NOW };
+    const d = make(sender, clock, {
+      retry: { backoffMinutes: [2], maxAttempts: 3, expiryHours: 24, staleTapHours: 6 },
+    });
+    for (let attempt = 1; attempt <= 2; attempt++) {
+      await d.tick();
+      const row = await fx.getMessage(m.id);
+      expect(row.status).toBe('queued');
+      expect(row.attempts).toBe(attempt);
+      expect(row.notBefore.getTime()).toBe(clock.now.getTime() + 120_000);
+      clock.now = new Date(clock.now.getTime() + 120_000);
+    }
+    await d.tick();
+    const last = await fx.getMessage(m.id);
+    expect(last.status).toBe('failed');
+    expect(last.attempts).toBe(3);
+    expect(sender.calls).toHaveLength(3);
   });
 
   it('nomor tak terdaftar WhatsApp: failed tanpa retry', async () => {

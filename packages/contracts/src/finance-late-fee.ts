@@ -9,9 +9,6 @@ export type LateFeeMode = (typeof LATE_FEE_MODES)[number];
 /** Awalan `period` pada tagihan denda; sisanya adalah id tagihan induk. */
 export const LATE_FEE_PERIOD_PREFIX = 'denda-';
 
-/** Tenggang jatuh tempo tagihan denda yang baru dibuat, dalam hari. */
-export const LATE_FEE_DUE_DAYS = 7;
-
 export interface LateFeeSetting {
   mode: LateFeeMode;
   /** Rupiah (flat) atau persen dari sisa tagihan (percent). */

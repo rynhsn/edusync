@@ -5,7 +5,6 @@ import {
   classRoom,
   count,
   desc,
-  EXTRACURRICULAR_CATEGORIES,
   enrollment,
   eq,
   extracurricular,
@@ -29,6 +28,7 @@ import { z } from 'zod';
 import { todayInJakarta } from '../attendance-lib';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { assertCategoryUsable } from './extracurricular-categories';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const tag = ['Extracurricular'];
@@ -47,7 +47,7 @@ const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', 
 const extracurricularSchema = z.object({
   id: z.uuid(),
   name: z.string(),
-  category: z.enum(EXTRACURRICULAR_CATEGORIES),
+  category: z.string().describe('Kunci kategori (lihat /v1/extracurricular-categories)'),
   description: z.string().nullable(),
   coachTeacherId: z.uuid().nullable(),
   externalCoach: z.string().nullable(),
@@ -66,7 +66,7 @@ const extracurricularSchema = z.object({
 const extracurricularBody = z
   .object({
     name: z.string().trim().min(1).max(100),
-    category: z.enum(EXTRACURRICULAR_CATEGORIES),
+    category: z.string().trim().min(1).max(32).describe('Kunci kategori aktif milik sekolah'),
     description: z.string().trim().max(500).nullable().default(null),
     coachTeacherId: z.uuid().nullable().default(null),
     externalCoach: z.string().trim().min(1).max(100).nullable().default(null),
@@ -285,6 +285,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
       const created = await conflictAs409('Nama ekstrakurikuler itu sudah ada.', () =>
         tenant(request, async (tx) => {
           await checkCoach(tx, request.body.coachTeacherId);
+          await assertCategoryUsable(tx, ctx.schoolId, request.body.category);
           const [row] = await tx
             .insert(extracurricular)
             .values({ schoolId: ctx.schoolId, ...request.body })
@@ -308,7 +309,8 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         summary: 'Ubah ekstrakurikuler',
         description:
           'Izin: `extracurricular:manage`; modul `extracurricular`. Mengganti seluruh isi (termasuk `active` untuk ' +
-          'menonaktifkan). Nama unik (409 `conflict`); guru pembina harus guru aktif sekolah ini (400 `invalid_reference`).',
+          'menonaktifkan). Nama unik (409 `conflict`); guru pembina harus guru aktif sekolah ini dan kategori harus ' +
+          'kategori aktif sekolah ini (400 `invalid_reference`).',
         headers: schoolHeader,
         params: idParams,
         body: extracurricularBody,
@@ -325,8 +327,11 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
       const ctx = request.ctx as TenantContext;
       return conflictAs409('Nama ekstrakurikuler itu sudah ada.', () =>
         tenant(request, async (tx) => {
-          await loadOrThrow(tx, request.params.id);
+          const existing = await loadOrThrow(tx, request.params.id);
           await checkCoach(tx, request.body.coachTeacherId);
+          if (request.body.category !== existing.category) {
+            await assertCategoryUsable(tx, ctx.schoolId, request.body.category);
+          }
           await tx.update(extracurricular).set(request.body).where(eq(extracurricular.id, request.params.id));
           await audit(tx, ctx, 'extracurricular.update', 'extracurricular', request.params.id, {
             name: request.body.name,

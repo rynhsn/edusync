@@ -1,5 +1,6 @@
 import {
   academicYear,
+  admissionDocumentType,
   admissionPeriod,
   application,
   assignRoles,
@@ -119,7 +120,7 @@ const pdf = (extra = 64) => Buffer.concat([Buffer.from('%PDF-1.4\n'), Buffer.all
 const png = () =>
   Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.alloc(32)]);
 const jpg = () => Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(32)]);
-const doc = (bytes: Buffer, kind = 'family_card', fileName = 'berkas.pdf') => ({
+const doc = (bytes: Buffer, kind = 'kk', fileName = 'berkas.pdf') => ({
   kind,
   fileName,
   dataBase64: bytes.toString('base64'),
@@ -262,6 +263,17 @@ beforeAll(async () => {
   const [pr] = await db.insert(program).values({ schoolId, code: 'IPA', name: 'IPA' }).returning();
   ids.program = pr!.id;
 
+  // Sekolah utama: jenis dokumen bawaan tetapi tidak wajib, agar pendaftaran di tes lain tidak perlu melampirkan berkas.
+  await db.insert(admissionDocumentType).values(
+    [
+      ['kk', 'Kartu Keluarga'],
+      ['birth_certificate', 'Akta kelahiran'],
+      ['previous_certificate', 'Ijazah / SKL'],
+      ['photo', 'Pas foto'],
+      ['other', 'Lainnya'],
+    ].map(([key, label], i) => ({ schoolId, key: key!, label: label!, required: false, sort: i + 1 })),
+  );
+
   ids.openPeriod = await insertPeriod(schoolId, ids.year, 'Gelombang 1');
   ids.closedPeriod = await insertPeriod(schoolId, ids.year, 'Gelombang Lama', {
     opensOn: '2000-01-01',
@@ -287,6 +299,7 @@ afterAll(async () => {
       'application_status_log',
       'application',
       'admission_counter',
+      'admission_document_type',
       'admission_period',
       'program',
       'student_guardian',
@@ -473,10 +486,10 @@ describe('pendaftaran publik', () => {
       programId: ids.program,
       nisn: `00${Math.floor(Math.random() * 1e8)}`,
       documents: [
-        doc(pdf(), 'family_card', 'kk.pdf'),
+        doc(pdf(), 'kk', 'kk.pdf'),
         // Nama berekstensi .png tetapi isinya JPEG: mime mengikuti isi berkas.
         doc(jpg(), 'photo', 'foto.png'),
-        doc(png(), 'diploma', 'ijazah.jpg'),
+        doc(png(), 'previous_certificate', 'ijazah.jpg'),
       ],
     });
     expect(a.statusCode, a.body).toBe(201);
@@ -542,7 +555,7 @@ describe('pendaftaran publik', () => {
     const exact = await apply({ documents: [doc(pdf(2 * 1024 * 1024 - 9), 'other', 'pas.pdf')] });
     expect(exact.statusCode, exact.body).toBe(201);
 
-    const many = await apply({ documents: Array.from({ length: 6 }, () => doc(pdf())) });
+    const many = await apply({ documents: Array.from({ length: 9 }, () => doc(pdf())) });
     expect(many.statusCode).toBe(400);
   });
 
@@ -1030,5 +1043,101 @@ describe('isolasi antar sekolah', () => {
     expect(
       (await call('DELETE', `/v1/admissions/periods/${ids.foreignPeriod}`, adminCookie)).statusCode,
     ).toBe(404);
+  });
+});
+
+describe('jenis dokumen dinamis', () => {
+  const types = (cookie = adminCookie, sid = schoolId) =>
+    call('GET', '/v1/admissions/document-types', cookie, undefined, sid);
+  const info = (slug: string) => pub('GET', `/v1/public/admission/${slug}`);
+
+  it('sekolah tanpa baris diisi bawaan secara malas; publik hanya melihat yang aktif', async () => {
+    const list = await types(otherCookie, otherId);
+    expect(list.statusCode).toBe(200);
+    expect(list.json().map((t: { key: string }) => t.key)).toEqual([
+      'kk',
+      'birth_certificate',
+      'previous_certificate',
+      'photo',
+      'other',
+    ]);
+    expect(list.json().filter((t: { required: boolean }) => t.required)).toHaveLength(3);
+    expect((await info(slugs.other)).json().documentTypes).toHaveLength(5);
+    expect((await types(teacherCookie)).statusCode).toBe(403);
+    expect((await types(noModuleCookie, noModuleId)).statusCode).toBe(403);
+  });
+
+  it('CRUD, izin, validasi, dan hapus ditolak bila dipakai', async () => {
+    const body = { key: 'rapor', label: 'Rapor terakhir', required: false, sort: 9 };
+    expect((await call('POST', '/v1/admissions/document-types', principalCookie, body)).statusCode).toBe(403);
+    const made = await call('POST', '/v1/admissions/document-types', adminCookie, body);
+    expect(made.statusCode).toBe(201);
+    const id = made.json().id as string;
+    expect((await call('POST', '/v1/admissions/document-types', adminCookie, body)).statusCode).toBe(409);
+    expect(
+      (await call('POST', '/v1/admissions/document-types', adminCookie, { ...body, key: 'Bad Key' }))
+        .statusCode,
+    ).toBe(400);
+    // Batas jumlah jenis (5 bawaan + rapor = 6; tambah sampai 8 lalu ke-9 ditolak).
+    for (const k of ['a1', 'a2']) {
+      expect(
+        (await call('POST', '/v1/admissions/document-types', adminCookie, { ...body, key: k })).statusCode,
+      ).toBe(201);
+    }
+    const over = await call('POST', '/v1/admissions/document-types', adminCookie, { ...body, key: 'a3' });
+    expect(over.statusCode).toBe(400);
+    expect(code(over)).toBe('limit_reached');
+
+    // Tampil di formulir publik, lalu dipakai sehingga tidak bisa dihapus.
+    expect((await info(slugs.main)).json().documentTypes.map((t: { key: string }) => t.key)).toContain(
+      'rapor',
+    );
+    expect((await apply({ documents: [doc(pdf(), 'rapor', 'rapor.pdf')] })).statusCode).toBe(201);
+    const del = await call('DELETE', `/v1/admissions/document-types/${id}`, adminCookie);
+    expect(del.statusCode).toBe(409);
+    expect(code(del)).toBe('in_use');
+
+    const off = await call('PUT', `/v1/admissions/document-types/${id}`, adminCookie, {
+      label: 'Rapor',
+      required: false,
+      active: false,
+      sort: 9,
+    });
+    expect(off.json().active).toBe(false);
+    expect((await info(slugs.main)).json().documentTypes.map((t: { key: string }) => t.key)).not.toContain(
+      'rapor',
+    );
+    const gone = await apply({ documents: [doc(pdf(), 'rapor', 'rapor.pdf')] });
+    expect(code(gone)).toBe('invalid_reference');
+    expect(
+      (await call('DELETE', `/v1/admissions/document-types/${id}`, otherCookie, undefined, otherId))
+        .statusCode,
+    ).toBe(404);
+    for (const k of ['a1', 'a2']) {
+      const row = (await types()).json().find((t: { key: string }) => t.key === k);
+      expect((await call('DELETE', `/v1/admissions/document-types/${row.id}`, adminCookie)).statusCode).toBe(
+        200,
+      );
+    }
+  });
+
+  it('jenis wajib harus ada sebelum kirim', async () => {
+    const all = (await types()).json() as { id: string; key: string; label: string }[];
+    const kk = all.find((t) => t.key === 'kk')!;
+    const set = (required: boolean) =>
+      call('PUT', `/v1/admissions/document-types/${kk.id}`, adminCookie, {
+        label: kk.label,
+        required,
+        active: true,
+        sort: 1,
+      });
+    expect((await set(true)).json().required).toBe(true);
+    const missing = await apply({ documents: [doc(pdf(), 'photo', 'foto.pdf')] });
+    expect(missing.statusCode).toBe(400);
+    expect(code(missing)).toBe('document_required');
+    expect(missing.json().error.message).toContain('Kartu Keluarga');
+    expect((await apply({ documents: [doc(pdf(), 'kk', 'kk.pdf')] })).statusCode).toBe(201);
+    await set(false);
+    expect((await apply()).statusCode).toBe(201);
   });
 });

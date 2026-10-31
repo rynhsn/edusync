@@ -4,6 +4,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
+import { loadSchoolSettings } from '../school-lib';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const semesterSchema = z.object({
@@ -140,9 +141,10 @@ export async function semesterRoutes(instance: FastifyInstance) {
       onRequest: [requirePermission('academic_year:manage')],
       schema: {
         tags: ['Academic'],
-        summary: 'Buat dua semester (Ganjil dan Genap) otomatis',
+        summary: 'Buat semester bawaan sekolah otomatis',
         description:
-          'Izin: `academic_year:manage`. Membagi tahun ajaran di titik tengahnya. Ditolak bila tahun itu sudah punya semester; ' +
+          'Izin: `academic_year:manage`. Membuat semester sesuai nama di Pengaturan sekolah (bawaan Ganjil dan Genap; ' +
+          '1 sampai 4 semester) dengan membagi tahun ajaran sama panjang. Ditolak bila tahun itu sudah punya semester; ' +
           'tanggalnya bisa diubah sesudahnya.',
         headers: schoolHeader,
         params: idParams,
@@ -161,28 +163,25 @@ export async function semesterRoutes(instance: FastifyInstance) {
         if (existing.length > 0) {
           throw new HttpError(409, 'conflict', 'Tahun ajaran ini sudah punya semester.');
         }
-        const start = toDate(year.startsOn);
-        const end = toDate(year.endsOn);
-        const mid = new Date(start.getTime() + Math.floor((end.getTime() - start.getTime()) / 2 / DAY) * DAY);
-        const rows = await tx
-          .insert(semester)
-          .values([
-            {
-              schoolId: ctx.schoolId,
-              academicYearId: year.id,
-              name: 'Ganjil',
-              startsOn: year.startsOn,
-              endsOn: toIso(mid),
-            },
-            {
-              schoolId: ctx.schoolId,
-              academicYearId: year.id,
-              name: 'Genap',
-              startsOn: toIso(new Date(mid.getTime() + DAY)),
-              endsOn: year.endsOn,
-            },
-          ])
-          .returning();
+        const { semesterNames } = await loadSchoolSettings(tx, ctx.schoolId);
+        const startMs = toDate(year.startsOn).getTime();
+        const spanDays = Math.round((toDate(year.endsOn).getTime() - startMs) / DAY) + 1;
+        const n = semesterNames.length;
+        // Bagi hari tahun ajaran sama rata; sisa pembagian dibebankan ke semester-semester awal.
+        let offset = 0;
+        const parts = semesterNames.map((name, i) => {
+          const len = Math.floor(spanDays / n) + (i < spanDays % n ? 1 : 0);
+          const part = {
+            schoolId: ctx.schoolId,
+            academicYearId: year.id,
+            name,
+            startsOn: toIso(new Date(startMs + offset * DAY)),
+            endsOn: toIso(new Date(startMs + (offset + len - 1) * DAY)),
+          };
+          offset += len;
+          return part;
+        });
+        const rows = await tx.insert(semester).values(parts).returning();
         await audit(tx, ctx, 'semester.default', 'academic_year', year.id, { count: rows.length });
         return rows;
       });

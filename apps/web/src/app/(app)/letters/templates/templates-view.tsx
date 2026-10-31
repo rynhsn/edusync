@@ -31,6 +31,7 @@ import { LetterPaper, PaperSheet } from '../letter-paper';
 import { PlaceholderChips, TextArea } from '../placeholder-chips';
 import { EnvelopeArt, useHeader, useLetterhead, useTemplates } from '../shared';
 import '../letters.css';
+import { NumberingCard } from './numbering-card';
 
 interface Form {
   id: string | null;
@@ -133,6 +134,8 @@ export function TemplatesView() {
           )
         }
       />
+
+      <NumberingCard />
 
       {templates.isPending && <Skeleton className="h-40 w-full" />}
       {templates.isError && (

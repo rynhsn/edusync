@@ -7,14 +7,8 @@ import {
   signDevEvent,
   slugStatus,
 } from '@edusync/billing';
-import {
-  BILLING_PERIODS,
-  MODULE_REQUIRES,
-  registrationInput,
-  slugSchema,
-  YEARLY_MONTHS,
-} from '@edusync/contracts';
-import { asc, eq, invoice, loadCatalog, planPreset } from '@edusync/db';
+import { BILLING_PERIODS, registrationInput, requirementMap, slugSchema } from '@edusync/contracts';
+import { asc, eq, invoice, loadBillingSettings, loadCatalog, planPreset } from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -76,30 +70,37 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
                 key: z.string(),
                 name: z.string(),
                 priceMonthly: z.number().int(),
+                requires: z.array(z.string()),
+                maxStudents: z.number().int().nullable(),
               }),
             ),
           }),
         },
       },
     },
-    async () => ({
-      currency: 'IDR' as const,
-      yearlyMonths: YEARLY_MONTHS,
-      requires: Object.fromEntries(Object.entries(MODULE_REQUIRES).map(([k, v]) => [k, [...v]])),
-      plans: (
-        await app.platformDb
-          .select()
-          .from(planPreset)
-          .where(eq(planPreset.active, true))
-          .orderBy(asc(planPreset.sort))
-      ).map(({ key, name, description, modules, tier }) => ({ key, name, description, modules, tier })),
-      items: (await loadCatalog(app.platformDb)).map(({ kind, key, name, priceMonthly }) => ({
-        kind,
-        key,
-        name,
-        priceMonthly,
-      })),
-    }),
+    async () => {
+      const catalog = await loadCatalog(app.platformDb);
+      return {
+        currency: 'IDR' as const,
+        yearlyMonths: (await loadBillingSettings(app.platformDb)).yearlyMonths,
+        requires: requirementMap(catalog),
+        plans: (
+          await app.platformDb
+            .select()
+            .from(planPreset)
+            .where(eq(planPreset.active, true))
+            .orderBy(asc(planPreset.sort))
+        ).map(({ key, name, description, modules, tier }) => ({ key, name, description, modules, tier })),
+        items: catalog.map(({ kind, key, name, priceMonthly, requires, maxStudents }) => ({
+          kind,
+          key,
+          name,
+          priceMonthly,
+          requires: [...(requires ?? [])],
+          maxStudents: maxStudents ?? null,
+        })),
+      };
+    },
   );
 
   app.get(

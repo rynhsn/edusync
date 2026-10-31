@@ -879,8 +879,8 @@ export async function gateRoutes(instance: FastifyInstance) {
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      const { date } = jakarta(new Date());
       return tenant(request, async (tx) => {
+        const { date } = jakarta(new Date());
         const onDuty = await isOnDuty(tx, ctx, date);
         return { date, onDuty, canCover: onDuty || ctx.permissions.has('attendance:configure') };
       });

@@ -87,7 +87,7 @@ export interface PortalReceipt {
   id: string;
   receiptNo: string;
   paidAt: string;
-  method: 'cash' | 'transfer' | 'other';
+  method: string;
   total: number;
   items: { invoiceId: string; title: string; amount: number }[];
 }

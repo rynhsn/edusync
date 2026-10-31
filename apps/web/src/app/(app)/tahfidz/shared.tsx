@@ -2,6 +2,7 @@
 
 import { JUZ_START_INDEX, SURAHS, TOTAL_JUZ } from '@edusync/contracts';
 import { useEffect, useId, useState } from 'react';
+import { todayIso } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 
 /** Jenis setoran dan kualitas bacaan; dipakai formulir, daftar, dan lencana. */
@@ -17,8 +18,7 @@ export const QUALITY_STYLE: Record<Quality, { on: string; dot: string }> = {
   repeat: { on: 'border-destructive bg-destructive/10 text-foreground', dot: 'bg-destructive' },
 };
 
-export const todayIso = () =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
+export { todayIso };
 
 /** Geser tanggal TTTT-BB-HH sebanyak `days` hari (tanpa pergeseran zona waktu). */
 export function shiftIso(iso: string, days: number) {

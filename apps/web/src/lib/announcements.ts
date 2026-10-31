@@ -3,6 +3,9 @@
  * Dipisah dari komponen agar bisa diuji tanpa DOM.
  */
 
+import { endOfDayIn, localParts } from '@edusync/contracts';
+import { getSchoolTimezone } from './school-time';
+
 export const CATEGORIES = ['news', 'agenda', 'notice'] as const;
 export type AnnouncementCategory = (typeof CATEGORIES)[number];
 
@@ -141,9 +144,9 @@ export function todayIso(now = new Date()): string {
   return `${now.getFullYear()}-${p(now.getMonth() + 1)}-${p(now.getDate())}`;
 }
 
-/** Tanggal (TTTT-BB-HH) dari stempel waktu ISO, memakai tanggal kalender UTC+7 agar sesuai hari sekolah. */
-export function isoDay(timestamp: string): string {
-  return new Date(new Date(timestamp).getTime() + 7 * 3_600_000).toISOString().slice(0, 10);
+/** Tanggal (TTTT-BB-HH) dari stempel waktu ISO, memakai tanggal kalender zona waktu sekolah (bawaan WIB). */
+export function isoDay(timestamp: string, tz: string = getSchoolTimezone()): string {
+  return localParts(new Date(timestamp), tz).date;
 }
 
 export type AnnouncementStatus = 'draft' | 'published' | 'scheduled' | 'expired';
@@ -183,8 +186,8 @@ export function dateOnlyOrEmpty(timestamp: string | null | undefined): string {
   return timestamp ? isoDay(timestamp) : '';
 }
 
-/** Akhir hari (23:59:59 WIB) dari tanggal TTTT-BB-HH sebagai stempel ISO UTC; null bila kosong. */
-export function endOfDayIso(date: string): string | null {
+/** Akhir hari (23:59:59 zona waktu sekolah) dari tanggal TTTT-BB-HH sebagai stempel ISO UTC; null bila kosong. */
+export function endOfDayIso(date: string, tz: string = getSchoolTimezone()): string | null {
   if (!date) return null;
-  return new Date(`${date}T23:59:59+07:00`).toISOString();
+  return new Date(endOfDayIn(date, tz).getTime() - 1000).toISOString();
 }

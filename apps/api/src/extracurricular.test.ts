@@ -208,6 +208,7 @@ afterAll(async () => {
       'extracurricular_session',
       'extracurricular_member',
       'extracurricular',
+      'extracurricular_category',
       'student',
       'teacher',
       'semester',
@@ -653,5 +654,88 @@ describe('menghapus ekskul', () => {
     expect((await call('DELETE', `/v1/extracurriculars/${ids.pramuka}`, adminCookie)).statusCode).toBe(200);
     const list = (await call('GET', '/v1/extracurriculars', adminCookie)).json();
     expect(list.map((e: { name: string }) => e.name)).toEqual(['Futsal']);
+  });
+});
+
+describe('kategori dinamis', () => {
+  const create = (cookie: string, body: object, sid = schoolId) =>
+    call('POST', '/v1/extracurricular-categories', cookie, body, sid);
+
+  it('sekolah tanpa baris diisi kategori bawaan secara malas', async () => {
+    const list = await call('GET', '/v1/extracurricular-categories', otherCookie, undefined, otherId);
+    expect(list.statusCode).toBe(200);
+    expect(list.json().map((c: { key: string }) => c.key)).toEqual([
+      'sport',
+      'art',
+      'religion',
+      'science',
+      'scout',
+      'other',
+    ]);
+    expect(list.json()[0]).toMatchObject({ label: 'Olahraga', icon: 'trophy', tone: 'emerald', usedBy: 0 });
+    // Guru boleh membaca, tidak boleh menulis.
+    expect((await call('GET', '/v1/extracurricular-categories', coachCookie)).statusCode).toBe(200);
+    expect((await create(coachCookie, { key: 'x', label: 'X' })).statusCode).toBe(403);
+  });
+
+  it('menambah, memvalidasi, memakai, menonaktifkan, dan menghapus kategori', async () => {
+    const made = await create(adminCookie, { key: 'musik', label: 'Musik', icon: 'music', tone: 'violet' });
+    expect(made.statusCode).toBe(201);
+    expect(made.json()).toMatchObject({
+      key: 'musik',
+      icon: 'music',
+      tone: 'violet',
+      active: true,
+      usedBy: 0,
+    });
+    const catId = made.json().id;
+    expect((await create(adminCookie, { key: 'musik', label: 'Lagi' })).statusCode).toBe(409);
+    expect((await create(adminCookie, { key: 'Bad Key', label: 'X' })).statusCode).toBe(400);
+    expect((await create(adminCookie, { key: 'ikon', label: 'X', icon: 'rocket' })).statusCode).toBe(400);
+    expect((await create(adminCookie, { key: 'nada', label: 'X', tone: 'pink' })).statusCode).toBe(400);
+    // Kategori sekolah lain tidak terlihat dan tidak bisa dipakai.
+    const foreign = await call('GET', '/v1/extracurricular-categories', otherCookie, undefined, otherId);
+    expect(foreign.json().some((c: { key: string }) => c.key === 'musik')).toBe(false);
+    expect(
+      (await call('POST', '/v1/extracurriculars', otherCookie, { name: 'Band', category: 'musik' }, otherId))
+        .statusCode,
+    ).toBe(400);
+
+    const band = await call('POST', '/v1/extracurriculars', adminCookie, { name: 'Band', category: 'musik' });
+    expect(band.statusCode).toBe(201);
+    expect(band.json().category).toBe('musik');
+    const listed = (await call('GET', '/v1/extracurricular-categories', adminCookie)).json();
+    expect(listed.find((c: { key: string }) => c.key === 'musik').usedBy).toBe(1);
+
+    const catUrl = `/v1/extracurricular-categories/${catId}`;
+    const del = await call('DELETE', catUrl, adminCookie);
+    expect(del.statusCode).toBe(409);
+    expect(del.json().error.code).toBe('in_use');
+
+    const off = await call('PUT', catUrl, adminCookie, {
+      label: 'Musik',
+      icon: 'music',
+      tone: 'violet',
+      active: false,
+    });
+    expect(off.json().active).toBe(false);
+    expect(
+      (await call('POST', '/v1/extracurriculars', adminCookie, { name: 'Paduan', category: 'musik' })).json()
+        .error.code,
+    ).toBe('invalid_reference');
+    // Ekskul yang sudah memakai kategori nonaktif tetap bisa diubah tanpa mengganti kategori.
+    const keep = await call('PUT', `/v1/extracurriculars/${band.json().id}`, adminCookie, {
+      name: 'Band',
+      category: 'musik',
+      description: 'Latihan',
+    });
+    expect(keep.statusCode).toBe(200);
+
+    expect((await call('DELETE', `/v1/extracurriculars/${band.json().id}`, adminCookie)).statusCode).toBe(
+      200,
+    );
+    expect((await call('DELETE', catUrl, coachCookie)).statusCode).toBe(403);
+    expect((await call('DELETE', catUrl, otherCookie, undefined, otherId)).statusCode).toBe(404);
+    expect((await call('DELETE', catUrl, adminCookie)).statusCode).toBe(200);
   });
 });

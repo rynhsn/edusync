@@ -54,8 +54,8 @@ const settingsSchema = z.object({
   enabled: z.boolean().describe('Saklar utama notifikasi sekolah'),
   delayMinSeconds: z.number().int().min(0).max(120).describe('Jeda acak minimum antar pesan (detik)'),
   delayMaxSeconds: z.number().int().min(0).max(300).describe('Jeda acak maksimum antar pesan (detik)'),
-  windowStart: hhmm.describe('Awal jendela kirim (Asia/Jakarta)'),
-  windowEnd: hhmm.describe('Akhir jendela kirim (Asia/Jakarta)'),
+  windowStart: hhmm.describe('Awal jendela kirim (zona waktu sekolah)'),
+  windowEnd: hhmm.describe('Akhir jendela kirim (zona waktu sekolah)'),
   absentNoticeAt: hhmm.nullable().describe('Jam pengingat "belum tiba"; null = nonaktif'),
 });
 

@@ -29,6 +29,8 @@ import { statusEnum, transitionApplication, usedQuota } from '../admissions-lib'
 import { jakarta } from '../gate';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { assertLevelAllowed } from '../school-lib';
+import { zoneSql } from '../timezone-sql';
 import { normalizePhone } from './guardians';
 import { audit, conflictAs409, guarded, idParams, isForeignKeyViolation, ok, schoolHeader } from './helpers';
 import { placeStudent } from './people';
@@ -64,7 +66,7 @@ const periodSchema = z.object({
   closesOn: z.iso.date(),
   quota: z.number().int().nullable(),
   active: z.boolean(),
-  open: z.boolean().describe('Aktif dan hari ini (WIB) berada dalam rentang buka-tutup'),
+  open: z.boolean().describe('Aktif dan hari ini (zona waktu sekolah) berada dalam rentang buka-tutup'),
   applicationCount: z.number().int(),
   quotaUsed: z.number().int().describe('Pendaftar berstatus diterima atau sudah daftar ulang'),
 });
@@ -95,7 +97,7 @@ const listItem = z.object({
 
 const docMeta = z.object({
   id: z.uuid(),
-  kind: z.enum(['family_card', 'birth_certificate', 'diploma', 'photo', 'other']),
+  kind: z.string().describe('Kunci jenis dokumen (lihat /v1/admissions/document-types)'),
   fileName: z.string(),
   mime: z.string(),
   size: z.number().int(),
@@ -266,7 +268,7 @@ export async function admissionRoutes(instance: FastifyInstance) {
         summary: 'Daftar periode SPMB',
         description:
           'Izin: `admission:read`; modul `admissions`. Dilengkapi jumlah pendaftar, kuota terpakai (diterima + sudah ' +
-          'daftar ulang), dan penanda `open` (aktif dan hari ini WIB dalam rentang buka-tutup).',
+          'daftar ulang), dan penanda `open` (aktif dan hari ini menurut zona waktu sekolah dalam rentang buka-tutup).',
         headers: schoolHeader,
         response: { 200: z.array(periodSchema), ...guarded },
       },
@@ -294,6 +296,7 @@ export async function admissionRoutes(instance: FastifyInstance) {
       const row = await conflictAs409('Nama periode itu sudah dipakai.', () =>
         tenant(request, async (tx) => {
           await requireYear(tx, request.body.academicYearId);
+          await assertLevelAllowed(tx, request.body.level);
           const [p] = await tx
             .insert(admissionPeriod)
             .values({ schoolId: ctx.schoolId, ...request.body })
@@ -327,6 +330,7 @@ export async function admissionRoutes(instance: FastifyInstance) {
       return conflictAs409('Nama periode itu sudah dipakai.', () =>
         tenant(request, async (tx) => {
           await requireYear(tx, request.body.academicYearId);
+          await assertLevelAllowed(tx, request.body.level);
           const rows = await tx
             .update(admissionPeriod)
             .set(request.body)
@@ -760,7 +764,7 @@ export async function admissionRoutes(instance: FastifyInstance) {
         summary: 'Ringkasan statistik SPMB',
         description:
           'Izin: `admission:read`; modul `admissions`. Jumlah per status, pendaftar baru per hari (14 hari terakhir ' +
-          'WIB, hari tanpa pendaftar bernilai 0), dan kuota (`total` null bila periode tanpa batas). Tanpa ' +
+          'zona waktu sekolah, hari tanpa pendaftar bernilai 0), dan kuota (`total` null bila periode tanpa batas). Tanpa ' +
           '`periodId`, mencakup semua periode.',
         headers: schoolHeader,
         querystring: z.object({ periodId: z.uuid().optional() }),
@@ -787,7 +791,7 @@ export async function admissionRoutes(instance: FastifyInstance) {
         const counts = emptyCounts();
         for (const g of grouped) counts[g.status] = g.n;
 
-        const day = sql<string>`to_char(${application.createdAt} at time zone 'Asia/Jakarta', 'YYYY-MM-DD')`;
+        const day = sql<string>`to_char(${application.createdAt} at time zone ${zoneSql()}, 'YYYY-MM-DD')`;
         const since = new Date(Date.now() - 16 * 86_400_000);
         const daily = await tx
           .select({ day, n: count() })

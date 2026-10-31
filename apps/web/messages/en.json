@@ -90,7 +90,8 @@
     "portal": "Parent/student portal",
     "portalAdmin": "Portal accounts",
     "groupAttendance": "Attendance",
-    "groupCommunication": "Communication and site"
+    "groupCommunication": "Communication and site",
+    "schoolSettings": "School settings"
   },
   "roles": {
     "school_admin": "School admin",
@@ -286,7 +287,15 @@
     "already_linked": "This guardian or student already has a portal account.",
     "email_mismatch": "This invitation is only for the invited email.",
     "invalid_credentials": "The password for the existing account does not match.",
-    "account_exists": "This email is already registered. Try again."
+    "account_exists": "This email is already registered. Try again.",
+    "invalid_method": "The payment method is unknown or no longer active.",
+    "last_active": "At least one payment method must stay active.",
+    "invalid_thresholds": "Thresholds must be whole numbers from 1 to 100 with A higher than B and B higher than C.",
+    "invalid_pattern": "The number pattern must include '{seq}' and only use '{seq}', '{code}', '{roman}', '{month}', '{year}'.",
+    "invalid_school_code": "The school code may only contain capital letters, digits, dots or hyphens (up to 12 characters).",
+    "invalid_level": "That level is not in the school level list. Add it in School settings.",
+    "document_required": "A required document has not been uploaded. Complete it before submitting.",
+    "limit_reached": "The limit has been reached."
   },
   "theme": {
     "label": "Theme",
@@ -349,7 +358,7 @@
     "period": "Billing period",
     "monthly": "Monthly",
     "yearly": "Yearly",
-    "yearlyNote": "Pay for 10 months, save 2",
+    "yearlyNote": "Pay for {months} months, save {saved}",
     "summary": "Summary",
     "total": "Total",
     "priceNote": "Example prices for development, not final.",
@@ -416,7 +425,8 @@
     "groupWatch": "Oversight",
     "catalog": "Plans and pricing",
     "payments": "Payments",
-    "messaging": "WhatsApp messages"
+    "messaging": "WhatsApp messages",
+    "curriculum": "Curriculum bank"
   },
   "registerStatus": {
     "title": "Payment status",
@@ -872,12 +882,9 @@
     "adopted": "{created} subjects added, {skipped} skipped.",
     "alreadyAdopted": "Already taken",
     "none": "Choose at least one subject.",
-    "levels": {
-      "sd": "Primary",
-      "smp": "Junior high",
-      "sma": "Senior high",
-      "smk": "Vocational"
-    }
+    "updatesTitle": "Reference updates",
+    "updatesHint": "New reference subjects not yet in your school. Existing subjects, including ones you edited, are left untouched.",
+    "adoptNew": "Adopt the new ones ({count})"
   },
   "semesters": {
     "title": "Semesters",
@@ -984,7 +991,16 @@
     "addPlanTitle": "Create a plan",
     "delete": "Delete",
     "deleted": "Plan deleted.",
-    "perMonth": "/month"
+    "perMonth": "/month",
+    "maxStudents": "Active student limit",
+    "maxStudentsPlaceholder": "Empty = no limit",
+    "maxStudentsHint": "Maximum number of active students for this tier. Leave empty for no limit.",
+    "requires": "Required modules",
+    "requiresHint": "Choosing this module automatically adds the modules ticked here.",
+    "requiresShort": "Needs:",
+    "rules": "Rules",
+    "unlimited": "No limit",
+    "upToStudents": "Up to {count} students"
   },
   "platformPayments": {
     "title": "Payments",
@@ -1053,7 +1069,8 @@
       "3": "Wednesday",
       "4": "Thursday",
       "5": "Friday",
-      "6": "Saturday"
+      "6": "Saturday",
+      "7": "Sunday"
     },
     "noClasses": "No classes in the active academic year yet.",
     "today": "Today",
@@ -1471,7 +1488,46 @@
     "statWithCoach": "With a coach",
     "emptyTitle": "No activities yet",
     "emptyFiltered": "No extracurricular matches this search or category.",
-    "confirmDelete": "Delete extracurricular \"{name}\"? Its members and sessions are removed too."
+    "confirmDelete": "Delete extracurricular \"{name}\"? Its members and sessions are removed too.",
+    "categories": {
+      "manage": "Manage categories",
+      "title": "Extracurricular categories",
+      "description": "Set the name, icon and colour of the categories used to group activities at this school.",
+      "add": "Add category",
+      "edit": "Edit category",
+      "name": "Category name",
+      "icon": "Icon",
+      "tone": "Colour",
+      "activeLabel": "Active (can be chosen for new activities)",
+      "inactive": "Inactive",
+      "usedBy": "{count} activities",
+      "created": "Category added.",
+      "saved": "Category saved.",
+      "deleted": "Category deleted.",
+      "deleteTitle": "Delete category",
+      "confirmDelete": "Delete the category \"{name}\"? A category still used by activities cannot be deleted.",
+      "icons": {
+        "trophy": "Trophy",
+        "palette": "Palette",
+        "book": "Book",
+        "flask": "Science flask",
+        "tent": "Tent",
+        "sparkles": "Sparkles",
+        "music": "Music",
+        "laptop": "Laptop",
+        "globe": "Globe",
+        "heart": "Heart"
+      },
+      "tones": {
+        "teal": "Teal",
+        "sky": "Sky blue",
+        "violet": "Violet",
+        "amber": "Amber",
+        "rose": "Rose",
+        "emerald": "Emerald",
+        "slate": "Slate"
+      }
+    }
   },
   "grades": {
     "title": "Grades",
@@ -1935,7 +1991,21 @@
     "noPlansHint": "Rates set the invoice amount per fee type and level. Add the first rate.",
     "noDiscountRulesTitle": "No discount rules yet",
     "lateFeeDisabledTitle": "Late fees are off",
-    "lateFeeNoneHint": "Every overdue invoice is either already fined or still within its grace period."
+    "lateFeeNoneHint": "Every overdue invoice is either already fined or still within its grace period.",
+    "lateFeeDueDays": "Late fee invoice due period (days)",
+    "lateFeeDueDaysHint": "Newly created late fee invoices fall due this many days after they are issued (1 to 365).",
+    "pmTitle": "Payment methods",
+    "pmHint": "The options shown at the cashier. Deactivate methods you no longer use; older receipts keep showing their label.",
+    "pmAdd": "Add method",
+    "pmEdit": "Edit method",
+    "pmLabel": "Method name",
+    "pmLabelHint": "For example: QRIS, Debit card. The method code is generated from the name and never changes.",
+    "pmUsed": "Used by {count} receipts",
+    "pmMoveUp": "Move {name} up",
+    "pmMoveDown": "Move {name} down",
+    "pmActivate": "Activate",
+    "pmDeactivate": "Deactivate",
+    "pmDeleteHint": "A method already used by receipts cannot be deleted; deactivate it instead."
   },
   "messaging": {
     "title": "WhatsApp notifications",
@@ -2087,7 +2157,31 @@
       "connecting": "Connecting",
       "failed": "Failed",
       "disconnected": "Disconnected"
-    }
+    },
+    "retryTitle": "Retry rules",
+    "retryHint": "Applies to the next messages without restarting the worker. Failed messages are retried using the delays below.",
+    "backoff": "Delay between attempts (minutes)",
+    "backoffHint": "Comma separated, e.g. 1, 5, 30, 120, 360. Attempts beyond the list reuse the last delay.",
+    "backoffInvalid": "Enter 1 to 10 whole numbers (1 to 10080 minutes), separated by commas.",
+    "maxAttempts": "Maximum attempts",
+    "maxAttemptsHint": "After this the message is marked failed (1 to 20).",
+    "expiryHours": "Message expiry (hours)",
+    "expiryHoursHint": "Messages held longer than this because the school WhatsApp is not ready are dropped (1 to 168).",
+    "staleTapHours": "Tap age limit (hours)",
+    "staleTapHoursHint": "Kiosk taps older than this are no longer notified to guardians (1 to 72).",
+    "runtimeTitle": "Worker status",
+    "runtimeHint": "Reported by the messaging worker itself at start and every few minutes.",
+    "chrome": "Chrome for WhatsApp",
+    "chromeStatus": {
+      "detected": "Chrome detected",
+      "not_configured": "WA_CHROME_PATH not set",
+      "not_found": "Chrome file not found",
+      "unknown": "No report yet"
+    },
+    "checkedAt": "Checked {time}",
+    "runtimeStale": "old report, the worker may have stopped",
+    "chromeFix": "Set WA_CHROME_PATH in the worker .env to the chrome.exe (or Chromium) path, then restart the worker.",
+    "runtimeNone": "The worker has not reported yet. Make sure it runs with the WhatsApp provider."
   },
   "schoolMap": {
     "mapLabel": "Living school map. {summary}",
@@ -2432,7 +2526,10 @@
         "tooLarge": "The file is larger than 2 MB.",
         "badType": "Only PDF, JPG or PNG files are accepted.",
         "unreadable": "The file could not be read. Try another one."
-      }
+      },
+      "requiredMark": "(required)",
+      "optionalMark": "(optional)",
+      "requiredError": "This document is required."
     },
     "success": {
       "title": "Registration sent!",
@@ -2645,7 +2742,27 @@
     "qrAlt": "QR code to the registration page",
     "posterKicker": "New student admissions",
     "posterTitle": "Register now!",
-    "posterScan": "Scan the QR code or open this address"
+    "posterScan": "Scan the QR code or open this address",
+    "docTypes": {
+      "title": "Application document types",
+      "hint": "Choose the documents requested on the application form. Documents marked required must be uploaded before the application can be sent.",
+      "add": "Add document type",
+      "edit": "Edit document type",
+      "delete": "Delete document type",
+      "name": "Document name",
+      "save": "Save",
+      "created": "Document type added.",
+      "saved": "Document type saved.",
+      "deleted": "Document type deleted.",
+      "confirmDelete": "Delete the document type \"{name}\"? A type already used by applicants cannot be deleted; deactivate it instead.",
+      "required": "Required",
+      "optional": "Optional",
+      "inactive": "Inactive",
+      "usedBy": "{count} files",
+      "requiredLabel": "Must be uploaded",
+      "activeLabel": "Active (shown on the form)",
+      "loadError": "Could not load document types."
+    }
   },
   "letters": {
     "title": "Letters",
@@ -2836,7 +2953,35 @@
     "templatesEmptyTitle": "No templates yet",
     "templatesEmptyBody": "Install the three default templates (student certificate, parent summons, and a simple certificate), then adapt them as you like.",
     "installDefaults": "Install default templates",
-    "defaultsInstalled": "Default templates installed."
+    "defaultsInstalled": "Default templates installed.",
+    "numbering": {
+      "title": "Number format",
+      "hint": "Set the school code and the pattern for outgoing letter numbers and incoming agenda numbers. Changes only apply to later letters; numbers already issued stay as they are.",
+      "code": "School code",
+      "codeHint": "Leave empty to use the automatic code from the school address ({code}).",
+      "codeInvalid": "Only capital letters, digits, dots or hyphens (up to 12 characters).",
+      "outgoing": "Outgoing letter number",
+      "agenda": "Incoming agenda number",
+      "example": "Example",
+      "useDefault": "Use default",
+      "save": "Save format",
+      "saved": "Number format saved.",
+      "noYearWarning": "A pattern without '{year}' can clash when the sequence restarts at 001 next year.",
+      "variables": {
+        "seq": "Sequence (at least 3 digits, restarts at 001 every year)",
+        "code": "School code",
+        "roman": "Roman month (I-XII)",
+        "month": "2-digit month (01-12)",
+        "year": "Letter year"
+      },
+      "reason": {
+        "empty": "The pattern cannot be empty.",
+        "too_long": "The pattern is too long (100 characters at most).",
+        "no_seq": "The pattern must include '{seq}'.",
+        "unknown_variable": "Unknown variable found. Use '{seq}', '{code}', '{roman}', '{month}' or '{year}'.",
+        "stray_brace": "There is an unpaired curly brace."
+      }
+    }
   },
   "verify": {
     "pageTitle": "Letter verification",
@@ -3096,7 +3241,16 @@
     "presentDays": "Days present",
     "visits": "Visits",
     "reportTotal": "Placements",
-    "reportScored": "Scored"
+    "reportScored": "Scored",
+    "thresholds": {
+      "title": "Grade thresholds",
+      "hint": "The final internship score gets a grade from the minimum scores below. Changes apply immediately to every placement, including older ones.",
+      "min": "Minimum for {predicate}",
+      "below": "below {value}",
+      "invalid": "Enter whole numbers from 1 to 100 with A higher than B and B higher than C.",
+      "save": "Save thresholds",
+      "saved": "Grade thresholds saved."
+    }
   },
   "pklPublic": {
     "pageTitle": "Internship industry supervisor",
@@ -3541,5 +3695,166 @@
     "createAndEnter": "Create account and sign in",
     "acceptAndEnter": "Accept and sign in",
     "existingTitle": "This email already has an account. Enter its password to link it."
+  },
+  "platformReference": {
+    "title": "Curriculum bank",
+    "subtitle": "Global reference for all schools: levels, curricula, and subjects. Schools copy reference subjects and may edit them freely, so changes here never overwrite school data.",
+    "readOnly": "Your role is view-only.",
+    "name": "Name",
+    "key": "Key",
+    "sort": "Order",
+    "code": "Code",
+    "level": "Level",
+    "description": "Description",
+    "active": "Active",
+    "inactive": "Inactive",
+    "activeHint": "Active (shown in school pickers and can be adopted)",
+    "add": "Add",
+    "edit": "Edit",
+    "save": "Save",
+    "delete": "Delete",
+    "saved": "Saved.",
+    "deleted": "Deleted.",
+    "inUse": "Still in use (reference subjects or adopting schools), so it cannot be deleted. Deactivate the level if needed.",
+    "addLevel": "Add level",
+    "levelHint": "The key cannot be changed after creation. Examples: sd, smp, paket_c.",
+    "addCurriculum": "Add curriculum",
+    "statLevels": "Active levels",
+    "statLevelsHint": "of {total} levels",
+    "statCurricula": "Curricula",
+    "statSubjects": "Reference subjects",
+    "statAdoptions": "School adoptions",
+    "statAdoptionsHint": "curriculum and level pairs taken by schools",
+    "levelsTitle": "Levels",
+    "levelsHint": "Inactive levels are hidden from school pickers; existing adoptions are unchanged.",
+    "levelUsage": "{subjects} reference subjects, {schools} school adoptions",
+    "deleteLevelTitle": "Delete level {name}?",
+    "deleteLevelBody": "Only possible when no reference subjects exist and no school has adopted it.",
+    "curriculaTitle": "Curricula and reference subjects",
+    "curriculaHint": "Pick a curriculum to view and manage its reference subjects per level.",
+    "adoptedBy": "Adopted by {count} schools",
+    "emptyTitle": "No curricula yet",
+    "emptyBody": "Add the first curriculum, then fill in its reference subjects.",
+    "allLevels": "All levels",
+    "addSubject": "Add subject",
+    "noSubjects": "No subjects here yet",
+    "noSubjectsBody": "Add them one by one or import from a CSV file.",
+    "deleteSubjectTitle": "Delete reference subject {name}?",
+    "deleteCurTitle": "Delete curriculum {name}?",
+    "deleteCurBody": "All its reference subjects are deleted too. Refused if a school has adopted it.",
+    "import": "Import",
+    "importTitle": "Import subjects into {name}",
+    "importHint": "One row per subject: code, name, order (optional). Separated by tab (paste from Excel), semicolon, or comma. Existing codes get their name updated.",
+    "importFile": "CSV file",
+    "importPaste": "Or paste the table",
+    "importCount": "{count} rows read",
+    "imported": "{created} subjects added, {updated} updated."
+  },
+  "platformBilling": {
+    "title": "Billing parameters",
+    "subtitle": "Applies to the next billing cycles and registrations without a restart. Invoices already issued do not change.",
+    "graceDays": {
+      "label": "Grace period (days)",
+      "hint": "Schools keep running this many days after the period ends before being suspended."
+    },
+    "renewalLeadDays": {
+      "label": "Renewal reminder (days)",
+      "hint": "The renewal invoice is created this many days before the period ends."
+    },
+    "reservationHours": {
+      "label": "Registration hold (hours)",
+      "hint": "The subdomain and registration invoice stay valid for this many hours."
+    },
+    "yearlyMonths": {
+      "label": "Yearly payment (months)",
+      "hint": "Yearly plans are charged this many months. Affects new prices and renewals."
+    },
+    "range": "Enter a whole number from {min} to {max}.",
+    "defaultValue": "default {value}",
+    "save": "Save parameters",
+    "saved": "Billing parameters saved.",
+    "resetDefaults": "Use defaults"
+  },
+  "schoolSettings": {
+    "title": "School settings",
+    "subtitle": "Time zone, working days, semesters, lesson times, and the list of grade levels for this unit.",
+    "timezoneTitle": "Time zone",
+    "timezoneBody": "Decides dates and times across the app: attendance, invoices, messages, and admissions.",
+    "timezone": "School time zone",
+    "nowThere": "Right now in this zone",
+    "timezoneHint": "Changing the time zone leaves old data alone; it only changes how days and times are computed from now on.",
+    "daysTitle": "Working days",
+    "daysBody": "Days the school holds lessons. Used by the timetable, the academic calendar, and absence reminders.",
+    "daysInvalid": "Pick at least one day.",
+    "daysCount": "{n} days per week",
+    "semesterTitle": "Semesters",
+    "semesterBody": "Names and order of the semesters in one school year. Used when semesters are created automatically.",
+    "semesterName": "Semester {n} name",
+    "semesterInvalid": "Semester names must not be empty or repeated.",
+    "semesterHint": "Up to {max} semesters. Semesters already created are not changed.",
+    "addSemester": "Add semester",
+    "moveUp": "Move {name} up",
+    "moveDown": "Move {name} down",
+    "removeSemester": "Remove {name}",
+    "lessonTitle": "Default lesson times",
+    "lessonBody": "Starting values when generating lesson periods in the timetable.",
+    "lessonStart": "First lesson starts",
+    "lessonMinutes": "Minutes per lesson",
+    "lessonPreview": "Example of the first three lessons",
+    "lessonHint": "Only prefills the form; existing lesson periods are not changed.",
+    "save": "Save",
+    "saved": "School settings saved.",
+    "discard": "Discard changes",
+    "unsaved": "You have unsaved changes.",
+    "readOnly": "You can view these settings but not change them.",
+    "days": {
+      "1": "Monday",
+      "2": "Tuesday",
+      "3": "Wednesday",
+      "4": "Thursday",
+      "5": "Friday",
+      "6": "Saturday",
+      "7": "Sunday"
+    },
+    "daysShort": {
+      "1": "Mon",
+      "2": "Tue",
+      "3": "Wed",
+      "4": "Thu",
+      "5": "Fri",
+      "6": "Sat",
+      "7": "Sun"
+    },
+    "levelsTitle": "Grade levels",
+    "levelsBody": "The list of levels (e.g. 7, 8, 9 or X, XI, XII). Used by classes, tuition rates, and admission periods so they are written the same way.",
+    "levelsEmptyTitle": "No grade levels yet",
+    "levelsEmptyBody": "Fill them in for your school stage, or add your own. While the list is empty, levels in classes, rates, and admissions can be typed freely.",
+    "stage": "School stage",
+    "stages": {
+      "sd": "Primary (grades 1-6)",
+      "smp": "Junior high (grades 7-9)",
+      "sma": "Senior high (X-XII)",
+      "smk": "Vocational (X-XII)"
+    },
+    "fillDefaults": "Fill defaults",
+    "defaultsFilled": "Default levels added.",
+    "addLevel": "Add level",
+    "addLevelBody": "The code is used in classes and rates and cannot be changed after it is created.",
+    "add": "Add",
+    "levelCode": "Code",
+    "levelCodeHint": "Letters, digits, dot, or dash. E.g. 7 or X.",
+    "levelLabel": "Display name",
+    "levelSort": "Order",
+    "levelSortHint": "Empty = last.",
+    "levelOrder": "Order {n}",
+    "levelAdded": "Level added.",
+    "levelSaved": "Level saved.",
+    "levelDeleted": "Level deleted.",
+    "levelActionsFor": "Actions for level {name}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "editLevel": "Edit level {code}",
+    "deleteLevelTitle": "Delete level {name}?",
+    "deleteLevelBody": "A level still used by a class, a rate, or an admission period cannot be deleted."
   }
 }

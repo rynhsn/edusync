@@ -38,7 +38,16 @@ import { LateFeesPanel } from './late-fees-panel';
 const pad = (n: number) => String(n).padStart(2, '0');
 const isoOf = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 const DAY_MS = 86_400_000;
-const METHOD_KEY = { cash: 'methodCash', transfer: 'methodTransfer', other: 'methodOther' } as const;
+/** Nada batang per metode: kunci bawaan punya warna tetap, metode lain bergilir. */
+const METHOD_TONES = ['emerald', 'sky', 'violet', 'amber', 'rose'] as const;
+const methodTone = (key: string, index: number) =>
+  key === 'cash'
+    ? 'emerald'
+    : key === 'transfer'
+      ? 'sky'
+      : key === 'other'
+        ? 'violet'
+        : METHOD_TONES[(index + 3) % 5]!;
 
 /** Laporan keuangan: tunggakan per siswa dan kas harian, masing-masing dengan ekspor. */
 export function ReportsView() {
@@ -103,7 +112,8 @@ export function ReportsView() {
       ) as DailyReport,
   });
 
-  const methodLabel = (m: string) => (m in METHOD_KEY ? t(METHOD_KEY[m as keyof typeof METHOD_KEY]) : m);
+  // Label metode datang dari pengaturan sekolah lewat laporan itu sendiri (kunci bila tak ada).
+  const methodLabel = (m: string) => daily.data?.byMethod.find((x) => x.method === m)?.methodLabel ?? m;
   const money = (n: number) => formatRupiah(n);
   const date = (iso: string) => formatCalendarDate(locale, iso);
 
@@ -542,7 +552,7 @@ export function ReportsView() {
                     <section className="bg-card grid content-start gap-3 rounded-2xl border p-4 sm:p-5">
                       <h2 className="font-heading text-base font-semibold">{t('byMethod')}</h2>
                       <ul className="grid gap-3">
-                        {dailyData.byMethod.map((m) => (
+                        {dailyData.byMethod.map((m, mi) => (
                           <BarRow
                             key={m.method}
                             label={methodLabel(m.method)}
@@ -550,9 +560,7 @@ export function ReportsView() {
                             value={m.amount}
                             max={dailyData.totals.amount}
                             display={money(m.amount)}
-                            tone={
-                              m.method === 'cash' ? 'emerald' : m.method === 'transfer' ? 'sky' : 'violet'
-                            }
+                            tone={methodTone(m.method, mi)}
                           />
                         ))}
                       </ul>

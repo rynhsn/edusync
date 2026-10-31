@@ -20,6 +20,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
+import { assertLevelAllowed } from '../school-lib';
 import { audit, conflictAs409, guarded, idParams, isForeignKeyViolation, ok, schoolHeader } from './helpers';
 
 const name = z.string().trim().min(1).max(80);
@@ -77,12 +78,14 @@ async function requireRefs(
     subjectId?: string;
     teacherId?: string;
     homeroomTeacherId?: string | null | undefined;
+    level?: string;
   },
 ) {
   const exists = async (rows: Promise<unknown[]>, what: string) => {
     if ((await rows).length === 0) throw new HttpError(400, 'invalid_reference', `${what} tidak ditemukan.`);
   };
-  const { academicYearId, programId, classId, subjectId, teacherId, homeroomTeacherId } = refs;
+  const { academicYearId, programId, classId, subjectId, teacherId, homeroomTeacherId, level } = refs;
+  await assertLevelAllowed(tx, level);
   if (academicYearId) {
     await exists(
       tx.select({ id: academicYear.id }).from(academicYear).where(eq(academicYear.id, academicYearId)),
@@ -424,7 +427,7 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         description:
           'Izin: `class:manage`. Kelas terikat pada satu tahun ajaran; nama harus unik pada tahun ajaran itu. ' +
           'Tahun ajaran, jurusan, dan wali kelas (`homeroomTeacherId`, opsional) harus milik sekolah ini ' +
-          '(400 `invalid_reference`).',
+          '(400 `invalid_reference`). `level` harus ada di daftar tingkat sekolah bila daftar itu terisi (400 `invalid_level`).',
         headers: schoolHeader,
         body: classBody,
         response: { 201: classSchema, 400: errorSchema, 409: errorSchema, ...guarded },

@@ -8,19 +8,23 @@ import { useCallback, useMemo, useState } from 'react';
 import { useSchool } from '@/components/app-shell';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { getSchoolTimezone, todayIso } from '@/lib/school-time';
 import { BUILDINGS } from './geometry';
 import { useDutyMe, useLiveSnapshot, useTodayLessons } from './live-data';
 import { describeBuildings, mergeActivity } from './logic';
 import { lineText, type MapT, SchoolMap } from './school-map';
 import type { BuildingKind, LiveEvent } from './types';
 
-const todayIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
-const clock = new Intl.DateTimeFormat('id-ID', {
-  hour: '2-digit',
-  minute: '2-digit',
-  hour12: false,
-  timeZone: 'Asia/Jakarta',
-});
+/** Jam peristiwa menurut zona waktu sekolah. */
+const clock = {
+  format: (at: Date) =>
+    new Intl.DateTimeFormat('id-ID', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: false,
+      timeZone: getSchoolTimezone(),
+    }).format(at),
+};
 
 function StatCard({ label, value }: { label: string; value: number | string }) {
   return (

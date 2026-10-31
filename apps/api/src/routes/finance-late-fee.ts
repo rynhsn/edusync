@@ -2,7 +2,6 @@ import {
   addDays,
   computeLateFee,
   daysBetween,
-  LATE_FEE_DUE_DAYS,
   LATE_FEE_MODES,
   LATE_FEE_PERIOD_PREFIX,
   type LateFeeSetting,
@@ -32,6 +31,10 @@ const settingSchema = z.object({
     .describe('`none` = tanpa denda; `flat` = nominal tetap; `percent` = persen dari sisa tagihan'),
   value: z.number().int().describe('Rupiah (flat) atau persen 1..100 (percent)'),
   graceDays: z.number().int().describe('Hari toleransi setelah jatuh tempo'),
+  dueDays: z
+    .number()
+    .int()
+    .describe('Tenggang jatuh tempo tagihan denda yang baru dibuat, dalam hari (1..365)'),
   capAmount: z.number().int().nullable().describe('Batas denda per tagihan (rupiah); kosong = tanpa batas'),
   feeTypeId: z.uuid().nullable().describe('Jenis biaya untuk tagihan denda'),
   feeTypeName: z.string().nullable(),
@@ -42,6 +45,7 @@ const settingBody = z
     mode: z.enum(LATE_FEE_MODES),
     value: z.number().int().min(0).max(2_000_000_000),
     graceDays: z.number().int().min(0).max(365),
+    dueDays: z.number().int().min(1).max(365).default(7),
     capAmount: z.number().int().min(1).max(2_000_000_000).nullable().default(null),
     feeTypeId: z.uuid().nullable().default(null),
   })
@@ -109,6 +113,7 @@ export async function financeLateFeeRoutes(instance: FastifyInstance) {
         mode: finLateFeeSetting.mode,
         value: finLateFeeSetting.value,
         graceDays: finLateFeeSetting.graceDays,
+        dueDays: finLateFeeSetting.dueDays,
         capAmount: finLateFeeSetting.capAmount,
         feeTypeId: finLateFeeSetting.feeTypeId,
         feeTypeName: finFeeType.name,
@@ -120,6 +125,7 @@ export async function financeLateFeeRoutes(instance: FastifyInstance) {
         mode: 'none' as const,
         value: 0,
         graceDays: 0,
+        dueDays: 7,
         capAmount: null,
         feeTypeId: null,
         feeTypeName: null,
@@ -193,7 +199,7 @@ export async function financeLateFeeRoutes(instance: FastifyInstance) {
         description:
           'Izin: `finance:manage`; modul `finance`. `mode`: `none` (tanpa denda), `flat` (nominal `value` rupiah > 0), ' +
           '`percent` (`value` 1..100 persen dari sisa tagihan, dibulatkan). `graceDays` 0..365 hari toleransi setelah ' +
-          'jatuh tempo; `capAmount` batas denda per tagihan (kosong = tanpa batas). `feeTypeId` jenis biaya untuk tagihan ' +
+          'jatuh tempo; `dueDays` 1..365 (bawaan 7) tenggang jatuh tempo tagihan denda baru; `capAmount` batas denda per tagihan (kosong = tanpa batas). `feeTypeId` jenis biaya untuk tagihan ' +
           'denda, wajib bila mode bukan `none`. Galat: 400 `invalid_reference` bila jenis biaya bukan milik sekolah. ' +
           'Perubahan hanya memengaruhi penerbitan denda berikutnya.',
         headers: schoolHeader,
@@ -216,6 +222,7 @@ export async function financeLateFeeRoutes(instance: FastifyInstance) {
           mode: b.mode,
           value: b.value,
           graceDays: b.graceDays,
+          dueDays: b.dueDays,
           capAmount: b.capAmount,
           feeTypeId: b.feeTypeId,
           updatedAt: new Date(),
@@ -287,7 +294,7 @@ export async function financeLateFeeRoutes(instance: FastifyInstance) {
         summary: 'Terbitkan tagihan denda',
         description:
           'Izin: `finance:manage`; modul `finance`. Membuat tagihan denda ("Denda <judul tagihan>", jenis biaya dari ' +
-          'pengaturan, jatuh tempo hari ini + 7 hari) untuk setiap tagihan yang kena denda pada pratinjau, atau hanya ' +
+          'pengaturan, jatuh tempo hari ini + `dueDays` hari dari pengaturan) untuk setiap tagihan yang kena denda pada pratinjau, atau hanya ' +
           'untuk `invoiceIds` bila diisi. Idempoten per tagihan induk (`period` `denda-<id tagihan induk>`): tagihan ' +
           'yang sudah dikenai denda dilewati dan dihitung di `skipped`. Nominal denda dibekukan saat dibuat. Galat: ' +
           '400 `late_fee_disabled` bila denda dimatikan atau jenis biaya denda belum diatur.',
@@ -312,7 +319,7 @@ export async function financeLateFeeRoutes(instance: FastifyInstance) {
         const rows = (await candidates(tx, setting, today)).filter(
           (r) => only === null || only.has(r.invoice.id),
         );
-        const dueDate = addDays(today, LATE_FEE_DUE_DAYS);
+        const dueDate = addDays(today, setting.dueDays);
         const createdIds: string[] = [];
         let skipped = 0;
         let total = 0;

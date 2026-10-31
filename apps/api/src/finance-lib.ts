@@ -7,11 +7,52 @@ import {
   eq,
   finFeeType,
   finInvoice,
+  finPaymentMethod,
   sql,
   student,
   type Tx,
 } from '@edusync/db';
-import { todayInJakarta } from './attendance-lib';
+import { todayInSchool } from './attendance-lib';
+import { HttpError } from './http-error';
+
+/** Metode bawaan yang diisi malas bagi sekolah yang belum punya baris `fin_payment_method`. */
+const DEFAULT_METHODS = [
+  { key: 'cash', label: 'Tunai', sort: 0 },
+  { key: 'transfer', label: 'Transfer', sort: 1 },
+  { key: 'other', label: 'Lainnya', sort: 2 },
+] as const;
+
+/** Daftar metode pembayaran sekolah (urut `sort`, lalu label); mengisi bawaan bila sekolah belum punya satu pun. */
+export async function listPaymentMethods(tx: Tx, schoolId: string) {
+  const read = () =>
+    tx
+      .select({
+        id: finPaymentMethod.id,
+        key: finPaymentMethod.key,
+        label: finPaymentMethod.label,
+        active: finPaymentMethod.active,
+        sort: finPaymentMethod.sort,
+      })
+      .from(finPaymentMethod)
+      .orderBy(asc(finPaymentMethod.sort), asc(finPaymentMethod.label), asc(finPaymentMethod.id));
+  let rows = await read();
+  if (rows.length === 0) {
+    await tx
+      .insert(finPaymentMethod)
+      .values(DEFAULT_METHODS.map((m) => ({ schoolId, ...m })))
+      .onConflictDoNothing();
+    rows = await read();
+  }
+  return rows;
+}
+
+/** Pastikan `key` adalah metode AKTIF milik sekolah; selain itu 400 `invalid_method`. */
+export async function requireActiveMethod(tx: Tx, schoolId: string, key: string) {
+  const rows = await listPaymentMethods(tx, schoolId);
+  if (!rows.some((r) => r.key === key && r.active)) {
+    throw new HttpError(400, 'invalid_method', 'Metode pembayaran tidak dikenal atau sudah nonaktif.');
+  }
+}
 
 export type InvoiceStatus = 'unpaid' | 'partial' | 'paid' | 'void';
 
@@ -88,7 +129,7 @@ export interface InvoiceView {
 
 /**
  * Tagihan beserta jumlah terbayar dan status turunan. Tagihan batal tidak punya sisa. `overdue` = masih ada sisa dan
- * jatuh tempo sebelum `asOf` (bawaan hari ini menurut zona Jakarta).
+ * jatuh tempo sebelum `asOf` (bawaan hari ini menurut zona waktu sekolah).
  */
 export async function invoiceRows(
   tx: Tx,
@@ -96,7 +137,7 @@ export async function invoiceRows(
   options: { limit?: number; offset?: number; asOf?: string } = {},
 ): Promise<{ items: InvoiceView[]; total: number }> {
   const where = conditions(filter);
-  const asOf = options.asOf ?? todayInJakarta();
+  const asOf = options.asOf ?? todayInSchool();
   const query = tx
     .select({
       id: finInvoice.id,

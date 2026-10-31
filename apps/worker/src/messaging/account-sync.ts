@@ -1,4 +1,4 @@
-import { type Db, eq, inArray, waAccount } from '@edusync/db';
+import { type Db, eq, inArray, type MessagingRetry, waAccount } from '@edusync/db';
 import { type Loop, startLoop } from './loop';
 import type { WhatsAppManager } from './whatsapp';
 
@@ -7,6 +7,8 @@ export interface PlatformMessagingSettings {
   enabled: boolean;
   provider: 'whatsapp' | 'log';
   maxQueuedPerSchool: number;
+  /** Aturan kirim ulang; tidak ada = bawaan (DEFAULT_MESSAGING_RETRY). */
+  retry?: MessagingRetry;
 }
 
 export type PlatformLoader = () => Promise<PlatformMessagingSettings>;

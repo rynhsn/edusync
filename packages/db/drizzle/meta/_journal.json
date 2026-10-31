@@ -365,6 +365,20 @@
       "when": 1793500000000,
       "tag": "0051_dynamic_settings_rls",
       "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1793600000000,
+      "tag": "0052_reference_subject_created_at",
+      "breakpoints": true
+    },
+    {
+      "idx": 53,
+      "version": "7",
+      "when": 1793700000000,
+      "tag": "0053_admission_document_keys",
+      "breakpoints": true
     }
   ]
 }

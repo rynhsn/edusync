@@ -30,12 +30,13 @@ import { z } from 'zod';
 import { hashTrackingCode, newTrackingCode, sameHash, statusEnum } from '../admissions-lib';
 import { jakarta } from '../gate';
 import { errorSchema, HttpError } from '../http-error';
+import { activeDocumentTypes } from './admission-document-types';
 import { normalizePhone } from './guardians';
 
 const tags = ['Admissions (publik)'];
 
-/** Batas tubuh route apply: 5 dokumen × 2 MB menjadi ±13,4 MB dalam base64, ditambah data isian. */
-const APPLY_BODY_LIMIT = 14 * 1024 * 1024;
+/** Batas tubuh route apply: 8 dokumen × 2 MB menjadi ±21,4 MB dalam base64, ditambah data isian. */
+const APPLY_BODY_LIMIT = 22 * 1024 * 1024;
 
 const slugParams = z.object({ slug: z.string().trim().min(1).max(80) });
 const notFound = () => new HttpError(404, 'not_found', 'Data tidak ditemukan.');
@@ -63,7 +64,7 @@ const phoneField = z
   });
 
 const documentBody = z.object({
-  kind: z.enum(['family_card', 'birth_certificate', 'diploma', 'photo', 'other']),
+  kind: z.string().trim().min(1).max(32).describe('Kunci jenis dokumen aktif sekolah'),
   fileName: z.string().trim().min(1).max(200),
   dataBase64: z.string().min(1).max(APPLY_BODY_LIMIT),
 });
@@ -163,8 +164,8 @@ export async function admissionPublicRoutes(instance: FastifyInstance) {
         tags,
         summary: 'Info pendaftaran sekolah (publik)',
         description:
-          'Tanpa login. Nama sekolah, periode yang sedang dibuka untuk pendaftaran (aktif dan hari ini WIB dalam ' +
-          'rentang buka-tutup), dan daftar program/jurusan. 404 `not_found` untuk sekolah yang tidak ada, ' +
+          'Tanpa login. Nama sekolah, periode yang sedang dibuka untuk pendaftaran (aktif dan hari ini menurut zona waktu sekolah dalam ' +
+          'rentang buka-tutup), daftar program/jurusan, dan jenis dokumen aktif (urut tampil, dengan penanda wajib). 404 `not_found` untuk sekolah yang tidak ada, ' +
           'ditangguhkan, atau tanpa modul SPMB.',
         params: slugParams,
         response: {
@@ -181,6 +182,9 @@ export async function admissionPublicRoutes(instance: FastifyInstance) {
               }),
             ),
             programs: z.array(z.object({ id: z.uuid(), name: z.string() })),
+            documentTypes: z
+              .array(z.object({ key: z.string(), label: z.string(), required: z.boolean() }))
+              .describe('Jenis dokumen aktif yang diminta; yang `required` wajib diunggah sebelum mengirim'),
           }),
           404: errorSchema,
         },
@@ -188,8 +192,8 @@ export async function admissionPublicRoutes(instance: FastifyInstance) {
     },
     async (request) => {
       const s = await resolveSchool(request.server, request.params.slug);
-      const today = jakarta(new Date()).date;
       return withTenant(request.server.tenantDb, [s.id], async (tx) => {
+        const today = jakarta(new Date()).date;
         const periods = await tx
           .select()
           .from(admissionPeriod)
@@ -199,6 +203,7 @@ export async function admissionPublicRoutes(instance: FastifyInstance) {
           .select({ id: program.id, name: program.name })
           .from(program)
           .orderBy(asc(program.name));
+        const documentTypes = await activeDocumentTypes(tx, s.id);
         return {
           school: { name: s.name },
           periods: periods
@@ -212,6 +217,7 @@ export async function admissionPublicRoutes(instance: FastifyInstance) {
               open: true,
             })),
           programs,
+          documentTypes,
         };
       });
     },
@@ -226,10 +232,11 @@ export async function admissionPublicRoutes(instance: FastifyInstance) {
         tags,
         summary: 'Kirim pendaftaran (publik)',
         description:
-          'Tanpa login; dibatasi 5 pendaftaran per jam per IP. `documents` maks. 5 berkas, tiap berkas ≤ 2 MB asli ' +
+          'Tanpa login; dibatasi 5 pendaftaran per jam per IP. `documents` maks. 8 berkas, tiap berkas ≤ 2 MB asli ' +
           '(413 `file_too_large`) dan harus PDF/JPG/PNG menurut isi berkas, bukan nama (400 `invalid_file_type`). ' +
           '`website` adalah kolom jebakan: bila terisi, server membalas sukses palsu tanpa menyimpan apa pun. ' +
-          '`trackingCode` hanya ditampilkan sekali; server hanya menyimpan hash-nya. Periode tutup/di luar tanggal: ' +
+          '`kind` tiap berkas harus jenis dokumen aktif sekolah (400 `invalid_reference`) dan semua jenis `required` ' +
+          'harus ada (400 `document_required`). `trackingCode` hanya ditampilkan sekali; server hanya menyimpan hash-nya. Periode tutup/di luar tanggal: ' +
           '409 `period_closed`; nama + tanggal lahir yang sama pada periode itu: 409 `duplicate_application`.',
         params: slugParams,
         body: applyBody,
@@ -260,11 +267,11 @@ export async function admissionPublicRoutes(instance: FastifyInstance) {
       }
       const s = await resolveSchool(request.server, request.params.slug);
       const docs = body.documents.map(checkDocument);
-      const today = jakarta(new Date()).date;
-      const year = Number(today.slice(0, 4));
       const trackingCode = newTrackingCode();
 
       const result = await withTenant(request.server.tenantDb, [s.id], async (tx) => {
+        const today = jakarta(new Date()).date;
+        const year = Number(today.slice(0, 4));
         const [period] = await tx.select().from(admissionPeriod).where(eq(admissionPeriod.id, body.periodId));
         if (!period) throw notFound();
         if (!isOpenOn(period, today)) {
@@ -294,6 +301,20 @@ export async function admissionPublicRoutes(instance: FastifyInstance) {
             409,
             'duplicate_application',
             'Pendaftar dengan nama dan tanggal lahir itu sudah terdaftar.',
+          );
+        }
+        const types = await activeDocumentTypes(tx, s.id);
+        const known = new Set(types.map((t) => t.key));
+        if (docs.some((d) => !known.has(d.kind))) {
+          throw new HttpError(400, 'invalid_reference', 'Ada jenis dokumen yang tidak dikenal.');
+        }
+        const given = new Set(docs.map((d) => d.kind));
+        const missing = types.filter((t) => t.required && !given.has(t.key));
+        if (missing.length > 0) {
+          throw new HttpError(
+            400,
+            'document_required',
+            `Dokumen wajib belum diunggah: ${missing.map((m) => m.label).join(', ')}.`,
           );
         }
         const regNumber = await nextRegNumber(tx, s.id, year);

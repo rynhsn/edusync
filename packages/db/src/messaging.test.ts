@@ -214,4 +214,24 @@ describe('pengaturan platform', () => {
     });
     expect(['log', 'whatsapp']).toContain((await loadPlatformMessaging(platform.db)).provider);
   });
+
+  it('aturan kirim ulang: bawaan sama dengan konstanta lama, nilai buruk diganti bawaan', () => {
+    expect(parsePlatformMessaging(null).retry).toEqual({
+      backoffMinutes: [1, 5, 30, 120, 360],
+      maxAttempts: 5,
+      expiryHours: 24,
+      staleTapHours: 6,
+    });
+    const ok = { backoffMinutes: [2, 4], maxAttempts: 3, expiryHours: 12, staleTapHours: 2 };
+    expect(parsePlatformMessaging({ retry: ok }).retry).toEqual(ok);
+    const bad = parsePlatformMessaging({
+      retry: { backoffMinutes: [0, 'x'], maxAttempts: 99, expiryHours: -1, staleTapHours: 1.5 },
+    }).retry;
+    expect(bad).toEqual(parsePlatformMessaging(null).retry);
+    // Sebagian valid: yang valid dipakai, sisanya bawaan.
+    expect(parsePlatformMessaging({ retry: { maxAttempts: 9 } }).retry).toMatchObject({
+      maxAttempts: 9,
+      backoffMinutes: [1, 5, 30, 120, 360],
+    });
+  });
 });

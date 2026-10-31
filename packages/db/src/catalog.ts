@@ -1,4 +1,4 @@
-import { DEFAULT_CATALOG } from '@edusync/contracts';
+import { type CatalogItem, DEFAULT_CATALOG } from '@edusync/contracts';
 import { sql } from 'drizzle-orm';
 import type { Db } from './client';
 import { catalogItem } from './schema';
@@ -10,7 +10,13 @@ import { catalogItem } from './schema';
 export async function seedCatalog(db: Db) {
   await db
     .insert(catalogItem)
-    .values(DEFAULT_CATALOG.map((c) => ({ ...c })))
+    .values(
+      DEFAULT_CATALOG.map(({ requires, maxStudents, ...c }) => ({
+        ...c,
+        requires: [...(requires ?? [])],
+        maxStudents: maxStudents ?? null,
+      })),
+    )
     .onConflictDoNothing();
 }
 
@@ -24,6 +30,16 @@ export async function loadCatalog(db: Db, options: { includeInactive?: boolean }
     .from(catalogItem)
     .where(options.includeInactive ? undefined : sql`${catalogItem.active}`);
   return rows
-    .map((r) => ({ kind: r.kind, key: r.key, name: r.name, priceMonthly: r.priceMonthly, sort: r.sort }))
+    .map(
+      (r): CatalogItem => ({
+        kind: r.kind,
+        key: r.key,
+        name: r.name,
+        priceMonthly: r.priceMonthly,
+        sort: r.sort,
+        requires: r.requires,
+        maxStudents: r.maxStudents,
+      }),
+    )
     .sort((a, b) => a.sort - b.sort);
 }

@@ -368,6 +368,9 @@ importers:
       '@edusync/billing':
         specifier: workspace:*
         version: link:../../packages/billing
+      '@edusync/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
       '@edusync/db':
         specifier: workspace:*
         version: link:../../packages/db

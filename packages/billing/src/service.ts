@@ -18,6 +18,7 @@ import {
   gt,
   inArray,
   invoice,
+  loadBillingSettings,
   loadCatalog,
   lt,
   member,
@@ -34,8 +35,6 @@ import { enqueue, QUEUES } from '@edusync/jobs';
 import { DomainError } from './errors';
 import { addMonths, applyRenewal } from './lifecycle';
 import type { PaymentEvent, PaymentProvider } from './provider';
-
-const RESERVATION_HOURS = 24;
 
 export type PaymentOutcome =
   | 'activated'
@@ -92,9 +91,10 @@ export async function createRegistration(
   input: RegistrationInput,
 ): Promise<CreateRegistrationResult> {
   const catalog = await loadCatalog(db);
+  const settings = await loadBillingSettings(db);
   let quote: ReturnType<typeof quoteUnits>;
   try {
-    quote = quoteUnits(catalog, input.units, input.period);
+    quote = quoteUnits(catalog, input.units, input.period, { yearlyMonths: settings.yearlyMonths });
   } catch (error) {
     if (error instanceof QuoteError) throw new DomainError(400, 'invalid_selection', error.message);
     throw error;
@@ -105,7 +105,7 @@ export async function createRegistration(
     throw new DomainError(400, 'slug_duplicate', 'Subdomain tiap unit harus berbeda.');
   }
 
-  const expiresAt = new Date(Date.now() + RESERVATION_HOURS * 3_600_000);
+  const expiresAt = new Date(Date.now() + settings.reservationHours * 3_600_000);
   const orderId = `edu-${randomUUID()}`;
 
   const created = await db.transaction(async (tx) => {
@@ -129,7 +129,7 @@ export async function createRegistration(
         userId: account.id,
         foundationName: input.foundationName,
         period: input.period,
-        units: input.units.map((u) => ({ ...u, modules: withRequirements(u.modules) })),
+        units: input.units.map((u) => ({ ...u, modules: withRequirements(u.modules, catalog) })),
         expiresAt,
       })
       .returning();

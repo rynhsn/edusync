@@ -1,4 +1,7 @@
-/** Jam pelajaran minimal yang dibutuhkan untuk menentukan keadaan "sekarang". Jam dalam format HH:MM (Jakarta). */
+import { startOfDayIn } from '@edusync/contracts';
+import { currentTimezone } from '@edusync/db';
+
+/** Jam pelajaran minimal yang dibutuhkan untuk menentukan keadaan "sekarang". Jam dalam format HH:MM (zona sekolah). */
 export interface PeriodSlot {
   number: number;
   startsAt: string;
@@ -13,7 +16,7 @@ export interface PeriodState {
 }
 
 /**
- * Penentu jam pelajaran berjalan. Murni: waktu disuntik sebagai `time` (HH:MM, jam Jakarta) sehingga bisa diuji tanpa
+ * Penentu jam pelajaran berjalan. Murni: waktu disuntik sebagai `time` (HH:MM, jam sekolah) sehingga bisa diuji tanpa
  * bergantung jam dinding. Batas awal inklusif, batas akhir eksklusif. Bila beberapa jam bertumpuk, nomor terkecil
  * dipilih.
  */
@@ -31,7 +34,10 @@ export function periodState(periods: PeriodSlot[], time: string): PeriodState {
   };
 }
 
-/** Awal hari (00:00) tanggal TTTT-BB-HH menurut Jakarta (UTC+7 tanpa DST). */
-export function startOfJakartaDay(date: string): Date {
-  return new Date(`${date}T00:00:00+07:00`);
+/** Awal hari (00:00) tanggal TTTT-BB-HH menurut zona waktu sekolah (bawaan Asia/Jakarta). */
+export function startOfSchoolDay(date: string, tz: string = currentTimezone()): Date {
+  return startOfDayIn(date, tz);
 }
+
+/** @deprecated Nama lama; kini mengikuti zona waktu sekolah. Pakai `startOfSchoolDay`. */
+export const startOfJakartaDay = startOfSchoolDay;

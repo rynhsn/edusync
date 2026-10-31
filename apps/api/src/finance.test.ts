@@ -212,6 +212,7 @@ afterAll(async () => {
       'audit_log',
       'fin_payment_item',
       'fin_payment',
+      'fin_payment_method',
       'fin_invoice',
       'fin_fee_plan',
       'fin_fee_type',
@@ -673,6 +674,7 @@ describe('pembayaran', () => {
     expect(receipt).toEqual({
       id: ids.p4,
       receiptNo: receipt.receiptNo,
+      methodLabel: 'Transfer',
       paidAt: '2026-08-06T05:00:00.000Z',
       method: 'transfer',
       total: 300_000,
@@ -1023,8 +1025,8 @@ describe('laporan', () => {
     expect(res.json()).toEqual({
       totals: { receipts: 3, amount: 430_000 },
       byMethod: [
-        { method: 'cash', receipts: 1, amount: 50_000 },
-        { method: 'transfer', receipts: 2, amount: 380_000 },
+        { method: 'cash', methodLabel: 'Tunai', receipts: 1, amount: 50_000 },
+        { method: 'transfer', methodLabel: 'Transfer', receipts: 2, amount: 380_000 },
       ],
       byFeeType: [
         { feeTypeName: 'SPP', amount: 230_000 },
@@ -1129,5 +1131,149 @@ describe('isolasi antar-sekolah', () => {
     expect((await call('GET', '/v1/finance/fee-types', otherCookie)).statusCode).toBe(403);
     // Tidak ada yang berubah di sekolah ini.
     expect((await invoices('&limit=100')).total).toBe(7);
+  });
+});
+
+describe('metode pembayaran', () => {
+  const methods = async (cookie = adminCookie, sid = schoolId) => {
+    const res = await call('GET', '/v1/finance/payment-methods', cookie, undefined, sid);
+    expect(res.statusCode).toBe(200);
+    return res.json().items as {
+      id: string;
+      key: string;
+      label: string;
+      active: boolean;
+      sort: number;
+      paymentCount: number;
+    }[];
+  };
+
+  it('izin, isi malas bawaan, tambah dengan kunci dari label, dan label kembar', async () => {
+    expect((await call('GET', '/v1/finance/payment-methods', teacherCookie)).statusCode).toBe(403);
+    expect(
+      (await call('GET', '/v1/finance/payment-methods', noModuleCookie, undefined, noModuleId)).statusCode,
+    ).toBe(403);
+    const base = await methods(operatorCookie);
+    expect(base.map((m) => [m.key, m.label, m.active])).toEqual([
+      ['cash', 'Tunai', true],
+      ['transfer', 'Transfer', true],
+      ['other', 'Lainnya', true],
+    ]);
+    // Tulis butuh finance:manage.
+    expect(
+      (await call('POST', '/v1/finance/payment-methods', operatorCookie, { label: 'QRIS' })).statusCode,
+    ).toBe(403);
+    const qris = await call('POST', '/v1/finance/payment-methods', adminCookie, { label: 'QRIS' });
+    expect(qris.statusCode).toBe(201);
+    expect(qris.json()).toMatchObject({ key: 'qris', label: 'QRIS', active: true, sort: 3, paymentCount: 0 });
+    const debit = await call('POST', '/v1/finance/payment-methods', adminCookie, { label: 'Kartu Débit!' });
+    expect(debit.json().key).toBe('kartu-debit');
+    // Label kembar (tanpa membedakan huruf besar/kecil) ditolak.
+    const dup = await call('POST', '/v1/finance/payment-methods', adminCookie, { label: 'qris' });
+    expect(dup.statusCode).toBe(409);
+    expect((await call('POST', '/v1/finance/payment-methods', adminCookie, { label: '  ' })).statusCode).toBe(
+      400,
+    );
+    // Sekolah lain punya daftar sendiri.
+    expect((await methods(otherCookie, otherId)).map((m) => m.key)).toEqual(['cash', 'transfer', 'other']);
+  });
+
+  it('kasir hanya menerima metode aktif milik sekolah; riwayat tetap berlabel', async () => {
+    const qrisId = (await methods()).find((m) => m.key === 'qris')!.id;
+    // Metode tak dikenal ditolak dengan kode khusus.
+    const unknown = await pay({
+      studentId: ids.budi,
+      method: 'kartu',
+      items: [{ invoiceId: ids.budiGedung, amount: 1000 }],
+    });
+    expect(unknown.statusCode).toBe(400);
+    expect(code(unknown)).toBe('invalid_method');
+    const ok1 = await pay({
+      studentId: ids.budi,
+      method: 'qris',
+      items: [{ invoiceId: ids.budiGedung, amount: 1000 }],
+    });
+    expect(ok1.statusCode).toBe(201);
+    expect(ok1.json()).toMatchObject({ method: 'qris', methodLabel: 'QRIS' });
+    const paymentId = ok1.json().id as string;
+
+    // Ubah label: kwitansi lama ikut berlabel baru; kunci tetap.
+    const renamed = await call('PATCH', `/v1/finance/payment-methods/${qrisId}`, adminCookie, {
+      label: 'QRIS Bank',
+    });
+    expect(renamed.json()).toMatchObject({ key: 'qris', label: 'QRIS Bank', paymentCount: 1 });
+    const detail = await call('GET', `/v1/finance/payments/${paymentId}`, adminCookie);
+    expect(detail.json()).toMatchObject({ method: 'qris', methodLabel: 'QRIS Bank' });
+
+    // Nonaktif: tidak bisa dipakai lagi, tetapi riwayat, filter, dan laporan tetap terbaca.
+    const off = await call('PATCH', `/v1/finance/payment-methods/${qrisId}`, adminCookie, { active: false });
+    expect(off.json().active).toBe(false);
+    const blocked = await pay({
+      studentId: ids.budi,
+      method: 'qris',
+      items: [{ invoiceId: ids.budiGedung, amount: 1000 }],
+    });
+    expect(code(blocked)).toBe('invalid_method');
+    const list = await call('GET', '/v1/finance/payments?method=qris', adminCookie);
+    expect(list.json().items).toMatchObject([{ id: paymentId, method: 'qris', methodLabel: 'QRIS Bank' }]);
+    const day = new Date().toISOString().slice(0, 10);
+    const report = await call('GET', `/v1/finance/reports/daily?from=${day}&to=${day}`, adminCookie);
+    expect(report.json().byMethod).toContainEqual({
+      method: 'qris',
+      methodLabel: 'QRIS Bank',
+      receipts: 1,
+      amount: 1000,
+    });
+  });
+
+  it('urutan, hapus (ditolak bila dipakai), dan minimal satu metode aktif', async () => {
+    const all = await methods();
+    const reversed = [...all].reverse().map((m) => m.id);
+    const order = await call('PUT', '/v1/finance/payment-methods/order', adminCookie, { ids: reversed });
+    expect(order.statusCode).toBe(200);
+    expect(order.json().items.map((m: { id: string }) => m.id)).toEqual(reversed);
+    // Daftar tidak lengkap / id asing ditolak.
+    const partial = await call('PUT', '/v1/finance/payment-methods/order', adminCookie, {
+      ids: reversed.slice(1),
+    });
+    expect(code(partial)).toBe('invalid_reference');
+
+    const qris = all.find((m) => m.key === 'qris')!;
+    const used = await call('DELETE', `/v1/finance/payment-methods/${qris.id}`, adminCookie);
+    expect(used.statusCode).toBe(409);
+    expect(code(used)).toBe('in_use');
+    const debit = all.find((m) => m.key === 'kartu-debit')!;
+    expect((await call('DELETE', `/v1/finance/payment-methods/${debit.id}`, adminCookie)).statusCode).toBe(
+      200,
+    );
+    expect((await call('DELETE', `/v1/finance/payment-methods/${debit.id}`, adminCookie)).statusCode).toBe(
+      404,
+    );
+
+    // Nonaktifkan semua kecuali satu: yang terakhir tidak boleh dimatikan.
+    const actives = (await methods()).filter((m) => m.active);
+    for (const m of actives.slice(1)) {
+      expect(
+        (await call('PATCH', `/v1/finance/payment-methods/${m.id}`, adminCookie, { active: false }))
+          .statusCode,
+      ).toBe(200);
+    }
+    const last = await call('PATCH', `/v1/finance/payment-methods/${actives[0]!.id}`, adminCookie, {
+      active: false,
+    });
+    expect(last.statusCode).toBe(409);
+    expect(code(last)).toBe('last_active');
+    // Sekolah lain tidak bisa mengubah metode sekolah ini.
+    expect(
+      (
+        await call(
+          'PATCH',
+          `/v1/finance/payment-methods/${actives[0]!.id}`,
+          otherCookie,
+          { label: 'X' },
+          otherId,
+        )
+      ).statusCode,
+    ).toBe(404);
   });
 });

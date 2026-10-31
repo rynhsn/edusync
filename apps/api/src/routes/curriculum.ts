@@ -4,6 +4,7 @@ import {
   eq,
   inArray,
   refCurriculum,
+  refSchoolLevel,
   refSubject,
   schoolCurriculum,
   subject,
@@ -15,8 +16,6 @@ import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
 import { audit, guarded, schoolHeader } from './helpers';
-
-const LEVELS = ['sd', 'smp', 'sma', 'smk'] as const;
 
 /**
  * Bank data kurikulum. Acuan bersifat global dan hanya-baca; sekolah "mengadopsi" dengan menyalin mapel acuan ke
@@ -65,10 +64,13 @@ export async function curriculumRoutes(instance: FastifyInstance) {
         const curricula = await tx.select().from(refCurriculum).orderBy(asc(refCurriculum.name));
         const subjects = await tx.select().from(refSubject).orderBy(asc(refSubject.sort));
         const adopted = await tx.select().from(schoolCurriculum);
+        const active = new Set(
+          (await tx.select().from(refSchoolLevel)).filter((l) => l.active).map((l) => l.key),
+        );
         return {
           curricula: curricula.map((c) => {
             const mine = subjects.filter((s) => s.curriculumKey === c.key);
-            const groups = [...new Set(mine.map((s) => s.levelGroup))];
+            const groups = [...new Set(mine.map((s) => s.levelGroup))].filter((g) => active.has(g));
             return {
               ...c,
               levels: groups.map((levelGroup) => ({
@@ -89,6 +91,100 @@ export async function curriculumRoutes(instance: FastifyInstance) {
     },
   );
 
+  app.get(
+    '/v1/reference/levels',
+    {
+      onRequest: [requirePermission('subject:read')],
+      schema: {
+        tags: ['Reference'],
+        summary: 'Daftar jenjang acuan',
+        description:
+          'Izin: `subject:read`. Jenjang aktif yang dikelola platform (sd, smp, sma, smk, dan tambahan), berurutan; ' +
+          'dipakai untuk memilih jenjang di bank kurikulum.',
+        headers: schoolHeader,
+        response: {
+          200: z.object({
+            levels: z.array(z.object({ key: z.string(), name: z.string(), sort: z.number().int() })),
+          }),
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      return withTenant(request.server.tenantDb, [ctx.schoolId], async (tx) => {
+        const rows = await tx
+          .select()
+          .from(refSchoolLevel)
+          .where(eq(refSchoolLevel.active, true))
+          .orderBy(asc(refSchoolLevel.sort), asc(refSchoolLevel.key));
+        return { levels: rows.map(({ key, name, sort }) => ({ key, name, sort })) };
+      });
+    },
+  );
+
+  app.get(
+    '/v1/reference/curricula/updates',
+    {
+      onRequest: [requirePermission('subject:read')],
+      schema: {
+        tags: ['Reference'],
+        summary: 'Pembaruan acuan untuk kurikulum yang sudah diadopsi',
+        description:
+          'Izin: `subject:read`. Untuk tiap kurikulum+jenjang yang diadopsi sekolah ini, daftar mapel acuan yang ' +
+          'ditambahkan platform setelah adopsi dan belum ada (kodenya) di mapel sekolah. Hanya perbandingan; mapel ' +
+          'sekolah tidak pernah diubah. Adopsi lewat `POST /v1/curricula/adopt` dengan `subjectCodes`.',
+        headers: schoolHeader,
+        response: {
+          200: z.object({
+            updates: z.array(
+              z.object({
+                curriculumKey: z.string(),
+                curriculumName: z.string(),
+                levelGroup: z.string(),
+                adoptedAt: z.iso.datetime(),
+                newSubjects: z.array(z.object({ code: z.string(), name: z.string() })),
+              }),
+            ),
+          }),
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      return withTenant(request.server.tenantDb, [ctx.schoolId], async (tx) => {
+        const adopted = await tx.select().from(schoolCurriculum);
+        if (adopted.length === 0) return { updates: [] };
+        const curricula = await tx.select().from(refCurriculum);
+        const refs = await tx.select().from(refSubject).orderBy(asc(refSubject.sort));
+        const mine = new Set((await tx.select({ code: subject.code }).from(subject)).map((s) => s.code));
+        const updates = adopted.flatMap((a) => {
+          const newSubjects = refs
+            .filter(
+              (r) =>
+                r.curriculumKey === a.curriculumKey &&
+                r.levelGroup === a.levelGroup &&
+                r.createdAt > a.adoptedAt &&
+                !mine.has(r.code),
+            )
+            .map(({ code, name }) => ({ code, name }));
+          if (newSubjects.length === 0) return [];
+          return [
+            {
+              curriculumKey: a.curriculumKey,
+              curriculumName: curricula.find((c) => c.key === a.curriculumKey)?.name ?? a.curriculumKey,
+              levelGroup: a.levelGroup,
+              adoptedAt: a.adoptedAt.toISOString(),
+              newSubjects,
+            },
+          ];
+        });
+        return { updates };
+      });
+    },
+  );
+
   app.post(
     '/v1/curricula/adopt',
     {
@@ -102,7 +198,7 @@ export async function curriculumRoutes(instance: FastifyInstance) {
         headers: schoolHeader,
         body: z.object({
           curriculumKey: z.string().min(1).max(40),
-          levelGroup: z.enum(LEVELS),
+          levelGroup: z.string().min(1).max(20),
           subjectCodes: z.array(z.string().min(1).max(20)).max(100).optional(),
         }),
         response: {
@@ -116,6 +212,9 @@ export async function curriculumRoutes(instance: FastifyInstance) {
       const ctx = request.ctx as TenantContext;
       const { curriculumKey, levelGroup, subjectCodes } = request.body;
       return withTenant(request.server.tenantDb, [ctx.schoolId], async (tx) => {
+        const [lvl] = await tx.select().from(refSchoolLevel).where(eq(refSchoolLevel.key, levelGroup));
+        if (!lvl?.active)
+          throw new HttpError(404, 'not_found', 'Kurikulum atau jenjang itu tidak ada di bank data.');
         const refs = await tx
           .select()
           .from(refSubject)

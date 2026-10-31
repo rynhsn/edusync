@@ -92,6 +92,10 @@ export function ApplicationDetail({ id, onClose }: { id: string | null; onClose:
         }),
       ),
   });
+  const docTypes = useQuery({
+    queryKey: ['admissions', school.schoolId, 'document-types'],
+    queryFn: async () => unwrap(await api.GET('/v1/admissions/document-types', { params: header })),
+  });
   const periods = useQuery({
     queryKey: ['admissions', school.schoolId, 'periods'],
     enabled: !!id,
@@ -300,7 +304,9 @@ export function ApplicationDetail({ id, onClose }: { id: string | null; onClose:
                           <FileText className="text-muted-foreground size-4" aria-hidden />
                         </span>
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium">{t(`docKind.${d.kind}`)}</p>
+                          <p className="truncate text-sm font-medium">
+                            {docTypes.data?.find((x) => x.key === d.kind)?.label ?? d.kind}
+                          </p>
                           <p className="text-muted-foreground truncate text-xs">
                             {d.fileName} ·{' '}
                             {d.mime === 'application/pdf'

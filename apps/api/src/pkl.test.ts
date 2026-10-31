@@ -219,6 +219,7 @@ afterAll(async () => {
   for (const sid of [schoolId, noModuleId, otherId]) {
     for (const table of [
       'audit_log',
+      'pkl_setting',
       'pkl_score',
       'pkl_visit',
       'pkl_journal',
@@ -661,6 +662,56 @@ describe('nilai sekolah dan industri', () => {
       records: [{ aspectId: ids.year, value: 50 }],
     });
     expect(alien.statusCode).toBe(400);
+  });
+});
+
+describe('ambang predikat', () => {
+  it('bawaan 90/80/70, ubah mengubah predikat, validasi, dan terisolasi per sekolah', async () => {
+    const get = (cookie: string, sid?: string) =>
+      call('GET', '/v1/pkl/settings-thresholds', cookie, undefined, sid);
+    const put = (cookie: string, body: object, sid?: string) =>
+      call('PUT', '/v1/pkl/settings-thresholds', cookie, body, sid);
+    const list = await call('GET', `/v1/pkl/placements?q=Ani`, cookies.admin);
+    const id = list.json().items[0].id as string;
+
+    expect((await get(cookies.principal)).json()).toEqual({ predicateA: 90, predicateB: 80, predicateC: 70 });
+    // Nilai akhir 82 -> B dengan ambang bawaan.
+    expect((await call('GET', `/v1/pkl/placements/${id}`, cookies.admin)).json().predicate).toBe('B');
+
+    expect(
+      (await put(cookies.principal, { predicateA: 90, predicateB: 80, predicateC: 70 })).statusCode,
+    ).toBe(403);
+    expect((await put(cookies.sup, { predicateA: 90, predicateB: 80, predicateC: 70 })).statusCode).toBe(403);
+    for (const bad of [
+      { predicateA: 80, predicateB: 80, predicateC: 70 },
+      { predicateA: 90, predicateB: 70, predicateC: 80 },
+      { predicateA: 101, predicateB: 80, predicateC: 70 },
+      { predicateA: 90, predicateB: 80, predicateC: 0 },
+      { predicateA: 90.5, predicateB: 80, predicateC: 70 },
+    ]) {
+      expect((await put(cookies.admin, bad)).statusCode).toBe(400);
+    }
+    expect(
+      (await put(cookies.admin, { predicateA: 90, predicateB: 80, predicateC: 70 }, undefined)).statusCode,
+    ).toBe(200);
+
+    const changed = await put(cookies.admin, { predicateA: 95, predicateB: 85, predicateC: 75 });
+    expect(changed.statusCode).toBe(200);
+    expect(changed.json()).toEqual({ predicateA: 95, predicateB: 85, predicateC: 75 });
+    // 82 sekarang di bawah B -> C; juga di lembar nilai.
+    expect((await call('GET', `/v1/pkl/placements/${id}`, cookies.admin)).json().predicate).toBe('C');
+    expect(
+      (await call('GET', `/v1/pkl/placements/${id}/scores`, cookies.admin)).json().result.predicate,
+    ).toBe('C');
+    // Sekolah lain tidak terpengaruh.
+    expect((await get(cookies.other, otherId)).json()).toEqual({
+      predicateA: 90,
+      predicateB: 80,
+      predicateC: 70,
+    });
+    expect((await get(cookies.noModule, noModuleId)).json().error.code).toBe('module_disabled');
+    // Kembalikan ke bawaan agar pengujian berikutnya tidak terpengaruh.
+    await put(cookies.admin, { predicateA: 90, predicateB: 80, predicateC: 70 });
   });
 });
 

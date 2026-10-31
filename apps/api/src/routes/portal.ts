@@ -175,7 +175,7 @@ const receiptSchema = z.object({
   id: z.uuid(),
   receiptNo: z.string(),
   paidAt: iso,
-  method: z.enum(['cash', 'transfer', 'other']),
+  method: z.string().describe('Kunci metode pembayaran (dinamis per sekolah)'),
   total: z.number().int(),
   items: z.array(z.object({ invoiceId: z.uuid(), title: z.string(), amount: z.number().int() })),
 });

@@ -1,16 +1,31 @@
-import { and, asc, type Db, eq, inArray, lte, msgMessage, msgSetting, sql, waAccount } from '@edusync/db';
+import { DEFAULT_TIMEZONE, localParts, zonedTimeToDate } from '@edusync/contracts';
+import {
+  and,
+  asc,
+  type Db,
+  DEFAULT_MESSAGING_RETRY,
+  eq,
+  inArray,
+  lte,
+  type MessagingRetry,
+  msgMessage,
+  msgSetting,
+  school,
+  sql,
+  waAccount,
+} from '@edusync/db';
 import type { PlatformLoader } from './account-sync';
 import { type Loop, startLoop } from './loop';
 import type { MessageSender } from './sender';
 
-/** Jeda sebelum percobaan ke-n+1 setelah percobaan ke-n gagal (menit): 1m, 5m, 30m, 2j, 6j. */
-export const BACKOFF_MS = [60_000, 300_000, 1_800_000, 7_200_000, 21_600_000] as const;
-export const MAX_ATTEMPTS = 5;
+/**
+ * Bawaan aturan kirim ulang (pengaturan platform `retry` menimpa). Jeda sebelum percobaan ke-n+1 setelah ke-n
+ * gagal: 1m, 5m, 30m, 2j, 6j.
+ */
+export const BACKOFF_MS = DEFAULT_MESSAGING_RETRY.backoffMinutes.map((m) => m * 60_000);
+export const MAX_ATTEMPTS = DEFAULT_MESSAGING_RETRY.maxAttempts;
 /** Pesan yang tertahan lebih lama dari ini karena WhatsApp sekolah tidak siap dibuang. */
-export const EXPIRY_MS = 24 * 3_600_000;
-
-const JAKARTA_OFFSET_MS = 7 * 3_600_000;
-const DAY_MS = 86_400_000;
+export const EXPIRY_MS = DEFAULT_MESSAGING_RETRY.expiryHours * 3_600_000;
 
 const toMinutes = (hhmm: string) => {
   const [h, m] = hhmm.split(':').map(Number);
@@ -18,23 +33,28 @@ const toMinutes = (hhmm: string) => {
 };
 
 /**
- * Apakah `now` ada di dalam jendela kirim (HH:MM, Asia/Jakarta, tanpa DST)? Bila di luar, `nextStart` adalah awal jendela
- * berikutnya. Jendela yang melewati tengah malam (mulai > selesai) didukung.
+ * Apakah `now` ada di dalam jendela kirim (HH:MM menurut zona waktu sekolah `tz`, bawaan Asia/Jakarta)? Bila di luar,
+ * `nextStart` adalah awal jendela berikutnya. Jendela yang melewati tengah malam (mulai > selesai) didukung.
  */
 export function sendWindow(
   now: Date,
   start: string,
   end: string,
+  tz: string = DEFAULT_TIMEZONE,
 ): { open: true } | { open: false; nextStart: Date } {
-  const local = now.getTime() + JAKARTA_OFFSET_MS;
-  const minutes = Math.floor((local % DAY_MS) / 60_000);
+  const local = localParts(now, tz);
+  const minutes = toMinutes(local.time);
   const s = toMinutes(start);
   const e = toMinutes(end);
   const open = s <= e ? minutes >= s && minutes < e : minutes >= s || minutes < e;
   if (open) return { open: true };
-  const dayStartLocal = local - (local % DAY_MS);
-  const startLocal = dayStartLocal + s * 60_000 + (minutes < s ? 0 : DAY_MS);
-  return { open: false, nextStart: new Date(startLocal - JAKARTA_OFFSET_MS) };
+  let day = local.date;
+  if (minutes >= s) {
+    const next = new Date(`${local.date}T00:00:00Z`);
+    next.setUTCDate(next.getUTCDate() + 1);
+    day = next.toISOString().slice(0, 10);
+  }
+  return { open: false, nextStart: zonedTimeToDate(day, start, tz) };
 }
 
 export interface DispatcherOptions {
@@ -100,9 +120,10 @@ export class Dispatcher {
       .groupBy(msgMessage.schoolId)
       .orderBy(asc(sql`min(${msgMessage.createdAt})`));
 
+    const retry = platform.retry ?? DEFAULT_MESSAGING_RETRY;
     const results = await Promise.all(
       schools.map((s) =>
-        this.serveSchool(s.schoolId, now).catch((error) => {
+        this.serveSchool(s.schoolId, now, retry).catch((error) => {
           this.options.log?.error(`[pesan] pengiriman sekolah ${s.schoolId} gagal`, error);
           return 0;
         }),
@@ -111,7 +132,7 @@ export class Dispatcher {
     return results.reduce((a, b) => a + b, 0);
   }
 
-  private async serveSchool(schoolId: string, now: Date): Promise<number> {
+  private async serveSchool(schoolId: string, now: Date, retry: MessagingRetry): Promise<number> {
     const dueOfSchool = and(
       eq(msgMessage.schoolId, schoolId),
       eq(msgMessage.status, 'queued'),
@@ -130,11 +151,20 @@ export class Dispatcher {
       await this.db
         .update(msgMessage)
         .set({ status: 'skipped', detail: 'expired' })
-        .where(and(dueOfSchool, lte(msgMessage.createdAt, new Date(now.getTime() - EXPIRY_MS))));
+        .where(
+          and(
+            dueOfSchool,
+            lte(msgMessage.createdAt, new Date(now.getTime() - retry.expiryHours * 3_600_000)),
+          ),
+        );
       return 0;
     }
 
-    const window = sendWindow(now, setting.windowStart, setting.windowEnd);
+    const [sch] = await this.db
+      .select({ timezone: school.timezone })
+      .from(school)
+      .where(eq(school.id, schoolId));
+    const window = sendWindow(now, setting.windowStart, setting.windowEnd, sch?.timezone);
     if (!window.open) {
       await this.db.update(msgMessage).set({ notBefore: window.nextStart }).where(dueOfSchool);
       return 0;
@@ -182,10 +212,11 @@ export class Dispatcher {
         .update(msgMessage)
         .set({ status: 'queued', attempts: msg.attempts - 1, notBefore: new Date(now.getTime() + 30_000) })
         .where(where);
-    } else if (!result.retryable || msg.attempts >= MAX_ATTEMPTS) {
+    } else if (!result.retryable || msg.attempts >= retry.maxAttempts) {
       await this.db.update(msgMessage).set({ status: 'failed', detail: result.error }).where(where);
     } else {
-      const wait = BACKOFF_MS[msg.attempts - 1] ?? BACKOFF_MS[BACKOFF_MS.length - 1] ?? 60_000;
+      const steps = retry.backoffMinutes;
+      const wait = (steps[msg.attempts - 1] ?? steps[steps.length - 1] ?? 1) * 60_000;
       await this.db
         .update(msgMessage)
         .set({ status: 'queued', detail: result.error, notBefore: new Date(now.getTime() + wait) })

@@ -45,14 +45,82 @@ export function schoolCodeFromSlug(slug: string): string {
   return code.slice(0, 6);
 }
 
-/** Nomor surat keluar: "012/SMP/X/2026" (urutan 3 digit minimal, kode, bulan Romawi, tahun). */
-export function formatLetterNumber(seq: number, code: string, month: number, year: number): string {
-  return `${String(seq).padStart(3, '0')}/${code}/${romanMonth(month)}/${year}`;
+/** Variabel yang dikenal pada pola penomoran surat. */
+export const NUMBER_PATTERN_VARIABLES = ['seq', 'code', 'roman', 'month', 'year'] as const;
+export type NumberPatternVariable = (typeof NUMBER_PATTERN_VARIABLES)[number];
+
+/** Pola bawaan nomor surat keluar: "012/SMP/X/2026". */
+export const DEFAULT_NUMBER_PATTERN = '{seq}/{code}/{roman}/{year}';
+/** Pola bawaan nomor agenda surat masuk: "AG/012/2026". */
+export const DEFAULT_AGENDA_PATTERN = 'AG/{seq}/{year}';
+
+/** Panjang maksimum pola dan kode sekolah. */
+export const MAX_NUMBER_PATTERN_LENGTH = 100;
+export const MAX_SCHOOL_CODE_LENGTH = 12;
+
+export type PatternCheck =
+  | { ok: true }
+  | { ok: false; reason: 'empty' | 'too_long' | 'no_seq' | 'unknown_variable' | 'stray_brace' };
+
+/**
+ * Periksa pola penomoran: wajib memuat {seq}, hanya memakai variabel yang dikenal ({seq}, {code}, {roman}, {month},
+ * {year}), dan tidak boleh ada kurung kurawal yang tidak berpasangan.
+ */
+export function validateNumberPattern(pattern: string): PatternCheck {
+  const p = pattern.trim();
+  if (p.length === 0) return { ok: false, reason: 'empty' };
+  if (p.length > MAX_NUMBER_PATTERN_LENGTH) return { ok: false, reason: 'too_long' };
+  const known = NUMBER_PATTERN_VARIABLES as readonly string[];
+  for (const m of p.matchAll(/\{([^{}]*)\}/g)) {
+    if (!known.includes(m[1] as string)) return { ok: false, reason: 'unknown_variable' };
+  }
+  if (p.replace(/\{[^{}]*\}/g, '').match(/[{}]/)) return { ok: false, reason: 'stray_brace' };
+  if (!p.includes('{seq}')) return { ok: false, reason: 'no_seq' };
+  return { ok: true };
 }
 
-/** Nomor agenda surat masuk: "AG/012/2026". */
+/** Kode sekolah untuk nomor surat: huruf kapital, angka, titik, atau tanda hubung (maks. 12 karakter). */
+export function normalizeSchoolCode(code: string): string | null {
+  const c = code.trim().toUpperCase();
+  return /^[A-Z0-9][A-Z0-9.-]*$/.test(c) && c.length <= MAX_SCHOOL_CODE_LENGTH ? c : null;
+}
+
+export interface NumberVars {
+  seq: number;
+  code: string;
+  month: number;
+  year: number;
+}
+
+/**
+ * Isi pola penomoran. {seq} = urutan minimal 3 digit, {code} = kode sekolah, {roman} = bulan Romawi, {month} = bulan 2
+ * digit, {year} = tahun. Pola dianggap sudah divalidasi; variabel yang tidak dikenal dibiarkan apa adanya.
+ */
+export function renderNumberPattern(pattern: string, v: NumberVars): string {
+  const values: Record<NumberPatternVariable, string> = {
+    seq: String(v.seq).padStart(3, '0'),
+    code: v.code,
+    roman: romanMonth(v.month),
+    month: String(v.month).padStart(2, '0'),
+    year: String(v.year),
+  };
+  return pattern
+    .trim()
+    .replace(/\{(\w+)\}/g, (whole, name: string) =>
+      (NUMBER_PATTERN_VARIABLES as readonly string[]).includes(name)
+        ? values[name as NumberPatternVariable]
+        : whole,
+    );
+}
+
+/** Nomor surat keluar menurut pola bawaan: "012/SMP/X/2026" (urutan 3 digit minimal, kode, bulan Romawi, tahun). */
+export function formatLetterNumber(seq: number, code: string, month: number, year: number): string {
+  return renderNumberPattern(DEFAULT_NUMBER_PATTERN, { seq, code, month, year });
+}
+
+/** Nomor agenda surat masuk menurut pola bawaan: "AG/012/2026". */
 export function formatAgendaNumber(seq: number, year: number): string {
-  return `AG/${String(seq).padStart(3, '0')}/${year}`;
+  return renderNumberPattern(DEFAULT_AGENDA_PATTERN, { seq, code: '', month: 1, year });
 }
 
 /** Pengganti pada templat yang tidak dikenal pada surat. */

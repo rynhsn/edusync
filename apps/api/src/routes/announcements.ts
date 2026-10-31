@@ -580,7 +580,7 @@ export async function announcementRoutes(instance: FastifyInstance) {
         summary: 'Beranda situs sekolah (publik)',
         description:
           'Tanpa login. Profil, nama sekolah, jenjang yang sedang dibuka SPMB (kosong bila modul SPMB tidak aktif), ' +
-          `${SITE_HIGHLIGHTS} berita/pemberitahuan publik terbaru, dan agenda mendatang (tanggal acara hari ini WIB ` +
+          `${SITE_HIGHLIGHTS} berita/pemberitahuan publik terbaru, dan agenda mendatang (tanggal acara hari ini menurut zona waktu sekolah ` +
           'atau setelahnya). Pengumuman hanya yang terbit, belum kadaluarsa, dan audiens `public`/`all`; kosong ' +
           'bila modul `announcements` tidak aktif. 404 `not_found` seragam untuk sekolah yang tidak ada, ' +
           'ditangguhkan, tanpa modul `website`, atau profilnya belum terbit.',
@@ -601,8 +601,8 @@ export async function announcementRoutes(instance: FastifyInstance) {
     async (request, reply) => {
       const site = await resolveSite(request.server, request.params.slug);
       const now = new Date();
-      const today = jakarta(now).date;
       const data = await withTenant(request.server.tenantDb, [site.id], async (tx) => {
+        const today = jakarta(now).date;
         let openLevels: string[] = [];
         if (site.hasAdmissions) {
           const periods = await tx

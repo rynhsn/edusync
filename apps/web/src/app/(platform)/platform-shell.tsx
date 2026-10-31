@@ -1,7 +1,16 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { Building2, ClipboardList, CreditCard, History, LogOut, Package, Send } from 'lucide-react';
+import {
+  BookMarked,
+  Building2,
+  ClipboardList,
+  CreditCard,
+  History,
+  LogOut,
+  Package,
+  Send,
+} from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
@@ -37,6 +46,7 @@ const GROUPS = [
     key: 'groupConfig',
     items: [
       { href: '/platform/catalog', key: 'catalog', icon: Package },
+      { href: '/platform/curriculum', key: 'curriculum', icon: BookMarked },
       { href: '/platform/payments', key: 'payments', icon: CreditCard },
       { href: '/platform/messaging', key: 'messaging', icon: Send },
     ],

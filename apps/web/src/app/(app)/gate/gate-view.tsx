@@ -35,6 +35,7 @@ import {
   Toolbar,
 } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { todayIso } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 
 const SUMMARY = ['present', 'late', 'excused', 'sick', 'absent', 'notYet'] as const;
@@ -47,7 +48,6 @@ const SUMMARY_ICON = {
   notYet: Hourglass,
 } as const;
 
-const todayIso = () => new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(new Date());
 const clock = (iso: string | null) =>
   iso
     ? new Date(iso).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false })

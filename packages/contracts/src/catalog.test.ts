@@ -5,8 +5,10 @@ import {
   quoteUnit,
   quoteUnits,
   registrationInput,
+  requirementMap,
   slugify,
   slugSchema,
+  tierLimit,
   withRequirements,
 } from './catalog';
 
@@ -63,6 +65,70 @@ describe('harga', () => {
     );
     expect(q.total).toBe(150_000 + 100_000 + (150_000 + 100_000 + 50_000 + 50_000));
     expect(q.lines.every((l) => l.name.startsWith('SMP IT') || l.name.startsWith('SMK'))).toBe(true);
+  });
+});
+
+describe('katalog dinamis', () => {
+  const custom = [
+    ...DEFAULT_CATALOG.filter((c) => c.key !== 'assessments'),
+    // Katalog menang atas bawaan: assessments kini bergantung pada administration, bukan grades.
+    {
+      kind: 'module' as const,
+      key: 'assessments',
+      name: 'Penilaian',
+      priceMonthly: 50_000,
+      sort: 12,
+      requires: ['administration'],
+    },
+  ];
+
+  it('syarat dibaca dari katalog dan jatuh ke bawaan bila modul tidak ada di katalog', () => {
+    expect(withRequirements(['assessments'], custom).sort()).toEqual(['administration', 'assessments']);
+    expect(withRequirements(['assessments'], []).sort()).toEqual(['assessments', 'grades']);
+    expect(withRequirements(['assessments']).sort()).toEqual(['assessments', 'grades']);
+  });
+
+  it('daftar syarat kosong di katalog melepas syarat bawaan', () => {
+    const open = custom.map((c) => (c.key === 'assessments' ? { ...c, requires: [] } : c));
+    expect(withRequirements(['assessments'], open)).toEqual(['assessments']);
+  });
+
+  it('syarat berantai ditelusuri dan siklus tidak membuat perulangan tak hingga', () => {
+    const chain = [
+      { kind: 'module' as const, key: 'a', name: 'A', priceMonthly: 1, sort: 1, requires: ['b'] },
+      { kind: 'module' as const, key: 'b', name: 'B', priceMonthly: 1, sort: 2, requires: ['c'] },
+      { kind: 'module' as const, key: 'c', name: 'C', priceMonthly: 1, sort: 3, requires: ['a'] },
+    ];
+    expect(withRequirements(['a'], chain).sort()).toEqual(['a', 'b', 'c']);
+  });
+
+  it('harga memakai syarat dari katalog dan pengali tahunan yang diberikan', () => {
+    const q = quoteUnit(custom, { modules: ['assessments'], tier: 't300' }, 'monthly');
+    expect(q.lines.map((l) => l.key)).toEqual(expect.arrayContaining(['administration', 'assessments']));
+    expect(q.lines.some((l) => l.key === 'grades')).toBe(false);
+    const monthly = quoteUnit(DEFAULT_CATALOG, { modules: ['attendance'], tier: 't300' }, 'monthly').total;
+    const yearly = quoteUnit(
+      DEFAULT_CATALOG,
+      { modules: ['attendance'], tier: 't300' },
+      'yearly',
+      undefined,
+      { yearlyMonths: 11 },
+    );
+    expect(yearly.total).toBe(monthly * 11);
+    expect(yearly.months).toBe(11);
+    expect(
+      quoteUnits(DEFAULT_CATALOG, [{ name: 'A', modules: [], tier: 't300' }], 'yearly', { yearlyMonths: 12 })
+        .total,
+    ).toBe(150_000 * 12);
+  });
+
+  it('requirementMap dan tierLimit', () => {
+    expect(requirementMap(custom).assessments).toEqual(['administration']);
+    expect(requirementMap(DEFAULT_CATALOG).parent_portal).toEqual(['attendance']);
+    expect(requirementMap(DEFAULT_CATALOG).attendance).toBeUndefined();
+    expect(tierLimit(DEFAULT_CATALOG, 't300')).toBe(300);
+    expect(tierLimit(DEFAULT_CATALOG, 't1500')).toBe(1500);
+    expect(tierLimit(DEFAULT_CATALOG, 'tidak-ada')).toBeNull();
   });
 });
 

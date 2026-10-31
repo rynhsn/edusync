@@ -4,6 +4,7 @@ import { CalendarOff, ClipboardList, DoorOpen, MessageCircle, Trophy, UserRound,
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { nowHm } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 import { FigureEngine } from './engine';
 import { BUILDINGS, VIEW_H, VIEW_W } from './geometry';
@@ -31,14 +32,9 @@ const ICONS: Record<BuildingKind, typeof DoorOpen> = {
   mail: MessageCircle,
 };
 
-/** Jam Jakarta saat tidak ada snapshot (langit tetap mengikuti waktu nyata). */
+/** Jam sekolah saat tidak ada snapshot (langit tetap mengikuti waktu nyata). */
 function fallbackTime() {
-  return new Intl.DateTimeFormat('en-GB', {
-    timeZone: 'Asia/Jakarta',
-    hour: '2-digit',
-    minute: '2-digit',
-    hour12: false,
-  }).format(new Date());
+  return nowHm();
 }
 
 export type MapT = (key: string, values?: Record<string, string | number>) => string;

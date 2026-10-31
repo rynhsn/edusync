@@ -4,6 +4,7 @@ import {
   type PklPlacementStatus,
   pklPredicate,
   pklResult,
+  validPklThresholds,
 } from '@edusync/contracts';
 import {
   academicYear,
@@ -25,6 +26,7 @@ import {
   pklPeriod,
   pklPlacement,
   pklScore,
+  pklSetting,
   pklVisit,
   sql,
   student,
@@ -43,6 +45,7 @@ import {
   hashAccessToken,
   loadSheet,
   newAccessToken,
+  pklThresholds,
   saveScores,
   scoreRecordsBody,
 } from '../pkl-lib';
@@ -259,7 +262,10 @@ async function buildSheet(tx: Tx, placementId: string) {
       school: cell(a.id, 'school'),
       industry: cell(a.id, 'industry'),
     })),
-    result: { ...result, predicate: result.final === null ? null : pklPredicate(result.final) },
+    result: {
+      ...result,
+      predicate: result.final === null ? null : pklPredicate(result.final, await pklThresholds(tx)),
+    },
   };
 }
 
@@ -596,6 +602,7 @@ export async function pklRoutes(instance: FastifyInstance) {
       ? await tx.select().from(pklScore).where(inArray(pklScore.placementId, ids))
       : [];
     const mine = ctx.permissions.has('pkl:manage') ? null : await myTeacherId(tx, ctx);
+    const thresholds = await pklThresholds(tx);
     return rows.map((r) => {
       const s = stats.find((x) => x.id === r.p.id);
       const result = pklResult(
@@ -619,7 +626,7 @@ export async function pklRoutes(instance: FastifyInstance) {
         journalCount: s?.n ?? 0,
         lastJournalDate: s?.last ?? null,
         finalScore: result.final,
-        predicate: result.final === null ? null : pklPredicate(result.final),
+        predicate: result.final === null ? null : pklPredicate(result.final, thresholds),
         hasAccessLink: r.p.accessTokenHash !== null,
         canWrite:
           ctx.permissions.has('pkl:manage') ||
@@ -1183,6 +1190,68 @@ export async function pklRoutes(instance: FastifyInstance) {
         await audit(tx, ctxOf(request), 'pkl.visit.delete', 'pkl_visit', v.id);
         return { ok: true as const };
       }),
+  );
+
+  /* ---------- Ambang predikat ---------- */
+
+  const thresholdsSchema = z.object({
+    predicateA: z.number().int().describe('Nilai minimal predikat A'),
+    predicateB: z.number().int().describe('Nilai minimal predikat B'),
+    predicateC: z.number().int().describe('Nilai minimal predikat C; di bawahnya D'),
+  });
+
+  app.get(
+    '/v1/pkl/settings-thresholds',
+    {
+      onRequest: readGate,
+      schema: {
+        tags: tag,
+        summary: 'Ambang predikat nilai PKL',
+        description:
+          'Izin: `pkl:read`; modul `internship`. Nilai akhir >= A mendapat A, >= B mendapat B, >= C mendapat C, ' +
+          'selain itu D. Bawaan 90/80/70 bila sekolah belum mengaturnya.',
+        headers: schoolHeader,
+        response: { 200: thresholdsSchema, ...guarded },
+      },
+    },
+    async (request) => tenant(request, (tx) => pklThresholds(tx)),
+  );
+
+  app.put(
+    '/v1/pkl/settings-thresholds',
+    {
+      onRequest: manageGate,
+      schema: {
+        tags: tag,
+        summary: 'Ubah ambang predikat nilai PKL',
+        description:
+          'Izin: `pkl:manage`; modul `internship`. Bilangan bulat 1-100 dengan A > B > C (400 `invalid_thresholds` ' +
+          'bila tidak). Berlaku langsung pada semua nilai PKL, termasuk penempatan lama.',
+        headers: schoolHeader,
+        body: thresholdsSchema,
+        response: { 200: thresholdsSchema, 400: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = ctxOf(request);
+      const b = request.body;
+      if (!validPklThresholds(b)) {
+        throw new HttpError(
+          400,
+          'invalid_thresholds',
+          'Ambang harus bilangan bulat 1-100 dengan A lebih besar dari B dan B lebih besar dari C.',
+        );
+      }
+      return tenant(request, async (tx) => {
+        const values = { thresholdA: b.predicateA, thresholdB: b.predicateB, thresholdC: b.predicateC };
+        await tx
+          .insert(pklSetting)
+          .values({ schoolId: ctx.schoolId, ...values })
+          .onConflictDoUpdate({ target: pklSetting.schoolId, set: { ...values, updatedAt: new Date() } });
+        await audit(tx, ctx, 'pkl.thresholds.update', 'pkl_setting', ctx.schoolId, { ...b });
+        return pklThresholds(tx);
+      });
+    },
   );
 
   /* ---------- Aspek penilaian ---------- */

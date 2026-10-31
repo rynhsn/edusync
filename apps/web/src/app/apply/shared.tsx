@@ -21,6 +21,7 @@ export interface AdmissionInfo {
   school: { name: string };
   periods: { id: string; name: string; level: string; opensOn: string; closesOn: string; open: boolean }[];
   programs: { id: string; name: string }[];
+  documentTypes: { key: string; label: string; required: boolean }[];
 }
 
 interface ApplyContextValue {

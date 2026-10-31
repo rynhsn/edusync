@@ -26,6 +26,10 @@ interface ItemDraft {
   priceMonthly: string;
   sort: string;
   active: boolean;
+  /** Kunci modul syarat (hanya modul). */
+  requires: string[];
+  /** Batas siswa aktif sebagai teks; kosong = tanpa batas (hanya tingkat). */
+  maxStudents: string;
 }
 interface PlanDraft {
   name: string;
@@ -38,6 +42,11 @@ interface PlanDraft {
 
 const KIND_KEY = { base: 'kindBase', module: 'kindModule', tier: 'kindTier' } as const;
 const num = (v: string) => Math.max(0, Math.round(Number(v) || 0));
+/** Batas siswa: kosong = null (tanpa batas), selain itu bilangan bulat minimal 1. */
+const limit = (v: string) => (v.trim() === '' ? null : Math.max(1, Math.round(Number(v) || 1)));
+/** Bidang aturan yang dikirim menurut jenis item: syarat untuk modul, batas siswa untuk tingkat. */
+const rulesOf = (kind: Kind, d: Pick<ItemDraft, 'requires' | 'maxStudents'>) =>
+  kind === 'module' ? { requires: d.requires } : kind === 'tier' ? { maxStudents: limit(d.maxStudents) } : {};
 
 function ItemFields({
   idPrefix,
@@ -45,12 +54,17 @@ function ItemFields({
   onChange,
   withActive,
   lockActive,
+  kind,
+  moduleOptions,
 }: {
   idPrefix: string;
   draft: ItemDraft;
   onChange: (d: ItemDraft) => void;
   withActive?: boolean;
   lockActive?: boolean;
+  kind: Kind;
+  /** Modul yang boleh dipilih sebagai syarat (tanpa item ini sendiri). */
+  moduleOptions: { key: string; name: string }[];
 }) {
   const t = useTranslations('platformCatalog');
   return (
@@ -82,6 +96,46 @@ function ItemFields({
           onChange={(e) => onChange({ ...draft, sort: e.target.value })}
         />
       </div>
+      {kind === 'tier' && (
+        <div className="grid gap-2 sm:col-span-2">
+          <Label htmlFor={`${idPrefix}-max`}>{t('maxStudents')}</Label>
+          <Input
+            id={`${idPrefix}-max`}
+            inputMode="numeric"
+            placeholder={t('maxStudentsPlaceholder')}
+            value={draft.maxStudents}
+            onChange={(e) => onChange({ ...draft, maxStudents: e.target.value })}
+          />
+          <p className="text-muted-foreground text-xs">{t('maxStudentsHint')}</p>
+        </div>
+      )}
+      {kind === 'module' && moduleOptions.length > 0 && (
+        <fieldset className="grid gap-2 sm:col-span-2">
+          <legend className="mb-1 text-sm font-medium">{t('requires')}</legend>
+          <p className="text-muted-foreground -mt-1 text-xs">{t('requiresHint')}</p>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {moduleOptions.map((m) => (
+              <label
+                key={m.key}
+                htmlFor={`${idPrefix}-r-${m.key}`}
+                className="flex items-center gap-2 text-sm"
+              >
+                <Checkbox
+                  id={`${idPrefix}-r-${m.key}`}
+                  checked={draft.requires.includes(m.key)}
+                  onCheckedChange={(next) =>
+                    onChange({
+                      ...draft,
+                      requires: next ? [...draft.requires, m.key] : draft.requires.filter((x) => x !== m.key),
+                    })
+                  }
+                />
+                {m.name}
+              </label>
+            ))}
+          </div>
+        </fieldset>
+      )}
       {withActive && (
         <label htmlFor={`${idPrefix}-active`} className="flex items-center gap-2 text-sm sm:col-span-2">
           <Checkbox
@@ -220,6 +274,8 @@ export function CatalogView() {
     priceMonthly: '0',
     sort: '50',
     active: true,
+    requires: [] as string[],
+    maxStudents: '',
   });
   const [itemError, setItemError] = useState<string | null>(null);
   const [editingPlan, setEditingPlan] = useState<({ key: string } & PlanDraft) | null>(null);
@@ -239,7 +295,13 @@ export function CatalogView() {
       unwrap(
         await api.PUT('/v1/platform/catalog/items/{kind}/{key}', {
           params: { path: { kind: v.kind, key: v.key } },
-          body: { name: v.name, priceMonthly: num(v.priceMonthly), sort: num(v.sort), active: v.active },
+          body: {
+            name: v.name,
+            priceMonthly: num(v.priceMonthly),
+            sort: num(v.sort),
+            active: v.active,
+            ...rulesOf(v.kind, v),
+          },
         }),
       ),
     onSuccess: () => {
@@ -258,6 +320,7 @@ export function CatalogView() {
             name: newItem.name,
             priceMonthly: num(newItem.priceMonthly),
             sort: num(newItem.sort),
+            ...rulesOf(newItem.kind, newItem),
           },
         }),
       ),
@@ -345,7 +408,14 @@ export function CatalogView() {
                 error={itemError}
                 onOpenChange={() => {
                   setItemError(null);
-                  setNewItem({ ...newItem, key: '', name: '', priceMonthly: '0' });
+                  setNewItem({
+                    ...newItem,
+                    key: '',
+                    name: '',
+                    priceMonthly: '0',
+                    requires: [],
+                    maxStudents: '',
+                  });
                 }}
                 onSubmit={() => addItem.mutateAsync()}
               >
@@ -374,6 +444,8 @@ export function CatalogView() {
                 </div>
                 <ItemFields
                   idPrefix="ni"
+                  kind={newItem.kind}
+                  moduleOptions={modules}
                   draft={newItem}
                   onChange={(d) => setNewItem({ ...newItem, ...d })}
                 />
@@ -493,6 +565,7 @@ export function CatalogView() {
               <TableRow>
                 <TableHead>{t('name')}</TableHead>
                 <TableHead>{t('kind')}</TableHead>
+                <TableHead>{t('rules')}</TableHead>
                 <TableHead className="text-right">{t('price')}</TableHead>
                 <TableHead>{t('active')}</TableHead>
                 {canEdit && <TableHead className="w-16" />}
@@ -507,6 +580,28 @@ export function CatalogView() {
                   </TableCell>
                   <TableCell>
                     <Badge variant="outline">{t(KIND_KEY[i.kind])}</Badge>
+                  </TableCell>
+                  <TableCell>
+                    {i.kind === 'module' && i.requires.length > 0 && (
+                      <div className="flex flex-wrap items-center gap-1">
+                        <span className="text-muted-foreground text-xs">{t('requiresShort')}</span>
+                        {i.requires.map((r) => (
+                          <Badge key={r} variant="secondary">
+                            {moduleName(r)}
+                          </Badge>
+                        ))}
+                      </div>
+                    )}
+                    {i.kind === 'tier' && (
+                      <span className="text-sm tabular-nums">
+                        {i.maxStudents == null
+                          ? t('unlimited')
+                          : t('upToStudents', { count: i.maxStudents.toLocaleString(locale) })}
+                      </span>
+                    )}
+                    {i.kind === 'base' || (i.kind === 'module' && i.requires.length === 0) ? (
+                      <span className="text-muted-foreground text-xs">-</span>
+                    ) : null}
                   </TableCell>
                   <TableCell className="text-right tabular-nums">
                     {money.format(i.priceMonthly)}{' '}
@@ -532,6 +627,8 @@ export function CatalogView() {
                             priceMonthly: String(i.priceMonthly),
                             sort: String(i.sort),
                             active: i.active,
+                            requires: i.requires,
+                            maxStudents: i.maxStudents == null ? '' : String(i.maxStudents),
                           });
                         }}
                       >
@@ -557,6 +654,8 @@ export function CatalogView() {
         {editingItem && (
           <ItemFields
             idPrefix="ei"
+            kind={editingItem.kind}
+            moduleOptions={modules.filter((m) => m.key !== editingItem.key)}
             draft={editingItem}
             withActive
             lockActive={editingItem.kind === 'base'}

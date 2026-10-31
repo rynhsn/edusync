@@ -1,7 +1,7 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { BadgePercent, Banknote, Landmark, Layers, type LucideIcon, Wallet } from 'lucide-react';
+import { BadgePercent, Banknote, CreditCard, Landmark, Layers, type LucideIcon, Wallet } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
@@ -12,12 +12,28 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { formatCalendarDate } from '@/lib/format-date';
 import { formatRupiah } from '@/lib/money';
 
-export const METHODS = ['cash', 'transfer', 'other'] as const;
-export type Method = (typeof METHODS)[number];
-export const METHOD_KEY = { cash: 'methodCash', transfer: 'methodTransfer', other: 'methodOther' } as const;
+/** Ikon metode bayar: kunci bawaan punya ikon sendiri, metode buatan sekolah memakai kartu. */
+const METHOD_ICONS: Record<string, LucideIcon> = { cash: Banknote, transfer: Landmark, other: Wallet };
+export const methodIcon = (key: string): LucideIcon => METHOD_ICONS[key] ?? CreditCard;
 
-/** Ikon tiap metode bayar (dipakai kartu pilihan metode di kasir). */
-export const METHOD_ICON: Record<Method, LucideIcon> = { cash: Banknote, transfer: Landmark, other: Wallet };
+/** Metode pembayaran sekolah (aktif dan nonaktif, urut `sort`); `labelOf` jatuh ke kunci bila tak ada. */
+export function usePaymentMethods() {
+  const { school } = useSchool();
+  const query = useQuery({
+    queryKey: ['finance-payment-methods', school.schoolId],
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/v1/finance/payment-methods', { params: { header: schoolHeader(school.schoolId) } }),
+      ),
+  });
+  const all = query.data?.items ?? [];
+  return {
+    all,
+    active: all.filter((m) => m.active),
+    loading: query.isPending,
+    labelOf: (key: string) => all.find((m) => m.key === key)?.label ?? key,
+  };
+}
 
 export const KINDS = ['monthly', 'one_time', 'yearly'] as const;
 export type Kind = (typeof KINDS)[number];

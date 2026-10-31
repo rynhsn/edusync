@@ -1,8 +1,8 @@
 import type { AttendanceStatus } from '@/lib/portal-api';
+import { nowHm, todayIso } from '../../../lib/school-time';
 
-/** Tanggal hari ini menurut waktu Jakarta (TTTT-BB-HH). */
-export const todayJakarta = (now = new Date()) =>
-  new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Jakarta' }).format(now);
+/** Tanggal hari ini menurut zona waktu sekolah (TTTT-BB-HH). */
+export const todayJakarta = (now = new Date()) => todayIso(now);
 
 export const currentMonth = (now = new Date()) => todayJakarta(now).slice(0, 7);
 
@@ -87,13 +87,9 @@ export function avatarHue(name: string): number {
   return h;
 }
 
-/** Sapaan menurut jam Jakarta: pagi, siang, sore, malam. */
+/** Sapaan menurut jam sekolah: pagi, siang, sore, malam. */
 export function dayPart(now = new Date()): 'morning' | 'noon' | 'afternoon' | 'evening' {
-  const hour = Number(
-    new Intl.DateTimeFormat('en-GB', { timeZone: 'Asia/Jakarta', hour: '2-digit', hour12: false }).format(
-      now,
-    ),
-  );
+  const hour = Number(nowHm(now).slice(0, 2));
   if (hour < 11) return 'morning';
   if (hour < 15) return 'noon';
   if (hour < 18) return 'afternoon';

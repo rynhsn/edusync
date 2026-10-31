@@ -1,5 +1,6 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { and, eq, inArray, pklAspect, pklScore, type Tx } from '@edusync/db';
+import { PKL_PREDICATE_SETTINGS, type PredicateSettings } from '@edusync/contracts';
+import { and, eq, inArray, pklAspect, pklScore, pklSetting, type Tx } from '@edusync/db';
 import { z } from 'zod';
 import { HttpError } from './http-error';
 
@@ -90,4 +91,12 @@ export async function loadSheet(tx: Tx, placementId: string) {
     .from(pklScore)
     .where(and(eq(pklScore.placementId, placementId)));
   return { aspects, scores };
+}
+
+/** Ambang predikat PKL sekolah (dari pkl_setting; bawaan 90/80/70 bila belum diatur). Dipanggil di dalam transaksi tenant. */
+export async function pklThresholds(tx: Tx): Promise<PredicateSettings> {
+  const [row] = await tx.select().from(pklSetting);
+  return row
+    ? { predicateA: row.thresholdA, predicateB: row.thresholdB, predicateC: row.thresholdC }
+    : { ...PKL_PREDICATE_SETTINGS };
 }

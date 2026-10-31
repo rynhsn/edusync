@@ -1,7 +1,9 @@
+import { localParts } from '@edusync/contracts';
 import {
   and,
   attendancePolicy,
   classRoom,
+  currentTimezone,
   dailyAttendance,
   desc,
   dutyRoster,
@@ -25,20 +27,14 @@ export const DEFAULT_POLICY = {
 };
 export type Policy = typeof DEFAULT_POLICY;
 
-/** Tanggal (TTTT-BB-HH) dan jam (HH:MM) menurut zona waktu sekolah (Asia/Jakarta). */
-export function jakarta(at: Date) {
-  const parts = new Intl.DateTimeFormat('en-CA', {
-    timeZone: 'Asia/Jakarta',
-    year: 'numeric',
-    month: '2-digit',
-    day: '2-digit',
-    hour: '2-digit',
-    minute: '2-digit',
-    hourCycle: 'h23',
-  }).formatToParts(at);
-  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? '';
-  return { date: `${get('year')}-${get('month')}-${get('day')}`, time: `${get('hour')}:${get('minute')}` };
+/** Tanggal (TTTT-BB-HH) dan jam (HH:MM) menurut zona waktu sekolah (konteks tenant; bawaan Asia/Jakarta). */
+export function schoolLocal(at: Date, tz: string = currentTimezone()) {
+  const { date, time } = localParts(at, tz);
+  return { date, time };
 }
+
+/** @deprecated Nama lama; kini mengikuti zona waktu sekolah. Pakai `schoolLocal`. */
+export const jakarta = schoolLocal;
 
 /** 1 = Senin … 7 = Minggu, untuk tanggal TTTT-BB-HH. */
 export function weekdayOf(date: string) {

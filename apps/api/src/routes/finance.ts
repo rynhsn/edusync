@@ -29,20 +29,24 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { todayInJakarta } from '../attendance-lib';
+import { todayInSchool } from '../attendance-lib';
 import {
   discountFor,
   type InstallmentPart,
   type InvoiceView,
   installmentParts,
   invoiceRows,
+  listPaymentMethods,
   PERIOD_PATTERN,
   paidFor,
   periodLabel,
+  requireActiveMethod,
 } from '../finance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { notifyPayment } from '../messaging-lib';
+import { assertLevelAllowed } from '../school-lib';
+import { zoneSql } from '../timezone-sql';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const tag = ['Finance'];
@@ -56,7 +60,8 @@ const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', 
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
 
 const KINDS = ['monthly', 'one_time', 'yearly'] as const;
-const METHODS = ['cash', 'transfer', 'other'] as const;
+/** Kunci metode pembayaran (dinamis, dikelola sekolah di `fin_payment_method`). */
+const methodKey = z.string().trim().min(1).max(40);
 const INVOICE_STATUS = ['unpaid', 'partial', 'paid', 'void'] as const;
 
 const rupiah = z.number().int().min(0).max(2_000_000_000);
@@ -121,7 +126,8 @@ const paymentSummarySchema = z.object({
   id: z.uuid(),
   receiptNo: z.string(),
   paidAt: z.iso.datetime({ offset: true }),
-  method: z.enum(METHODS),
+  method: z.string().describe('Kunci metode pembayaran'),
+  methodLabel: z.string().describe('Label metode dari pengaturan sekolah (kunci bila sudah tak ada)'),
   total: z.number().int(),
   voided: z.boolean(),
   studentId: z.uuid(),
@@ -133,7 +139,8 @@ const receiptSchema = z.object({
   id: z.uuid(),
   receiptNo: z.string(),
   paidAt: z.iso.datetime({ offset: true }),
-  method: z.enum(METHODS),
+  method: z.string().describe('Kunci metode pembayaran'),
+  methodLabel: z.string().describe('Label metode dari pengaturan sekolah (kunci bila sudah tak ada)'),
   total: z.number().int(),
   note: z.string().nullable(),
   voided: z.boolean(),
@@ -168,6 +175,12 @@ export async function financeRoutes(instance: FastifyInstance) {
     const [f] = await tx.select().from(finFeeType).where(eq(finFeeType.id, id));
     if (!f) throw invalidRef('Jenis biaya tidak ditemukan.');
     return f;
+  }
+
+  /** Peta kunci -> label metode pembayaran sekolah (termasuk yang nonaktif, agar riwayat tetap berlabel). */
+  async function methodLabels(tx: Tx, schoolId: string) {
+    const rows = await listPaymentMethods(tx, schoolId);
+    return new Map(rows.map((r) => [r.key, r.label]));
   }
 
   /** Nama kelas siswa pada satu tahun ajaran (bila terdaftar). */
@@ -379,7 +392,7 @@ export async function financeRoutes(instance: FastifyInstance) {
           'Izin: `finance:manage`; modul `finance`. Membuat atau mengganti tarif untuk kombinasi tahun ajaran, jenis ' +
           'biaya, dan tingkat (`level` null = semua tingkat; cocokkan dengan `level` kelas). `amount` rupiah bulat >= 0. ' +
           'Tarif yang berubah tidak mengubah tagihan yang sudah dibuat. 400 `invalid_reference` bila tahun ajaran atau ' +
-          'jenis biaya tidak ditemukan.',
+          'jenis biaya tidak ditemukan; 400 `invalid_level` bila `level` tidak ada di daftar tingkat sekolah (bila daftar terisi).',
         headers: schoolHeader,
         body: planBody,
         response: { 200: planSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -391,6 +404,7 @@ export async function financeRoutes(instance: FastifyInstance) {
       return conflictAs409('Tarif itu sedang diubah pengguna lain; coba lagi.', () =>
         tenant(request, async (tx) => {
           await requireYear(tx, b.academicYearId);
+          await assertLevelAllowed(tx, b.level);
           const fee = await requireFeeType(tx, b.feeTypeId);
           const [existing] = await tx
             .select({ id: finFeePlan.id })
@@ -742,7 +756,7 @@ export async function financeRoutes(instance: FastifyInstance) {
           'Izin: `finance:read`; modul `finance`. Filter opsional: `academicYearId`, `classId` (kelas siswa pada tahun ' +
           'tagihan), `studentId`, `feeTypeId`, `period`, `status`. Status diturunkan dari kwitansi yang tidak batal: ' +
           '`unpaid`, `partial`, `paid`, `void`. Urut jatuh tempo, nama siswa. `limit` maks 100 (bawaan 50), `offset` ' +
-          'bawaan 0. `overdue` = masih ada sisa dan lewat jatuh tempo (hari ini menurut zona Jakarta).',
+          'bawaan 0. `overdue` = masih ada sisa dan lewat jatuh tempo (hari ini menurut zona waktu sekolah).',
         headers: schoolHeader,
         querystring: z.object({
           academicYearId: z.uuid().optional(),
@@ -1004,7 +1018,8 @@ export async function financeRoutes(instance: FastifyInstance) {
                 id: z.uuid(),
                 receiptNo: z.string(),
                 paidAt: z.iso.datetime({ offset: true }),
-                method: z.enum(METHODS),
+                method: z.string(),
+                methodLabel: z.string(),
                 total: z.number().int(),
                 voided: z.boolean(),
               }),
@@ -1047,6 +1062,7 @@ export async function financeRoutes(instance: FastifyInstance) {
             ),
           )
           .orderBy(desc(finPayment.paidAt), desc(finPayment.receiptNo));
+        const labels = await methodLabels(tx, (request.ctx as TenantContext).schoolId);
         const live = items.filter((i) => i.status !== 'void');
         const totals = {
           billed: live.reduce((a, i) => a + i.amount, 0),
@@ -1062,6 +1078,7 @@ export async function financeRoutes(instance: FastifyInstance) {
             receiptNo: p.receiptNo,
             paidAt: p.paidAt.toISOString(),
             method: p.method,
+            methodLabel: labels.get(p.method) ?? p.method,
             total: p.total,
             voided: p.voidedAt !== null,
           })),
@@ -1096,11 +1113,13 @@ export async function financeRoutes(instance: FastifyInstance) {
       .from(reportSetting)
       .where(eq(reportSetting.schoolId, p.schoolId));
     const [cashier] = await tx.select({ name: user.name }).from(user).where(eq(user.id, p.recordedBy));
+    const labels = await methodLabels(tx, p.schoolId);
     return {
       id: p.id,
       receiptNo: p.receiptNo,
       paidAt: p.paidAt.toISOString(),
       method: p.method,
+      methodLabel: labels.get(p.method) ?? p.method,
       total: p.total,
       note: p.note,
       voided: p.voidedAt !== null,
@@ -1125,11 +1144,12 @@ export async function financeRoutes(instance: FastifyInstance) {
           'di dalam transaksi dengan penguncian baris tagihan sehingga pembayaran paralel tidak bisa melebihi sisa. ' +
           'Nomor kwitansi `KWT-{tahun}-{6 digit}` dibuat atomik dan berurutan per sekolah per tahun. `paidAt` bawaan ' +
           'sekarang. Galat: 400 `invalid_reference` (siswa/tagihan tak ditemukan atau bukan milik siswa itu), 400 ' +
-          '`duplicate_item` (tagihan yang sama dua kali), 409 `invoice_void`, 409 `overpay`.',
+          '`duplicate_item` (tagihan yang sama dua kali), 400 `invalid_method` (`method` bukan metode aktif sekolah; ' +
+          'lihat `/v1/finance/payment-methods`), 409 `invoice_void`, 409 `overpay`.',
         headers: schoolHeader,
         body: z.object({
           studentId: z.uuid(),
-          method: z.enum(METHODS),
+          method: methodKey,
           paidAt: z.iso.datetime({ offset: true }).optional(),
           note: z.string().trim().max(300).optional(),
           items: z
@@ -1150,6 +1170,7 @@ export async function financeRoutes(instance: FastifyInstance) {
       const total = b.items.reduce((a, i) => a + i.amount, 0);
       if (total > 2_000_000_000) throw new HttpError(400, 'validation', 'Total pembayaran terlalu besar.');
       const created = await tenant(request, async (tx) => {
+        await requireActiveMethod(tx, ctx.schoolId, b.method);
         const [stu] = await tx.select({ id: student.id }).from(student).where(eq(student.id, b.studentId));
         if (!stu) throw invalidRef('Siswa tidak ditemukan.');
         // Urut id agar dua kwitansi yang menyentuh tagihan sama tidak saling menunggu (tanpa deadlock).
@@ -1178,7 +1199,7 @@ export async function financeRoutes(instance: FastifyInstance) {
           }
         }
 
-        const year = Number(todayInJakarta().slice(0, 4));
+        const year = Number(todayInSchool().slice(0, 4));
         const counter = await tx.execute<{ last: number }>(sql`
           insert into fin_counter (school_id, year, last) values (${ctx.schoolId}, ${year}, 1)
           on conflict (school_id, year) do update set last = fin_counter.last + 1
@@ -1229,14 +1250,14 @@ export async function financeRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Daftar kwitansi',
         description:
-          'Izin: `finance:read`; modul `finance`. Filter opsional: `from`/`to` (tanggal bayar, inklusif, zona Jakarta), ' +
+          'Izin: `finance:read`; modul `finance`. Filter opsional: `from`/`to` (tanggal bayar, inklusif, zona waktu sekolah), ' +
           '`studentId`, `method`, `status` (`active` atau `void`). Terbaru lebih dulu. `limit` maks 100 (bawaan 50).',
         headers: schoolHeader,
         querystring: z.object({
           from: z.iso.date().optional(),
           to: z.iso.date().optional(),
           studentId: z.uuid().optional(),
-          method: z.enum(METHODS).optional(),
+          method: methodKey.optional().describe('Kunci metode (termasuk yang sudah nonaktif)'),
           status: z.enum(['active', 'void']).optional(),
           limit: z.coerce.number().int().min(1).max(100).default(50),
           offset: z.coerce.number().int().min(0).default(0),
@@ -1251,10 +1272,10 @@ export async function financeRoutes(instance: FastifyInstance) {
       const q = request.query;
       const where = and(
         q.from
-          ? gte(finPayment.paidAt, sql`(${q.from}::date)::timestamp at time zone 'Asia/Jakarta'`)
+          ? gte(finPayment.paidAt, sql`(${q.from}::date)::timestamp at time zone ${zoneSql()}`)
           : undefined,
         q.to
-          ? lt(finPayment.paidAt, sql`((${q.to}::date + 1)::timestamp at time zone 'Asia/Jakarta')`)
+          ? lt(finPayment.paidAt, sql`((${q.to}::date + 1)::timestamp at time zone ${zoneSql()})`)
           : undefined,
         q.studentId ? eq(finPayment.studentId, q.studentId) : undefined,
         q.method ? eq(finPayment.method, q.method) : undefined,
@@ -1281,12 +1302,14 @@ export async function financeRoutes(instance: FastifyInstance) {
           .limit(q.limit)
           .offset(q.offset);
         const [totalRow] = await tx.select({ n: count() }).from(finPayment).where(where);
+        const labels = await methodLabels(tx, (request.ctx as TenantContext).schoolId);
         return {
           items: rows.map((r) => ({
             id: r.id,
             receiptNo: r.receiptNo,
             paidAt: r.paidAt.toISOString(),
             method: r.method,
+            methodLabel: labels.get(r.method) ?? r.method,
             total: r.total,
             voided: r.voidedAt !== null,
             studentId: r.studentId,
@@ -1406,7 +1429,7 @@ export async function financeRoutes(instance: FastifyInstance) {
     },
     async (request) => {
       const { academicYearId, classId, asOf } = request.query;
-      const cutoff = asOf ?? todayInJakarta();
+      const cutoff = asOf ?? todayInSchool();
       return tenant(request, async (tx) => {
         const { items } = await invoiceRows(tx, { academicYearId, classId }, { asOf: cutoff });
         const byStudent = new Map<
@@ -1466,7 +1489,7 @@ export async function financeRoutes(instance: FastifyInstance) {
         summary: 'Laporan penerimaan',
         description:
           'Izin: `finance:read`; modul `finance`. Penerimaan kwitansi yang tidak batal pada rentang tanggal bayar ' +
-          '`from`..`to` (inklusif, zona Jakarta, maksimum 366 hari; selain itu 400 `invalid_range`). Dikelompokkan per ' +
+          '`from`..`to` (inklusif, zona waktu sekolah, maksimum 366 hari; selain itu 400 `invalid_range`). Dikelompokkan per ' +
           'metode, jenis biaya, dan hari.',
         headers: schoolHeader,
         querystring: z.object({ from: z.iso.date(), to: z.iso.date() }),
@@ -1474,7 +1497,12 @@ export async function financeRoutes(instance: FastifyInstance) {
           200: z.object({
             totals: z.object({ receipts: z.number().int(), amount: z.number().int() }),
             byMethod: z.array(
-              z.object({ method: z.enum(METHODS), receipts: z.number().int(), amount: z.number().int() }),
+              z.object({
+                method: z.string(),
+                methodLabel: z.string(),
+                receipts: z.number().int(),
+                amount: z.number().int(),
+              }),
             ),
             byFeeType: z.array(z.object({ feeTypeName: z.string(), amount: z.number().int() })),
             byDay: z.array(
@@ -1498,11 +1526,12 @@ export async function financeRoutes(instance: FastifyInstance) {
       }
       const inRange = and(
         isNull(finPayment.voidedAt),
-        gte(finPayment.paidAt, sql`(${from}::date)::timestamp at time zone 'Asia/Jakarta'`),
-        lt(finPayment.paidAt, sql`((${to}::date + 1)::timestamp at time zone 'Asia/Jakarta')`),
+        gte(finPayment.paidAt, sql`(${from}::date)::timestamp at time zone ${zoneSql()}`),
+        lt(finPayment.paidAt, sql`((${to}::date + 1)::timestamp at time zone ${zoneSql()})`),
       );
-      const day = sql<string>`to_char((${finPayment.paidAt} at time zone 'Asia/Jakarta')::date, 'YYYY-MM-DD')`;
+      const day = sql<string>`to_char((${finPayment.paidAt} at time zone ${zoneSql()})::date, 'YYYY-MM-DD')`;
       return tenant(request, async (tx) => {
+        const labels = await methodLabels(tx, (request.ctx as TenantContext).schoolId);
         const byMethod = await tx
           .select({
             method: finPayment.method,
@@ -1540,7 +1569,7 @@ export async function financeRoutes(instance: FastifyInstance) {
             receipts: byMethod.reduce((a, r) => a + r.receipts, 0),
             amount: byMethod.reduce((a, r) => a + r.amount, 0),
           },
-          byMethod,
+          byMethod: byMethod.map((r) => ({ ...r, methodLabel: labels.get(r.method) ?? r.method })),
           byFeeType,
           byDay,
         };

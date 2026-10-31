@@ -4,6 +4,59 @@ import type { Db, Tx } from './client';
 import { guardian, msgMessage, msgSetting, msgTemplate, platformSetting, studentGuardian } from './schema';
 
 export const PLATFORM_MESSAGING_KEY = 'messaging';
+/** Status runtime yang ditulis worker (mis. keberadaan Chrome); hanya dibaca konsol platform. */
+export const MESSAGING_RUNTIME_KEY = 'messaging_runtime';
+
+/** Aturan kirim ulang dan kedaluwarsa pesan WhatsApp. */
+export interface MessagingRetry {
+  /** Jeda (menit) sebelum percobaan ke-n+1 setelah percobaan ke-n gagal; percobaan di luar daftar memakai yang terakhir. */
+  backoffMinutes: number[];
+  /** Percobaan kirim maksimum sebelum pesan ditandai gagal. */
+  maxAttempts: number;
+  /** Pesan yang tertahan lebih lama (jam) karena WhatsApp sekolah tidak siap dibuang. */
+  expiryHours: number;
+  /** Tap kiosk yang lebih tua dari ini (jam) tidak lagi diberitahukan ke wali. */
+  staleTapHours: number;
+}
+
+export const DEFAULT_MESSAGING_RETRY: Readonly<MessagingRetry> = {
+  backoffMinutes: [1, 5, 30, 120, 360],
+  maxAttempts: 5,
+  expiryHours: 24,
+  staleTapHours: 6,
+};
+
+/** Rentang yang diizinkan untuk aturan kirim ulang. */
+export const MESSAGING_RETRY_LIMITS = {
+  backoffMinutes: { min: 1, max: 10_080, items: 10 },
+  maxAttempts: { min: 1, max: 20 },
+  expiryHours: { min: 1, max: 168 },
+  staleTapHours: { min: 1, max: 72 },
+} as const;
+
+const intIn = (v: unknown, min: number, max: number): v is number =>
+  typeof v === 'number' && Number.isInteger(v) && v >= min && v <= max;
+
+export function parseMessagingRetry(raw: unknown): MessagingRetry {
+  const base = DEFAULT_MESSAGING_RETRY;
+  const out: MessagingRetry = { ...base, backoffMinutes: [...base.backoffMinutes] };
+  if (!raw || typeof raw !== 'object') return out;
+  const v = raw as Record<string, unknown>;
+  const L = MESSAGING_RETRY_LIMITS;
+  const b = v.backoffMinutes;
+  if (
+    Array.isArray(b) &&
+    b.length >= 1 &&
+    b.length <= L.backoffMinutes.items &&
+    b.every((n) => intIn(n, L.backoffMinutes.min, L.backoffMinutes.max))
+  ) {
+    out.backoffMinutes = b as number[];
+  }
+  if (intIn(v.maxAttempts, L.maxAttempts.min, L.maxAttempts.max)) out.maxAttempts = v.maxAttempts;
+  if (intIn(v.expiryHours, L.expiryHours.min, L.expiryHours.max)) out.expiryHours = v.expiryHours;
+  if (intIn(v.staleTapHours, L.staleTapHours.min, L.staleTapHours.max)) out.staleTapHours = v.staleTapHours;
+  return out;
+}
 
 export type MessagingProvider = 'whatsapp' | 'log';
 
@@ -15,6 +68,8 @@ export interface PlatformMessaging {
   provider: MessagingProvider;
   /** Batas pesan berstatus antre per sekolah; di atasnya pesan baru tidak dibuat. */
   maxQueuedPerSchool: number;
+  /** Aturan kirim ulang dan kedaluwarsa. */
+  retry: MessagingRetry;
 }
 
 /** Penyedia bawaan: `whatsapp` di produksi, `log` di tempat lain. */
@@ -25,7 +80,12 @@ export function defaultMessagingProvider(
 }
 
 export function defaultPlatformMessaging(): PlatformMessaging {
-  return { enabled: true, provider: defaultMessagingProvider(), maxQueuedPerSchool: 500 };
+  return {
+    enabled: true,
+    provider: defaultMessagingProvider(),
+    maxQueuedPerSchool: 500,
+    retry: parseMessagingRetry(null),
+  };
 }
 
 /** Gabungkan nilai tersimpan (boleh sebagian/rusak) dengan nilai bawaan. */
@@ -39,6 +99,7 @@ export function parsePlatformMessaging(raw: unknown): PlatformMessaging {
     provider: v.provider === 'whatsapp' || v.provider === 'log' ? v.provider : base.provider,
     maxQueuedPerSchool:
       typeof max === 'number' && Number.isInteger(max) && max >= 1 ? max : base.maxQueuedPerSchool,
+    retry: parseMessagingRetry(v.retry),
   };
 }
 
@@ -55,7 +116,7 @@ export async function loadPlatformMessaging(db: Db): Promise<PlatformMessaging> 
  * Baca pengaturan global dari dalam transaksi tenant. Tabel platform_setting tertutup bagi peran aplikasi, jadi
  * dibaca lewat fungsi SECURITY DEFINER yang hanya membuka baris `messaging`.
  */
-async function platformMessagingIn(tx: Tx): Promise<PlatformMessaging> {
+export async function platformMessagingIn(tx: Tx): Promise<PlatformMessaging> {
   const res = await tx.execute<{ v: unknown }>(sql`select messaging_platform_config() as v`);
   return parsePlatformMessaging(res.rows[0]?.v);
 }

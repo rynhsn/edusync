@@ -2,7 +2,7 @@
  * Logika murni PKL dan prakerin (tanpa database) yang dipakai API dan UI:
  * aspek penilaian bawaan, nilai akhir tertimbang, predikat, dan transisi status penempatan.
  */
-import { type Predicate, predicateOf } from './grading';
+import { type Predicate, type PredicateSettings, predicateOf } from './grading';
 
 export interface PklAspectInput {
   id: string;
@@ -31,7 +31,7 @@ export const DEFAULT_PKL_ASPECTS = [
   { name: 'Laporan', weight: 15 },
 ] as const;
 
-/** Ambang predikat PKL: A >= 90, B >= 80, C >= 70, selain itu D. */
+/** Ambang predikat PKL bawaan: A >= 90, B >= 80, C >= 70, selain itu D. Sekolah dapat mengubahnya (tabel pkl_setting). */
 export const PKL_PREDICATE_SETTINGS = { predicateA: 90, predicateB: 80, predicateC: 70 } as const;
 
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
@@ -56,9 +56,19 @@ export function pklResult(aspects: readonly PklAspectInput[], scores: readonly P
   return { perAspect, final: weights === 0 ? null : round2(weighted / weights) };
 }
 
-/** Predikat PKL dari nilai akhir. */
-export function pklPredicate(value: number): Predicate {
-  return predicateOf(value, PKL_PREDICATE_SETTINGS);
+/** Predikat PKL dari nilai akhir; ambang bawaan bila `settings` tidak diberikan. */
+export function pklPredicate(value: number, settings: PredicateSettings = PKL_PREDICATE_SETTINGS): Predicate {
+  return predicateOf(value, settings);
+}
+
+/** Ambang valid: bilangan bulat 1-100 dengan A > B > C. */
+export function validPklThresholds(t: PredicateSettings): boolean {
+  const all = [t.predicateA, t.predicateB, t.predicateC];
+  return (
+    all.every((n) => Number.isInteger(n) && n >= 1 && n <= 100) &&
+    t.predicateA > t.predicateB &&
+    t.predicateB > t.predicateC
+  );
 }
 
 export type PklPlacementStatus = 'planned' | 'active' | 'completed' | 'cancelled';

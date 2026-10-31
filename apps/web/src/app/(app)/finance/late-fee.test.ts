@@ -7,14 +7,23 @@ describe('late-fee', () => {
       mode: 'percent',
       value: 5,
       graceDays: 3,
+      dueDays: 10,
       capAmount: 50000,
       feeTypeId: 'f1',
     });
-    expect(d).toEqual({ mode: 'percent', value: '5', graceDays: '3', capAmount: '50000', feeTypeId: 'f1' });
+    expect(d).toEqual({
+      mode: 'percent',
+      value: '5',
+      graceDays: '3',
+      dueDays: '10',
+      capAmount: '50000',
+      feeTypeId: 'f1',
+    });
     expect(bodyFromDraft(d)).toEqual({
       mode: 'percent',
       value: 5,
       graceDays: 3,
+      dueDays: 10,
       capAmount: 50000,
       feeTypeId: 'f1',
     });
@@ -25,6 +34,7 @@ describe('late-fee', () => {
       mode: 'none',
       value: 0,
       graceDays: 0,
+      dueDays: 7,
       capAmount: null,
       feeTypeId: null,
     });
@@ -39,6 +49,9 @@ describe('late-fee', () => {
     expect(isLateFeeDraftValid({ ...base, mode: 'flat', feeTypeId: '' })).toBe(false);
     expect(isLateFeeDraftValid({ ...base, mode: 'flat', capAmount: '0' })).toBe(false);
     expect(isLateFeeDraftValid({ ...base, mode: 'flat', graceDays: '400' })).toBe(false);
+    expect(isLateFeeDraftValid({ ...base, mode: 'flat', dueDays: '0' })).toBe(false);
+    expect(isLateFeeDraftValid({ ...base, mode: 'flat', dueDays: '366' })).toBe(false);
+    expect(isLateFeeDraftValid({ ...base, mode: 'flat', dueDays: '30' })).toBe(true);
   });
 
   it('pendingIds hanya yang belum dikenai denda', () => {

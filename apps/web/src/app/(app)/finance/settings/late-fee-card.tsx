@@ -140,6 +140,20 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
                   <p className="text-muted-foreground text-xs">{t('lateFeeGraceHint')}</p>
                 </div>
                 <div className="grid gap-2">
+                  <Label htmlFor="lf-due">{t('lateFeeDueDays')}</Label>
+                  <Input
+                    id="lf-due"
+                    required
+                    inputMode="numeric"
+                    value={draft.dueDays}
+                    onChange={(e) => {
+                      const v = digitsOnly(e.target.value);
+                      setDraft({ ...draft, dueDays: Number(v) > 365 ? '365' : v });
+                    }}
+                  />
+                  <p className="text-muted-foreground text-xs">{t('lateFeeDueDaysHint')}</p>
+                </div>
+                <div className="grid gap-2">
                   <Label htmlFor="lf-cap">{t('lateFeeCap')}</Label>
                   <Input
                     id="lf-cap"

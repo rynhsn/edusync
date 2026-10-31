@@ -13,7 +13,7 @@ import {
   Users,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
@@ -34,10 +34,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, TONES, type Tone, Toolbar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { useSchoolSettings } from '@/lib/school-settings';
+import { todayWeekdayNumber } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 
-const WEEKDAYS = [1, 2, 3, 4, 5, 6] as const;
-type Weekday = (typeof WEEKDAYS)[number];
+type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 const TONE = MODULE_TONE.academic;
 
 /** Warna mata pelajaran yang stabil menurut namanya, supaya satu mapel selalu sewarna di seluruh jadwal. */
@@ -46,15 +47,6 @@ function subjectTone(name: string): Tone {
   let h = 0;
   for (const ch of name) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
   return SUBJECT_TONES[h % SUBJECT_TONES.length] ?? 'violet';
-}
-
-/** Hari ini (Senin=1 ... Sabtu=6) menurut zona waktu sekolah; null pada hari Minggu. */
-function todayWeekday(): Weekday | null {
-  const short = new Intl.DateTimeFormat('en-US', { timeZone: 'Asia/Jakarta', weekday: 'short' }).format(
-    new Date(),
-  );
-  const n = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].indexOf(short) + 1;
-  return n > 0 ? (n as Weekday) : null;
 }
 
 /** Dialog pengaturan jam pelajaran: buat otomatis, tambah, dan hapus. */
@@ -73,14 +65,23 @@ function PeriodsDialog({
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['lesson-periods', school.schoolId] });
+  const { settings } = useSchoolSettings();
 
   const [gen, setGen] = useState({
-    firstStart: '07:00',
+    firstStart: settings.lessonDefaultStart,
     count: '8',
-    minutes: '40',
+    minutes: String(settings.lessonDefaultMinutes),
     breakAfter: '',
     breakMinutes: '15',
   });
+  // Pengaturan sekolah baru tiba setelah dialog terpasang: selaraskan isian bawaan.
+  useEffect(() => {
+    setGen((g) => ({
+      ...g,
+      firstStart: settings.lessonDefaultStart,
+      minutes: String(settings.lessonDefaultMinutes),
+    }));
+  }, [settings.lessonDefaultStart, settings.lessonDefaultMinutes]);
   const [add, setAdd] = useState({ number: '', startsAt: '', endsAt: '' });
   const [error, setError] = useState<string | null>(null);
 
@@ -296,8 +297,11 @@ export function ScheduleView() {
   const manage = can('schedule:manage');
 
   const [mode, setMode] = useState<'class' | 'teacher'>('class');
-  const today = todayWeekday();
-  const [dayPick, setDayPick] = useState<Weekday>(today ?? 1);
+  const { settings } = useSchoolSettings();
+  const weekdays = settings.workingDays as Weekday[];
+  const todayNumber = todayWeekdayNumber() as Weekday;
+  const today = weekdays.includes(todayNumber) ? todayNumber : null;
+  const [dayPick, setDayPick] = useState<Weekday>(today ?? weekdays[0] ?? 1);
   const [classChoice, setClassChoice] = useState('');
   const [teacherChoice, setTeacherChoice] = useState('');
   const [periodsOpen, setPeriodsOpen] = useState(false);
@@ -384,7 +388,7 @@ export function ScheduleView() {
 
   const entries = schedule.data ?? [];
   const periodList = periods.data ?? [];
-  const slotCount = periodList.length * WEEKDAYS.length;
+  const slotCount = periodList.length * weekdays.length;
   const distinct = (pick: (e: (typeof entries)[number]) => string) => new Set(entries.map(pick)).size;
   const todayCount = today ? entries.filter((e) => e.weekday === today).length : 0;
   const editable = manage && mode === 'class';
@@ -592,7 +596,7 @@ export function ScheduleView() {
                   >
                     {t('period')}
                   </th>
-                  {WEEKDAYS.map((d) => (
+                  {weekdays.map((d) => (
                     <th
                       key={d}
                       scope="col"
@@ -630,7 +634,7 @@ export function ScheduleView() {
                         </span>
                       </span>
                     </th>
-                    {WEEKDAYS.map((d) => (
+                    {weekdays.map((d) => (
                       <td
                         key={d}
                         className={cn(
@@ -654,7 +658,7 @@ export function ScheduleView() {
               aria-label={t('view')}
               className="bg-card flex gap-1 overflow-x-auto rounded-2xl border p-1"
             >
-              {WEEKDAYS.map((d) => (
+              {weekdays.map((d) => (
                 <button
                   key={d}
                   type="button"
