@@ -26,7 +26,6 @@ Diperbarui 2 Nov 2026. Status modul M0 sampai M11 ada di `09-rebuild-blueprint.m
 | Hosting produksi, domain dasar final, HTTPS otomatis | Server dan domain |
 | Tes E2E otomatis (Playwright atau TestSprite). TestSprite macet saat bootstrap dan tidak bisa menjangkau subdomain sekolah lewat terowongan | Rancangan akses uji tanpa subdomain |
 | Tinjauan terjemahan Sunda oleh penutur asli | Penutur asli |
-| Dokumentasi fitur di Notion | Otorisasi Notion |
 
 ## C. Fitur yang belum ada
 
