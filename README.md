@@ -57,6 +57,45 @@ Setiap sekolah punya alamat sendiri: `<alamat-sekolah>.localhost:3000`. Chrome, 
 
 Akun contoh: `admin@edusync.test`, `guru@edusync.test`, `staff@edusync.test` (staf platform). Kata sandi ada di `.env`, baris `DEV_SEED_PASSWORD`.
 
+### Port yang dipakai
+
+| Port | Layanan                          | Dari mana                                              |
+| ---- | -------------------------------- | ------------------------------------------------------ |
+| 3000 | Web (Next.js)                    | `apps/web` (`next dev -p 3000`)                        |
+| 4000 | API (Fastify, dokumen di `/docs`) | `API_PORT` di `.env`                                   |
+| 5440 | PostgreSQL 18 (Docker)           | `docker-compose.yml`, dipetakan ke 5432 di kontainer   |
+| 8025 | Mailpit, kotak email uji (web)   | `docker-compose.yml`                                   |
+| 1025 | Mailpit, SMTP                    | `SMTP_PORT` di `.env`                                  |
+
+Worker tidak membuka port; ia memakai antrean di PostgreSQL. Port 5000 tidak dipakai proyek ini.
+
+### Setelah komputer dinyalakan ulang
+
+Data tetap ada di volume Docker, jadi tidak perlu migrasi atau seed ulang. Jalankan satu per satu dari akar repo:
+
+1. Nyalakan Docker Desktop dan tunggu sampai siap.
+2. Nyalakan database dan Mailpit (bila belum hidup sendiri).
+
+```bash
+docker compose up -d
+```
+
+3. Pastikan database berstatus `healthy`.
+
+```bash
+docker compose ps
+```
+
+4. Jalankan API, worker, dan web, lalu buka http://localhost:3000.
+
+```bash
+pnpm dev
+```
+
+Bila ada perubahan tabel sejak terakhir, jalankan `pnpm db:migrate` sebelum langkah 4. Bila port 3000 atau 4000 bentrok, cari prosesnya di PowerShell: `Get-NetTCPConnection -LocalPort 3000 | Select OwningProcess`.
+
+WhatsApp asli butuh `MESSAGING_PROVIDER=whatsapp` dan `WA_CHROME_PATH` di `.env`. Jangan menjalankan tes worker selagi worker dev menyala.
+
 ## Perintah lain
 
 ```bash
