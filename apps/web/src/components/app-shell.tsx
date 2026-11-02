@@ -403,6 +403,11 @@ export const NAV_GROUPS = [
       { href: '/roles', labelKey: 'roles', icon: ShieldCheck, permission: 'member:read' },
     ],
   },
+  {
+    key: null,
+    icon: BookOpen,
+    items: [{ href: '/docs', labelKey: 'docs', icon: BookOpen, permission: null }],
+  },
 ] as const;
 
 type NavItem = (typeof NAV_GROUPS)[number]['items'][number];

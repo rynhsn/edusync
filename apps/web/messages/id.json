@@ -60,6 +60,16 @@
     "doneBody": "Semua perangkat yang sedang masuk dikeluarkan. Masuk lagi dengan kata sandi baru.",
     "toLogin": "Ke halaman masuk"
   },
+  "docs": {
+    "title": "Dokumentasi",
+    "schoolSubtitle": "Panduan per modul: apa fungsinya, cara memakainya, dan hal yang perlu diperhatikan.",
+    "platformSubtitle": "Panduan konsol platform per modul untuk staf Edusync.",
+    "allDocs": "Semua dokumentasi",
+    "notFound": "Dokumentasi tidak ditemukan.",
+    "pager": "Dokumentasi lain",
+    "openPage": "Buka halaman",
+    "moduleOff": "Modul belum aktif"
+  },
   "nav": {
     "menu": "Menu utama",
     "overview": "Ringkasan",
@@ -74,6 +84,7 @@
     "goMain": "Ke halaman utama",
     "members": "Anggota",
     "roles": "Peran",
+    "docs": "Dokumentasi",
     "classes": "Kelas",
     "students": "Siswa",
     "teachers": "Guru",
@@ -469,6 +480,7 @@
     "curriculum": "Bank kurikulum",
     "groupHelp": "Bantuan",
     "guide": "Panduan operator",
+    "docs": "Dokumentasi",
     "roleAdmin": "Admin platform",
     "roleReadOnly": "Hanya lihat",
     "dashTitle": "Ringkasan platform",
@@ -680,6 +692,8 @@
     "membersNote": "Penambahan pemilik belum tersedia di portal ini.",
     "docsSubtitle": "Panduan singkat per modul untuk membantu Anda dan tim sekolah memulai.",
     "docNotFound": "Artikel tidak ditemukan.",
+    "docsOpenPage": "Buka halaman",
+    "docsModuleOff": "Modul belum aktif",
     "allDocs": "Semua panduan",
     "docsPager": "Artikel lainnya",
     "nav": {

@@ -3,6 +3,7 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BookMarked,
+  BookOpen,
   Building2,
   ClipboardList,
   CreditCard,
@@ -63,7 +64,10 @@ const GROUPS = [
   },
   {
     key: 'groupHelp',
-    items: [{ href: '/platform/guide', key: 'guide', icon: LifeBuoy }],
+    items: [
+      { href: '/platform/guide', key: 'guide', icon: LifeBuoy },
+      { href: '/platform/docs', key: 'docs', icon: BookOpen },
+    ],
   },
 ] as const;
 

@@ -1,32 +1,6 @@
-export type DocLocale = 'id' | 'en' | 'su';
-export type DocIcon =
-  | 'rocket'
-  | 'users'
-  | 'scan'
-  | 'graduation'
-  | 'wallet'
-  | 'clipboard'
-  | 'message'
-  | 'shield'
-  | 'credit'
-  | 'lock';
-export type DocTone = 'teal' | 'sky' | 'violet' | 'amber' | 'rose' | 'emerald' | 'slate';
-export interface DocSection {
-  heading: string;
-  body: string;
-  steps?: string[];
-}
-export interface DocText {
-  title: string;
-  summary: string;
-  sections: DocSection[];
-}
-export interface DocArticle {
-  slug: string;
-  icon: DocIcon;
-  tone: DocTone;
-  text: Record<DocLocale, DocText>;
-}
+import type { DocArticle } from '@/lib/docs-types';
+
+export type { DocArticle, DocIcon, DocLocale, DocSection, DocText, DocTone } from '@/lib/docs-types';
 
 export const DOC_ARTICLES: DocArticle[] = [
   {

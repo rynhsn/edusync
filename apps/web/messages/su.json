@@ -60,6 +60,16 @@
     "doneBody": "Sakabéh parangkat nu keur asup dikaluarkeun. Asup deui maké kecap sandi anyar.",
     "toLogin": "Ka kaca asup"
   },
+  "docs": {
+    "title": "Dokuméntasi",
+    "schoolSubtitle": "Pituduh per modul: pungsina, cara maké, jeung hal nu kudu diperhatikeun.",
+    "platformSubtitle": "Pituduh konsol platform per modul pikeun staf Edusync.",
+    "allDocs": "Kabéh dokuméntasi",
+    "notFound": "Dokuméntasi teu kapanggih.",
+    "pager": "Dokuméntasi séjén",
+    "openPage": "Buka kaca",
+    "moduleOff": "Modul acan aktip"
+  },
   "nav": {
     "menu": "Menu utama",
     "overview": "Ringkesan",
@@ -74,6 +84,7 @@
     "goMain": "Ka kaca utama",
     "members": "Anggota",
     "roles": "Peran",
+    "docs": "Dokuméntasi",
     "classes": "Kelas",
     "students": "Murid",
     "teachers": "Guru",
@@ -469,6 +480,7 @@
     "curriculum": "Bank kurikulum",
     "groupHelp": "Pitulung",
     "guide": "Pituduh operator",
+    "docs": "Dokuméntasi",
     "roleAdmin": "Admin platform",
     "roleReadOnly": "Ngan bisa maca",
     "dashTitle": "Ringkesan platform",
@@ -680,6 +692,8 @@
     "membersNote": "Nambah pangurus acan sayogi dina portal ieu.",
     "docsSubtitle": "Pituduh singget per modul pikeun mantuan anjeun jeung tim sakola ngamimitian.",
     "docNotFound": "Artikel teu kapanggih.",
+    "docsOpenPage": "Buka kaca",
+    "docsModuleOff": "Modul acan aktip",
     "allDocs": "Sakabéh pituduh",
     "docsPager": "Artikel séjén",
     "nav": {

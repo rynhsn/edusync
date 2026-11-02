@@ -73,7 +73,7 @@ const allItems = navSrc
   .map((i) => ({ ...i, permission: i.permission === 'null' ? null : i.permission }));
 
 /** Beranda tidak punya endpoint utama (tanpa izin khusus; bagian-bagiannya menyaring sendiri). */
-const items = allItems.filter((i) => i.href !== '/dashboard');
+const items = allItems.filter((i) => i.href !== '/dashboard' && i.href !== '/docs');
 
 function opOf(key: string) {
   const [method, path] = key.split(' ') as [string, string];
@@ -150,14 +150,14 @@ describe('menu samping vs izin route', () => {
     expect(bad).toEqual([]);
   });
 
-  it('wali dan siswa tidak melihat menu staf apa pun selain beranda', () => {
+  it('wali dan siswa tidak melihat menu staf apa pun selain beranda dan dokumentasi', () => {
     for (const role of ['guardian', 'student'] as const) {
       const have = new Set<string>(SYSTEM_ROLES[role].permissions);
       const visible = allItems.filter(
         (i) =>
           i.permission === null || have.has(i.permission) || (i.orPermission && have.has(i.orPermission)),
       );
-      expect(visible.map((i) => i.href)).toEqual(['/dashboard']);
+      expect(visible.map((i) => i.href)).toEqual(['/dashboard', '/docs']);
     }
   });
 });

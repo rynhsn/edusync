@@ -60,6 +60,16 @@
     "doneBody": "Every signed-in device was signed out. Sign in again with your new password.",
     "toLogin": "Go to sign in"
   },
+  "docs": {
+    "title": "Documentation",
+    "schoolSubtitle": "A guide per module: what it does, how to use it, and what to watch out for.",
+    "platformSubtitle": "Platform console guides per module for Edusync staff.",
+    "allDocs": "All documentation",
+    "notFound": "Documentation not found.",
+    "pager": "More documentation",
+    "openPage": "Open page",
+    "moduleOff": "Module not active"
+  },
   "nav": {
     "menu": "Main menu",
     "overview": "Overview",
@@ -74,6 +84,7 @@
     "goMain": "Go to the main page",
     "members": "Members",
     "roles": "Roles",
+    "docs": "Documentation",
     "classes": "Classes",
     "students": "Students",
     "teachers": "Teachers",
@@ -469,6 +480,7 @@
     "curriculum": "Curriculum bank",
     "groupHelp": "Help",
     "guide": "Operator guide",
+    "docs": "Documentation",
     "roleAdmin": "Platform admin",
     "roleReadOnly": "View only",
     "dashTitle": "Platform overview",
@@ -680,6 +692,8 @@
     "membersNote": "Adding managers is not available in this portal yet.",
     "docsSubtitle": "Short guides per module to help you and your school team get started.",
     "docNotFound": "Article not found.",
+    "docsOpenPage": "Open page",
+    "docsModuleOff": "Module not active",
     "allDocs": "All guides",
     "docsPager": "More articles",
     "nav": {
