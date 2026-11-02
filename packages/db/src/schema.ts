@@ -396,6 +396,8 @@ export const invitation = pgTable(
     expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
     acceptedAt: timestamp('accepted_at', { withTimezone: true }),
     revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    /** Guru yang ditautkan ke akun penerima saat undangan diterima (opsional). */
+    teacherId: uuid('teacher_id').references(() => teacher.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
   },
   (t) => [index('invitation_school_idx').on(t.schoolId, t.email)],
@@ -523,7 +525,7 @@ export const teacher = pgTable(
       .default('active'),
     createdAt: createdAt(),
   },
-  (t) => [unique('teacher_school_nip_uq').on(t.schoolId, t.nip)],
+  (t) => [unique('teacher_school_nip_uq').on(t.schoolId, t.nip), unique('teacher_member_uq').on(t.memberId)],
 );
 
 /** Guru mengampu satu mapel di satu kelas. */

@@ -4,6 +4,8 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   Download,
   KeyRound,
+  Link2,
+  Mail,
   Pencil,
   Plus,
   Presentation,
@@ -109,6 +111,7 @@ export function TeachersView() {
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
   const manage = can('teacher:manage');
+  const manageAccount = manage && can('member:manage');
 
   const [q, setQ] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
@@ -116,6 +119,11 @@ export function TeachersView() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
+  const [account, setAccount] = useState<{ id: string; name: string; memberId: string | null } | null>(null);
+  const [mode, setMode] = useState<'link' | 'invite'>('link');
+  const [pick, setPick] = useState('');
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [accountError, setAccountError] = useState<string | null>(null);
 
   const list = useQuery({
     queryKey: ['teachers', school.schoolId, q],
@@ -163,6 +171,45 @@ export function TeachersView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
+  const members = useQuery({
+    queryKey: ['members', school.schoolId],
+    enabled: manageAccount,
+    queryFn: async () => unwrap(await api.GET('/v1/members', { params: header })),
+  });
+  const invitations = useQuery({
+    queryKey: ['invitations', school.schoolId],
+    enabled: manageAccount,
+    queryFn: async () => unwrap(await api.GET('/v1/invitations', { params: header })),
+  });
+  const accountDone = (message: string) => {
+    toast.success(message);
+    setAccount(null);
+    refresh();
+    queryClient.invalidateQueries({ queryKey: ['invitations', school.schoolId] });
+  };
+  const linkAccount = useMutation({
+    mutationFn: async (v: { id: string; memberId: string | null }) =>
+      unwrap(
+        await api.PUT('/v1/teachers/{id}/account', {
+          params: { ...header, path: { id: v.id } },
+          body: { memberId: v.memberId },
+        }),
+      ),
+    onSuccess: (_d, v) => accountDone(v.memberId ? t('linkedOk') : t('unlinkedOk')),
+    onError: (e) => setAccountError(te(errorKey(e))),
+  });
+  const inviteTeacher = useMutation({
+    mutationFn: async (v: { id: string; email: string }) =>
+      unwrap(
+        await api.POST('/v1/invitations', {
+          params: header,
+          body: { email: v.email.trim(), roles: ['teacher'], teacherId: v.id },
+        }),
+      ),
+    onSuccess: () => accountDone(t('inviteOk')),
+    onError: (e) => setAccountError(te(errorKey(e))),
+  });
+
   async function exportExcel() {
     const rows = list.data ?? [];
     if (rows.length === 0) return void toast.info(tm('exportEmpty'));
@@ -183,6 +230,19 @@ export function TeachersView() {
   const allRows = all.data ?? [];
   const activeCount = allRows.filter((r) => r.status === 'active').length;
   const linkedCount = allRows.filter((r) => r.memberId).length;
+  const linkedMemberIds = new Set(allRows.map((r) => r.memberId));
+  const freeMembers = (members.data ?? []).filter((m) => m.status === 'active' && !linkedMemberIds.has(m.id));
+  const now = Date.now();
+  const invitedFor = (teacherId: string) =>
+    (invitations.data ?? []).find((i) => i.teacherId === teacherId && new Date(i.expiresAt).getTime() > now);
+  const linkedMember = (memberId: string | null) => (members.data ?? []).find((m) => m.id === memberId);
+  const openAccount = (r: { id: string; name: string; memberId: string | null }) => {
+    setAccountError(null);
+    setMode('link');
+    setPick('');
+    setInviteEmail('');
+    setAccount({ id: r.id, name: r.name, memberId: r.memberId });
+  };
   const activePercent = allRows.length ? Math.round((activeCount / allRows.length) * 100) : 0;
   const rows = (list.data ?? []).filter((r) => !statusFilter || r.status === statusFilter);
   const hasFilters = !!(q.trim() || statusFilter);
@@ -342,7 +402,12 @@ export function TeachersView() {
             {
               key: 'name',
               header: tm('name'),
-              cell: (r) => <PersonCell name={r.name} sub={r.memberId ? t('hasAccount') : t('noAccount')} />,
+              cell: (r) => (
+                <PersonCell
+                  name={r.name}
+                  sub={r.memberId ? t('hasAccount') : invitedFor(r.id) ? t('invited') : t('noAccount')}
+                />
+              ),
             },
             { key: 'nip', header: t('nip'), cell: (r) => <MonoText>{r.nip ?? tm('none')}</MonoText> },
             {
@@ -362,6 +427,9 @@ export function TeachersView() {
                     label={tm('actionsFor', { name: r.name })}
                     actions={[
                       { label: tm('edit'), icon: Pencil, onSelect: () => openEdit(r) },
+                      ...(manageAccount
+                        ? [{ label: t('accountAction'), icon: Link2, onSelect: () => openAccount(r) }]
+                        : []),
                       {
                         label: tm('delete'),
                         icon: Trash2,
@@ -385,6 +453,92 @@ export function TeachersView() {
           if (deleting) await remove.mutateAsync(deleting.id);
         }}
       />
+
+      <FormDialog
+        open={!!account}
+        title={t('accountTitle', { name: account?.name ?? '' })}
+        submitLabel={account?.memberId ? t('unlink') : mode === 'link' ? t('link') : t('sendInvite')}
+        disabled={!account?.memberId && (mode === 'link' ? !pick : !inviteEmail.trim())}
+        error={accountError}
+        onOpenChange={(open) => !open && setAccount(null)}
+        onSubmit={() => {
+          if (!account) return Promise.resolve();
+          if (account.memberId) return linkAccount.mutateAsync({ id: account.id, memberId: null });
+          return mode === 'link'
+            ? linkAccount.mutateAsync({ id: account.id, memberId: pick })
+            : inviteTeacher.mutateAsync({ id: account.id, email: inviteEmail });
+        }}
+      >
+        {account?.memberId ? (
+          <div className="grid gap-2 text-sm">
+            <p>
+              {t('accountLinked', {
+                account: linkedMember(account.memberId)
+                  ? `${linkedMember(account.memberId)?.name} (${linkedMember(account.memberId)?.email})`
+                  : '…',
+              })}
+            </p>
+            <p className="text-muted-foreground">{t('unlinkHint')}</p>
+          </div>
+        ) : (
+          account && (
+            <div className="grid gap-4">
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={mode === 'link' ? 'default' : 'outline'}
+                  onClick={() => setMode('link')}
+                >
+                  <Link2 className="size-4" /> {t('linkExisting')}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={mode === 'invite' ? 'default' : 'outline'}
+                  onClick={() => setMode('invite')}
+                >
+                  <Mail className="size-4" /> {t('inviteByEmail')}
+                </Button>
+              </div>
+              {mode === 'link' ? (
+                freeMembers.length === 0 ? (
+                  <p className="text-muted-foreground text-sm">{t('noFreeMembers')}</p>
+                ) : (
+                  <div className="grid gap-2">
+                    <Label htmlFor="acc-member">{t('pickMember')}</Label>
+                    <SelectField id="acc-member" value={pick} onChange={(e) => setPick(e.target.value)}>
+                      <option value="">{t('pickPlaceholder')}</option>
+                      {freeMembers.map((m) => (
+                        <option key={m.id} value={m.id}>
+                          {m.name} ({m.email})
+                        </option>
+                      ))}
+                    </SelectField>
+                  </div>
+                )
+              ) : (
+                <div className="grid gap-2">
+                  <Label htmlFor="acc-email">{t('inviteEmail')}</Label>
+                  <Input
+                    id="acc-email"
+                    type="email"
+                    maxLength={254}
+                    value={inviteEmail}
+                    onChange={(e) => setInviteEmail(e.target.value)}
+                  />
+                  <p className="text-muted-foreground text-xs">{t('inviteHint')}</p>
+                  {invitedFor(account.id) && (
+                    <p className="text-xs text-amber-600">
+                      {t('inviteSent', { email: invitedFor(account.id)?.email ?? '' })}
+                    </p>
+                  )}
+                </div>
+              )}
+            </div>
+          )
+        )}
+      </FormDialog>
 
       <FormDialog
         open={!!editing}

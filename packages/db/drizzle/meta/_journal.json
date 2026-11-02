@@ -421,6 +421,13 @@
       "when": 1794100200000,
       "tag": "0059_attendance_device_school",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1794200200000,
+      "tag": "0060_teacher_account_link",
+      "breakpoints": true
     }
   ]
 }

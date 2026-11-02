@@ -7,6 +7,7 @@ import {
   eq,
   ilike,
   isNull,
+  member,
   or,
   student,
   type Tx,
@@ -18,7 +19,16 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
-import { audit, conflictAs409, guarded, idParams, isForeignKeyViolation, ok, schoolHeader } from './helpers';
+import {
+  audit,
+  conflictAs409,
+  guarded,
+  idParams,
+  isForeignKeyViolation,
+  isUniqueViolation,
+  ok,
+  schoolHeader,
+} from './helpers';
 
 const personName = z.string().trim().min(1).max(120);
 const optionalId = z
@@ -63,6 +73,18 @@ const studentBody = z.object({
   birthDate: z.iso.date().nullable().default(null),
   status: z.enum(STUDENT_STATUS).default('active'),
 });
+
+/** Satu anggota hanya untuk satu guru (unique teacher_member_uq). */
+async function accountTaken<T>(fn: () => Promise<T>): Promise<T> {
+  try {
+    return await fn();
+  } catch (error) {
+    if (isUniqueViolation(error)) {
+      throw new HttpError(409, 'account_taken', 'Akun itu sudah ditautkan ke guru lain.');
+    }
+    throw error;
+  }
+}
 
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
 
@@ -229,6 +251,60 @@ export async function peopleRoutes(instance: FastifyInstance) {
             .returning();
           if (!r) throw notFound('Guru');
           await audit(tx, ctx, 'teacher.update', 'teacher', r.id, { name: r.name, status: r.status });
+          return r;
+        }),
+      );
+      return { id: row.id, name: row.name, nip: row.nip, status: row.status, memberId: row.memberId };
+    },
+  );
+
+  app.put(
+    '/v1/teachers/:id/account',
+    {
+      onRequest: [requirePermission('teacher:manage'), requirePermission('member:manage')],
+      schema: {
+        tags: ['People'],
+        summary: 'Tautkan atau lepas akun guru',
+        description:
+          'Izin: `teacher:manage` dan `member:manage`. `memberId` adalah anggota aktif sekolah ini; `null` melepas ' +
+          'tautan. Satu anggota hanya untuk satu guru. Tautan inilah yang membuat sistem tahu guru mana yang sedang masuk.',
+        headers: schoolHeader,
+        params: idParams,
+        body: z.object({ memberId: z.uuid().nullable() }),
+        response: { 200: teacherSchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const { memberId } = request.body;
+      const row = await accountTaken(() =>
+        tenant(request, async (tx) => {
+          if (memberId) {
+            const [m] = await tx
+              .select({ status: member.status })
+              .from(member)
+              .where(eq(member.id, memberId));
+            if (m?.status !== 'active') {
+              throw new HttpError(400, 'invalid_member', 'Akun harus anggota aktif sekolah ini.');
+            }
+          }
+          const [r] = await tx
+            .update(teacher)
+            .set({ memberId })
+            .where(eq(teacher.id, request.params.id))
+            .returning();
+          if (!r) throw notFound('Guru');
+          await audit(
+            tx,
+            ctx,
+            memberId ? 'teacher.link_account' : 'teacher.unlink_account',
+            'teacher',
+            r.id,
+            {
+              name: r.name,
+              memberId,
+            },
+          );
           return r;
         }),
       );

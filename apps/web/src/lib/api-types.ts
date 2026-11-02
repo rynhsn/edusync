@@ -7221,6 +7221,136 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/teachers/{id}/account": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Tautkan atau lepas akun guru
+         * @description Izin: `teacher:manage` dan `member:manage`. `memberId` adalah anggota aktif sekolah ini; `null` melepas tautan. Satu anggota hanya untuk satu guru. Tautan inilah yang membuat sistem tahu guru mana yang sedang masuk.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        memberId: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            nip: string | null;
+                            /** @enum {string} */
+                            status: "active" | "inactive";
+                            /** Format: uuid */
+                            memberId: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/students": {
         parameters: {
             query?: never;
@@ -35336,6 +35466,8 @@ export interface paths {
                             id: string;
                             email: string;
                             roles: string[];
+                            /** Format: uuid */
+                            teacherId: string | null;
                             /** Format: date-time */
                             expiresAt: string;
                             expired: boolean;
@@ -35375,7 +35507,7 @@ export interface paths {
         put?: never;
         /**
          * Undang seseorang lewat email
-         * @description Izin: `member:manage`. Mengirim tautan yang berlaku 7 hari. Orang yang belum punya akun membuatnya saat menerima. Mengundang email yang sama lagi mencabut undangan lama dan mengirim ulang. Peran yang diberikan tidak boleh memiliki izin yang melebihi izin pengundang.
+         * @description Izin: `member:manage`. Mengirim tautan yang berlaku 7 hari. Orang yang belum punya akun membuatnya saat menerima. Mengundang email yang sama lagi mencabut undangan lama dan mengirim ulang. Peran yang diberikan tidak boleh memiliki izin yang melebihi izin pengundang. `teacherId` (opsional, perlu izin `teacher:manage`) menautkan guru itu ke akun penerima saat undangan diterima.
          */
         post: {
             parameters: {
@@ -35393,6 +35525,8 @@ export interface paths {
                         /** Format: email */
                         email: string;
                         roles: string[];
+                        /** Format: uuid */
+                        teacherId?: string;
                     };
                 };
             };
@@ -35408,6 +35542,8 @@ export interface paths {
                             id: string;
                             email: string;
                             roles: string[];
+                            /** Format: uuid */
+                            teacherId: string | null;
                             /** Format: date-time */
                             expiresAt: string;
                             expired: boolean;

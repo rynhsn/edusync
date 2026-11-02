@@ -9,6 +9,7 @@ import {
   isNull,
   member,
   school,
+  teacher,
   user,
   withTenant,
 } from '@edusync/db';
@@ -33,6 +34,7 @@ const invitationSchema = z.object({
   id: z.uuid(),
   email: z.string(),
   roles: z.array(z.string()),
+  teacherId: z.uuid().nullable(),
   expiresAt: iso,
   expired: z.boolean(),
 });
@@ -70,6 +72,7 @@ export async function invitationRoutes(instance: FastifyInstance, options: { env
         id: r.id,
         email: r.email,
         roles: r.roles,
+        teacherId: r.teacherId,
         expiresAt: r.expiresAt.toISOString(),
         expired: r.expiresAt <= now,
       }));
@@ -87,9 +90,10 @@ export async function invitationRoutes(instance: FastifyInstance, options: { env
         description:
           `Izin: \`member:manage\`. Mengirim tautan yang berlaku ${INVITATION_DAYS} hari. Orang yang belum punya akun ` +
           'membuatnya saat menerima. Mengundang email yang sama lagi mencabut undangan lama dan mengirim ulang. ' +
-          'Peran yang diberikan tidak boleh memiliki izin yang melebihi izin pengundang.',
+          'Peran yang diberikan tidak boleh memiliki izin yang melebihi izin pengundang. `teacherId` (opsional, perlu izin ' +
+          '`teacher:manage`) menautkan guru itu ke akun penerima saat undangan diterima.',
         headers: schoolHeader,
-        body: z.object({ email: z.email().max(254), roles: roleKeys }),
+        body: z.object({ email: z.email().max(254), roles: roleKeys, teacherId: z.uuid().optional() }),
         response: { 201: invitationSchema, 400: errorSchema, 409: errorSchema, ...guarded },
       },
     },
@@ -108,6 +112,17 @@ export async function invitationRoutes(instance: FastifyInstance, options: { env
 
       const created = await withTenant(request.server.tenantDb, [ctx.schoolId], async (tx) => {
         assertNoEscalation(ctx, await rolesByKey(tx, roleList));
+        if (request.body.teacherId) {
+          if (!ctx.permissions.has('teacher:manage')) {
+            throw new HttpError(403, 'forbidden', 'Anda tidak berhak mengelola data guru.');
+          }
+          const [t] = await tx
+            .select({ memberId: teacher.memberId })
+            .from(teacher)
+            .where(eq(teacher.id, request.body.teacherId));
+          if (!t) throw new HttpError(400, 'invalid_reference', 'Guru tidak ditemukan.');
+          if (t.memberId) throw new HttpError(409, 'teacher_linked', 'Guru ini sudah punya akun.');
+        }
 
         const [account] = await tx.select({ id: user.id }).from(user).where(eq(user.email, email));
         if (account) {
@@ -131,6 +146,7 @@ export async function invitationRoutes(instance: FastifyInstance, options: { env
             schoolId: ctx.schoolId,
             email,
             roles: roleList,
+            teacherId: request.body.teacherId ?? null,
             tokenHash: hashToken(token),
             invitedBy: ctx.userId,
             expiresAt,
@@ -164,6 +180,7 @@ export async function invitationRoutes(instance: FastifyInstance, options: { env
         id: created.id,
         email: created.email,
         roles: created.roles,
+        teacherId: created.teacherId,
         expiresAt: created.expiresAt.toISOString(),
         expired: false,
       });
@@ -219,6 +236,7 @@ export async function invitationRoutes(instance: FastifyInstance, options: { env
         schoolId: invitation.schoolId,
         email: invitation.email,
         roles: invitation.roles,
+        teacherId: invitation.teacherId,
         invitedBy: invitation.invitedBy,
         expiresAt: invitation.expiresAt,
         acceptedAt: invitation.acceptedAt,
@@ -324,6 +342,20 @@ export async function invitationRoutes(instance: FastifyInstance, options: { env
           memberId = row!.id;
         }
         await assignRoles(tx, memberId, inv.schoolId, inv.roles);
+        // Tautan guru hanya dipasang bila guru itu masih kosong dan anggota ini belum jadi guru lain;
+        // bila tidak, undangan tetap diterima dan admin menautkannya manual.
+        if (inv.teacherId) {
+          const [taken] = await tx
+            .select({ id: teacher.id })
+            .from(teacher)
+            .where(eq(teacher.memberId, memberId));
+          if (!taken) {
+            await tx
+              .update(teacher)
+              .set({ memberId })
+              .where(and(eq(teacher.id, inv.teacherId), isNull(teacher.memberId)));
+          }
+        }
         await tx.update(invitation).set({ acceptedAt: new Date() }).where(eq(invitation.id, inv.id));
         await tx.insert(auditLog).values({
           schoolId: inv.schoolId,
