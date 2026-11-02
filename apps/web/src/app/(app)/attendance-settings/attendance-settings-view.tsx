@@ -8,6 +8,7 @@ import {
   Copy,
   CreditCard,
   KeyRound,
+  Layers,
   MonitorSmartphone,
   Plus,
   Power,
@@ -201,6 +202,54 @@ function PolicyPanel() {
   );
 }
 
+interface Unit {
+  id: string;
+  name: string;
+}
+
+/** Pilihan unit tambahan yang dilayani satu perangkat (selain sekolah ini). */
+function UnitPicker({
+  units,
+  value,
+  onChange,
+}: {
+  units: Unit[];
+  value: string[];
+  onChange: (next: string[]) => void;
+}) {
+  const t = useTranslations('gate');
+  return (
+    <fieldset className="grid gap-2">
+      <legend className="flex w-full items-center gap-2 text-sm font-medium">
+        <Layers className="size-4" aria-hidden /> {t('scopeTitle')}
+      </legend>
+      <p className="text-muted-foreground text-xs">{t('scopeHint')}</p>
+      <div className="grid gap-2">
+        {units.map((u) => {
+          const on = value.includes(u.id);
+          return (
+            <Label
+              key={u.id}
+              className={cn(
+                'flex cursor-pointer items-center gap-3 rounded-xl border p-2.5 font-normal transition-colors',
+                on ? 'border-sky-500/50 bg-sky-50 dark:bg-sky-500/10' : 'hover:bg-muted/50',
+              )}
+            >
+              <Checkbox
+                checked={on}
+                onCheckedChange={(next) =>
+                  onChange(next ? [...value, u.id] : value.filter((i) => i !== u.id))
+                }
+              />
+              <span className="min-w-0 truncate">{u.name}</span>
+            </Label>
+          );
+        })}
+      </div>
+    </fieldset>
+  );
+}
+
 function DevicesPanel() {
   const t = useTranslations('gate');
   const te = useTranslations();
@@ -210,18 +259,44 @@ function DevicesPanel() {
   const [error, setError] = useState<string | null>(null);
   const [shownKey, setShownKey] = useState<{ name: string; key: string } | null>(null);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
+  const [extra, setExtra] = useState<string[]>([]);
+  const [scope, setScope] = useState<{ id: string; name: string; ids: string[] } | null>(null);
+  const [scopeError, setScopeError] = useState<string | null>(null);
 
   const list = useQuery({
     queryKey: ['attendance-devices', school.schoolId],
     queryFn: async () => unwrap(await api.GET('/v1/attendance/devices', { params: header })),
   });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['attendance-devices', school.schoolId] });
+  // Unit lain di lembaga yang sama yang boleh dilayani perangkat ini; kosong = pilihan jangkauan tidak ditampilkan.
+  const units = useQuery({
+    queryKey: ['attendance-device-units', school.schoolId],
+    queryFn: async () => unwrap(await api.GET('/v1/attendance/devices/units', { params: header })),
+  });
+  const saveScope = useMutation({
+    mutationFn: async (v: { id: string; ids: string[] }) =>
+      unwrap(
+        await api.PATCH('/v1/attendance/devices/{id}', {
+          params: { ...header, path: { id: v.id } },
+          body: { extraSchoolIds: v.ids },
+        }),
+      ),
+    onSuccess: () => {
+      setScope(null);
+      setScopeError(null);
+      refresh();
+    },
+    onError: (e) => setScopeError(te(errorKey(e))),
+  });
 
   const create = useMutation({
     mutationFn: async () =>
-      unwrap(await api.POST('/v1/attendance/devices', { params: header, body: { name } })),
+      unwrap(
+        await api.POST('/v1/attendance/devices', { params: header, body: { name, extraSchoolIds: extra } }),
+      ),
     onSuccess: (d) => {
       setName('');
+      setExtra([]);
       setError(null);
       setShownKey({ name: d.name, key: d.key });
       refresh();
@@ -273,6 +348,7 @@ function DevicesPanel() {
           error={error}
           onOpenChange={() => {
             setName('');
+            setExtra([]);
             setError(null);
           }}
           onSubmit={() => create.mutateAsync()}
@@ -289,6 +365,9 @@ function DevicesPanel() {
               onChange={(e) => setName(e.target.value)}
             />
           </div>
+          {(units.data?.length ?? 0) > 0 && (
+            <UnitPicker units={units.data ?? []} value={extra} onChange={setExtra} />
+          )}
         </FormDialog>
       </div>
 
@@ -366,6 +445,18 @@ function DevicesPanel() {
                         disabled: toggle.isPending,
                         onSelect: () => toggle.mutate({ id: d.id, active: !d.active }),
                       },
+                      ...((units.data?.length ?? 0) > 0 || d.schools.length > 0
+                        ? [
+                            {
+                              label: t('editScope'),
+                              icon: Layers,
+                              onSelect: () => {
+                                setScopeError(null);
+                                setScope({ id: d.id, name: d.name, ids: d.schools.map((x) => x.id) });
+                              },
+                            },
+                          ]
+                        : []),
                       {
                         label: t('rotateKey'),
                         icon: RotateCw,
@@ -389,6 +480,11 @@ function DevicesPanel() {
                   ) : (
                     <ToneBadge tone="amber">{t('offline')}</ToneBadge>
                   )}
+                  {d.schools.map((u) => (
+                    <ToneBadge key={u.id} tone="violet" dot={false}>
+                      <Layers aria-hidden className="size-3" /> {u.name}
+                    </ToneBadge>
+                  ))}
                 </div>
                 <p className="text-muted-foreground text-xs">
                   {t('lastSeenLabel', {
@@ -400,6 +496,31 @@ function DevicesPanel() {
           })}
         </ul>
       )}
+
+      <FormDialog
+        open={!!scope}
+        title={t('editScopeTitle', { name: scope?.name ?? '' })}
+        submitLabel={t('save')}
+        error={scopeError}
+        onOpenChange={(o) => !o && setScope(null)}
+        onSubmit={async () => {
+          if (scope) await saveScope.mutateAsync({ id: scope.id, ids: scope.ids });
+        }}
+      >
+        {scope && (
+          <UnitPicker
+            // Unit yang sudah terpasang tetap tampil walau kini tidak bisa ditambahkan lagi, supaya bisa dilepas.
+            units={[
+              ...(units.data ?? []),
+              ...(list.data?.find((d) => d.id === scope.id)?.schools ?? []).filter(
+                (u) => !(units.data ?? []).some((x) => x.id === u.id),
+              ),
+            ]}
+            value={scope.ids}
+            onChange={(ids) => setScope({ ...scope, ids })}
+          />
+        )}
+      </FormDialog>
 
       <ConfirmDialog
         open={!!deleting}

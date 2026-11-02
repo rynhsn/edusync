@@ -9123,6 +9123,11 @@ export interface paths {
                             keyPrefix: string;
                             active: boolean;
                             lastSeenAt: string | null;
+                            schools: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            }[];
                         }[];
                     };
                 };
@@ -9159,7 +9164,7 @@ export interface paths {
         put?: never;
         /**
          * Daftarkan perangkat kiosk
-         * @description Izin: `attendance:configure`. Kunci API (`key`) hanya muncul pada respons ini; simpan di perangkat kiosk. Kiosk memakainya lewat header `x-device-key`.
+         * @description Izin: `attendance:configure`. Kunci API (`key`) hanya muncul pada respons ini; simpan di perangkat kiosk. Kiosk memakainya lewat header `x-device-key`. `extraSchoolIds` (opsional) menambahkan unit lain di lembaga yang sama agar satu pembaca melayani beberapa jenjang; tiap unit harus lolos `GET /v1/attendance/devices/units` (selain itu 400 `invalid_unit`).
          */
         post: {
             parameters: {
@@ -9175,6 +9180,11 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
+                        /**
+                         * @description Unit tambahan (satu lembaga) yang ikut dilayani perangkat
+                         * @default []
+                         */
+                        extraSchoolIds?: string[];
                     };
                 };
             };
@@ -9223,6 +9233,80 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/attendance/devices/units": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Unit lembaga yang bisa dilayani satu perangkat
+         * @description Izin: `attendance:configure`. Unit lain di lembaga yang sama yang aktif, modul absensinya aktif, dan tempat Anda juga punya izin `attendance:configure`. Dipakai untuk memilih jangkauan perangkat kiosk.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -9330,8 +9414,8 @@ export interface paths {
         options?: never;
         head?: never;
         /**
-         * Ubah nama atau status perangkat
-         * @description Izin: `attendance:configure`. Perangkat nonaktif ditolak saat tap.
+         * Ubah nama, status, atau jangkauan perangkat
+         * @description Izin: `attendance:configure`. Perangkat nonaktif ditolak saat tap. `extraSchoolIds` mengganti seluruh daftar unit tambahan: unit yang sudah terpasang boleh dipertahankan atau dilepas, unit baru harus lolos `GET /v1/attendance/devices/units` (400 `invalid_unit`).
          */
         patch: {
             parameters: {
@@ -9350,6 +9434,8 @@ export interface paths {
                     "application/json": {
                         name?: string;
                         active?: boolean;
+                        /** @description Unit tambahan (satu lembaga) yang ikut dilayani perangkat */
+                        extraSchoolIds?: string[];
                     };
                 };
             };
@@ -9994,6 +10080,7 @@ export interface paths {
                                 name: string;
                                 className: string | null;
                             };
+                            schoolName: string | null;
                         };
                     };
                 };

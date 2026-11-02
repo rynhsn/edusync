@@ -131,7 +131,7 @@ Bawaan: penyedia `dev` (tanpa uang, hanya lokal). Midtrans sandbox: isi `PAYMENT
 
 ## Modul dan layar penting
 
-- **Kiosk absensi:** buka `/kiosk` di tablet/PC gerbang, tempel kunci perangkat dari Pengaturan absensi › Perangkat. Pembaca RFID USB cukup dicolok.
+- **Kiosk absensi:** buka `/kiosk` di tablet/PC gerbang, tempel kunci perangkat dari Pengaturan absensi › Perangkat. Pembaca RFID USB cukup dicolok. Satu perangkat bisa melayani beberapa unit di lembaga yang sama: di Pengaturan absensi › Perangkat, pilih "Jangkauan perangkat" (kartu tiap siswa tercatat di unitnya sendiri; kartu dengan kode sama di dua unit ditolak).
 - **WhatsApp:** jalankan worker dengan `MESSAGING_PROVIDER=log` (bawaan di dev) untuk uji tanpa mengirim. Untuk kirim sungguhan: `MESSAGING_PROVIDER=whatsapp`, `WA_CHROME_PATH` (jalur Chrome/Chromium), lalu hubungkan nomor lewat halaman Notifikasi WhatsApp (pindai QR). Gunakan nomor khusus sekolah.
 - **Seed contoh:** `pnpm --filter @edusync/api seed:dev` memberi sekolah contoh semua modul, jenis biaya dan tarif, serta pengaturan rapor.
 - **Tahfidz, administrasi, PKL, SPMB:** menu "Pembinaan" dan "Administrasi" (butuh entitlement modul). Pendaftaran murid baru publik di `/apply`, verifikasi surat di `/verify/{token}`, tautan pembimbing PKL di `/pkl/{token}`. Data contoh: `pnpm --filter @edusync/api seed:dev` (kode pelacakan SPMB demo `DEMO2SPMB1..`).

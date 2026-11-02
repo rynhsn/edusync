@@ -18589,6 +18589,27 @@
                       "lastSeenAt": {
                         "nullable": true,
                         "type": "string"
+                      },
+                      "schools": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "name": {
+                              "type": "string"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "name"
+                          ],
+                          "additionalProperties": false
+                        }
                       }
                     },
                     "required": [
@@ -18596,7 +18617,8 @@
                       "name",
                       "keyPrefix",
                       "active",
-                      "lastSeenAt"
+                      "lastSeenAt",
+                      "schools"
                     ],
                     "additionalProperties": false
                   }
@@ -18675,7 +18697,7 @@
         "tags": [
           "Gate attendance"
         ],
-        "description": "Izin: `attendance:configure`. Kunci API (`key`) hanya muncul pada respons ini; simpan di perangkat kiosk. Kiosk memakainya lewat header `x-device-key`.",
+        "description": "Izin: `attendance:configure`. Kunci API (`key`) hanya muncul pada respons ini; simpan di perangkat kiosk. Kiosk memakainya lewat header `x-device-key`. `extraSchoolIds` (opsional) menambahkan unit lain di lembaga yang sama agar satu pembaca melayani beberapa jenjang; tiap unit harus lolos `GET /v1/attendance/devices/units` (selain itu 400 `invalid_unit`).",
         "requestBody": {
           "required": true,
           "content": {
@@ -18687,6 +18709,17 @@
                     "type": "string",
                     "minLength": 2,
                     "maxLength": 80
+                  },
+                  "extraSchoolIds": {
+                    "default": [],
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "description": "Unit tambahan (satu lembaga) yang ikut dilayani perangkat"
                   }
                 },
                 "required": [
@@ -18806,13 +18839,129 @@
         }
       }
     },
-    "/v1/attendance/devices/{id}": {
-      "patch": {
-        "summary": "Ubah nama atau status perangkat",
+    "/v1/attendance/devices/units": {
+      "get": {
+        "summary": "Unit lembaga yang bisa dilayani satu perangkat",
         "tags": [
           "Gate attendance"
         ],
-        "description": "Izin: `attendance:configure`. Perangkat nonaktif ditolak saat tap.",
+        "description": "Izin: `attendance:configure`. Unit lain di lembaga yang sama yang aktif, modul absensinya aktif, dan tempat Anda juga punya izin `attendance:configure`. Dipakai untuk memilih jangkauan perangkat kiosk.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "name": {
+                        "type": "string"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/attendance/devices/{id}": {
+      "patch": {
+        "summary": "Ubah nama, status, atau jangkauan perangkat",
+        "tags": [
+          "Gate attendance"
+        ],
+        "description": "Izin: `attendance:configure`. Perangkat nonaktif ditolak saat tap. `extraSchoolIds` mengganti seluruh daftar unit tambahan: unit yang sudah terpasang boleh dipertahankan atau dilepas, unit baru harus lolos `GET /v1/attendance/devices/units` (400 `invalid_unit`).",
         "requestBody": {
           "required": true,
           "content": {
@@ -18827,6 +18976,16 @@
                   },
                   "active": {
                     "type": "boolean"
+                  },
+                  "extraSchoolIds": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "description": "Unit tambahan (satu lembaga) yang ikut dilayani perangkat"
                   }
                 }
               }
@@ -20240,6 +20399,10 @@
                         "className"
                       ],
                       "additionalProperties": false
+                    },
+                    "schoolName": {
+                      "nullable": true,
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -20247,7 +20410,8 @@
                     "direction",
                     "late",
                     "at",
-                    "student"
+                    "student",
+                    "schoolName"
                   ],
                   "additionalProperties": false
                 }

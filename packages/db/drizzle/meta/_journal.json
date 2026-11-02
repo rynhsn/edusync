@@ -414,6 +414,13 @@
       "when": 1794100100000,
       "tag": "0058_school_domain_verified_unique",
       "breakpoints": true
+    },
+    {
+      "idx": 59,
+      "version": "7",
+      "when": 1794100200000,
+      "tag": "0059_attendance_device_school",
+      "breakpoints": true
     }
   ]
 }

@@ -5,6 +5,7 @@ import {
   asc,
   attendanceCard,
   attendanceDevice,
+  attendanceDeviceSchool,
   attendancePolicy,
   classRoom,
   dailyAttendance,
@@ -16,7 +17,9 @@ import {
   gte,
   inArray,
   isNull,
+  loadMemberAccess,
   lte,
+  ne,
   school,
   student,
   type Tx,
@@ -60,7 +63,8 @@ const statusEnum = z.enum(['present', 'late', 'excused', 'sick', 'absent']);
 
 declare module 'fastify' {
   interface FastifyRequest {
-    device?: { id: string; schoolId: string; name: string };
+    /** `schoolIds`: sekolah asal (pertama) lalu unit tambahan yang aktif dan satu lembaga dengannya. */
+    device?: { id: string; schoolId: string; name: string; schoolIds: string[] };
   }
 }
 
@@ -81,6 +85,7 @@ async function requireDevice(request: FastifyRequest) {
       name: attendanceDevice.name,
       active: attendanceDevice.active,
       schoolStatus: school.status,
+      foundationId: school.foundationId,
     })
     .from(attendanceDevice)
     .innerJoin(school, eq(school.id, attendanceDevice.schoolId))
@@ -95,7 +100,24 @@ async function requireDevice(request: FastifyRequest) {
       .where(and(eq(entitlement.moduleKey, 'attendance'), gt(entitlement.validUntil, new Date()))),
   );
   if (modules.length === 0) throw new HttpError(403, 'module_disabled', 'Modul absensi belum aktif.');
-  request.device = { id: row.id, schoolId: row.schoolId, name: row.name };
+  // Unit tambahan: hanya yang aktif dan satu lembaga dengan sekolah asal (jaga-jaga bila data berubah setelah dipasang).
+  const extra = await db
+    .select({ id: school.id })
+    .from(attendanceDeviceSchool)
+    .innerJoin(school, eq(school.id, attendanceDeviceSchool.schoolId))
+    .where(
+      and(
+        eq(attendanceDeviceSchool.deviceId, row.id),
+        eq(school.status, 'active'),
+        eq(school.foundationId, row.foundationId),
+      ),
+    );
+  request.device = {
+    id: row.id,
+    schoolId: row.schoolId,
+    name: row.name,
+    schoolIds: [row.schoolId, ...extra.map((e) => e.id)],
+  };
 }
 
 /** Waktu tap dari perangkat: boleh masa lalu (kirim ulang offline, maksimal 48 jam; KIOSK_MAX_PAST_HOURS untuk tes), tidak boleh di masa depan. */
@@ -185,7 +207,100 @@ export async function gateRoutes(instance: FastifyInstance) {
     keyPrefix: z.string(),
     active: z.boolean(),
     lastSeenAt: z.string().nullable(),
+    /** Unit tambahan yang dilayani perangkat ini selain sekolah asal. */
+    schools: z.array(z.object({ id: z.uuid(), name: z.string() })),
   });
+  const extraSchoolIds = z
+    .array(z.uuid())
+    .max(20)
+    .describe('Unit tambahan (satu lembaga) yang ikut dilayani perangkat');
+  const unitError = (message: string) => new HttpError(400, 'invalid_unit', message);
+
+  /**
+   * Unit lain di lembaga yang sama yang boleh ditambahkan ke perangkat ini oleh pengguna: sekolah aktif, absensi
+   * aktif di sana, dan pengguna punya `attendance:configure` di sana. Pencarian lintas-sekolah memakai pool platform.
+   */
+  async function eligibleUnits(request: FastifyRequest, ctx: TenantContext) {
+    const db = request.server.platformDb;
+    const [home] = await db
+      .select({ foundationId: school.foundationId })
+      .from(school)
+      .where(eq(school.id, ctx.schoolId));
+    if (!home) return [];
+    const siblings = await db
+      .select({ id: school.id, name: school.name })
+      .from(school)
+      .where(
+        and(
+          eq(school.foundationId, home.foundationId),
+          eq(school.status, 'active'),
+          ne(school.id, ctx.schoolId),
+        ),
+      )
+      .orderBy(asc(school.name));
+    const out: { id: string; name: string }[] = [];
+    for (const s of siblings) {
+      const access = await loadMemberAccess(db, ctx.userId, s.id);
+      if (!access?.permissions.has('attendance:configure')) continue;
+      const mods = await withTenant(request.server.tenantDb, [s.id], (tx) =>
+        tx
+          .select({ key: entitlement.moduleKey })
+          .from(entitlement)
+          .where(and(eq(entitlement.moduleKey, 'attendance'), gt(entitlement.validUntil, new Date()))),
+      );
+      if (mods.length > 0) out.push(s);
+    }
+    return out;
+  }
+
+  /** Daftar unit tambahan yang sah. Unit yang sudah terpasang boleh dipertahankan; yang baru harus lolos eligibleUnits. */
+  async function checkExtraUnits(
+    request: FastifyRequest,
+    ctx: TenantContext,
+    wanted: string[],
+    alreadyLinked: string[] = [],
+  ) {
+    const ids = [...new Set(wanted)].filter((i) => i !== ctx.schoolId);
+    const added = ids.filter((i) => !alreadyLinked.includes(i));
+    if (added.length > 0) {
+      const ok = new Set((await eligibleUnits(request, ctx)).map((u) => u.id));
+      if (added.some((i) => !ok.has(i)))
+        throw unitError(
+          'Unit tidak valid: harus satu lembaga, absensi aktif, dan Anda berhak mengatur absensinya.',
+        );
+    }
+    return ids;
+  }
+
+  // Nama unit lain tidak terlihat dari transaksi tenant (RLS tabel school), jadi diambil lewat pool platform.
+  const deviceSchools = async (request: FastifyRequest, tx: Tx, deviceIds: string[]) => {
+    const map = new Map<string, { id: string; name: string }[]>();
+    if (deviceIds.length === 0) return map;
+    const links = await tx
+      .select({ deviceId: attendanceDeviceSchool.deviceId, schoolId: attendanceDeviceSchool.schoolId })
+      .from(attendanceDeviceSchool)
+      .where(inArray(attendanceDeviceSchool.deviceId, deviceIds));
+    if (links.length === 0) return map;
+    const names = await request.server.platformDb
+      .select({ id: school.id, name: school.name })
+      .from(school)
+      .where(
+        inArray(
+          school.id,
+          links.map((l) => l.schoolId),
+        ),
+      )
+      .orderBy(asc(school.name));
+    for (const n of names)
+      for (const l of links.filter((x) => x.schoolId === n.id))
+        map.set(l.deviceId, [...(map.get(l.deviceId) ?? []), n]);
+    return map;
+  };
+  const setDeviceSchools = async (tx: Tx, deviceId: string, schoolIds: string[]) => {
+    await tx.delete(attendanceDeviceSchool).where(eq(attendanceDeviceSchool.deviceId, deviceId));
+    if (schoolIds.length > 0)
+      await tx.insert(attendanceDeviceSchool).values(schoolIds.map((schoolId) => ({ deviceId, schoolId })));
+  };
   const newKey = () => `esk_${randomBytes(24).toString('base64url')}`;
 
   app.get(
@@ -201,8 +316,8 @@ export async function gateRoutes(instance: FastifyInstance) {
       },
     },
     async (request) => {
-      const rows = await tenant(request, (tx) =>
-        tx
+      return tenant(request, async (tx) => {
+        const rows = await tx
           .select({
             id: attendanceDevice.id,
             name: attendanceDevice.name,
@@ -211,10 +326,36 @@ export async function gateRoutes(instance: FastifyInstance) {
             lastSeenAt: attendanceDevice.lastSeenAt,
           })
           .from(attendanceDevice)
-          .orderBy(asc(attendanceDevice.name)),
-      );
-      return rows.map((r) => ({ ...r, lastSeenAt: r.lastSeenAt?.toISOString() ?? null }));
+          .orderBy(asc(attendanceDevice.name));
+        const schools = await deviceSchools(
+          request,
+          tx,
+          rows.map((r) => r.id),
+        );
+        return rows.map((r) => ({
+          ...r,
+          lastSeenAt: r.lastSeenAt?.toISOString() ?? null,
+          schools: schools.get(r.id) ?? [],
+        }));
+      });
     },
+  );
+
+  app.get(
+    '/v1/attendance/devices/units',
+    {
+      onRequest: gate('attendance:configure'),
+      schema: {
+        tags: tag,
+        summary: 'Unit lembaga yang bisa dilayani satu perangkat',
+        description:
+          'Izin: `attendance:configure`. Unit lain di lembaga yang sama yang aktif, modul absensinya aktif, dan ' +
+          'tempat Anda juga punya izin `attendance:configure`. Dipakai untuk memilih jangkauan perangkat kiosk.',
+        headers: schoolHeader,
+        response: { 200: z.array(z.object({ id: z.uuid(), name: z.string() })), ...guarded },
+      },
+    },
+    async (request) => eligibleUnits(request, request.ctx as TenantContext),
   );
 
   app.post(
@@ -226,9 +367,14 @@ export async function gateRoutes(instance: FastifyInstance) {
         summary: 'Daftarkan perangkat kiosk',
         description:
           'Izin: `attendance:configure`. Kunci API (`key`) hanya muncul pada respons ini; simpan di perangkat kiosk. ' +
-          'Kiosk memakainya lewat header `x-device-key`.',
+          'Kiosk memakainya lewat header `x-device-key`. `extraSchoolIds` (opsional) menambahkan unit lain di lembaga ' +
+          'yang sama agar satu pembaca melayani beberapa jenjang; tiap unit harus lolos `GET /v1/attendance/devices/units` ' +
+          '(selain itu 400 `invalid_unit`).',
         headers: schoolHeader,
-        body: z.object({ name: z.string().trim().min(2).max(80) }),
+        body: z.object({
+          name: z.string().trim().min(2).max(80),
+          extraSchoolIds: extraSchoolIds.default([]),
+        }),
         response: {
           201: z.object({ id: z.uuid(), name: z.string(), key: z.string() }),
           ...guarded,
@@ -238,6 +384,7 @@ export async function gateRoutes(instance: FastifyInstance) {
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
       const key = newKey();
+      const extra = await checkExtraUnits(request, ctx, request.body.extraSchoolIds);
       const row = await tenant(request, async (tx) => {
         const [d] = await tx
           .insert(attendanceDevice)
@@ -248,7 +395,11 @@ export async function gateRoutes(instance: FastifyInstance) {
             keyPrefix: key.slice(0, 8),
           })
           .returning({ id: attendanceDevice.id, name: attendanceDevice.name });
-        await audit(tx, ctx, 'attendance.device.create', 'device', d?.id ?? '', { name: request.body.name });
+        if (d) await setDeviceSchools(tx, d.id, extra);
+        await audit(tx, ctx, 'attendance.device.create', 'device', d?.id ?? '', {
+          name: request.body.name,
+          extraSchoolIds: extra,
+        });
         return d as { id: string; name: string };
       });
       return reply.code(201).send({ ...row, key });
@@ -261,23 +412,51 @@ export async function gateRoutes(instance: FastifyInstance) {
       onRequest: gate('attendance:configure'),
       schema: {
         tags: tag,
-        summary: 'Ubah nama atau status perangkat',
-        description: 'Izin: `attendance:configure`. Perangkat nonaktif ditolak saat tap.',
+        summary: 'Ubah nama, status, atau jangkauan perangkat',
+        description:
+          'Izin: `attendance:configure`. Perangkat nonaktif ditolak saat tap. `extraSchoolIds` mengganti seluruh ' +
+          'daftar unit tambahan: unit yang sudah terpasang boleh dipertahankan atau dilepas, unit baru harus lolos ' +
+          '`GET /v1/attendance/devices/units` (400 `invalid_unit`).',
         headers: schoolHeader,
         params: idParams,
-        body: z.object({ name: z.string().trim().min(2).max(80).optional(), active: z.boolean().optional() }),
+        body: z.object({
+          name: z.string().trim().min(2).max(80).optional(),
+          active: z.boolean().optional(),
+          extraSchoolIds: extraSchoolIds.optional(),
+        }),
         response: { 200: ok, 404: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
+      const { extraSchoolIds: wantedExtra, ...fields } = request.body;
+      const current = wantedExtra
+        ? ((await tenant(request, (tx) => deviceSchools(request, tx, [request.params.id]))).get(
+            request.params.id,
+          ) ?? [])
+        : [];
+      const extra = wantedExtra
+        ? await checkExtraUnits(
+            request,
+            ctx,
+            wantedExtra,
+            current.map((c) => c.id),
+          )
+        : undefined;
       await tenant(request, async (tx) => {
-        const rows = await tx
-          .update(attendanceDevice)
-          .set(request.body)
-          .where(eq(attendanceDevice.id, request.params.id))
-          .returning({ id: attendanceDevice.id });
+        const rows =
+          Object.keys(fields).length > 0
+            ? await tx
+                .update(attendanceDevice)
+                .set(fields)
+                .where(eq(attendanceDevice.id, request.params.id))
+                .returning({ id: attendanceDevice.id })
+            : await tx
+                .select({ id: attendanceDevice.id })
+                .from(attendanceDevice)
+                .where(eq(attendanceDevice.id, request.params.id));
         if (rows.length === 0) throw new HttpError(404, 'not_found', 'Perangkat tidak ditemukan.');
+        if (extra) await setDeviceSchools(tx, request.params.id, extra);
         await audit(tx, ctx, 'attendance.device.update', 'device', request.params.id, request.body);
       });
       return { ok: true as const };
@@ -608,14 +787,21 @@ export async function gateRoutes(instance: FastifyInstance) {
     },
     async (request) => {
       const d = request.device as NonNullable<FastifyRequest['device']>;
-      return asDevice(request, async (tx, schoolId) => {
-        const [s] = await tx.select({ name: school.name }).from(school).where(eq(school.id, schoolId));
+      const names = await request.server.platformDb
+        .select({ id: school.id, name: school.name })
+        .from(school)
+        .where(inArray(school.id, d.schoolIds));
+      return asDevice(request, async (tx) => {
         await tx
           .update(attendanceDevice)
           .set({ lastSeenAt: new Date() })
           .where(eq(attendanceDevice.id, d.id));
         return {
-          school: s?.name ?? '',
+          // Perangkat multi-unit menampilkan semua nama unit, sekolah asal lebih dulu.
+          school: d.schoolIds
+            .map((id) => names.find((n) => n.id === id)?.name)
+            .filter(Boolean)
+            .join(' · '),
           device: d.name,
           serverTime: new Date().toISOString(),
         };
@@ -642,7 +828,7 @@ export async function gateRoutes(instance: FastifyInstance) {
           clientId: z.string().trim().min(1).max(64).optional(),
         }),
         response: {
-          200: tapResponse,
+          200: tapResponse.extend({ schoolName: z.string().nullable() }),
           400: errorSchema,
           401: errorSchema,
           403: errorSchema,
@@ -654,22 +840,57 @@ export async function gateRoutes(instance: FastifyInstance) {
     async (request) => {
       const d = request.device as NonNullable<FastifyRequest['device']>;
       const at = tapTime(request.body.at);
-      return asDevice(request, async (tx, schoolId) => {
-        const [card] = await tx
-          .select()
+      const code = request.body.code.toUpperCase();
+      const multi = d.schoolIds.length > 1;
+
+      // Perangkat multi-unit: cari pemilik kartu di semua unitnya (pool platform, lintas sekolah) lalu kerjakan
+      // seluruh tap di transaksi tenant unit itu saja. Kartu yang sama di dua unit ditolak, bukan ditebak.
+      let target = d.schoolId;
+      if (multi) {
+        const hits = await request.server.platformDb
+          .select({ schoolId: attendanceCard.schoolId })
           .from(attendanceCard)
           .where(
-            and(eq(attendanceCard.code, request.body.code.toUpperCase()), eq(attendanceCard.active, true)),
+            and(
+              eq(attendanceCard.code, code),
+              eq(attendanceCard.active, true),
+              inArray(attendanceCard.schoolId, d.schoolIds),
+            ),
           );
-        const found = card;
+        if (hits.length === 0) throw new HttpError(404, 'unknown_card', 'Kartu tidak dikenal.');
+        if (hits.length > 1)
+          throw new HttpError(409, 'ambiguous_card', 'Kartu ini terdaftar di lebih dari satu unit.');
+        target = (hits[0] as { schoolId: string }).schoolId;
+      }
+
+      if (multi) {
+        // lastSeenAt ada di sekolah asal, sedangkan tap dikerjakan di unit pemilik kartu.
+        await asDevice(request, (tx) =>
+          tx.update(attendanceDevice).set({ lastSeenAt: new Date() }).where(eq(attendanceDevice.id, d.id)),
+        );
+      }
+      return withTenant(request.server.tenantDb, [target], async (tx) => {
+        if (target !== d.schoolId) {
+          const modules = await tx
+            .select({ key: entitlement.moduleKey })
+            .from(entitlement)
+            .where(and(eq(entitlement.moduleKey, 'attendance'), gt(entitlement.validUntil, new Date())));
+          if (modules.length === 0) throw new HttpError(403, 'module_disabled', 'Modul absensi belum aktif.');
+        }
+        const [found] = await tx
+          .select()
+          .from(attendanceCard)
+          .where(and(eq(attendanceCard.code, code), eq(attendanceCard.active, true)));
         if (!found) throw new HttpError(404, 'unknown_card', 'Kartu tidak dikenal.');
-        await tx
-          .update(attendanceDevice)
-          .set({ lastSeenAt: new Date() })
-          .where(eq(attendanceDevice.id, d.id));
+        if (!multi) {
+          await tx
+            .update(attendanceDevice)
+            .set({ lastSeenAt: new Date() })
+            .where(eq(attendanceDevice.id, d.id));
+        }
         const tapped = await recordTap(
           tx,
-          { schoolId },
+          { schoolId: target },
           {
             studentId: found.studentId,
             at,
@@ -679,8 +900,11 @@ export async function gateRoutes(instance: FastifyInstance) {
           await loadPolicy(tx),
         );
         // Pemberitahuan ke wali (gagal pun tidak menggagalkan tap).
-        await notifyTap(tx, schoolId, tapped);
-        return tapped;
+        await notifyTap(tx, target, tapped);
+        const [unit] = multi
+          ? await tx.select({ name: school.name }).from(school).where(eq(school.id, target))
+          : [];
+        return { ...tapped, schoolName: unit?.name ?? null };
       });
     },
   );

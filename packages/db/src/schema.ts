@@ -783,6 +783,28 @@ export const attendanceDevice = pgTable(
   (t) => [unique('attendance_device_key_uq').on(t.keyHash)],
 );
 
+/**
+ * Unit tambahan yang dilayani satu perangkat kiosk (selain sekolah asalnya di `attendance_device.school_id`),
+ * supaya satu pembaca RFID bisa dipakai beberapa jenjang dalam satu lembaga. Kosong = hanya sekolah asal.
+ * RLS mengikuti perangkat: hanya terlihat dari sekolah asal perangkat.
+ */
+export const attendanceDeviceSchool = pgTable(
+  'attendance_device_school',
+  {
+    deviceId: uuid('device_id')
+      .notNull()
+      .references(() => attendanceDevice.id, { onDelete: 'cascade' }),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id, { onDelete: 'cascade' }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.deviceId, t.schoolId] }),
+    index('attendance_device_school_idx').on(t.schoolId),
+  ],
+);
+
 /** Kartu RFID siswa (UID kartu). Satu siswa boleh punya beberapa kartu. */
 export const attendanceCard = pgTable(
   'attendance_card',

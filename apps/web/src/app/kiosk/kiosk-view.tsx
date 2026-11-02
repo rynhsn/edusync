@@ -23,6 +23,7 @@ const QUEUE_STORAGE = 'edusync.kiosk.queue';
 const SHOW_MS = 4000;
 const KNOWN_ERRORS = [
   'unknown_card',
+  'ambiguous_card',
   'school_closed',
   'student_inactive',
   'invalid_time',
@@ -39,7 +40,7 @@ interface Shown {
   title: string;
   detail: string;
   /** Murid yang tap (kosong untuk galat umum); dipakai untuk avatar besar dan daftar terakhir. */
-  student?: { name: string; className: string };
+  student?: { name: string; className: string; schoolName?: string };
   /** Penanda tap ini, supaya bilah hitung mundur mulai ulang di tap berikutnya. */
   id?: number;
 }
@@ -58,6 +59,8 @@ interface TapOk {
   result: 'in' | 'out' | 'already_in' | 'duplicate' | 'replayed';
   late: boolean;
   student: { name: string; className: string | null };
+  /** Nama unit pemilik kartu; hanya terisi untuk perangkat yang melayani beberapa unit. */
+  schoolName?: string | null;
 }
 
 const TONE: Record<Shown['tone'], string> = {
@@ -229,7 +232,7 @@ export function KioskView() {
         const tap = r.json as unknown as TapOk;
         const name = tap.student.name;
         const cls = tap.student.className ?? '';
-        const student = { name, className: cls };
+        const student = { name, className: cls, ...(tap.schoolName ? { schoolName: tap.schoolName } : {}) };
         const detail = cls ? `${name} · ${cls}` : name;
         if (tap.result === 'in') {
           show(
@@ -400,6 +403,11 @@ export function KioskView() {
               </div>
               {shown.student.className && (
                 <div className="text-2xl opacity-90 sm:text-4xl">{shown.student.className}</div>
+              )}
+              {shown.student.schoolName && (
+                <div className="rounded-full bg-black/20 px-4 py-1 text-lg opacity-90 sm:text-2xl">
+                  {shown.student.schoolName}
+                </div>
               )}
             </>
           ) : (
