@@ -1,21 +1,30 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { KeyRound, Laptop, LogOut, Smartphone, UserCog } from 'lucide-react';
+import { Camera, KeyRound, Laptop, LogOut, Mail, Smartphone, Trash2, UserCog } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToneBadge, UserAvatar } from '@/components/ui-kit';
 import { authClient } from '@/lib/auth-client';
 import { describeDevice } from '@/lib/device';
+import { resizeToSquare } from '@/lib/image';
 import { checkPasswords, MIN_PASSWORD } from '@/lib/password';
 
 const SESSIONS_KEY = ['auth-sessions'];
@@ -131,6 +140,133 @@ function SessionsCard({ currentToken }: { currentToken: string | undefined }) {
   );
 }
 
+/** Ganti email dua langkah: alamat baru, lalu kode 6 digit yang dikirim ke alamat baru itu. */
+function ChangeEmailDialog({
+  open,
+  onOpenChange,
+  currentEmail,
+  onChanged,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  currentEmail: string;
+  onChanged: () => void;
+}) {
+  const t = useTranslations('profile');
+  const tcm = useTranslations('common');
+  const [step, setStep] = useState<'email' | 'code'>('email');
+  const [newEmail, setNewEmail] = useState('');
+  const [code, setCode] = useState('');
+  const [error, setError] = useState<string | null>(null);
+  const [pending, setPending] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setStep('email');
+      setNewEmail('');
+      setCode('');
+      setError(null);
+    }
+  }, [open]);
+
+  async function sendCode(event: React.FormEvent) {
+    event.preventDefault();
+    const email = newEmail.trim().toLowerCase();
+    if (email === currentEmail.toLowerCase()) return setError(t('emailSame'));
+    setPending(true);
+    setError(null);
+    const res = await authClient.emailOtp.requestEmailChange({ newEmail: email });
+    setPending(false);
+    if (res.error) return setError(t('emailError'));
+    setNewEmail(email);
+    setStep('code');
+  }
+
+  async function confirm(event: React.FormEvent) {
+    event.preventDefault();
+    setPending(true);
+    setError(null);
+    const res = await authClient.emailOtp.changeEmail({ newEmail, otp: code.trim() });
+    setPending(false);
+    if (res.error) return setError(res.error.status === 400 ? t('emailBadCode') : t('emailError'));
+    toast.success(t('emailChanged'));
+    onChanged();
+    onOpenChange(false);
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-heading">{t('changeEmail')}</DialogTitle>
+          <DialogDescription>
+            {step === 'email' ? t('emailNote') : t('codeSent', { email: newEmail })}
+          </DialogDescription>
+        </DialogHeader>
+        {step === 'email' ? (
+          <form key="email" onSubmit={sendCode} className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="new-email">{t('newEmail')}</Label>
+              <Input
+                id="new-email"
+                type="email"
+                autoComplete="off"
+                maxLength={254}
+                required
+                value={newEmail}
+                onChange={(e) => setNewEmail(e.target.value)}
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive" role="alert">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+                {tcm('cancel')}
+              </Button>
+              <Button type="submit" disabled={pending || !newEmail.trim()}>
+                {pending ? t('sendingCode') : t('sendCode')}
+              </Button>
+            </DialogFooter>
+          </form>
+        ) : (
+          <form key="code" onSubmit={confirm} className="grid gap-4">
+            <div className="grid gap-2">
+              <Label htmlFor="email-code">{t('code')}</Label>
+              <Input
+                id="email-code"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                pattern="[0-9]{6}"
+                maxLength={6}
+                required
+                className="text-center font-mono tracking-[0.5em]"
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
+              />
+            </div>
+            {error && (
+              <Alert variant="destructive" role="alert">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            <DialogFooter>
+              <Button type="button" variant="ghost" onClick={() => setStep('email')}>
+                {t('changeEmail')}
+              </Button>
+              <Button type="submit" disabled={pending || code.length !== 6}>
+                {pending ? t('working') : t('confirmEmail')}
+              </Button>
+            </DialogFooter>
+          </form>
+        )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 /** Halaman profil akun yang sama untuk portal akun, panel sekolah, dan konsol platform: nama, kata sandi, dan perangkat. */
 export function ProfilePage() {
   const t = useTranslations('profile');
@@ -140,10 +276,17 @@ export function ProfilePage() {
   const user = session.data?.user;
 
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [nameError, setNameError] = useState<string | null>(null);
   const [savingName, setSavingName] = useState(false);
+  const [emailOpen, setEmailOpen] = useState(false);
+  const [savingPhoto, setSavingPhoto] = useState(false);
+  const fileRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    if (user) setName(user.name);
+    if (user) {
+      setName(user.name);
+      setPhone(user.phone ?? '');
+    }
   }, [user]);
 
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
@@ -155,11 +298,30 @@ export function ProfilePage() {
     event.preventDefault();
     setNameError(null);
     setSavingName(true);
-    const res = await authClient.updateUser({ name: name.trim() });
+    const res = await authClient.updateUser({ name: name.trim(), phone: phone.trim() });
     setSavingName(false);
-    if (res.error) return setNameError(te('unknown'));
+    if (res.error) {
+      return setNameError(res.error.code === 'INVALID_PHONE' ? t('phoneInvalid') : te('unknown'));
+    }
     queryClient.invalidateQueries({ queryKey: ['me'] });
     toast.success(t('nameSaved'));
+  }
+
+  /** Ganti atau hapus foto: gambar dipotong persegi dan dikecilkan di peramban sebelum dikirim. */
+  async function savePhoto(file: File | null) {
+    setSavingPhoto(true);
+    try {
+      const image = file ? await resizeToSquare(file) : '';
+      const res = await authClient.updateUser({ image });
+      if (res.error) throw new Error(res.error.message);
+      queryClient.invalidateQueries({ queryKey: ['me'] });
+      toast.success(file ? t('photoSaved') : t('photoRemoved'));
+    } catch {
+      toast.error(t('photoInvalid'));
+    } finally {
+      setSavingPhoto(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
   }
 
   async function savePassword(event: React.FormEvent) {
@@ -193,11 +355,45 @@ export function ProfilePage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={saveName} className="grid gap-4">
-                <div className="flex items-center gap-3">
-                  <UserAvatar name={user.name} size="lg" />
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-medium">{user.email}</p>
-                    <p className="text-muted-foreground text-xs">{t('emailNote')}</p>
+                <div className="flex items-center gap-4">
+                  <UserAvatar name={user.name} image={user.image} size="lg" className="size-16 text-xl" />
+                  <div className="grid gap-1.5">
+                    <p className="text-sm font-medium">{t('photo')}</p>
+                    <div className="flex flex-wrap gap-2">
+                      <input
+                        ref={fileRef}
+                        type="file"
+                        accept="image/jpeg,image/png,image/webp"
+                        className="sr-only"
+                        aria-label={t('changePhoto')}
+                        tabIndex={-1}
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) void savePhoto(file);
+                        }}
+                      />
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        disabled={savingPhoto}
+                        onClick={() => fileRef.current?.click()}
+                      >
+                        <Camera className="size-3.5" aria-hidden /> {t('changePhoto')}
+                      </Button>
+                      {user.image && (
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          disabled={savingPhoto}
+                          onClick={() => void savePhoto(null)}
+                        >
+                          <Trash2 className="size-3.5" aria-hidden /> {t('removePhoto')}
+                        </Button>
+                      )}
+                    </div>
+                    <p className="text-muted-foreground text-xs">{t('photoHint')}</p>
                   </div>
                 </div>
                 <div className="grid gap-2">
@@ -211,6 +407,26 @@ export function ProfilePage() {
                     required
                   />
                 </div>
+                <div className="grid gap-2">
+                  <Label htmlFor="profile-phone">{t('phone')}</Label>
+                  <Input
+                    id="profile-phone"
+                    inputMode="tel"
+                    maxLength={30}
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                  />
+                  <p className="text-muted-foreground text-xs">{t('phoneHint')}</p>
+                </div>
+                <div className="grid gap-2">
+                  <Label>{t('email')}</Label>
+                  <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
+                    <span className="min-w-0 truncate text-sm">{user.email}</span>
+                    <Button type="button" size="sm" variant="outline" onClick={() => setEmailOpen(true)}>
+                      <Mail className="size-3.5" aria-hidden /> {t('changeEmail')}
+                    </Button>
+                  </div>
+                </div>
                 {nameError && (
                   <Alert variant="destructive" role="alert">
                     <AlertDescription>{nameError}</AlertDescription>
@@ -219,7 +435,11 @@ export function ProfilePage() {
                 <Button
                   type="submit"
                   className="justify-self-start"
-                  disabled={savingName || name.trim().length < 2 || name.trim() === user.name}
+                  disabled={
+                    savingName ||
+                    name.trim().length < 2 ||
+                    (name.trim() === user.name && phone.trim() === (user.phone ?? ''))
+                  }
                 >
                   {savingName ? t('working') : t('saveName')}
                 </Button>
@@ -286,6 +506,15 @@ export function ProfilePage() {
           </Card>
 
           <SessionsCard currentToken={session.data?.session.token} />
+          <ChangeEmailDialog
+            open={emailOpen}
+            onOpenChange={setEmailOpen}
+            currentEmail={user.email}
+            onChanged={() => {
+              void session.refetch();
+              queryClient.invalidateQueries({ queryKey: ['me'] });
+            }}
+          />
         </div>
       )}
     </PageBody>

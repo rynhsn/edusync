@@ -1,4 +1,4 @@
-import { eq, user } from '@edusync/db';
+import { eq, sql, user } from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from './app';
 import { loadEnv } from './env';
@@ -43,6 +43,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  await app.platformDb.execute(
+    sql`delete from outbox where payload->>'to' like ${`profil-%${run}@example.test`}`,
+  );
   await app.platformDb.delete(user).where(eq(user.id, userId));
   await app.close();
 });
@@ -112,5 +115,76 @@ describe('profil: nama dan kata sandi', () => {
       newPassword: 'pendek',
     });
     expect(res.statusCode).toBe(400);
+  });
+});
+
+describe('profil: email, telepon, foto', () => {
+  const newEmail = `profil-baru-${run}@example.test`;
+  const tinyJpeg =
+    'data:image/jpeg;base64,/9j/4AAQSkZJRgABAQEASABIAAD/2wBDAP//////////////////////////////////////////////////////////////////////////////////////wgALCAABAAEBAREA/8QAFBABAAAAAAAAAAAAAAAAAAAAAP/aAAgBAQABPxA=';
+
+  async function outboxCode(to: string) {
+    for (let i = 0; i < 20; i++) {
+      const res = await app.platformDb.execute<{ payload: { text: string } }>(
+        sql`select payload from outbox where payload->>'to' = ${to} order by created_at desc limit 1`,
+      );
+      const code = /: (\d{6})/.exec(res.rows[0]?.payload.text ?? '')?.[1];
+      if (code) return code;
+      await new Promise((r) => setTimeout(r, 50));
+    }
+    return null;
+  }
+
+  it('mengubah telepon (dinormalkan), menolak telepon tak masuk akal, dan boleh dikosongkan', async () => {
+    const s = await login(newPassword);
+    const ok = await call('POST', '/api/auth/update-user', s.cookie, { phone: '0812-3456-7890' });
+    expect(ok.statusCode).toBe(200);
+    expect((await call('GET', '/api/auth/get-session', s.cookie)).json().user.phone).toBe('6281234567890');
+    expect((await call('POST', '/api/auth/update-user', s.cookie, { phone: 'abc' })).statusCode).toBe(400);
+    expect((await call('POST', '/api/auth/update-user', s.cookie, { phone: '' })).statusCode).toBe(200);
+    expect((await call('GET', '/api/auth/get-session', s.cookie)).json().user.phone).toBeNull();
+  });
+
+  it('nama terlalu pendek ditolak', async () => {
+    const s = await login(newPassword);
+    expect((await call('POST', '/api/auth/update-user', s.cookie, { name: 'A' })).statusCode).toBe(400);
+  });
+
+  it('foto: gambar kecil diterima, berkas bukan gambar ditolak, dan bisa dihapus', async () => {
+    const s = await login(newPassword);
+    expect((await call('POST', '/api/auth/update-user', s.cookie, { image: tinyJpeg })).statusCode).toBe(200);
+    expect((await call('GET', '/api/auth/get-session', s.cookie)).json().user.image).toBe(tinyJpeg);
+    expect(
+      (await call('POST', '/api/auth/update-user', s.cookie, { image: 'https://contoh.test/x.png' }))
+        .statusCode,
+    ).toBe(400);
+    expect(
+      (await call('POST', '/api/auth/update-user', s.cookie, { image: 'data:text/html;base64,PGI+' }))
+        .statusCode,
+    ).toBe(400);
+    const big = `data:image/png;base64,${'A'.repeat(130_000)}`;
+    expect((await call('POST', '/api/auth/update-user', s.cookie, { image: big })).statusCode).toBe(400);
+    expect((await call('POST', '/api/auth/update-user', s.cookie, { image: '' })).statusCode).toBe(200);
+    expect((await call('GET', '/api/auth/get-session', s.cookie)).json().user.image).toBeNull();
+  });
+
+  it('ganti email: kode dikirim ke alamat baru, salah kode ditolak, kode benar mengganti dan masuk dengan email baru', async () => {
+    const s = await login(newPassword);
+    const req = await call('POST', '/api/auth/email-otp/request-email-change', s.cookie, { newEmail });
+    expect(req.statusCode).toBe(200);
+    const code = await outboxCode(newEmail);
+    expect(code).toMatch(/^\d{6}$/);
+
+    const bad = await call('POST', '/api/auth/email-otp/change-email', s.cookie, { newEmail, otp: '000000' });
+    expect(bad.statusCode).toBe(400);
+
+    const ok = await call('POST', '/api/auth/email-otp/change-email', s.cookie, { newEmail, otp: code });
+    expect(ok.statusCode).toBe(200);
+    expect((await call('GET', '/api/auth/get-session', s.cookie)).json().user.email).toBe(newEmail);
+    const again = await call('POST', '/api/auth/sign-in/email', undefined, {
+      email: newEmail,
+      password: newPassword,
+    });
+    expect(again.statusCode).toBe(200);
   });
 });

@@ -14,6 +14,7 @@ import {
   Send,
   ShieldCheck,
   UserCog,
+  Users,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -22,7 +23,7 @@ import { createContext, useContext, useEffect } from 'react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -70,6 +71,7 @@ const GROUPS = [
     key: 'groupWatch',
     items: [
       { href: '/platform/messaging', key: 'messaging', icon: Send },
+      { href: '/platform/users', key: 'users', icon: Users },
       { href: '/platform/audit', key: 'audit', icon: History },
     ],
   },
@@ -209,6 +211,7 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
               <DropdownMenu>
                 <DropdownMenuTrigger render={<Button variant="ghost" className="h-auto gap-2 py-1" />}>
                   <Avatar className="size-7">
+                    {account?.image && <AvatarImage src={account.image} alt="" />}
                     <AvatarFallback>{(account?.name ?? '?').slice(0, 2).toUpperCase()}</AvatarFallback>
                   </Avatar>
                   <span className="hidden text-sm sm:inline">{account?.name}</span>

@@ -1,0 +1,20 @@
+# Server web: HTTPS otomatis untuk alamat utama dan tiap subdomain sekolah.
+# Sertifikat diminta saat host pertama kali dibuka (on-demand), dan hanya untuk host yang disetujui API.
+{
+	email __ACME_EMAIL__
+	on_demand_tls {
+		ask http://127.0.0.1:4000/internal/tls-ask
+	}
+}
+
+https:// {
+	tls {
+		on_demand
+	}
+	encode zstd gzip
+	reverse_proxy 127.0.0.1:3000
+}
+
+http:// {
+	redir https://{host}{uri} permanent
+}

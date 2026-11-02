@@ -174,10 +174,13 @@ export function UserAvatar({
   name,
   size = 'md',
   className,
+  image,
 }: {
   name: string;
   size?: 'sm' | 'md' | 'lg';
   className?: string;
+  /** Foto profil (data URL); tanpa foto dipakai inisial berwarna. */
+  image?: string | null;
 }) {
   const tone = AVATAR_TONES[hashName(name) % AVATAR_TONES.length] ?? 'teal';
   return (
@@ -188,11 +191,16 @@ export function UserAvatar({
         size === 'sm' && 'size-7 text-[11px]',
         size === 'md' && 'size-9 text-xs',
         size === 'lg' && 'size-14 text-lg',
-        TONES[tone].soft,
+        !image && TONES[tone].soft,
         className,
       )}
     >
-      {initialsOf(name)}
+      {image ? (
+        // biome-ignore lint/performance/noImgElement: foto berupa data URL kecil, tidak perlu pengoptimal gambar
+        <img src={image} alt="" className="size-full rounded-full object-cover" />
+      ) : (
+        initialsOf(name)
+      )}
     </span>
   );
 }

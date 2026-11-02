@@ -1,0 +1,22 @@
+[Unit]
+Description=Edusync web (Next.js)
+After=network-online.target edusync-api.service
+Wants=network-online.target
+
+[Service]
+User=edusync
+Group=edusync
+WorkingDirectory=/opt/edusync/app/apps/web
+Environment=HOME=/opt/edusync
+Environment=PATH=/usr/local/bin:/usr/bin:/bin
+EnvironmentFile=/opt/edusync/app/.env
+ExecStart=/usr/local/bin/pnpm exec next start -p 3000 -H 127.0.0.1
+Restart=on-failure
+RestartSec=5
+# Batasi dampak bila ada celah: tidak boleh menaikkan hak akses dan sistem berkas selain /opt/edusync read-only.
+NoNewPrivileges=true
+ProtectSystem=full
+ReadWritePaths=/opt/edusync
+
+[Install]
+WantedBy=multi-user.target

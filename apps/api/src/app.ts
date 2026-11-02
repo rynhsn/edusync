@@ -56,6 +56,7 @@ import { platformCatalogRoutes } from './routes/platform-catalog';
 import { platformMessagingRoutes } from './routes/platform-messaging';
 import { platformPaymentRoutes } from './routes/platform-payments';
 import { platformReferenceRoutes } from './routes/platform-reference';
+import { platformUserRoutes } from './routes/platform-users';
 import { portalRoutes } from './routes/portal';
 import { portalPublicRoutes } from './routes/portal-public';
 import { reportCardRoutes } from './routes/report-card';
@@ -67,6 +68,7 @@ import { semesterRoutes } from './routes/semesters';
 import { studentImportRoutes } from './routes/student-import';
 import { tahfidzRoutes } from './routes/tahfidz';
 import { teacherImportRoutes } from './routes/teacher-import';
+import { tlsAskRoutes } from './routes/tls-ask';
 
 export { paymentConfig };
 
@@ -236,8 +238,10 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(pklPublicRoutes);
   await app.register(messagingRoutes, { env });
   await app.register(platformMessagingRoutes, { env });
+  await app.register(platformUserRoutes);
   await app.register(schoolSettingsRoutes);
   await app.register(schoolDomainRoutes, { env, hosts, dns: deps.dns ?? systemDns });
+  await app.register(tlsAskRoutes, { env, hosts });
   await app.register(semesterRoutes);
   await app.register(calendarRoutes);
   await app.register(curriculumRoutes);

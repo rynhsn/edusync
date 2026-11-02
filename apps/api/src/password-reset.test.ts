@@ -110,4 +110,22 @@ describe('lupa kata sandi dengan OTP email', () => {
     const res = await post('/api/auth/email-otp/reset-password', { email, otp, password: 'pendek' });
     expect(res.statusCode).toBe(400);
   });
+
+  it('memeriksa kode lebih dulu: kode salah ditolak, kode benar lolos tanpa menghabiskannya, lalu reset tetap bisa', async () => {
+    const known = (await emails(email)).length;
+    expect((await requestOtp(email)).statusCode).toBe(200);
+    const otp = await sentOtp(email, known);
+
+    const check = (code: string) =>
+      post('/api/auth/email-otp/check-verification-otp', { email, type: 'forget-password', otp: code });
+    expect((await check('000000')).statusCode).toBe(400);
+    expect((await check(otp as string)).statusCode).toBe(200);
+    // Memeriksa dua kali tidak menghabiskan kode.
+    expect((await check(otp as string)).statusCode).toBe(200);
+
+    const reset = await post('/api/auth/email-otp/reset-password', { email, otp, password: oldPassword });
+    expect(reset.statusCode).toBe(200);
+    expect((await login(oldPassword)).statusCode).toBe(200);
+    expect((await check(otp as string)).statusCode).toBe(400);
+  });
 });

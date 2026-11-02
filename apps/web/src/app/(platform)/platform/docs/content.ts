@@ -1327,6 +1327,143 @@ export const PLATFORM_DOCS: DocArticle[] = [
     },
   },
   {
+    slug: 'users',
+    icon: 'users',
+    tone: 'amber',
+    group: 'watch',
+    text: {
+      id: {
+        title: 'Pengguna: mengeluarkan semua perangkat seseorang',
+        summary:
+          'Mencari akun seseorang lalu mengeluarkannya dari semua perangkat bila akunnya diduga bocor atau perangkatnya hilang.',
+        forWho:
+          'Staf platform yang menerima laporan akun disalahgunakan atau perangkat hilang. Hanya staf dengan peran Admin yang bisa mengeluarkan perangkat; peran Hanya lihat boleh mencari.',
+        sections: [
+          {
+            heading: 'Mengeluarkan semua perangkat seorang pengguna',
+            body: 'Satu akun bisa dipakai di banyak sekolah dan banyak perangkat. Bila pemiliknya melapor ponselnya hilang atau akunnya dipakai orang lain, keluarkan semua perangkatnya. Setelah itu ia harus masuk lagi dengan kata sandinya di setiap perangkat. Kata sandi dan data akunnya tidak berubah.',
+            steps: [
+              'Buka Pengguna di menu Sistem.',
+              'Ketik nama atau email pemilik akun (minimal 2 huruf), lalu cari kartunya.',
+              'Pastikan nama dan email cocok. Lihat jumlah sekolah dan perangkat aktifnya.',
+              'Tekan Keluarkan semua perangkat, tulis alasannya, lalu tekan tombol konfirmasi.',
+              'Tunggu pesan berhasil yang menyebut jumlah perangkat yang dikeluarkan.',
+            ],
+            tip: 'Setelah perangkat dikeluarkan, minta pemilik akun mengganti kata sandinya dari halaman Profil saat masuk kembali.',
+            warning:
+              'Akun yang sama dipakai di semua sekolah tempat orang itu terdaftar, jadi ia keluar dari semuanya sekaligus. Bila Anda mengeluarkan akun Anda sendiri, Anda juga ikut keluar.',
+            href: '/platform/users',
+          },
+          {
+            heading: 'Memeriksa siapa yang sudah dikeluarkan',
+            body: 'Setiap pengeluaran perangkat tercatat di Audit beserta alasan dan jumlah perangkatnya. Pada kartu pengguna, lencana Staf Edusync menandai akun yang juga staf platform, supaya Anda berhati-hati sebelum mengeluarkannya.',
+            href: '/platform/audit',
+          },
+        ],
+        faq: [
+          {
+            q: 'Tombol Keluarkan semua perangkat tidak aktif. Kenapa?',
+            a: 'Ada dua kemungkinan. Peran Anda Hanya lihat, atau pengguna itu memang tidak punya perangkat yang sedang masuk (tertulis 0 perangkat aktif).',
+          },
+          {
+            q: 'Apakah pengguna langsung terkeluar?',
+            a: 'Ya. Begitu berhasil, perangkat mereka tidak bisa dipakai lagi dan mereka diminta masuk ulang pada tindakan berikutnya. Mereka bisa langsung masuk lagi bila punya kata sandi yang benar.',
+          },
+          {
+            q: 'Akunnya bocor. Apakah cukup dengan mengeluarkan perangkat?',
+            a: 'Itu langkah pertama. Orang yang tahu kata sandinya bisa masuk lagi, jadi minta pemilik akun segera mengganti kata sandinya.',
+          },
+        ],
+      },
+      en: {
+        title: 'Users: signing a person out of every device',
+        summary:
+          'Find someone’s account and sign it out of all devices when the account may be compromised or a device was lost.',
+        forWho:
+          'Platform staff who receive a report of a misused account or a lost device. Only staff with the Admin role can sign devices out; the Read only role can search.',
+        sections: [
+          {
+            heading: 'Signing a user out of all devices',
+            body: 'One account can be used at many schools and on many devices. If the owner reports a lost phone or someone else using the account, sign out all of its devices. The person then has to sign in again with their password on every device. Their password and account data do not change.',
+            steps: [
+              'Open Users in the System menu.',
+              'Type the account owner’s name or email (at least 2 letters), then find their card.',
+              'Make sure the name and email match. Check the number of schools and active devices.',
+              'Press Sign out all devices, write the reason, then press the confirm button.',
+              'Wait for the success message that tells how many devices were signed out.',
+            ],
+            tip: 'After the devices are signed out, ask the account owner to change their password from the Profile page when they sign back in.',
+            warning:
+              'The same account is used at every school the person belongs to, so they are signed out of all of them at once. If you sign out your own account, you are signed out too.',
+            href: '/platform/users',
+          },
+          {
+            heading: 'Checking who was signed out',
+            body: 'Every sign-out is recorded in Audit with the reason and the number of devices. On the user card, the Edusync staff badge marks accounts that are also platform staff, so you can be careful before signing them out.',
+            href: '/platform/audit',
+          },
+        ],
+        faq: [
+          {
+            q: 'The Sign out all devices button is disabled. Why?',
+            a: 'There are two possible reasons. Your role is Read only, or the user simply has no signed-in device (it says 0 active devices).',
+          },
+          {
+            q: 'Is the user signed out right away?',
+            a: 'Yes. Once it succeeds, their devices stop working and they are asked to sign in again on their next action. They can sign in again straight away if they have the right password.',
+          },
+          {
+            q: 'The account was leaked. Is signing out devices enough?',
+            a: 'It is the first step. Anyone who knows the password can sign in again, so ask the account owner to change their password right away.',
+          },
+        ],
+      },
+      su: {
+        title: 'Pamake: ngaluarkeun sakabéh alat hiji jalma',
+        summary:
+          'Néangan akun hiji jalma tuluy ngaluarkeunana tina sakabéh alat lamun akunna dicurigaan bocor atawa alatna leungit.',
+        forWho:
+          'Staf platform nu narima laporan akun disalahgunakeun atawa alat leungit. Ngan staf peran Admin nu bisa ngaluarkeun alat; peran Ngan ningali meunang néangan.',
+        sections: [
+          {
+            heading: 'Ngaluarkeun sakabéh alat hiji pamake',
+            body: 'Hiji akun bisa dipaké di loba sakola jeung loba alat. Lamun nu gaduh ngalaporkeun hapéna leungit atawa akunna dipaké batur, kaluarkeun sakabéh alatna. Saterusna manéhna kudu lebet deui maké kecap sandina di unggal alat. Kecap sandi jeung data akunna teu robah.',
+            steps: [
+              'Buka Pamake dina menu Sistem.',
+              'Ketik ngaran atawa surélék nu gaduh akun (min. 2 hurup), tuluy teangan kartuna.',
+              'Pastikeun ngaran jeung surélékna cocog. Tingali jumlah sakola jeung alat aktifna.',
+              'Pencét Kaluarkeun sakabéh alat, tulis alesanna, tuluy pencét tombol konfirmasi.',
+              'Antosan pesen anu hasil nu nyebutkeun sabaraha alat nu dikaluarkeun.',
+            ],
+            tip: 'Sanggeus alat dikaluarkeun, mintakeun nu gaduh akun ngaganti kecap sandina ti kaca Profil nalika lebet deui.',
+            warning:
+              'Akun anu sarua dipaké di sakabéh sakola tempat jalma éta kadaptar, jadi manéhna kaluar tina sakabéhna sakaligus. Lamun anjeun ngaluarkeun akun sorangan, anjeun ogé milu kaluar.',
+            href: '/platform/users',
+          },
+          {
+            heading: 'Mariksa saha nu geus dikaluarkeun',
+            body: 'Unggal pangaluaran alat dicatet dina Audit jeung alesan sarta jumlah alatna. Dina kartu pamake, lencana Staf Edusync nandaan akun nu ogé staf platform, sangkan anjeun ati-ati samemeh ngaluarkeunana.',
+            href: '/platform/audit',
+          },
+        ],
+        faq: [
+          {
+            q: 'Tombol Kaluarkeun sakabéh alat teu aktip. Naha?',
+            a: 'Aya dua kamungkinan. Peran anjeun Ngan ningali, atawa pamake éta mémang teu boga alat nu keur lebet (ditulis 0 alat aktif).',
+          },
+          {
+            q: 'Naha pamake langsung kaluar?',
+            a: 'Enya. Sanggeus hasil, alatna teu bisa dipaké deui jeung diaku lebet deui dina lampah salajengna. Manéhna bisa langsung lebet deui lamun boga kecap sandi nu bener.',
+          },
+          {
+            q: 'Akunna bocor. Naha cukup ngaluarkeun alat?',
+            a: 'Éta léngkah kahiji. Jalma nu apal kecap sandina bisa lebet deui, jadi mintakeun nu gaduh akun geura ngaganti kecap sandina.',
+          },
+        ],
+      },
+    },
+  },
+  {
     slug: 'audit',
     icon: 'history',
     tone: 'violet',

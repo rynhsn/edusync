@@ -57,7 +57,7 @@ import { createContext, useContext, useEffect, useState } from 'react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -558,6 +558,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const tc = useTranslations('common');
   const tr = useTranslations('roles');
   const tp = useTranslations('profile');
+  const photo = authClient.useSession().data?.user.image ?? undefined;
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -668,6 +669,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   render={<Button variant="ghost" className="h-auto gap-2 py-1" aria-label={user.name} />}
                 >
                   <Avatar className="size-7">
+                    {photo && <AvatarImage src={photo} alt="" />}
                     <AvatarFallback>{initials}</AvatarFallback>
                   </Avatar>
                 </DropdownMenuTrigger>
@@ -743,6 +745,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <DropdownMenu>
               <DropdownMenuTrigger render={<Button variant="ghost" className="h-auto gap-2 py-1" />}>
                 <Avatar className="size-7">
+                  {photo && <AvatarImage src={photo} alt="" />}
                   <AvatarFallback>{initials}</AvatarFallback>
                 </Avatar>
                 <span className="hidden text-sm sm:inline">{user.name}</span>
