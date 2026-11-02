@@ -32,14 +32,14 @@ function UnitCard({ unit, index }: { unit: AccountSchool; index: number }) {
             <h2 className="font-heading truncate font-semibold">{unit.name}</h2>
             <p className="text-muted-foreground truncate font-mono text-xs">{unit.slug}</p>
           </div>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
           <ToneBadge tone={unit.status === 'active' ? 'emerald' : 'rose'}>
             {unit.status === 'active' ? t('unitActive') : t('unitSuspended')}
             {unit.suspendedReason === 'billing' && ` · ${t('byBilling')}`}
             {unit.suspendedReason === 'staff' && ` · ${t('byStaff')}`}
           </ToneBadge>
-        </div>
-
-        <div className="flex flex-wrap gap-1.5">
           <ToneBadge tone="teal" dot={false}>
             {tierLabel(unit.tier)}
           </ToneBadge>
