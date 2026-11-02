@@ -68,7 +68,28 @@
     "notFound": "Dokumentasi tidak ditemukan.",
     "pager": "Dokumentasi lain",
     "openPage": "Buka halaman",
-    "moduleOff": "Modul belum aktif"
+    "moduleOff": "Modul belum aktif",
+    "searchPlaceholder": "Cari panduan…",
+    "noResults": "Panduan tidak ditemukan",
+    "noResultsBody": "Coba kata lain, misalnya nama menu atau pekerjaan yang ingin dilakukan.",
+    "clearSearch": "Hapus pencarian",
+    "forWho": "Untuk",
+    "onThisPage": "Di halaman ini",
+    "faqTitle": "Pertanyaan yang sering muncul",
+    "tip": "Tips",
+    "warning": "Perhatian",
+    "groups": {
+      "master": "Data induk",
+      "attendance": "Absensi dan jadwal",
+      "academic": "Akademik dan pembinaan",
+      "finance": "Keuangan dan pendaftaran",
+      "services": "Layanan dan komunikasi",
+      "access": "Pengguna dan akses",
+      "ops": "Operasional harian",
+      "config": "Pengaturan platform",
+      "watch": "Pemantauan",
+      "other": "Lainnya"
+    }
   },
   "nav": {
     "menu": "Menu utama",

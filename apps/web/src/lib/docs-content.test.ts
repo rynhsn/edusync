@@ -48,15 +48,43 @@ describe.each(SETS)('dokumentasi $name', ({ articles, group }) => {
         expect(t.title.trim(), `${a.slug}/${loc} judul`).not.toBe('');
         expect(t.summary.trim(), `${a.slug}/${loc} ringkasan`).not.toBe('');
         expect(t.sections.length, `${a.slug}/${loc} jumlah section`).toBe(base.sections.length);
+        expect(!!t.forWho, `${a.slug}/${loc} untuk siapa`).toBe(!!base.forWho);
+        expect(t.faq?.length ?? 0, `${a.slug}/${loc} jumlah tanya-jawab`).toBe(base.faq?.length ?? 0);
+        for (const f of t.faq ?? []) {
+          expect(f.q.trim() && f.a.trim(), `${a.slug}/${loc} tanya-jawab kosong`).toBeTruthy();
+        }
         t.sections.forEach((s, i) => {
           const b = base.sections[i];
           expect(s.heading.trim(), `${a.slug}/${loc}#${i} heading`).not.toBe('');
           expect(s.body.trim(), `${a.slug}/${loc}#${i} isi`).not.toBe('');
           expect(s.steps?.length ?? 0, `${a.slug}/${loc}#${i} langkah`).toBe(b?.steps?.length ?? 0);
           expect(s.href, `${a.slug}/${loc}#${i} href`).toBe(b?.href);
+          expect(!!s.tip, `${a.slug}/${loc}#${i} tips`).toBe(!!b?.tip);
+          expect(!!s.warning, `${a.slug}/${loc}#${i} perhatian`).toBe(!!b?.warning);
           for (const step of s.steps ?? [])
             expect(step.trim(), `${a.slug}/${loc}#${i} langkah kosong`).not.toBe('');
         });
+      }
+    }
+  });
+
+  it('artikel panduan sekolah dan platform punya kelompok serta ditulis untuk pengguna (tanpa istilah teknis)', () => {
+    if (!group) return;
+    const banned =
+      /\b(API|endpoint|webhook|JSON|payload|token|hash|UID|env|\.env|RLS|dry ?run|localhost|enum)\b|[a-z_]+:[a-z_]+/i;
+    for (const a of articles) {
+      expect(a.group, `${a.slug} kelompok`).toBeTruthy();
+      for (const loc of LOCALES) {
+        const t = a.text[loc];
+        const all = [t.title, t.summary, t.forWho ?? '']
+          .concat(
+            t.sections.flatMap((s) => [s.heading, s.body, s.tip ?? '', s.warning ?? '', ...(s.steps ?? [])]),
+          )
+          .concat((t.faq ?? []).flatMap((f) => [f.q, f.a]))
+          .join('\n');
+        expect(all.match(banned)?.[0], `${a.slug}/${loc} memuat istilah teknis`).toBeUndefined();
+        expect(t.faq?.length ?? 0, `${a.slug}/${loc} butuh tanya-jawab`).toBeGreaterThan(0);
+        expect(t.forWho, `${a.slug}/${loc} butuh "untuk siapa"`).toBeTruthy();
       }
     }
   });

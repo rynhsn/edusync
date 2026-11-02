@@ -1,102 +1,154 @@
 import type { DocArticle } from '@/lib/docs-types';
 
-/** Dokumentasi konsol platform, satu artikel per modul konsol. Isi: id, en, su. */
+/** Panduan konsol platform untuk staf operasional EduSync, disusun menurut pekerjaan. Isi: id, en, su. */
 export const PLATFORM_DOCS: DocArticle[] = [
   {
     slug: 'overview',
     icon: 'rocket',
     tone: 'teal',
+    group: 'ops',
     text: {
       id: {
-        title: 'Ikhtisar konsol',
-        summary: 'Peran staf platform, alur kerja harian, dan peta modul konsol.',
+        title: 'Mulai bekerja di konsol',
+        summary: 'Cara memulai pekerjaan harian, apa yang boleh Anda ubah, dan ke mana mencari menu.',
+        forWho: 'Staf operasional EduSync yang baru memakai konsol.',
         sections: [
           {
-            heading: 'Dua peran staf',
-            body: 'Admin platform bisa melihat sekaligus mengubah: menangguhkan unit, mengaktifkan tanpa pembayaran, mengubah katalog, pembayaran, pesan, dan bank kurikulum. Peran Hanya lihat dapat membuka semua halaman tetapi tombol ubahnya tidak muncul. Peran Anda tampil di bagian bawah menu.',
-            href: '/platform',
-          },
-          {
-            heading: 'Alur kerja harian',
-            body: 'Mulai dari Ringkasan platform, lalu tangani hal yang butuh tindakan.',
+            heading: 'Memulai pekerjaan harian',
+            body: 'Mulailah dari halaman Ringkasan platform. Di sana terlihat hal-hal yang butuh perhatian Anda hari ini.',
             steps: [
-              'Buka Lembaga & unit dan baca kartu ringkasan: unit ditangguhkan, invoice terbuka, dan pendaftaran tertunda.',
-              'Buka Pendaftaran tertunda bila angkanya lebih dari nol.',
-              'Periksa lembaga yang berstatus Masa tenggang atau punya unit ditangguhkan.',
-              'Tinjau Audit untuk memastikan tindakan hari ini tercatat.',
+              'Buka Lembaga & unit lalu lihat kartu di bagian atas: Unit ditangguhkan, Invoice terbuka, dan Pendaftaran tertunda.',
+              'Bila Pendaftaran tertunda lebih dari nol, klik kartunya dan tangani satu per satu.',
+              'Saring daftar lembaga dengan status Masa tenggang untuk melihat sekolah yang hampir ditangguhkan.',
+              'Di akhir hari, buka Audit untuk memastikan tindakan Anda tercatat.',
             ],
             href: '/platform',
+            tip: 'Lakukan pemeriksaan ini di awal jam kerja supaya sekolah yang bermasalah ditangani sebelum mereka menghubungi Anda.',
           },
           {
-            heading: 'Peta modul',
-            body: 'Menu dibagi menjadi Operasi (Lembaga & unit, Pendaftaran tertunda, Pembayaran), Katalog (Harga & modul, Bank kurikulum), dan Sistem (WhatsApp, Audit). Setiap modul punya artikel sendiri di dokumentasi ini.',
+            heading: 'Mengetahui apa yang boleh Anda ubah',
+            body: 'Ada dua peran staf. Staf dengan peran Admin platform bisa melihat sekaligus mengubah: menangguhkan sekolah, mengaktifkan tanpa pembayaran, mengubah harga, dan mengatur pembayaran serta pesan. Staf dengan peran Hanya lihat bisa membuka semua halaman, tetapi tombol untuk mengubah tidak muncul. Peran Anda tertulis di bagian bawah menu.',
+            href: '/platform',
           },
           {
-            heading: 'Bantuan',
-            body: 'Panduan operator berisi daftar periksa singkat untuk aktivasi komplimen, penangguhan, perubahan katalog, dan WhatsApp. Centang di sana hanya tersimpan di peramban Anda.',
+            heading: 'Menemukan menu yang tepat',
+            body: 'Menu di sisi kiri dibagi tiga. Operasi berisi Lembaga & unit, Pendaftaran tertunda, dan Pembayaran. Katalog berisi Harga & modul serta Bank kurikulum. Sistem berisi WhatsApp dan Audit. Setiap menu punya artikel sendiri di dokumentasi ini.',
+          },
+          {
+            heading: 'Memakai daftar periksa Panduan operator',
+            body: 'Menu Panduan operator berisi daftar periksa singkat untuk pekerjaan yang sering dilakukan, seperti aktivasi tanpa pembayaran, penangguhan, perubahan harga, dan pengaturan WhatsApp.',
             href: '/platform/guide',
+            tip: 'Centang di daftar periksa hanya tersimpan di peramban yang Anda pakai. Di komputer lain, daftarnya kosong lagi.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Saya tidak melihat tombol Tangguhkan atau Simpan. Apa yang salah?',
+            a: 'Kemungkinan besar akun Anda berperan Hanya lihat. Cek peran Anda di bagian bawah menu. Bila perlu mengubah data, minta admin EduSync mengubah peran akun Anda.',
+          },
+          {
+            q: 'Halaman terasa lama atau datanya tampak ketinggalan. Apa yang dicek?',
+            a: 'Muat ulang halaman dengan menekan F5. Bila masih sama, cek koneksi internet Anda lalu coba keluar dan masuk lagi. Bila tetap bermasalah, hubungi tim teknis EduSync.',
+          },
+          {
+            q: 'Dari mana saya tahu sebuah tindakan sudah tersimpan?',
+            a: 'Setelah menyimpan, muncul pesan singkat seperti Perubahan disimpan. Untuk memastikan lebih lanjut, buka Audit dan cari tindakan Anda; catatan terbaru ada di bagian atas.',
           },
         ],
       },
       en: {
-        title: 'Console overview',
-        summary: 'Platform staff roles, the daily workflow, and a map of the console modules.',
+        title: 'Getting started in the console',
+        summary: 'How to start your daily work, what you are allowed to change, and where to find each menu.',
+        forWho: 'EduSync operations staff who are new to the console.',
         sections: [
           {
-            heading: 'Two staff roles',
-            body: 'A platform admin can view and change things: suspend units, activate without payment, and edit the catalog, payments, messaging, and curriculum bank. The Read only role can open every page but the edit buttons do not appear. Your role is shown at the bottom of the menu.',
-            href: '/platform',
-          },
-          {
-            heading: 'Daily workflow',
-            body: 'Start from the Platform overview, then handle whatever needs action.',
+            heading: 'Starting your daily work',
+            body: 'Start from the Platform overview page. It shows what needs your attention today.',
             steps: [
-              'Open Foundations & units and read the summary cards: suspended units, open invoices, and pending registrations.',
-              'Open Pending registrations if the count is above zero.',
-              'Check foundations in Grace period or with suspended units.',
-              'Review the Audit page to confirm today actions were recorded.',
+              'Open Foundations & units and look at the cards at the top: Suspended units, Open invoices, and Pending registrations.',
+              'If Pending registrations is above zero, click the card and handle them one by one.',
+              'Filter the foundation list by Grace period to see schools that are close to being suspended.',
+              'At the end of the day, open Audit to confirm your actions were recorded.',
             ],
             href: '/platform',
+            tip: 'Do this check at the start of the working day so troubled schools are handled before they contact you.',
           },
           {
-            heading: 'Module map',
-            body: 'The menu is grouped into Operations (Foundations & units, Pending registrations, Payments), Catalog (Prices & modules, Curriculum bank), and System (WhatsApp, Audit). Each module has its own article in this documentation.',
+            heading: 'Knowing what you may change',
+            body: 'There are two staff roles. Staff with the Platform admin role can view and change things: suspend schools, activate without payment, change prices, and set up payments and messaging. Staff with the Read only role can open every page, but the buttons to change things do not appear. Your role is shown at the bottom of the menu.',
+            href: '/platform',
           },
           {
-            heading: 'Help',
-            body: 'The operator guide has short checklists for complimentary activation, suspension, catalog changes, and WhatsApp. Ticks there are only saved in your browser.',
+            heading: 'Finding the right menu',
+            body: 'The menu on the left has three parts. Operations holds Foundations & units, Pending registrations, and Payments. Catalog holds Prices & modules and Curriculum bank. System holds WhatsApp and Audit. Each menu has its own article in this documentation.',
+          },
+          {
+            heading: 'Using the Operator guide checklists',
+            body: 'The Operator guide menu has short checklists for common jobs such as activating without payment, suspending, changing prices, and setting up WhatsApp.',
             href: '/platform/guide',
+            tip: 'Ticks in the checklist are only saved in the browser you use. On another computer the list is empty again.',
+          },
+        ],
+        faq: [
+          {
+            q: 'I cannot see the Suspend or Save button. What is wrong?',
+            a: 'Most likely your account has the Read only role. Check your role at the bottom of the menu. If you need to change data, ask an EduSync admin to change your account role.',
+          },
+          {
+            q: 'The page is slow or the data looks old. What should I check?',
+            a: 'Reload the page by pressing F5. If it stays the same, check your internet connection and try signing out and in again. If it still fails, contact the EduSync technical team.',
+          },
+          {
+            q: 'How do I know an action was saved?',
+            a: 'After saving, a short message such as Changes saved appears. To be sure, open Audit and look for your action; the newest entries are at the top.',
           },
         ],
       },
       su: {
-        title: 'Ihtisar konsol',
-        summary: 'Peran staf platform, alur damel unggal poé, jeung peta modul konsol.',
+        title: 'Ngamimitian damel di konsol',
+        summary: 'Cara ngamimitian pagawéan sapopoé, naon nu meunang dirobah, jeung ka mana néangan menu.',
+        forWho: 'Staf operasional EduSync nu karék maké konsol.',
         sections: [
           {
-            heading: 'Dua peran staf',
-            body: 'Admin platform tiasa ningali sareng ngarobih: nangguhkeun unit, ngaktipkeun tanpa pamayaran, ngarobih katalog, pamayaran, pesen, jeung bank kurikulum. Peran Ngan ningali tiasa muka sadaya kaca tapi tombol robahna teu aya. Peran anjeun katingali di handapeun menu.',
-            href: '/platform',
-          },
-          {
-            heading: 'Alur damel unggal poé',
-            body: 'Mimitian ti Ringkesan platform, tuluy tangani nu peryogi tindakan.',
+            heading: 'Ngamimitian pagawéan sapopoé',
+            body: 'Mimitian tina kaca Ringkesan platform. Di dinya katingali naon waé nu peryogi perhatian anjeun poé ieu.',
             steps: [
-              'Buka Lembaga & unit tuluy baca kartu ringkesan: unit ditangguhkeun, invoice muka, jeung pendaptaran nunggu.',
-              'Buka Pendaptaran nunggu lamun angkana leuwih ti nol.',
-              'Pariksa lembaga nu statusna Mangsa tenggang atawa nu unitna ditangguhkeun.',
-              'Tilik Audit pikeun mastikeun tindakan dinten ieu kacatet.',
+              'Buka Lembaga & unit tuluy tingali kartu di luhur: Unit ditangguhkeun, Invoice muka, jeung Pendaptaran nunggu.',
+              'Lamun Pendaptaran nunggu leuwih ti nol, klik kartuna tuluy tangani hiji-hiji.',
+              'Saring daptar lembaga ku status Mangsa tenggang pikeun nénjo sakola nu ampir ditangguhkeun.',
+              'Dina ahir poé, buka Audit pikeun mastikeun tindakan anjeun kacatet.',
             ],
             href: '/platform',
+            tip: 'Pariksa ieu dina awal jam damel sangkan sakola nu bermasalah katangani samemeh maranéhna ngahubungan anjeun.',
           },
           {
-            heading: 'Peta modul',
-            body: 'Menu dibagi jadi Operasi (Lembaga & unit, Pendaptaran nunggu, Pamayaran), Katalog (Harga & modul, Bank kurikulum), jeung Sistem (WhatsApp, Audit). Unggal modul boga artikel sorangan dina dokuméntasi ieu.',
+            heading: 'Terang naon nu meunang dirobah',
+            body: 'Aya dua peran staf. Staf nu perannana Admin platform tiasa ningali sareng ngarobih: nangguhkeun sakola, ngaktipkeun tanpa pamayaran, ngarobih harga, jeung ngatur pamayaran sarta pesen. Staf nu perannana Ngan ningali tiasa muka sadaya kaca, tapi tombol pikeun ngarobih teu aya. Peran anjeun katingali di handapeun menu.',
+            href: '/platform',
           },
           {
-            heading: 'Pitulung',
-            body: 'Pituduh operator eusina daptar pariksa singget pikeun aktivasi komplimen, penangguhan, parobahan katalog, jeung WhatsApp. Centang di dinya ngan disimpen dina pangotéh anjeun.',
+            heading: 'Mendakan menu nu pas',
+            body: 'Menu di sisi kénca dibagi tilu. Operasi eusina Lembaga & unit, Pendaptaran nunggu, jeung Pamayaran. Katalog eusina Harga & modul sareng Bank kurikulum. Sistem eusina WhatsApp jeung Audit. Unggal menu boga artikel sorangan dina dokuméntasi ieu.',
+          },
+          {
+            heading: 'Maké daptar pariksa Pituduh operator',
+            body: 'Menu Pituduh operator eusina daptar pariksa singget pikeun pagawéan nu sering dilakukeun, upamana aktivasi tanpa pamayaran, penangguhan, parobahan harga, jeung pangaturan WhatsApp.',
             href: '/platform/guide',
+            tip: 'Centang dina daptar pariksa ngan disimpen dina pangotéh nu anjeun pake. Dina komputer séjén, daptarna kosong deui.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Abdi teu ningali tombol Tangguhkeun atawa Simpen. Naon nu lepat?',
+            a: 'Kamungkinan akun anjeun perannana Ngan ningali. Pariksa peran anjeun di handapeun menu. Lamun kudu ngarobih data, mangga pénta admin EduSync ngarobih peran akun anjeun.',
+          },
+          {
+            q: 'Kacana lami atawa datana siga nu ketinggalan. Naon nu kudu dipariksa?',
+            a: 'Muat deui kaca ku mencét F5. Lamun tetep sarua, pariksa sambungan internét anjeun tuluy cobi kaluar jeung lebet deui. Lamun masih bermasalah, hubungi tim téknis EduSync.',
+          },
+          {
+            q: 'Kumaha uninga yén hiji tindakan geus kasimpen?',
+            a: 'Sanggeus nyimpen, aya pesen singget siga Perubahan disimpen. Pikeun leuwih yakin, buka Audit tuluy pilarian tindakan anjeun; catetan pangénggalna aya di luhur.',
           },
         ],
       },
@@ -106,119 +158,213 @@ export const PLATFORM_DOCS: DocArticle[] = [
     slug: 'foundations',
     icon: 'building',
     tone: 'sky',
+    group: 'ops',
     text: {
       id: {
-        title: 'Lembaga & unit',
+        title: 'Lembaga & unit: memantau dan menangguhkan',
         summary:
-          'Memantau lembaga, membuka detail, serta menangguhkan atau mengaktifkan kembali unit sekolah.',
+          'Mencari sekolah, melihat kondisi tagihannya, serta menangguhkan atau mengaktifkannya kembali.',
+        forWho: 'Staf dukungan dan admin platform yang menangani sekolah pelanggan.',
         sections: [
           {
-            heading: 'Kartu ringkasan',
-            body: 'Di atas daftar ada enam kartu: jumlah lembaga, unit aktif, unit ditangguhkan, invoice terbuka, MRR perkiraan, dan pendaftaran tertunda. MRR dihitung dari tagihan terbayar terakhir tiap langganan aktif, tanpa komplimen. Kartu pendaftaran tertunda bisa diklik.',
-            href: '/platform',
-          },
-          {
-            heading: 'Mencari dan menyaring',
-            body: 'Daftar menampilkan nama dan alamat lembaga, jumlah unit, status langganan, tanggal periode berakhir, dan invoice terbuka.',
+            heading: 'Mencari sekolah tertentu',
+            body: 'Daftar menampilkan nama dan alamat lembaga, jumlah unit sekolah, status langganan, tanggal periode berakhir, dan jumlah invoice yang belum dibayar.',
             steps: [
-              'Ketik nama atau alamat lembaga di kolom Cari lembaga.',
-              'Pilih status langganan: Aktif, Masa tenggang, Ditangguhkan, Dibatalkan, atau Tanpa langganan.',
-              'Buka menu aksi di baris lembaga lalu pilih Lihat detail atau Salin alamat.',
-              'Klik Hapus saringan bila hasil kosong.',
+              'Buka Lembaga & unit.',
+              'Ketik nama atau alamat di kolom Cari lembaga.',
+              'Bila perlu, pilih status langganan: Aktif, Masa tenggang, Ditangguhkan, Dibatalkan, atau Tanpa langganan.',
+              'Klik menu Aksi di baris lembaga, lalu pilih Lihat detail atau Salin alamat.',
+              'Bila hasilnya kosong, klik Hapus saringan lalu coba kata lain.',
             ],
             href: '/platform',
           },
           {
-            heading: 'Detail lembaga',
-            body: 'Detail memuat langganan (bulanan atau tahunan dan tanggal berakhir), daftar unit, invoice terbaru, pembayaran, dan modul aktif per unit beserta masa berlakunya. Pembayaran komplimen ditandai Tanpa pembayaran (komplimen).',
+            heading: 'Melihat kondisi langganan dan tagihan',
+            body: 'Di halaman Lihat detail Anda bisa melihat jenis langganan (bulanan atau tahunan) dan tanggal berakhirnya, daftar unit sekolah, invoice terbaru, riwayat pembayaran, serta modul yang aktif di tiap unit beserta masa berlakunya. Pembayaran dari aktivasi gratis ditandai Tanpa pembayaran (komplimen). Kartu MRR perkiraan di halaman utama memakai tagihan terbayar terakhir tiap langganan aktif dan tidak menghitung yang komplimen.',
+            href: '/platform',
           },
           {
-            heading: 'Menangguhkan dan mengaktifkan unit',
-            body: 'Hanya Admin platform yang melihat tombolnya. Penangguhan oleh staf membuat sekolah langsung tidak bisa dipakai dan tidak dilepas oleh pembayaran; penangguhan karena tagihan terbuka kembali setelah tagihan dibayar. Alasan wajib diisi dan tercatat di audit.',
+            heading: 'Menangguhkan sekolah yang menunggak atau bermasalah',
+            body: 'Hanya staf dengan peran Admin platform yang melihat tombol Tangguhkan. Setelah ditangguhkan, sekolah langsung tidak bisa dipakai. Penangguhan yang dilakukan staf tidak terbuka hanya karena sekolah membayar; Anda harus mengaktifkannya kembali sendiri.',
             steps: [
               'Buka Lihat detail pada lembaga yang dimaksud.',
-              'Di bagian Unit, klik Tangguhkan atau Aktifkan kembali pada unit yang tepat.',
-              'Tulis Alasan yang jelas.',
-              'Klik tombol konfirmasi di dialog.',
-              'Cek halaman Audit untuk memastikan catatannya muncul.',
+              'Di bagian Unit, cari unit sekolahnya lalu klik Tangguhkan.',
+              'Tulis Alasan yang jelas, misalnya nomor tiket atau siapa yang meminta.',
+              'Klik Konfirmasi.',
+              'Beri tahu pengelola lembaga bahwa sekolahnya ditangguhkan.',
+              'Buka Audit dan pastikan catatan penangguhan muncul.',
             ],
             href: '/platform',
+            warning:
+              'Sekolah langsung tidak bisa dipakai oleh guru, siswa, dan wali. Pastikan Anda memilih unit yang tepat dan sudah menghubungi pengelolanya.',
+          },
+          {
+            heading: 'Mengaktifkan kembali sekolah',
+            body: 'Aktifkan kembali setelah masalahnya selesai. Ada dua jenis penangguhan, dan keterangannya terlihat di samping unit: oleh staf, atau karena tagihan. Penangguhan karena tagihan terbuka sendiri setelah tagihan dibayar. Penangguhan oleh staf hanya terbuka lewat tombol Aktifkan kembali.',
+            steps: [
+              'Buka Lihat detail pada lembaga yang dimaksud.',
+              'Di bagian Unit, klik Aktifkan kembali pada unit yang tepat.',
+              'Tulis Alasan, misalnya masalah sudah selesai dan siapa yang memastikannya.',
+              'Klik Konfirmasi lalu cek Audit.',
+            ],
+            href: '/platform',
+            tip: 'Setelah mengaktifkan kembali, kabari pengelola lembaga supaya mereka tahu sekolahnya sudah bisa dipakai.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Sekolah saya tidak bisa login, apa yang dicek?',
+            a: 'Cari lembaganya di Lembaga & unit lalu klik Lihat detail. Lihat status unit: bila Ditangguhkan, baca keterangannya, oleh staf atau karena tagihan. Bila karena tagihan, minta sekolah melunasi invoice yang terbuka. Bila oleh staf, lihat alasan di Audit sebelum memutuskan mengaktifkan kembali.',
+          },
+          {
+            q: 'Sekolah sudah membayar tetapi masih ditangguhkan. Kenapa?',
+            a: 'Kemungkinan penangguhannya dilakukan oleh staf, dan pembayaran tidak membukanya. Cek keterangan di samping unit lalu buka Audit untuk melihat alasannya. Bila masalahnya sudah selesai, klik Aktifkan kembali.',
+          },
+          {
+            q: 'Lembaga yang baru mendaftar tidak ada di daftar. Di mana?',
+            a: 'Lembaga baru baru muncul setelah pendaftarannya dibayar atau diaktifkan tanpa pembayaran. Buka Pendaftaran tertunda dan cari di sana.',
+          },
+          {
+            q: 'Saya salah menangguhkan unit. Bagaimana membatalkannya?',
+            a: 'Segera buka Lihat detail lembaganya, klik Aktifkan kembali pada unit tersebut, dan tulis alasan bahwa penangguhan dilakukan karena salah. Kedua tindakan tercatat di Audit.',
           },
         ],
       },
       en: {
-        title: 'Foundations & units',
-        summary: 'Monitor foundations, open their details, and suspend or reactivate school units.',
+        title: 'Foundations & units: monitoring and suspending',
+        summary: 'Find a school, check its billing condition, and suspend or reactivate it.',
+        forWho: 'Support staff and platform admins who look after customer schools.',
         sections: [
           {
-            heading: 'Summary cards',
-            body: 'Above the list are six cards: foundations, active units, suspended units, open invoices, estimated MRR, and pending registrations. MRR is calculated from the last paid invoice of each active subscription, excluding complimentary ones. The pending registrations card is clickable.',
-            href: '/platform',
-          },
-          {
-            heading: 'Searching and filtering',
-            body: 'The list shows each foundation name and address, number of units, subscription status, period end date, and open invoices.',
+            heading: 'Finding a particular school',
+            body: 'The list shows each foundation name and address, the number of school units, the subscription status, the period end date, and the number of unpaid invoices.',
             steps: [
-              'Type a foundation name or address in the Search foundations field.',
-              'Pick a subscription status: Active, Grace period, Suspended, Canceled, or No subscription.',
-              'Open the row action menu and choose View detail or Copy address.',
-              'Click Clear filters when the result is empty.',
+              'Open Foundations & units.',
+              'Type a name or address in the Search foundations field.',
+              'If needed, pick a subscription status: Active, Grace period, Suspended, Canceled, or No subscription.',
+              'Click the Actions menu on the row, then choose View detail or Copy address.',
+              'If the result is empty, click Clear filters and try other words.',
             ],
             href: '/platform',
           },
           {
-            heading: 'Foundation detail',
-            body: 'The detail shows the subscription (monthly or yearly and end date), the unit list, recent invoices, payments, and active modules per unit with their validity date. Complimentary payments are labelled No payment (complimentary).',
+            heading: 'Checking subscription and billing',
+            body: 'On the View detail page you can see the subscription type (monthly or yearly) and its end date, the list of school units, recent invoices, the payment history, and the modules active in each unit with their validity date. Payments from a free activation are labelled No payment (complimentary). The Estimated MRR card on the main page uses the last paid invoice of each active subscription and does not count complimentary ones.',
+            href: '/platform',
           },
           {
-            heading: 'Suspending and reactivating units',
-            body: 'Only Platform admins see the buttons. A staff suspension makes the school unusable at once and payment does not lift it; a billing suspension lifts after the invoice is paid. A reason is required and recorded in the audit.',
+            heading: 'Suspending a school that is behind or has a problem',
+            body: 'Only staff with the Platform admin role see the Suspend button. Once suspended, the school cannot be used at once. A suspension made by staff does not lift just because the school pays; you must reactivate it yourself.',
             steps: [
               'Open View detail on the foundation.',
-              'In the Units section, click Suspend or Reactivate on the right unit.',
-              'Write a clear Reason.',
-              'Click the confirm button in the dialog.',
-              'Check the Audit page to confirm the entry appears.',
+              'In the Units section, find the school unit and click Suspend.',
+              'Write a clear Reason, for example a ticket number or who asked for it.',
+              'Click Confirm.',
+              'Tell the foundation manager that their school is suspended.',
+              'Open Audit and confirm the suspension entry appears.',
             ],
             href: '/platform',
+            warning:
+              'Teachers, students, and guardians lose access at once. Make sure you chose the right unit and have contacted its manager.',
+          },
+          {
+            heading: 'Reactivating a school',
+            body: 'Reactivate once the problem is solved. There are two kinds of suspension, shown next to the unit: by staff, or because of billing. A billing suspension lifts by itself once the invoice is paid. A staff suspension only lifts through the Reactivate button.',
+            steps: [
+              'Open View detail on the foundation.',
+              'In the Units section, click Reactivate on the right unit.',
+              'Write a Reason, for example that the problem is solved and who confirmed it.',
+              'Click Confirm, then check Audit.',
+            ],
+            href: '/platform',
+            tip: 'After reactivating, tell the foundation manager so they know the school can be used again.',
+          },
+        ],
+        faq: [
+          {
+            q: 'A school cannot sign in. What should I check?',
+            a: 'Find the foundation in Foundations & units and click View detail. Look at the unit status: if it is Suspended, read the note, by staff or because of billing. If because of billing, ask the school to pay the open invoice. If by staff, read the reason in Audit before deciding to reactivate.',
+          },
+          {
+            q: 'The school has paid but is still suspended. Why?',
+            a: 'The suspension was probably made by staff, and payment does not lift it. Check the note next to the unit and open Audit to read the reason. If the problem is solved, click Reactivate.',
+          },
+          {
+            q: 'A foundation that just registered is not in the list. Where is it?',
+            a: 'A new foundation only appears after its registration is paid or activated without payment. Open Pending registrations and look for it there.',
+          },
+          {
+            q: 'I suspended the wrong unit. How do I undo it?',
+            a: 'Right away, open View detail of the foundation, click Reactivate on that unit, and write that the suspension was a mistake. Both actions are recorded in Audit.',
           },
         ],
       },
       su: {
-        title: 'Lembaga & unit',
-        summary: 'Mantuan lembaga, muka detailna, jeung nangguhkeun atawa ngaktipkeun deui unit sakola.',
+        title: 'Lembaga & unit: mantuan jeung nangguhkeun',
+        summary: 'Néangan sakola, ningali kaayaan tagihanana, sarta nangguhkeun atawa ngaktipkeunana deui.',
+        forWho: 'Staf pangrojong jeung admin platform nu ngurus sakola palanggan.',
         sections: [
           {
-            heading: 'Kartu ringkesan',
-            body: 'Di luhureun daptar aya genep kartu: jumlah lembaga, unit aktip, unit ditangguhkeun, invoice muka, MRR kira-kira, jeung pendaptaran nunggu. MRR diitung tina tagihan anu dibayar pangeusina unggal langganan aktip, tanpa komplimen. Kartu pendaptaran nunggu bisa diklik.',
-            href: '/platform',
-          },
-          {
-            heading: 'Milarian jeung nyaring',
-            body: 'Daptar nembongkeun ngaran jeung alamat lembaga, jumlah unit, status langganan, tanggal mangsa réngsé, jeung invoice muka.',
+            heading: 'Néangan sakola nu tangtu',
+            body: 'Daptar nembongkeun ngaran jeung alamat lembaga, jumlah unit sakola, status langganan, tanggal mangsa réngsé, jeung jumlah invoice nu acan dibayar.',
             steps: [
-              'Ketik ngaran atawa alamat lembaga dina kolom Cari lembaga.',
-              'Pilih status langganan: Aktip, Mangsa tenggang, Ditangguhkeun, Dibatalkeun, atawa Tanpa langganan.',
-              'Buka menu aksi dina baris lembaga tuluy pilih Tingali detail atawa Salin alamat.',
-              'Klik Busékeun saringan lamun hasilna kosong.',
+              'Buka Lembaga & unit.',
+              'Ketik ngaran atawa alamat dina kolom Cari lembaga.',
+              'Lamun perlu, pilih status langganan: Aktip, Mangsa tenggang, Ditangguhkeun, Dibatalkeun, atawa Tanpa langganan.',
+              'Klik menu Aksi dina baris lembaga, tuluy pilih Tingali detail atawa Salin alamat.',
+              'Lamun hasilna kosong, klik Busékeun saringan tuluy cobi kecap séjén.',
             ],
             href: '/platform',
           },
           {
-            heading: 'Detail lembaga',
-            body: 'Detail eusina langganan (bulanan atawa taunan jeung tanggal réngsé), daptar unit, invoice panganyarna, pamayaran, jeung modul aktip unggal unit sareng mangsa lakuna. Pamayaran komplimen ditandaan Tanpa pamayaran (komplimen).',
+            heading: 'Ningali kaayaan langganan jeung tagihan',
+            body: 'Dina kaca Tingali detail anjeun tiasa ningali jenis langganan (bulanan atawa taunan) jeung tanggal réngséna, daptar unit sakola, invoice panganyarna, riwayat pamayaran, sarta modul nu aktip di unggal unit jeung mangsa lakuna. Pamayaran tina aktivasi gratis ditandaan Tanpa pamayaran (komplimen). Kartu MRR kira-kira dina kaca utama maké tagihan nu dibayar pangeusina unggal langganan aktip sarta teu ngitung nu komplimen.',
+            href: '/platform',
           },
           {
-            heading: 'Nangguhkeun jeung ngaktipkeun unit',
-            body: 'Ngan Admin platform nu ningali tombolna. Penangguhan ku staf ngajadikeun sakola langsung teu bisa dipaké jeung teu dileupaskeun ku pamayaran; penangguhan alatan tagihan dibuka deui sanggeus tagihan dibayar. Alesan wajib dieusian jeung kacatet dina audit.',
+            heading: 'Nangguhkeun sakola nu nunggak atawa bermasalah',
+            body: 'Ngan staf nu perannana Admin platform nu ningali tombol Tangguhkeun. Sanggeus ditangguhkeun, sakola langsung teu bisa dipaké. Penangguhan ku staf teu muka ngan ku sabab sakola mayar; anjeun kudu ngaktipkeunana deui sorangan.',
             steps: [
               'Buka Tingali detail dina lembaga nu dimaksud.',
-              'Dina bagian Unit, klik Tangguhkeun atawa Aktipkeun deui dina unit nu pas.',
-              'Tulis Alesan nu écés.',
-              'Klik tombol konfirmasi dina dialog.',
-              'Pariksa kaca Audit pikeun mastikeun catetanana muncul.',
+              'Dina bagian Unit, pilarian unit sakolana tuluy klik Tangguhkeun.',
+              'Tulis Alesan nu écés, upamana nomer tikét atawa saha nu menta.',
+              'Klik Konfirmasi.',
+              'Wartosan pangurus lembaga yén sakolana ditangguhkeun.',
+              'Buka Audit tuluy pastikeun catetan penangguhan muncul.',
             ],
             href: '/platform',
+            warning:
+              'Guru, murid, jeung wali langsung leungit aksés. Pastikeun anjeun milih unit nu bener jeung geus ngahubungan pangurusna.',
+          },
+          {
+            heading: 'Ngaktipkeun deui sakola',
+            body: 'Aktipkeun deui sanggeus masalahna réngsé. Aya dua jenis penangguhan, keterangannana katingali di gigireun unit: ku staf, atawa alatan tagihan. Penangguhan alatan tagihan muka sorangan sanggeus tagihan dibayar. Penangguhan ku staf ngan muka ngaliwatan tombol Aktipkeun deui.',
+            steps: [
+              'Buka Tingali detail dina lembaga nu dimaksud.',
+              'Dina bagian Unit, klik Aktipkeun deui dina unit nu pas.',
+              'Tulis Alesan, upamana masalah geus réngsé jeung saha nu mastikeun.',
+              'Klik Konfirmasi tuluy pariksa Audit.',
+            ],
+            href: '/platform',
+            tip: 'Sanggeus ngaktipkeun deui, wartosan pangurus lembaga sangkan maranéhna terang sakolana geus bisa dipaké.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Sakola abdi teu tiasa lebet, naon nu kudu dipariksa?',
+            a: 'Pilarian lembagana dina Lembaga & unit tuluy klik Tingali detail. Tingali status unit: lamun Ditangguhkeun, baca keteranganana, ku staf atawa alatan tagihan. Lamun alatan tagihan, mangga pénta sakola ngalunasan invoice nu muka. Lamun ku staf, baca alesanana dina Audit samemeh mutuskeun ngaktipkeun deui.',
+          },
+          {
+            q: 'Sakola geus mayar tapi tetep ditangguhkeun. Naha?',
+            a: 'Kamungkinan penangguhanana dilakukeun ku staf, jeung pamayaran teu muka eta. Pariksa keterangan di gigireun unit tuluy buka Audit pikeun maca alesanana. Lamun masalahna geus réngsé, klik Aktipkeun deui.',
+          },
+          {
+            q: 'Lembaga nu karék daptar teu aya dina daptar. Aya di mana?',
+            a: 'Lembaga anyar karék muncul sanggeus pendaptaranna dibayar atawa diaktipkeun tanpa pamayaran. Buka Pendaptaran nunggu tuluy pilarian di dinya.',
+          },
+          {
+            q: 'Abdi lepat nangguhkeun unit. Kumaha mungkirna?',
+            a: 'Geura buka Tingali detail lembagana, klik Aktipkeun deui dina unit eta, tuluy tulis yén penangguhanana lepat. Dua tindakan eta kacatet dina Audit.',
           },
         ],
       },
@@ -228,88 +374,160 @@ export const PLATFORM_DOCS: DocArticle[] = [
     slug: 'registrations',
     icon: 'clipboard',
     tone: 'violet',
+    group: 'ops',
     text: {
       id: {
-        title: 'Pendaftaran tertunda',
+        title: 'Pendaftaran tertunda dan aktivasi tanpa pembayaran',
         summary:
-          'Pendaftaran lembaga yang belum dibayar, dan cara mengaktifkannya tanpa pembayaran untuk sekolah pilot.',
+          'Menangani pendaftaran yang belum dibayar, termasuk mengaktifkan sekolah pilot tanpa pembayaran.',
+        forWho: 'Admin platform yang menyetujui sekolah pilot atau mitra.',
         sections: [
           {
-            heading: 'Apa isi halaman ini',
-            body: 'Halaman ini mendaftar pendaftaran yang belum dibayar. Tiap kartu menampilkan nama lembaga, jumlah unit, siklus (bulanan atau tahunan), tanggal kedaluwarsa, dan tanggal dibuat. Lembaga baru muncul di daftar Lembaga & unit setelah pendaftarannya dibayar atau diaktifkan tanpa pembayaran.',
+            heading: 'Melihat pendaftaran yang belum dibayar',
+            body: 'Halaman Pendaftaran tertunda menampilkan satu kartu untuk tiap pendaftaran yang menunggu pembayaran. Kartu memuat nama lembaga, jumlah unit, siklus (Bulanan atau Tahunan), tanggal kedaluwarsa, dan tanggal dibuat. Sekolah baru muncul di Lembaga & unit setelah pendaftarannya dibayar atau diaktifkan tanpa pembayaran.',
             href: '/platform/pending',
           },
           {
-            heading: 'Tidak ada tombol setujui atau tolak',
-            body: 'Konsol tidak memiliki langkah setujui atau tolak. Satu-satunya tindakan staf adalah aktivasi tanpa pembayaran. Pendaftaran yang tidak dibayar sampai kedaluwarsa akan dilepas alamat sekolahnya; pendaftar harus mendaftar ulang. Lama masa pesanan diatur di parameter penagihan.',
-          },
-          {
-            heading: 'Aktivasi tanpa pembayaran',
-            body: 'Hanya untuk sekolah pilot atau mitra yang tidak membayar, dan hanya Admin platform yang melihat tombolnya. Aktivasi dicatat sebagai pembayaran komplimen senilai nol, di riwayat pembayaran dan di audit beserta alasan. Peran Hanya lihat melihat catatan bahwa perannya hanya dapat melihat.',
+            heading: 'Mengaktifkan sekolah tanpa pembayaran',
+            body: 'Pakai langkah ini hanya untuk sekolah pilot atau mitra yang memang tidak membayar. Hanya staf dengan peran Admin platform yang melihat tombolnya. Aktivasi dicatat sebagai pembayaran Rp 0 (komplimen) di riwayat pembayaran dan di Audit lengkap dengan alasan Anda.',
             steps: [
-              'Pastikan pendaftaran memang pilot atau sudah disetujui di luar konsol.',
-              'Pada kartu pendaftaran, klik Aktifkan tanpa pembayaran.',
+              'Pastikan sekolah ini memang pilot atau mitra, dan persetujuannya sudah ada di luar konsol.',
+              'Buka Pendaftaran tertunda lalu cari kartu pendaftarannya.',
+              'Klik Aktifkan tanpa pembayaran.',
               'Tulis alasan yang jelas, misalnya siapa yang menyetujui dan sampai kapan.',
               'Klik Konfirmasi.',
-              'Cek lembaga di Lembaga & unit dan catat tanggal perpanjangannya.',
+              'Buka Lembaga & unit, cari sekolahnya, lalu catat tanggal perpanjangannya.',
             ],
             href: '/platform/pending',
+            warning:
+              'Tidak ada tombol untuk membatalkan aktivasi ini. Pastikan sekolahnya benar sebelum mengonfirmasi. Bila terlanjur, sekolah bisa ditangguhkan lewat Lembaga & unit.',
+            tip: 'Tulis di alasan tanggal kapan sekolah ini perlu dihubungi lagi untuk beralih ke langganan berbayar.',
+          },
+          {
+            heading: 'Pendaftar minta disetujui atau ditolak',
+            body: 'Konsol tidak punya tombol setujui atau tolak. Satu-satunya tindakan staf adalah Aktifkan tanpa pembayaran. Pendaftaran yang tidak dibayar sampai tanggal kedaluwarsa akan hilang dengan sendirinya dan alamat sekolahnya dilepas, sehingga pendaftar harus mendaftar ulang. Berapa lama pendaftaran ditahan diatur di Pembayaran, pada kartu Parameter penagihan.',
+            href: '/platform/payments',
+          },
+        ],
+        faq: [
+          {
+            q: 'Sekolah sudah membayar tetapi masih ada di Pendaftaran tertunda. Apa yang dicek?',
+            a: 'Pembayaran kadang butuh beberapa menit untuk terkonfirmasi. Muat ulang halaman. Bila tetap di sana, cek apakah pendaftarannya sudah kedaluwarsa dan lihat riwayat pembayaran di Lembaga & unit. Bila ragu, hubungi tim teknis dan sertakan nama lembaganya.',
+          },
+          {
+            q: 'Kartu pendaftaran sekolah itu hilang. Ke mana perginya?',
+            a: 'Ada dua kemungkinan: sudah dibayar atau diaktifkan (cek di Lembaga & unit), atau sudah kedaluwarsa. Bila kedaluwarsa, minta pendaftar mendaftar ulang. Konsol tidak bisa menghidupkan kembali pendaftaran yang kedaluwarsa.',
+          },
+          {
+            q: 'Tombol Aktifkan tanpa pembayaran tidak muncul. Kenapa?',
+            a: 'Tombol itu hanya untuk staf dengan peran Admin platform. Bila akun Anda berperan Hanya lihat, di halaman tertulis bahwa peran Anda hanya dapat melihat. Minta admin EduSync memberi Anda peran yang sesuai.',
+          },
+          {
+            q: 'Pendaftar mengeluh alamat sekolahnya sudah dipakai. Bagaimana?',
+            a: 'Alamat dipegang oleh pendaftaran yang belum dibayar sampai tanggal kedaluwarsanya. Cari kartu pendaftaran yang memegangnya. Bila itu milik pendaftar yang sama, bantu selesaikan pembayarannya. Bila bukan, tunggu sampai kedaluwarsa atau sarankan alamat lain.',
           },
         ],
       },
       en: {
-        title: 'Pending registrations',
+        title: 'Pending registrations and activating without payment',
         summary:
-          'Foundation registrations that have not been paid, and how to activate them without payment for pilot schools.',
+          'Handle registrations that are not yet paid, including activating pilot schools without payment.',
+        forWho: 'Platform admins who approve pilot schools or partners.',
         sections: [
           {
-            heading: 'What this page lists',
-            body: 'This page lists registrations that are still unpaid. Each card shows the foundation name, number of units, billing cycle (monthly or yearly), expiry date, and creation date. A new foundation only appears in Foundations & units after its registration is paid or activated without payment.',
+            heading: 'Seeing which registrations are unpaid',
+            body: 'The Pending registrations page shows one card for each registration waiting for payment. A card shows the foundation name, number of units, cycle (Monthly or Yearly), expiry date, and creation date. A school only appears in Foundations & units after its registration is paid or activated without payment.',
             href: '/platform/pending',
           },
           {
-            heading: 'No approve or reject button',
-            body: 'The console has no approve or reject step. The only staff action is activation without payment. An unpaid registration that reaches its expiry releases the school address, and the registrant must register again. The length of the reservation is set in the billing parameters.',
-          },
-          {
-            heading: 'Activating without payment',
-            body: 'Only for pilot schools or partners who do not pay, and only Platform admins see the button. The activation is recorded as a complimentary payment of zero, in the payment history and in the audit with the reason. Read only staff see a note that their role can only view.',
+            heading: 'Activating a school without payment',
+            body: 'Use this only for pilot schools or partners who really do not pay. Only staff with the Platform admin role see the button. The activation is recorded as a Rp 0 (complimentary) payment in the payment history and in Audit, together with your reason.',
             steps: [
-              'Make sure the registration really is a pilot or was approved outside the console.',
-              'On the registration card, click Activate without payment.',
+              'Make sure the school really is a pilot or partner and the approval exists outside the console.',
+              'Open Pending registrations and find the registration card.',
+              'Click Activate without payment.',
               'Write a clear reason, for example who approved it and until when.',
               'Click Confirm.',
-              'Check the foundation in Foundations & units and note its renewal date.',
+              'Open Foundations & units, find the school, and note its renewal date.',
             ],
             href: '/platform/pending',
+            warning:
+              'There is no button to undo this activation. Make sure it is the right school before you confirm. If it happens by mistake, the school can be suspended from Foundations & units.',
+            tip: 'Write in the reason when this school should be contacted again to move to a paid subscription.',
+          },
+          {
+            heading: 'A registrant asks to be approved or rejected',
+            body: 'The console has no approve or reject button. The only staff action is Activate without payment. A registration that is not paid by its expiry date disappears by itself and its school address is released, so the registrant has to register again. How long a registration is held is set in Payments, on the Billing parameters card.',
+            href: '/platform/payments',
+          },
+        ],
+        faq: [
+          {
+            q: 'The school has paid but is still in Pending registrations. What should I check?',
+            a: 'Payments sometimes take a few minutes to be confirmed. Reload the page. If it stays there, check whether the registration has expired and look at the payment history in Foundations & units. If in doubt, contact the technical team with the foundation name.',
+          },
+          {
+            q: 'The registration card of that school has disappeared. Where did it go?',
+            a: 'There are two possibilities: it was paid or activated (check Foundations & units), or it expired. If it expired, ask the registrant to register again. The console cannot revive an expired registration.',
+          },
+          {
+            q: 'The Activate without payment button does not show. Why?',
+            a: 'That button is only for staff with the Platform admin role. If your account is Read only, the page says your role can only view. Ask an EduSync admin to give you the right role.',
+          },
+          {
+            q: 'A registrant complains that their school address is already taken. What now?',
+            a: 'An address is held by an unpaid registration until its expiry date. Find the registration card holding it. If it belongs to the same registrant, help them finish paying. If not, wait until it expires or suggest another address.',
           },
         ],
       },
       su: {
-        title: 'Pendaptaran nunggu',
-        summary:
-          'Pendaptaran lembaga nu acan dibayar, jeung cara ngaktipkeunana tanpa pamayaran pikeun sakola pilot.',
+        title: 'Pendaptaran nunggu jeung aktivasi tanpa pamayaran',
+        summary: 'Nangani pendaptaran nu acan dibayar, kaasup ngaktipkeun sakola pilot tanpa pamayaran.',
+        forWho: 'Admin platform nu nyatujuan sakola pilot atawa mitra.',
         sections: [
           {
-            heading: 'Naon eusi kaca ieu',
-            body: 'Kaca ieu daptar pendaptaran nu acan dibayar. Unggal kartu nembongkeun ngaran lembaga, jumlah unit, siklus (bulanan atawa taunan), tanggal kadaluwarsa, jeung tanggal dijieun. Lembaga anyar muncul dina Lembaga & unit sanggeus pendaptaranna dibayar atawa diaktipkeun tanpa pamayaran.',
+            heading: 'Ningali pendaptaran nu acan dibayar',
+            body: 'Kaca Pendaptaran nunggu nembongkeun hiji kartu pikeun unggal pendaptaran nu nungguan pamayaran. Kartu eusina ngaran lembaga, jumlah unit, siklus (Bulanan atawa Taunan), tanggal kadaluwarsa, jeung tanggal dijieun. Sakola karék muncul dina Lembaga & unit sanggeus pendaptaranna dibayar atawa diaktipkeun tanpa pamayaran.',
             href: '/platform/pending',
           },
           {
-            heading: 'Teu aya tombol satuju atawa tolak',
-            body: 'Konsol teu boga léngkah satuju atawa tolak. Hiji-hijina tindakan staf nyaéta aktivasi tanpa pamayaran. Pendaptaran nu teu dibayar nepi ka kadaluwarsa dileupaskeun alamat sakolana; pendaptar kudu daptar deui. Lilana mangsa pesenan diatur dina parameter penagihan.',
-          },
-          {
-            heading: 'Aktivasi tanpa pamayaran',
-            body: 'Ngan pikeun sakola pilot atawa mitra nu teu mayar, jeung ngan Admin platform nu ningali tombolna. Aktivasi dicatet minangka pamayaran komplimen sanilai nol, dina riwayat pamayaran jeung dina audit sareng alesanana. Peran Ngan ningali ningali catetan yén peranna ngan bisa ningali.',
+            heading: 'Ngaktipkeun sakola tanpa pamayaran',
+            body: 'Pake léngkah ieu ngan pikeun sakola pilot atawa mitra nu memang teu mayar. Ngan staf nu perannana Admin platform nu ningali tombolna. Aktivasi dicatet minangka pamayaran Rp 0 (komplimen) dina riwayat pamayaran jeung dina Audit sareng alesan anjeun.',
             steps: [
-              'Pastikeun pendaptaran memang pilot atawa geus disatujuan di luar konsol.',
-              'Dina kartu pendaptaran, klik Aktipkeun tanpa pamayaran.',
+              'Pastikeun sakola ieu memang pilot atawa mitra, jeung persetujuanana geus aya di luar konsol.',
+              'Buka Pendaptaran nunggu tuluy pilarian kartu pendaptaranana.',
+              'Klik Aktipkeun tanpa pamayaran.',
               'Tulis alesan nu écés, upamana saha nu nyatujuan jeung nepi ka iraha.',
               'Klik Konfirmasi.',
-              'Pariksa lembaga dina Lembaga & unit tuluy catet tanggal perpanjanganana.',
+              'Buka Lembaga & unit, pilarian sakolana, tuluy catet tanggal perpanjanganana.',
             ],
             href: '/platform/pending',
+            warning:
+              'Taya tombol pikeun ngabolaykeun aktivasi ieu. Pastikeun sakolana bener samemeh ngonfirmasi. Lamun kalepatan, sakola bisa ditangguhkeun tina Lembaga & unit.',
+            tip: 'Tulis dina alesan iraha sakola ieu kudu dihubungan deui pikeun pindah ka langganan mayar.',
+          },
+          {
+            heading: 'Pendaptar menta disatujuan atawa ditolak',
+            body: 'Konsol teu boga tombol satuju atawa tolak. Hiji-hijina tindakan staf nyaéta Aktipkeun tanpa pamayaran. Pendaptaran nu teu dibayar nepi ka tanggal kadaluwarsa leungit sorangan jeung alamat sakolana dileupaskeun, ku kituna pendaptar kudu daptar deui. Sabaraha lami pendaptaran ditahan diatur dina Pamayaran, dina kartu Parameter penagihan.',
+            href: '/platform/payments',
+          },
+        ],
+        faq: [
+          {
+            q: 'Sakola geus mayar tapi tetep aya dina Pendaptaran nunggu. Naon nu kudu dipariksa?',
+            a: 'Pamayaran kadang peryogi sababaraha menit pikeun dikonfirmasi. Muat deui kaca. Lamun tetep di dinya, pariksa naha pendaptaranna geus kadaluwarsa tuluy tingali riwayat pamayaran dina Lembaga & unit. Lamun bingung, hubungi tim téknis sareng ngaran lembagana.',
+          },
+          {
+            q: 'Kartu pendaptaran sakola eta leungit. Ka mana?',
+            a: 'Aya dua kamungkinan: geus dibayar atawa diaktipkeun (pariksa dina Lembaga & unit), atawa geus kadaluwarsa. Lamun kadaluwarsa, pénta pendaptar daptar deui. Konsol teu bisa nghirupkeun deui pendaptaran nu kadaluwarsa.',
+          },
+          {
+            q: 'Tombol Aktipkeun tanpa pamayaran teu muncul. Naha?',
+            a: 'Tombol eta ngan pikeun staf nu perannana Admin platform. Lamun akun anjeun Ngan ningali, di kaca aya tulisan yén peran anjeun ngan bisa ningali. Pénta admin EduSync méré anjeun peran nu cocog.',
+          },
+          {
+            q: 'Pendaptar ngawadul alamat sakolana geus dipaké. Kumaha?',
+            a: 'Alamat dicekel ku pendaptaran nu acan dibayar nepi ka tanggal kadaluwarsana. Pilarian kartu pendaptaran nu nyekelna. Lamun kagungan pendaptar nu sarua, bantosan ngabéréskeun pamayaranana. Lamun lain, antosan nepi ka kadaluwarsa atawa sarankeun alamat séjén.',
           },
         ],
       },
@@ -319,115 +537,180 @@ export const PLATFORM_DOCS: DocArticle[] = [
     slug: 'payments',
     icon: 'credit',
     tone: 'amber',
+    group: 'ops',
     text: {
       id: {
-        title: 'Pembayaran & penagihan',
-        summary: 'Penyedia pembayaran langganan sekolah dan parameter penagihan global.',
+        title: 'Pembayaran dan aturan tagihan',
+        summary:
+          'Memilih cara sekolah membayar langganan, menyambungkan Midtrans, dan mengatur masa tenggang.',
+        forWho: 'Admin platform yang mengurus pembayaran dan penagihan.',
         sections: [
           {
-            heading: 'Penyedia pembayaran',
-            body: 'Pilihannya Simulasi (tanpa uang, hanya pengembangan) atau Midtrans (Snap). Server yang berjalan sebagai produksi tidak menyediakan Simulasi. Badge Sumber pengaturan menunjukkan apakah nilai berasal dari konsol ini atau dari variabel lingkungan server (bila belum pernah diatur di konsol).',
+            heading: 'Memilih cara pembayaran sekolah',
+            body: 'Di halaman Pembayaran, kolom Penyedia punya dua pilihan: Simulasi (tanpa uang, hanya untuk uji coba) dan Midtrans (Snap) untuk pembayaran sungguhan. Lencana Sumber pengaturan menunjukkan apakah nilai yang dipakai berasal dari Konsol ini atau dari pengaturan server yang dibuat tim teknis (bila belum pernah diatur di konsol).',
             href: '/platform/payments',
+            warning:
+              'Pilihan Simulasi tidak tersedia di server yang dipakai sekolah sungguhan. Jangan menjanjikan sekolah bahwa pembayaran uji coba bisa dipakai sebagai bayaran asli.',
           },
           {
-            heading: 'Mengatur Midtrans',
-            body: 'Pengaturan berlaku tanpa restart untuk pendaftaran dan tagihan berikutnya. Kunci server disimpan terenkripsi dan tidak pernah ditampilkan lagi, hanya empat karakter terakhirnya.',
+            heading: 'Menyambungkan Midtrans',
+            body: 'Midtrans adalah layanan yang menerima pembayaran dari sekolah. Pengaturan berlaku tanpa harus menghidupkan ulang apa pun, untuk pendaftaran dan tagihan berikutnya.',
             steps: [
-              'Pilih penyedia Midtrans (Snap).',
-              'Pilih lingkungan: Sandbox (uji) atau Produksi (uang sungguhan).',
-              'Isi Kunci server Midtrans dari dasbor Midtrans, Settings, Access Keys. Kosongkan untuk mempertahankan kunci yang tersimpan.',
-              'Salin Notification URL lalu daftarkan di dasbor Midtrans, Settings, Configuration, Payment Notification URL. Alamat harus dapat dijangkau dari internet.',
+              'Di Penyedia, pilih Midtrans (Snap).',
+              'Di Lingkungan Midtrans, pilih Sandbox (uji) atau Produksi (uang sungguhan).',
+              'Isi Kunci server Midtrans. Kunci ini diambil dari situs Midtrans, menu Settings lalu Access Keys. Kunci adalah kata sandi khusus yang membuat EduSync boleh menerima pembayaran atas nama Anda.',
+              'Salin alamat di kolom Notification URL dengan tombol Salin, lalu daftarkan di situs Midtrans, menu Settings, Configuration, Payment Notification URL. Dengan alamat ini Midtrans memberi tahu EduSync bila sekolah sudah membayar.',
               'Klik Simpan pengaturan.',
+              'Uji dengan satu pendaftaran kecil di lingkungan Sandbox sebelum beralih ke Produksi.',
             ],
             href: '/platform/payments',
+            tip: 'Bila kunci sudah tersimpan, kolom dibiarkan kosong untuk mempertahankannya. Yang terlihat hanya empat karakter terakhir.',
           },
           {
-            heading: 'Parameter penagihan',
-            body: 'Empat angka global di kartu Parameter penagihan: masa tenggang (bawaan 7 hari), pengingat perpanjangan (invoice dibuat 7 hari sebelum periode habis), masa pesanan pendaftaran (24 jam), dan bayar tahunan (10 bulan). Pengali tahunan memengaruhi harga baru dan perpanjangan. Nilai di luar rentang ditolak.',
+            heading: 'Mengubah masa tenggang dan aturan tagihan',
+            body: 'Kartu Parameter penagihan memuat empat angka yang berlaku untuk semua sekolah. Masa tenggang (bawaan 7 hari): sekolah tetap berjalan sekian hari setelah periode habis sebelum ditangguhkan. Pengingat perpanjangan (7 hari): invoice perpanjangan dibuat sekian hari sebelum periode habis. Masa pesanan pendaftaran (24 jam): berapa lama pendaftaran dan alamat sekolahnya ditahan. Bayar tahunan (10 bulan): langganan tahunan dihitung sebanyak ini bulan.',
             steps: [
-              'Ubah angka yang diperlukan; rentang yang diizinkan tampil bila salah.',
-              'Klik Isi nilai bawaan untuk mengembalikan ke bawaan (belum tersimpan).',
+              'Ubah angka yang perlu diganti. Bila angkanya di luar batas, rentang yang boleh muncul di bawah kolom.',
+              'Untuk kembali ke nilai awal, klik Isi nilai bawaan. Ini belum menyimpan apa pun.',
               'Klik Simpan parameter.',
             ],
             href: '/platform/payments',
+            warning:
+              'Perubahan memengaruhi semua sekolah untuk tagihan dan pendaftaran berikutnya. Invoice yang sudah dibuat tidak berubah. Mengubah Bayar tahunan juga mengubah harga tahunan baru dan perpanjangan.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Sekolah sudah membayar lewat Midtrans tetapi statusnya belum berubah. Apa yang dicek?',
+            a: 'Tunggu beberapa menit lalu muat ulang. Bila belum berubah, cek di halaman Pembayaran apakah Notification URL sudah terdaftar di situs Midtrans dan penyedia yang dipilih adalah Midtrans. Bila sudah benar, hubungi tim teknis dengan nama lembaga dan waktu pembayaran.',
           },
           {
-            heading: 'Hak akses dan dampak',
-            body: 'Hanya Admin platform yang dapat mengubah; Hanya lihat melihat nilai saja. Invoice yang sudah dibuat tidak berubah, hanya siklus dan pendaftaran berikutnya yang memakai nilai baru.',
+            q: 'Saya lupa kunci server yang tersimpan. Bisakah dilihat?',
+            a: 'Tidak. Kunci disimpan dengan aman dan hanya empat karakter terakhirnya yang terlihat. Bila perlu, ambil kunci baru dari situs Midtrans lalu isi di kolom Kunci server dan Simpan pengaturan.',
+          },
+          {
+            q: 'Berapa lama sekolah boleh telat bayar sebelum ditangguhkan?',
+            a: 'Sebanyak angka Masa tenggang di kartu Parameter penagihan (bawaannya 7 hari setelah periode habis). Selama itu status sekolah Masa tenggang. Setelah lewat, sekolah ditangguhkan karena tagihan dan terbuka sendiri setelah tagihan dibayar.',
+          },
+          {
+            q: 'Saya salah mengisi parameter. Bisa dikembalikan?',
+            a: 'Bisa. Klik Isi nilai bawaan lalu Simpan parameter. Atau ketik angka yang benar lalu simpan. Invoice yang telanjur dibuat dengan angka lama tidak ikut berubah.',
           },
         ],
       },
       en: {
-        title: 'Payments & billing',
-        summary: 'The payment provider for school subscriptions and the global billing parameters.',
+        title: 'Payments and billing rules',
+        summary: 'Choose how schools pay for their subscription, connect Midtrans, and set the grace period.',
+        forWho: 'Platform admins who look after payments and billing.',
         sections: [
           {
-            heading: 'Payment provider',
-            body: 'Choose Simulation (no money, development only) or Midtrans (Snap). A server running as production does not offer Simulation. The Settings source badge shows whether the values come from this console or from server environment variables (when never set in the console).',
+            heading: 'Choosing how schools pay',
+            body: 'On the Payments page, the Provider field has two choices: Simulation (no money, only for testing) and Midtrans (Snap) for real payments. The Settings source badge shows whether the values in use come from This console or from settings made by the technical team on the server (when never set in the console).',
             href: '/platform/payments',
+            warning:
+              'Simulation is not available on the server real schools use. Do not promise a school that a test payment counts as a real payment.',
           },
           {
-            heading: 'Setting up Midtrans',
-            body: 'Settings apply without a restart to the next registrations and invoices. The server key is stored encrypted and is never shown again, only its last four characters.',
+            heading: 'Connecting Midtrans',
+            body: 'Midtrans is the service that receives payments from schools. The settings take effect without restarting anything, for the next registrations and invoices.',
             steps: [
-              'Select the Midtrans (Snap) provider.',
-              'Choose the environment: Sandbox (test) or Production (real money).',
-              'Enter the Midtrans server key from the Midtrans dashboard, Settings, Access Keys. Leave it empty to keep the stored key.',
-              'Copy the Notification URL and register it in the Midtrans dashboard, Settings, Configuration, Payment Notification URL. The address must be reachable from the internet.',
+              'In Provider, choose Midtrans (Snap).',
+              'In Midtrans environment, choose Sandbox (test) or Production (real money).',
+              'Fill in the Midtrans server key. Take it from the Midtrans site, menu Settings then Access Keys. The key is a special password that lets EduSync receive payments on your behalf.',
+              'Copy the address in the Notification URL field with the Copy button, then register it on the Midtrans site, menu Settings, Configuration, Payment Notification URL. With this address Midtrans tells EduSync when a school has paid.',
               'Click Save settings.',
+              'Test with one small registration in Sandbox before switching to Production.',
             ],
             href: '/platform/payments',
+            tip: 'If a key is already stored, leave the field empty to keep it. Only the last four characters are visible.',
           },
           {
-            heading: 'Billing parameters',
-            body: 'Four global numbers in the Billing parameters card: grace period (default 7 days), renewal reminder (the invoice is created 7 days before the period ends), registration reservation (24 hours), and yearly payment (10 months). The yearly multiplier affects new prices and renewals. Values outside the range are rejected.',
+            heading: 'Changing the grace period and billing rules',
+            body: 'The Billing parameters card has four numbers that apply to every school. Grace period (default 7 days): the school keeps running for this many days after the period ends before it is suspended. Renewal reminder (7 days): the renewal invoice is created this many days before the period ends. Registration reservation (24 hours): how long a registration and its school address are held. Yearly payment (10 months): a yearly subscription is counted as this many months.',
             steps: [
-              'Change the numbers you need; the allowed range shows when a value is wrong.',
-              'Click Fill defaults to restore the defaults (not saved yet).',
+              'Change the numbers you need. If a number is out of range, the allowed range shows under the field.',
+              'To go back to the starting values, click Fill defaults. This does not save anything yet.',
               'Click Save parameters.',
             ],
             href: '/platform/payments',
+            warning:
+              'The change affects every school for later invoices and registrations. Invoices already created do not change. Changing Yearly payment also changes new yearly prices and renewals.',
+          },
+        ],
+        faq: [
+          {
+            q: 'A school paid through Midtrans but its status has not changed. What should I check?',
+            a: 'Wait a few minutes and reload. If it has not changed, check on the Payments page that the Notification URL is registered on the Midtrans site and that Midtrans is the selected provider. If both are right, contact the technical team with the foundation name and payment time.',
           },
           {
-            heading: 'Access and impact',
-            body: 'Only Platform admins can change these; Read only staff can see the values. Invoices already created do not change, only later cycles and registrations use the new values.',
+            q: 'I forgot the stored server key. Can I see it?',
+            a: 'No. The key is stored securely and only its last four characters are visible. If needed, take a new key from the Midtrans site, enter it in the Server key field, and click Save settings.',
+          },
+          {
+            q: 'How late can a school pay before it is suspended?',
+            a: 'As many days as the Grace period number on the Billing parameters card (default 7 days after the period ends). During that time the school status is Grace period. After that the school is suspended because of billing and opens by itself once the invoice is paid.',
+          },
+          {
+            q: 'I filled in a parameter wrongly. Can I undo it?',
+            a: 'Yes. Click Fill defaults then Save parameters, or type the right number and save. Invoices already created with the old number do not change.',
           },
         ],
       },
       su: {
-        title: 'Pamayaran & penagihan',
-        summary: 'Panyadia pamayaran langganan sakola jeung parameter penagihan global.',
+        title: 'Pamayaran jeung aturan tagihan',
+        summary: 'Milih cara sakola mayar langganan, nyambungkeun Midtrans, jeung ngatur mangsa tenggang.',
+        forWho: 'Admin platform nu ngurus pamayaran jeung penagihan.',
         sections: [
           {
-            heading: 'Panyadia pamayaran',
-            body: 'Pilihanana Simulasi (tanpa duit, ngan pikeun pamekaran) atawa Midtrans (Snap). Server nu jalan minangka produksi teu nyadiakeun Simulasi. Badge Sumber pangaturan nembongkeun naha nilaina asalna ti konsol ieu atawa ti variabel lingkungan server (lamun can kungsi diatur di konsol).',
+            heading: 'Milih cara sakola mayar',
+            body: 'Dina kaca Pamayaran, kolom Panyadia boga dua pilihan: Simulasi (tanpa duit, ngan pikeun uji coba) jeung Midtrans (Snap) pikeun pamayaran sabenerna. Lencana Sumber pangaturan nembongkeun naha nilai nu dipaké asalna ti Konsol ieu atawa ti pangaturan nu dijieun ku tim téknis dina server (lamun can kungsi diatur di konsol).',
             href: '/platform/payments',
+            warning:
+              'Pilihan Simulasi teu aya dina server nu dipaké ku sakola sabenerna. Ulah jangji ka sakola yén pamayaran uji coba bisa diitung minangka pamayaran asli.',
           },
           {
-            heading: 'Ngatur Midtrans',
-            body: 'Pangaturan lumaku tanpa restart pikeun pendaptaran jeung tagihan satuluyna. Konci server disimpen dienkripsi jeung teu pernah ditembongkeun deui, ngan opat karakter pamungkasna.',
+            heading: 'Nyambungkeun Midtrans',
+            body: 'Midtrans nyaéta layanan nu narima pamayaran ti sakola. Pangaturan lumaku tanpa kudu nyaangan deui nanaon, pikeun pendaptaran jeung tagihan satuluyna.',
             steps: [
-              'Pilih panyadia Midtrans (Snap).',
-              'Pilih lingkungan: Sandbox (uji) atawa Produksi (duit sabenerna).',
-              'Eusian Konci server Midtrans tina dasbor Midtrans, Settings, Access Keys. Kosongkeun pikeun nahan konci nu geus disimpen.',
-              'Salin Notification URL tuluy daptarkeun dina dasbor Midtrans, Settings, Configuration, Payment Notification URL. Alamatna kudu bisa dihontal tina internét.',
+              'Dina Panyadia, pilih Midtrans (Snap).',
+              'Dina Lingkungan Midtrans, pilih Sandbox (uji) atawa Produksi (duit sabenerna).',
+              'Eusian Konci server Midtrans. Candak tina situs Midtrans, menu Settings tuluy Access Keys. Konci nyaéta kecap rusiah husus nu ngidinan EduSync narima pamayaran atas ngaran anjeun.',
+              'Salin alamat dina kolom Notification URL ku tombol Salin, tuluy daptarkeun dina situs Midtrans, menu Settings, Configuration, Payment Notification URL. Ku alamat ieu Midtrans ngabéjaan EduSync lamun sakola geus mayar.',
               'Klik Simpen pangaturan.',
+              'Uji ku hiji pendaptaran leutik dina Sandbox samemeh pindah ka Produksi.',
             ],
             href: '/platform/payments',
+            tip: 'Lamun konci geus disimpen, kosongkeun kolomna pikeun nahanana. Nu katingali ngan opat karakter pamungkas.',
           },
           {
-            heading: 'Parameter penagihan',
-            body: 'Opat angka global dina kartu Parameter penagihan: mangsa tenggang (biasana 7 poé), pangéling perpanjangan (invoice dijieun 7 poé saméméh mangsa béak), mangsa pesenan pendaptaran (24 jam), jeung mayar taunan (10 bulan). Pangali taunan mangaruhan harga anyar jeung perpanjangan. Nilai di luar rentang ditolak.',
+            heading: 'Ngarobih mangsa tenggang jeung aturan tagihan',
+            body: 'Kartu Parameter penagihan eusina opat angka nu lumaku pikeun sakabéh sakola. Mangsa tenggang (biasana 7 poé): sakola tetep jalan sakitu poéna sanggeus mangsa béak samemeh ditangguhkeun. Pangéling perpanjangan (7 poé): invoice perpanjangan dijieun sakitu poéna samemeh mangsa béak. Mangsa pesenan pendaptaran (24 jam): sabaraha lami pendaptaran jeung alamat sakolana ditahan. Mayar taunan (10 bulan): langganan taunan diitung sakitu bulanna.',
             steps: [
-              'Robah angka nu diperlukeun; rentang nu diidinan muncul lamun nilaina lepat.',
-              'Klik Eusian nilai baku pikeun mulangkeun ka baku (can disimpen).',
+              'Robah angka nu perlu diganti. Lamun angkana kaluar tina wates, rentang nu meunang muncul handapeun kolom.',
+              'Pikeun balik ka nilai awal, klik Eusian nilai baku. Ieu can nyimpen nanaon.',
               'Klik Simpen parameter.',
             ],
             href: '/platform/payments',
+            warning:
+              'Parobahan mangaruhan sakabéh sakola pikeun tagihan jeung pendaptaran satuluyna. Invoice nu geus dijieun teu robah. Ngarobih Mayar taunan ogé ngarobah harga taunan anyar jeung perpanjangan.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Sakola geus mayar ku Midtrans tapi statusna can robah. Naon nu kudu dipariksa?',
+            a: 'Antosan sababaraha menit tuluy muat deui. Lamun can robah, pariksa dina kaca Pamayaran naha Notification URL geus kadaptar dina situs Midtrans jeung panyadia nu dipilih Midtrans. Lamun dua-duana bener, hubungi tim téknis sareng ngaran lembaga jeung waktu pamayaran.',
           },
           {
-            heading: 'Hak aksés jeung pangaruh',
-            body: 'Ngan Admin platform nu bisa ngarobih; Ngan ningali ngan ningali nilaina. Invoice nu geus dijieun teu robah, ngan siklus jeung pendaptaran satuluyna nu maké nilai anyar.',
+            q: 'Abdi hilap konci server nu disimpen. Tiasa ditingali?',
+            a: 'Henteu. Konci disimpen kalayan aman jeung ngan opat karakter pamungkasna nu katingali. Lamun perlu, candak konci anyar tina situs Midtrans, eusian dina kolom Konci server, tuluy klik Simpen pangaturan.',
+          },
+          {
+            q: 'Sabaraha lami sakola meunang telat mayar samemeh ditangguhkeun?',
+            a: 'Sakitu poéna salaku angka Mangsa tenggang dina kartu Parameter penagihan (biasana 7 poé sanggeus mangsa béak). Salila eta status sakola Mangsa tenggang. Sanggeus lewat, sakola ditangguhkeun alatan tagihan jeung muka sorangan sanggeus tagihan dibayar.',
+          },
+          {
+            q: 'Abdi lepat ngeusian parameter. Tiasa dibalikeun?',
+            a: 'Tiasa. Klik Eusian nilai baku tuluy Simpen parameter, atawa ketik angka nu bener tuluy simpen. Invoice nu geus dijieun ku angka heubeul teu milu robah.',
           },
         ],
       },
@@ -437,127 +720,208 @@ export const PLATFORM_DOCS: DocArticle[] = [
     slug: 'catalog',
     icon: 'package',
     tone: 'rose',
+    group: 'config',
     text: {
       id: {
-        title: 'Harga & modul (katalog)',
-        summary: 'Mengelola modul, tingkat siswa, harga, syarat antarmodul, dan paket siap pakai.',
+        title: 'Harga & modul: mengatur yang dijual',
+        summary:
+          'Mengubah harga, menambah modul, mengatur paket siap pakai, dan menghentikan penjualan sebuah item.',
+        forWho: 'Admin platform yang menentukan harga dan paket langganan.',
         sections: [
           {
-            heading: 'Isi katalog',
-            body: 'Katalog terdiri dari item berjenis Inti, Modul, dan Tingkat siswa, masing-masing dengan harga per bulan, ditambah Paket siap pakai. Paket hanya pilihan cepat di halaman daftar; harga tetap dihitung dari item katalog.',
+            heading: 'Mengubah harga modul atau tingkat siswa',
+            body: 'Katalog berisi item berjenis Inti, Modul, dan Tingkat siswa. Tiap item punya harga per bulan. Paket siap pakai hanyalah pilihan cepat di halaman daftar; harganya tetap dihitung dari item-item ini. Hanya staf dengan peran Admin platform yang melihat tombol Ubah.',
+            steps: [
+              'Buka Harga & modul.',
+              'Di daftar Modul dan tingkat siswa, klik Ubah pada baris item.',
+              'Ganti Nama, Harga per bulan (Rp), atau Urutan sesuai kebutuhan.',
+              'Klik Simpan.',
+            ],
             href: '/platform/catalog',
+            warning:
+              'Harga baru berlaku untuk pendaftaran dan tagihan perpanjangan berikutnya, dan berlaku untuk semua sekolah yang memakai item itu. Invoice yang sudah dibuat tidak berubah.',
           },
           {
-            heading: 'Mengubah dan menambah item',
-            body: 'Hanya Admin platform yang melihat tombol ubah dan tambah. Harga baru berlaku untuk pendaftaran dan tagihan perpanjangan berikutnya; invoice yang sudah dibuat tidak berubah.',
+            heading: 'Menambah modul atau tingkat siswa baru',
+            body: 'Gunakan kartu Tambah modul atau tingkat. Modul baru baru berfungsi di sekolah bila fiturnya memang sudah ada di aplikasi. Bila belum, di katalog ia hanya menjadi pilihan yang bisa dibeli, jadi tanyakan dulu kepada tim teknis.',
             steps: [
-              'Klik ikon pensil pada baris item untuk mengubah nama, harga, urutan, atau status aktif.',
-              'Untuk item baru, klik Tambah modul atau tingkat, pilih jenis, lalu isi Kunci, nama, dan harga.',
-              'Kunci tidak dapat diubah setelah dibuat.',
-              'Klik Simpan atau Tambah.',
+              'Di kartu Tambah modul atau tingkat, pilih Jenis.',
+              'Isi Kunci (pengenal singkat tanpa spasi), Nama, dan Harga per bulan (Rp).',
+              'Untuk Tingkat siswa, isi Batas siswa aktif, atau kosongkan bila tanpa batas. Untuk Modul, isi Syarat modul bila modul ini butuh modul lain.',
+              'Klik Tambah.',
+            ],
+            href: '/platform/catalog',
+            tip: 'Pikirkan Kunci dengan teliti. Kunci tidak bisa diubah setelah item dibuat.',
+          },
+          {
+            heading: 'Membuat atau menyembunyikan paket siap pakai',
+            body: 'Paket adalah gabungan satu tingkat siswa dan beberapa modul, supaya pendaftar tidak perlu memilih satu per satu. Nama paket maksimal 40 karakter dan deskripsinya maksimal 200 karakter. Menghapus paket tidak mengubah langganan sekolah mana pun.',
+            steps: [
+              'Di kartu Buat paket, isi Kunci, Nama, dan Deskripsi.',
+              'Pilih Tingkat siswa lalu centang Modul yang ikut.',
+              'Klik Tambah, lalu buka halaman daftar untuk memastikan tampilannya benar.',
+              'Untuk menyembunyikan paket, ubah paketnya lalu hilangkan centang Aktif.',
             ],
             href: '/platform/catalog',
           },
           {
-            heading: 'Aturan modul dan tingkat siswa',
-            body: 'Modul punya Syarat modul: memilih modul itu otomatis menambah modul yang dicentang. Tingkat siswa punya Batas siswa aktif; kosong berarti tanpa batas. Modul baru baru berfungsi bila fiturnya sudah ada di kode; di katalog ia hanya menjadi pilihan yang bisa dibeli.',
+            heading: 'Menghentikan penjualan sebuah item',
+            body: 'Item katalog tidak bisa dihapus, hanya dinonaktifkan. Item yang nonaktif tidak tampil untuk pendaftar baru, tetapi sekolah yang sudah berlangganan tetap ditagih dengan harganya. Item Inti tidak boleh dinonaktifkan. Sebelum menonaktifkan modul, periksa Syarat modul supaya tidak ada modul lain yang bergantung padanya.',
+            warning:
+              'Setelah dinonaktifkan, pendaftar baru tidak bisa memilih item ini lagi. Beri tahu tim penjualan sebelum menonaktifkan.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Saya mengubah harga tetapi invoice sekolah masih memakai harga lama. Kenapa?',
+            a: 'Memang begitu. Invoice yang sudah dibuat tidak berubah. Harga baru dipakai pada pendaftaran dan invoice perpanjangan yang dibuat sesudahnya.',
           },
           {
-            heading: 'Paket siap pakai',
-            body: 'Paket berisi nama (maksimal 40 karakter), deskripsi (maksimal 200), tingkat siswa, dan daftar modul. Menghapus paket tidak mengubah langganan siapa pun.',
-            steps: [
-              'Klik Buat paket dan isi Kunci, nama, dan deskripsi.',
-              'Pilih tingkat siswa dan centang modulnya.',
-              'Simpan, lalu cek tampilan halaman daftar.',
-              'Untuk menyembunyikan paket, ubah lalu hilangkan centang Aktif; paket nonaktif tidak tampil di halaman daftar.',
-            ],
-            href: '/platform/catalog',
+            q: 'Modul baru sudah saya tambahkan tetapi sekolah tidak melihat fiturnya. Apa yang dicek?',
+            a: 'Menambah modul di katalog hanya membuat modul itu bisa dibeli. Fitur harus sudah disiapkan oleh tim teknis. Tanyakan kepada mereka apakah fitur modul itu sudah tersedia.',
           },
           {
-            heading: 'Nonaktifkan, jangan hapus',
-            body: 'Item katalog tidak bisa dihapus, hanya dinonaktifkan. Item nonaktif tidak tampil untuk pendaftar baru, tetapi sekolah yang sudah berlangganan tetap ditagih dengan harganya. Item Inti tidak boleh dinonaktifkan.',
+            q: 'Saya ingin menghapus paket lama. Apakah sekolah yang memakainya terdampak?',
+            a: 'Tidak. Menghapus paket tidak mengubah langganan sekolah mana pun. Bila hanya ingin menyembunyikan, ubah paketnya dan hilangkan centang Aktif.',
+          },
+          {
+            q: 'Tombol Ubah dan Tambah tidak terlihat. Kenapa?',
+            a: 'Hanya staf dengan peran Admin platform yang melihatnya. Bila akun Anda Hanya lihat, halaman menampilkan keterangan bahwa peran Anda hanya dapat melihat.',
           },
         ],
       },
       en: {
-        title: 'Prices & modules (catalog)',
-        summary: 'Manage modules, student tiers, prices, module requirements, and ready-made plans.',
+        title: 'Prices & modules: managing what is sold',
+        summary: 'Change prices, add modules, manage ready-made plans, and stop selling an item.',
+        forWho: 'Platform admins who decide prices and subscription plans.',
         sections: [
           {
-            heading: 'What the catalog contains',
-            body: 'The catalog has items of kind Core, Module, and Student tier, each with a monthly price, plus ready-made Plans. Plans are only quick choices on the registration page; prices are still computed from the catalog items.',
+            heading: 'Changing the price of a module or student tier',
+            body: 'The catalog holds items of kind Core, Module, and Student tier. Each item has a monthly price. Ready-made plans are only quick choices on the registration page; their price is still worked out from these items. Only staff with the Platform admin role see the Edit button.',
+            steps: [
+              'Open Prices & modules.',
+              'In the Modules and student tiers list, click Edit on the item row.',
+              'Change the Name, Price per month (Rp), or Order as needed.',
+              'Click Save.',
+            ],
             href: '/platform/catalog',
+            warning:
+              'The new price applies to later registrations and renewal invoices, for every school that uses the item. Invoices already created do not change.',
           },
           {
-            heading: 'Editing and adding items',
-            body: 'Only Platform admins see the edit and add buttons. A new price applies to later registrations and renewal invoices; invoices already created do not change.',
+            heading: 'Adding a new module or student tier',
+            body: 'Use the Add module or tier card. A new module only works in schools if its feature already exists in the application. If not, in the catalog it is just something that can be bought, so ask the technical team first.',
             steps: [
-              'Click the pencil icon on an item row to change its name, price, order, or active status.',
-              'For a new item, click Add module or tier, choose the kind, then fill in the Key, name, and price.',
-              'The key cannot be changed once created.',
-              'Click Save or Add.',
+              'In the Add module or tier card, choose the Kind.',
+              'Fill in the Key (a short identifier with no spaces), Name, and Price per month (Rp).',
+              'For a Student tier, fill in Active student limit, or leave it empty for no limit. For a Module, fill in Module requirements if it needs other modules.',
+              'Click Add.',
+            ],
+            href: '/platform/catalog',
+            tip: 'Think carefully about the Key. It cannot be changed once the item is created.',
+          },
+          {
+            heading: 'Creating or hiding a ready-made plan',
+            body: 'A plan combines one student tier with several modules, so registrants do not have to pick one by one. A plan name is up to 40 characters and its description up to 200. Deleting a plan does not change any school subscription.',
+            steps: [
+              'In the Create plan card, fill in the Key, Name, and Description.',
+              'Pick the Student tier and tick the Modules that come with it.',
+              'Click Add, then open the registration page to check it looks right.',
+              'To hide a plan, edit it and untick Active.',
             ],
             href: '/platform/catalog',
           },
           {
-            heading: 'Module and tier rules',
-            body: 'A module has Module requirements: selecting it automatically adds the modules ticked there. A student tier has an Active student limit; empty means unlimited. A new module only works once its feature exists in the code; in the catalog it just becomes something purchasable.',
+            heading: 'Stopping the sale of an item',
+            body: 'Catalog items cannot be deleted, only deactivated. A deactivated item does not show for new registrants, but schools already subscribed are still billed at its price. Core items cannot be deactivated. Before deactivating a module, check Module requirements so no other module depends on it.',
+            warning:
+              'Once deactivated, new registrants can no longer choose this item. Tell the sales team before you deactivate it.',
+          },
+        ],
+        faq: [
+          {
+            q: 'I changed a price but a school invoice still shows the old one. Why?',
+            a: 'That is expected. Invoices already created do not change. The new price is used for registrations and renewal invoices created afterwards.',
           },
           {
-            heading: 'Ready-made plans',
-            body: 'A plan has a name (up to 40 characters), a description (up to 200), a student tier, and a list of modules. Deleting a plan does not change anyone subscription.',
-            steps: [
-              'Click Create plan and fill in the Key, name, and description.',
-              'Pick the student tier and tick its modules.',
-              'Save, then check how the registration page looks.',
-              'To hide a plan, edit it and untick Active; inactive plans do not show on the registration page.',
-            ],
-            href: '/platform/catalog',
+            q: 'I added a new module but schools cannot see the feature. What should I check?',
+            a: 'Adding a module to the catalog only makes it purchasable. The feature has to be prepared by the technical team. Ask them whether the module feature is available.',
           },
           {
-            heading: 'Deactivate, do not delete',
-            body: 'Catalog items cannot be deleted, only deactivated. Inactive items do not show for new registrants, but schools already subscribed are still billed at their price. Core items cannot be deactivated.',
+            q: 'I want to delete an old plan. Are schools using it affected?',
+            a: 'No. Deleting a plan does not change any school subscription. If you only want to hide it, edit the plan and untick Active.',
+          },
+          {
+            q: 'The Edit and Add buttons are not visible. Why?',
+            a: 'Only staff with the Platform admin role see them. If your account is Read only, the page says your role can only view.',
           },
         ],
       },
       su: {
-        title: 'Harga & modul (katalog)',
-        summary: 'Ngatur modul, tingkat siswa, harga, sarat antarmodul, jeung paket siap pakéna.',
+        title: 'Harga & modul: ngatur nu dijual',
+        summary:
+          'Ngarobih harga, nambihan modul, ngatur paket siap pakéna, jeung ngeureunkeun jualan hiji item.',
+        forWho: 'Admin platform nu nangtukeun harga jeung paket langganan.',
         sections: [
           {
-            heading: 'Eusi katalog',
-            body: 'Katalog diwangun ku item jenis Inti, Modul, jeung Tingkat siswa, unggal item boga harga sabulan, ditambah Paket siap pakéna. Paket ngan pilihan gancang dina kaca daptar; harga tetep diitung tina item katalog.',
+            heading: 'Ngarobih harga modul atawa tingkat siswa',
+            body: 'Katalog eusina item jenis Inti, Modul, jeung Tingkat siswa. Unggal item boga harga sabulan. Paket siap pakéna ngan pilihan gancang dina kaca daptar; hargana tetep diitung tina item-item ieu. Ngan staf nu perannana Admin platform nu ningali tombol Ubah.',
+            steps: [
+              'Buka Harga & modul.',
+              'Dina daptar Modul jeung tingkat siswa, klik Ubah dina baris item.',
+              'Ganti Ngaran, Harga per bulan (Rp), atawa Urutan sakumaha peryogina.',
+              'Klik Simpen.',
+            ],
             href: '/platform/catalog',
+            warning:
+              'Harga anyar lumaku pikeun pendaptaran jeung tagihan perpanjangan satuluyna, pikeun sakabéh sakola nu maké item eta. Invoice nu geus dijieun teu robah.',
           },
           {
-            heading: 'Ngarobih jeung nambihan item',
-            body: 'Ngan Admin platform nu ningali tombol robah jeung tambah. Harga anyar lumaku pikeun pendaptaran jeung tagihan perpanjangan satuluyna; invoice nu geus dijieun teu robah.',
+            heading: 'Nambihan modul atawa tingkat siswa anyar',
+            body: 'Pake kartu Tambih modul atawa tingkat. Modul anyar karék jalan di sakola lamun fiturna memang geus aya dina aplikasi. Lamun can, dina katalog ngan jadi pilihan nu bisa dipeuli, ku kituna tanyakeun heula ka tim téknis.',
             steps: [
-              'Klik ikon pénsil dina baris item pikeun ngarobih ngaran, harga, urutan, atawa status aktip.',
-              'Pikeun item anyar, klik Tambih modul atawa tingkat, pilih jenisna, tuluy eusian Konci, ngaran, jeung harga.',
-              'Konci teu bisa dirobah sanggeus dijieun.',
-              'Klik Simpen atawa Tambih.',
+              'Dina kartu Tambih modul atawa tingkat, pilih Jenis.',
+              'Eusian Konci (ciri singget tanpa spasi), Ngaran, jeung Harga per bulan (Rp).',
+              'Pikeun Tingkat siswa, eusian Wates siswa aktip, atawa kosongkeun lamun taya wates. Pikeun Modul, eusian Sarat modul lamun peryogi modul séjén.',
+              'Klik Tambih.',
+            ],
+            href: '/platform/catalog',
+            tip: 'Pikirkeun Konci kalayan taliti. Konci teu bisa dirobah sanggeus item dijieun.',
+          },
+          {
+            heading: 'Nyieun atawa nyumputkeun paket siap pakéna',
+            body: 'Paket nyaéta gabungan hiji tingkat siswa jeung sababaraha modul, sangkan pendaptar teu kudu milih hiji-hiji. Ngaran paket pangmaksimalna 40 karakter jeung pedaranana 200. Mupus paket teu ngarobah langganan sakola mana waé.',
+            steps: [
+              'Dina kartu Jieun paket, eusian Konci, Ngaran, jeung Pedaran.',
+              'Pilih Tingkat siswa tuluy centang Modul nu milu.',
+              'Klik Tambih, tuluy buka kaca daptar pikeun mastikeun tampilanana bener.',
+              'Pikeun nyumputkeun paket, robah paketna tuluy leungitkeun centang Aktip.',
             ],
             href: '/platform/catalog',
           },
           {
-            heading: 'Aturan modul jeung tingkat siswa',
-            body: 'Modul boga Sarat modul: milih modul eta otomatis nambihan modul nu dicentang. Tingkat siswa boga Wates siswa aktip; kosong hartina taya wates. Modul anyar karék jalan lamun fiturna geus aya dina kode; dina katalog ngan jadi pilihan nu bisa dipeuli.',
+            heading: 'Ngeureunkeun jualan hiji item',
+            body: 'Item katalog teu bisa dipupus, ngan bisa dinonaktipkeun. Item nu nonaktip teu muncul pikeun pendaptar anyar, tapi sakola nu geus langganan tetep ditagih nurutkeun hargana. Item Inti teu meunang dinonaktipkeun. Samemeh nonaktipkeun modul, pariksa Sarat modul sangkan taya modul séjén nu gumantung ka dinya.',
+            warning:
+              'Sanggeus dinonaktipkeun, pendaptar anyar teu bisa milih item ieu deui. Wartosan tim penjualan samemeh nonaktipkeun.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Abdi ngarobih harga tapi invoice sakola tetep harga heubeul. Naha?',
+            a: 'Memang kitu. Invoice nu geus dijieun teu robah. Harga anyar dipaké pikeun pendaptaran jeung invoice perpanjangan nu dijieun sanggeusna.',
           },
           {
-            heading: 'Paket siap pakéna',
-            body: 'Paket eusina ngaran (pangmaksimalna 40 karakter), pedaran (200), tingkat siswa, jeung daptar modul. Mupus paket teu ngarobah langganan saha waé.',
-            steps: [
-              'Klik Jieun paket tuluy eusian Konci, ngaran, jeung pedaran.',
-              'Pilih tingkat siswa tuluy centang modulna.',
-              'Simpen, tuluy pariksa tampilan kaca daptar.',
-              'Pikeun nyumputkeun paket, robah tuluy leungitkeun centang Aktip; paket nonaktip teu muncul dina kaca daptar.',
-            ],
-            href: '/platform/catalog',
+            q: 'Modul anyar geus ditambihan tapi sakola teu ningali fiturna. Naon nu kudu dipariksa?',
+            a: 'Nambihan modul dina katalog ngan ngajadikeun modulna bisa dipeuli. Fiturna kudu geus disiapkeun ku tim téknis. Tanyakeun ka maranéhna naha fitur modulna geus sayogi.',
           },
           {
-            heading: 'Nonaktipkeun, ulah mupus',
-            body: 'Item katalog teu bisa dipupus, ngan bisa dinonaktipkeun. Item nonaktip teu muncul pikeun pendaptar anyar, tapi sakola nu geus langganan tetep ditagih nurutkeun hargana. Item Inti teu meunang dinonaktipkeun.',
+            q: 'Abdi hoyong mupus paket heubeul. Naha sakola nu maké kapangaruhan?',
+            a: 'Henteu. Mupus paket teu ngarobah langganan sakola mana waé. Lamun ngan hoyong nyumputkeun, robah paketna tuluy leungitkeun centang Aktip.',
+          },
+          {
+            q: 'Tombol Ubah jeung Tambih teu katingali. Naha?',
+            a: 'Ngan staf nu perannana Admin platform nu ningali. Lamun akun anjeun Ngan ningali, kaca nembongkeun keterangan yén peran anjeun ngan bisa ningali.',
           },
         ],
       },
@@ -567,115 +931,187 @@ export const PLATFORM_DOCS: DocArticle[] = [
     slug: 'curriculum',
     icon: 'book',
     tone: 'emerald',
+    group: 'config',
     text: {
       id: {
-        title: 'Bank kurikulum',
-        summary: 'Acuan global jenjang, kurikulum, dan mata pelajaran yang disalin oleh sekolah.',
+        title: 'Bank kurikulum: acuan mata pelajaran',
+        summary:
+          'Menyiapkan jenjang, kurikulum, dan mata pelajaran acuan yang dapat disalin oleh semua sekolah.',
+        forWho: 'Admin platform yang menyiapkan data acuan pelajaran untuk sekolah.',
         sections: [
           {
-            heading: 'Apa itu bank kurikulum',
-            body: 'Bank kurikulum adalah acuan global untuk semua sekolah, terdiri dari jenjang, kurikulum, dan mapel acuan. Sekolah menyalin mapel acuan lalu bebas mengubahnya, jadi perubahan di sini tidak menimpa data sekolah. Semua staf dapat melihat; hanya Admin platform yang dapat mengubah.',
+            heading: 'Menambah jenjang atau kurikulum',
+            body: 'Bank kurikulum adalah contoh awal yang dipakai bersama oleh semua sekolah. Sekolah menyalin mata pelajaran dari sini lalu bebas mengubahnya, sehingga perubahan di sini tidak menimpa data sekolah. Semua staf bisa melihat; hanya Admin platform yang bisa mengubah.',
+            steps: [
+              'Buka Bank kurikulum.',
+              'Untuk jenjang, klik Tambah jenjang lalu isi Kunci, Nama, dan Urutan.',
+              'Untuk kurikulum, klik Tambah kurikulum lalu isi Kunci dan Nama.',
+              'Klik Tambah.',
+            ],
             href: '/platform/curriculum',
+            tip: 'Kunci adalah pengenal singkat huruf kecil tanpa spasi, misalnya sd atau smp. Kunci tidak bisa diubah setelah dibuat.',
           },
           {
-            heading: 'Jenjang dan kurikulum',
-            body: 'Kartu ringkasan menampilkan jenjang aktif, kurikulum, mapel acuan, dan adopsi sekolah. Jenjang nonaktif disembunyikan dari pilihan sekolah, tetapi adopsi yang sudah ada tidak berubah.',
+            heading: 'Menambah mata pelajaran acuan satu per satu',
+            body: 'Mata pelajaran acuan diatur per kurikulum dan per jenjang. Kode mata pelajaran harus unik dalam satu kurikulum dan jenjang. Mata pelajaran baru akan muncul sebagai acuan baru yang bisa diambil di sekolah yang sudah memakai kurikulum dan jenjang itu.',
             steps: [
-              'Klik Tambah jenjang dan isi Kunci (mis. sd, smp, paket_c), nama, dan urutan. Kunci tidak bisa diubah.',
-              'Klik Tambah kurikulum dengan kunci dan nama.',
-              'Untuk menyembunyikan jenjang, ubah lalu nonaktifkan.',
-              'Penghapusan hanya bisa bila tidak dipakai: jenjang tanpa mapel acuan dan adopsi; kurikulum yang belum diadopsi sekolah (mapel acuannya ikut terhapus).',
+              'Di kartu Kurikulum dan mapel acuan, pilih kurikulum.',
+              'Klik Tambah mapel lalu isi Kode, Nama, dan Jenjang.',
+              'Klik Tambah.',
             ],
             href: '/platform/curriculum',
           },
           {
-            heading: 'Mapel acuan dan impor',
-            body: 'Pilih kurikulum untuk mengelola mapel acuannya per jenjang. Kode mapel unik per kurikulum dan jenjang. Mapel baru muncul di sekolah yang sudah mengadopsi kurikulum dan jenjang itu sebagai acuan baru yang bisa diadopsi.',
+            heading: 'Memasukkan banyak mata pelajaran sekaligus',
+            body: 'Bila mata pelajarannya banyak, gunakan Impor. Siapkan satu baris untuk tiap mata pelajaran dengan isi: kode, nama, dan urutan (urutan boleh kosong). Pemisahnya bisa tab, titik koma, atau koma.',
             steps: [
-              'Pilih kurikulum, lalu Tambah mapel untuk satu per satu.',
-              'Atau klik Impor dan pilih berkas CSV, atau tempel isi tabel dari Excel.',
-              'Satu baris per mapel: kode, nama, urutan (opsional), dipisah tab, titik koma, atau koma.',
-              'Cek jumlah baris terbaca, lalu impor. Kode yang sudah ada diperbarui namanya.',
+              'Pilih kurikulum lalu klik Impor.',
+              'Pilih Berkas CSV, atau tempel isi tabel dari Excel di kolom Atau tempel isi tabel.',
+              'Periksa jumlah baris terbaca yang muncul dan pastikan sesuai dengan jumlah data Anda.',
+              'Klik Impor untuk memasukkan datanya.',
             ],
             href: '/platform/curriculum',
+            tip: 'Kode yang sudah ada tidak membuat baris ganda. Hanya namanya yang diperbarui, sehingga aman bila Anda mengimpor ulang untuk memperbaiki nama.',
           },
           {
-            heading: 'Dampak ke sekolah',
-            body: 'Mengubah nama mapel acuan tidak menimpa mapel yang sudah disalin sekolah. Item yang masih dipakai tidak bisa dihapus; nonaktifkan bila perlu.',
+            heading: 'Menyembunyikan atau menghapus data acuan',
+            body: 'Jenjang yang dinonaktifkan tidak muncul di pilihan sekolah, tetapi pilihan yang sudah diambil sekolah tidak berubah. Data hanya bisa dihapus bila tidak dipakai: jenjang tanpa mata pelajaran acuan dan tanpa sekolah yang mengambilnya, atau kurikulum yang belum diambil sekolah mana pun. Menghapus kurikulum ikut menghapus seluruh mata pelajaran acuannya.',
+            warning: 'Penghapusan tidak bisa dibatalkan. Bila ragu, nonaktifkan saja.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Saya mengubah nama mata pelajaran acuan. Apakah nama di sekolah ikut berubah?',
+            a: 'Tidak. Sekolah menyimpan salinannya sendiri, jadi mata pelajaran yang sudah diambil tidak berubah. Perubahan hanya terlihat pada pengambilan berikutnya.',
+          },
+          {
+            q: 'Tombol Hapus tidak bisa dipakai atau ditolak. Kenapa?',
+            a: 'Data itu masih dipakai, entah oleh mata pelajaran acuan atau oleh sekolah yang sudah mengambilnya. Nonaktifkan saja bila ingin menyembunyikannya dari pilihan sekolah.',
+          },
+          {
+            q: 'Impor menampilkan 0 baris terbaca. Apa yang salah?',
+            a: 'Periksa bahwa setiap baris berisi kode lalu nama, dengan pemisah yang sama di semua baris. Bila menempel dari Excel, salin hanya kolom kode, nama, dan urutan tanpa judul kolom.',
           },
         ],
       },
       en: {
-        title: 'Curriculum bank',
-        summary: 'The global reference of levels, curricula, and subjects that schools copy from.',
+        title: 'Curriculum bank: reference subjects',
+        summary: 'Prepare the levels, curricula, and reference subjects that every school can copy.',
+        forWho: 'Platform admins who prepare reference subject data for schools.',
         sections: [
           {
-            heading: 'What the bank is',
-            body: 'The curriculum bank is a global reference for all schools, made of levels, curricula, and reference subjects. Schools copy reference subjects and can then edit them freely, so changes here do not overwrite school data. All staff can view; only Platform admins can change.',
+            heading: 'Adding a level or a curriculum',
+            body: 'The curriculum bank is a starting example shared by all schools. Schools copy subjects from here and can then change them freely, so changes here do not overwrite school data. All staff can view; only Platform admins can change.',
+            steps: [
+              'Open Curriculum bank.',
+              'For a level, click Add level and fill in the Key, Name, and Order.',
+              'For a curriculum, click Add curriculum and fill in the Key and Name.',
+              'Click Add.',
+            ],
             href: '/platform/curriculum',
+            tip: 'A Key is a short lowercase identifier with no spaces, for example sd or smp. A key cannot be changed once created.',
           },
           {
-            heading: 'Levels and curricula',
-            body: 'The summary cards show active levels, curricula, reference subjects, and school adoptions. Inactive levels are hidden from school choices, but existing adoptions do not change.',
+            heading: 'Adding reference subjects one by one',
+            body: 'Reference subjects are managed per curriculum and per level. A subject code must be unique within one curriculum and level. A new subject shows up as a new reference that can be taken in schools already using that curriculum and level.',
             steps: [
-              'Click Add level and fill in the Key (e.g. sd, smp, paket_c), name, and order. The key cannot be changed.',
-              'Click Add curriculum with a key and name.',
-              'To hide a level, edit it and deactivate it.',
-              'Deleting is only possible when unused: a level with no reference subjects and no adoptions; a curriculum no school has adopted (its reference subjects are deleted with it).',
+              'In the Curricula and reference subjects card, pick the curriculum.',
+              'Click Add subject and fill in the Code, Name, and Level.',
+              'Click Add.',
             ],
             href: '/platform/curriculum',
           },
           {
-            heading: 'Reference subjects and import',
-            body: 'Pick a curriculum to manage its reference subjects per level. A subject code is unique per curriculum and level. A new subject appears in schools that already adopted that curriculum and level as a new reference they can adopt.',
+            heading: 'Adding many subjects at once',
+            body: 'When there are many subjects, use Import. Prepare one row per subject with: code, name, and order (order may be empty). The separator can be a tab, semicolon, or comma.',
             steps: [
-              'Pick a curriculum, then Add subject for one at a time.',
-              'Or click Import and choose a CSV file, or paste the table from Excel.',
-              'One row per subject: code, name, order (optional), separated by tab, semicolon, or comma.',
-              'Check the number of rows read, then import. Existing codes get their name updated.',
+              'Pick the curriculum, then click Import.',
+              'Choose a CSV file, or paste the table from Excel into the Or paste the table field.',
+              'Check the number of rows read that appears and make sure it matches your data.',
+              'Click Import to add the data.',
             ],
             href: '/platform/curriculum',
+            tip: 'An existing code does not create a duplicate row. Only its name is updated, so it is safe to import again to fix names.',
           },
           {
-            heading: 'Impact on schools',
-            body: 'Renaming a reference subject does not overwrite subjects schools already copied. Items still in use cannot be deleted; deactivate them if needed.',
+            heading: 'Hiding or deleting reference data',
+            body: 'A deactivated level does not show in school choices, but what schools already took does not change. Data can only be deleted when unused: a level with no reference subjects and no school that took it, or a curriculum no school has taken. Deleting a curriculum also deletes all its reference subjects.',
+            warning: 'Deleting cannot be undone. If in doubt, just deactivate.',
+          },
+        ],
+        faq: [
+          {
+            q: 'I renamed a reference subject. Does the name change in schools?',
+            a: 'No. Schools keep their own copy, so subjects already taken do not change. The change is only seen the next time someone takes it.',
+          },
+          {
+            q: 'The Delete button does not work or is refused. Why?',
+            a: 'The data is still in use, either by reference subjects or by schools that already took it. Just deactivate it if you want to hide it from school choices.',
+          },
+          {
+            q: 'Import shows 0 rows read. What is wrong?',
+            a: 'Check that every row has a code then a name, with the same separator on all rows. If you paste from Excel, copy only the code, name, and order columns without the column titles.',
           },
         ],
       },
       su: {
-        title: 'Bank kurikulum',
-        summary: 'Acuan global jenjang, kurikulum, jeung mata pelajaran nu disalin ku sakola.',
+        title: 'Bank kurikulum: acuan mata pelajaran',
+        summary:
+          'Nyiapkeun jenjang, kurikulum, jeung mata pelajaran acuan nu bisa disalin ku sakabéh sakola.',
+        forWho: 'Admin platform nu nyiapkeun data acuan pelajaran pikeun sakola.',
         sections: [
           {
-            heading: 'Naon éta bank kurikulum',
-            body: 'Bank kurikulum nyaéta acuan global pikeun sakabéh sakola, diwangun ku jenjang, kurikulum, jeung mapél acuan. Sakola nyalin mapél acuan tuluy bébas ngarobihna, ku kituna parobahan di dieu teu nimpa data sakola. Sakabéh staf bisa ningali; ngan Admin platform nu bisa ngarobih.',
+            heading: 'Nambihan jenjang atawa kurikulum',
+            body: 'Bank kurikulum nyaéta conto awal nu dipaké babarengan ku sakabéh sakola. Sakola nyalin mata pelajaran ti dieu tuluy bébas ngarobihna, ku kituna parobahan di dieu teu nimpa data sakola. Sakabéh staf bisa ningali; ngan Admin platform nu bisa ngarobih.',
+            steps: [
+              'Buka Bank kurikulum.',
+              'Pikeun jenjang, klik Tambih jenjang tuluy eusian Konci, Ngaran, jeung Urutan.',
+              'Pikeun kurikulum, klik Tambih kurikulum tuluy eusian Konci jeung Ngaran.',
+              'Klik Tambih.',
+            ],
             href: '/platform/curriculum',
+            tip: 'Konci nyaéta ciri singget hurup leutik tanpa spasi, upamana sd atawa smp. Konci teu bisa dirobah sanggeus dijieun.',
           },
           {
-            heading: 'Jenjang jeung kurikulum',
-            body: 'Kartu ringkesan nembongkeun jenjang aktip, kurikulum, mapél acuan, jeung adopsi sakola. Jenjang nonaktip disumputkeun tina pilihan sakola, tapi adopsi nu geus aya teu robah.',
+            heading: 'Nambihan mata pelajaran acuan hiji-hiji',
+            body: 'Mata pelajaran acuan diatur per kurikulum jeung per jenjang. Kode mata pelajaran kudu unik dina hiji kurikulum jeung jenjang. Mata pelajaran anyar muncul minangka acuan anyar nu bisa dicokot di sakola nu geus maké kurikulum jeung jenjang eta.',
             steps: [
-              'Klik Tambih jenjang tuluy eusian Konci (upamana sd, smp, paket_c), ngaran, jeung urutan. Konci teu bisa dirobah.',
-              'Klik Tambih kurikulum nganggo konci jeung ngaran.',
-              'Pikeun nyumputkeun jenjang, robah tuluy nonaktipkeun.',
-              'Mupus ngan bisa lamun teu dipaké: jenjang tanpa mapél acuan jeung adopsi; kurikulum nu can diadopsi sakola (mapél acuanana milu kapupus).',
+              'Dina kartu Kurikulum jeung mapél acuan, pilih kurikulum.',
+              'Klik Tambih mapél tuluy eusian Kode, Ngaran, jeung Jenjang.',
+              'Klik Tambih.',
             ],
             href: '/platform/curriculum',
           },
           {
-            heading: 'Mapél acuan jeung impor',
-            body: 'Pilih kurikulum pikeun ngatur mapél acuanana per jenjang. Kode mapél unik per kurikulum jeung jenjang. Mapél anyar muncul di sakola nu geus ngadopsi kurikulum jeung jenjang eta minangka acuan anyar nu bisa diadopsi.',
+            heading: 'Ngalebetkeun loba mata pelajaran sakaligus',
+            body: 'Lamun mata pelajaranana loba, pake Impor. Sadiakeun hiji baris pikeun unggal mata pelajaran eusina: kode, ngaran, jeung urutan (urutan meunang kosong). Pamisahna bisa tab, titik koma, atawa koma.',
             steps: [
-              'Pilih kurikulum, tuluy Tambih mapél pikeun hiji-hiji.',
-              'Atawa klik Impor tuluy pilih bérkas CSV, atawa témpél eusi tabel tina Excel.',
-              'Hiji baris pikeun hiji mapél: kode, ngaran, urutan (opsional), dipisah ku tab, titik koma, atawa koma.',
-              'Pariksa jumlah baris kabaca, tuluy impor. Kode nu geus aya dirobah ngaranna.',
+              'Pilih kurikulum tuluy klik Impor.',
+              'Pilih Bérkas CSV, atawa témpél eusi tabel tina Excel dina kolom Atawa témpél eusi tabel.',
+              'Pariksa jumlah baris kabaca nu muncul tuluy pastikeun cocog jeung jumlah data anjeun.',
+              'Klik Impor pikeun ngalebetkeun datana.',
             ],
             href: '/platform/curriculum',
+            tip: 'Kode nu geus aya teu nyieun baris ganda. Ngan ngaranna nu dirobah, ku kituna aman lamun impor deui pikeun ngabenerkeun ngaran.',
           },
           {
-            heading: 'Pangaruh ka sakola',
-            body: 'Ngarobih ngaran mapél acuan teu nimpa mapél nu geus disalin ku sakola. Item nu masih dipaké teu bisa dipupus; nonaktipkeun lamun perlu.',
+            heading: 'Nyumputkeun atawa mupus data acuan',
+            body: 'Jenjang nu dinonaktipkeun teu muncul dina pilihan sakola, tapi nu geus dicokot ku sakola teu robah. Data ngan bisa dipupus lamun teu dipaké: jenjang tanpa mata pelajaran acuan jeung taya sakola nu nyokotna, atawa kurikulum nu can dicokot ku sakola mana waé. Mupus kurikulum milu mupus sakabéh mata pelajaran acuanana.',
+            warning: 'Pupusan teu bisa dibolaykeun. Lamun bingung, nonaktipkeun waé.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Abdi ngarobih ngaran mata pelajaran acuan. Naha ngaran di sakola milu robah?',
+            a: 'Henteu. Sakola nyimpen salinanana sorangan, ku kituna mata pelajaran nu geus dicokot teu robah. Parobahan ngan katingali dina pangambilan satuluyna.',
+          },
+          {
+            q: 'Tombol Pupus teu tiasa dipaké atawa ditolak. Naha?',
+            a: 'Datana masih dipaké, boh ku mata pelajaran acuan boh ku sakola nu geus nyokotna. Nonaktipkeun waé lamun hoyong nyumputkeunana tina pilihan sakola.',
+          },
+          {
+            q: 'Impor nembongkeun 0 baris kabaca. Naon nu lepat?',
+            a: 'Pariksa yén unggal baris eusina kode tuluy ngaran, ku pamisah nu sarua dina sakabéh baris. Lamun témpél tina Excel, salin ngan kolom kode, ngaran, jeung urutan tanpa judul kolom.',
           },
         ],
       },
@@ -685,99 +1121,206 @@ export const PLATFORM_DOCS: DocArticle[] = [
     slug: 'messaging',
     icon: 'send',
     tone: 'slate',
+    group: 'watch',
     text: {
       id: {
-        title: 'Pesan WhatsApp',
+        title: 'Pesan WhatsApp: memantau dan mengatur',
         summary:
-          'Pengaturan global pengiriman pesan, aturan kirim ulang, dan pemantauan worker serta akun sekolah.',
+          'Memastikan pesan ke wali terkirim, mengatur kirim ulang, dan mematikan pengiriman saat darurat.',
+        forWho: 'Admin platform dan staf dukungan yang memantau notifikasi sekolah.',
         sections: [
           {
-            heading: 'Saklar dan penyedia',
-            body: 'Saklar Aktifkan pengiriman pesan berlaku untuk semua sekolah; bila mati, tidak ada pesan yang dikirim. Penyedia dapat berupa WhatsApp atau Log uji (hanya mencatat, tidak mengirim). Log uji ditolak di produksi. Batas antrean per sekolah menolak pesan baru bila antrean sekolah sudah penuh.',
+            heading: 'Mengecek apakah pesan berjalan normal',
+            body: 'Halaman WhatsApp menyegarkan diri tiap 15 detik. Anda tidak perlu memuat ulang.',
+            steps: [
+              'Buka WhatsApp di menu Sistem.',
+              'Di kartu Pesan 24 jam terakhir, lihat jumlah pesan menurut status: Antre, Terkirim, Gagal, Dilewati. Jumlah Gagal yang terus naik berarti ada masalah.',
+              'Di kartu Akun WhatsApp sekolah, lihat jumlah akun menurut status sambungan: Terhubung, Menunggu pemindaian, Menyambung, Gagal, Terputus.',
+              'Di kartu Status worker, pastikan tertulis Chrome terdeteksi dan laporannya tidak lama. Worker adalah program di server yang benar-benar mengirim pesan.',
+            ],
             href: '/platform/messaging',
+            tip: 'Bila laporan di Status worker tertulis lama, program pengirim pesan mungkin berhenti. Hubungi tim teknis.',
           },
           {
-            heading: 'Aturan kirim ulang',
-            body: 'Berlaku untuk pesan berikutnya tanpa restart worker. Hanya Admin platform yang dapat menyimpan; Hanya lihat melihat nilainya.',
+            heading: 'Mematikan pengiriman pesan saat darurat',
+            body: 'Saklar Aktifkan pengiriman pesan berlaku untuk semua sekolah sekaligus. Pakai hanya bila ada kejadian yang membahayakan, misalnya pesan salah terkirim ke banyak wali.',
             steps: [
-              'Isi Jeda antar percobaan dalam menit, 1 sampai 10 bilangan dipisah koma (mis. 1, 5, 30, 120, 360). Percobaan yang melewati daftar memakai jeda terakhir.',
-              'Isi Percobaan maksimum (1 sampai 20); setelah itu pesan ditandai gagal.',
-              'Isi Kedaluwarsa pesan dalam jam (1 sampai 168) untuk pesan tertahan karena WhatsApp sekolah belum siap.',
-              'Isi Batas usia tap dalam jam (1 sampai 72); tap kiosk yang lebih tua tidak lagi diberitahukan ke wali.',
+              'Buka WhatsApp lalu matikan Aktifkan pengiriman pesan dan klik Simpan.',
+              'Bereskan masalahnya.',
+              'Hidupkan kembali saklarnya, klik Simpan, lalu beri tahu sekolah bahwa pesan berjalan lagi.',
+            ],
+            href: '/platform/messaging',
+            warning:
+              'Selama saklar mati, tidak ada sekolah yang bisa mengirim pesan ke wali. Biasanya tim teknis perlu dikabari bersamaan.',
+          },
+          {
+            heading: 'Mengatur kirim ulang pesan yang gagal',
+            body: 'Pesan yang gagal dicoba lagi sesuai aturan di kartu Aturan kirim ulang. Perubahan berlaku untuk pesan berikutnya. Hanya Admin platform yang bisa menyimpan; staf Hanya lihat melihat nilainya saja.',
+            steps: [
+              'Isi Jeda antar percobaan (menit) dengan 1 sampai 10 angka dipisah koma, misalnya 1, 5, 30, 120, 360. Bila percobaan melewati daftar, jeda terakhir dipakai terus.',
+              'Isi Percobaan maksimum (1 sampai 20). Setelah itu pesan ditandai Gagal.',
+              'Isi Kedaluwarsa pesan (jam, 1 sampai 168) untuk pesan yang tertahan karena WhatsApp sekolah belum siap. Pesan yang melewati batas ini dibuang.',
+              'Isi Batas usia tap (jam, 1 sampai 72). Tap kartu di mesin absensi yang lebih tua dari ini tidak lagi diberitahukan ke wali.',
               'Klik Simpan.',
             ],
             href: '/platform/messaging',
+            tip: 'Jeda yang makin panjang (1, 5, 30, dan seterusnya) memberi waktu bagi masalah sementara untuk pulih.',
           },
           {
-            heading: 'Status worker dan kunci lewat env',
-            body: 'Kartu Status worker dilaporkan sendiri oleh worker saat start dan tiap beberapa menit. Bila Chrome belum terdeteksi, isi WA_CHROME_PATH di .env worker dengan jalur chrome.exe atau Chromium lalu restart worker. Variabel MESSAGING_PROVIDER pada worker mengunci pilihan penyedia; pilihan di konsol tidak berlaku sampai env dikosongkan.',
+            heading: 'Sekolah yang WhatsApp-nya belum tersambung',
+            body: 'Tiap sekolah menyambungkan nomor WhatsApp-nya sendiri dengan memindai kode QR di panelnya. Akun berstatus Menunggu pemindaian berarti admin sekolah belum memindai kodenya. Anda tidak bisa memindainya untuk mereka; arahkan admin sekolah membuka pengaturan WhatsApp di panelnya. Bila Anda ingin menguji tanpa mengirim, ganti Penyedia ke Log uji (tidak mengirim). Pilihan ini tidak boleh dipakai di server sekolah sungguhan.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Wali tidak menerima pesan dari sekolah. Apa yang dicek?',
+            a: 'Pertama, pastikan Aktifkan pengiriman pesan menyala dan Penyedia adalah WhatsApp. Kedua, lihat di Akun WhatsApp sekolah apakah akun sekolah itu Terhubung. Ketiga, cek jumlah Gagal dan Antre. Bila akun Menunggu pemindaian atau Terputus, minta admin sekolah memindai ulang kode QR.',
           },
           {
-            heading: 'Statistik dan akun sekolah',
-            body: 'Halaman menyegarkan diri tiap 15 detik. Terlihat jumlah pesan 24 jam terakhir menurut status (Antre, Terkirim, Gagal, Dilewati) dan jumlah akun WhatsApp sekolah menurut status sambungan (Terhubung, Menunggu pemindaian, Menyambung, Gagal, Terputus). Akun yang menunggu pemindaian QR dipindai oleh admin sekolah.',
+            q: 'Status worker menulis Chrome belum terdeteksi. Bagaimana?',
+            a: 'Ini perlu dibereskan oleh tim teknis di server karena pengaturannya ada di server, bukan di konsol. Sampaikan tulisan statusnya apa adanya kepada mereka.',
+          },
+          {
+            q: 'Pilihan Penyedia tidak mau berubah setelah saya simpan. Kenapa?',
+            a: 'Bila tertera bahwa pilihan dikunci oleh server, tim teknis telah menetapkan penyedia di server dan pilihan di konsol tidak berlaku. Minta tim teknis melepas kuncinya.',
+          },
+          {
+            q: 'Pesan sekolah menumpuk di Antre. Apa artinya?',
+            a: 'Pesan belum sempat dikirim, biasanya karena akun WhatsApp sekolah belum Terhubung atau program pengirim berhenti. Cek kartu Status worker dan status akun sekolah. Bila penuh, pesan baru dari sekolah itu ditolak sampai antrean berkurang.',
           },
         ],
       },
       en: {
-        title: 'WhatsApp messaging',
+        title: 'WhatsApp messaging: monitoring and settings',
         summary:
-          'Global message sending settings, retry rules, and monitoring of the worker and school accounts.',
+          'Make sure messages to guardians go out, set up retries, and switch sending off in an emergency.',
+        forWho: 'Platform admins and support staff who watch school notifications.',
         sections: [
           {
-            heading: 'Switch and provider',
-            body: 'The Enable message sending switch applies to every school; when off, no messages are sent. The provider can be WhatsApp or Test log (records only, does not send). Test log is rejected in production. The per-school queue limit rejects new messages once a school queue is full.',
+            heading: 'Checking that messages are running normally',
+            body: 'The WhatsApp page refreshes itself every 15 seconds. You do not need to reload.',
+            steps: [
+              'Open WhatsApp in the System menu.',
+              'In the Messages in the last 24 hours card, see the message count by status: Queued, Sent, Failed, Skipped. A Failed count that keeps rising means there is a problem.',
+              'In the School WhatsApp accounts card, see the account count by connection status: Connected, Waiting for scan, Connecting, Failed, Disconnected.',
+              'In the Worker status card, make sure it says Chrome detected and the report is not old. The worker is the program on the server that actually sends the messages.',
+            ],
             href: '/platform/messaging',
+            tip: 'If the report in Worker status is old, the message-sending program may have stopped. Contact the technical team.',
           },
           {
-            heading: 'Retry rules',
-            body: 'Applies to the next messages without restarting the worker. Only Platform admins can save; Read only staff see the values.',
+            heading: 'Switching message sending off in an emergency',
+            body: 'The Enable message sending switch applies to every school at once. Use it only when something harmful is happening, for example a wrong message sent to many guardians.',
             steps: [
-              'Fill Delay between attempts in minutes, 1 to 10 numbers separated by commas (e.g. 1, 5, 30, 120, 360). Attempts beyond the list use the last delay.',
-              'Fill Maximum attempts (1 to 20); after that the message is marked failed.',
-              'Fill Message expiry in hours (1 to 168) for messages held back because the school WhatsApp is not ready.',
-              'Fill Tap age limit in hours (1 to 72); older kiosk taps are no longer notified to guardians.',
+              'Open WhatsApp, switch off Enable message sending, and click Save.',
+              'Sort out the problem.',
+              'Switch it back on, click Save, and tell the schools that messages are running again.',
+            ],
+            href: '/platform/messaging',
+            warning:
+              'While the switch is off, no school can send messages to guardians. The technical team usually needs to be told at the same time.',
+          },
+          {
+            heading: 'Setting up retries for failed messages',
+            body: 'A failed message is tried again following the rules in the Retry rules card. Changes apply to the next messages. Only Platform admins can save; Read only staff can only see the values.',
+            steps: [
+              'Fill in Delay between attempts (minutes) with 1 to 10 numbers separated by commas, for example 1, 5, 30, 120, 360. When attempts go past the list, the last delay keeps being used.',
+              'Fill in Maximum attempts (1 to 20). After that the message is marked Failed.',
+              'Fill in Message expiry (hours, 1 to 168) for messages held back because the school WhatsApp is not ready. A message past this limit is dropped.',
+              'Fill in Tap age limit (hours, 1 to 72). Card taps on the attendance machine older than this are no longer notified to guardians.',
               'Click Save.',
             ],
             href: '/platform/messaging',
+            tip: 'Delays that grow longer (1, 5, 30, and so on) give a temporary problem time to recover.',
           },
           {
-            heading: 'Worker status and env-locked values',
-            body: 'The Worker status card is self-reported by the worker at start and every few minutes. If Chrome is not detected, set WA_CHROME_PATH in the worker .env to the chrome.exe or Chromium path and restart the worker. The MESSAGING_PROVIDER variable on the worker locks the provider choice; the console choice does not apply until the env is cleared.',
+            heading: 'A school whose WhatsApp is not connected',
+            body: 'Each school connects its own WhatsApp number by scanning a QR code in its panel. An account with the status Waiting for scan means the school admin has not scanned the code. You cannot scan it for them; point the school admin to the WhatsApp settings in their panel. If you want to test without sending, change Provider to Test log (does not send). This choice must not be used on the server real schools use.',
+          },
+        ],
+        faq: [
+          {
+            q: 'A guardian does not receive messages from the school. What should I check?',
+            a: 'First, make sure Enable message sending is on and the Provider is WhatsApp. Second, look in School WhatsApp accounts to see if that school account is Connected. Third, check the Failed and Queued counts. If the account is Waiting for scan or Disconnected, ask the school admin to scan the QR code again.',
           },
           {
-            heading: 'Statistics and school accounts',
-            body: 'The page refreshes itself every 15 seconds. It shows the message count of the last 24 hours by status (Queued, Sent, Failed, Skipped) and the number of school WhatsApp accounts by connection status (Connected, Waiting for scan, Connecting, Failed, Disconnected). Accounts waiting for a QR scan must be scanned by the school admin.',
+            q: 'Worker status says Chrome is not detected. What now?',
+            a: 'The technical team has to fix this on the server because the setting lives on the server, not in the console. Pass them the status text as it is.',
+          },
+          {
+            q: 'The Provider choice will not change after I save. Why?',
+            a: 'If the page says the choice is locked by the server, the technical team has set the provider on the server and the console choice does not apply. Ask the technical team to release the lock.',
+          },
+          {
+            q: 'A school messages pile up in Queued. What does it mean?',
+            a: 'The messages have not been sent yet, usually because the school WhatsApp account is not Connected or the sending program has stopped. Check the Worker status card and the school account status. When the queue is full, new messages from that school are refused until it shrinks.',
           },
         ],
       },
       su: {
-        title: 'Pesen WhatsApp',
-        summary: 'Pangaturan global ngirim pesen, aturan kirim deui, jeung mantuan worker sarta akun sakola.',
+        title: 'Pesen WhatsApp: mantuan jeung ngatur',
+        summary:
+          'Mastikeun pesen ka wali kakirim, ngatur kirim deui, jeung mareuman pangiriman nalika darurat.',
+        forWho: 'Admin platform jeung staf pangrojong nu mantuan béwara sakola.',
         sections: [
           {
-            heading: 'Saklar jeung panyadia',
-            body: 'Saklar Aktipkeun pangiriman pesen lumaku pikeun sakabéh sakola; lamun pareum, taya pesen nu dikirim. Panyadia bisa WhatsApp atawa Log uji (ngan nyatet, teu ngirim). Log uji ditolak di produksi. Wates antrian per sakola nolak pesen anyar lamun antrian sakola geus pinuh.',
+            heading: 'Mariksa naha pesen jalan normal',
+            body: 'Kaca WhatsApp nyegerkeun sorangan unggal 15 detik. Anjeun teu kudu muat deui.',
+            steps: [
+              'Buka WhatsApp dina menu Sistem.',
+              'Dina kartu Pesen 24 jam ka tukang, tingali jumlah pesen nurutkeun status: Antri, Kakirim, Gagal, Dilewatan. Jumlah Gagal nu naék terus hartina aya masalah.',
+              'Dina kartu Akun WhatsApp sakola, tingali jumlah akun nurutkeun status sambungan: Nyambung, Nungguan pamindaian, Nyambungkeun, Gagal, Pegat.',
+              'Dina kartu Status worker, pastikeun aya tulisan Chrome kadeteksi jeung laporanna teu lami. Worker nyaéta program dina server nu sabenerna ngirim pesen.',
+            ],
             href: '/platform/messaging',
+            tip: 'Lamun laporan dina Status worker lami, program pangirim pesen kamungkinan eureun. Hubungi tim téknis.',
           },
           {
-            heading: 'Aturan kirim deui',
-            body: 'Lumaku pikeun pesen satuluyna tanpa restart worker. Ngan Admin platform nu bisa nyimpen; Ngan ningali ningali nilaina.',
+            heading: 'Mareuman pangiriman pesen nalika darurat',
+            body: 'Saklar Aktipkeun pangiriman pesen lumaku pikeun sakabéh sakola sakaligus. Pake ngan lamun aya kajadian nu bahaya, upamana pesen lepat kakirim ka loba wali.',
             steps: [
-              'Eusian Jeda antara percobaan dina menit, 1 nepi ka 10 angka dipisah koma (upamana 1, 5, 30, 120, 360). Percobaan nu ngaliwatan daptar maké jeda pamungkas.',
-              'Eusian Percobaan maksimum (1 nepi ka 20); sanggeusna pesen ditandaan gagal.',
-              'Eusian Kadaluwarsa pesen dina jam (1 nepi ka 168) pikeun pesen nu katahan lantaran WhatsApp sakola can siap.',
-              'Eusian Wates umur tap dina jam (1 nepi ka 72); tap kiosk nu leuwih heubeul teu diwartoskeun deui ka wali.',
+              'Buka WhatsApp tuluy pareuman Aktipkeun pangiriman pesen jeung klik Simpen.',
+              'Bérésan masalahna.',
+              'Hurungkeun deui saklarna, klik Simpen, tuluy wartosan sakola yén pesen geus jalan deui.',
+            ],
+            href: '/platform/messaging',
+            warning:
+              'Salila saklar pareum, taya sakola nu bisa ngirim pesen ka wali. Biasana tim téknis kudu diwartosan babarengan.',
+          },
+          {
+            heading: 'Ngatur kirim deui pesen nu gagal',
+            body: 'Pesen nu gagal dicoba deui nurutkeun aturan dina kartu Aturan kirim deui. Parobahan lumaku pikeun pesen satuluyna. Ngan Admin platform nu bisa nyimpen; staf Ngan ningali ngan bisa ningali nilaina.',
+            steps: [
+              'Eusian Jeda antara percobaan (menit) ku 1 nepi ka 10 angka dipisah koma, upamana 1, 5, 30, 120, 360. Lamun percobaan ngaliwatan daptar, jeda pamungkas dipaké terus.',
+              'Eusian Percobaan maksimum (1 nepi ka 20). Sanggeusna pesen ditandaan Gagal.',
+              'Eusian Kadaluwarsa pesen (jam, 1 nepi ka 168) pikeun pesen nu katahan lantaran WhatsApp sakola can siap. Pesen nu ngaleuwihan wates ieu dibuang.',
+              'Eusian Wates umur tap (jam, 1 nepi ka 72). Tap kartu dina mesin absén nu leuwih heubeul ti ieu teu diwartoskeun deui ka wali.',
               'Klik Simpen.',
             ],
             href: '/platform/messaging',
+            tip: 'Jeda nu beuki lila (1, 5, 30, jeung saterusna) méré waktu pikeun masalah samentara pulih.',
           },
           {
-            heading: 'Status worker jeung konci ku env',
-            body: 'Kartu Status worker dilaporkeun ku worker sorangan nalika start jeung unggal sababaraha menit. Lamun Chrome can kadeteksi, eusian WA_CHROME_PATH dina .env worker nganggo jalur chrome.exe atawa Chromium tuluy restart worker. Variabel MESSAGING_PROVIDER dina worker ngonci pilihan panyadia; pilihan di konsol teu lumaku nepi ka env dikosongkeun.',
+            heading: 'Sakola nu WhatsApp-na can nyambung',
+            body: 'Unggal sakola nyambungkeun nomer WhatsApp-na sorangan ku mindai kode QR dina panélna. Akun nu statusna Nungguan pamindaian hartina admin sakola can mindai kodena. Anjeun teu bisa mindaian keur maranéhna; arahkeun admin sakola muka pangaturan WhatsApp dina panélna. Lamun hoyong nguji tanpa ngirim, ganti Panyadia jadi Log uji (teu ngirim). Pilihan ieu teu meunang dipaké dina server sakola sabenerna.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Wali teu narima pesen ti sakola. Naon nu kudu dipariksa?',
+            a: 'Kahiji, pastikeun Aktipkeun pangiriman pesen hurung jeung Panyadia nyaéta WhatsApp. Kadua, tingali dina Akun WhatsApp sakola naha akun sakola eta Nyambung. Katilu, pariksa jumlah Gagal jeung Antri. Lamun akunna Nungguan pamindaian atawa Pegat, pénta admin sakola mindai deui kode QR.',
           },
           {
-            heading: 'Statistik jeung akun sakola',
-            body: 'Kaca nyegerkeun sorangan unggal 15 detik. Nembongkeun jumlah pesen 24 jam ka tukang nurutkeun status (Antri, Kakirim, Gagal, Dilewatan) jeung jumlah akun WhatsApp sakola nurutkeun status sambungan (Nyambung, Nungguan pamindaian, Nyambungkeun, Gagal, Pegat). Akun nu nungguan pamindaian QR kudu dipindai ku admin sakola.',
+            q: 'Status worker nulis Chrome can kadeteksi. Kumaha?',
+            a: 'Ieu kudu dibérésan ku tim téknis dina server sabab pangaturanana aya di server, lain di konsol. Sampaikeun tulisan statusna sakumaha aslina ka maranéhna.',
+          },
+          {
+            q: 'Pilihan Panyadia teu robah sanggeus abdi simpen. Naha?',
+            a: 'Lamun aya tulisan yén pilihanana dikonci ku server, tim téknis geus nangtukeun panyadia dina server jeung pilihan di konsol teu lumaku. Pénta tim téknis muka konciana.',
+          },
+          {
+            q: 'Pesen sakola numpuk dina Antri. Naon hartina?',
+            a: 'Pesen can sempet dikirim, biasana lantaran akun WhatsApp sakola can Nyambung atawa program pangirimna eureun. Pariksa kartu Status worker jeung status akun sakola. Lamun pinuh, pesen anyar ti sakola eta ditolak nepi ka antrian ngurangan.',
           },
         ],
       },
@@ -787,82 +1330,131 @@ export const PLATFORM_DOCS: DocArticle[] = [
     slug: 'audit',
     icon: 'history',
     tone: 'violet',
+    group: 'watch',
     text: {
       id: {
-        title: 'Jejak audit',
-        summary: 'Catatan tindakan staf dan perubahan penting lintas sekolah.',
+        title: 'Audit: melacak siapa melakukan apa',
+        summary:
+          'Mencari catatan tindakan staf dan perubahan penting untuk menjawab pertanyaan sekolah atau rekan kerja.',
+        forWho: 'Semua staf platform, terutama saat menyelidiki keluhan atau memeriksa pekerjaan sendiri.',
         sections: [
           {
-            heading: 'Apa yang tercatat',
-            body: 'Halaman Audit menampilkan tindakan staf dan perubahan penting lintas sekolah, terbaru di atas. Tiap catatan punya waktu, aksi (mis. catalog.item.update), dan rincian. Alasan yang Anda tulis saat menangguhkan atau mengaktifkan tanpa pembayaran ikut tercatat.',
-            href: '/platform/audit',
-          },
-          {
-            heading: 'Area aksi',
-            body: 'Awalan sebelum titik pertama menunjukkan area, dengan warna berbeda: school, registration, catalog, payment, billing, messaging, dan reference. Halaman memuat 200 catatan terbaru.',
-          },
-          {
-            heading: 'Mencari catatan',
-            body: 'Semua peran staf, termasuk Hanya lihat, dapat membuka halaman ini. Halaman hanya untuk dibaca; tidak ada tombol ubah atau hapus.',
+            heading: 'Mencari tahu siapa mengubah apa',
+            body: 'Halaman Audit menampilkan tindakan staf dan perubahan penting di semua sekolah, yang terbaru di atas. Halaman ini hanya untuk dibaca, tidak ada tombol untuk mengubah atau menghapus catatan. Semua peran staf, termasuk Hanya lihat, boleh membukanya.',
             steps: [
-              'Ketik kata kunci di Cari aksi atau rincian; pencarian mencocokkan nama aksi dan isi rincian.',
-              'Pilih area di saringan untuk mempersempit.',
-              'Baca jumlah catatan di kanan atas untuk memastikan hasilnya.',
-              'Bandingkan waktu dan rincian dengan kejadian yang sedang diselidiki.',
+              'Buka Audit di menu Sistem.',
+              'Ketik kata kunci di kolom Cari aksi atau rincian, misalnya nama sekolah atau kata dari alasan yang ditulis.',
+              'Pilih area di Saring menurut area untuk mempersempit hasil.',
+              'Lihat jumlah catatan di kanan atas, lalu cocokkan waktu dan rincian dengan kejadian yang Anda selidiki.',
             ],
             href: '/platform/audit',
+          },
+          {
+            heading: 'Membaca satu catatan',
+            body: 'Setiap catatan punya tiga bagian: Waktu, Aksi, dan Rincian. Aksi menunjukkan jenis tindakan, dan awalan sebelum titik pertama adalah areanya: school (sekolah), registration (pendaftaran), catalog (katalog), payment (pembayaran), billing (tagihan), messaging (pesan), dan reference (bank kurikulum). Alasan yang ditulis staf saat menangguhkan atau mengaktifkan tanpa pembayaran ikut terlihat di rincian.',
+            tip: 'Untuk mencari semua penangguhan hari ini, ketik kata penangguhan atau ganti area ke school lalu lihat waktunya.',
+          },
+          {
+            heading: 'Batas halaman ini',
+            body: 'Halaman hanya memuat 200 catatan terbaru. Kejadian yang lebih lama tidak tampil di sini. Bila Anda perlu melacak kejadian lama, hubungi tim teknis dan sebutkan perkiraan tanggal serta nama lembaganya.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Sekolah bilang ditangguhkan tanpa pemberitahuan. Bagaimana memeriksanya?',
+            a: 'Buka Audit, ketik nama sekolah di kolom pencarian, lalu lihat catatan penangguhan: kapan dan apa alasannya. Bila tidak ada catatan staf, kemungkinan penangguhannya karena tagihan; cek di Lembaga & unit.',
+          },
+          {
+            q: 'Saya mengubah sesuatu tetapi tidak menemukannya di Audit. Kenapa?',
+            a: 'Muat ulang halaman lalu coba cari lagi dengan kata yang lebih singkat. Catatan terbaru ada di bagian paling atas. Bila tetap tidak ada, kemungkinan perubahan itu belum tersimpan; ulangi dan perhatikan pesan Perubahan disimpan.',
+          },
+          {
+            q: 'Bisakah saya menghapus catatan Audit yang salah?',
+            a: 'Tidak. Catatan Audit tidak bisa diubah atau dihapus supaya riwayat tetap bisa dipercaya. Bila Anda membuat kesalahan, perbaiki tindakannya lalu tulis alasan perbaikannya.',
           },
         ],
       },
       en: {
-        title: 'Audit trail',
-        summary: 'A record of staff actions and important changes across schools.',
+        title: 'Audit: tracing who did what',
+        summary:
+          'Look up records of staff actions and important changes to answer questions from schools or colleagues.',
+        forWho: 'All platform staff, especially when looking into a complaint or checking their own work.',
         sections: [
           {
-            heading: 'What is recorded',
-            body: 'The Audit page shows staff actions and important changes across schools, newest first. Each entry has a time, an action (e.g. catalog.item.update), and details. The reason you write when suspending or activating without payment is recorded too.',
-            href: '/platform/audit',
-          },
-          {
-            heading: 'Action areas',
-            body: 'The prefix before the first dot is the area, shown in different colours: school, registration, catalog, payment, billing, messaging, and reference. The page loads the 200 most recent entries.',
-          },
-          {
-            heading: 'Finding entries',
-            body: 'All staff roles, including Read only, can open this page. It is read-only; there is no edit or delete button.',
+            heading: 'Finding out who changed what',
+            body: 'The Audit page shows staff actions and important changes across all schools, newest first. The page is for reading only; there is no button to change or delete records. All staff roles, including Read only, may open it.',
             steps: [
-              'Type a keyword in Search action or details; it matches action names and detail content.',
-              'Pick an area in the filter to narrow down.',
-              'Read the entry count at the top right to confirm the result.',
-              'Compare the time and details with the event you are investigating.',
+              'Open Audit in the System menu.',
+              'Type a keyword in the Search action or details field, for example a school name or a word from the reason that was written.',
+              'Pick an area in Filter by area to narrow the result.',
+              'Look at the record count at the top right, then match the time and details with the event you are looking into.',
             ],
             href: '/platform/audit',
+          },
+          {
+            heading: 'Reading one record',
+            body: 'Each record has three parts: Time, Action, and Details. The Action shows the kind of action, and the prefix before the first dot is the area: school, registration, catalog, payment, billing, messaging, and reference (curriculum bank). The reason staff wrote when suspending or activating without payment is visible in the details.',
+            tip: 'To find every suspension today, type the word suspend or switch the area to school and look at the times.',
+          },
+          {
+            heading: 'The limit of this page',
+            body: 'The page only loads the 200 most recent records. Older events do not show here. If you need to trace an old event, contact the technical team and give the approximate date and the foundation name.',
+          },
+        ],
+        faq: [
+          {
+            q: 'A school says it was suspended without notice. How do I check?',
+            a: 'Open Audit, type the school name in the search field, and look at the suspension record: when and why. If there is no staff record, the suspension was probably because of billing; check Foundations & units.',
+          },
+          {
+            q: 'I changed something but cannot find it in Audit. Why?',
+            a: 'Reload the page and search again with a shorter word. The newest records are at the very top. If it is still missing, the change may not have been saved; repeat it and watch for the Changes saved message.',
+          },
+          {
+            q: 'Can I delete a wrong Audit record?',
+            a: 'No. Audit records cannot be changed or deleted so the history stays trustworthy. If you made a mistake, correct the action and write the reason for the correction.',
           },
         ],
       },
       su: {
-        title: 'Tapak audit',
-        summary: 'Catetan tindakan staf jeung parobahan penting lintas sakola.',
+        title: 'Audit: ngalacak saha ngalakukeun naon',
+        summary:
+          'Néangan catetan tindakan staf jeung parobahan penting pikeun ngajawab patarosan sakola atawa rekan damel.',
+        forWho: 'Sakabéh staf platform, utamana nalika nalungtik kaluhan atawa mariksa pagawéan sorangan.',
         sections: [
           {
-            heading: 'Naon nu kacatet',
-            body: 'Kaca Audit nembongkeun tindakan staf jeung parobahan penting lintas sakola, nu panganyarna di luhur. Unggal catetan boga waktu, aksi (upamana catalog.item.update), jeung rincian. Alesan nu anjeun tulis nalika nangguhkeun atawa ngaktipkeun tanpa pamayaran milu kacatet.',
-            href: '/platform/audit',
-          },
-          {
-            heading: 'Area aksi',
-            body: 'Awalan saméméh titik kahiji nandakeun area, ku warna béda: school, registration, catalog, payment, billing, messaging, jeung reference. Kaca ngamuat 200 catetan panganyarna.',
-          },
-          {
-            heading: 'Milarian catetan',
-            body: 'Sakabéh peran staf, kaasup Ngan ningali, bisa muka kaca ieu. Kaca ieu ngan keur dibaca; taya tombol robah atawa pupus.',
+            heading: 'Néangan saha ngarobah naon',
+            body: 'Kaca Audit nembongkeun tindakan staf jeung parobahan penting di sakabéh sakola, nu panganyarna di luhur. Kaca ieu ngan keur dibaca, taya tombol pikeun ngarobih atawa mupus catetan. Sakabéh peran staf, kaasup Ngan ningali, meunang muka.',
             steps: [
-              'Ketik kecap konci dina Cari aksi atawa rincian; pamilarian cocog jeung ngaran aksi jeung eusi rincian.',
-              'Pilih area dina saringan pikeun nyaruakeun.',
-              'Baca jumlah catetan di katuhu luhur pikeun mastikeun hasilna.',
-              'Bandingkeun waktu jeung rincian jeung kajadian nu keur ditalungtik.',
+              'Buka Audit dina menu Sistem.',
+              'Ketik kecap konci dina kolom Cari aksi atawa rincian, upamana ngaran sakola atawa kecap tina alesan nu ditulis.',
+              'Pilih area dina Saring nurutkeun area pikeun nyaruakeun hasil.',
+              'Tingali jumlah catetan di katuhu luhur, tuluy cocogkeun waktu jeung rincian jeung kajadian nu keur ditalungtik.',
             ],
             href: '/platform/audit',
+          },
+          {
+            heading: 'Maca hiji catetan',
+            body: 'Unggal catetan boga tilu bagian: Waktu, Aksi, jeung Rincian. Aksi nuduhkeun jenis tindakan, jeung awalan samemeh titik kahiji nyaéta areana: school (sakola), registration (pendaptaran), catalog (katalog), payment (pamayaran), billing (tagihan), messaging (pesen), jeung reference (bank kurikulum). Alesan nu ditulis staf nalika nangguhkeun atawa ngaktipkeun tanpa pamayaran katingali dina rincian.',
+            tip: 'Pikeun néangan sakabéh penangguhan poé ieu, ketik kecap penangguhan atawa ganti area jadi school tuluy tingali waktuna.',
+          },
+          {
+            heading: 'Wates kaca ieu',
+            body: 'Kaca ngan ngamuat 200 catetan panganyarna. Kajadian nu leuwih heubeul teu muncul di dieu. Lamun anjeun peryogi ngalacak kajadian heubeul, hubungi tim téknis jeung sebutkeun kira-kira tanggal sarta ngaran lembagana.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Sakola nyarios ditangguhkeun tanpa béwara. Kumaha mariksana?',
+            a: 'Buka Audit, ketik ngaran sakola dina kolom pilarian, tuluy tingali catetan penangguhan: iraha jeung naon alesanana. Lamun taya catetan staf, kamungkinan penangguhanana alatan tagihan; pariksa dina Lembaga & unit.',
+          },
+          {
+            q: 'Abdi ngarobih hiji hal tapi teu mendak dina Audit. Naha?',
+            a: 'Muat deui kaca tuluy cobi pilarian deui ku kecap nu leuwih singget. Catetan panganyarna aya di luhur pisan. Lamun tetep taya, kamungkinan parobahanana can kasimpen; baréngan deui tuluy perhatikeun pesen Perubahan disimpen.',
+          },
+          {
+            q: 'Naha abdi tiasa mupus catetan Audit nu lepat?',
+            a: 'Henteu. Catetan Audit teu bisa dirobah atawa dipupus sangkan riwayat tetep bisa dipercaya. Lamun anjeun nyieun kalepatan, bener-keun tindakanana tuluy tulis alesan perbaikanana.',
           },
         ],
       },

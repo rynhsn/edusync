@@ -68,7 +68,28 @@
     "notFound": "Documentation not found.",
     "pager": "More documentation",
     "openPage": "Open page",
-    "moduleOff": "Module not active"
+    "moduleOff": "Module not active",
+    "searchPlaceholder": "Search guides…",
+    "noResults": "No guide found",
+    "noResultsBody": "Try another word, such as a menu name or the task you want to do.",
+    "clearSearch": "Clear search",
+    "forWho": "For",
+    "onThisPage": "On this page",
+    "faqTitle": "Frequently asked questions",
+    "tip": "Tip",
+    "warning": "Careful",
+    "groups": {
+      "master": "Master data",
+      "attendance": "Attendance and schedule",
+      "academic": "Academics and guidance",
+      "finance": "Finance and admissions",
+      "services": "Services and communication",
+      "access": "Users and access",
+      "ops": "Daily operations",
+      "config": "Platform settings",
+      "watch": "Monitoring",
+      "other": "Other"
+    }
   },
   "nav": {
     "menu": "Main menu",

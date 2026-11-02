@@ -68,7 +68,28 @@
     "notFound": "Dokuméntasi teu kapanggih.",
     "pager": "Dokuméntasi séjén",
     "openPage": "Buka kaca",
-    "moduleOff": "Modul acan aktip"
+    "moduleOff": "Modul acan aktip",
+    "searchPlaceholder": "Golédog pituduh…",
+    "noResults": "Pituduh teu kapanggih",
+    "noResultsBody": "Cobaan kecap séjén, upamana ngaran ménu atawa pagawéan nu rék dilakukeun.",
+    "clearSearch": "Hapus panéangan",
+    "forWho": "Pikeun",
+    "onThisPage": "Dina kaca ieu",
+    "faqTitle": "Patarosan nu remen muncul",
+    "tip": "Tips",
+    "warning": "Waspada",
+    "groups": {
+      "master": "Data induk",
+      "attendance": "Absénsi jeung jadwal",
+      "academic": "Akadémik jeung pamarentahan",
+      "finance": "Kauangan jeung pendaptaran",
+      "services": "Layanan jeung komunikasi",
+      "access": "Pamaké jeung aksés",
+      "ops": "Operasional poéan",
+      "config": "Setélan platform",
+      "watch": "Ngawaskeun",
+      "other": "Séjénna"
+    }
   },
   "nav": {
     "menu": "Menu utama",

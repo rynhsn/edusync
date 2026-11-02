@@ -1,150 +1,249 @@
 import type { DocArticle } from '@/lib/docs-types';
 
-/** Dokumentasi panel sekolah per modul: data induk, absensi, jadwal, pengguna. Isi: id, en, su. */
+/** Panduan kerja panel sekolah per modul: data induk, absensi, jadwal, pengguna. Ditulis untuk pengguna sekolah. Isi: id, en, su. */
 export const CORE_DOCS: DocArticle[] = [
   {
     slug: 'students',
     icon: 'graduation',
     tone: 'sky',
+    group: 'master',
     text: {
       id: {
-        title: 'Siswa: data diri, wali, kartu, dan impor Excel',
-        summary: 'Kelola data siswa lengkap, wali murid, kartu RFID, serta impor dan ekspor lewat Excel.',
+        title: 'Mengelola data siswa dan wali',
+        summary:
+          'Tambah siswa, pindahkan ke kelas lain, atur wali murid, dan masukkan banyak siswa sekaligus lewat Excel.',
+        forWho:
+          'Admin sekolah dan operator TU yang mengurus data siswa; guru dan Kepala sekolah hanya bisa melihat.',
         sections: [
           {
-            heading: 'Tambah dan ubah siswa',
-            body: 'Buka menu Siswa di Data induk. Isian wajib hanya nama dan jenis kelamin; NIS dan NISN boleh kosong, tetapi bila diisi tidak boleh sama dengan siswa lain. Data diri lain bersifat opsional: tempat lahir, NIK (16 digit angka), agama, alamat, telepon/WA, dan email siswa.',
+            heading: 'Menambah siswa baru',
+            body: 'Yang wajib diisi hanya nama dan jenis kelamin. NIS dan NISN boleh dikosongkan, tetapi kalau diisi tidak boleh sama dengan siswa lain. Data diri lain (tempat lahir, NIK 16 digit angka, agama, alamat, telepon/WA, email) boleh menyusul.',
             steps: [
-              'Klik Tambah siswa.',
-              'Isi nama, NIS, NISN, jenis kelamin, tanggal lahir, agama, dan status; pilih kelas bila sudah ada kelas pada tahun ajaran aktif.',
-              'Isi kontak siswa dan alamat bila ada. Telepon 0812... disimpan sebagai 62812...; email dan nomor ini disiapkan untuk login siswa nanti.',
-              'Klik Tambah. Untuk mengubah, klik baris siswa atau pilih Ubah di menu baris.',
+              'Buka menu Siswa di kelompok Data induk, lalu klik Tambah siswa.',
+              'Isi nama, NIS, NISN, jenis kelamin, tanggal lahir, agama, dan status.',
+              'Pilih Kelas bila tahun ajaran aktif sudah punya kelas. Siswa baru boleh dibiarkan Tanpa kelas dulu.',
+              'Isi kontak dan alamat bila ada, lalu klik Tambah.',
             ],
+            tip: 'Belum punya semua data? Simpan dulu nama dan jenis kelamin, lalu lengkapi nanti lewat Ubah di menu baris siswa.',
             href: '/students',
           },
           {
-            heading: 'Wali murid',
-            body: 'Di menu baris siswa pilih Wali. Satu wali bisa menaungi beberapa siswa sekaligus (kakak-adik), dan perubahan data wali berlaku untuk semua anaknya.',
+            heading: 'Memindahkan siswa ke kelas lain atau mengubah statusnya',
+            body: 'Kelas yang tampil adalah kelas pada tahun ajaran aktif. Status siswa ada empat: Aktif, Lulus, Pindah, dan Keluar.',
             steps: [
-              'Klik menu baris siswa lalu Wali.',
+              'Cari siswa dengan kotak pencarian (nama, NIS, atau NISN).',
+              'Klik menu baris siswa, lalu pilih Ubah.',
+              'Ganti Kelas atau Status, lalu simpan.',
+            ],
+            warning:
+              'Siswa yang sudah lulus atau pindah sebaiknya diubah statusnya, bukan dihapus. Hapus hanya menyembunyikan siswa dari daftar.',
+          },
+          {
+            heading: 'Mengatur wali murid',
+            body: 'Satu wali bisa dipakai bersama oleh beberapa anak, misalnya kakak dan adik. Bila data wali diubah, perubahan berlaku untuk semua anaknya.',
+            steps: [
+              'Klik menu baris siswa, lalu pilih Wali.',
               'Untuk wali baru, isi nama, hubungan (ayah, ibu, wali, atau lainnya), telepon, dan email, lalu klik Tambah wali.',
-              'Untuk wali yang sudah ada, ketik minimal 2 huruf nama atau telepon pada Tautkan wali yang sudah ada, lalu klik Tautkan.',
+              'Untuk wali yang sudah ada (misalnya orang tua kakaknya), ketik minimal 2 huruf nama atau telepon pada Tautkan wali yang sudah ada, lalu klik Tautkan.',
               'Centang Jadikan wali utama, atau klik Jadikan utama pada wali yang sudah tertaut. Klik Lepas untuk melepas wali dari siswa itu.',
             ],
+            tip: 'Untuk kakak-adik, jangan buat wali baru. Tautkan wali yang sudah ada supaya datanya tidak ganda.',
           },
           {
-            heading: 'Kartu RFID',
-            body: 'Bila modul Absensi aktif dan Anda berhak mengatur absensi, menu baris siswa memuat Kartu RFID yang membuka dialog terpisah. Di sana Anda mendaftarkan kode kartu bila siswa belum punya kartu, atau menghapus kartunya.',
+            heading: 'Mendaftarkan kartu untuk satu siswa',
+            body: 'Bila modul Absensi aktif dan Anda boleh mengatur absensi, menu baris siswa memuat Kartu RFID. Menu ini membuka jendela khusus untuk mendaftarkan kode kartu siswa yang belum punya kartu, atau menghapus kartunya.',
+            tip: 'Untuk mendaftarkan kartu satu kelas sekaligus, lebih cepat memakai menu Kartu RFID (lihat panduan Kartu RFID, kiosk, dan gerbang).',
           },
           {
-            heading: 'Impor dan ekspor Excel',
-            body: 'Templat Excel memuat 20 kolom: data siswa (nama sampai email), Kelas, lalu Wali 1 dan Wali 2 masing-masing dengan nama, hubungan, telepon/WA, dan email. Wali 1 menjadi wali utama, dan wali dengan nomor telepon yang sama dipakai bersama sehingga kakak-adik tidak ganda.',
+            heading: 'Memasukkan dan mengunduh data lewat Excel',
+            body: 'Berkas Excel memuat 20 kolom: data siswa, Kelas, lalu Wali 1 dan Wali 2 (masing-masing nama, hubungan, telepon/WA, dan email). Wali 1 menjadi wali utama. Wali dengan nomor telepon yang sama dipakai bersama, jadi kakak-adik tidak tercatat dobel.',
             steps: [
-              'Klik Impor Excel di halaman Siswa lalu unduh templat.',
-              'Isi lembar Siswa mulai baris 2 tanpa mengubah judul kolom; hanya Nama dan Jenis Kelamin (L atau P) yang wajib.',
-              'Unggah berkas dan periksa pratinjau. Tidak ada yang tersimpan sebelum semua baris valid.',
-              'Klik impor; satu berkas maksimal 1000 baris.',
-              'Tombol Ekspor Excel memakai kolom yang sama (sesuai pencarian dan saringan yang tampil), jadi hasilnya bisa diedit lalu diimpor ulang.',
+              'Klik Impor Excel di halaman Siswa, lalu unduh templat.',
+              'Isi lembar Siswa mulai baris 2 tanpa mengubah judul kolom. Hanya Nama dan Jenis Kelamin (L atau P) yang wajib.',
+              'Isi kolom Kelas persis seperti nama kelas di tahun ajaran aktif.',
+              'Unggah berkas, lalu periksa pratinjau. Tidak ada yang tersimpan sebelum semua baris benar.',
+              'Klik impor. Satu berkas paling banyak 1000 baris.',
             ],
+            warning:
+              'Bila ada satu baris yang salah, tidak ada siswa yang disimpan. Perbaiki baris yang ditandai lalu unggah ulang.',
             href: '/students/import',
           },
+        ],
+        faq: [
           {
-            heading: 'Yang perlu diperhatikan',
-            body: 'Kelas yang tampil adalah kelas pada tahun ajaran aktif, dan kolom Kelas di Excel harus sama dengan nama kelas tahun itu. Status siswa: aktif, lulus, pindah, atau keluar; untuk siswa lulus atau pindah ubah statusnya, jangan dihapus, karena hapus hanya menyembunyikan siswa dari daftar. Tanpa izin kelola siswa, halaman hanya bisa dilihat.',
+            q: 'Kenapa kelas tidak muncul di daftar pilihan kelas?',
+            a: 'Daftar kelas mengikuti tahun ajaran yang sedang aktif. Pastikan tahun ajaran sudah dibuat dan diaktifkan di menu Tahun ajaran, lalu kelasnya dibuat di menu Kelas.',
+          },
+          {
+            q: 'NIS yang saya isi ditolak karena sudah dipakai. Bagaimana?',
+            a: 'NIS dan NISN tidak boleh sama dengan siswa lain. Cari NIS itu di kotak pencarian untuk melihat siapa pemakainya. Bila itu data ganda, perbaiki salah satunya. Bila NIS belum ada, kosongkan dulu.',
+          },
+          {
+            q: 'Impor Excel gagal terus. Apa yang harus saya periksa?',
+            a: 'Periksa tiga hal: judul kolom tidak diubah, Jenis Kelamin hanya L atau P, dan isi Kelas sama persis dengan nama kelas tahun ajaran aktif. Lihat pratinjau untuk tahu baris mana yang salah.',
+          },
+          {
+            q: 'Saya tidak melihat tombol Tambah siswa atau menu Wali. Kenapa?',
+            a: 'Hanya Admin sekolah dan Operator yang bisa mengubah data siswa. Peran lain hanya bisa melihat. Minta Admin sekolah mengubah peran Anda di menu Anggota.',
           },
         ],
       },
       en: {
-        title: 'Students: profile, guardians, cards, and Excel import',
-        summary: 'Manage full student records, guardians, RFID cards, and import or export through Excel.',
+        title: 'Managing students and guardians',
+        summary:
+          'Add students, move them to another class, set up guardians, and bring in many students at once with Excel.',
+        forWho:
+          'School admins and administration staff who look after student records; teachers and the Principal can only view.',
         sections: [
           {
-            heading: 'Add and edit a student',
-            body: 'Open the Students menu under Master data. Only the name and gender are required; NIS and NISN can stay empty, but when filled they must not match another student. Other profile details are optional: birth place, NIK (16 digits), religion, address, phone/WhatsApp, and email.',
+            heading: 'Adding a new student',
+            body: 'Only the name and gender are required. NIS and NISN can stay empty, but if filled they must not match another student. The other details (birth place, 16-digit NIK, religion, address, phone/WhatsApp, email) can be added later.',
             steps: [
-              'Click Add a student.',
-              'Fill in the name, NIS, NISN, gender, birth date, religion, and status; pick a class if the active academic year already has classes.',
-              'Add the contact details and address if available. A phone number such as 0812... is stored as 62812...; the email and number are prepared for student login later.',
-              'Click Add. To edit, click the student row or choose Edit in the row menu.',
+              'Open the Students menu in the Master data group, then click Add a student.',
+              'Fill in the name, NIS, NISN, gender, birth date, religion, and status.',
+              'Pick a Class if the active academic year already has classes. A new student can stay without a class for now.',
+              'Fill in the contact and address if you have them, then click Add.',
             ],
+            tip: 'Do not have all the details yet? Save the name and gender first, then complete the rest later with Edit in the student row menu.',
             href: '/students',
           },
           {
-            heading: 'Guardians',
-            body: 'In the student row menu choose Guardians. One guardian can look after several students (siblings), and a change to the guardian details applies to all of their children.',
+            heading: 'Moving a student to another class or changing the status',
+            body: 'The classes shown are those of the active academic year. A student has one of four statuses: Active, Graduated, Transferred, and Dropped.',
             steps: [
-              'Click the student row menu, then Guardians.',
+              'Find the student with the search box (name, NIS, or NISN).',
+              'Click the student row menu, then choose Edit.',
+              'Change the Class or Status, then save.',
+            ],
+            warning:
+              'For students who graduated or transferred, change the status instead of deleting. Deleting only hides the student from the list.',
+          },
+          {
+            heading: 'Setting up guardians',
+            body: 'One guardian can be shared by several children, for example siblings. When the guardian details change, the change applies to all of their children.',
+            steps: [
+              'Click the student row menu, then choose Guardians.',
               'For a new guardian, fill in the name, relation (father, mother, guardian, or other), phone, and email, then click Add guardian.',
-              'For an existing guardian, type at least 2 letters of the name or phone under Link an existing guardian, then click Link.',
-              'Tick Make primary guardian, or click Make primary on a linked guardian. Click Remove to detach the guardian from that student.',
+              'For an existing guardian (for example the parent of an older sibling), type at least 2 letters of the name or phone under Link an existing guardian, then click Link.',
+              'Tick Make primary guardian, or click Make primary on a linked guardian. Click Remove to detach a guardian from that student.',
             ],
+            tip: 'For siblings, do not create a new guardian. Link the existing one so the details are not duplicated.',
           },
           {
-            heading: 'RFID card',
-            body: 'When the Attendance module is active and you may configure attendance, the student row menu includes RFID card, which opens a separate dialog. There you register the card code if the student has no card yet, or delete the card.',
+            heading: 'Registering a card for one student',
+            body: 'When the Attendance module is active and you may manage attendance, the student row menu includes RFID card. It opens a separate window to register the card code of a student who has no card yet, or to delete the card.',
+            tip: 'To register the cards of a whole class, the RFID cards menu is faster (see the guide on RFID cards, kiosk, and the gate).',
           },
           {
-            heading: 'Excel import and export',
-            body: 'The Excel template has 20 columns: student details (name through email), Class, then Guardian 1 and Guardian 2, each with name, relation, phone/WhatsApp, and email. Guardian 1 becomes the primary guardian, and guardians with the same phone number are shared, so siblings are not duplicated.',
+            heading: 'Bringing in and downloading data with Excel',
+            body: 'The Excel file has 20 columns: student details, Class, then Guardian 1 and Guardian 2 (each with name, relation, phone/WhatsApp, and email). Guardian 1 becomes the primary guardian. Guardians with the same phone number are shared, so siblings are not recorded twice.',
             steps: [
-              'Click Import from Excel on the Students page and download the template.',
-              'Fill in the Siswa sheet from row 2 without changing the column titles; only Nama (name) and Jenis Kelamin (gender, L or P) are required.',
-              'Upload the file and check the preview. Nothing is saved until every row is valid.',
-              'Click import; one file holds at most 1000 rows.',
-              'The Export Excel button uses the same columns (following the current search and filters), so the result can be edited and imported again.',
+              'Click Import from Excel on the Students page, then download the template.',
+              'Fill in the Siswa sheet from row 2 without changing the column titles. Only Nama (name) and Jenis Kelamin (gender, L or P) are required.',
+              'Fill the Class column exactly like the class name in the active academic year.',
+              'Upload the file and check the preview. Nothing is saved until every row is correct.',
+              'Click import. One file holds at most 1000 rows.',
             ],
+            warning: 'If even one row is wrong, no student is saved. Fix the marked rows and upload again.',
             href: '/students/import',
           },
+        ],
+        faq: [
           {
-            heading: 'Good to know',
-            body: 'The class shown is the class in the active academic year, and the Class column in Excel must match a class name of that year. A student is active, graduated, transferred, or dropped; for graduated or transferred students change the status instead of deleting, because deleting only hides the student from the list. Without the manage students permission the page is view-only.',
+            q: 'Why does the class not appear in the class list?',
+            a: 'The class list follows the active academic year. Make sure the academic year has been created and activated in the Academic years menu, and that the class exists in the Classes menu.',
+          },
+          {
+            q: 'The NIS I entered is rejected because it is already used. What now?',
+            a: 'NIS and NISN must not match another student. Search for that NIS to see who has it. If it is a duplicate record, fix one of them. If you do not have the NIS yet, leave it empty.',
+          },
+          {
+            q: 'The Excel import keeps failing. What should I check?',
+            a: 'Check three things: the column titles are unchanged, Jenis Kelamin is only L or P, and the Kelas value is exactly the class name of the active academic year. The preview shows which row is wrong.',
+          },
+          {
+            q: 'I cannot see the Add a student button or the Guardians menu. Why?',
+            a: 'Only School admin and Operator can change student records. Other roles can only view. Ask a School admin to change your role in the Members menu.',
           },
         ],
       },
       su: {
-        title: 'Murid: data diri, wali, kartu, jeung impor Excel',
-        summary: 'Atur data murid nu lengkep, wali murid, kartu RFID, jeung impor atawa ékspor lewat Excel.',
+        title: 'Ngatur data murid jeung wali',
+        summary:
+          'Tambihan murid, pindahkeun ka kelas séjén, atur wali murid, sarta asupkeun loba murid sakaligus lewat Excel.',
+        forWho:
+          'Admin sakola jeung operator TU nu ngurus data murid; guru jeung Kapala sakola ngan bisa ningali.',
         sections: [
           {
-            heading: 'Nambah jeung ngarobah murid',
-            body: 'Buka menu Murid dina Data induk. Nu wajib diwewehan ngan ngaran jeung jenis kelamin; NIS jeung NISN meunang kosong, tapi lamun diwewehan teu meunang sarua jeung murid séjén. Data diri séjénna opsional: tempat lahir, NIK (16 angka), agama, alamat, telepon/WA, jeung surélék murid.',
+            heading: 'Nambihan murid anyar',
+            body: 'Nu wajib dieusian ngan ngaran jeung jenis kelamin. NIS jeung NISN meunang kosong, tapi lamun dieusian teu meunang sarua jeung murid séjén. Data diri séjénna (tempat lahir, NIK 16 angka, agama, alamat, telepon/WA, surélék) meunang nyusul.',
             steps: [
-              'Klik Tambih murid.',
-              'Eusian ngaran, NIS, NISN, jenis kelamin, tanggal lahir, agama, jeung status; pilih kelas lamun taun pangajaran aktip geus boga kelas.',
-              'Eusian kontak murid jeung alamat lamun aya. Telepon 0812... disimpen jadi 62812...; surélék jeung nomer ieu disiapkeun pikeun lebet murid engké.',
-              'Klik Tambih. Pikeun ngarobah, klik baris murid atawa pilih Robah dina menu baris.',
+              'Buka menu Murid dina kelompok Data induk, tuluy klik Tambih murid.',
+              'Eusian ngaran, NIS, NISN, jenis kelamin, tanggal lahir, agama, jeung status.',
+              'Pilih Kelas lamun taun pangajaran aktip geus boga kelas. Murid anyar meunang dibiarkeun Tanpa kelas heula.',
+              'Eusian kontak jeung alamat lamun aya, tuluy klik Tambih.',
             ],
+            tip: 'Acan boga sakabéh data? Simpen heula ngaran jeung jenis kelamin, engké lengkepan lewat Robah dina menu baris murid.',
             href: '/students',
           },
           {
-            heading: 'Wali murid',
-            body: 'Dina menu baris murid pilih Wali. Hiji wali bisa ngajaga sababaraha murid sakaligus (lanceuk-adi), sarta parobahan data wali lumaku pikeun sakabéh anakna.',
+            heading: 'Mindahkeun murid ka kelas séjén atawa ngarobah statusna',
+            body: 'Kelas nu kaciri nyaéta kelas dina taun pangajaran aktip. Status murid aya opat: Aktip, Lulus, Pindah, jeung Kaluar.',
             steps: [
-              'Klik menu baris murid, tuluy Wali.',
+              'Teangan murid ku kotak pamaluruhan (ngaran, NIS, atawa NISN).',
+              'Klik menu baris murid, tuluy pilih Robah.',
+              'Ganti Kelas atawa Status, tuluy simpen.',
+            ],
+            warning:
+              'Murid nu geus lulus atawa pindah leuwih alus dirobah statusna, ulah dipupus. Pupus ngan nyumputkeun murid tina daptar.',
+          },
+          {
+            heading: 'Ngatur wali murid',
+            body: 'Hiji wali bisa dipaké babarengan ku sababaraha anak, upamana lanceuk jeung adi. Lamun data wali dirobah, parobahan lumaku pikeun sakabéh anakna.',
+            steps: [
+              'Klik menu baris murid, tuluy pilih Wali.',
               'Pikeun wali anyar, eusian ngaran, hubungan (bapa, indung, wali, atawa séjén), telepon, jeung surélék, tuluy klik Tambah wali.',
-              'Pikeun wali nu geus aya, ketik sahenteuna 2 hurup ngaran atawa telepon dina Tumbu wali nu geus aya, tuluy klik Tumbu.',
+              'Pikeun wali nu geus aya (upamana kolot lanceukna), ketik sahenteuna 2 hurup ngaran atawa telepon dina Tumbu wali nu geus aya, tuluy klik Tumbu.',
               'Centang Jadikeun wali utama, atawa klik Jadikeun utama dina wali nu geus katumbu. Klik Lepas pikeun ngalepas wali tina murid éta.',
             ],
+            tip: 'Pikeun lanceuk-adi, ulah nyieun wali anyar. Tumbu wali nu geus aya sangkan datana teu ganda.',
           },
           {
-            heading: 'Kartu RFID',
-            body: 'Lamun modul Absénsi aktip jeung Anjeun boga hak ngatur absénsi, menu baris murid ngandung Kartu RFID nu muka dialog nyalira. Didinya Anjeun bisa ngadaptarkeun kode kartu lamun murid acan boga kartu, atawa mupus kartuna.',
+            heading: 'Ngadaptarkeun kartu pikeun hiji murid',
+            body: 'Lamun modul Absénsi aktip jeung Anjeun meunang ngatur absénsi, menu baris murid ngandung Kartu RFID. Menu ieu muka jandela husus pikeun ngadaptarkeun kode kartu murid nu acan boga kartu, atawa mupus kartuna.',
+            tip: 'Pikeun ngadaptarkeun kartu sakelas sakaligus, menu Kartu RFID leuwih gancang (tingali pituduh Kartu RFID, kiosk, jeung gerbang).',
           },
           {
-            heading: 'Impor jeung ékspor Excel',
-            body: 'Templat Excel ngandung 20 kolom: data murid (ngaran nepi ka surélék), Kelas, tuluy Wali 1 jeung Wali 2 masing-masing maké ngaran, hubungan, telepon/WA, jeung surélék. Wali 1 jadi wali utama, sarta wali nu nomer teleponna sarua dipaké babarengan sangkan lanceuk-adi teu ganda.',
+            heading: 'Ngasupkeun jeung ngundeur data lewat Excel',
+            body: 'Berkas Excel ngandung 20 kolom: data murid, Kelas, tuluy Wali 1 jeung Wali 2 (masing-masing ngaran, hubungan, telepon/WA, jeung surélék). Wali 1 jadi wali utama. Wali nu nomer teleponna sarua dipaké babarengan, jadi lanceuk-adi teu kacatet dua kali.',
             steps: [
-              'Klik Impor Excel dina kaca Murid tuluy unduh templat.',
-              'Eusian lembar Siswa ti baris 2 tanpa ngarobah judul kolom; ngan Nama jeung Jenis Kelamin (L atawa P) nu wajib.',
-              'Unggah berkas tuluy pariksa pratinjau. Teu aya nu disimpen saméméh sakabéh baris valid.',
-              'Klik impor; hiji berkas pangpangna 1000 baris.',
-              'Tombol Ékspor Excel maké kolom nu sarua (nurutkeun pamaluruhan jeung saringan nu kaciri), jadi hasilna bisa diédit tuluy diimpor deui.',
+              'Klik Impor Excel dina kaca Murid, tuluy unduh templat.',
+              'Eusian lembar Siswa ti baris 2 tanpa ngarobah judul kolom. Ngan Nama jeung Jenis Kelamin (L atawa P) nu wajib.',
+              'Eusian kolom Kelas persis siga ngaran kelas dina taun pangajaran aktip.',
+              'Unggah berkas, tuluy pariksa pratinjau. Teu aya nu disimpen saméméh sakabéh baris bener.',
+              'Klik impor. Hiji berkas pangpangna 1000 baris.',
             ],
+            warning:
+              'Lamun aya hiji baris nu lepat, teu aya murid nu disimpen. Bénerkeun baris nu ditandaan tuluy unggah deui.',
             href: '/students/import',
           },
+        ],
+        faq: [
           {
-            heading: 'Nu kudu diperhatikeun',
-            body: 'Kelas nu kaciri nyaéta kelas dina taun pangajaran aktip, sarta kolom Kelas dina Excel kudu sarua jeung ngaran kelas taun éta. Status murid: aktip, lulus, pindah, atawa kaluar; pikeun murid lulus atawa pindah robah statusna, ulah dipupus, sabab pupus ngan nyumputkeun murid tina daptar. Tanpa idin ngatur murid, kaca ngan bisa dititénan.',
+            q: 'Naha kelas teu kaciri dina daptar pilihan kelas?',
+            a: 'Daptar kelas nuturkeun taun pangajaran nu keur aktip. Pastikeun taun pangajaran geus dijieun jeung diaktipkeun dina menu Taun pangajaran, tuluy kelasna dijieun dina menu Kelas.',
+          },
+          {
+            q: 'NIS nu kuring eusian ditolak sabab geus dipaké. Kumaha?',
+            a: 'NIS jeung NISN teu meunang sarua jeung murid séjén. Teangan NIS éta pikeun nyaho saha nu maké. Lamun data ganda, bénerkeun salah sahijina. Lamun NIS acan aya, kosongkeun heula.',
+          },
+          {
+            q: 'Impor Excel gagal waé. Naon nu kudu dipariksa?',
+            a: 'Pariksa tilu hal: judul kolom teu dirobah, Jenis Kelamin ngan L atawa P, jeung eusi Kelas persis sarua jeung ngaran kelas taun pangajaran aktip. Pratinjau nuduhkeun baris mana nu lepat.',
+          },
+          {
+            q: 'Kuring teu ningali tombol Tambih murid atawa menu Wali. Naha?',
+            a: 'Ngan Admin sakola jeung Operator nu bisa ngarobah data murid. Peran séjén ngan bisa ningali. Menta Admin sakola ngarobah peran Anjeun dina menu Anggota.',
           },
         ],
       },
@@ -154,130 +253,209 @@ export const CORE_DOCS: DocArticle[] = [
     slug: 'teachers',
     icon: 'users',
     tone: 'violet',
+    group: 'master',
     text: {
       id: {
-        title: 'Guru dan akun login guru',
+        title: 'Mengelola data guru dan akun login guru',
         summary:
-          'Kelola data guru, impor dari Excel, dan tautkan akun login agar sistem mengenali guru yang masuk.',
+          'Tambah guru, masukkan banyak guru dari Excel, dan hubungkan akun login supaya guru melihat kelasnya sendiri.',
+        forWho:
+          'Admin sekolah dan operator TU untuk data guru; menghubungkan akun login hanya bisa dilakukan Admin sekolah.',
         sections: [
           {
-            heading: 'Data guru',
-            body: 'Data guru terdiri dari nama, NIP (opsional, tetapi bila diisi tidak boleh sama dengan guru lain), dan status aktif atau nonaktif. Daftar bisa dicari menurut nama atau NIP, disaring menurut status, dan diekspor ke Excel.',
+            heading: 'Menambah guru baru',
+            body: 'Data guru terdiri dari nama, NIP, dan status Aktif atau Nonaktif. NIP boleh kosong, tetapi kalau diisi tidak boleh sama dengan guru lain.',
             steps: [
-              'Buka menu Guru di Data induk.',
+              'Buka menu Guru di kelompok Data induk.',
               'Klik Tambah guru.',
               'Isi nama, NIP, dan status.',
-              'Simpan. Klik baris guru untuk mengubahnya.',
+              'Simpan. Untuk mengubahnya nanti, klik baris guru.',
             ],
+            tip: 'Gunakan kotak pencarian (nama atau NIP) dan saringan status untuk menemukan guru dengan cepat. Daftar juga bisa diekspor ke Excel.',
             href: '/teachers',
           },
           {
-            heading: 'Impor dari Excel',
-            body: 'Templat berisi tiga kolom: Nama, NIP, dan Status (Aktif atau Nonaktif; kosong dianggap Aktif). Hanya Nama yang wajib, dan satu berkas maksimal 1000 baris.',
+            heading: 'Memasukkan banyak guru dari Excel',
+            body: 'Templat hanya berisi tiga kolom: Nama, NIP, dan Status (Aktif atau Nonaktif; kosong dianggap Aktif). Hanya Nama yang wajib, dan satu berkas paling banyak 1000 baris.',
             steps: [
-              'Klik Impor Excel di halaman Guru dan unduh templat.',
+              'Klik Impor Excel di halaman Guru, lalu unduh templat.',
               'Isi mulai baris 2 tanpa mengubah judul kolom, lalu unggah berkas.',
-              'Periksa pratinjau; guru baru tersimpan hanya bila semua baris valid.',
+              'Periksa pratinjau, lalu klik impor.',
             ],
+            warning:
+              'Guru baru tersimpan hanya bila semua baris benar. Satu baris yang salah menahan semuanya.',
             href: '/teachers/import',
           },
           {
-            heading: 'Menautkan akun login',
-            body: 'Tautan akun membuat sistem tahu guru mana yang sedang masuk, sehingga absensi dan nilai dibatasi ke kelas dan mata pelajaran yang diampu. Menu Akun login di baris guru hanya muncul bila Anda punya izin kelola guru dan kelola anggota.',
+            heading: 'Menghubungkan guru dengan akun login',
+            body: 'Setelah terhubung, sistem tahu guru mana yang sedang masuk, sehingga absensi dan nilai dibatasi ke kelas dan mata pelajaran yang ia ajar. Menu Akun login hanya muncul bagi Admin sekolah.',
             steps: [
-              'Klik menu baris guru lalu Akun login.',
-              'Bila guru sudah menjadi anggota sekolah, pilih Tautkan akun yang ada, pilih anggotanya, lalu klik Tautkan.',
-              'Bila belum, pilih Undang lewat email, isi email guru, lalu klik Kirim undangan. Tautan berlaku 7 hari dengan peran Guru, dan akun otomatis tertaut saat undangan diterima.',
-              'Untuk melepas, buka lagi Akun login lalu klik Lepas tautan; data guru tetap ada.',
+              'Klik menu baris guru, lalu pilih Akun login.',
+              'Kalau guru sudah punya akun di sekolah ini, pilih Tautkan akun yang ada, pilih namanya di Anggota sekolah, lalu klik Tautkan.',
+              'Kalau belum, pilih Undang lewat email, isi Email guru, lalu klik Kirim undangan. Guru menerima tautan yang berlaku 7 hari dengan peran Guru, dan akunnya otomatis terhubung setelah undangan diterima.',
+              'Untuk memutus hubungan, buka lagi Akun login lalu klik Lepas tautan. Data guru tetap ada.',
             ],
+            tip: 'Satu akun hanya bisa dihubungkan ke satu guru. Bila nama tidak muncul di pilihan, akun itu mungkin sudah terhubung atau tidak aktif.',
           },
           {
-            heading: 'Yang perlu diperhatikan',
-            body: 'Satu anggota hanya bisa tertaut ke satu guru, dan hanya anggota aktif yang belum tertaut yang muncul di pilihan. Guru yang masih mengampu mata pelajaran tidak bisa dihapus; ubah statusnya menjadi nonaktif. Penugasan guru ke kelas dan mata pelajaran diatur di halaman Kelas.',
+            heading: 'Bila guru tidak mengajar lagi',
+            body: 'Ubah status guru menjadi Nonaktif lewat Ubah. Datanya tetap tersimpan, hanya tidak dianggap mengajar. Penugasan guru ke kelas dan mata pelajaran diatur di halaman Kelas.',
+            warning:
+              'Guru yang masih ditugaskan mengajar suatu mata pelajaran tidak bisa dihapus. Nonaktifkan saja, atau lepas dulu penugasannya di halaman Kelas.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kenapa menu Akun login tidak ada di baris guru?',
+            a: 'Menu itu hanya untuk Admin sekolah. Operator bisa mengubah data guru tetapi tidak bisa menghubungkan akun. Minta Admin sekolah melakukannya.',
+          },
+          {
+            q: 'Nama anggota yang ingin saya tautkan tidak muncul di pilihan. Bagaimana?',
+            a: 'Pilihan hanya memuat anggota aktif yang belum terhubung ke guru lain. Periksa di menu Anggota apakah akunnya aktif. Bila orang itu belum punya akun, pakai Undang lewat email.',
+          },
+          {
+            q: 'Guru sudah menerima undangan tetapi kelasnya belum muncul. Kenapa?',
+            a: 'Pastikan guru sudah ditugaskan di halaman Kelas (Guru pengampu) untuk mata pelajaran yang ia ajar. Akun yang terhubung hanya mengenali guru; kelasnya ditentukan dari penugasan.',
+          },
+          {
+            q: 'Guru tidak bisa dihapus. Apa yang harus saya lakukan?',
+            a: 'Berarti guru itu masih ditugaskan mengajar. Buka halaman Kelas, lepas penugasannya pada menu Guru pengampu, lalu hapus. Atau cukup ubah statusnya menjadi Nonaktif.',
           },
         ],
       },
       en: {
-        title: 'Teachers and teacher login accounts',
+        title: 'Managing teachers and teacher login accounts',
         summary:
-          'Manage teacher records, import from Excel, and link a login account so the system recognises the teacher who signs in.',
+          'Add teachers, bring in many teachers from Excel, and connect a login account so teachers see their own classes.',
+        forWho:
+          'School admins and administration staff for teacher records; only a School admin can connect a login account.',
         sections: [
           {
-            heading: 'Teacher records',
-            body: 'A teacher record has a name, an NIP (optional, but when filled it must not match another teacher), and an active or inactive status. The list can be searched by name or NIP, filtered by status, and exported to Excel.',
+            heading: 'Adding a new teacher',
+            body: 'A teacher record has a name, an NIP, and a status of Active or Inactive. The NIP can stay empty, but if filled it must not match another teacher.',
             steps: [
-              'Open the Teachers menu under Master data.',
+              'Open the Teachers menu in the Master data group.',
               'Click Add a teacher.',
               'Fill in the name, NIP, and status.',
-              'Save. Click a teacher row to edit it.',
+              'Save. To change it later, click the teacher row.',
             ],
+            tip: 'Use the search box (name or NIP) and the status filter to find a teacher quickly. The list can also be exported to Excel.',
             href: '/teachers',
           },
           {
-            heading: 'Import from Excel',
-            body: 'The template has three columns: Nama (name), NIP, and Status (Aktif or Nonaktif; empty counts as Aktif). Only the name is required, and one file holds at most 1000 rows.',
+            heading: 'Bringing in many teachers from Excel',
+            body: 'The template has just three columns: Nama (name), NIP, and Status (Aktif or Nonaktif; empty counts as Aktif). Only the name is required, and one file holds at most 1000 rows.',
             steps: [
-              'Click Import from Excel on the Teachers page and download the template.',
+              'Click Import from Excel on the Teachers page, then download the template.',
               'Fill it in from row 2 without changing the column titles, then upload the file.',
-              'Check the preview; new teachers are saved only when every row is valid.',
+              'Check the preview, then click import.',
             ],
+            warning:
+              'New teachers are saved only when every row is correct. One wrong row holds everything back.',
             href: '/teachers/import',
           },
           {
-            heading: 'Linking a login account',
-            body: 'Linking an account lets the system know which teacher is signed in, so attendance and grades are limited to the classes and subjects that teacher teaches. The Login account item in the teacher row menu appears only if you may manage teachers and manage members.',
+            heading: 'Connecting a teacher to a login account',
+            body: 'Once connected, the system knows which teacher is signed in, so attendance and grades are limited to the classes and subjects that teacher teaches. The Login account menu appears only for a School admin.',
             steps: [
-              'Click the teacher row menu, then Login account.',
-              'If the teacher is already a school member, choose Link an existing account, pick the member, and click Link.',
-              'If not, choose Invite by email, enter the teacher email, and click Send invitation. The link is valid for 7 days with the Teacher role, and the account is linked automatically when the invitation is accepted.',
-              'To unlink, open Login account again and click Unlink; the teacher record stays.',
+              'Click the teacher row menu, then choose Login account.',
+              'If the teacher already has an account at this school, choose Link an existing account, pick the name under School member, then click Link.',
+              'If not, choose Invite by email, fill in the Teacher email, then click Send invitation. The teacher gets a link valid for 7 days with the Teacher role, and the account connects automatically once the invitation is accepted.',
+              'To disconnect, open Login account again and click Unlink. The teacher record stays.',
             ],
+            tip: 'One account can be connected to only one teacher. If a name is missing from the choices, that account may already be connected or inactive.',
           },
           {
-            heading: 'Good to know',
-            body: 'One member can be linked to only one teacher, and only active members that are not linked yet appear in the picker. A teacher who still teaches a subject cannot be deleted; set the status to inactive instead. Assigning teachers to classes and subjects is done on the Classes page.',
+            heading: 'When a teacher no longer teaches',
+            body: 'Change the teacher status to Inactive with Edit. The record is kept, but the teacher is no longer counted as teaching. Assigning teachers to classes and subjects is done on the Classes page.',
+            warning:
+              'A teacher who is still assigned to teach a subject cannot be deleted. Just deactivate them, or remove the assignment first on the Classes page.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why is there no Login account menu on the teacher row?',
+            a: 'That menu is only for a School admin. An Operator can edit teacher records but cannot connect accounts. Ask a School admin to do it.',
+          },
+          {
+            q: 'The member I want to link is not in the choices. What now?',
+            a: 'The choices only list active members who are not connected to another teacher. Check in the Members menu whether the account is active. If the person has no account yet, use Invite by email.',
+          },
+          {
+            q: 'The teacher accepted the invitation but their classes do not show up. Why?',
+            a: 'Make sure the teacher is assigned on the Classes page (Assigned teachers) for the subjects they teach. A connected account only identifies the teacher; the classes come from the assignments.',
+          },
+          {
+            q: 'A teacher cannot be deleted. What should I do?',
+            a: 'It means the teacher is still assigned to teach. Open the Classes page, remove the assignment under Assigned teachers, then delete. Or simply change the status to Inactive.',
           },
         ],
       },
       su: {
-        title: 'Guru jeung akun asup guru',
+        title: 'Ngatur data guru jeung akun asup guru',
         summary:
-          'Atur data guru, impor ti Excel, jeung tautkeun akun asup sangkan sistem wanoh ka guru nu lebet.',
+          'Tambihan guru, asupkeun loba guru tina Excel, sarta sambungkeun akun asup sangkan guru ningali kelasna sorangan.',
+        forWho:
+          'Admin sakola jeung operator TU pikeun data guru; nyambungkeun akun asup ngan bisa dilakukeun ku Admin sakola.',
         sections: [
           {
-            heading: 'Data guru',
-            body: 'Data guru diwangun ku ngaran, NIP (opsional, tapi lamun diwewehan teu meunang sarua jeung guru séjén), jeung status aktip atawa nonaktip. Daptar bisa diteangan ku ngaran atawa NIP, disaring nurutkeun status, jeung diékspor ka Excel.',
+            heading: 'Nambihan guru anyar',
+            body: 'Data guru diwangun ku ngaran, NIP, jeung status Aktip atawa Nonaktip. NIP meunang kosong, tapi lamun dieusian teu meunang sarua jeung guru séjén.',
             steps: [
-              'Buka menu Guru dina Data induk.',
+              'Buka menu Guru dina kelompok Data induk.',
               'Klik Tambih guru.',
               'Eusian ngaran, NIP, jeung status.',
-              'Simpen. Klik baris guru pikeun ngarobahna.',
+              'Simpen. Pikeun ngarobahna engké, klik baris guru.',
             ],
+            tip: 'Anggo kotak pamaluruhan (ngaran atawa NIP) jeung saringan status pikeun manggihan guru gancang. Daptar ogé bisa diékspor ka Excel.',
             href: '/teachers',
           },
           {
-            heading: 'Impor ti Excel',
-            body: 'Templat ngandung tilu kolom: Nama, NIP, jeung Status (Aktif atawa Nonaktif; kosong dianggap Aktif). Ngan Nama nu wajib, sarta hiji berkas pangpangna 1000 baris.',
+            heading: 'Ngasupkeun loba guru tina Excel',
+            body: 'Templat ngan ngandung tilu kolom: Nama, NIP, jeung Status (Aktif atawa Nonaktif; kosong dianggap Aktif). Ngan Nama nu wajib, sarta hiji berkas pangpangna 1000 baris.',
             steps: [
-              'Klik Impor Excel dina kaca Guru tuluy unduh templat.',
+              'Klik Impor Excel dina kaca Guru, tuluy unduh templat.',
               'Eusian ti baris 2 tanpa ngarobah judul kolom, tuluy unggah berkas.',
-              'Pariksa pratinjau; guru anyar disimpen ngan lamun sakabéh baris valid.',
+              'Pariksa pratinjau, tuluy klik impor.',
             ],
+            warning:
+              'Guru anyar disimpen ngan lamun sakabéh baris bener. Hiji baris nu lepat nahan sakabéhna.',
             href: '/teachers/import',
           },
           {
-            heading: 'Nautkeun akun asup',
-            body: 'Tautan akun ngajadikeun sistem apal guru mana nu keur lebet, jadi absénsi jeung nilai dibatesan kana kelas jeung mata pelajaran nu diampuna. Menu Akun asup dina baris guru ngan némbongan lamun Anjeun boga idin ngatur guru jeung ngatur anggota.',
+            heading: 'Nyambungkeun guru jeung akun asup',
+            body: 'Sanggeus nyambung, sistem apal guru mana nu keur asup, jadi absénsi jeung nilai dibatesan kana kelas jeung mata pelajaran nu diajarna. Menu Akun asup ngan némbongan pikeun Admin sakola.',
             steps: [
-              'Klik menu baris guru, tuluy Akun asup.',
-              'Lamun guru geus jadi anggota sakola, pilih Tautkeun akun nu aya, pilih anggotana, tuluy klik Tautkeun.',
-              'Lamun acan, pilih Uleman ku surélék, eusian surélék guru, tuluy klik Kirim uleman. Tumbu lumaku 7 poé kalayan peran Guru, sarta akun otomatis katautkeun waktu uleman ditarima.',
-              'Pikeun ngalepas, buka deui Akun asup tuluy klik Pupus tautan; data guru tetep aya.',
+              'Klik menu baris guru, tuluy pilih Akun asup.',
+              'Lamun guru geus boga akun di sakola ieu, pilih Tautkeun akun nu aya, pilih ngaranna dina Anggota sakola, tuluy klik Tautkeun.',
+              'Lamun acan, pilih Uleman ku surélék, eusian Surélék guru, tuluy klik Kirim uleman. Guru narima tumbu nu lumaku 7 poé kalayan peran Guru, sarta akunna otomatis nyambung sanggeus uleman ditarima.',
+              'Pikeun megatkeun sambungan, buka deui Akun asup tuluy klik Pupus tautan. Data guru tetep aya.',
             ],
+            tip: 'Hiji akun ngan bisa disambungkeun ka hiji guru. Lamun ngaran teu aya dina pilihan, akun éta bisa jadi geus nyambung atawa teu aktip.',
           },
           {
-            heading: 'Nu kudu diperhatikeun',
-            body: 'Hiji anggota ngan bisa katautkeun ka hiji guru, sarta ngan anggota aktip nu acan katautkeun nu némbongan dina pilihan. Guru nu masih ngampu mata pelajaran teu bisa dipupus; robah statusna jadi nonaktip. Panugasan guru kana kelas jeung mata pelajaran diatur dina kaca Kelas.',
+            heading: 'Lamun guru geus teu ngajar deui',
+            body: 'Robah status guru jadi Nonaktip lewat Robah. Datana tetep disimpen, ngan teu dianggap ngajar. Panugasan guru kana kelas jeung mata pelajaran diatur dina kaca Kelas.',
+            warning:
+              'Guru nu masih ditugaskeun ngajar hiji mata pelajaran teu bisa dipupus. Nonaktipkeun waé, atawa lepas heula panugasanana dina kaca Kelas.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha menu Akun asup teu aya dina baris guru?',
+            a: 'Menu éta ngan pikeun Admin sakola. Operator bisa ngarobah data guru tapi teu bisa nyambungkeun akun. Menta Admin sakola nyieunna.',
+          },
+          {
+            q: 'Ngaran anggota nu rék ditautkeun teu aya dina pilihan. Kumaha?',
+            a: 'Pilihan ngan ngandung anggota aktip nu acan nyambung ka guru séjén. Pariksa dina menu Anggota naha akunna aktip. Lamun jalmana acan boga akun, anggo Uleman ku surélék.',
+          },
+          {
+            q: 'Guru geus narima uleman tapi kelasna acan kaciri. Naha?',
+            a: 'Pastikeun guru geus ditugaskeun dina kaca Kelas (Guru pangampu) pikeun mata pelajaran nu diajarna. Akun nu nyambung ngan ngaweruhkeun guru; kelasna ditangtukeun ku panugasan.',
+          },
+          {
+            q: 'Guru teu bisa dipupus. Naon nu kudu dilakukeun?',
+            a: 'Hartina guru éta masih ditugaskeun ngajar. Buka kaca Kelas, lepas panugasanana dina Guru pangampu, tuluy pupus. Atawa cekap robah statusna jadi Nonaktip.',
           },
         ],
       },
@@ -287,151 +465,242 @@ export const CORE_DOCS: DocArticle[] = [
     slug: 'classes-years',
     icon: 'school',
     tone: 'emerald',
+    group: 'master',
     text: {
       id: {
-        title: 'Kelas, mata pelajaran, tahun ajaran, dan kalender',
+        title: 'Menyusun tahun ajaran, kelas, mata pelajaran, dan kalender',
         summary:
-          'Susun struktur akademik: tahun ajaran dan semester, kelas, mata pelajaran, serta kalender libur dan ujian.',
+          'Siapkan tahun ajaran dan semester, buat kelas, tetapkan guru pengampu, dan isi kalender libur dan ujian.',
+        forWho:
+          'Admin sekolah, operator TU, dan staf Kurikulum yang menyiapkan struktur akademik setiap tahun ajaran.',
         sections: [
           {
-            heading: 'Tahun ajaran dan semester',
-            body: 'Satu tahun ajaran aktif menentukan daftar kelas dan penempatan siswa. Tahun ajaran pertama otomatis aktif, dan hanya satu yang bisa aktif pada satu waktu.',
+            heading: 'Membuat tahun ajaran dan semester',
+            body: 'Hanya satu tahun ajaran yang aktif pada satu waktu, dan itulah yang menentukan daftar kelas dan tempat siswa berada. Tahun ajaran pertama otomatis aktif.',
             steps: [
-              'Buka menu Tahun ajaran dan klik Buat tahun ajaran.',
-              'Isi nama yang unik (mis. 2026/2027) serta tanggal mulai dan selesai, lalu simpan.',
-              'Buka bagian Semester pada tahun itu, lalu klik Buat Ganjil dan Genap (nama mengikuti Pengaturan sekolah) atau Tambah semester.',
+              'Buka menu Tahun ajaran, lalu klik Buat tahun ajaran.',
+              'Isi nama yang belum pernah dipakai (misalnya 2026/2027) serta tanggal mulai dan selesai, lalu simpan.',
+              'Buka bagian Semester pada tahun itu, lalu klik Buat Ganjil dan Genap atau Tambah semester.',
               'Klik Jadikan aktif pada tahun ajaran atau semester yang sedang berjalan.',
             ],
+            warning:
+              'Mengganti tahun ajaran aktif mengubah kelas yang tampil di seluruh aplikasi, dan penempatan siswa mengikutinya. Lakukan hanya saat tahun ajaran baru benar-benar dimulai.',
             href: '/academic-years',
           },
           {
-            heading: 'Kelas dan jurusan',
-            body: 'Kelas dibuat per tahun ajaran dan namanya harus unik pada tahun itu. Jurusan bersifat opsional, untuk sekolah dengan jurusan, peminatan, atau kompetensi keahlian.',
+            heading: 'Membuat kelas baru',
+            body: 'Kelas dibuat untuk satu tahun ajaran, dan namanya tidak boleh sama dengan kelas lain di tahun itu. Jurusan boleh dikosongkan; gunakan hanya untuk sekolah yang punya jurusan atau peminatan.',
             steps: [
-              'Buka menu Kelas dan pilih tahun ajaran.',
-              'Klik Tambah kelas, isi nama dan tingkat, lalu pilih jurusan dan wali kelas bila ada.',
-              'Pada menu baris kelas pilih Guru pengampu, lalu tetapkan guru untuk tiap mata pelajaran. Satu mata pelajaran di satu kelas punya satu guru.',
-              'Tempatkan siswa ke kelas lewat menu Siswa.',
+              'Buka menu Kelas, lalu pilih Tahun ajaran.',
+              'Klik Tambah kelas.',
+              'Isi nama dan tingkat (misalnya 7, X, atau Kelas 1), lalu pilih Jurusan dan Wali kelas bila ada.',
+              'Simpan, lalu tempatkan siswa ke kelas lewat menu Siswa.',
             ],
+            warning: 'Kelas tidak bisa dihapus selama masih ada siswa atau guru pengampu di dalamnya.',
             href: '/classes',
           },
           {
-            heading: 'Mata pelajaran',
-            body: 'Tiap mata pelajaran punya kode dan nama; kode harus unik di sekolah. Anda bisa menambah satu per satu atau menyalin dari bank data kurikulum (mata pelajaran dengan kode yang sama dilewati, dan setelah disalin bebas diubah).',
+            heading: 'Menetapkan guru pengampu per mata pelajaran',
+            body: 'Guru pengampu menentukan siapa yang mengajar suatu mata pelajaran di suatu kelas. Satu mata pelajaran di satu kelas hanya punya satu guru. Penetapan ini dibutuhkan sebelum menyusun jadwal.',
+            steps: [
+              'Di menu Kelas, klik menu baris kelas lalu pilih Guru pengampu.',
+              'Pilih Mata pelajaran dan Guru, lalu klik Tetapkan.',
+              'Klik Lepas bila ingin mengganti guru, lalu tetapkan guru yang baru.',
+            ],
+          },
+          {
+            heading: 'Menambah mata pelajaran',
+            body: 'Setiap mata pelajaran punya kode dan nama, dan kode tidak boleh sama dengan yang lain di sekolah. Anda bisa menambahnya satu per satu, atau menyalin dari bank kurikulum. Mata pelajaran yang kodenya sudah ada akan dilewati, dan hasil salinan bebas diubah.',
+            tip: 'Mulailah dari bank kurikulum lalu sesuaikan namanya. Cara ini lebih cepat daripada mengetik satu per satu.',
             href: '/subjects',
           },
           {
-            heading: 'Kalender akademik',
-            body: 'Kalender menyimpan acara per tahun ajaran dengan jenis Libur, Jeda, Ujian, dan Kegiatan. Libur dan jeda mengurangi hari efektif belajar, sedangkan ujian dan kegiatan hanya penanda.',
+            heading: 'Mengisi kalender akademik',
+            body: 'Kalender menyimpan acara per tahun ajaran dengan empat jenis: Libur, Jeda, Ujian, dan Kegiatan. Libur dan jeda mengurangi hari belajar efektif, sedangkan ujian dan kegiatan hanya penanda.',
             steps: [
-              'Buka menu Kalender dan pilih tahun ajaran.',
+              'Buka menu Kalender, lalu pilih tahun ajaran.',
               'Pilih hari belajar per pekan: 5 hari atau 6 hari.',
               'Klik Tambah acara, lalu isi jenis, judul, serta tanggal mulai dan selesai.',
-              'Buka Tampilan tahunan dan PDF, lalu klik Unduh PDF untuk mencetak.',
+              'Buka Tampilan tahunan dan PDF, lalu klik Unduh PDF bila ingin mencetak.',
             ],
+            tip: 'Libur dan jeda berlaku untuk seluruh sekolah. Ujian dan kegiatan bisa untuk seluruh sekolah atau satu kelas saja.',
             href: '/calendar',
           },
+        ],
+        faq: [
           {
-            heading: 'Yang perlu diperhatikan',
-            body: 'Mengganti tahun ajaran aktif mengubah kelas yang tampil, dan penempatan siswa mengikutinya. Kelas tidak bisa dihapus selama masih ada siswa atau guru pengampu, dan mata pelajaran tidak bisa dihapus bila sudah ditugaskan ke guru. Libur dan jeda berlaku untuk seluruh sekolah, sedangkan ujian dan kegiatan bisa untuk seluruh sekolah atau satu kelas.',
+            q: 'Kenapa kelas tidak muncul di daftar?',
+            a: 'Periksa Tahun ajaran yang dipilih di bagian atas menu Kelas. Kelas dibuat per tahun ajaran, jadi kelas tahun lalu tidak tampil di tahun yang baru. Buat kelas untuk tahun ajaran yang sedang dipilih.',
+          },
+          {
+            q: 'Saya tidak bisa menghapus kelas. Kenapa?',
+            a: 'Kelas yang masih punya siswa atau guru pengampu tidak bisa dihapus. Pindahkan siswanya lewat menu Siswa, lepas guru pengampunya, lalu hapus.',
+          },
+          {
+            q: 'Nama tahun ajaran atau kode mata pelajaran ditolak. Bagaimana?',
+            a: 'Nama tahun ajaran dan kode mata pelajaran harus berbeda dari yang sudah ada. Cari dulu di daftar. Kalau sudah ada, pakai yang itu atau beri nama atau kode lain.',
+          },
+          {
+            q: 'Pilihan mata pelajaran di jadwal kosong. Apa yang kurang?',
+            a: 'Jadwal hanya menampilkan mata pelajaran yang sudah punya guru pengampu di kelas itu. Buka menu Kelas, pilih Guru pengampu pada kelasnya, dan tetapkan gurunya.',
           },
         ],
       },
       en: {
-        title: 'Classes, subjects, academic years, and calendar',
+        title: 'Setting up academic years, classes, subjects, and the calendar',
         summary:
-          'Build the academic structure: academic years and semesters, classes, subjects, and the holiday and exam calendar.',
+          'Prepare the academic year and semesters, create classes, assign teachers, and fill in the holiday and exam calendar.',
+        forWho:
+          'School admins, administration staff, and Curriculum staff who prepare the academic structure each year.',
         sections: [
           {
-            heading: 'Academic years and semesters',
-            body: 'The one active academic year decides the class list and where students are placed. The first academic year becomes active automatically, and only one can be active at a time.',
+            heading: 'Creating an academic year and semesters',
+            body: 'Only one academic year is active at a time, and it decides the class list and where students are placed. The first academic year becomes active automatically.',
             steps: [
-              'Open the Academic years menu and click Create academic year.',
-              'Enter a unique name (e.g. 2026/2027) plus start and end dates, then save.',
-              'Open the Semester section of that year, then click Create Odd and Even (names follow School settings) or Add semester.',
+              'Open the Academic years menu, then click Create academic year.',
+              'Enter a name not used before (for example 2026/2027) plus start and end dates, then save.',
+              'Open the Semester section of that year, then click Create Odd and Even or Add semester.',
               'Click Make active on the academic year or semester that is currently running.',
             ],
+            warning:
+              'Changing the active academic year changes the classes shown across the app, and student placement follows it. Do it only when the new academic year really starts.',
             href: '/academic-years',
           },
           {
-            heading: 'Classes and programs',
-            body: 'Classes are created per academic year, and the name must be unique within that year. Programs are optional, for schools with majors, specialisations, or skill competencies.',
+            heading: 'Creating a new class',
+            body: 'A class belongs to one academic year, and its name must not match another class in that year. The program can stay empty; use it only for schools with majors or specialisations.',
             steps: [
-              'Open the Classes menu and pick the academic year.',
-              'Click Add a class, fill in the name and level, then choose a program and homeroom teacher if any.',
-              'In the class row menu choose Assigned teachers, then set a teacher for each subject. One subject in one class has one teacher.',
-              'Place students into the class through the Students menu.',
+              'Open the Classes menu, then pick the Academic year.',
+              'Click Add a class.',
+              'Fill in the name and level (for example 7, X, or Class 1), then pick a Program and Homeroom teacher if any.',
+              'Save, then place students into the class through the Students menu.',
             ],
+            warning: 'A class cannot be deleted while it still has students or assigned teachers.',
             href: '/classes',
           },
           {
-            heading: 'Subjects',
-            body: 'Each subject has a code and a name; the code must be unique in the school. You can add them one by one or copy from the curriculum data bank (subjects with a code that already exists are skipped, and once copied they can be edited freely).',
+            heading: 'Assigning teachers per subject',
+            body: 'Assigned teachers decide who teaches a subject in a class. One subject in one class has only one teacher. This is needed before you build the timetable.',
+            steps: [
+              'In the Classes menu, click the class row menu and choose Assigned teachers.',
+              'Pick the Subject and the Teacher, then click Assign.',
+              'Click Remove if you want to change the teacher, then assign the new one.',
+            ],
+          },
+          {
+            heading: 'Adding subjects',
+            body: 'Each subject has a code and a name, and the code must not match another one in the school. You can add them one by one or copy from the curriculum bank. Subjects whose code already exists are skipped, and copied subjects can be freely edited.',
+            tip: 'Start from the curriculum bank and then adjust the names. It is faster than typing them one by one.',
             href: '/subjects',
           },
           {
-            heading: 'Academic calendar',
-            body: 'The calendar stores events per academic year of the types Holiday, Break, Exam, and Activity. Holidays and breaks reduce the effective school days, while exams and activities are only markers.',
+            heading: 'Filling in the academic calendar',
+            body: 'The calendar stores events per academic year in four types: Holiday, Break, Exam, and Activity. Holidays and breaks reduce the effective school days, while exams and activities are only markers.',
             steps: [
-              'Open the Calendar menu and pick the academic year.',
+              'Open the Calendar menu, then pick the academic year.',
               'Choose the school days per week: 5 days or 6 days.',
               'Click Add an event, then fill in the type, title, and start and end dates.',
-              'Open Yearly view and PDF, then click Download PDF to print.',
+              'Open Yearly view and PDF, then click Download PDF if you want to print.',
             ],
+            tip: 'Holidays and breaks apply to the whole school. Exams and activities can be for the whole school or for one class only.',
             href: '/calendar',
           },
+        ],
+        faq: [
           {
-            heading: 'Good to know',
-            body: 'Changing the active academic year changes the classes shown, and student placement follows it. A class cannot be deleted while it still has students or assigned teachers, and a subject cannot be deleted once assigned to a teacher. Holidays and breaks apply to the whole school, while exams and activities can be for the whole school or one class.',
+            q: 'Why does the class not appear in the list?',
+            a: 'Check the Academic year selected at the top of the Classes menu. Classes belong to an academic year, so last year classes do not show in the new year. Create the class for the academic year you have selected.',
+          },
+          {
+            q: 'I cannot delete a class. Why?',
+            a: 'A class that still has students or assigned teachers cannot be deleted. Move the students through the Students menu, remove the assigned teachers, then delete.',
+          },
+          {
+            q: 'An academic year name or subject code is rejected. What now?',
+            a: 'The academic year name and the subject code must differ from existing ones. Look in the list first. If it already exists, use that one or choose another name or code.',
+          },
+          {
+            q: 'The subject choices in the timetable are empty. What is missing?',
+            a: 'The timetable only shows subjects that already have an assigned teacher in that class. Open the Classes menu, choose Assigned teachers on the class, and assign the teacher.',
           },
         ],
       },
       su: {
-        title: 'Kelas, mata pelajaran, taun pangajaran, jeung kalénder',
+        title: 'Nyusun taun pangajaran, kelas, mata pelajaran, jeung kalénder',
         summary:
-          'Susun struktur akademik: taun pangajaran jeung semester, kelas, mata pelajaran, sarta kalénder libur jeung ujian.',
+          'Siapkeun taun pangajaran jeung semester, jieun kelas, tetepkeun guru pangampu, sarta eusian kalénder libur jeung ujian.',
+        forWho:
+          'Admin sakola, operator TU, jeung staf Kurikulum nu nyiapkeun struktur akadémik unggal taun pangajaran.',
         sections: [
           {
-            heading: 'Taun pangajaran jeung semester',
-            body: 'Hiji taun pangajaran aktip nangtukeun daptar kelas jeung panempatan murid. Taun pangajaran kahiji otomatis aktip, sarta ngan hiji nu bisa aktip dina hiji waktu.',
+            heading: 'Nyieun taun pangajaran jeung semester',
+            body: 'Ngan hiji taun pangajaran nu aktip dina hiji waktu, sarta éta nu nangtukeun daptar kelas jeung tempat murid. Taun pangajaran kahiji otomatis aktip.',
             steps: [
-              'Buka menu Taun pangajaran tuluy klik Jieun taun pangajaran.',
-              'Eusian ngaran nu unik (upamana 2026/2027) sarta tanggal mimiti jeung réngsé, tuluy simpen.',
-              'Buka bagian Semester dina taun éta, tuluy klik Jieun Ganjil jeung Genep (ngaranna nurutkeun Setélan sakola) atawa Tambih semester.',
+              'Buka menu Taun pangajaran, tuluy klik Jieun taun pangajaran.',
+              'Eusian ngaran nu acan kungsi dipaké (upamana 2026/2027) sarta tanggal mimiti jeung réngsé, tuluy simpen.',
+              'Buka bagian Semester dina taun éta, tuluy klik Jieun Ganjil jeung Genep atawa Tambih semester.',
               'Klik Jadikeun aktip dina taun pangajaran atawa semester nu keur jalan.',
             ],
+            warning:
+              'Ngaganti taun pangajaran aktip ngarobah kelas nu kaciri di sakabéh aplikasi, sarta panempatan murid nuturkeunana. Laksanakeun ngan waktu taun pangajaran anyar enya-enya dimimitian.',
             href: '/academic-years',
           },
           {
-            heading: 'Kelas jeung jurusan',
-            body: 'Kelas dijieun per taun pangajaran sarta ngaranna kudu unik dina taun éta. Jurusan sipatna opsional, pikeun sakola nu boga jurusan, peminatan, atawa kompeténsi kaahlian.',
+            heading: 'Nyieun kelas anyar',
+            body: 'Kelas dijieun pikeun hiji taun pangajaran, sarta ngaranna teu meunang sarua jeung kelas séjén dina taun éta. Jurusan meunang kosong; anggo ngan pikeun sakola nu boga jurusan atawa peminatan.',
             steps: [
-              'Buka menu Kelas tuluy pilih taun pangajaran.',
-              'Klik Tambih kelas, eusian ngaran jeung tingkat, tuluy pilih jurusan jeung wali kelas lamun aya.',
-              'Dina menu baris kelas pilih Guru pangampu, tuluy tetepkeun guru pikeun unggal mata pelajaran. Hiji mata pelajaran dina hiji kelas boga hiji guru.',
-              'Tempatkeun murid kana kelas lewat menu Murid.',
+              'Buka menu Kelas, tuluy pilih Taun pangajaran.',
+              'Klik Tambih kelas.',
+              'Eusian ngaran jeung tingkat (upamana 7, X, atawa Kelas 1), tuluy pilih Jurusan jeung Wali kelas lamun aya.',
+              'Simpen, tuluy tempatkeun murid kana kelas lewat menu Murid.',
             ],
+            warning: 'Kelas teu bisa dipupus salila masih aya murid atawa guru pangampu di jerona.',
             href: '/classes',
           },
           {
-            heading: 'Mata pelajaran',
-            body: 'Unggal mata pelajaran boga kode jeung ngaran; kode kudu unik di sakola. Anjeun bisa nambah hiji-hiji atawa nyalin tina bank data kurikulum (mata pelajaran nu kodena sarua dilangkungan, sarta sanggeus disalin bébas dirobah).',
+            heading: 'Netepkeun guru pangampu per mata pelajaran',
+            body: 'Guru pangampu nangtukeun saha nu ngajar hiji mata pelajaran dina hiji kelas. Hiji mata pelajaran dina hiji kelas ngan boga hiji guru. Ieu diperlukeun saméméh nyusun jadwal.',
+            steps: [
+              'Dina menu Kelas, klik menu baris kelas tuluy pilih Guru pangampu.',
+              'Pilih Mata pelajaran jeung Guru, tuluy klik Tetepkeun.',
+              'Klik Lepas lamun rék ngaganti guru, tuluy tetepkeun guru nu anyar.',
+            ],
+          },
+          {
+            heading: 'Nambihan mata pelajaran',
+            body: 'Unggal mata pelajaran boga kode jeung ngaran, sarta kode teu meunang sarua jeung nu séjén di sakola. Anjeun bisa nambihanana hiji-hiji, atawa nyalin tina bank kurikulum. Mata pelajaran nu kodena geus aya dilangkungan, sarta hasil salinan bébas dirobah.',
+            tip: 'Mimitian tina bank kurikulum tuluy saluyukeun ngaranna. Leuwih gancang tibatan ngetik hiji-hiji.',
             href: '/subjects',
           },
           {
-            heading: 'Kalénder akadémik',
-            body: 'Kalénder nyimpen acara per taun pangajaran kalayan jinis Libur, Jeda, Ujian, jeung Kagiatan. Libur jeung jeda ngurangan poé éféktif diajar, sedengkeun ujian jeung kagiatan ngan jadi tanda.',
+            heading: 'Ngeusian kalénder akadémik',
+            body: 'Kalénder nyimpen acara per taun pangajaran dina opat jinis: Libur, Jeda, Ujian, jeung Kagiatan. Libur jeung jeda ngurangan poé diajar éféktif, sedengkeun ujian jeung kagiatan ngan jadi tanda.',
             steps: [
-              'Buka menu Kalénder tuluy pilih taun pangajaran.',
+              'Buka menu Kalénder, tuluy pilih taun pangajaran.',
               'Pilih poé diajar per minggu: 5 poé atawa 6 poé.',
               'Klik Tambih acara, tuluy eusian jinis, judul, sarta tanggal mimiti jeung réngsé.',
-              'Buka Témbongan taunan jeung PDF, tuluy klik Unduh PDF pikeun dicitak.',
+              'Buka Témbongan taunan jeung PDF, tuluy klik Unduh PDF lamun rék dicitak.',
             ],
+            tip: 'Libur jeung jeda lumaku pikeun sakabéh sakola. Ujian jeung kagiatan bisa pikeun sakabéh sakola atawa hiji kelas waé.',
             href: '/calendar',
           },
+        ],
+        faq: [
           {
-            heading: 'Nu kudu diperhatikeun',
-            body: 'Ngaganti taun pangajaran aktip ngarobah kelas nu kaciri, sarta panempatan murid nuturkeunana. Kelas teu bisa dipupus salila masih aya murid atawa guru pangampu, sarta mata pelajaran teu bisa dipupus lamun geus ditugaskeun ka guru. Libur jeung jeda lumaku pikeun sakabéh sakola, sedengkeun ujian jeung kagiatan bisa pikeun sakabéh sakola atawa hiji kelas.',
+            q: 'Naha kelas teu kaciri dina daptar?',
+            a: 'Pariksa Taun pangajaran nu dipilih di luhur menu Kelas. Kelas dijieun per taun pangajaran, jadi kelas taun kamari teu kaciri dina taun anyar. Jieun kelas pikeun taun pangajaran nu keur dipilih.',
+          },
+          {
+            q: 'Kuring teu bisa mupus kelas. Naha?',
+            a: 'Kelas nu masih boga murid atawa guru pangampu teu bisa dipupus. Pindahkeun muridna lewat menu Murid, lepas guru pangampuna, tuluy pupus.',
+          },
+          {
+            q: 'Ngaran taun pangajaran atawa kode mata pelajaran ditolak. Kumaha?',
+            a: 'Ngaran taun pangajaran jeung kode mata pelajaran kudu béda ti nu geus aya. Teangan heula dina daptar. Lamun geus aya, anggo nu éta atawa pilih ngaran atawa kode séjén.',
+          },
+          {
+            q: 'Pilihan mata pelajaran dina jadwal kosong. Naon nu kurang?',
+            a: 'Jadwal ngan nuduhkeun mata pelajaran nu geus boga guru pangampu di kelas éta. Buka menu Kelas, pilih Guru pangampu dina kelasna, tuluy tetepkeun gurunya.',
           },
         ],
       },
@@ -441,118 +710,167 @@ export const CORE_DOCS: DocArticle[] = [
     slug: 'school-settings',
     icon: 'settings',
     tone: 'slate',
+    group: 'master',
     text: {
       id: {
-        title: 'Pengaturan sekolah',
+        title: 'Mengatur pengaturan dasar sekolah',
         summary:
-          'Atur zona waktu, hari efektif, nama semester, jam pelajaran bawaan, dan daftar tingkat kelas untuk satu unit sekolah.',
+          'Atur zona waktu, hari belajar, nama semester, jam pelajaran awal, dan daftar tingkat kelas untuk satu unit sekolah.',
+        forWho: 'Admin sekolah dan Operator, biasanya sekali saat sekolah mulai memakai aplikasi.',
         sections: [
           {
-            heading: 'Zona waktu',
-            body: 'Zona waktu menjadi dasar tanggal dan jam di seluruh aplikasi, termasuk absensi, tagihan, pesan, dan SPMB. Mengubahnya tidak mengubah data lama, hanya cara hari dan jam dihitung ke depan.',
+            heading: 'Memilih zona waktu',
+            body: 'Zona waktu menjadi acuan tanggal dan jam di seluruh aplikasi: absensi, tagihan, pesan, dan pendaftaran siswa baru (SPMB).',
             steps: [
               'Buka menu Pengaturan sekolah.',
-              'Pilih zona waktu; jam saat ini di zona itu ditampilkan sebagai pembanding.',
+              'Pilih zona waktu. Jam saat ini di zona itu ditampilkan sebagai pembanding.',
               'Klik Simpan.',
             ],
+            warning:
+              'Mengubah zona waktu tidak mengubah data lama, hanya cara hari dan jam dihitung mulai saat itu. Jangan diubah di tengah hari bila absensi sedang berjalan.',
             href: '/school-settings',
           },
           {
-            heading: 'Hari efektif dan semester',
-            body: 'Hari efektif (Senin sampai Minggu, minimal satu hari) dipakai jadwal pelajaran dan kalender akademik. Nama semester (1 sampai 4, tidak boleh kosong atau sama) dipakai saat membuat semester otomatis di Tahun ajaran, dan semester yang sudah dibuat tidak berubah.',
+            heading: 'Menentukan hari belajar dan nama semester',
+            body: 'Hari belajar (Senin sampai Minggu, minimal satu hari) dipakai oleh jadwal pelajaran dan kalender akademik. Nama semester (1 sampai 4) dipakai saat Anda membuat semester otomatis di menu Tahun ajaran. Nama tidak boleh kosong atau kembar.',
+            tip: 'Semester yang sudah telanjur dibuat tidak ikut berubah. Atur nama semester sebelum membuat semester.',
           },
           {
-            heading: 'Jam pelajaran bawaan',
-            body: 'Isi jam pelajaran pertama dan menit per jam pelajaran (10 sampai 180 menit). Nilai ini hanya menjadi isian awal saat membuat jam pelajaran otomatis di Jadwal; jam yang sudah ada tidak berubah.',
+            heading: 'Menyiapkan jam pelajaran awal',
+            body: 'Isi jam mulai pelajaran pertama dan lama tiap jam pelajaran (10 sampai 180 menit). Isian ini hanya menjadi nilai awal saat Anda membuat jam pelajaran otomatis di menu Jadwal pelajaran. Jam pelajaran yang sudah ada tidak berubah.',
           },
           {
-            heading: 'Tingkat kelas',
-            body: 'Daftar tingkat (mis. 7, 8, 9 atau X, XI, XII) dipakai pada kelas, tarif SPP, dan periode SPMB agar penulisannya seragam. Selama daftar kosong, tingkat di sana boleh diketik bebas.',
+            heading: 'Menyusun daftar tingkat kelas',
+            body: 'Daftar tingkat (misalnya 7, 8, 9 atau X, XI, XII) dipakai di kelas, tarif SPP, dan periode pendaftaran supaya penulisannya seragam. Selama daftar masih kosong, tingkat di tempat-tempat itu boleh diketik bebas.',
             steps: [
               'Bila daftar masih kosong, pilih jenjang (SD/MI, SMP/MTs, SMA/MA, atau SMK) lalu klik Isi bawaan.',
-              'Atau klik Tambah tingkat dan isi kode, nama tampilan, dan urutan.',
-              'Gunakan menu Ubah untuk mengganti nama tampilan atau urutan.',
+              'Atau klik Tambah tingkat, lalu isi kode, nama tampilan, dan urutan.',
+              'Gunakan Ubah untuk mengganti nama tampilan atau urutan.',
             ],
+            warning:
+              'Kode tingkat tidak bisa diubah setelah dibuat, dan tingkat yang masih dipakai kelas, tarif, atau periode pendaftaran tidak bisa dihapus.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kenapa menu Pengaturan sekolah tidak ada di menu saya?',
+            a: 'Menu ini hanya muncul untuk Admin sekolah dan Operator. Minta Admin sekolah mengubah peran Anda di menu Anggota bila memang perlu.',
           },
           {
-            heading: 'Yang perlu diperhatikan',
-            body: 'Menu ini hanya muncul bagi pemegang izin kelola sekolah (Admin sekolah dan Operator). Kode tingkat tidak bisa diubah setelah dibuat, dan tingkat yang masih dipakai kelas, tarif, atau periode SPMB tidak bisa dihapus. Pengaturan berlaku per unit sekolah.',
+            q: 'Apakah pengaturan ini berlaku untuk semua unit sekolah di lembaga kami?',
+            a: 'Tidak. Pengaturan berlaku per unit sekolah. Pindah ke unit yang ingin diatur, lalu isi pengaturannya di sana.',
+          },
+          {
+            q: 'Saya sudah mengganti nama semester tetapi semester lama tidak berubah. Kenapa?',
+            a: 'Nama baru hanya dipakai saat semester dibuat otomatis berikutnya. Semester yang sudah ada tidak ikut berubah dan perlu diperbaiki di menu Tahun ajaran.',
           },
         ],
       },
       en: {
-        title: 'School settings',
+        title: 'Setting up the basic school settings',
         summary:
-          'Set the time zone, school days, semester names, default lesson period, and the list of class levels for one school unit.',
+          'Set the time zone, school days, semester names, starting lesson period, and the list of class levels for one school unit.',
+        forWho: 'School admins and Operators, usually once when the school starts using the app.',
         sections: [
           {
-            heading: 'Time zone',
-            body: 'The time zone is the basis for dates and times across the app, including attendance, invoices, messages, and admissions. Changing it does not alter old data, only how days and times are counted from then on.',
+            heading: 'Choosing the time zone',
+            body: 'The time zone is the reference for dates and times across the app: attendance, invoices, messages, and new student admissions (SPMB).',
             steps: [
               'Open the School settings menu.',
-              'Pick the time zone; the current time in that zone is shown for comparison.',
+              'Pick the time zone. The current time in that zone is shown for comparison.',
               'Click Save.',
             ],
+            warning:
+              'Changing the time zone does not alter old data, only how days and times are counted from then on. Do not change it in the middle of the day while attendance is running.',
             href: '/school-settings',
           },
           {
-            heading: 'School days and semesters',
-            body: 'School days (Monday to Sunday, at least one) are used by the timetable and the academic calendar. Semester names (1 to 4, not empty or duplicated) are used when semesters are created automatically under Academic years, and semesters that already exist do not change.',
+            heading: 'Setting school days and semester names',
+            body: 'School days (Monday to Sunday, at least one) are used by the timetable and the academic calendar. Semester names (1 to 4) are used when you create semesters automatically in the Academic years menu. Names cannot be empty or duplicated.',
+            tip: 'Semesters that were already created do not change. Set the semester names before you create semesters.',
           },
           {
-            heading: 'Default lesson period',
-            body: 'Set the first lesson start time and the minutes per lesson (10 to 180 minutes). These only pre-fill the form when lesson periods are generated in the Timetable; existing periods do not change.',
+            heading: 'Preparing the starting lesson period',
+            body: 'Fill in the start time of the first lesson and the length of each lesson (10 to 180 minutes). These only become the starting values when you generate lesson periods in the Timetable menu. Existing lesson periods do not change.',
           },
           {
-            heading: 'Class levels',
-            body: 'The list of levels (e.g. 7, 8, 9 or X, XI, XII) is used for classes, tuition rates, and admission periods so they are written consistently. While the list is empty, levels there can be typed freely.',
+            heading: 'Building the list of class levels',
+            body: 'The list of levels (for example 7, 8, 9 or X, XI, XII) is used for classes, tuition rates, and admission periods so they are written consistently. While the list is empty, levels in those places can be typed freely.',
             steps: [
               'If the list is still empty, pick a stage (SD/MI, SMP/MTs, SMA/MA, or SMK) and click Fill defaults.',
-              'Or click Add a level and fill in the code, display name, and order.',
+              'Or click Add a level, then fill in the code, display name, and order.',
               'Use Edit to change the display name or order.',
             ],
+            warning:
+              'A level code cannot be changed once created, and a level still used by classes, rates, or admission periods cannot be deleted.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why is the School settings menu missing from my menu?',
+            a: 'This menu appears only for School admin and Operator. Ask a School admin to change your role in the Members menu if you really need it.',
           },
           {
-            heading: 'Good to know',
-            body: 'This menu appears only for holders of the manage school permission (School admin and Operator). A level code cannot be changed once created, and a level still used by classes, rates, or admission periods cannot be deleted. Settings apply per school unit.',
+            q: 'Do these settings apply to every school unit in our institution?',
+            a: 'No. Settings apply per school unit. Switch to the unit you want to set up, then fill in the settings there.',
+          },
+          {
+            q: 'I changed the semester names but the old semesters did not change. Why?',
+            a: 'The new names are only used the next time semesters are generated. Existing semesters do not change and must be corrected in the Academic years menu.',
           },
         ],
       },
       su: {
-        title: 'Setélan sakola',
+        title: 'Ngatur setélan dasar sakola',
         summary:
-          'Atur zona waktu, poé éféktif, ngaran semester, jam pangajaran dasar, jeung daptar tingkat kelas pikeun hiji unit sakola.',
+          'Atur zona waktu, poé diajar, ngaran semester, jam pangajaran awal, jeung daptar tingkat kelas pikeun hiji unit sakola.',
+        forWho: 'Admin sakola jeung Operator, biasana sakali waktu sakola mimiti maké aplikasi.',
         sections: [
           {
-            heading: 'Zona waktu',
-            body: 'Zona waktu jadi dasar tanggal jeung jam di sakabéh aplikasi, kaasup absénsi, tagihan, pesen, jeung SPMB. Ngarobahna teu ngarobah data heubeul, ngan cara poé jeung jam diitung ka hareupna.',
+            heading: 'Milih zona waktu',
+            body: 'Zona waktu jadi patokan tanggal jeung jam di sakabéh aplikasi: absénsi, tagihan, pesen, jeung pendaptaran murid anyar (SPMB).',
             steps: [
               'Buka menu Setélan sakola.',
-              'Pilih zona waktu; jam ayeuna di zona éta dipintonkeun minangka pamadaan.',
+              'Pilih zona waktu. Jam ayeuna di zona éta dipintonkeun minangka pamadaan.',
               'Klik Simpen.',
             ],
+            warning:
+              'Ngarobah zona waktu teu ngarobah data heubeul, ngan cara poé jeung jam diitung ti harita. Ulah dirobah satengah poé lamun absénsi keur jalan.',
             href: '/school-settings',
           },
           {
-            heading: 'Poé éféktif jeung semester',
-            body: 'Poé éféktif (Senén nepi ka Minggu, sahenteuna sapoé) dipaké ku jadwal pangajaran jeung kalénder akadémik. Ngaran semester (1 nepi ka 4, teu meunang kosong atawa sarua) dipaké waktu nyieun semester sacara otomatis dina Taun pangajaran, sarta semester nu geus dijieun teu robah.',
+            heading: 'Netepkeun poé diajar jeung ngaran semester',
+            body: 'Poé diajar (Senén nepi ka Minggu, sahenteuna sapoé) dipaké ku jadwal pangajaran jeung kalénder akadémik. Ngaran semester (1 nepi ka 4) dipaké waktu Anjeun nyieun semester otomatis dina menu Taun pangajaran. Ngaran teu meunang kosong atawa kembar.',
+            tip: 'Semester nu geus kadung dijieun teu milu robah. Atur ngaran semester saméméh nyieun semester.',
           },
           {
-            heading: 'Jam pangajaran dasar',
-            body: 'Eusian jam pangajaran kahiji jeung menit per jam pangajaran (10 nepi ka 180 menit). Nilai ieu ngan jadi eusian awal waktu nyieun jam pangajaran otomatis dina Jadwal; jam nu geus aya teu robah.',
+            heading: 'Nyiapkeun jam pangajaran awal',
+            body: 'Eusian jam mimiti pangajaran kahiji jeung lilana unggal jam pangajaran (10 nepi ka 180 menit). Eusian ieu ngan jadi nilai awal waktu Anjeun nyieun jam pangajaran otomatis dina menu Jadwal pangajaran. Jam pangajaran nu geus aya teu robah.',
           },
           {
-            heading: 'Tingkat kelas',
-            body: 'Daptar tingkat (upamana 7, 8, 9 atawa X, XI, XII) dipaké dina kelas, tarif SPP, jeung périodeu SPMB sangkan panulisanana sarua. Salila daptar kosong, tingkat didinya meunang diketik bébas.',
+            heading: 'Nyusun daptar tingkat kelas',
+            body: 'Daptar tingkat (upamana 7, 8, 9 atawa X, XI, XII) dipaké dina kelas, tarif SPP, jeung périodeu pendaptaran sangkan panulisanana sarua. Salila daptar masih kosong, tingkat di éta tempat meunang diketik bébas.',
             steps: [
               'Lamun daptar masih kosong, pilih jenjang (SD/MI, SMP/MTs, SMA/MA, atawa SMK) tuluy klik Eusian dasar.',
-              'Atawa klik Tambih tingkat tuluy eusian kode, ngaran tampilan, jeung urutan.',
-              'Anggo menu Robah pikeun ngaganti ngaran tampilan atawa urutan.',
+              'Atawa klik Tambih tingkat, tuluy eusian kode, ngaran tampilan, jeung urutan.',
+              'Anggo Robah pikeun ngaganti ngaran tampilan atawa urutan.',
             ],
+            warning:
+              'Kode tingkat teu bisa dirobah sanggeus dijieun, sarta tingkat nu masih dipaké ku kelas, tarif, atawa périodeu pendaptaran teu bisa dipupus.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha menu Setélan sakola euweuh dina menu kuring?',
+            a: 'Menu ieu ngan némbongan pikeun Admin sakola jeung Operator. Menta Admin sakola ngarobah peran Anjeun dina menu Anggota lamun enya-enya perlu.',
           },
           {
-            heading: 'Nu kudu diperhatikeun',
-            body: 'Menu ieu ngan némbongan pikeun nu boga idin ngatur sakola (Admin sakola jeung Operator). Kode tingkat teu bisa dirobah sanggeus dijieun, sarta tingkat nu masih dipaké ku kelas, tarif, atawa périodeu SPMB teu bisa dipupus. Setélan lumaku per unit sakola.',
+            q: 'Naha setélan ieu lumaku pikeun sakabéh unit sakola di lembaga urang?',
+            a: 'Henteu. Setélan lumaku per unit sakola. Pindah ka unit nu rék diatur, tuluy eusian setélanana didinya.',
+          },
+          {
+            q: 'Kuring geus ngaganti ngaran semester tapi semester heubeul teu robah. Naha?',
+            a: 'Ngaran anyar ngan dipaké waktu semester dijieun otomatis nu pamungkas. Semester nu geus aya teu milu robah sarta kudu dibenerkeun dina menu Taun pangajaran.',
           },
         ],
       },
@@ -562,152 +880,240 @@ export const CORE_DOCS: DocArticle[] = [
     slug: 'attendance',
     icon: 'clipboard',
     tone: 'amber',
+    group: 'attendance',
     module: 'attendance',
     text: {
       id: {
-        title: 'Absensi: rekap, per jam, dan pengaturan',
+        title: 'Absensi: melihat rekap dan mengisi absensi per jam',
         summary:
-          'Pantau rekap kehadiran, isi absensi tiap jam pelajaran, dan atur jam serta kebijakan absensi.',
+          'Lihat kehadiran siswa, isi absensi tiap jam pelajaran, dan atur batas jam terlambat serta guru piket.',
+        forWho:
+          'Guru untuk mengisi absensi; Admin sekolah dan Operator untuk pengaturan; Kepala sekolah dan Kurikulum untuk melihat rekap.',
         sections: [
           {
-            heading: 'Rekap absensi',
-            body: 'Rekap menggabungkan kehadiran gerbang harian dan per jam pelajaran, termasuk bolos kelas (hadir di gerbang tetapi alpa di jam pelajaran). Rentang tanggal maksimal 366 hari.',
+            heading: 'Melihat rekap kehadiran',
+            body: 'Rekap menggabungkan kehadiran di gerbang dan di tiap jam pelajaran. Siswa yang hadir di gerbang tetapi alpa di jam pelajaran dihitung sebagai Bolos kelas. Rentang tanggal paling lama 366 hari.',
             steps: [
               'Buka menu Rekap absensi di kelompok Kehadiran.',
               'Pilih kelas (atau Semua kelas) serta tanggal Dari dan Sampai.',
-              'Cari siswa atau periksa jumlah Hadir, Terlambat, Izin, Sakit, Alpa, dan Bolos kelas.',
+              'Cari siswa, atau periksa jumlah Hadir, Terlambat, Izin, Sakit, Alpa, dan Bolos kelas.',
               'Klik Ekspor Excel atau Ekspor PDF bila perlu.',
             ],
+            tip: 'Guru yang tidak mengatur absensi hanya melihat rekap kelas yang ia ajar.',
             href: '/attendance',
           },
           {
-            heading: 'Absensi per jam',
-            body: 'Guru mengisi kehadiran siswa pada jam pelajaran sesuai jadwal, dengan status Hadir, Izin, Sakit, atau Alpa. Kolom gerbang menunjukkan siswa yang sudah tap kartu, sehingga siswa yang hadir di gerbang tetapi tidak di kelas terlihat.',
+            heading: 'Mengisi absensi per jam pelajaran',
+            body: 'Guru mengisi kehadiran siswa pada jam pelajaran sesuai jadwal dengan status Hadir, Izin, Sakit, atau Alpa. Kolom gerbang menunjukkan siswa yang sudah menempelkan kartu, jadi siswa yang ada di gerbang tetapi tidak di kelas mudah terlihat.',
             steps: [
-              'Buka menu Absensi per jam dan pilih tanggal.',
+              'Buka menu Absensi per jam, lalu pilih tanggal.',
               'Klik Isi absensi pada jam pelajaran Anda.',
               'Tandai status tiap siswa, atau klik Semua hadir lalu ubah yang berbeda.',
               'Klik Simpan absensi.',
             ],
+            tip: 'Klik Semua hadir dulu, lalu ubah hanya siswa yang tidak hadir. Cara ini jauh lebih cepat.',
+            warning:
+              'Tanggal yang belum tiba serta hari libur atau jeda ditolak. Absensi hanya bisa diisi oleh guru yang tertulis di jadwal, guru piket hari itu, atau Admin sekolah dan Operator.',
             href: '/lessons',
           },
           {
-            heading: 'Kebijakan dan jadwal piket',
-            body: 'Di Pengaturan absensi, tab Kebijakan menentukan jam terlambat, jam mulai pulang, dan jeda tap ganda. Tab Jadwal piket menentukan guru piket per tanggal; guru piket dapat menggantikan guru yang berhalangan mengisi absensi per jam.',
+            heading: 'Mengatur batas terlambat dan jam pulang',
+            body: 'Di Pengaturan absensi, tab Kebijakan menentukan jam terlambat, jam mulai pulang, dan jeda tempel kartu ganda. Absensi per jam memakai jadwal pelajaran, jadi jadwal harus sudah terisi lebih dulu.',
             steps: [
               'Buka Pengaturan absensi, tab Kebijakan.',
-              'Isi Terlambat setelah dan Pulang mulai; jam terlambat harus lebih awal dari jam pulang.',
+              'Isi Terlambat setelah dan Pulang mulai. Jam terlambat harus lebih awal dari jam pulang.',
               'Isi Jeda tap ganda (0 sampai 600 detik), lalu klik Simpan.',
-              'Di tab Jadwal piket, pilih tanggal, centang guru yang bertugas, lalu klik Simpan.',
             ],
+            warning: 'Siswa yang menempelkan kartu setelah batas Terlambat setelah ditandai terlambat.',
             href: '/attendance-settings',
           },
           {
-            heading: 'Notifikasi ke wali',
-            body: 'Pemberitahuan ke wali murid saat siswa tap kartu tidak diatur di Pengaturan absensi, tetapi di menu Notifikasi WhatsApp. Menu itu berasal dari modul Notifikasi WhatsApp yang terpisah.',
-            href: '/messaging',
+            heading: 'Menentukan guru piket',
+            body: 'Guru piket bisa mengisi absensi per jam menggantikan guru yang berhalangan. Guru piket ditentukan per tanggal.',
+            steps: [
+              'Buka Pengaturan absensi, tab Jadwal piket.',
+              'Pilih tanggal, lalu centang guru yang bertugas.',
+              'Klik Simpan.',
+            ],
           },
           {
-            heading: 'Yang perlu diperhatikan',
-            body: 'Absensi per jam memakai jadwal pelajaran, jadi jadwal harus sudah terisi. Mengisinya hanya boleh oleh guru yang tertulis di jadwal, guru piket hari itu, atau pemegang izin atur absensi; tanggal yang belum tiba serta hari libur atau jeda ditolak. Guru tanpa izin atur absensi hanya melihat rekap kelas yang ia ajar.',
+            heading: 'Memberi tahu wali murid',
+            body: 'Pemberitahuan ke wali saat siswa menempelkan kartu tidak diatur di Pengaturan absensi, tetapi di menu Notifikasi WhatsApp. Menu itu berasal dari modul Notifikasi WhatsApp yang terpisah.',
+            href: '/messaging',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kenapa tombol Isi absensi tidak bisa dipakai atau ditolak?',
+            a: 'Cek tanggalnya: tanggal yang belum tiba, hari libur, dan jeda tidak bisa diisi. Cek juga apakah Anda guru yang tertulis di jadwal jam itu. Bila bukan, minta guru piket atau Admin sekolah yang mengisi.',
+          },
+          {
+            q: 'Jam pelajaran saya tidak muncul di Absensi per jam. Kenapa?',
+            a: 'Daftar jam diambil dari jadwal pelajaran. Pastikan jadwal kelas dan jam itu sudah diisi di menu Jadwal pelajaran dan Anda ditulis sebagai gurunya.',
+          },
+          {
+            q: 'Apa bedanya Alpa dan Bolos kelas di rekap?',
+            a: 'Alpa berarti siswa tidak hadir. Bolos kelas berarti siswa tercatat hadir di gerbang hari itu tetapi alpa di jam pelajaran tertentu.',
+          },
+          {
+            q: 'Pengaturan Kebijakan tidak mau disimpan. Apa yang salah?',
+            a: 'Pastikan jam Terlambat setelah lebih awal dari jam Pulang mulai, dan Jeda tap ganda berada di antara 0 dan 600 detik. Perbaiki lalu klik Simpan lagi.',
           },
         ],
       },
       en: {
-        title: 'Attendance: report, per lesson, and settings',
+        title: 'Attendance: viewing the report and recording lesson attendance',
         summary:
-          'Follow the attendance report, record attendance every lesson, and set attendance times and policy.',
+          'See student attendance, record attendance every lesson, and set the late cutoff and duty teachers.',
+        forWho:
+          'Teachers to record attendance; School admins and Operators for settings; the Principal and Curriculum to view the report.',
         sections: [
           {
-            heading: 'Attendance report',
-            body: 'The report combines daily gate attendance and per-lesson attendance, including class skipping (present at the gate but absent in a lesson). The date range is at most 366 days.',
+            heading: 'Viewing the attendance report',
+            body: 'The report combines attendance at the gate and in each lesson. A student who is present at the gate but absent in a lesson counts as Skipped class. The date range is at most 366 days.',
             steps: [
               'Open the Attendance report menu in the Attendance group.',
               'Pick a class (or All classes) and the From and To dates.',
-              'Search for a student or review the counts of Present, Late, Excused, Sick, Absent, and Skipped class.',
+              'Search for a student, or review the counts of Present, Late, Excused, Sick, Absent, and Skipped class.',
               'Click Export Excel or Export PDF if needed.',
             ],
+            tip: 'A teacher who does not manage attendance sees the report only for the classes they teach.',
             href: '/attendance',
           },
           {
-            heading: 'Lesson attendance',
-            body: 'Teachers record student attendance for each lesson on the timetable, with the status Present, Excused, Sick, or Absent. The gate column shows who already tapped a card, so students present at the gate but missing from class stand out.',
+            heading: 'Recording attendance per lesson',
+            body: 'Teachers record student attendance for each lesson on the timetable with the status Present, Excused, Sick, or Absent. The gate column shows who already tapped a card, so students at the gate but missing from class are easy to spot.',
             steps: [
-              'Open the Lesson attendance menu and pick the date.',
+              'Open the Lesson attendance menu, then pick the date.',
               'Click Record attendance on your lesson.',
               'Mark each student, or click Mark all present and then change the exceptions.',
               'Click Save attendance.',
             ],
+            tip: 'Click Mark all present first, then change only the students who are absent. It is much faster.',
+            warning:
+              'Future dates and holidays or breaks are rejected. Attendance can only be recorded by the teacher on the timetable, that day duty teacher, or a School admin or Operator.',
             href: '/lessons',
           },
           {
-            heading: 'Policy and duty roster',
-            body: 'In Attendance settings, the Policy tab sets the late time, the departure start time, and the double-tap interval. The Duty roster tab sets the duty teachers per date; a duty teacher can cover a teacher who cannot record lesson attendance.',
+            heading: 'Setting the late cutoff and departure time',
+            body: 'In Attendance settings, the Policy tab sets the late time, the departure start time, and the double-tap interval. Lesson attendance uses the timetable, so the timetable must be filled in first.',
             steps: [
               'Open Attendance settings, Policy tab.',
-              'Fill in Late after and Departure from; the late time must be earlier than the departure time.',
+              'Fill in Late after and Departure from. The late time must be earlier than the departure time.',
               'Fill in the Double-tap interval (0 to 600 seconds), then click Save.',
-              'In the Duty roster tab, pick a date, tick the teachers on duty, then click Save.',
             ],
+            warning: 'A student who taps a card after the Late after time is marked late.',
             href: '/attendance-settings',
           },
           {
-            heading: 'Notifications to guardians',
+            heading: 'Choosing the duty teacher',
+            body: 'A duty teacher can record lesson attendance in place of a teacher who cannot. Duty teachers are set per date.',
+            steps: [
+              'Open Attendance settings, Duty roster tab.',
+              'Pick a date, then tick the teachers on duty.',
+              'Click Save.',
+            ],
+          },
+          {
+            heading: 'Letting guardians know',
             body: 'Messages to guardians when a student taps a card are not set in Attendance settings but in the WhatsApp notifications menu. That menu belongs to the separate WhatsApp notifications module.',
             href: '/messaging',
           },
+        ],
+        faq: [
           {
-            heading: 'Good to know',
-            body: 'Lesson attendance uses the timetable, so the timetable must already be filled in. Only the teacher on the timetable, that day duty teacher, or a holder of the configure attendance permission may record it; future dates and holidays or breaks are rejected. A teacher without the configure attendance permission sees the report only for classes they teach.',
+            q: 'Why can I not use Record attendance, or why is it rejected?',
+            a: 'Check the date: future dates, holidays, and breaks cannot be recorded. Also check whether you are the teacher on the timetable for that lesson. If not, ask the duty teacher or a School admin to record it.',
+          },
+          {
+            q: 'My lesson does not appear in Lesson attendance. Why?',
+            a: 'The list comes from the timetable. Make sure the class and that period are filled in under the Timetable menu and that you are listed as the teacher.',
+          },
+          {
+            q: 'What is the difference between Absent and Skipped class in the report?',
+            a: 'Absent means the student was not there. Skipped class means the student was recorded present at the gate that day but absent in a particular lesson.',
+          },
+          {
+            q: 'The Policy settings will not save. What is wrong?',
+            a: 'Make sure the Late after time is earlier than the Departure from time, and the Double-tap interval is between 0 and 600 seconds. Fix it and click Save again.',
           },
         ],
       },
       su: {
-        title: 'Absénsi: rékap, per jam, jeung pangaturan',
+        title: 'Absénsi: ningali rékap jeung ngeusian absénsi per jam',
         summary:
-          'Titénan rékap kahadiran, eusian absénsi unggal jam pangajaran, jeung atur jam sarta kawijakan absénsi.',
+          'Tingali kahadiran murid, eusian absénsi unggal jam pangajaran, jeung atur wates jam telat sarta guru piket.',
+        forWho:
+          'Guru pikeun ngeusian absénsi; Admin sakola jeung Operator pikeun pangaturan; Kapala sakola jeung Kurikulum pikeun ningali rékap.',
         sections: [
           {
-            heading: 'Rékap absénsi',
-            body: 'Rékap ngahijikeun kahadiran gerbang poéan jeung per jam pangajaran, kaasup bolos kelas (hadir di gerbang tapi alfa dina jam pangajaran). Rentang tanggal pangpangna 366 poé.',
+            heading: 'Ningali rékap kahadiran',
+            body: 'Rékap ngahijikeun kahadiran di gerbang jeung di unggal jam pangajaran. Murid nu hadir di gerbang tapi alfa dina jam pangajaran diitung Bolos kelas. Rentang tanggal pangpanjangna 366 poé.',
             steps: [
               'Buka menu Rékap absénsi dina kelompok Kahadiran.',
               'Pilih kelas (atawa Sadaya kelas) sarta tanggal Ti jeung Nepi ka.',
-              'Teangan murid atawa pariksa jumlah Hadir, Telat, Idin, Gering, Alfa, jeung Bolos kelas.',
+              'Teangan murid, atawa pariksa jumlah Hadir, Telat, Idin, Gering, Alfa, jeung Bolos kelas.',
               'Klik Ékspor Excel atawa Ékspor PDF lamun perlu.',
             ],
+            tip: 'Guru nu teu ngatur absénsi ngan ningali rékap kelas nu diajarna.',
             href: '/attendance',
           },
           {
-            heading: 'Absénsi per jam',
-            body: 'Guru ngeusian kahadiran murid dina jam pangajaran luyu jeung jadwal, kalayan status Hadir, Idin, Gering, atawa Alfa. Kolom gerbang nuduhkeun murid nu geus tap kartu, jadi murid nu hadir di gerbang tapi teu aya di kelas kaciri.',
+            heading: 'Ngeusian absénsi per jam pangajaran',
+            body: 'Guru ngeusian kahadiran murid dina jam pangajaran luyu jeung jadwal kalayan status Hadir, Idin, Gering, atawa Alfa. Kolom gerbang nuduhkeun murid nu geus nempelkeun kartu, jadi murid nu aya di gerbang tapi teu aya di kelas gampang katingali.',
             steps: [
-              'Buka menu Absénsi per jam tuluy pilih tanggal.',
+              'Buka menu Absénsi per jam, tuluy pilih tanggal.',
               'Klik Eusian absénsi dina jam pangajaran Anjeun.',
               'Tandaan status unggal murid, atawa klik Sadayana hadir tuluy robah nu béda.',
               'Klik Simpen absénsi.',
             ],
+            tip: 'Klik Sadayana hadir heula, tuluy robah ngan murid nu teu hadir. Leuwih gancang pisan.',
+            warning:
+              'Tanggal nu acan datang jeung poé libur atawa jeda ditolak. Absénsi ngan bisa dieusian ku guru nu kacatet dina jadwal, guru piket poé éta, atawa Admin sakola jeung Operator.',
             href: '/lessons',
           },
           {
-            heading: 'Kawijakan jeung jadwal piket',
-            body: 'Dina Pangaturan absénsi, tab Kawijakan nangtukeun jam telat, jam mimiti mulih, jeung jeda tap ganda. Tab Jadwal piket nangtukeun guru piket per tanggal; guru piket bisa ngagantikeun guru nu halangan ngeusian absénsi per jam.',
+            heading: 'Ngatur wates telat jeung jam mulih',
+            body: 'Dina Pangaturan absénsi, tab Kawijakan nangtukeun jam telat, jam mimiti mulih, jeung jeda tap ganda. Absénsi per jam maké jadwal pangajaran, jadi jadwal kudu geus kaeusian heula.',
             steps: [
               'Buka Pangaturan absénsi, tab Kawijakan.',
-              'Eusian Telat sanggeus jeung Mulih mimiti; jam telat kudu leuwih awal batan jam mulih.',
+              'Eusian Telat sanggeus jeung Mulih mimiti. Jam telat kudu leuwih awal batan jam mulih.',
               'Eusian Jeda tap ganda (0 nepi ka 600 detik), tuluy klik Simpen.',
-              'Dina tab Jadwal piket, pilih tanggal, centang guru nu keur tugas, tuluy klik Simpen.',
             ],
+            warning: 'Murid nu nempelkeun kartu sanggeus jam Telat sanggeus dicirian telat.',
             href: '/attendance-settings',
           },
           {
-            heading: 'Béwara ka wali',
-            body: 'Béwara ka wali murid waktu murid tap kartu teu diatur dina Pangaturan absénsi, tapi dina menu Béwara WhatsApp. Menu éta asalna tina modul Béwara WhatsApp nu misah.',
-            href: '/messaging',
+            heading: 'Nangtukeun guru piket',
+            body: 'Guru piket bisa ngeusian absénsi per jam ngagantikeun guru nu halangan. Guru piket ditangtukeun per tanggal.',
+            steps: [
+              'Buka Pangaturan absénsi, tab Jadwal piket.',
+              'Pilih tanggal, tuluy centang guru nu keur tugas.',
+              'Klik Simpen.',
+            ],
           },
           {
-            heading: 'Nu kudu diperhatikeun',
-            body: 'Absénsi per jam maké jadwal pangajaran, jadi jadwal kudu geus kaeusian. Nu meunang ngeusianana ngan guru nu kacatet dina jadwal, guru piket poé éta, atawa nu boga idin ngatur absénsi; tanggal nu acan datang jeung poé libur atawa jeda ditolak. Guru tanpa idin ngatur absénsi ngan ningali rékap kelas nu diajarna.',
+            heading: 'Ngawartosan wali murid',
+            body: 'Béwara ka wali waktu murid nempelkeun kartu teu diatur dina Pangaturan absénsi, tapi dina menu Béwara WhatsApp. Menu éta asalna tina modul Béwara WhatsApp nu misah.',
+            href: '/messaging',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha Eusian absénsi teu bisa dipaké atawa ditolak?',
+            a: 'Pariksa tanggalna: tanggal nu acan datang, poé libur, jeung jeda teu bisa dieusian. Pariksa ogé naha Anjeun guru nu kacatet dina jadwal jam éta. Lamun lain, menta guru piket atawa Admin sakola nu ngeusian.',
+          },
+          {
+            q: 'Jam pangajaran kuring teu kaciri dina Absénsi per jam. Naha?',
+            a: 'Daptar jam dicokot tina jadwal pangajaran. Pastikeun kelas jeung jam éta geus kaeusian dina menu Jadwal pangajaran sarta Anjeun kacatet minangka gurunya.',
+          },
+          {
+            q: 'Naon bédana Alfa jeung Bolos kelas dina rékap?',
+            a: 'Alfa hartina murid teu hadir. Bolos kelas hartina murid kacatet hadir di gerbang poé éta tapi alfa dina jam pangajaran nu tangtu.',
+          },
+          {
+            q: 'Setélan Kawijakan teu hayang disimpen. Naon nu lepat?',
+            a: 'Pastikeun jam Telat sanggeus leuwih awal batan jam Mulih mimiti, jeung Jeda tap ganda aya di antara 0 jeung 600 detik. Bénerkeun tuluy klik Simpen deui.',
           },
         ],
       },
@@ -717,162 +1123,291 @@ export const CORE_DOCS: DocArticle[] = [
     slug: 'rfid-gate',
     icon: 'scan',
     tone: 'teal',
+    group: 'attendance',
     module: 'attendance',
     text: {
       id: {
-        title: 'Kartu RFID, kiosk, dan gerbang',
-        summary: 'Daftarkan kartu siswa, pasang kiosk di gerbang, dan pantau tap masuk serta pulang.',
+        title: 'Kartu siswa, kiosk, dan gerbang',
+        summary:
+          'Daftarkan kartu siswa, pasang perangkat kiosk di gerbang, dan pantau siswa yang masuk dan pulang.',
+        forWho:
+          'Admin sekolah dan Operator yang menyiapkan kartu dan perangkat gerbang; guru piket untuk memantau gerbang.',
         sections: [
           {
-            heading: 'Mendaftarkan kartu',
-            body: 'Menu Kartu RFID (izin atur absensi) menampilkan kartu terdaftar dan jumlah siswa aktif tanpa kartu. Kode kartu adalah UID dari pembaca, disimpan dalam huruf besar, minimal 4 karakter, dan tidak boleh sama dengan kartu siswa lain.',
+            heading: 'Mendaftarkan kartu untuk satu siswa',
+            body: 'Menu Kartu RFID menampilkan kartu yang sudah terdaftar dan jumlah siswa aktif yang belum punya kartu. Kode kartu dibaca langsung oleh pembaca kartu. Satu kode kartu hanya boleh dipakai satu siswa.',
             steps: [
-              'Satu per satu: klik Tambah kartu, cari dan pilih siswa, tempelkan kartu pada pembaca, lalu klik Buat.',
-              'Per kelas: klik Daftar cepat, pilih kelas, lalu tempelkan kartu satu per satu sesuai siswa yang disorot (Lewati atau Batalkan terakhir bila perlu).',
-              'Banyak sekaligus: klik Impor Excel, unduh templat berisi NIS dan Kode kartu, isi, lalu unggah (maksimal 1000 baris).',
-              'Hasil impor bersifat sebagian: baris yang gagal ditampilkan beserta alasannya, sedangkan baris lain tetap tersimpan.',
+              'Buka menu Kartu RFID, lalu klik Tambah kartu.',
+              'Cari dan pilih siswa.',
+              'Tempelkan kartu pada pembaca sampai kodenya terisi.',
+              'Klik Buat.',
             ],
+            tip: 'Pembaca kartu USB bekerja seperti papan ketik. Klik dulu kolom kode kartu, lalu tempelkan kartu.',
             href: '/attendance/cards',
           },
           {
-            heading: 'Perangkat kiosk dan kunci',
-            body: 'Setiap tablet atau PC kiosk di gerbang memiliki kunci perangkat sendiri. Kunci lengkap hanya tampil sekali saat dibuat atau diganti.',
+            heading: 'Mendaftarkan kartu untuk satu kelas sekaligus',
+            body: 'Pendaftaran cepat menyorot siswa satu per satu sesuai urutan kelas, jadi Anda cukup menempelkan kartu bergantian.',
+            steps: [
+              'Di menu Kartu RFID, klik Daftar cepat.',
+              'Pilih kelas.',
+              'Tempelkan kartu satu per satu sesuai siswa yang sedang disorot.',
+              'Klik Lewati bila siswa tidak membawa kartu, atau Batalkan terakhir bila salah tempel.',
+            ],
+          },
+          {
+            heading: 'Mendaftarkan banyak kartu dari Excel',
+            body: 'Cara ini cocok bila kode kartu sudah tercatat di daftar. Satu berkas paling banyak 1000 baris.',
+            steps: [
+              'Klik Impor Excel, lalu unduh templat yang berisi NIS dan Kode kartu.',
+              'Isi templat tanpa mengubah judul kolom.',
+              'Unggah berkas.',
+              'Periksa hasilnya. Baris yang gagal ditampilkan beserta alasannya.',
+            ],
+            tip: 'Baris yang benar tetap tersimpan walau ada baris lain yang gagal. Perbaiki hanya baris yang ditandai, lalu unggah ulang baris itu saja.',
+          },
+          {
+            heading: 'Memasang perangkat kiosk di gerbang',
+            body: 'Kiosk adalah tablet atau komputer di gerbang tempat siswa menempelkan kartu. Setiap kiosk punya kunci sendiri, yaitu kode rahasia yang menghubungkannya ke sekolah Anda.',
             steps: [
               'Buka Pengaturan absensi, tab Perangkat, lalu klik Tambah perangkat.',
-              'Beri nama (mis. Gerbang utama) dan klik Buat.',
-              'Salin kunci perangkat yang tampil; kunci tidak akan ditampilkan lagi.',
-              'Di perangkat gerbang, buka halaman kiosk dan tempel kunci itu.',
-              'Gunakan menu kartu perangkat untuk Nonaktifkan, Ganti kunci, atau Hapus. Kunci lama langsung tidak berlaku setelah diganti.',
+              'Beri nama (misalnya Gerbang utama), lalu klik Buat.',
+              'Salin kunci yang tampil.',
+              'Di perangkat gerbang, buka halaman kiosk lalu tempel kunci itu.',
+              'Pada kartu perangkat, gunakan menu untuk Nonaktifkan, Ganti kunci, atau Hapus.',
             ],
+            warning:
+              'Kunci lengkap hanya tampil sekali. Bila hilang, pakai Ganti kunci. Kunci lama langsung tidak berlaku setelah diganti, jadi perangkat harus diisi kunci yang baru. Perangkat yang sudah pernah mencatat tap tidak bisa dihapus; nonaktifkan saja.',
             href: '/attendance-settings',
           },
           {
-            heading: 'Satu pembaca untuk beberapa unit',
-            body: 'Secara bawaan satu perangkat hanya melayani sekolah tempat ia dibuat. Bila lembaga punya beberapa unit sekolah, satu pembaca bisa melayani beberapa jenjang sekaligus.',
+            heading: 'Memakai satu pembaca untuk beberapa unit sekolah',
+            body: 'Secara bawaan satu perangkat hanya melayani sekolah tempat ia dibuat. Bila lembaga punya beberapa unit sekolah, satu pembaca bisa melayani beberapa unit sekaligus.',
             steps: [
-              'Buka tab Perangkat lalu pilih Atur jangkauan pada perangkat (atau centang unit saat Tambah perangkat).',
-              'Centang unit yang ikut dilayani; hanya unit lembaga yang sama, aktif, bermodul Absensi, dan tempat Anda juga berhak mengatur absensi yang tampil.',
-              'Simpan. Nama unit tampil di layar kiosk dan kartu tiap siswa tetap tercatat di unitnya sendiri.',
+              'Buka tab Perangkat, lalu pilih Atur jangkauan pada perangkat (atau centang unitnya saat Tambah perangkat).',
+              'Centang unit yang ikut dilayani. Yang tampil hanya unit lembaga yang sama, aktif, punya modul Absensi, dan tempat Anda juga boleh mengatur absensi.',
+              'Simpan. Nama unit tampil di layar kiosk, dan kartu tiap siswa tetap tercatat di unitnya sendiri.',
             ],
+            warning:
+              'Satu kode kartu tidak boleh terdaftar di dua unit pada perangkat yang sama. Tap dengan kartu seperti itu akan ditolak.',
           },
           {
-            heading: 'Layar kiosk',
-            body: 'Pembaca RFID USB bekerja seperti papan ketik, jadi cukup tempelkan kartu pada pembaca. Layar menampilkan Selamat datang, Terlambat, atau Sampai jumpa beserta nama dan kelas siswa, lima tap terbaru, jam, dan tombol layar penuh. Bila jaringan putus, tap disimpan di perangkat dan dikirim ulang dengan waktu aslinya saat jaringan kembali.',
-            href: '/kiosk',
-          },
-          {
-            heading: 'Gerbang & piket',
-            body: 'Menu Gerbang & piket menampilkan kehadiran masuk dan pulang hari ini dari tap kartu, dan menyegarkan diri tiap 10 detik. Isinya ringkasan per status, tingkat hadir, aktivitas tap terbaru, dan daftar siswa yang bisa disaring per kelas serta dicari.',
+            heading: 'Memantau siswa masuk dan pulang',
+            body: 'Layar kiosk menampilkan Selamat datang, Terlambat, atau Sampai jumpa beserta nama dan kelas siswa, lima tap terbaru, jam, dan tombol layar penuh. Di menu Gerbang & piket, Anda melihat kehadiran masuk dan pulang hari ini, yang menyegarkan diri tiap 10 detik, lengkap dengan ringkasan per status dan daftar siswa yang bisa disaring per kelas. Tap sebelum jam pulang dihitung masuk dan sesudahnya dihitung pulang. Tap masuk setelah batas terlambat ditandai terlambat.',
+            tip: 'Bila jaringan putus, tap tetap tersimpan di perangkat dan dikirim ulang dengan waktu aslinya saat jaringan kembali.',
             href: '/gate',
           },
+        ],
+        faq: [
           {
-            heading: 'Yang perlu diperhatikan',
-            body: 'Tap sebelum jam pulang dihitung masuk dan sesudahnya dihitung pulang; tap masuk setelah batas terlambat ditandai terlambat, dan tap berulang dalam jeda diabaikan. Kartu tidak dikenal, hari libur, siswa tidak aktif, serta kartu yang sama terdaftar di dua unit pada perangkat multi-unit ditolak. Perangkat yang sudah pernah mencatat tap tidak bisa dihapus; nonaktifkan saja.',
+            q: 'Kartu ditolak karena sudah dipakai siswa lain, bagaimana?',
+            a: 'Satu kode kartu hanya boleh dipakai satu siswa. Cari kartu itu di menu Kartu RFID untuk tahu siapa pemakainya. Bila kartu berpindah tangan, hapus kartu lama lalu daftarkan ke siswa yang benar.',
+          },
+          {
+            q: 'Saya menempelkan kartu tetapi layar kiosk bilang kartu tidak dikenal. Kenapa?',
+            a: 'Kartu itu belum didaftarkan, atau siswanya tidak aktif. Buka menu Kartu RFID dan periksa apakah kartunya ada. Tap juga ditolak pada hari libur.',
+          },
+          {
+            q: 'Kunci perangkat hilang atau perangkat tidak bisa tersambung. Apa yang harus dilakukan?',
+            a: 'Buka Pengaturan absensi, tab Perangkat, pilih Ganti kunci pada perangkatnya, salin kunci yang baru, lalu tempel di halaman kiosk. Kunci lama langsung mati.',
+          },
+          {
+            q: 'Internet gerbang sempat mati. Apakah tap siswa hilang?',
+            a: 'Tidak. Tap disimpan di perangkat dan dikirim ulang dengan waktu aslinya setelah jaringan kembali. Biarkan halaman kiosk tetap terbuka.',
+          },
+          {
+            q: 'Perangkat lama tidak bisa dihapus. Bagaimana?',
+            a: 'Perangkat yang pernah mencatat tap tidak bisa dihapus agar riwayat tetap utuh. Pilih Nonaktifkan, dan perangkat tidak akan dipakai lagi.',
           },
         ],
       },
       en: {
-        title: 'RFID cards, kiosk, and the gate',
+        title: 'Student cards, kiosk, and the gate',
         summary:
-          'Register student cards, set up the kiosk at the gate, and follow arrival and departure taps.',
+          'Register student cards, set up the kiosk device at the gate, and follow students arriving and leaving.',
+        forWho:
+          'School admins and Operators who prepare the cards and gate devices; duty teachers to watch the gate.',
         sections: [
           {
-            heading: 'Registering cards',
-            body: 'The RFID cards menu (configure attendance permission) shows registered cards and the number of active students without a card. The card code is the UID from the reader, stored in capital letters, at least 4 characters, and must not match another student card.',
+            heading: 'Registering a card for one student',
+            body: 'The RFID cards menu shows registered cards and the number of active students without a card. The card code is read directly by the card reader. One card code can belong to only one student.',
             steps: [
-              'One by one: click Add card, search and pick the student, place the card on the reader, then click Create.',
-              'By class: click Quick registration, pick the class, then place cards one at a time for the highlighted student (Skip or Undo last if needed).',
-              'Many at once: click Import from Excel, download the template with NIS and Card code, fill it in, then upload (at most 1000 rows).',
-              'An import is partial: failed rows are listed with the reason, while the other rows stay saved.',
+              'Open the RFID cards menu, then click Add card.',
+              'Search for and pick the student.',
+              'Place the card on the reader until the code is filled in.',
+              'Click Create.',
             ],
+            tip: 'A USB card reader works like a keyboard. Click the card code field first, then place the card.',
             href: '/attendance/cards',
           },
           {
-            heading: 'Kiosk devices and keys',
-            body: 'Every tablet or kiosk PC at the gate has its own device key. The full key is shown only once, when it is created or replaced.',
+            heading: 'Registering cards for a whole class at once',
+            body: 'Quick registration highlights students one by one in class order, so you only need to tap the cards in turn.',
+            steps: [
+              'In the RFID cards menu, click Quick registration.',
+              'Pick the class.',
+              'Place the cards one at a time for the student currently highlighted.',
+              'Click Skip if the student has no card with them, or Undo last if you tapped the wrong card.',
+            ],
+          },
+          {
+            heading: 'Registering many cards from Excel',
+            body: 'This suits you if the card codes are already written down in a list. One file holds at most 1000 rows.',
+            steps: [
+              'Click Import from Excel, then download the template with NIS and Card code.',
+              'Fill in the template without changing the column titles.',
+              'Upload the file.',
+              'Check the result. Failed rows are listed with the reason.',
+            ],
+            tip: 'Correct rows stay saved even if other rows fail. Fix only the marked rows and upload just those again.',
+          },
+          {
+            heading: 'Setting up the kiosk device at the gate',
+            body: 'The kiosk is a tablet or computer at the gate where students tap their cards. Each kiosk has its own key, a secret code that connects it to your school.',
             steps: [
               'Open Attendance settings, Devices tab, then click Add device.',
-              'Give it a name (e.g. Main gate) and click Create.',
-              'Copy the device key shown; it will not be shown again.',
+              'Give it a name (for example Main gate), then click Create.',
+              'Copy the key that appears.',
               'On the gate device, open the kiosk page and paste the key.',
-              'Use the device card menu to Deactivate, Replace key, or Delete. The old key stops working as soon as it is replaced.',
+              'On the device card, use the menu to Deactivate, Replace key, or Delete.',
             ],
+            warning:
+              'The full key is shown only once. If it is lost, use Replace key. The old key stops working as soon as it is replaced, so the device must be given the new key. A device that has recorded taps cannot be deleted; deactivate it instead.',
             href: '/attendance-settings',
           },
           {
-            heading: 'One reader for several units',
-            body: 'By default a device serves only the school where it was created. When the institution has several school units, one reader can serve several levels at once.',
+            heading: 'Using one reader for several school units',
+            body: 'By default a device serves only the school where it was created. When the institution has several school units, one reader can serve several units at once.',
             steps: [
-              'Open the Devices tab and choose Set scope on the device (or tick units when adding the device).',
-              'Tick the units to serve; only units of the same institution that are active, have the Attendance module, and where you may also configure attendance are listed.',
-              'Save. The unit name shows on the kiosk screen and each student card stays recorded in its own unit.',
+              'Open the Devices tab, then choose Set scope on the device (or tick the units when adding the device).',
+              'Tick the units to serve. Only units of the same institution that are active, have the Attendance module, and where you may also manage attendance are listed.',
+              'Save. The unit name shows on the kiosk screen, and each student card stays recorded in its own unit.',
             ],
+            warning:
+              'One card code must not be registered in two units on the same device. A tap with such a card is rejected.',
           },
           {
-            heading: 'Kiosk screen',
-            body: 'A USB RFID reader works like a keyboard, so just place the card on the reader. The screen shows Welcome, Late, or Goodbye with the student name and class, the five most recent taps, the clock, and a fullscreen button. When the network drops, taps are kept on the device and sent again with their original time once it is back.',
-            href: '/kiosk',
-          },
-          {
-            heading: 'Gate & duty',
-            body: 'The Gate & duty menu shows today arrivals and departures from card taps and refreshes itself every 10 seconds. It contains a summary per status, the attendance rate, the latest tap activity, and a student list that can be filtered by class and searched.',
+            heading: 'Following students arriving and leaving',
+            body: 'The kiosk screen shows Welcome, Late, or Goodbye with the student name and class, the five latest taps, the clock, and a fullscreen button. In the Gate & duty menu you see today arrivals and departures, which refresh every 10 seconds, with a summary per status and a student list that can be filtered by class. A tap before the departure time counts as arrival and after it counts as departure. An arrival tap after the late cutoff is marked late.',
+            tip: 'When the network drops, taps stay on the device and are sent again with their original time once it is back.',
             href: '/gate',
           },
+        ],
+        faq: [
           {
-            heading: 'Good to know',
-            body: 'A tap before the departure time counts as arrival and after it counts as departure; an arrival tap after the late cutoff is marked late, and repeated taps within the interval are ignored. Unknown cards, holidays, inactive students, and a card registered in two units on a multi-unit device are rejected. A device that has recorded taps cannot be deleted; deactivate it instead.',
+            q: 'A card is rejected because another student already uses it. What now?',
+            a: 'One card code can belong to only one student. Find the card in the RFID cards menu to see who has it. If the card changed hands, delete the old card and register it to the right student.',
+          },
+          {
+            q: 'I tapped a card but the kiosk screen says the card is unknown. Why?',
+            a: 'The card has not been registered, or the student is not active. Open the RFID cards menu and check that the card is there. Taps are also rejected on holidays.',
+          },
+          {
+            q: 'The device key is lost or the device cannot connect. What should I do?',
+            a: 'Open Attendance settings, Devices tab, choose Replace key on the device, copy the new key, and paste it on the kiosk page. The old key stops working immediately.',
+          },
+          {
+            q: 'The gate internet went down for a while. Are student taps lost?',
+            a: 'No. Taps are kept on the device and sent again with their original time once the network is back. Keep the kiosk page open.',
+          },
+          {
+            q: 'An old device cannot be deleted. How?',
+            a: 'A device that has recorded taps cannot be deleted so the history stays complete. Choose Deactivate and it will no longer be used.',
           },
         ],
       },
       su: {
-        title: 'Kartu RFID, kiosk, jeung gerbang',
-        summary: 'Daptarkeun kartu murid, pasang kiosk di gerbang, jeung titénan tap asup sarta mulih.',
+        title: 'Kartu murid, kiosk, jeung gerbang',
+        summary:
+          'Daptarkeun kartu murid, pasang parangkat kiosk di gerbang, jeung titénan murid nu asup sarta mulih.',
+        forWho:
+          'Admin sakola jeung Operator nu nyiapkeun kartu jeung parangkat gerbang; guru piket pikeun mantuan gerbang.',
         sections: [
           {
-            heading: 'Ngadaptarkeun kartu',
-            body: 'Menu Kartu RFID (idin ngatur absénsi) nuduhkeun kartu nu geus kadaptar jeung jumlah murid aktip nu acan boga kartu. Kode kartu nyaéta UID tina pamaca, disimpen dina hurup gedé, sahenteuna 4 karakter, sarta teu meunang sarua jeung kartu murid séjén.',
+            heading: 'Ngadaptarkeun kartu pikeun hiji murid',
+            body: 'Menu Kartu RFID nuduhkeun kartu nu geus kadaptar jeung jumlah murid aktip nu acan boga kartu. Kode kartu dibaca langsung ku pamaca kartu. Hiji kode kartu ngan meunang dipaké ku hiji murid.',
             steps: [
-              'Hiji-hiji: klik Tambah kartu, teangan jeung pilih murid, tempelkeun kartu kana pamaca, tuluy klik Jieun.',
-              'Per kelas: klik Daptar gancang, pilih kelas, tuluy tempelkeun kartu hiji-hiji luyu jeung murid nu disorot (Lewat atawa Batalkeun nu pandeuri lamun perlu).',
-              'Réa sakaligus: klik Impor Excel, unduh templat nu ngandung NIS jeung Kode kartu, eusian, tuluy unggah (pangpangna 1000 baris).',
-              'Hasil impor sipatna sawaréh: baris nu gagal dipintonkeun jeung alesanana, sedengkeun baris séjén tetep disimpen.',
+              'Buka menu Kartu RFID, tuluy klik Tambah kartu.',
+              'Teangan jeung pilih murid.',
+              'Tempelkeun kartu kana pamaca nepi ka kodena kaeusian.',
+              'Klik Jieun.',
             ],
+            tip: 'Pamaca kartu USB gawéna siga papan ketik. Klik heula kolom kode kartu, tuluy tempelkeun kartuna.',
             href: '/attendance/cards',
           },
           {
-            heading: 'Parangkat kiosk jeung konci',
-            body: 'Unggal tablét atawa PC kiosk di gerbang boga konci parangkat sorangan. Konci lengkep ngan némbongan sakali, waktu dijieun atawa diganti.',
+            heading: 'Ngadaptarkeun kartu sakelas sakaligus',
+            body: 'Daptar gancang nyorot murid hiji-hiji luyu jeung urutan kelas, jadi Anjeun cekap nempelkeun kartu gilir-gilir.',
+            steps: [
+              'Dina menu Kartu RFID, klik Daptar gancang.',
+              'Pilih kelas.',
+              'Tempelkeun kartu hiji-hiji pikeun murid nu keur disorot.',
+              'Klik Lewat lamun murid teu mawa kartu, atawa Batalkeun nu pandeuri lamun lepat nempelkeun.',
+            ],
+          },
+          {
+            heading: 'Ngadaptarkeun loba kartu tina Excel',
+            body: 'Cara ieu cocok lamun kode kartu geus kacatet dina daptar. Hiji berkas pangpangna 1000 baris.',
+            steps: [
+              'Klik Impor Excel, tuluy unduh templat nu ngandung NIS jeung Kode kartu.',
+              'Eusian templat tanpa ngarobah judul kolom.',
+              'Unggah berkas.',
+              'Pariksa hasilna. Baris nu gagal dipintonkeun jeung alesanana.',
+            ],
+            tip: 'Baris nu bener tetep disimpen sanajan baris séjén gagal. Bénerkeun ngan baris nu ditandaan, tuluy unggah baris éta waé.',
+          },
+          {
+            heading: 'Masang parangkat kiosk di gerbang',
+            body: 'Kiosk nyaéta tablét atawa komputer di gerbang tempat murid nempelkeun kartu. Unggal kiosk boga konci sorangan, nyaéta kode rusiah nu nyambungkeunana ka sakola Anjeun.',
             steps: [
               'Buka Pangaturan absénsi, tab Parangkat, tuluy klik Tambah parangkat.',
-              'Pasihan ngaran (upamana Gerbang utama) tuluy klik Jieun.',
-              'Salin konci parangkat nu kaluar; konci moal dipintonkeun deui.',
+              'Pasihan ngaran (upamana Gerbang utama), tuluy klik Jieun.',
+              'Salin konci nu kaluar.',
               'Dina parangkat gerbang, buka kaca kiosk tuluy tempelkeun konci éta.',
-              'Anggo menu kartu parangkat pikeun Nonaktipkeun, Ganti konci, atawa Hapus. Konci heubeul langsung teu lumaku sanggeus diganti.',
+              'Dina kartu parangkat, anggo menu pikeun Nonaktipkeun, Ganti konci, atawa Hapus.',
             ],
+            warning:
+              'Konci lengkep ngan némbongan sakali. Lamun leungit, anggo Ganti konci. Konci heubeul langsung teu lumaku sanggeus diganti, jadi parangkat kudu diisi konci nu anyar. Parangkat nu geus kungsi nyatet tap teu bisa dipupus; nonaktipkeun waé.',
             href: '/attendance-settings',
           },
           {
-            heading: 'Hiji pamaca pikeun sababaraha unit',
-            body: 'Sacara dasar hiji parangkat ngan ngalayanan sakola tempat dijieunna. Lamun lembaga boga sababaraha unit sakola, hiji pamaca bisa ngalayanan sababaraha jenjang sakaligus.',
+            heading: 'Maké hiji pamaca pikeun sababaraha unit sakola',
+            body: 'Sacara dasar hiji parangkat ngan ngalayanan sakola tempat dijieunna. Lamun lembaga boga sababaraha unit sakola, hiji pamaca bisa ngalayanan sababaraha unit sakaligus.',
             steps: [
-              'Buka tab Parangkat tuluy pilih Atur jangkauan dina parangkat (atawa centang unit waktu Tambah parangkat).',
-              'Centang unit nu milu dilayanan; ngan unit lembaga nu sarua, aktip, boga modul Absénsi, jeung nu Anjeun ogé boga idin ngatur absénsi nu kaciri.',
-              'Simpen. Ngaran unit kaciri dina layar kiosk jeung kartu unggal murid tetep kacatet dina unitna sorangan.',
+              'Buka tab Parangkat, tuluy pilih Atur jangkauan dina parangkat (atawa centang unitna waktu Tambah parangkat).',
+              'Centang unit nu milu dilayanan. Nu kaciri ngan unit lembaga nu sarua, aktip, boga modul Absénsi, jeung nu Anjeun ogé meunang ngatur absénsi.',
+              'Simpen. Ngaran unit kaciri dina layar kiosk, sarta kartu unggal murid tetep kacatet dina unitna sorangan.',
             ],
+            warning:
+              'Hiji kode kartu teu meunang kadaptar di dua unit dina parangkat nu sarua. Tap ku kartu siga kitu bakal ditolak.',
           },
           {
-            heading: 'Layar kiosk',
-            body: 'Pamaca RFID USB gawéna siga papan ketik, jadi cukup tempelkeun kartu kana pamaca. Layar nuduhkeun Wilujeng sumping, Telat, atawa Dugi ka patepang jeung ngaran sarta kelas murid, lima tap panungtung, jam, jeung tombol layar pinuh. Lamun jaringan potong, tap disimpen dina parangkat tuluy dikirim deui jeung waktu aslina saparantos jaringan balik.',
-            href: '/kiosk',
-          },
-          {
-            heading: 'Gerbang & piket',
-            body: 'Menu Gerbang & piket nuduhkeun kahadiran asup jeung mulih poé ieu tina tap kartu, sarta nyegerkeun diri unggal 10 detik. Eusina rangkuman per status, tingkat kahadiran, kagiatan tap panungtung, jeung daptar murid nu bisa disaring per kelas sarta diteangan.',
+            heading: 'Nitenan murid asup jeung mulih',
+            body: 'Layar kiosk nuduhkeun Wilujeng sumping, Telat, atawa Dugi ka patepang jeung ngaran sarta kelas murid, lima tap panungtung, jam, jeung tombol layar pinuh. Dina menu Gerbang & piket, Anjeun ningali kahadiran asup jeung mulih poé ieu, nu nyegerkeun diri unggal 10 detik, lengkep jeung rangkuman per status sarta daptar murid nu bisa disaring per kelas. Tap saméméh jam mulih diitung asup sarta sanggeusna diitung mulih. Tap asup sanggeus wates telat dicirian telat.',
+            tip: 'Lamun jaringan potong, tap tetep disimpen dina parangkat tuluy dikirim deui jeung waktu aslina sanggeus jaringan balik.',
             href: '/gate',
           },
+        ],
+        faq: [
           {
-            heading: 'Nu kudu diperhatikeun',
-            body: 'Tap saméméh jam mulih diitung asup sarta sanggeusna diitung mulih; tap asup sanggeus wates telat dicirian telat, sarta tap bola-bali dina jeda diabaikeun. Kartu teu dikenal, poé libur, murid teu aktip, jeung kartu nu sarua kadaptar di dua unit dina parangkat multi-unit ditolak. Parangkat nu geus kungsi nyatet tap teu bisa dipupus; nonaktipkeun waé.',
+            q: 'Kartu ditolak sabab geus dipaké murid séjén, kumaha?',
+            a: 'Hiji kode kartu ngan meunang dipaké ku hiji murid. Teangan kartu éta dina menu Kartu RFID pikeun nyaho saha nu maké. Lamun kartu pindah leungeun, pupus kartu heubeul tuluy daptarkeun ka murid nu bener.',
+          },
+          {
+            q: 'Kuring nempelkeun kartu tapi layar kiosk nyebutkeun kartu teu dikenal. Naha?',
+            a: 'Kartu éta acan kadaptar, atawa muridna teu aktip. Buka menu Kartu RFID tuluy pariksa naha kartuna aya. Tap ogé ditolak dina poé libur.',
+          },
+          {
+            q: 'Konci parangkat leungit atawa parangkat teu bisa nyambung. Naon nu kudu dilakukeun?',
+            a: 'Buka Pangaturan absénsi, tab Parangkat, pilih Ganti konci dina parangkatna, salin konci nu anyar, tuluy tempelkeun dina kaca kiosk. Konci heubeul langsung pareum.',
+          },
+          {
+            q: 'Internét gerbang kungsi pareum. Naha tap murid leungit?',
+            a: 'Henteu. Tap disimpen dina parangkat tuluy dikirim deui jeung waktu aslina sanggeus jaringan balik. Anggeus kaca kiosk tetep muka.',
+          },
+          {
+            q: 'Parangkat heubeul teu bisa dipupus. Kumaha?',
+            a: 'Parangkat nu kungsi nyatet tap teu bisa dipupus sangkan jejak tetep lengkep. Pilih Nonaktipkeun, sarta parangkat moal dipaké deui.',
           },
         ],
       },
@@ -882,110 +1417,203 @@ export const CORE_DOCS: DocArticle[] = [
     slug: 'schedule',
     icon: 'calendar',
     tone: 'sky',
+    group: 'attendance',
     module: 'schedule',
     text: {
       id: {
-        title: 'Jadwal pelajaran',
-        summary: 'Atur jam pelajaran lalu isi jadwal tiap kelas; lihat per kelas atau per guru.',
+        title: 'Menyusun jadwal pelajaran',
+        summary: 'Atur jam pelajaran, isi jadwal tiap kelas, dan lihat jadwal per kelas atau per guru.',
+        forWho:
+          'Staf Kurikulum, Operator, dan Admin sekolah yang menyusun jadwal; peran lain hanya bisa melihat.',
         sections: [
           {
             heading: 'Mengatur jam pelajaran',
-            body: 'Jam pelajaran adalah nomor dan rentang waktu tiap pelajaran. Bila belum ada, buat otomatis (1 sampai 14 jam, 10 sampai 120 menit per jam, istirahat opsional) dengan isian awal dari Pengaturan sekolah, atau tambah satu per satu.',
+            body: 'Jam pelajaran adalah nomor dan rentang waktu tiap pelajaran. Bila belum ada, buat otomatis (1 sampai 14 jam, 10 sampai 120 menit per jam, istirahat boleh ditambahkan). Isian awalnya diambil dari Pengaturan sekolah.',
             steps: [
-              'Buka menu Jadwal pelajaran lalu Jam pelajaran.',
+              'Buka menu Jadwal pelajaran, lalu Jam pelajaran.',
               'Isi Mulai, Jumlah jam, Menit per jam, dan Istirahat setelah jam ke- bila ada.',
               'Klik Buat otomatis.',
-              'Untuk menambah satu jam, isi Nomor, Mulai, dan Selesai lalu klik Tambah jam.',
+              'Untuk menambah satu jam saja, isi Nomor, Mulai, dan Selesai lalu klik Tambah jam.',
             ],
+            warning:
+              'Buat otomatis ditolak bila jam pelajaran sudah ada. Jam yang sudah dipakai di jadwal tidak bisa dihapus.',
             href: '/schedule',
           },
           {
-            heading: 'Mengisi jadwal kelas',
-            body: 'Tiap sel jadwal berisi mata pelajaran dan gurunya. Gurunya otomatis guru pengampu mata pelajaran itu di kelas tersebut, jadi tetapkan dulu di halaman Kelas.',
+            heading: 'Mengisi jadwal sebuah kelas',
+            body: 'Setiap kotak jadwal berisi mata pelajaran beserta gurunya. Gurunya otomatis guru pengampu mata pelajaran itu di kelas tersebut, jadi tetapkan dulu guru pengampu di halaman Kelas.',
             steps: [
-              'Pilih tampilan Per kelas lalu pilih kelasnya.',
-              'Klik sel pada hari dan jam yang dikehendaki (Isi pelajaran).',
-              'Pilih mata pelajaran; hanya yang sudah punya guru pengampu di kelas itu yang muncul.',
-              'Klik Simpan. Klik Kosongkan untuk menghapus isi sel.',
+              'Pilih tampilan Per kelas, lalu pilih kelasnya.',
+              'Klik kotak pada hari dan jam yang dikehendaki (Isi pelajaran).',
+              'Pilih mata pelajaran. Yang muncul hanya yang sudah punya guru pengampu di kelas itu.',
+              'Klik Simpan.',
             ],
+            warning:
+              'Seorang guru tidak bisa mengajar di dua kelas pada hari dan jam yang sama. Jadwal yang bentrok ditolak.',
           },
           {
-            heading: 'Melihat per guru',
-            body: 'Tampilan Per guru menunjukkan jadwal mengajar satu guru lintas kelas. Hari yang tampil mengikuti Pengaturan sekolah, dan absensi per jam pelajaran memakai jadwal ini.',
+            heading: 'Mengganti atau mengosongkan isi jadwal',
+            body: 'Isi kotak jadwal bisa diganti kapan saja. Absensi per jam memakai jadwal ini, jadi pastikan sudah benar sebelum dipakai.',
+            steps: [
+              'Di tampilan Per kelas, klik kotak yang ingin diubah.',
+              'Pilih mata pelajaran lain lalu klik Simpan, atau klik Kosongkan untuk menghapus isi kotak.',
+              'Periksa kembali kotak itu di tampilan yang diperbarui.',
+            ],
+            tip: 'Bila guru berganti, cukup ganti guru pengampu di halaman Kelas, lalu cek jadwalnya.',
           },
           {
-            heading: 'Yang perlu diperhatikan',
-            body: 'Seorang guru tidak bisa mengajar di dua kelas pada hari dan jam yang sama; jadwal bentrok ditolak. Jam pelajaran yang sudah dipakai di jadwal tidak bisa dihapus, dan pembuatan otomatis ditolak bila sudah ada jam pelajaran. Mengubah jadwal butuh izin kelola jadwal (Kurikulum, Operator, Admin sekolah); peran lain hanya melihat.',
+            heading: 'Melihat jadwal per guru',
+            body: 'Tampilan Per guru menunjukkan jadwal mengajar satu guru di semua kelas. Hari yang tampil mengikuti Pengaturan sekolah. Gunakan tampilan ini untuk memeriksa apakah seorang guru terlalu padat atau bentrok.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kenapa mata pelajaran tidak muncul saat saya mengisi jadwal?',
+            a: 'Mata pelajaran baru muncul bila sudah ada guru pengampu di kelas itu. Buka halaman Kelas, pilih Guru pengampu pada kelasnya, dan tetapkan guru untuk mata pelajaran tersebut.',
+          },
+          {
+            q: 'Jadwal saya ditolak karena bentrok. Apa artinya?',
+            a: 'Guru yang sama sudah mengajar di kelas lain pada hari dan jam yang sama. Pilih jam lain, atau cek jadwal Per guru untuk melihat jam yang masih kosong.',
+          },
+          {
+            q: 'Jam pelajaran tidak bisa dihapus. Kenapa?',
+            a: 'Jam itu masih dipakai di jadwal sebuah kelas. Kosongkan dulu kotak yang memakainya, lalu hapus jamnya.',
+          },
+          {
+            q: 'Tombol Buat otomatis ditolak. Bagaimana?',
+            a: 'Itu terjadi bila jam pelajaran sudah ada. Ubah atau tambah jam secara manual, bukan dengan Buat otomatis.',
           },
         ],
       },
       en: {
-        title: 'Timetable',
-        summary: 'Set up lesson periods, then fill in each class timetable; view it by class or by teacher.',
+        title: 'Building the timetable',
+        summary:
+          'Set up lesson periods, fill in each class timetable, and view the timetable by class or by teacher.',
+        forWho:
+          'Curriculum staff, Operators, and School admins who build the timetable; other roles can only view.',
         sections: [
           {
-            heading: 'Setting lesson periods',
-            body: 'Lesson periods are the number and time range of each lesson. If none exist yet, generate them (1 to 14 periods, 10 to 120 minutes each, optional break) with defaults from School settings, or add them one by one.',
+            heading: 'Setting up lesson periods',
+            body: 'Lesson periods are the number and time range of each lesson. If none exist yet, generate them (1 to 14 periods, 10 to 120 minutes each, a break can be added). The starting values come from School settings.',
             steps: [
               'Open the Timetable menu, then Lesson periods.',
               'Fill in Start, Number of periods, Minutes per period, and Break after period if any.',
               'Click Generate.',
-              'To add a single period, fill in Number, Start, and End, then click Add period.',
+              'To add just one period, fill in Number, Start, and End, then click Add period.',
             ],
+            warning:
+              'Generate is refused when lesson periods already exist. A period already used in the timetable cannot be deleted.',
             href: '/schedule',
           },
           {
             heading: 'Filling in a class timetable',
-            body: 'Each timetable cell holds a subject and its teacher. The teacher is automatically the one assigned to that subject in that class, so assign them on the Classes page first.',
+            body: 'Each timetable box holds a subject and its teacher. The teacher is automatically the one assigned to that subject in that class, so assign them on the Classes page first.',
             steps: [
-              'Choose the By class view and pick the class.',
-              'Click the cell for the day and period you want (Add lesson).',
-              'Pick the subject; only subjects that already have an assigned teacher in that class appear.',
-              'Click Save. Click Clear to empty the cell.',
+              'Choose the By class view, then pick the class.',
+              'Click the box for the day and period you want (Add lesson).',
+              'Pick the subject. Only subjects that already have an assigned teacher in that class appear.',
+              'Click Save.',
             ],
+            warning:
+              'A teacher cannot teach two classes at the same day and period. A clashing entry is rejected.',
           },
           {
-            heading: 'Viewing by teacher',
-            body: 'The By teacher view shows the teaching timetable of one teacher across classes. The days shown follow School settings, and lesson attendance uses this timetable.',
+            heading: 'Changing or clearing a timetable box',
+            body: 'The content of a box can be changed at any time. Lesson attendance uses this timetable, so make sure it is correct before it is used.',
+            steps: [
+              'In the By class view, click the box you want to change.',
+              'Pick another subject and click Save, or click Clear to empty the box.',
+              'Check the box again in the refreshed view.',
+            ],
+            tip: 'If a teacher changes, just change the assigned teacher on the Classes page, then check the timetable.',
           },
           {
-            heading: 'Good to know',
-            body: 'A teacher cannot teach two classes at the same day and period; a clashing entry is rejected. A period already used in the timetable cannot be deleted, and automatic generation is refused when periods already exist. Changing the timetable needs the manage timetable permission (Curriculum, Operator, School admin); other roles can only view.',
+            heading: 'Viewing the timetable by teacher',
+            body: 'The By teacher view shows the teaching timetable of one teacher across all classes. The days shown follow School settings. Use this view to check whether a teacher is overloaded or clashing.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why does the subject not appear when I fill in the timetable?',
+            a: 'A subject appears only once the class has an assigned teacher for it. Open the Classes page, choose Assigned teachers on the class, and assign a teacher for that subject.',
+          },
+          {
+            q: 'My entry was rejected because of a clash. What does that mean?',
+            a: 'The same teacher already teaches another class on the same day and period. Pick another period, or look at the By teacher view to see which periods are free.',
+          },
+          {
+            q: 'A lesson period cannot be deleted. Why?',
+            a: 'That period is still used in a class timetable. Clear the boxes that use it first, then delete the period.',
+          },
+          {
+            q: 'The Generate button is refused. What now?',
+            a: 'It happens when lesson periods already exist. Edit or add periods by hand instead of using Generate.',
           },
         ],
       },
       su: {
-        title: 'Jadwal pangajaran',
-        summary: 'Atur jam pangajaran tuluy eusian jadwal unggal kelas; tingali per kelas atawa per guru.',
+        title: 'Nyusun jadwal pangajaran',
+        summary:
+          'Atur jam pangajaran, eusian jadwal unggal kelas, jeung tingali jadwal per kelas atawa per guru.',
+        forWho:
+          'Staf Kurikulum, Operator, jeung Admin sakola nu nyusun jadwal; peran séjén ngan bisa ningali.',
         sections: [
           {
             heading: 'Ngatur jam pangajaran',
-            body: 'Jam pangajaran nyaéta nomer jeung rentang waktu unggal pangajaran. Lamun acan aya, jieun otomatis (1 nepi ka 14 jam, 10 nepi ka 120 menit per jam, istirahat opsional) kalayan eusian awal tina Setélan sakola, atawa tambihan hiji-hiji.',
+            body: 'Jam pangajaran nyaéta nomer jeung rentang waktu unggal pangajaran. Lamun acan aya, jieun otomatis (1 nepi ka 14 jam, 10 nepi ka 120 menit per jam, istirahat meunang ditambahkeun). Eusian awalna dicokot tina Setélan sakola.',
             steps: [
-              'Buka menu Jadwal pangajaran tuluy Jam pangajaran.',
+              'Buka menu Jadwal pangajaran, tuluy Jam pangajaran.',
               'Eusian Mimiti, Jumlah jam, Menit per jam, jeung Istirahat sanggeus jam ka- lamun aya.',
               'Klik Jieun otomatis.',
-              'Pikeun nambah hiji jam, eusian Nomer, Mimiti, jeung Réngsé tuluy klik Tambih jam.',
+              'Pikeun nambah hiji jam waé, eusian Nomer, Mimiti, jeung Réngsé tuluy klik Tambih jam.',
             ],
+            warning:
+              'Jieun otomatis ditolak lamun jam pangajaran geus aya. Jam nu geus dipaké dina jadwal teu bisa dipupus.',
             href: '/schedule',
           },
           {
-            heading: 'Ngeusian jadwal kelas',
-            body: 'Unggal sél jadwal ngandung mata pelajaran jeung gurunya. Gurunya otomatis guru pangampu mata pelajaran éta di kelas éta, jadi tetepkeun heula dina kaca Kelas.',
+            heading: 'Ngeusian jadwal hiji kelas',
+            body: 'Unggal kotak jadwal ngandung mata pelajaran jeung gurunya. Gurunya otomatis guru pangampu mata pelajaran éta di kelas éta, jadi tetepkeun heula guru pangampu dina kaca Kelas.',
             steps: [
-              'Pilih témbongan Per kelas tuluy pilih kelasna.',
-              'Klik sél dina poé jeung jam nu dipikahayang (Eusian pelajaran).',
-              'Pilih mata pelajaran; ngan nu geus boga guru pangampu di kelas éta nu kaluar.',
-              'Klik Simpen. Klik Kosongkeun pikeun mupus eusi sél.',
+              'Pilih témbongan Per kelas, tuluy pilih kelasna.',
+              'Klik kotak dina poé jeung jam nu dipikahayang (Eusian pelajaran).',
+              'Pilih mata pelajaran. Nu kaluar ngan nu geus boga guru pangampu di kelas éta.',
+              'Klik Simpen.',
             ],
+            warning:
+              'Hiji guru teu bisa ngajar di dua kelas dina poé jeung jam nu sarua. Jadwal nu bentrok ditolak.',
           },
           {
-            heading: 'Ningali per guru',
-            body: 'Témbongan Per guru nuduhkeun jadwal ngajar hiji guru di sakabéh kelas. Poé nu kaciri nuturkeun Setélan sakola, sarta absénsi per jam pangajaran maké jadwal ieu.',
+            heading: 'Ngaganti atawa ngosongkeun eusi jadwal',
+            body: 'Eusi kotak jadwal bisa diganti iraha waé. Absénsi per jam maké jadwal ieu, jadi pastikeun geus bener saméméh dipaké.',
+            steps: [
+              'Dina témbongan Per kelas, klik kotak nu rék dirobah.',
+              'Pilih mata pelajaran séjén tuluy klik Simpen, atawa klik Kosongkeun pikeun mupus eusi kotak.',
+              'Pariksa deui kotak éta dina témbongan nu geus dianyarkeun.',
+            ],
+            tip: 'Lamun guru ganti, cekap ganti guru pangampu dina kaca Kelas, tuluy pariksa jadwalna.',
           },
           {
-            heading: 'Nu kudu diperhatikeun',
-            body: 'Hiji guru teu bisa ngajar di dua kelas dina poé jeung jam nu sarua; jadwal nu bentrok ditolak. Jam pangajaran nu geus dipaké dina jadwal teu bisa dipupus, sarta pembuatan otomatis ditolak lamun jam pangajaran geus aya. Ngarobah jadwal merlukeun idin ngatur jadwal (Kurikulum, Operator, Admin sakola); peran séjén ngan bisa ningali.',
+            heading: 'Ningali jadwal per guru',
+            body: 'Témbongan Per guru nuduhkeun jadwal ngajar hiji guru di sakabéh kelas. Poé nu kaciri nuturkeun Setélan sakola. Anggo témbongan ieu pikeun mariksa naha hiji guru kapadetan atawa bentrok.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha mata pelajaran teu kaluar waktu ngeusian jadwal?',
+            a: 'Mata pelajaran kaluar ngan lamun kelasna geus boga guru pangampu pikeun éta. Buka kaca Kelas, pilih Guru pangampu dina kelasna, tuluy tetepkeun guru pikeun mata pelajaran éta.',
+          },
+          {
+            q: 'Eusian kuring ditolak sabab bentrok. Naon hartina?',
+            a: 'Guru nu sarua geus ngajar di kelas séjén dina poé jeung jam nu sarua. Pilih jam séjén, atawa tingali témbongan Per guru pikeun nyaho jam nu masih kosong.',
+          },
+          {
+            q: 'Jam pangajaran teu bisa dipupus. Naha?',
+            a: 'Jam éta masih dipaké dina jadwal hiji kelas. Kosongkeun heula kotak nu maké, tuluy pupus jamna.',
+          },
+          {
+            q: 'Tombol Jieun otomatis ditolak. Kumaha?',
+            a: 'Éta kajadian lamun jam pangajaran geus aya. Robah atawa tambahan jam sacara manual, lain ku Jieun otomatis.',
           },
         ],
       },
@@ -995,166 +1623,232 @@ export const CORE_DOCS: DocArticle[] = [
     slug: 'members-roles',
     icon: 'shield',
     tone: 'rose',
+    group: 'access',
     text: {
       id: {
-        title: 'Anggota, peran, dan kata sandi',
+        title: 'Mengelola anggota, peran, dan kata sandi',
         summary:
-          'Undang anggota lewat email, atur peran dan izin, serta pulihkan kata sandi dengan kode OTP.',
+          'Undang anggota lewat email, atur peran siapa boleh apa, dan bantu pengguna yang lupa kata sandi.',
+        forWho:
+          'Admin sekolah, yang mengatur siapa saja yang boleh memakai aplikasi dan apa yang boleh dilakukannya.',
         sections: [
           {
-            heading: 'Anggota sekolah',
-            body: 'Izin seseorang adalah gabungan semua perannya di unit sekolah ini. Daftar bisa dicari menurut nama atau email dan disaring menurut status atau peran.',
+            heading: 'Mengundang orang baru lewat email',
+            body: 'Undangan berupa tautan yang dikirim ke email dan berlaku 7 hari. Orang yang belum punya akun membuatnya saat menerima undangan, dan harus memakai email yang sama dengan yang diundang.',
             steps: [
-              'Buka menu Anggota di kelompok Pengguna dan akses.',
-              'Klik Ubah peran pada menu baris anggota untuk mengganti perannya, lalu Simpan.',
-              'Pilih Nonaktifkan untuk mencabut seluruh izin anggota sementara; Aktifkan untuk mengembalikannya.',
+              'Buka menu Anggota di kelompok Pengguna dan akses, lalu klik Undang anggota.',
+              'Isi email dan pilih minimal satu peran.',
+              'Klik Kirim undangan.',
+              'Pantau di Undangan menunggu. Gunakan Kirim ulang bila belum diterima, atau Cabut bila salah kirim.',
             ],
+            tip: 'Bila undangan tidak sampai, minta penerima memeriksa folder spam, lalu coba Kirim ulang.',
             href: '/members',
           },
           {
-            heading: 'Mengundang lewat email',
-            body: 'Undangan berupa tautan yang dikirim ke email dan berlaku 7 hari. Orang yang belum punya akun membuatnya saat menerima, dan harus memakai email yang sama dengan yang diundang.',
+            heading: 'Mengganti peran atau menonaktifkan anggota',
+            body: 'Izin seseorang adalah gabungan semua peran yang ia pegang di unit sekolah ini. Daftar anggota bisa dicari menurut nama atau email, dan disaring menurut status atau peran.',
             steps: [
-              'Klik Undang anggota.',
-              'Isi email dan pilih minimal satu peran.',
-              'Klik Kirim undangan.',
-              'Pantau di Undangan menunggu; gunakan Kirim ulang atau Cabut bila perlu.',
+              'Di menu Anggota, klik menu baris anggota lalu pilih Ubah peran.',
+              'Pilih peran yang sesuai, lalu klik Simpan.',
+              'Untuk mencabut semua izin sementara, pilih Nonaktifkan. Pilih Aktifkan untuk mengembalikannya.',
             ],
+            warning:
+              'Unit sekolah harus selalu punya minimal satu admin aktif, dan Anda tidak bisa menonaktifkan diri sendiri.',
           },
           {
-            heading: 'Peran dan izin',
-            body: 'Peran adalah kumpulan izin, dan perubahan berlaku segera untuk semua pemegangnya. Peran bawaan (Admin sekolah, Kepala sekolah, Kurikulum, Bendahara, Operator, Guru) ada di setiap unit; peran kustom dibuat per unit sekolah dan tidak terbawa ke unit lain.',
+            heading: 'Membuat peran khusus',
+            body: 'Peran adalah kumpulan izin, dan perubahan langsung berlaku untuk semua pemegangnya. Peran bawaan (Admin sekolah, Kepala sekolah, Kurikulum, Bendahara, Operator, Guru) ada di setiap unit sekolah. Peran khusus dibuat per unit sekolah dan tidak terbawa ke unit lain.',
             steps: [
               'Buka menu Peran.',
-              'Klik Buat peran kustom lalu isi nama peran.',
-              'Centang izin per area (Lihat, Kelola, dan seterusnya); minimal satu izin.',
-              'Klik Buat peran, lalu beri peran itu ke anggota lewat menu Anggota.',
+              'Klik Buat peran kustom, lalu isi nama peran.',
+              'Centang izin per bagian (Lihat, Kelola, dan seterusnya). Minimal satu izin.',
+              'Klik Buat peran, lalu berikan peran itu ke anggota lewat menu Anggota.',
             ],
+            warning:
+              'Peran yang Anda berikan atau buat tidak boleh punya izin lebih banyak daripada izin Anda sendiri. Peran bawaan tidak bisa dihapus (peran Admin sekolah juga tidak bisa diubah), dan peran khusus hanya bisa dihapus bila tidak dipegang siapa pun.',
             href: '/roles',
           },
           {
-            heading: 'Lupa kata sandi',
-            body: 'Pemulihan memakai kode OTP 6 digit yang dikirim ke email. Kode berlaku 10 menit, hanya sekali pakai, dan hangus setelah 3 kali salah. Sistem tetap menjawab berhasil untuk email yang tidak terdaftar, jadi keberadaan akun tidak terbongkar.',
+            heading: 'Memulihkan kata sandi yang lupa',
+            body: 'Pengguna yang lupa kata sandi bisa memulihkannya sendiri dengan kode 6 digit yang dikirim ke email. Kode berlaku 10 menit, hanya sekali pakai, dan hangus setelah 3 kali salah.',
             steps: [
-              'Di halaman masuk, klik tautan lupa kata sandi, atau buka halaman /forgot-password.',
-              'Isi email lalu klik kirim kode.',
-              'Isi kode 6 digit dari email, lalu kata sandi baru (minimal 12 karakter) dua kali.',
-              'Bila kode belum datang atau hangus, klik kirim ulang (tersedia setelah 60 detik).',
-              'Setelah berhasil, semua sesi lama otomatis keluar; masuk lagi dengan kata sandi baru.',
+              'Di halaman masuk, klik tautan Lupa kata sandi.',
+              'Isi email, lalu klik kirim kode.',
+              'Isi kode 6 digit dari email, lalu isi kata sandi baru (minimal 12 karakter) dua kali.',
+              'Bila kode belum datang atau sudah hangus, klik kirim ulang (bisa dipakai setelah 60 detik).',
+              'Setelah berhasil, semua sesi lama otomatis keluar. Masuk lagi dengan kata sandi baru.',
             ],
+            tip: 'Demi keamanan, aplikasi selalu menjawab berhasil walau email tidak terdaftar. Bila kode tidak datang, periksa penulisan email dan folder spam.',
             href: '/forgot-password',
           },
+        ],
+        faq: [
           {
-            heading: 'Yang perlu diperhatikan',
-            body: 'Peran yang diberikan atau dibuat tidak boleh memiliki izin yang melebihi izin Anda sendiri. Unit sekolah selalu harus punya minimal satu admin aktif, dan Anda tidak bisa menonaktifkan diri sendiri. Peran bawaan tidak bisa dihapus (Admin sekolah juga tidak bisa diubah), dan peran kustom hanya bisa dihapus bila tidak dipegang siapa pun.',
+            q: 'Orang yang saya undang bilang tautannya tidak bisa dipakai. Kenapa?',
+            a: 'Tautan berlaku 7 hari dan harus dibuka dengan email yang sama dengan yang diundang. Cabut undangan lama di Undangan menunggu, lalu kirim undangan baru ke email yang benar.',
+          },
+          {
+            q: 'Saya tidak bisa menonaktifkan atau mengubah peran seorang admin. Kenapa?',
+            a: 'Unit sekolah harus selalu punya minimal satu admin aktif. Jadikan orang lain admin lebih dulu, baru ubah atau nonaktifkan yang tadi. Anda juga tidak bisa menonaktifkan diri sendiri.',
+          },
+          {
+            q: 'Peran tidak bisa dihapus. Apa yang harus saya lakukan?',
+            a: 'Peran bawaan memang tidak bisa dihapus. Peran khusus hanya bisa dihapus bila tidak dipegang siapa pun. Ganti dulu peran anggota yang masih memakainya lewat menu Anggota.',
+          },
+          {
+            q: 'Kode untuk mengganti kata sandi sudah hangus atau salah tiga kali. Bagaimana?',
+            a: 'Minta kode baru dengan klik kirim ulang (tersedia setelah 60 detik). Kode lama tidak bisa dipakai lagi. Gunakan kode terbaru yang masuk ke email, paling lambat 10 menit sejak dikirim.',
           },
         ],
       },
       en: {
-        title: 'Members, roles, and passwords',
+        title: 'Managing members, roles, and passwords',
         summary:
-          'Invite members by email, manage roles and permissions, and recover a password with an OTP code.',
+          'Invite members by email, set who may do what with roles, and help users who forgot their password.',
+        forWho: 'School admins, who decide who may use the app and what they may do.',
         sections: [
           {
-            heading: 'School members',
-            body: 'A person permissions are the combination of all their roles in this school unit. The list can be searched by name or email and filtered by status or role.',
+            heading: 'Inviting a new person by email',
+            body: 'An invitation is a link sent by email that is valid for 7 days. Someone without an account creates one when accepting the invitation, and must use the same email that was invited.',
             steps: [
-              'Open the Members menu in the Users and access group.',
-              'Click Edit roles in the member row menu to change their roles, then Save.',
-              'Choose Deactivate to withdraw all permissions of a member for now; Activate to restore them.',
+              'Open the Members menu in the Users and access group, then click Invite a member.',
+              'Enter the email and pick at least one role.',
+              'Click Send invitation.',
+              'Follow it under Pending invitations. Use Resend if it has not been accepted, or Revoke if it was sent by mistake.',
             ],
+            tip: 'If the invitation does not arrive, ask the recipient to check the spam folder, then try Resend.',
             href: '/members',
           },
           {
-            heading: 'Inviting by email',
-            body: 'An invitation is a link sent by email that is valid for 7 days. Someone without an account creates one when accepting, and must use the same email that was invited.',
+            heading: 'Changing a role or deactivating a member',
+            body: 'A person permissions are the combination of all the roles they hold in this school unit. The member list can be searched by name or email, and filtered by status or role.',
             steps: [
-              'Click Invite a member.',
-              'Enter the email and pick at least one role.',
-              'Click Send invitation.',
-              'Follow it under Pending invitations; use Resend or Revoke if needed.',
+              'In the Members menu, click the member row menu and choose Edit roles.',
+              'Pick the right roles, then click Save.',
+              'To withdraw all permissions for now, choose Deactivate. Choose Activate to restore them.',
             ],
+            warning:
+              'A school unit must always keep at least one active admin, and you cannot deactivate yourself.',
           },
           {
-            heading: 'Roles and permissions',
-            body: 'A role is a set of permissions, and a change applies at once to everyone holding it. The built-in roles (School admin, Principal, Curriculum, Treasurer, Operator, Teacher) exist in every unit; custom roles are created per school unit and do not carry over to other units.',
+            heading: 'Creating a custom role',
+            body: 'A role is a set of permissions, and a change applies at once to everyone holding it. The built-in roles (School admin, Principal, Curriculum, Treasurer, Operator, Teacher) exist in every school unit. Custom roles are created per school unit and do not carry over to other units.',
             steps: [
               'Open the Roles menu.',
-              'Click Create a custom role and enter the role name.',
-              'Tick permissions per area (View, Manage, and so on); at least one.',
+              'Click Create a custom role, then enter the role name.',
+              'Tick permissions per area (View, Manage, and so on). At least one.',
               'Click Create role, then give the role to members through the Members menu.',
             ],
+            warning:
+              'A role you give or create cannot hold more permissions than you have yourself. Built-in roles cannot be deleted (the School admin role cannot be edited either), and a custom role can only be deleted when nobody holds it.',
             href: '/roles',
           },
           {
-            heading: 'Forgot password',
-            body: 'Recovery uses a 6-digit OTP code sent by email. The code is valid for 10 minutes, can be used once, and expires after 3 wrong attempts. The system still answers success for an unregistered email, so it does not reveal which accounts exist.',
+            heading: 'Recovering a forgotten password',
+            body: 'Users who forgot their password can recover it themselves with a 6-digit code sent to their email. The code is valid for 10 minutes, can be used once, and expires after 3 wrong attempts.',
             steps: [
-              'On the sign-in page, click the forgot password link, or open the /forgot-password page.',
-              'Enter your email and click send code.',
+              'On the sign-in page, click the Forgot password link.',
+              'Enter the email, then click send code.',
               'Enter the 6-digit code from the email, then the new password (at least 12 characters) twice.',
               'If the code has not arrived or has expired, click resend (available after 60 seconds).',
-              'Once it succeeds, all old sessions are signed out; sign in again with the new password.',
+              'Once it succeeds, all old sessions are signed out. Sign in again with the new password.',
             ],
+            tip: 'For safety, the app always answers success even if the email is not registered. If no code arrives, check the email spelling and the spam folder.',
             href: '/forgot-password',
           },
+        ],
+        faq: [
           {
-            heading: 'Good to know',
-            body: 'A role you give or create cannot hold more permissions than you have yourself. A school unit must always keep at least one active admin, and you cannot deactivate yourself. Built-in roles cannot be deleted (School admin cannot be edited either), and a custom role can only be deleted when nobody holds it.',
+            q: 'The person I invited says the link does not work. Why?',
+            a: 'The link is valid for 7 days and must be opened with the same email that was invited. Revoke the old invitation under Pending invitations, then send a new one to the correct email.',
+          },
+          {
+            q: 'I cannot deactivate or change the role of an admin. Why?',
+            a: 'A school unit must always keep at least one active admin. Make someone else an admin first, then change or deactivate the earlier one. You also cannot deactivate yourself.',
+          },
+          {
+            q: 'A role cannot be deleted. What should I do?',
+            a: 'Built-in roles cannot be deleted. A custom role can only be deleted when nobody holds it. First change the roles of members who still use it through the Members menu.',
+          },
+          {
+            q: 'The code to change the password has expired or was wrong three times. What now?',
+            a: 'Request a new code by clicking resend (available after 60 seconds). The old code cannot be used any more. Use the latest code that reached the email, within 10 minutes of being sent.',
           },
         ],
       },
       su: {
-        title: 'Anggota, peran, jeung kecap sandi',
+        title: 'Ngatur anggota, peran, jeung kecap sandi',
         summary:
-          'Uleman anggota ku surélék, atur peran jeung idin, sarta pulihkeun kecap sandi maké kode OTP.',
+          'Uleman anggota ku surélék, atur saha meunang naon ku peran, sarta bantuan pamaké nu poho kecap sandi.',
+        forWho:
+          'Admin sakola, nu ngatur saha waé nu meunang maké aplikasi jeung naon nu meunang dilakukeunana.',
         sections: [
           {
-            heading: 'Anggota sakola',
-            body: 'Idin hiji jalma nyaéta gabungan sakabéh perana di unit sakola ieu. Daptar bisa diteangan ku ngaran atawa surélék sarta disaring nurutkeun status atawa peran.',
+            heading: 'Ngulemanan jalma anyar ku surélék',
+            body: 'Uleman mangrupa tumbu nu dikirim ka surélék sarta lumaku 7 poé. Jalma nu acan boga akun nyieun akun waktu narima uleman, sarta kudu maké surélék nu sarua jeung nu diulemanan.',
             steps: [
-              'Buka menu Anggota dina kelompok Pamaké jeung aksés.',
-              'Klik Robah peran dina menu baris anggota pikeun ngaganti perana, tuluy Simpen.',
-              'Pilih Nonaktipkeun pikeun nyabut sakabéh idin anggota samentara; Aktifkeun pikeun mulangkeunana.',
+              'Buka menu Anggota dina kelompok Pamaké jeung aksés, tuluy klik Uleman anggota.',
+              'Eusian surélék tuluy pilih sahenteuna hiji peran.',
+              'Klik Kirim uleman.',
+              'Titénan dina Uleman nu ngantosan. Anggo Kirim deui lamun acan ditarima, atawa Cabut lamun lepat ngirim.',
             ],
+            tip: 'Lamun uleman teu nepi, menta panarimana mariksa folder spam, tuluy cobaan Kirim deui.',
             href: '/members',
           },
           {
-            heading: 'Ngulemanan ku surélék',
-            body: 'Uleman mangrupa tumbu nu dikirim ka surélék sarta lumaku 7 poé. Jalma nu acan boga akun nyieun akun waktu narima, sarta kudu maké surélék nu sarua jeung nu diulemanan.',
+            heading: 'Ngaganti peran atawa nonaktipkeun anggota',
+            body: 'Idin hiji jalma nyaéta gabungan sakabéh peran nu dicepeng di unit sakola ieu. Daptar anggota bisa diteangan ku ngaran atawa surélék, sarta disaring nurutkeun status atawa peran.',
             steps: [
-              'Klik Uleman anggota.',
-              'Eusian surélék tuluy pilih sahenteuna hiji peran.',
-              'Klik Kirim uleman.',
-              'Titénan dina Uleman nu ngantosan; anggo Kirim deui atawa Cabut lamun perlu.',
+              'Dina menu Anggota, klik menu baris anggota tuluy pilih Robah peran.',
+              'Pilih peran nu luyu, tuluy klik Simpen.',
+              'Pikeun nyabut sakabéh idin samentara, pilih Nonaktipkeun. Pilih Aktifkeun pikeun mulangkeunana.',
             ],
+            warning:
+              'Unit sakola kudu salawasna boga sahenteuna hiji admin aktip, sarta Anjeun teu bisa nonaktipkeun diri sorangan.',
           },
           {
-            heading: 'Peran jeung idin',
-            body: 'Peran nyaéta kumpulan idin, sarta parobahan langsung lumaku pikeun sakabéh nu nyepengna. Peran dasar (Admin sakola, Kapala sakola, Kurikulum, Bendahara, Operator, Guru) aya di unggal unit; peran kustom dijieun per unit sakola sarta teu kabawa ka unit séjén.',
+            heading: 'Nyieun peran husus',
+            body: 'Peran nyaéta kumpulan idin, sarta parobahan langsung lumaku pikeun sakabéh nu nyepengna. Peran dasar (Admin sakola, Kapala sakola, Kurikulum, Bendahara, Operator, Guru) aya di unggal unit sakola. Peran husus dijieun per unit sakola sarta teu kabawa ka unit séjén.',
             steps: [
               'Buka menu Peran.',
-              'Klik Jieun peran kustom tuluy eusian ngaran peran.',
-              'Centang idin per bagian (Tingali, Atur, jeung sajabana); sahenteuna hiji idin.',
+              'Klik Jieun peran kustom, tuluy eusian ngaran peran.',
+              'Centang idin per bagian (Tingali, Atur, jeung sajabana). Sahenteuna hiji.',
               'Klik Jieun peran, tuluy pasihkeun peran éta ka anggota lewat menu Anggota.',
             ],
+            warning:
+              'Peran nu dipasihkeun atawa dijieun teu meunang boga idin leuwih loba tibatan idin Anjeun sorangan. Peran dasar teu bisa dipupus (peran Admin sakola ogé teu bisa dirobah), sarta peran husus ngan bisa dipupus lamun teu aya nu nyepengna.',
             href: '/roles',
           },
           {
-            heading: 'Poho kecap sandi',
-            body: 'Pamulihan maké kode OTP 6 angka nu dikirim ka surélék. Kode lumaku 10 menit, ngan bisa dipaké sakali, sarta hangus sanggeus 3 kali lepat. Sistem tetep ngajawab hasil keur surélék nu teu kadaptar, jadi ayana akun teu kabuka.',
+            heading: 'Mulihkeun kecap sandi nu poho',
+            body: 'Pamaké nu poho kecap sandi bisa mulihkeunana sorangan ku kode 6 angka nu dikirim ka surélékna. Kode lumaku 10 menit, ngan bisa dipaké sakali, sarta hangus sanggeus 3 kali lepat.',
             steps: [
-              'Dina kaca lebet, klik tumbu poho kecap sandi, atawa buka kaca /forgot-password.',
-              'Eusian surélék tuluy klik kirim kode.',
+              'Dina kaca lebet, klik tumbu Poho kecap sandi.',
+              'Eusian surélék, tuluy klik kirim kode.',
               'Eusian kode 6 angka tina surélék, tuluy kecap sandi anyar (sahenteuna 12 karakter) dua kali.',
               'Lamun kode acan datang atawa geus hangus, klik kirim deui (sayogi sanggeus 60 detik).',
-              'Sanggeus hasil, sakabéh sési heubeul otomatis kaluar; lebet deui maké kecap sandi anyar.',
+              'Sanggeus hasil, sakabéh sési heubeul otomatis kaluar. Lebet deui maké kecap sandi anyar.',
             ],
+            tip: 'Pikeun kaamanan, aplikasi salawasna ngajawab hasil sanajan surélék teu kadaptar. Lamun kode teu datang, pariksa panulisan surélék jeung folder spam.',
             href: '/forgot-password',
           },
+        ],
+        faq: [
           {
-            heading: 'Nu kudu diperhatikeun',
-            body: 'Peran nu dipasihkeun atawa dijieun teu meunang boga idin nu leuwih ti idin Anjeun sorangan. Unit sakola kudu salawasna boga sahenteuna hiji admin aktip, sarta Anjeun teu bisa nonaktipkeun diri sorangan. Peran dasar teu bisa dipupus (Admin sakola ogé teu bisa dirobah), sarta peran kustom ngan bisa dipupus lamun teu aya nu nyepengna.',
+            q: 'Jalma nu kuring uleman nyebutkeun tumbuna teu bisa dipaké. Naha?',
+            a: 'Tumbu lumaku 7 poé sarta kudu dibuka ku surélék nu sarua jeung nu diulemanan. Cabut uleman heubeul dina Uleman nu ngantosan, tuluy kirim uleman anyar ka surélék nu bener.',
+          },
+          {
+            q: 'Kuring teu bisa nonaktipkeun atawa ngarobah peran hiji admin. Naha?',
+            a: 'Unit sakola kudu salawasna boga sahenteuna hiji admin aktip. Jadikeun jalma séjén admin heula, nembé robah atawa nonaktipkeun nu tadi. Anjeun ogé teu bisa nonaktipkeun diri sorangan.',
+          },
+          {
+            q: 'Peran teu bisa dipupus. Naon nu kudu dilakukeun?',
+            a: 'Peran dasar mémang teu bisa dipupus. Peran husus ngan bisa dipupus lamun teu aya nu nyepengna. Robah heula peran anggota nu masih maké éta lewat menu Anggota.',
+          },
+          {
+            q: 'Kode pikeun ngaganti kecap sandi geus hangus atawa lepat tilu kali. Kumaha?',
+            a: 'Menta kode anyar ku klik kirim deui (sayogi sanggeus 60 detik). Kode heubeul teu bisa dipaké deui. Anggo kode panungtung nu asup ka surélék, pangpangna 10 menit ti saprak dikirim.',
           },
         ],
       },
