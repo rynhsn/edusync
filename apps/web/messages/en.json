@@ -4372,7 +4372,7 @@
     "passwordNone": "No password saved yet.",
     "passwordHint": "Stored encrypted and never shown again.",
     "from": "Sender",
-    "fromHint": "Example: Edusync <noreply@your-domain.com>. Many providers only accept verified addresses.",
+    "fromHint": "Example: Edusync '<'noreply@your-domain.com>. Many providers only accept verified addresses.",
     "save": "Save settings",
     "saved": "Email settings saved.",
     "testTitle": "Send a test email",

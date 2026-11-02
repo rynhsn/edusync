@@ -4372,7 +4372,7 @@
     "passwordNone": "Acan aya kecap rusiah disimpen.",
     "passwordHint": "Disimpen énkripsi jeung moal témbong deui.",
     "from": "Pangirim",
-    "fromHint": "Conto: Edusync <noreply@domain-anjeun.com>. Seueur panyadia ngan narima alamat nu geus diverifikasi.",
+    "fromHint": "Conto: Edusync '<'noreply@domain-anjeun.com>. Seueur panyadia ngan narima alamat nu geus diverifikasi.",
     "save": "Simpen setélan",
     "saved": "Setélan surélék geus disimpen.",
     "testTitle": "Kirim surélék uji",

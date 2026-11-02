@@ -4372,7 +4372,7 @@
     "passwordNone": "Belum ada kata sandi tersimpan.",
     "passwordHint": "Disimpan terenkripsi dan tidak pernah ditampilkan lagi.",
     "from": "Pengirim",
-    "fromHint": "Contoh: Edusync <noreply@domain-anda.com>. Banyak penyedia hanya menerima alamat yang sudah diverifikasi.",
+    "fromHint": "Contoh: Edusync '<'noreply@domain-anda.com>. Banyak penyedia hanya menerima alamat yang sudah diverifikasi.",
     "save": "Simpan pengaturan",
     "saved": "Pengaturan email disimpan.",
     "testTitle": "Kirim email uji",
