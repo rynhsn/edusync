@@ -5,4 +5,5 @@ export * from './lifecycle';
 export * from './provider';
 export * from './service';
 export * from './settings';
+export * from './smtp-settings';
 export * from './staff';

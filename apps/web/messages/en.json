@@ -375,7 +375,9 @@
     "subscription_inactive": "The subscription is not active. Pay the renewal invoice first.",
     "no_change": "There is no change from the current plan.",
     "invalid_hostname": "That domain name cannot be used. Use a domain you own, not an IP or an Edusync address.",
-    "domain_limit": "The domain limit for this school has been reached."
+    "domain_limit": "The domain limit for this school has been reached.",
+    "smtp_test_failed": "The test email could not be sent. Check the server address, port, and connection.",
+    "smtp_password_required": "An SMTP password is required when a username is set."
   },
   "theme": {
     "label": "Theme",
@@ -616,7 +618,8 @@
     "usersRevoke": "Sign out all devices",
     "usersRevokeTitle": "Sign {name} out of all devices",
     "usersRevokeHelp": "The user must sign in again on every device. The reason is recorded in the audit log.",
-    "usersRevoked": "{count} devices signed out."
+    "usersRevoked": "{count} devices signed out.",
+    "email": "Email"
   },
   "registerStatus": {
     "title": "Payment status",
@@ -4347,5 +4350,35 @@
     "linkTitle": "Custom domain",
     "linkBody": "Show the website on an address the school owns.",
     "linkOpen": "Manage domains"
+  },
+  "platformEmail": {
+    "title": "Email",
+    "subtitle": "Outgoing mail server for OTP codes, invitations, and notices. Takes effect without a restart.",
+    "readOnly": "Your role can only view.",
+    "source": "Settings source",
+    "sourceDatabase": "This console",
+    "sourceEnvironment": "Server default (not set in the console yet)",
+    "presets": "Quick fill",
+    "presetMailpit": "Mailpit (testing, no login)",
+    "presetMailpitHint": "Mail is not really delivered, only caught in Mailpit.",
+    "presetSmtp": "Regular SMTP server (587)",
+    "host": "Server address",
+    "port": "Port",
+    "secure": "Direct secure connection (SSL/TLS, usually port 465)",
+    "user": "Username",
+    "userHint": "Leave empty if the server needs no login.",
+    "password": "Password",
+    "passwordKept": "Saved. Leave empty to keep it.",
+    "passwordNone": "No password saved yet.",
+    "passwordHint": "Stored encrypted and never shown again.",
+    "from": "Sender",
+    "fromHint": "Example: Edusync <noreply@your-domain.com>. Many providers only accept verified addresses.",
+    "save": "Save settings",
+    "saved": "Email settings saved.",
+    "testTitle": "Send a test email",
+    "testHint": "Save the settings first, then send to your own address to confirm it connects.",
+    "testTo": "Send to",
+    "testSend": "Send test email",
+    "testSent": "Test email sent. Check the inbox."
   }
 }

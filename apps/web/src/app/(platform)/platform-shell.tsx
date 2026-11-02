@@ -10,6 +10,7 @@ import {
   History,
   LifeBuoy,
   LogOut,
+  Mail,
   Package,
   Send,
   ShieldCheck,
@@ -58,6 +59,7 @@ const GROUPS = [
       { href: '/platform', key: 'foundations', icon: Building2 },
       { href: '/platform/pending', key: 'pending', icon: ClipboardList },
       { href: '/platform/payments', key: 'payments', icon: CreditCard },
+      { href: '/platform/email', key: 'email', icon: Mail },
     ],
   },
   {

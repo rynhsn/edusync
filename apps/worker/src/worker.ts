@@ -1,10 +1,15 @@
-import { createRenewalInvoices, PaymentProviderResolver, sweepSubscriptions } from '@edusync/billing';
+import {
+  createRenewalInvoices,
+  PaymentProviderResolver,
+  SmtpResolver,
+  sweepSubscriptions,
+} from '@edusync/billing';
 import { createDb } from '@edusync/db';
 import { QUEUES, relayOutbox, setupJobs } from '@edusync/jobs';
 import { PgBoss } from 'pg-boss';
 import type { Env } from './env';
 import { emailSendHandler } from './handlers';
-import { createMailer } from './mailer';
+import { createMailer, smtpBase } from './mailer';
 import { startMessaging } from './messaging';
 
 export async function startWorker(env: Env) {
@@ -13,15 +18,13 @@ export async function startWorker(env: Env) {
   boss.on('error', (error) => console.error('[worker] error', error));
   await boss.start();
 
-  const mailer = createMailer(env);
-  await boss.work(
-    QUEUES.emailSend,
-    { batchSize: 1, pollingIntervalSeconds: 1 },
-    emailSendHandler(mailer, env.EMAIL_FROM),
-  );
-
   // Peran platform melewati RLS supaya outbox semua sekolah terlihat.
   const platform = createDb(env.DATABASE_PLATFORM_URL);
+
+  // SMTP mengikuti pengaturan di konsol platform (menimpa variabel lingkungan) tanpa restart.
+  const mailer = createMailer(new SmtpResolver(platform.db, env.AUTH_SECRET, smtpBase(env)));
+  await boss.work(QUEUES.emailSend, { batchSize: 1, pollingIntervalSeconds: 1 }, emailSendHandler(mailer));
+
   let busy = false;
   const timer = setInterval(async () => {
     if (busy) return;

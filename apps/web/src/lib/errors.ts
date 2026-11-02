@@ -33,6 +33,8 @@ const KNOWN = [
   'invalid_level',
   'server_key_required',
   'invalid_provider',
+  'smtp_test_failed',
+  'smtp_password_required',
   'no_assignment',
   'teacher_busy',
   'future_date',

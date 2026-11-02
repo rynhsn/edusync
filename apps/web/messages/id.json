@@ -375,7 +375,9 @@
     "subscription_inactive": "Langganan belum aktif. Bayar tagihan perpanjangan dulu.",
     "no_change": "Tidak ada perubahan dari paket saat ini.",
     "invalid_hostname": "Nama domain tidak dapat dipakai. Gunakan domain milik sendiri, bukan IP atau alamat Edusync.",
-    "domain_limit": "Batas jumlah domain per sekolah sudah tercapai."
+    "domain_limit": "Batas jumlah domain per sekolah sudah tercapai.",
+    "smtp_test_failed": "Email uji gagal terkirim. Periksa alamat server, port, dan sambungan.",
+    "smtp_password_required": "Kata sandi SMTP wajib diisi bila memakai nama pengguna."
   },
   "theme": {
     "label": "Tema",
@@ -616,7 +618,8 @@
     "usersRevoke": "Keluarkan semua perangkat",
     "usersRevokeTitle": "Keluarkan {name} dari semua perangkat",
     "usersRevokeHelp": "Pengguna harus masuk lagi di setiap perangkat. Alasan dicatat di audit.",
-    "usersRevoked": "{count} perangkat dikeluarkan."
+    "usersRevoked": "{count} perangkat dikeluarkan.",
+    "email": "Email"
   },
   "registerStatus": {
     "title": "Status pembayaran",
@@ -4347,5 +4350,35 @@
     "linkTitle": "Domain sendiri",
     "linkBody": "Tampilkan situs di alamat milik sekolah.",
     "linkOpen": "Kelola domain"
+  },
+  "platformEmail": {
+    "title": "Email",
+    "subtitle": "Server email keluar untuk kode OTP, undangan, dan pemberitahuan. Berlaku tanpa restart.",
+    "readOnly": "Peran Anda hanya dapat melihat.",
+    "source": "Sumber pengaturan",
+    "sourceDatabase": "Konsol ini",
+    "sourceEnvironment": "Bawaan server (belum diatur di konsol)",
+    "presets": "Isi cepat",
+    "presetMailpit": "Mailpit (uji, tanpa login)",
+    "presetMailpitHint": "Email tidak benar-benar terkirim, hanya tertangkap di Mailpit.",
+    "presetSmtp": "Server SMTP biasa (587)",
+    "host": "Alamat server",
+    "port": "Port",
+    "secure": "Sambungan aman langsung (SSL/TLS, biasanya port 465)",
+    "user": "Nama pengguna",
+    "userHint": "Kosongkan bila server tidak memakai login.",
+    "password": "Kata sandi",
+    "passwordKept": "Tersimpan. Kosongkan untuk mempertahankan.",
+    "passwordNone": "Belum ada kata sandi tersimpan.",
+    "passwordHint": "Disimpan terenkripsi dan tidak pernah ditampilkan lagi.",
+    "from": "Pengirim",
+    "fromHint": "Contoh: Edusync <noreply@domain-anda.com>. Banyak penyedia hanya menerima alamat yang sudah diverifikasi.",
+    "save": "Simpan pengaturan",
+    "saved": "Pengaturan email disimpan.",
+    "testTitle": "Kirim email uji",
+    "testHint": "Simpan pengaturan dulu, lalu kirim ke alamat Anda untuk memastikan tersambung.",
+    "testTo": "Kirim ke",
+    "testSend": "Kirim email uji",
+    "testSent": "Email uji terkirim. Periksa kotak masuk."
   }
 }

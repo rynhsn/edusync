@@ -1327,6 +1327,131 @@ export const PLATFORM_DOCS: DocArticle[] = [
     },
   },
   {
+    slug: 'email',
+    icon: 'send',
+    tone: 'sky',
+    group: 'config',
+    text: {
+      id: {
+        title: 'Email: server pengirim kode dan undangan',
+        summary:
+          'Mengatur server email (SMTP) yang mengirim kode OTP, undangan, dan pemberitahuan, termasuk memakai Mailpit untuk uji.',
+        forWho:
+          'Staf platform dengan peran Admin yang menyiapkan atau mengganti penyedia email. Peran Hanya lihat boleh melihat pengaturannya saja.',
+        sections: [
+          {
+            heading: 'Mengisi server email',
+            body: 'Tanpa server email yang benar, kode lupa kata sandi, kode ganti email, dan undangan tidak sampai ke kotak masuk. Pengaturan ini berlaku untuk semua sekolah dan langsung dipakai sekitar 15 detik setelah disimpan, tanpa memulai ulang server.',
+            steps: [
+              'Buka Email di menu Operasi.',
+              'Isi alamat server, port, nama pengguna, kata sandi, dan pengirim dari penyedia email Anda.',
+              'Centang sambungan aman langsung bila penyedia meminta SSL/TLS (biasanya port 465).',
+              'Tekan Simpan pengaturan.',
+              'Isi alamat email Anda di kotak Kirim email uji, lalu tekan Kirim email uji dan periksa kotak masuk.',
+            ],
+            tip: 'Pengirim sering harus berupa alamat yang sudah diverifikasi di penyedia email. Bila email uji gagal, pesan galat dari server ikut ditampilkan.',
+            warning:
+              'Kata sandi disimpan terenkripsi dan tidak pernah ditampilkan lagi. Mengosongkan kolomnya saat menyimpan berarti mempertahankan kata sandi yang lama.',
+            href: '/platform/email',
+          },
+          {
+            heading: 'Memakai Mailpit untuk uji',
+            body: 'Mailpit menangkap email tanpa benar-benar mengirimnya, sehingga aman untuk uji. Tekan tombol isi cepat Mailpit untuk mengisi alamat server lokal dan port 1025 tanpa login. Setelah selesai uji, ganti ke penyedia email sungguhan.',
+            href: '/platform/email',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kenapa kode tidak sampai padahal pengaturan tersimpan?',
+            a: 'Kirim email uji dulu. Bila gagal, baca pesan galatnya (salah kata sandi, port tertutup, atau pengirim belum diverifikasi). Bila berhasil, periksa folder spam.',
+          },
+          {
+            q: 'Apakah harus memulai ulang server setelah mengubah?',
+            a: 'Tidak. Pengaturan baru dipakai dalam sekitar 15 detik.',
+          },
+        ],
+      },
+      en: {
+        title: 'Email: the server that sends codes and invitations',
+        summary:
+          'Set the email (SMTP) server that sends OTP codes, invitations, and notices, including using Mailpit for testing.',
+        forWho:
+          'Platform staff with the Admin role who set up or change the email provider. The Read only role can only view the settings.',
+        sections: [
+          {
+            heading: 'Filling in the email server',
+            body: 'Without a working email server, password reset codes, change-email codes, and invitations never reach the inbox. These settings apply to all schools and take effect about 15 seconds after saving, with no server restart.',
+            steps: [
+              'Open Email in the Operations menu.',
+              'Fill in the server address, port, username, password, and sender from your email provider.',
+              'Tick the direct secure connection if the provider asks for SSL/TLS (usually port 465).',
+              'Press Save settings.',
+              'Type your own email in the Send a test email box, press Send test email, and check your inbox.',
+            ],
+            tip: 'The sender often has to be an address verified at the email provider. If the test fails, the server’s error message is shown too.',
+            warning:
+              'The password is stored encrypted and never shown again. Leaving the field empty when saving keeps the old password.',
+            href: '/platform/email',
+          },
+          {
+            heading: 'Using Mailpit for testing',
+            body: 'Mailpit catches email without really sending it, so it is safe for testing. Press the Mailpit quick-fill button to fill the local server address and port 1025 with no login. When testing is done, switch to a real email provider.',
+            href: '/platform/email',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why does the code not arrive although the settings are saved?',
+            a: 'Send a test email first. If it fails, read the error (wrong password, closed port, or unverified sender). If it succeeds, check the spam folder.',
+          },
+          {
+            q: 'Do I have to restart the server after changing it?',
+            a: 'No. The new settings are used within about 15 seconds.',
+          },
+        ],
+      },
+      su: {
+        title: 'Surélék: server nu ngirim kode jeung uleman',
+        summary:
+          'Ngatur server surélék (SMTP) nu ngirim kode OTP, uleman, jeung béwara, kaasup maké Mailpit pikeun uji.',
+        forWho:
+          'Staf platform nu perana Admin anu nyiapkeun atawa ngaganti panyadia surélék. Perana Ukur tingali ngan bisa ningali setélanna.',
+        sections: [
+          {
+            heading: 'Ngeusian server surélék',
+            body: 'Tanpa server surélék nu bener, kode poho kecap rusiah, kode ganti surélék, jeung uleman teu nepi ka kotak lebet. Setélan ieu lumaku pikeun sakabéh sakola jeung dipaké kira-kira 15 detik sanggeus disimpen, tanpa ngamimitian deui server.',
+            steps: [
+              'Buka Surélék dina ménu Operasi.',
+              'Eusian alamat server, port, ngaran pamaké, kecap rusiah, jeung pangirim ti panyadia surélék anjeun.',
+              'Centang sambungan aman langsung lamun panyadia nanyakeun SSL/TLS (biasana port 465).',
+              'Pencét Simpen setélan.',
+              'Tulis surélék anjeun dina kotak Kirim surélék uji, pencét Kirim surélék uji, tuluy pariksa kotak lebet.',
+            ],
+            tip: 'Pangirim mindeng kudu alamat nu geus diverifikasi di panyadia surélék. Lamun surélék uji gagal, pesen kasalahan ti server milu kapidangkeun.',
+            warning:
+              'Kecap rusiah disimpen énkripsi jeung moal témbong deui. Ngosongkeun kolomna waktu nyimpen hartina nyimpen kecap rusiah nu lila.',
+            href: '/platform/email',
+          },
+          {
+            heading: 'Maké Mailpit pikeun uji',
+            body: 'Mailpit nangkep surélék tanpa bener-bener ngirim, jadi aman pikeun uji. Pencét tombol eusian gancang Mailpit pikeun ngeusian alamat server lokal jeung port 1025 tanpa login. Sanggeus rengse uji, ganti ka panyadia surélék nu sabenerna.',
+            href: '/platform/email',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha kode teu nepi padahal setélan geus disimpen?',
+            a: 'Kirim surélék uji heula. Lamun gagal, baca pesen kasalahanana (kecap rusiah salah, port katutup, atawa pangirim can diverifikasi). Lamun hasil, pariksa map spam.',
+          },
+          {
+            q: 'Naha kudu ngamimitian deui server sanggeus ngarobah?',
+            a: 'Henteu. Setélan anyar dipaké dina kira-kira 15 detik.',
+          },
+        ],
+      },
+    },
+  },
+  {
     slug: 'users',
     icon: 'users',
     tone: 'amber',

@@ -375,7 +375,9 @@
     "subscription_inactive": "Langganan acan aktif. Bayar heula tagihan perpanjangan.",
     "no_change": "Euweuh parobahan tina paket ayeuna.",
     "invalid_hostname": "Ngaran domain ieu teu bisa dipaké. Paké domain milik sorangan, lain IP atawa alamat Edusync.",
-    "domain_limit": "Wates jumlah domain per sakola geus kahontal."
+    "domain_limit": "Wates jumlah domain per sakola geus kahontal.",
+    "smtp_test_failed": "Surélék uji gagal dikirim. Pariksa alamat server, port, jeung sambungan.",
+    "smtp_password_required": "Kecap rusiah SMTP kudu diisi lamun maké ngaran pamaké."
   },
   "theme": {
     "label": "Tema",
@@ -616,7 +618,8 @@
     "usersRevoke": "Kaluarkeun sakabéh alat",
     "usersRevokeTitle": "Kaluarkeun {name} tina sakabéh alat",
     "usersRevokeHelp": "Pamake kudu lebet deui di unggal alat. Alesanna dicatet dina audit.",
-    "usersRevoked": "{count} alat geus dikaluarkeun."
+    "usersRevoked": "{count} alat geus dikaluarkeun.",
+    "email": "Surélék"
   },
   "registerStatus": {
     "title": "Status pamayaran",
@@ -4347,5 +4350,35 @@
     "linkTitle": "Domain sorangan",
     "linkBody": "Témbongkeun situs dina alamat milik sakola.",
     "linkOpen": "Urus domain"
+  },
+  "platformEmail": {
+    "title": "Surélék",
+    "subtitle": "Server surélék kaluar pikeun kode OTP, uleman, jeung béwara. Lumaku tanpa restart.",
+    "readOnly": "Peran anjeun ukur bisa ningali.",
+    "source": "Sumber setélan",
+    "sourceDatabase": "Konsol ieu",
+    "sourceEnvironment": "Bawaan server (acan diatur di konsol)",
+    "presets": "Eusian gancang",
+    "presetMailpit": "Mailpit (uji, tanpa login)",
+    "presetMailpitHint": "Surélék henteu bener-bener kakirim, ukur katangkep di Mailpit.",
+    "presetSmtp": "Server SMTP biasa (587)",
+    "host": "Alamat server",
+    "port": "Port",
+    "secure": "Sambungan aman langsung (SSL/TLS, biasana port 465)",
+    "user": "Ngaran pamaké",
+    "userHint": "Kosongkeun lamun server teu maké login.",
+    "password": "Kecap rusiah",
+    "passwordKept": "Geus disimpen. Kosongkeun pikeun nyimpen nu lila.",
+    "passwordNone": "Acan aya kecap rusiah disimpen.",
+    "passwordHint": "Disimpen énkripsi jeung moal témbong deui.",
+    "from": "Pangirim",
+    "fromHint": "Conto: Edusync <noreply@domain-anjeun.com>. Seueur panyadia ngan narima alamat nu geus diverifikasi.",
+    "save": "Simpen setélan",
+    "saved": "Setélan surélék geus disimpen.",
+    "testTitle": "Kirim surélék uji",
+    "testHint": "Simpen heula setélanna, tuluy kirim ka alamat anjeun pikeun mastikeun nyambung.",
+    "testTo": "Kirim ka",
+    "testSend": "Kirim surélék uji",
+    "testSent": "Surélék uji geus kakirim. Pariksa kotak lebet."
   }
 }

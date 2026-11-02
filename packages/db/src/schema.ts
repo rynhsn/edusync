@@ -460,7 +460,9 @@ export const student = pgTable(
     birthDate: date('birth_date'),
     birthPlace: text('birth_place'),
     nik: text('nik'),
-    religion: text('religion', { enum: ['islam', 'christian', 'catholic', 'hindu', 'buddhist', 'confucian', 'other'] }),
+    religion: text('religion', {
+      enum: ['islam', 'christian', 'catholic', 'hindu', 'buddhist', 'confucian', 'other'],
+    }),
     address: text('address'),
     /** Digit berawalan 62, sama dengan nomor wali. */
     phone: text('phone'),

@@ -1,13 +1,12 @@
 #!/usr/bin/env bash
 # Membuat database + peran, berkas .env berisi rahasia acak, konfigurasi Caddy, dan layanan systemd.
 # Jalankan sekali setelah setup-server.sh dan setelah kode ada di /opt/edusync/app:
-#   bash deploy/init-env.sh surel-anda@contoh.com                        # mode uji: pembayaran simulasi (tanpa uang asli)
-#   bash deploy/init-env.sh surel-anda@contoh.com KUNCI_SERVER_MIDTRANS  # mode produksi dengan Midtrans
+#   bash deploy/init-env.sh surel-anda@contoh.com
+# SMTP (email) dan penyedia pembayaran (Midtrans) TIDAK diisi di sini: atur di konsol platform (menu Email dan Pembayaran).
 # Alamat publik dideteksi otomatis dan dipakai sebagai <IP-dengan-strip>.sslip.io (bisa ditimpa: DOMAIN=...).
 set -euo pipefail
 
 ACME_EMAIL="${1:-}"
-MIDTRANS_KEY="${2:-}"
 APP_DIR=/opt/edusync/app
 
 if [ -z "$ACME_EMAIL" ]; then
@@ -47,19 +46,11 @@ ALTER DEFAULT PRIVILEGES FOR ROLE edusync IN SCHEMA public GRANT USAGE, SELECT O
 GRANT USAGE ON SCHEMA public TO edusync_app, edusync_platform;
 SQL
 
-if [ -n "$MIDTRANS_KEY" ]; then
-  NODE_ENV_VALUE=production
-  PAYMENT=midtrans
-else
-  NODE_ENV_VALUE=development
-  PAYMENT=dev
-fi
-
-echo "==> Berkas .env (NODE_ENV=${NODE_ENV_VALUE}, pembayaran ${PAYMENT})"
+echo "==> Berkas .env"
 TMP=$(mktemp)
 chmod 600 "$TMP"
 cat >"$TMP" <<ENV
-NODE_ENV=${NODE_ENV_VALUE}
+NODE_ENV=development
 DATABASE_OWNER_URL=postgres://edusync:${OWNER_PW}@127.0.0.1:5432/edusync
 DATABASE_URL=postgres://edusync_app:${APP_PW}@127.0.0.1:5432/edusync
 DATABASE_PLATFORM_URL=postgres://edusync_platform:${PLATFORM_PW}@127.0.0.1:5432/edusync
@@ -71,12 +62,7 @@ AUTH_URL=https://${DOMAIN}
 TRUSTED_ORIGINS=https://${DOMAIN}
 APP_DOMAIN=${DOMAIN}
 WEB_URL=https://${DOMAIN}
-PAYMENT_PROVIDER=${PAYMENT}
 PAYMENT_DEV_SECRET=${PAYMENT_SECRET}
-MIDTRANS_SERVER_KEY=${MIDTRANS_KEY}
-SMTP_HOST=localhost
-SMTP_PORT=1025
-EMAIL_FROM=Edusync <noreply@${DOMAIN}>
 MESSAGING_PROVIDER=log
 ENV
 sudo install -o edusync -g edusync -m 600 "$TMP" "$APP_DIR/.env"
@@ -92,5 +78,5 @@ sudo systemctl enable edusync-api edusync-worker edusync-web >/dev/null
 
 echo
 echo "Selesai. Alamat utama: https://${DOMAIN}   Sekolah: https://<alamat-sekolah>.${DOMAIN}"
-echo "Email (SMTP) masih diarahkan ke localhost, jadi kode OTP dan undangan belum terkirim sampai SMTP diisi di ${APP_DIR}/.env."
+echo "Email dan pembayaran diatur setelah masuk, di konsol platform (menu Email dan Pembayaran)."
 echo "Berikutnya: bash deploy/deploy.sh"

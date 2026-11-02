@@ -56,6 +56,7 @@ import { platformCatalogRoutes } from './routes/platform-catalog';
 import { platformMessagingRoutes } from './routes/platform-messaging';
 import { platformPaymentRoutes } from './routes/platform-payments';
 import { platformReferenceRoutes } from './routes/platform-reference';
+import { platformSmtpRoutes } from './routes/platform-smtp';
 import { platformUserRoutes } from './routes/platform-users';
 import { portalRoutes } from './routes/portal';
 import { portalPublicRoutes } from './routes/portal-public';
@@ -210,6 +211,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(platformBillingSettingsRoutes);
   await app.register(platformReferenceRoutes);
   await app.register(platformPaymentRoutes, { env });
+  await app.register(platformSmtpRoutes, { env });
   await app.register(accountRoutes);
   await app.register(memberRoutes);
   await app.register(roleRoutes);
