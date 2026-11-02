@@ -91,6 +91,27 @@ describe('WhatsAppManager (klien tiruan)', () => {
     expect(manager.isReady(sid)).toBe(false);
   });
 
+  it('batas klien: sambungan di atas batas ditolak dengan failed, tanpa membuat klien', async () => {
+    const a = await fx.newSchool({ account: { desiredState: 'on', status: 'disconnected' } });
+    const b = await fx.newSchool({ account: { desiredState: 'on', status: 'disconnected' } });
+    let created = 0;
+    const manager = new WhatsAppManager(fx.db, {
+      maxClients: 1,
+      factory: async () => {
+        created++;
+        return new FakeClient();
+      },
+    });
+    await manager.connect(a);
+    await manager.connect(b);
+    expect(created).toBe(1);
+    expect((await account(a)).status).toBe('connecting');
+    const second = await account(b);
+    expect(second.status).toBe('failed');
+    expect(second.lastError).toContain('Batas 1 klien');
+    expect(manager.has(b)).toBe(false);
+  });
+
   it('auth_failure ditulis sebagai failed dengan lastError', async () => {
     const sid = await fx.newSchool({ account: { desiredState: 'on', status: 'disconnected' } });
     const client = new FakeClient();

@@ -18,6 +18,8 @@ export type WaClientFactory = (schoolId: string) => Promise<WaClient>;
 export interface WhatsAppOptions {
   sessionDir?: string | undefined;
   chromePath?: string | undefined;
+  /** Batas klien yang berjalan bersamaan; sambungan baru di atas batas ditolak dengan status 'failed'. */
+  maxClients?: number | undefined;
   /** Untuk tes: ganti pembuatan klien tanpa memuat whatsapp-web.js. */
   factory?: WaClientFactory;
   log?: Pick<Console, 'log' | 'error'>;
@@ -70,7 +72,19 @@ export class WhatsAppManager implements MessageSender {
       puppeteer: {
         headless: true,
         executablePath: this.options.chromePath as string,
-        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+        // Profil per sekolah tidak perlu cache besar, pembaruan komponen, ekstensi, atau suara.
+        args: [
+          '--no-sandbox',
+          '--disable-setuid-sandbox',
+          '--disk-cache-size=1',
+          '--media-cache-size=1',
+          '--disable-component-update',
+          '--disable-extensions',
+          '--disable-background-networking',
+          '--disable-sync',
+          '--no-first-run',
+          '--mute-audio',
+        ],
       },
     }) as unknown as WaClient;
   }
@@ -80,6 +94,15 @@ export class WhatsAppManager implements MessageSender {
     if (this.has(schoolId)) return;
     if (!this.options.factory && !this.options.chromePath) {
       await this.write(schoolId, { status: 'failed', qr: null, lastError: 'WA_CHROME_PATH belum diatur' });
+      return;
+    }
+    const max = this.options.maxClients;
+    if (max !== undefined && this.clients.size + this.connecting.size >= max) {
+      await this.write(schoolId, {
+        status: 'failed',
+        qr: null,
+        lastError: `Batas ${max} klien WhatsApp di server ini sudah tercapai`,
+      });
       return;
     }
     this.connecting.add(schoolId);

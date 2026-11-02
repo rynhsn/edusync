@@ -25,6 +25,8 @@ const schema = z.object({
   WA_CHROME_PATH: z.string().optional(),
   /** Folder sesi WhatsApp (satu subfolder per sekolah). */
   WA_SESSION_DIR: z.string().default('./.wa-sessions'),
+  /** Batas klien WhatsApp (satu Chrome per sekolah, sekitar 300 MB RAM) yang berjalan bersamaan. */
+  WA_MAX_CLIENTS: z.coerce.number().int().positive().default(20),
 });
 
 export type Env = Omit<z.infer<typeof schema>, 'MESSAGING_PROVIDER'> & {
