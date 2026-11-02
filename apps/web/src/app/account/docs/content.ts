@@ -233,7 +233,7 @@ export const DOC_ARTICLES: DocArticle[] = [
           },
           {
             heading: 'Daftarkan kartu siswa',
-            body: 'Di tab Kartu, tambahkan kode kartu RFID tiap siswa. Untuk banyak kartu, gunakan Daftar cepat per kelas atau impor dari Excel.',
+            body: 'Di menu Kartu RFID, tambahkan kode kartu RFID tiap siswa. Untuk banyak kartu, gunakan Daftar cepat per kelas atau impor dari Excel.',
           },
           {
             heading: 'Pantau di Gerbang & piket',
@@ -257,7 +257,7 @@ export const DOC_ARTICLES: DocArticle[] = [
           },
           {
             heading: 'Register student cards',
-            body: 'In the Cards tab, add each student RFID card code. For many cards, use quick registration per class or import from Excel.',
+            body: 'In the RFID cards menu, add each student RFID card code. For many cards, use quick registration per class or import from Excel.',
           },
           {
             heading: 'Monitor in Gate & duty',
@@ -281,7 +281,7 @@ export const DOC_ARTICLES: DocArticle[] = [
           },
           {
             heading: 'Ngadaptarkeun kartu siswa',
-            body: 'Dina tab Kartu, tambihan kode kartu RFID unggal siswa. Pikeun kartu nu réa, anggo Daftar cepat per kelas atawa impor ti Excel.',
+            body: 'Dina ménu Kartu RFID, tambihan kode kartu RFID unggal siswa. Pikeun kartu nu réa, anggo Daftar cepat per kelas atawa impor ti Excel.',
           },
           {
             heading: 'Mantau di Gerbang & piket',

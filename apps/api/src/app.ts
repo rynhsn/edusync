@@ -14,8 +14,10 @@ import {
   type ZodTypeProvider,
 } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { type Auth, createAuth, originMatcherFor } from './auth';
+import { type Auth, createAuth, dynamicOriginCheckerFor, originMatcherFor } from './auth';
+import { type DomainDns, systemDns } from './domain-dns';
 import type { Env } from './env';
+import { createHostResolver, type HostResolver } from './origins';
 import { paymentConfig } from './payment-config';
 import { academicStructureRoutes } from './routes/academic-structure';
 import { academicYearRoutes } from './routes/academic-years';
@@ -59,6 +61,7 @@ import { portalPublicRoutes } from './routes/portal-public';
 import { reportCardRoutes } from './routes/report-card';
 import { roleRoutes } from './routes/roles';
 import { scheduleRoutes } from './routes/schedule';
+import { lookupVerifiedHost, schoolDomainRoutes } from './routes/school-domains';
 import { schoolSettingsRoutes } from './routes/school-settings';
 import { semesterRoutes } from './routes/semesters';
 import { studentImportRoutes } from './routes/student-import';
@@ -67,7 +70,7 @@ import { teacherImportRoutes } from './routes/teacher-import';
 
 export { paymentConfig };
 
-export async function buildApp(env: Env) {
+export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   const app = Fastify({
     logger: env.NODE_ENV === 'test' ? false : { level: 'info' },
   }).withTypeProvider<ZodTypeProvider>();
@@ -81,7 +84,10 @@ export async function buildApp(env: Env) {
   const platformDb = createDb(env.DATABASE_PLATFORM_URL);
   app.decorate('tenantDb', tenantDb.db);
   app.decorate('platformDb', platformDb.db);
-  app.decorate('auth', createAuth(env, tenantDb.db));
+  const hosts = createHostResolver((host) => lookupVerifiedHost(tenantDb.db, host));
+  const isTrustedOrigin = dynamicOriginCheckerFor(env, hosts);
+  app.decorate('hosts', hosts);
+  app.decorate('auth', createAuth(env, tenantDb.db, hosts));
   app.decorate('payments', new PaymentProviderResolver(platformDb.db, env.AUTH_SECRET, paymentConfig(env)));
   app.addHook('onClose', async () => {
     await Promise.all([tenantDb.pool.end(), platformDb.pool.end()]);
@@ -107,7 +113,7 @@ export async function buildApp(env: Env) {
   await app.register(helmet);
   await app.register(cors, {
     // Permintaan tanpa Origin (alat server) lolos; yang membawa Origin harus asal yang dipercaya.
-    origin: (origin, done) => done(null, !origin || originMatcherFor(env)(origin)),
+    origin: async (origin: string | undefined) => !origin || (await isTrustedOrigin(origin)),
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'PUT', 'DELETE'],
     allowedHeaders: ['content-type', 'x-school-id'],
@@ -231,6 +237,7 @@ export async function buildApp(env: Env) {
   await app.register(messagingRoutes, { env });
   await app.register(platformMessagingRoutes, { env });
   await app.register(schoolSettingsRoutes);
+  await app.register(schoolDomainRoutes, { env, hosts, dns: deps.dns ?? systemDns });
   await app.register(semesterRoutes);
   await app.register(calendarRoutes);
   await app.register(curriculumRoutes);
@@ -249,6 +256,8 @@ declare module 'fastify' {
     tenantDb: import('@edusync/db').Db;
     platformDb: import('@edusync/db').Db;
     auth: Auth;
+    /** Penyelesai host domain sendiri terverifikasi (cache 60 detik). */
+    hosts: HostResolver;
     /** Penyedia pembayaran yang berlaku (pengaturan di database menimpa variabel lingkungan). */
     payments: PaymentProviderResolver;
   }

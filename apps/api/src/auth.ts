@@ -3,13 +3,15 @@ import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { oneTimeToken } from 'better-auth/plugins/one-time-token';
 import type { Env } from './env';
-import { createOriginMatcher } from './origins';
+import { createDynamicOriginChecker, createOriginMatcher, type HostResolver } from './origins';
 
-/** Pencocok asal yang dipakai bersama oleh login (Better Auth) dan CORS. */
+const schemeOf = (env: Env) => (new URL(env.AUTH_URL).protocol === 'https:' ? 'https:' : 'http:');
+
+/** Pencocok asal statis (APP_DOMAIN dan TRUSTED_ORIGINS) yang dipakai bersama oleh login dan CORS. */
 export function originMatcherFor(env: Env) {
   return createOriginMatcher({
     appDomain: env.APP_DOMAIN,
-    scheme: new URL(env.AUTH_URL).protocol === 'https:' ? 'https:' : 'http:',
+    scheme: schemeOf(env),
     extra: env.TRUSTED_ORIGINS,
   });
 }
@@ -18,17 +20,17 @@ export function originMatcherFor(env: Env) {
  * Satu instance Better Auth untuk seluruh sistem. Pengguna bersifat global;
  * keanggotaan dan peran per unit ada di tabel member (lihat identity/).
  */
-export function createAuth(env: Env, db: Db) {
-  const isTrusted = originMatcherFor(env);
+export function createAuth(env: Env, db: Db, hosts: HostResolver) {
+  const isTrusted = dynamicOriginCheckerFor(env, hosts);
   return betterAuth({
     appName: 'Edusync',
     baseURL: env.AUTH_URL,
     basePath: '/api/auth',
     secret: env.AUTH_SECRET,
     // Setiap subdomain sekolah adalah asal yang sah; sesi tetap terikat ke alamat tempat login dilakukan.
-    trustedOrigins: (request) => {
+    trustedOrigins: async (request) => {
       const origin = request?.headers.get('origin');
-      return [...env.TRUSTED_ORIGINS, ...(origin && isTrusted(origin) ? [origin] : [])];
+      return [...env.TRUSTED_ORIGINS, ...(origin && (await isTrusted(origin)) ? [origin] : [])];
     },
     // Token sekali pakai untuk berpindah alamat (mis. dari alamat utama ke subdomain sekolah): satu menit,
     // disimpan dalam bentuk hash, dan hanya berlaku sekali.
@@ -41,5 +43,9 @@ export function createAuth(env: Env, db: Db) {
     },
   });
 }
+
+/** Seperti originMatcherFor, ditambah domain sendiri sekolah yang sudah terverifikasi. */
+export const dynamicOriginCheckerFor = (env: Env, hosts: HostResolver) =>
+  createDynamicOriginChecker(originMatcherFor(env), hosts, schemeOf(env));
 
 export type Auth = ReturnType<typeof createAuth>;

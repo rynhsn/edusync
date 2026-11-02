@@ -35,3 +35,13 @@ describe('protocolOf', () => {
     expect(protocolOf(null, 'sekolah.edusync.id')).toBe('https:');
   });
 });
+
+describe('siteLinks di domain sendiri', () => {
+  it('SPMB relatif di domain itu, login tetap ke subdomain sekolah', () => {
+    expect(siteLinks({ ...base, host: 'www.sekolah.sch.id', mode: 'host' })).toEqual({
+      base: '/site',
+      login: 'http://smp-a.localhost:3000/login',
+      apply: '/apply',
+    });
+  });
+});

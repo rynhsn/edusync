@@ -112,7 +112,10 @@ export function CardImportView() {
   if (!can('attendance:configure')) {
     return (
       <PageBody>
-        <PageHeader title={t('cardImport.title')} />
+        <PageHeader
+          title={t('cardImport.title')}
+          actions={<BackLink href="/attendance/cards" label={t('cardImport.back')} />}
+        />
         <Alert variant="destructive">
           <AlertDescription>{t('noAccess')}</AlertDescription>
         </Alert>
@@ -129,7 +132,7 @@ export function CardImportView() {
         tone="sky"
         title={t('cardImport.title')}
         description={t('cardImport.subtitle')}
-        actions={<BackLink href="/attendance-settings?tab=cards" label={t('cardImport.back')} />}
+        actions={<BackLink href="/attendance/cards" label={t('cardImport.back')} />}
       />
       <ImportStepper step={step} />
 
@@ -257,7 +260,7 @@ export function CardImportView() {
             </>
           )}
           <div className="flex flex-wrap gap-2">
-            <Button size="lg" nativeButton={false} render={<Link href="/attendance-settings?tab=cards" />}>
+            <Button size="lg" nativeButton={false} render={<Link href="/attendance/cards" />}>
               {t('cardImport.back')}
             </Button>
             {result.failed.length > 0 && (

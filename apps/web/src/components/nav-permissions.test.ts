@@ -23,6 +23,7 @@ const PRIMARY: Record<string, string> = {
   '/attendance': 'GET /v1/attendance/report',
   '/lessons': 'GET /v1/lessons',
   '/gate': 'GET /v1/gate/daily',
+  '/attendance/cards': 'GET /v1/attendance/cards',
   '/attendance-settings': 'GET /v1/attendance/devices',
   '/schedule': 'GET /v1/schedule',
   '/grades': 'GET /v1/grading/my-assignments',

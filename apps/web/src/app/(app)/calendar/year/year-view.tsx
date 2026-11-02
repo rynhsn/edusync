@@ -2,12 +2,12 @@
 
 import { buildYearPlanner, type EventType } from '@edusync/contracts';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Download } from 'lucide-react';
-import Link from 'next/link';
+import { Download } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -134,22 +134,16 @@ export function YearView() {
 
   return (
     <PageBody>
-      <Button
-        variant="ghost"
-        size="sm"
-        className="-ml-2 w-fit"
-        nativeButton={false}
-        render={<Link href="/calendar" />}
-      >
-        <ArrowLeft className="size-4" /> {t('backToList')}
-      </Button>
       <PageHeader
         title={`${t('title')} ${year.name}`}
         description={school.schoolName}
         actions={
-          <Button onClick={downloadPdf} disabled={generating || !calendar.data}>
-            <Download className="size-4" /> {generating ? t('generating') : t('downloadPdf')}
-          </Button>
+          <>
+            <Button onClick={downloadPdf} disabled={generating || !calendar.data}>
+              <Download className="size-4" /> {generating ? t('generating') : t('downloadPdf')}
+            </Button>
+            <BackLink href="/calendar" label={t('backToList')} />
+          </>
         }
       />
 

@@ -1,9 +1,10 @@
 'use client';
 
-import { Award, BookHeart, CalendarCheck, ChevronLeft, Megaphone, Receipt, ScrollText } from 'lucide-react';
+import { Award, BookHeart, CalendarCheck, Megaphone, Receipt, ScrollText } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
+import { BackLink } from '@/components/back-link';
 import { cn } from '@/lib/utils';
 import { AnnouncementsList } from '../../announcements-list';
 import { useOverview, usePortalMe } from '../../queries';
@@ -61,13 +62,6 @@ export function ChildView({ studentId }: { studentId: string }) {
 
   return (
     <div className="mx-auto grid w-full max-w-3xl content-start gap-5 pb-24 md:pb-6">
-      <Link
-        href="/portal"
-        className="text-muted-foreground hover:text-foreground -mb-2 inline-flex w-fit items-center gap-1 text-sm"
-      >
-        <ChevronLeft className="size-4" aria-hidden /> {t('backHome')}
-      </Link>
-
       <header className="flex items-center gap-3">
         {child ? (
           <ChildAvatar name={child.name} className="size-14 text-lg" />
@@ -81,6 +75,9 @@ export function ChildView({ studentId }: { studentId: string }) {
           <p className="text-muted-foreground truncate text-sm">
             {child ? [child.className, child.nis].filter(Boolean).join(' · ') || t('noClass') : ''}
           </p>
+        </div>
+        <div className="ml-auto shrink-0">
+          <BackLink href="/portal" label={t('backHome')} />
         </div>
       </header>
 

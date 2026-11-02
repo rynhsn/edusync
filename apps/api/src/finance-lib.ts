@@ -1,3 +1,4 @@
+import { formatMonthYearId } from '@edusync/contracts';
 import {
   and,
   asc,
@@ -56,26 +57,8 @@ export async function requireActiveMethod(tx: Tx, schoolId: string, key: string)
 
 export type InvoiceStatus = 'unpaid' | 'partial' | 'paid' | 'void';
 
-const MONTHS = [
-  'Januari',
-  'Februari',
-  'Maret',
-  'April',
-  'Mei',
-  'Juni',
-  'Juli',
-  'Agustus',
-  'September',
-  'Oktober',
-  'November',
-  'Desember',
-];
-
 /** "2026-08" menjadi "Agustus 2026". */
-export function periodLabel(period: string): string {
-  const [year, month] = period.split('-');
-  return `${MONTHS[Number(month) - 1] ?? month} ${year}`;
-}
+export const periodLabel = formatMonthYearId;
 
 export const PERIOD_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
 

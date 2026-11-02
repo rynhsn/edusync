@@ -95,7 +95,8 @@
     "portalAdmin": "Akun portal",
     "groupAttendance": "Kahadiran",
     "groupCommunication": "Komunikasi jeung situs",
-    "schoolSettings": "Setélan sakola"
+    "schoolSettings": "Setélan sakola",
+    "attendanceCards": "Kartu RFID"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -301,7 +302,9 @@
     "document_required": "Dokumén wajib can diunggah. Lengkepan heula sateuacan ngirim.",
     "limit_reached": "Wates jumlah geus kahontal.",
     "subscription_inactive": "Langganan acan aktif. Bayar heula tagihan perpanjangan.",
-    "no_change": "Euweuh parobahan tina paket ayeuna."
+    "no_change": "Euweuh parobahan tina paket ayeuna.",
+    "invalid_hostname": "Ngaran domain ieu teu bisa dipaké. Paké domain milik sorangan, lain IP atawa alamat Edusync.",
+    "domain_limit": "Wates jumlah domain per sakola geus kahontal."
   },
   "theme": {
     "label": "Tema",
@@ -1368,7 +1371,7 @@
   },
   "gate": {
     "settingsTitle": "Pangaturan absénsi",
-    "settingsSubtitle": "Jam, parangkat kiosk, kartu murid, jeung jadwal guru piket.",
+    "settingsSubtitle": "Jam, parangkat kiosk, jeung jadwal guru piket.",
     "noAccess": "Anjeun teu boga idin pikeun ngatur absénsi.",
     "tab": {
       "policy": "Kawijakan",
@@ -1589,7 +1592,14 @@
     "rosterDutyCount": "{count} guru kapilih",
     "noTeachers": "Acan aya guru aktip.",
     "tabsLabel": "Bagian pangaturan",
-    "searchCards": "Téangan ngaran murid"
+    "searchCards": "Téangan ngaran murid",
+    "cardsTitle": "Kartu RFID",
+    "statRegistered": "Kartu kadaptar",
+    "statWithoutCard": "Murid tanpa kartu",
+    "manageCards": "Atur kartu",
+    "studentCardsTitle": "Kartu RFID",
+    "studentCardsEmpty": "Murid ieu acan gaduh kartu.",
+    "studentCardsRegister": "Daptarkeun"
   },
   "extracurricular": {
     "title": "Ekstrakurikuler",
@@ -1931,7 +1941,10 @@
     "statDraftLeft": "{count} rapor masih draf",
     "statComplete": "Nilai lengkep",
     "classActions": "Aksi kelas",
-    "rowActions": "Aksi pikeun"
+    "rowActions": "Aksi pikeun",
+    "signParent": "Kolot / wali",
+    "signHomeroom": "Wali kelas",
+    "signPrincipal": "Kepala sakola"
   },
   "financeReports": {
     "title": "Laporan kauangan",
@@ -4098,5 +4111,51 @@
     "chooseOther": "Pilih berkas séjén",
     "uploadAgain": "Unggah deui berkas",
     "doneBody": "Datana geus disimpen tur langsung mucunghul dina daptar."
+  },
+  "siteDomains": {
+    "title": "Domain sorangan",
+    "subtitle": "Témbongkeun situs sakola, pendaptaran SPMB, jeung verifikasi surat dina alamat milik sakola, upamana www.sakolaanjeun.sch.id.",
+    "back": "Situs sakola",
+    "limitTitle": "Wates tahap 1",
+    "limitBody": "Domain sorangan karék lumaku pikeun situs umum, pendaptaran SPMB, jeung verifikasi surat. Dashboard jeung kaca lebet tetep dina alamat sakola handapeun domain Edusync. Sertipikat HTTPS dipasang ku server produksi.",
+    "addTitle": "Tambah domain",
+    "hostnameLabel": "Ngaran domain",
+    "hostnamePlaceholder": "www.sakolaanjeun.sch.id",
+    "hostnameHint": "Tanpa http:// jeung tanpa garis miring. Subdomain (www) atawa domain utama sami waé.",
+    "addButton": "Tambah",
+    "added": "Domain ditambahkeun. Pasang catetan DNS di handap, tuluy pariksa.",
+    "countOf": "{count} ti {max} domain kapaké",
+    "emptyTitle": "Acan aya domain sorangan",
+    "emptyBody": "Tambahkeun domain nu geus anjeun gaduh. Urang témbongkeun catetan DNS nu kudu dipasang.",
+    "statusPending": "Ngantosan DNS",
+    "statusVerified": "Geus diverifikasi",
+    "statusFailed": "Acan cocog",
+    "verifiedNote": "Aktip: situs sakola, pendaptaran SPMB, jeung verifikasi surat nembongan dina domain ieu.",
+    "dnsTitle": "Catetan DNS nu kudu dipasang",
+    "dnsHint": "Pasang dua catetan di pangurus DNS domain anjeun (tempat meuli domain). Parobahan DNS bisa merlukeun sababaraha menit nepi ka sababaraha jam.",
+    "colType": "Jenis",
+    "colName": "Ngaran",
+    "colValue": "Eusi",
+    "copy": "Salin eusi",
+    "copied": "Disalin.",
+    "checkNow": "Pariksa ayeuna",
+    "checkedAt": "Pamungkas diparios {date}",
+    "neverChecked": "Acan kantos diparios",
+    "verifiedToast": "Domain geus diverifikasi.",
+    "failedToast": "Catetan DNS acan cocog. Tingali rincian pamariksaan.",
+    "resultTitle": "Hasil pamariksaan",
+    "checkTxt": "Catetan TXT verifikasi",
+    "checkCname": "Tujuan domain (CNAME atawa A)",
+    "expected": "Sakuduna",
+    "found": "Kapendak",
+    "notFound": "teu kapendak",
+    "delete": "Piceun",
+    "deleteTitle": "Piceun domain {hostname}?",
+    "deleteBody": "Situs, pendaptaran, jeung verifikasi surat moal nembongan deui dina domain ieu. Alamat sakola dina domain Edusync tetep jalan.",
+    "deleted": "Domain dipiceun.",
+    "loadError": "Daptar domain teu bisa dimuat.",
+    "linkTitle": "Domain sorangan",
+    "linkBody": "Témbongkeun situs dina alamat milik sakola.",
+    "linkOpen": "Urus domain"
   }
 }

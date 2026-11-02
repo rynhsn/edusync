@@ -49,6 +49,7 @@ export function GatewayView() {
   });
 
   useEffect(() => {
+    if (site.ready && site.custom) return void router.replace('/site');
     if (!site.ready || me.isPending || me.isError) return;
     if (me.data === null) return void router.replace('/login');
     if (site.kind === 'school') {

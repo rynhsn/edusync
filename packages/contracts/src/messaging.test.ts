@@ -72,4 +72,11 @@ describe('format', () => {
     expect(formatRupiah(250000)).toBe('Rp 250.000');
     expect(formatDateId('2026-10-30')).toBe('30 Oktober 2026');
   });
+
+  it('formatMonthYearId menulis bulan Indonesia dari periode', async () => {
+    const { formatMonthYearId } = await import('./messaging');
+    expect(formatMonthYearId('2026-08')).toBe('Agustus 2026');
+    expect(formatMonthYearId('2026-05')).toBe('Mei 2026');
+    expect(formatMonthYearId('xx')).toBe('xx');
+  });
 });

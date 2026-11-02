@@ -16,12 +16,14 @@ import {
   portalRequest,
 } from '@/lib/portal-api';
 import { downloadReportCardPdf } from '../../../report-cards/pdf/download';
+import { useSignLabels } from '../../../report-cards/pdf/use-sign-labels';
 import { usePortalDetail } from '../../queries';
 import { EmptyState } from '../../ui-bits';
 import { TabState } from './tab-state';
 
 export function ReportsTab({ studentId }: { studentId: string }) {
   const t = useTranslations('portal');
+  const signLabels = useSignLabels();
   const locale = useLocale() as Locale;
   const { school } = useSchool();
   const q = usePortalDetail<PortalReportCards>(
@@ -40,7 +42,7 @@ export function ReportsTab({ studentId }: { studentId: string }) {
         PORTAL_PATHS.reportCard(studentId, r.semesterId),
         { schoolId: school.schoolId },
       );
-      await downloadReportCardPdf(doc);
+      await downloadReportCardPdf(doc, signLabels);
     } catch {
       toast.error(t('reportError'));
     } finally {

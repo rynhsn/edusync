@@ -10,5 +10,6 @@ export * from './permissions';
 export * from './pkl';
 export * from './quran';
 export * from './report-card';
+export * from './school-domain';
 export * from './school-settings';
 export * from './timezone';

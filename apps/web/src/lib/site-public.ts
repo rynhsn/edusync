@@ -75,13 +75,21 @@ const getBaseDomain = cache(
   async () => (await getJson<{ baseDomain: string }>('/v1/config'))?.baseDomain ?? null,
 );
 
-/** Slug sekolah dari host permintaan (untuk /site yang dibuka dari <slug>.domain); null di alamat utama. */
+/**
+ * Slug sekolah dari host permintaan: <slug>.domain-dasar, atau domain sendiri yang terverifikasi (ditanyakan ke
+ * API; host mentah tidak pernah dipercaya). Null di alamat utama dan host yang tidak dikenal.
+ */
 export async function hostSlug(): Promise<string | null> {
   const [h, base] = [await headers(), await getBaseDomain()];
   const host = h.get('x-forwarded-host') ?? h.get('host');
   if (!host || !base) return null;
   const where = parseHost(host, base);
-  return where.kind === 'school' ? where.slug : null;
+  if (where.kind === 'school') return where.slug;
+  if (host.toLowerCase() === base.toLowerCase()) return null;
+  return (
+    (await getJson<{ schoolSlug: string }>(`/v1/public/resolve-host?host=${seg(host.toLowerCase())}`))
+      ?.schoolSlug ?? null
+  );
 }
 
 /** Tautan situs untuk permintaan saat ini. */

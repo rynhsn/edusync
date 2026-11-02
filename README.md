@@ -59,13 +59,13 @@ Akun contoh: `admin@edusync.test`, `guru@edusync.test`, `staff@edusync.test` (st
 
 ### Port yang dipakai
 
-| Port | Layanan                          | Dari mana                                              |
-| ---- | -------------------------------- | ------------------------------------------------------ |
-| 3000 | Web (Next.js)                    | `apps/web` (`next dev -p 3000`)                        |
-| 4000 | API (Fastify, dokumen di `/docs`) | `API_PORT` di `.env`                                   |
-| 5440 | PostgreSQL 18 (Docker)           | `docker-compose.yml`, dipetakan ke 5432 di kontainer   |
-| 8025 | Mailpit, kotak email uji (web)   | `docker-compose.yml`                                   |
-| 1025 | Mailpit, SMTP                    | `SMTP_PORT` di `.env`                                  |
+| Port | Layanan                           | Dari mana                                            |
+| ---- | --------------------------------- | ---------------------------------------------------- |
+| 3000 | Web (Next.js)                     | `apps/web` (`next dev -p 3000`)                      |
+| 4000 | API (Fastify, dokumen di `/docs`) | `API_PORT` di `.env`                                 |
+| 5440 | PostgreSQL 18 (Docker)            | `docker-compose.yml`, dipetakan ke 5432 di kontainer |
+| 8025 | Mailpit, kotak email uji (web)    | `docker-compose.yml`                                 |
+| 1025 | Mailpit, SMTP                     | `SMTP_PORT` di `.env`                                |
 
 Worker tidak membuka port; ia memakai antrean di PostgreSQL. Port 5000 tidak dipakai proyek ini.
 

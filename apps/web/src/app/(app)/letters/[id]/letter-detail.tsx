@@ -2,23 +2,14 @@
 
 import { type LetterPlaceholder, renderLetter } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  ArrowLeft,
-  Ban,
-  Check,
-  Copy,
-  Download,
-  ExternalLink,
-  FileSignature,
-  Pencil,
-  Trash2,
-} from 'lucide-react';
+import { Ban, Check, Copy, Download, ExternalLink, FileSignature, Pencil, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
@@ -344,9 +335,9 @@ export function LetterDetail({ id }: { id: string }) {
         <Alert variant="destructive">
           <AlertDescription>{t('loadError')}</AlertDescription>
         </Alert>
-        <Button variant="outline" className="w-fit" nativeButton={false} render={<Link href="/letters" />}>
-          <ArrowLeft className="size-4" /> {t('back')}
-        </Button>
+        <div>
+          <BackLink href="/letters" />
+        </div>
       </PageBody>
     );
   }
@@ -475,11 +466,7 @@ export function LetterDetail({ id }: { id: string }) {
             {l.number} · {date}
           </span>
         }
-        actions={
-          <Button variant="ghost" nativeButton={false} render={<Link href="/letters" />}>
-            <ArrowLeft className="size-4" /> {t('back')}
-          </Button>
-        }
+        actions={<BackLink href="/letters" />}
       />
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">

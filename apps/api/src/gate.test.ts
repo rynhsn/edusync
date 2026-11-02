@@ -109,6 +109,8 @@ function lastSchoolDay() {
 }
 
 beforeAll(async () => {
+  // Tes memakai hari sekolah terakhir (bisa sampai 3 hari lalu saat akhir pekan): lebarkan batas kirim ulang offline.
+  process.env.KIOSK_MAX_PAST_HOURS = String(24 * 8);
   app = await buildApp(
     loadEnv({ ...process.env, NODE_ENV: 'test', PAYMENT_PROVIDER: 'dev', MIDTRANS_SERVER_KEY: '' }),
   );
@@ -347,7 +349,7 @@ describe('tap kiosk', () => {
     expect(future.json().error.code).toBe('invalid_time');
     const old = await kiosk('POST', '/v1/kiosk/tap', ids.key, {
       code: 'A1B2C3D4',
-      at: new Date(Date.now() - 5 * 86_400_000).toISOString(),
+      at: new Date(Date.now() - 12 * 86_400_000).toISOString(),
     });
     expect(old.json().error.code).toBe('invalid_time');
     expect((await tap('c1c1c1c1', '06:40:00')).json()).toMatchObject({

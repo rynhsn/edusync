@@ -1,33 +1,17 @@
+import { formatDateId } from '@edusync/contracts';
 import { type Db, enqueueMessages, sql } from '@edusync/db';
 import type { PlatformLoader } from './account-sync';
 import { type Loop, startLoop } from './loop';
 
 const DAY_MS = 86_400_000;
-const MONTHS = [
-  'Januari',
-  'Februari',
-  'Maret',
-  'April',
-  'Mei',
-  'Juni',
-  'Juli',
-  'Agustus',
-  'September',
-  'Oktober',
-  'November',
-  'Desember',
-];
 
 export const toMinutes = (hhmm: string) => {
   const [h, m] = hhmm.split(':').map(Number);
   return (h ?? 0) * 60 + (m ?? 0);
 };
 
-/** "2026-10-30" menjadi "30 Oktober 2026". */
-export function formatDateId(date: string): string {
-  const [y, m, d] = date.split('-');
-  return `${Number(d)} ${MONTHS[Number(m) - 1] ?? m} ${y}`;
-}
+// Satu sumber format tanggal Indonesia (berbasis Intl) di kontrak.
+export { formatDateId };
 
 /** 250000 menjadi "Rp 250.000". */
 export function formatRupiah(n: number): string {

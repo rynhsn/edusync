@@ -52,6 +52,7 @@ import { cn } from '@/lib/utils';
 import { downloadClassReportCardsPdf, downloadReportCardPdf, exportLedgerExcel } from './pdf/download';
 import { slugify } from './pdf/format';
 import type { ReportCardDoc } from './pdf/types';
+import { useSignLabels } from './pdf/use-sign-labels';
 import { ReportCardPreview } from './preview';
 import { Textarea } from './textarea';
 
@@ -137,13 +138,14 @@ function PreviewDialog({
   const t = useTranslations('reportCards');
   const te = useTranslations();
   const doc = useReportCard(semesterId, target?.studentId ?? null);
+  const signLabels = useSignLabels();
   const [busy, setBusy] = useState(false);
 
   async function download() {
     if (!doc.data) return;
     setBusy(true);
     try {
-      await downloadReportCardPdf(doc.data);
+      await downloadReportCardPdf(doc.data, signLabels);
     } catch {
       toast.error(t('pdfError'));
     } finally {
@@ -252,6 +254,7 @@ function NoteDialog({
 export function ReportCardsView() {
   const t = useTranslations('reportCards');
   const te = useTranslations();
+  const signLabels = useSignLabels();
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
@@ -355,7 +358,7 @@ export function ReportCardsView() {
   async function downloadOne(studentId: string) {
     setBusyStudent(studentId);
     try {
-      await downloadReportCardPdf(await fetchDoc(studentId));
+      await downloadReportCardPdf(await fetchDoc(studentId), signLabels);
     } catch (e) {
       toast.error(e instanceof ApiError ? te(errorKey(e)) : t('pdfError'));
     } finally {
@@ -382,6 +385,7 @@ export function ReportCardsView() {
       await downloadClassReportCardsPdf(
         docs,
         `rapor-${slugify(className)}-${slugify(semester?.name ?? '')}.pdf`,
+        signLabels,
       );
     } catch (e) {
       toast.error(e instanceof ApiError ? te(errorKey(e)) : t('pdfError'));

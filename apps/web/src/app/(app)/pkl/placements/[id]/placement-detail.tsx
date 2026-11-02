@@ -3,7 +3,6 @@
 import { canPlacementTransition, type PklPlacementStatus } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
-  ArrowLeft,
   Building2,
   CalendarRange,
   CheckCheck,
@@ -17,17 +16,17 @@ import {
   UserRoundCheck,
   XCircle,
 } from 'lucide-react';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
@@ -106,9 +105,9 @@ export function PlacementDetail({ id }: { id: string }) {
     const missing = query.error instanceof ApiError && query.error.status === 404;
     return (
       <PageBody>
-        <Link href="/pkl" className={cn(buttonVariants({ variant: 'ghost' }), 'w-fit')}>
-          <ArrowLeft className="size-4" aria-hidden /> {t('backToBoard')}
-        </Link>
+        <div className="flex justify-end">
+          <BackLink href="/pkl" label={t('backToBoard')} />
+        </div>
         <Alert variant="destructive" role="alert">
           <AlertDescription>{missing ? t('notFound') : te(errorKey(query.error))}</AlertDescription>
         </Alert>
@@ -136,9 +135,9 @@ export function PlacementDetail({ id }: { id: string }) {
 
   return (
     <PageBody>
-      <Link href="/pkl" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'w-fit')}>
-        <ArrowLeft className="size-4" aria-hidden /> {t('backToBoard')}
-      </Link>
+      <div className="flex justify-end">
+        <BackLink href="/pkl" label={t('backToBoard')} />
+      </div>
 
       {/* Kepala */}
       <section className="relative overflow-hidden rounded-2xl border bg-gradient-to-br from-orange-50 via-card to-teal-50 p-5 dark:from-orange-500/10 dark:to-teal-500/10">

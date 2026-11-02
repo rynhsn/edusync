@@ -95,7 +95,8 @@
     "portalAdmin": "Portal accounts",
     "groupAttendance": "Attendance",
     "groupCommunication": "Communication and site",
-    "schoolSettings": "School settings"
+    "schoolSettings": "School settings",
+    "attendanceCards": "RFID cards"
   },
   "roles": {
     "school_admin": "School admin",
@@ -301,7 +302,9 @@
     "document_required": "A required document has not been uploaded. Complete it before submitting.",
     "limit_reached": "The limit has been reached.",
     "subscription_inactive": "The subscription is not active. Pay the renewal invoice first.",
-    "no_change": "There is no change from the current plan."
+    "no_change": "There is no change from the current plan.",
+    "invalid_hostname": "That domain name cannot be used. Use a domain you own, not an IP or an Edusync address.",
+    "domain_limit": "The domain limit for this school has been reached."
   },
   "theme": {
     "label": "Theme",
@@ -1368,7 +1371,7 @@
   },
   "gate": {
     "settingsTitle": "Attendance settings",
-    "settingsSubtitle": "Hours, kiosk devices, student cards and the duty teacher roster.",
+    "settingsSubtitle": "Hours, kiosk devices and the duty teacher roster.",
     "noAccess": "You do not have permission to configure attendance.",
     "tab": {
       "policy": "Policy",
@@ -1589,7 +1592,14 @@
     "rosterDutyCount": "{count} teachers selected",
     "noTeachers": "No active teachers yet.",
     "tabsLabel": "Settings sections",
-    "searchCards": "Search student name"
+    "searchCards": "Search student name",
+    "cardsTitle": "RFID cards",
+    "statRegistered": "Registered cards",
+    "statWithoutCard": "Students without a card",
+    "manageCards": "Manage cards",
+    "studentCardsTitle": "RFID card",
+    "studentCardsEmpty": "This student has no card yet.",
+    "studentCardsRegister": "Register"
   },
   "extracurricular": {
     "title": "Extracurriculars",
@@ -1931,7 +1941,10 @@
     "statDraftLeft": "{count} still in draft",
     "statComplete": "Fully graded",
     "classActions": "Class actions",
-    "rowActions": "Actions for"
+    "rowActions": "Actions for",
+    "signParent": "Parent / guardian",
+    "signHomeroom": "Homeroom teacher",
+    "signPrincipal": "Principal"
   },
   "financeReports": {
     "title": "Finance reports",
@@ -4098,5 +4111,51 @@
     "chooseOther": "Choose another file",
     "uploadAgain": "Upload the file again",
     "doneBody": "The data is saved and already shows in the list."
+  },
+  "siteDomains": {
+    "title": "Custom domain",
+    "subtitle": "Show the school website, admissions and letter verification on an address the school owns, for example www.yourschool.sch.id.",
+    "back": "School website",
+    "limitTitle": "Stage 1 limits",
+    "limitBody": "Custom domains currently cover the public website, admissions and letter verification only. The dashboard and sign-in stay on the school address under the Edusync domain. HTTPS certificates are issued by the production server.",
+    "addTitle": "Add a domain",
+    "hostnameLabel": "Domain name",
+    "hostnamePlaceholder": "www.yourschool.sch.id",
+    "hostnameHint": "No http:// and no slashes. A subdomain (www) or a root domain both work.",
+    "addButton": "Add",
+    "added": "Domain added. Set the DNS records below, then check.",
+    "countOf": "{count} of {max} domains used",
+    "emptyTitle": "No custom domain yet",
+    "emptyBody": "Add a domain you already own. We will show the DNS records to set.",
+    "statusPending": "Waiting for DNS",
+    "statusVerified": "Verified",
+    "statusFailed": "Not matching",
+    "verifiedNote": "Live: the school website, admissions and letter verification are served on this domain.",
+    "dnsTitle": "DNS records to set",
+    "dnsHint": "Add both records at your domain DNS provider (where you bought the domain). DNS changes can take minutes to a few hours.",
+    "colType": "Type",
+    "colName": "Name",
+    "colValue": "Value",
+    "copy": "Copy value",
+    "copied": "Copied.",
+    "checkNow": "Check now",
+    "checkedAt": "Last checked {date}",
+    "neverChecked": "Not checked yet",
+    "verifiedToast": "Domain verified.",
+    "failedToast": "DNS records do not match yet. See the check details.",
+    "resultTitle": "Check result",
+    "checkTxt": "Verification TXT record",
+    "checkCname": "Domain target (CNAME or A)",
+    "expected": "Expected",
+    "found": "Found",
+    "notFound": "not found",
+    "delete": "Remove",
+    "deleteTitle": "Remove domain {hostname}?",
+    "deleteBody": "The website, admissions and letter verification will no longer appear on this domain. The school address on the Edusync domain keeps working.",
+    "deleted": "Domain removed.",
+    "loadError": "The domain list could not be loaded.",
+    "linkTitle": "Custom domain",
+    "linkBody": "Show the website on an address the school owns.",
+    "linkOpen": "Manage domains"
   }
 }

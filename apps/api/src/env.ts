@@ -27,6 +27,8 @@ const schema = z
       .toLowerCase()
       .regex(/^[a-z0-9]([a-z0-9.-]*[a-z0-9])?(:\d{2,5})?$/, 'hanya host dan port, tanpa http:// atau path')
       .default('localhost:3000'),
+    /** Host tujuan CNAME/A untuk domain sendiri sekolah. Kosong = host APP_DOMAIN (tanpa port). */
+    CUSTOM_DOMAIN_TARGET: z.string().trim().toLowerCase().optional(),
     /** Alamat web, dipakai untuk tautan pembayaran. */
     WEB_URL: z.string().url().default('http://localhost:3000'),
     PAYMENT_PROVIDER: z.enum(['dev', 'midtrans']).default('dev'),

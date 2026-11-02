@@ -104,6 +104,8 @@ const KNOWN = [
   'limit_reached',
   'subscription_inactive',
   'no_change',
+  'invalid_hostname',
+  'domain_limit',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

@@ -68728,6 +68728,957 @@
         }
       }
     },
+    "/v1/school/domains": {
+      "get": {
+        "summary": "Daftar domain sendiri",
+        "tags": [
+          "School"
+        ],
+        "description": "Izin: `school:manage`; modul `website`. Domain milik sekolah beserta status verifikasi dan catatan DNS yang harus dipasang. Tahap 1: hanya situs publik, SPMB, dan verifikasi surat yang tampil di domain ini.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "hostname": {
+                        "type": "string"
+                      },
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "pending",
+                          "verified",
+                          "failed"
+                        ]
+                      },
+                      "verifiedAt": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "lastCheckedAt": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "lastError": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "createdAt": {
+                        "type": "string"
+                      },
+                      "records": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "type": {
+                              "type": "string",
+                              "enum": [
+                                "CNAME",
+                                "TXT"
+                              ]
+                            },
+                            "name": {
+                              "type": "string",
+                              "description": "Nama catatan DNS yang harus dibuat"
+                            },
+                            "value": {
+                              "type": "string",
+                              "description": "Isi catatan"
+                            }
+                          },
+                          "required": [
+                            "type",
+                            "name",
+                            "value"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "description": "Catatan DNS yang diminta dari pemilik domain"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "hostname",
+                      "status",
+                      "verifiedAt",
+                      "lastCheckedAt",
+                      "lastError",
+                      "createdAt",
+                      "records"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "summary": "Tambah domain sendiri",
+        "tags": [
+          "School"
+        ],
+        "description": "Izin: `school:manage`; modul `website`. Hostname dinormalkan ke huruf kecil. 400 `invalid_hostname` bila bukan domain sah (IP, localhost, atau milik APP_DOMAIN); 409 `domain_limit` bila sudah 3 domain; 409 `conflict` bila hostname sudah dipakai sekolah mana pun. Status awal `pending` sampai `POST /v1/school/domains/{id}/verify` lolos.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "hostname": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 253
+                  }
+                },
+                "required": [
+                  "hostname"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "hostname": {
+                      "type": "string"
+                    },
+                    "status": {
+                      "type": "string",
+                      "enum": [
+                        "pending",
+                        "verified",
+                        "failed"
+                      ]
+                    },
+                    "verifiedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "lastCheckedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "lastError": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "createdAt": {
+                      "type": "string"
+                    },
+                    "records": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "CNAME",
+                              "TXT"
+                            ]
+                          },
+                          "name": {
+                            "type": "string",
+                            "description": "Nama catatan DNS yang harus dibuat"
+                          },
+                          "value": {
+                            "type": "string",
+                            "description": "Isi catatan"
+                          }
+                        },
+                        "required": [
+                          "type",
+                          "name",
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "Catatan DNS yang diminta dari pemilik domain"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "hostname",
+                    "status",
+                    "verifiedAt",
+                    "lastCheckedAt",
+                    "lastError",
+                    "createdAt",
+                    "records"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/school/domains/{id}/verify": {
+      "post": {
+        "summary": "Periksa DNS domain sendiri",
+        "tags": [
+          "School"
+        ],
+        "description": "Izin: `school:manage`; modul `website`. Memeriksa TXT `_edusync-verify.<hostname>` berisi token dan CNAME (atau A untuk apex) menuju target. Lolos keduanya = `verified`; selain itu `failed` dengan `checks` yang memuat isi diharapkan versus ditemukan. Boleh diulang kapan saja (mis. setelah DNS menyebar). 404 `not_found` bila domain tak ada.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "domain": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "hostname": {
+                          "type": "string"
+                        },
+                        "status": {
+                          "type": "string",
+                          "enum": [
+                            "pending",
+                            "verified",
+                            "failed"
+                          ]
+                        },
+                        "verifiedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "lastCheckedAt": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "lastError": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "createdAt": {
+                          "type": "string"
+                        },
+                        "records": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "type": {
+                                "type": "string",
+                                "enum": [
+                                  "CNAME",
+                                  "TXT"
+                                ]
+                              },
+                              "name": {
+                                "type": "string",
+                                "description": "Nama catatan DNS yang harus dibuat"
+                              },
+                              "value": {
+                                "type": "string",
+                                "description": "Isi catatan"
+                              }
+                            },
+                            "required": [
+                              "type",
+                              "name",
+                              "value"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "description": "Catatan DNS yang diminta dari pemilik domain"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "hostname",
+                        "status",
+                        "verifiedAt",
+                        "lastCheckedAt",
+                        "lastError",
+                        "createdAt",
+                        "records"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "checks": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "kind": {
+                            "type": "string",
+                            "enum": [
+                              "txt",
+                              "cname"
+                            ]
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "ok": {
+                            "type": "boolean"
+                          },
+                          "expected": {
+                            "type": "string",
+                            "description": "Isi yang diharapkan"
+                          },
+                          "found": {
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            },
+                            "description": "Isi yang ditemukan di DNS (kosong bila tidak ada)"
+                          }
+                        },
+                        "required": [
+                          "kind",
+                          "name",
+                          "ok",
+                          "expected",
+                          "found"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "domain",
+                    "checks"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/school/domains/{id}": {
+      "delete": {
+        "summary": "Hapus domain sendiri",
+        "tags": [
+          "School"
+        ],
+        "description": "Izin: `school:manage`; modul `website`. Domain berhenti dikenali (cache host paling lama 60 detik di instance lain). 404 `not_found` bila tak ada.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/public/resolve-host": {
+      "get": {
+        "summary": "Petakan host domain sendiri ke sekolah (publik)",
+        "tags": [
+          "Situs sekolah (publik)"
+        ],
+        "description": "Tanpa login. Mengembalikan slug sekolah hanya bila `host` adalah domain sendiri terverifikasi milik sekolah aktif; selain itu 404 `not_found` seragam. Host tidak pernah dipercaya mentah. Hasil di-cache 60 detik.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 253
+            },
+            "in": "query",
+            "name": "host",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "schoolSlug": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "schoolSlug"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/semesters": {
       "get": {
         "summary": "Daftar semester",

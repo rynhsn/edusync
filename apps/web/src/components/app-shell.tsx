@@ -16,6 +16,7 @@ import {
   ClipboardList,
   ClipboardSignature,
   Clock,
+  CreditCard,
   Database,
   DoorOpen,
   Factory,
@@ -160,6 +161,13 @@ export const NAV_GROUPS = [
         labelKey: 'gate',
         icon: DoorOpen,
         permission: 'attendance:read',
+        module: 'attendance',
+      },
+      {
+        href: '/attendance/cards',
+        labelKey: 'attendanceCards',
+        icon: CreditCard,
+        permission: 'attendance:configure',
         module: 'attendance',
       },
       {

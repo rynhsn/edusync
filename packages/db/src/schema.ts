@@ -2223,3 +2223,34 @@ export const changeOrder = pgTable(
   },
   (t) => [index('change_order_foundation_idx').on(t.foundationId)],
 );
+
+/* ---------- Domain sendiri sekolah (situs publik, SPMB, verifikasi surat) ---------- */
+
+/**
+ * Domain milik sekolah sendiri. `hostname` unik global (huruf kecil). Dimiliki hanya jika `status` = 'verified'
+ * (DNS TXT berisi `verification_token` sudah terbaca). Resolusi host lintas-sekolah lewat fungsi
+ * `resolve_school_domain` (SECURITY DEFINER), bukan lewat RLS.
+ */
+export const schoolDomain = pgTable(
+  'school_domain',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    hostname: text('hostname').notNull(),
+    status: text('status', { enum: ['pending', 'verified', 'failed'] })
+      .notNull()
+      .default('pending'),
+    verificationToken: text('verification_token').notNull(),
+    verifiedAt: timestamp('verified_at', { withTimezone: true }),
+    lastCheckedAt: timestamp('last_checked_at', { withTimezone: true }),
+    lastError: text('last_error'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('school_domain_hostname_uq').on(t.hostname),
+    index('school_domain_school_idx').on(t.schoolId),
+    check('school_domain_hostname_lower_ck', sql`${t.hostname} = lower(${t.hostname})`),
+  ],
+);

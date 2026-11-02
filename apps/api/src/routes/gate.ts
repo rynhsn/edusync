@@ -98,12 +98,15 @@ async function requireDevice(request: FastifyRequest) {
   request.device = { id: row.id, schoolId: row.schoolId, name: row.name };
 }
 
-/** Waktu tap dari perangkat: boleh masa lalu (kirim ulang offline, maksimal 48 jam), tidak boleh di masa depan. */
+/** Waktu tap dari perangkat: boleh masa lalu (kirim ulang offline, maksimal 48 jam; KIOSK_MAX_PAST_HOURS untuk tes), tidak boleh di masa depan. */
 function tapTime(at: string | undefined) {
   if (!at) return new Date();
   const d = new Date(at);
   const now = Date.now();
-  if (d.getTime() > now + 60_000 || d.getTime() < now - 48 * 3_600_000) {
+  if (
+    d.getTime() > now + 60_000 ||
+    d.getTime() < now - Number(process.env.KIOSK_MAX_PAST_HOURS ?? 48) * 3_600_000
+  ) {
     throw new HttpError(400, 'invalid_time', 'Waktu tap di luar rentang yang diterima.');
   }
   return d;

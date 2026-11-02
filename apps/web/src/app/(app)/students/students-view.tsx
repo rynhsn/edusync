@@ -50,6 +50,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { buildExport, saveBlob } from '@/lib/sheet';
 import { GuardiansPanel } from './guardians-panel';
+import { StudentCards } from './student-cards';
 
 const PAGE = 25;
 const STATUSES = ['active', 'graduated', 'transferred', 'dropped'] as const;
@@ -201,7 +202,7 @@ export function StudentsView() {
   const tm = useTranslations('masterData');
   const tg = useTranslations('guardians');
   const te = useTranslations();
-  const { school, can } = useSchool();
+  const { school, can, hasModule } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
   const manage = can('student:manage');
@@ -647,6 +648,9 @@ export function StudentsView() {
             </DialogTitle>
           </DialogHeader>
           {guardiansFor && <GuardiansPanel studentId={guardiansFor.id} />}
+          {guardiansFor && hasModule('attendance') && can('attendance:configure') && (
+            <StudentCards studentId={guardiansFor.id} />
+          )}
         </DialogContent>
       </Dialog>
     </PageBody>

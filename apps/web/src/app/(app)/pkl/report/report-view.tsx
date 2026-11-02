@@ -1,21 +1,21 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Download } from 'lucide-react';
+import { Download } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button, buttonVariants } from '@/components/ui/button';
+import { Button } from '@/components/ui/button';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { buildExport, saveBlob } from '@/lib/sheet';
-import { cn } from '@/lib/utils';
 import { pklKey, ScoreBadge, StatusChip, usePklPeriods } from '../shared';
 
 /** Rekap PKL per periode: tabel hasil dan ekspor Excel. */
@@ -83,20 +83,20 @@ export function ReportView({ initialPeriodId }: { initialPeriodId: string }) {
 
   return (
     <PageBody>
-      <Link href="/pkl" className={cn(buttonVariants({ variant: 'ghost', size: 'sm' }), 'w-fit')}>
-        <ArrowLeft className="size-4" aria-hidden /> {t('backToBoard')}
-      </Link>
       <PageHeader
         title={t('reportTitle')}
         description={t('reportSubtitle')}
         actions={
-          <Button
-            variant="outline"
-            disabled={exporting || !data || data.rows.length === 0}
-            onClick={exportExcel}
-          >
-            <Download className="size-4" aria-hidden /> {exporting ? tm('exporting') : tm('export')}
-          </Button>
+          <>
+            <Button
+              variant="outline"
+              disabled={exporting || !data || data.rows.length === 0}
+              onClick={exportExcel}
+            >
+              <Download className="size-4" aria-hidden /> {exporting ? tm('exporting') : tm('export')}
+            </Button>
+            <BackLink href="/pkl" label={t('backToBoard')} />
+          </>
         }
       />
       <div className="w-full sm:w-72">

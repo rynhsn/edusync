@@ -32447,6 +32447,479 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/school/domains": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar domain sendiri
+         * @description Izin: `school:manage`; modul `website`. Domain milik sekolah beserta status verifikasi dan catatan DNS yang harus dipasang. Tahap 1: hanya situs publik, SPMB, dan verifikasi surat yang tampil di domain ini.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            hostname: string;
+                            /** @enum {string} */
+                            status: "pending" | "verified" | "failed";
+                            verifiedAt: string | null;
+                            lastCheckedAt: string | null;
+                            lastError: string | null;
+                            createdAt: string;
+                            /** @description Catatan DNS yang diminta dari pemilik domain */
+                            records: {
+                                /** @enum {string} */
+                                type: "CNAME" | "TXT";
+                                /** @description Nama catatan DNS yang harus dibuat */
+                                name: string;
+                                /** @description Isi catatan */
+                                value: string;
+                            }[];
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah domain sendiri
+         * @description Izin: `school:manage`; modul `website`. Hostname dinormalkan ke huruf kecil. 400 `invalid_hostname` bila bukan domain sah (IP, localhost, atau milik APP_DOMAIN); 409 `domain_limit` bila sudah 3 domain; 409 `conflict` bila hostname sudah dipakai sekolah mana pun. Status awal `pending` sampai `POST /v1/school/domains/{id}/verify` lolos.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        hostname: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            hostname: string;
+                            /** @enum {string} */
+                            status: "pending" | "verified" | "failed";
+                            verifiedAt: string | null;
+                            lastCheckedAt: string | null;
+                            lastError: string | null;
+                            createdAt: string;
+                            /** @description Catatan DNS yang diminta dari pemilik domain */
+                            records: {
+                                /** @enum {string} */
+                                type: "CNAME" | "TXT";
+                                /** @description Nama catatan DNS yang harus dibuat */
+                                name: string;
+                                /** @description Isi catatan */
+                                value: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/school/domains/{id}/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Periksa DNS domain sendiri
+         * @description Izin: `school:manage`; modul `website`. Memeriksa TXT `_edusync-verify.<hostname>` berisi token dan CNAME (atau A untuk apex) menuju target. Lolos keduanya = `verified`; selain itu `failed` dengan `checks` yang memuat isi diharapkan versus ditemukan. Boleh diulang kapan saja (mis. setelah DNS menyebar). 404 `not_found` bila domain tak ada.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            domain: {
+                                /** Format: uuid */
+                                id: string;
+                                hostname: string;
+                                /** @enum {string} */
+                                status: "pending" | "verified" | "failed";
+                                verifiedAt: string | null;
+                                lastCheckedAt: string | null;
+                                lastError: string | null;
+                                createdAt: string;
+                                /** @description Catatan DNS yang diminta dari pemilik domain */
+                                records: {
+                                    /** @enum {string} */
+                                    type: "CNAME" | "TXT";
+                                    /** @description Nama catatan DNS yang harus dibuat */
+                                    name: string;
+                                    /** @description Isi catatan */
+                                    value: string;
+                                }[];
+                            };
+                            checks: {
+                                /** @enum {string} */
+                                kind: "txt" | "cname";
+                                name: string;
+                                ok: boolean;
+                                /** @description Isi yang diharapkan */
+                                expected: string;
+                                /** @description Isi yang ditemukan di DNS (kosong bila tidak ada) */
+                                found: string[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/school/domains/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Hapus domain sendiri
+         * @description Izin: `school:manage`; modul `website`. Domain berhenti dikenali (cache host paling lama 60 detik di instance lain). 404 `not_found` bila tak ada.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/resolve-host": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Petakan host domain sendiri ke sekolah (publik)
+         * @description Tanpa login. Mengembalikan slug sekolah hanya bila `host` adalah domain sendiri terverifikasi milik sekolah aktif; selain itu 404 `not_found` seragam. Host tidak pernah dipercaya mentah. Hasil di-cache 60 detik.
+         */
+        get: {
+            parameters: {
+                query: {
+                    host: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            schoolSlug: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/semesters": {
         parameters: {
             query?: never;

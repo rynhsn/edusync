@@ -16,23 +16,48 @@ export function useConfig() {
 
 export type Site =
   | { ready: false }
-  | ({ ready: true; baseDomain: string; urlFor: (slug: string | null, path?: string) => string } & HostKind);
+  | ({
+      ready: true;
+      baseDomain: string;
+      /** true bila dibuka dari domain sendiri sekolah (bukan subdomain APP_DOMAIN). */
+      custom: boolean;
+      urlFor: (slug: string | null, path?: string) => string;
+    } & HostKind);
 
 /**
  * Jenis alamat yang sedang dibuka (utama atau sekolah). Baru siap di klien, karena host hanya diketahui
- * di browser dan domain dasar datang dari API.
+ * di browser dan domain dasar datang dari API. Host di luar domain dasar ditanyakan ke API: hanya domain
+ * sendiri yang terverifikasi yang menjadi alamat sekolah; selain itu diperlakukan sebagai alamat utama.
  */
 export function useSite(): Site {
   const config = useConfig();
   const [where, setWhere] = useState<{ host: string; protocol: string } | null>(null);
   useEffect(() => setWhere({ host: window.location.host, protocol: window.location.protocol }), []);
 
-  if (!config.data || !where) return { ready: false };
-  const baseDomain = config.data.baseDomain;
+  const baseDomain = config.data?.baseDomain;
+  const parsed = where && baseDomain ? parseHost(where.host, baseDomain) : null;
+  const probe =
+    !!where &&
+    !!baseDomain &&
+    parsed?.kind === 'main' &&
+    where.host.toLowerCase() !== baseDomain.toLowerCase();
+  const customSlug = useQuery({
+    queryKey: ['resolve-host', where?.host],
+    enabled: probe,
+    staleTime: 5 * 60_000,
+    retry: false,
+    queryFn: async () =>
+      (await api.GET('/v1/public/resolve-host', { params: { query: { host: where?.host as string } } })).data
+        ?.schoolSlug ?? null,
+  });
+
+  if (!baseDomain || !where || !parsed || (probe && customSlug.isPending)) return { ready: false };
+  const customHost: HostKind | null = customSlug.data ? { kind: 'school', slug: customSlug.data } : null;
   return {
     ready: true,
     baseDomain,
-    ...parseHost(where.host, baseDomain),
+    custom: customHost !== null,
+    ...(customHost ?? parsed),
     urlFor: (slug, path = '/') => siteUrl(where.protocol, baseDomain, slug, path),
   };
 }

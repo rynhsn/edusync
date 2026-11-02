@@ -2,13 +2,12 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { CalendarClock, ClipboardCheck, FileBarChart, MapPin, UserRound, Users } from 'lucide-react';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { StatCard, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
@@ -52,14 +51,7 @@ export function ExtracurricularDetailView({ id }: { id: string }) {
   if (!item) {
     return (
       <PageBody>
-        <PageHeader
-          title={t('title')}
-          actions={
-            <Button variant="outline" nativeButton={false} render={<Link href="/extracurriculars" />}>
-              ← {t('back')}
-            </Button>
-          }
-        />
+        <PageHeader title={t('title')} actions={<BackLink href="/extracurriculars" label={t('back')} />} />
         <Alert variant="destructive">
           <AlertDescription>{t('notFound')}</AlertDescription>
         </Alert>
@@ -95,9 +87,7 @@ export function ExtracurricularDetailView({ id }: { id: string }) {
             <ToneBadge tone={item.active ? 'emerald' : 'slate'}>
               {item.active ? t('active') : t('inactive')}
             </ToneBadge>
-            <Button variant="outline" nativeButton={false} render={<Link href="/extracurriculars" />}>
-              ← {t('back')}
-            </Button>
+            <BackLink href="/extracurriculars" label={t('back')} />
           </>
         }
       />

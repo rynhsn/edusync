@@ -400,6 +400,13 @@
       "when": 1794000000000,
       "tag": "0056_treasurer_class_read",
       "breakpoints": true
+    },
+    {
+      "idx": 57,
+      "version": "7",
+      "when": 1794100000000,
+      "tag": "0057_school_domain",
+      "breakpoints": true
     }
   ]
 }

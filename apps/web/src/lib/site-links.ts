@@ -22,10 +22,13 @@ export function siteLinks(opts: {
   const where = parseHost(opts.host, opts.baseDomain);
   const onOwnHost = where.kind === 'school' && where.slug === opts.slug;
   const to = (path: string) => (onOwnHost ? path : siteUrl(opts.protocol, opts.baseDomain, opts.slug, path));
+  // Mode host di luar domain dasar = domain sendiri sekolah (slug sudah diselesaikan dari host terverifikasi).
+  // SPMB ikut tampil di domain itu; login tetap di subdomain sekolah (tahap 1).
+  const onCustomHost = opts.mode === 'host' && where.kind === 'main';
   return {
     base: opts.mode === 'host' ? '/site' : `/site/${opts.slug}`,
     login: to('/login'),
-    apply: to('/apply'),
+    apply: onCustomHost ? '/apply' : to('/apply'),
   };
 }
 

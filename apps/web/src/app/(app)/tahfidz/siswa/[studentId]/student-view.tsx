@@ -2,11 +2,11 @@
 
 import { SURAHS, TOTAL_JUZ } from '@edusync/contracts';
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, Flame, Plus, Target } from 'lucide-react';
-import Link from 'next/link';
+import { Flame, Plus, Target } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useMemo } from 'react';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -59,13 +59,7 @@ export function StudentProgressView({ studentId }: { studentId: string }) {
   );
 
   const back = (
-    <Button
-      variant="outline"
-      nativeButton={false}
-      render={<Link href={data?.halaqah ? `/tahfidz/${data.halaqah.id}` : '/tahfidz'} />}
-    >
-      <ArrowLeft className="size-4" /> {t('back')}
-    </Button>
+    <BackLink href={data?.halaqah ? `/tahfidz/${data.halaqah.id}` : '/tahfidz'} label={t('back')} />
   );
 
   if (progress.isPending) {

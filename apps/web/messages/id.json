@@ -95,7 +95,8 @@
     "portalAdmin": "Akun portal",
     "groupAttendance": "Kehadiran",
     "groupCommunication": "Komunikasi dan situs",
-    "schoolSettings": "Pengaturan sekolah"
+    "schoolSettings": "Pengaturan sekolah",
+    "attendanceCards": "Kartu RFID"
   },
   "roles": {
     "school_admin": "Admin sekolah",
@@ -301,7 +302,9 @@
     "document_required": "Dokumen wajib belum diunggah. Lengkapi dulu sebelum mengirim.",
     "limit_reached": "Batas jumlah sudah tercapai.",
     "subscription_inactive": "Langganan belum aktif. Bayar tagihan perpanjangan dulu.",
-    "no_change": "Tidak ada perubahan dari paket saat ini."
+    "no_change": "Tidak ada perubahan dari paket saat ini.",
+    "invalid_hostname": "Nama domain tidak dapat dipakai. Gunakan domain milik sendiri, bukan IP atau alamat Edusync.",
+    "domain_limit": "Batas jumlah domain per sekolah sudah tercapai."
   },
   "theme": {
     "label": "Tema",
@@ -1368,7 +1371,7 @@
   },
   "gate": {
     "settingsTitle": "Pengaturan absensi",
-    "settingsSubtitle": "Jam, perangkat kiosk, kartu siswa, dan jadwal guru piket.",
+    "settingsSubtitle": "Jam, perangkat kiosk, dan jadwal guru piket.",
     "noAccess": "Anda tidak punya izin untuk mengatur absensi.",
     "tab": {
       "policy": "Kebijakan",
@@ -1589,7 +1592,14 @@
     "rosterDutyCount": "{count} guru terpilih",
     "noTeachers": "Belum ada guru aktif.",
     "tabsLabel": "Bagian pengaturan",
-    "searchCards": "Cari nama siswa"
+    "searchCards": "Cari nama siswa",
+    "cardsTitle": "Kartu RFID",
+    "statRegistered": "Kartu terdaftar",
+    "statWithoutCard": "Siswa tanpa kartu",
+    "manageCards": "Kelola kartu",
+    "studentCardsTitle": "Kartu RFID",
+    "studentCardsEmpty": "Siswa ini belum punya kartu.",
+    "studentCardsRegister": "Daftarkan"
   },
   "extracurricular": {
     "title": "Ekstrakurikuler",
@@ -1931,7 +1941,10 @@
     "statDraftLeft": "{count} rapor masih draf",
     "statComplete": "Nilai lengkap",
     "classActions": "Aksi kelas",
-    "rowActions": "Aksi untuk"
+    "rowActions": "Aksi untuk",
+    "signParent": "Orang tua / wali",
+    "signHomeroom": "Wali kelas",
+    "signPrincipal": "Kepala sekolah"
   },
   "financeReports": {
     "title": "Laporan keuangan",
@@ -4098,5 +4111,51 @@
     "chooseOther": "Pilih berkas lain",
     "uploadAgain": "Unggah ulang berkas",
     "doneBody": "Data sudah tersimpan dan langsung muncul di daftar."
+  },
+  "siteDomains": {
+    "title": "Domain sendiri",
+    "subtitle": "Tampilkan situs sekolah, pendaftaran SPMB, dan verifikasi surat di alamat milik sekolah, misalnya www.sekolahanda.sch.id.",
+    "back": "Situs sekolah",
+    "limitTitle": "Batasan tahap 1",
+    "limitBody": "Domain sendiri baru berlaku untuk situs publik, pendaftaran SPMB, dan verifikasi surat. Dashboard dan halaman masuk tetap di alamat sekolah pada domain Edusync. Sertifikat HTTPS dipasang oleh server produksi.",
+    "addTitle": "Tambah domain",
+    "hostnameLabel": "Nama domain",
+    "hostnamePlaceholder": "www.sekolahanda.sch.id",
+    "hostnameHint": "Tanpa http:// dan tanpa garis miring. Boleh subdomain (www) atau domain utama.",
+    "addButton": "Tambah",
+    "added": "Domain ditambahkan. Pasang catatan DNS di bawah, lalu periksa.",
+    "countOf": "{count} dari {max} domain dipakai",
+    "emptyTitle": "Belum ada domain sendiri",
+    "emptyBody": "Tambahkan domain yang sudah Anda miliki. Kami menunjukkan catatan DNS yang perlu dipasang.",
+    "statusPending": "Menunggu DNS",
+    "statusVerified": "Terverifikasi",
+    "statusFailed": "Belum sesuai",
+    "verifiedNote": "Aktif: situs sekolah, pendaftaran SPMB, dan verifikasi surat tampil di domain ini.",
+    "dnsTitle": "Catatan DNS yang perlu dipasang",
+    "dnsHint": "Pasang kedua catatan di pengelola DNS domain Anda (tempat domain dibeli). Perubahan DNS bisa butuh beberapa menit hingga beberapa jam.",
+    "colType": "Jenis",
+    "colName": "Nama",
+    "colValue": "Isi",
+    "copy": "Salin nilai",
+    "copied": "Disalin.",
+    "checkNow": "Periksa sekarang",
+    "checkedAt": "Terakhir diperiksa {date}",
+    "neverChecked": "Belum pernah diperiksa",
+    "verifiedToast": "Domain terverifikasi.",
+    "failedToast": "Catatan DNS belum sesuai. Lihat rincian pemeriksaan.",
+    "resultTitle": "Hasil pemeriksaan",
+    "checkTxt": "Catatan TXT verifikasi",
+    "checkCname": "Arah domain (CNAME atau A)",
+    "expected": "Diharapkan",
+    "found": "Ditemukan",
+    "notFound": "tidak ditemukan",
+    "delete": "Hapus",
+    "deleteTitle": "Hapus domain {hostname}?",
+    "deleteBody": "Situs, pendaftaran, dan verifikasi surat tidak lagi tampil di domain ini. Alamat sekolah pada domain Edusync tetap berfungsi.",
+    "deleted": "Domain dihapus.",
+    "loadError": "Daftar domain tidak dapat dimuat.",
+    "linkTitle": "Domain sendiri",
+    "linkBody": "Tampilkan situs di alamat milik sekolah.",
+    "linkOpen": "Kelola domain"
   }
 }

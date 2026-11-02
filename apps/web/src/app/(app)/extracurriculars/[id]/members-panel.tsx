@@ -2,7 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Plus, Search, Trash2, UserPlus } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
@@ -15,8 +15,10 @@ import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { formatCalendarDate } from '@/lib/format-date';
 
 /** Dialog pilih kelas lalu centang siswa yang akan ditambahkan sebagai anggota. */
 function AddMembers({ id, memberIds }: { id: string; memberIds: Set<string> }) {
@@ -155,6 +157,7 @@ function AddMembers({ id, memberIds }: { id: string; memberIds: Set<string> }) {
 export function MembersPanel({ id, canWrite }: { id: string; canWrite: boolean }) {
   const t = useTranslations('extracurricular');
   const te = useTranslations();
+  const locale = useLocale() as Locale;
   const { school } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
@@ -214,7 +217,7 @@ export function MembersPanel({ id, canWrite }: { id: string; canWrite: boolean }
                   <TableCell className="font-medium">{m.name}</TableCell>
                   <TableCell className="text-muted-foreground font-mono text-xs">{m.nis ?? '-'}</TableCell>
                   <TableCell>{m.className ?? '-'}</TableCell>
-                  <TableCell className="tabular-nums">{m.joinedOn}</TableCell>
+                  <TableCell className="tabular-nums">{formatCalendarDate(locale, m.joinedOn)}</TableCell>
                   {canWrite && (
                     <TableCell className="text-right">
                       <Button

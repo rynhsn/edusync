@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Check, Copy, ExternalLink, Globe, Info, Save, Undo2 } from 'lucide-react';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -90,6 +91,7 @@ const toBody = (f: Form) => ({
 
 export function SiteSettingsView() {
   const t = useTranslations('siteSettings');
+  const td = useTranslations('siteDomains');
   const te = useTranslations();
   const locale = useLocale() as Locale;
   const { school, can } = useSchool();
@@ -176,6 +178,21 @@ export function SiteSettingsView() {
           ) : undefined
         }
       />
+
+      {can('school:manage') && (
+        <Card>
+          <CardContent className="flex flex-wrap items-center gap-3">
+            <Globe className="text-muted-foreground size-5" aria-hidden />
+            <div className="min-w-0 flex-1">
+              <p className="font-heading font-semibold">{td('linkTitle')}</p>
+              <p className="text-muted-foreground text-sm">{td('linkBody')}</p>
+            </div>
+            <Button variant="outline" nativeButton={false} render={<Link href="/site-settings/domains" />}>
+              {td('linkOpen')}
+            </Button>
+          </CardContent>
+        </Card>
+      )}
 
       {profile.isPending && <Skeleton className="h-96 w-full" />}
       {profile.isError && (

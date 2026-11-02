@@ -19,6 +19,7 @@
       "!graphify-out",
       "!**/.wa-sessions",
       "!**/.wwebjs_cache",
+      "!testsprite_tests",
       "!pnpm-lock.yaml"
     ]
   },

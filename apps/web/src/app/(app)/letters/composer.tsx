@@ -2,13 +2,14 @@
 
 import { LETTER_PLACEHOLDERS, type LetterPlaceholder, renderLetter } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ArrowLeft, Save, Search, UserRound, X } from 'lucide-react';
+import { Save, Search, UserRound, X } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -194,15 +195,7 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
       <PageHeader
         title={initial ? t('editTitle') : t('composeTitle')}
         description={t('composeDescription')}
-        actions={
-          <Button
-            variant="ghost"
-            nativeButton={false}
-            render={<Link href={initial ? `/letters/${initial.id}` : '/letters'} />}
-          >
-            <ArrowLeft className="size-4" /> {t('back')}
-          </Button>
-        }
+        actions={<BackLink href={initial ? `/letters/${initial.id}` : '/letters'} />}
       />
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,26rem)_minmax(0,1fr)]">

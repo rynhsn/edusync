@@ -81,8 +81,25 @@ function Signature({ label, name, nip }: { label: string; name?: string | null; 
   );
 }
 
+export interface SignLabels {
+  parent: string;
+  homeroom: string;
+  principal: string;
+}
+const DEFAULT_SIGN_LABELS: SignLabels = {
+  parent: 'Orang tua / wali',
+  homeroom: 'Wali kelas',
+  principal: 'Kepala sekolah',
+};
+
 /** Rapor satu siswa: halaman A4 portrait, menyambung ke halaman berikut (header tabel berulang) bila mapel banyak. */
-export function ReportCardPage({ doc }: { doc: ReportCardDoc }) {
+export function ReportCardPage({
+  doc,
+  labels = DEFAULT_SIGN_LABELS,
+}: {
+  doc: ReportCardDoc;
+  labels?: SignLabels;
+}) {
   const { school, semester, student, attendance } = doc;
   const place = [school.city, formatIdDate(doc.generatedAt)].filter(Boolean).join(', ');
   const anyBelow = doc.subjects.some((s) => s.belowKkm);
@@ -130,24 +147,27 @@ export function ReportCardPage({ doc }: { doc: ReportCardDoc }) {
       </View>
 
       <Text style={styles.section}>Nilai Mata Pelajaran</Text>
-      <View style={styles.head} fixed>
-        <Text style={[styles.cell, styles.bold, styles.center, { width: W.no }]}>No</Text>
-        <Text style={[styles.cell, styles.bold, { flex: 3 }]}>Mata Pelajaran</Text>
-        <Text style={[styles.cell, styles.bold, styles.center, { width: W.grade }]}>Nilai</Text>
-        <Text style={[styles.cell, styles.bold, styles.center, { width: W.pred }]}>Predikat</Text>
-        <Text style={[styles.cell, styles.bold, { flex: 4 }]}>Deskripsi Capaian</Text>
-      </View>
-      {doc.subjects.map((s, i) => (
-        <View key={s.subjectId} style={styles.row} wrap={false}>
-          <Text style={[styles.cell, styles.center, { width: W.no }]}>{i + 1}</Text>
-          <Text style={[styles.cell, { flex: 3 }]}>{s.name}</Text>
-          <Text style={[styles.cell, styles.center, s.belowKkm ? styles.bold : {}, { width: W.grade }]}>
-            {s.final === null ? '-' : `${formatGrade(s.final)}${s.belowKkm ? '*' : ''}`}
-          </Text>
-          <Text style={[styles.cell, styles.center, { width: W.pred }]}>{s.predicate ?? '-'}</Text>
-          <Text style={[styles.cell, { flex: 4 }]}>{s.description || '-'}</Text>
+      {/* Header tabel dibungkus agar hanya diulang di halaman yang memuat baris nilai. */}
+      <View>
+        <View style={styles.head} fixed>
+          <Text style={[styles.cell, styles.bold, styles.center, { width: W.no }]}>No</Text>
+          <Text style={[styles.cell, styles.bold, { flex: 3 }]}>Mata Pelajaran</Text>
+          <Text style={[styles.cell, styles.bold, styles.center, { width: W.grade }]}>Nilai</Text>
+          <Text style={[styles.cell, styles.bold, styles.center, { width: W.pred }]}>Predikat</Text>
+          <Text style={[styles.cell, styles.bold, { flex: 4 }]}>Deskripsi Capaian</Text>
         </View>
-      ))}
+        {doc.subjects.map((s, i) => (
+          <View key={s.subjectId} style={styles.row} wrap={false}>
+            <Text style={[styles.cell, styles.center, { width: W.no }]}>{i + 1}</Text>
+            <Text style={[styles.cell, { flex: 3 }]}>{s.name}</Text>
+            <Text style={[styles.cell, styles.center, s.belowKkm ? styles.bold : {}, { width: W.grade }]}>
+              {s.final === null ? '-' : `${formatGrade(s.final)}${s.belowKkm ? '*' : ''}`}
+            </Text>
+            <Text style={[styles.cell, styles.center, { width: W.pred }]}>{s.predicate ?? '-'}</Text>
+            <Text style={[styles.cell, { flex: 4 }]}>{s.description || '-'}</Text>
+          </View>
+        ))}
+      </View>
       {anyBelow ? (
         <Text style={styles.small}>* Nilai di bawah KKM (Kriteria Ketuntasan Minimal).</Text>
       ) : null}
@@ -203,9 +223,13 @@ export function ReportCardPage({ doc }: { doc: ReportCardDoc }) {
       <View wrap={false}>
         <Text style={{ textAlign: 'right', marginTop: 12 }}>{place}</Text>
         <View style={styles.sign}>
-          <Signature label="Orang tua / wali" />
-          <Signature label="Wali kelas" name={doc.homeroomTeacher?.name} nip={doc.homeroomTeacher?.nip} />
-          <Signature label="Kepala sekolah" name={doc.principal?.name} nip={doc.principal?.nip} />
+          <Signature label={labels.parent} />
+          <Signature
+            label={labels.homeroom}
+            name={doc.homeroomTeacher?.name}
+            nip={doc.homeroomTeacher?.nip}
+          />
+          <Signature label={labels.principal} name={doc.principal?.name} nip={doc.principal?.nip} />
         </View>
       </View>
     </Page>
@@ -213,13 +237,13 @@ export function ReportCardPage({ doc }: { doc: ReportCardDoc }) {
 }
 
 /** Satu PDF berisi rapor satu atau banyak siswa, urutan halaman sesuai `docs`. */
-export function ReportCardDocument({ docs }: { docs: ReportCardDoc[] }) {
+export function ReportCardDocument({ docs, labels }: { docs: ReportCardDoc[]; labels?: SignLabels }) {
   const first = docs[0];
   const title = first && docs.length === 1 ? `Rapor ${first.student.name}` : 'Rapor';
   return (
     <Document title={title} author="Edusync">
       {docs.map((d) => (
-        <ReportCardPage key={d.student.id} doc={d} />
+        <ReportCardPage key={d.student.id} doc={d} labels={labels} />
       ))}
     </Document>
   );

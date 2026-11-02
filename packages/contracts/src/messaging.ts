@@ -134,3 +134,10 @@ export function formatDateId(isoDate: string): string {
     timeZone: 'UTC',
   }).format(d);
 }
+
+/** "Agustus 2026" dari periode TTTT-BB. */
+export function formatMonthYearId(period: string): string {
+  const d = new Date(`${period.slice(0, 7)}-01T12:00:00Z`);
+  if (Number.isNaN(d.getTime())) return period;
+  return new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric', timeZone: 'UTC' }).format(d);
+}

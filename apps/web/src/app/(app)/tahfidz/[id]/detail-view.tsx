@@ -1,11 +1,10 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
+import { BackLink } from '@/components/back-link';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -34,11 +33,7 @@ export function HalaqahDetailView({ id }: { id: string }) {
   });
   const item = list.data?.find((x) => x.id === id);
 
-  const back = (
-    <Button variant="outline" nativeButton={false} render={<Link href="/tahfidz" />}>
-      <ArrowLeft className="size-4" /> {t('back')}
-    </Button>
-  );
+  const back = <BackLink href="/tahfidz" label={t('back')} />;
 
   if (list.isPending) {
     return (

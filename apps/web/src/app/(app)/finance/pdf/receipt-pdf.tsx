@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
   },
   meta: { flexDirection: 'row', justifyContent: 'space-between', marginBottom: 6 },
   row: { flexDirection: 'row', marginBottom: 2 },
-  label: { width: 78, color: MUTED },
+  label: { width: 92, color: MUTED },
   value: { flex: 1, fontFamily: 'Helvetica-Bold' },
   head: {
     flexDirection: 'row',
@@ -107,7 +107,7 @@ export function ReceiptDocument({ receipt }: { receipt: ReceiptDoc }) {
         <Text style={styles.title}>KWITANSI PEMBAYARAN</Text>
 
         <View style={styles.meta} wrap={false}>
-          <View style={{ flex: 1 }}>
+          <View style={{ flex: 1, paddingRight: 14 }}>
             <View style={styles.row}>
               <Text style={styles.label}>Nomor</Text>
               <Text style={styles.value}>{receipt.receiptNo}</Text>
@@ -124,7 +124,7 @@ export function ReceiptDocument({ receipt }: { receipt: ReceiptDoc }) {
               <Text style={styles.value}>{student.className || '-'}</Text>
             </View>
           </View>
-          <View style={{ width: 170 }}>
+          <View style={{ width: 190 }}>
             <View style={styles.row}>
               <Text style={styles.label}>Tanggal</Text>
               <Text style={styles.value}>{place}</Text>
