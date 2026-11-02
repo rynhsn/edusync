@@ -724,6 +724,9 @@
     "nav": {
       "label": "Account menu",
       "foundation": "Institution",
+      "groupMain": "Institution",
+      "groupHelp": "Help",
+      "groupMe": "My account",
       "overview": "Overview",
       "units": "School units",
       "subscription": "Subscription and modules",

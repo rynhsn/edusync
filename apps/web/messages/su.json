@@ -724,6 +724,9 @@
     "nav": {
       "label": "Ménu akun",
       "foundation": "Lembaga",
+      "groupMain": "Lembaga",
+      "groupHelp": "Bantosan",
+      "groupMe": "Akun abdi",
       "overview": "Ringkesan",
       "units": "Unit sakola",
       "subscription": "Langganan jeung modul",

@@ -724,6 +724,9 @@
     "nav": {
       "label": "Menu akun",
       "foundation": "Lembaga",
+      "groupMain": "Lembaga",
+      "groupHelp": "Bantuan",
+      "groupMe": "Akun saya",
       "overview": "Ringkasan",
       "units": "Unit sekolah",
       "subscription": "Langganan dan modul",
