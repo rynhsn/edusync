@@ -40,10 +40,10 @@ export const DOC_ARTICLES: DocArticle[] = [
         sections: [
           {
             heading: 'Masuk ke sekolah',
-            body: 'Portal akun adalah pusat yayasan untuk langganan dan tagihan. Dari sana Anda membuka setiap unit sekolah.',
+            body: 'Portal akun adalah pusat lembaga untuk langganan dan tagihan. Dari sana Anda membuka setiap unit sekolah.',
             steps: [
-              'Masuk dengan akun yayasan Anda.',
-              'Buka bagian Unit sekolah di halaman Akun yayasan.',
+              'Masuk dengan akun lembaga Anda.',
+              'Buka bagian Unit sekolah di halaman Akun lembaga.',
               'Klik Buka sekolah pada unit yang ingin dikelola.',
             ],
           },
@@ -98,10 +98,10 @@ export const DOC_ARTICLES: DocArticle[] = [
         sections: [
           {
             heading: 'Muka sakola',
-            body: 'Portal akun mangrupa puseur yayasan pikeun langganan jeung tagihan. Ti dinya anjeun muka unggal unit sakola.',
+            body: 'Portal akun mangrupa puseur lembaga pikeun langganan jeung tagihan. Ti dinya anjeun muka unggal unit sakola.',
             steps: [
-              'Lebet nganggo akun yayasan anjeun.',
-              'Buka bagian Unit sekolah dina kaca Akun yayasan.',
+              'Lebet nganggo akun lembaga anjeun.',
+              'Buka bagian Unit sekolah dina kaca Akun lembaga.',
               'Klik Buka sekolah dina unit nu rék diurus.',
             ],
           },
@@ -707,17 +707,17 @@ export const DOC_ARTICLES: DocArticle[] = [
       id: {
         title: 'Langganan, modul, perpanjang, tingkatkan paket, tambah unit sekolah, tagihan',
         summary:
-          'Pantau langganan yayasan, modul yang aktif, unit sekolah, dan bayar tagihan di halaman Akun yayasan.',
+          'Pantau langganan lembaga, modul yang aktif, unit sekolah, dan bayar tagihan di halaman Akun lembaga.',
         sections: [
           {
             heading: 'Lihat langganan dan modul',
-            body: 'Halaman Akun yayasan menampilkan status langganan (Aktif, Masa tenggang, Ditangguhkan, Dibatalkan, atau Menunggu bayar), periode bulanan atau tahunan, tanggal berakhir, dan modul yang aktif. Halaman ini hanya bisa dilihat pemilik yayasan.',
+            body: 'Halaman Akun lembaga menampilkan status langganan (Aktif, Masa tenggang, Ditangguhkan, Dibatalkan, atau Menunggu bayar), periode bulanan atau tahunan, tanggal berakhir, dan modul yang aktif. Halaman ini hanya bisa dilihat pengelola lembaga.',
           },
           {
             heading: 'Bayar dan perpanjang',
             body: 'Tagihan langganan muncul di bagian Tagihan dengan status Belum dibayar, Lunas, Kedaluwarsa, atau Dibatalkan. Perpanjangan dilakukan dengan membayar tagihan berikutnya.',
             steps: [
-              'Buka halaman Akun yayasan.',
+              'Buka halaman Akun lembaga.',
               'Cari tagihan berstatus Belum dibayar di bagian Tagihan.',
               'Klik Bayar sekarang dan selesaikan pembayaran.',
             ],
@@ -763,17 +763,17 @@ export const DOC_ARTICLES: DocArticle[] = [
       su: {
         title: 'Langganan, modul, perpanjang, naékkeun paket, nambah unit sakola, tagihan',
         summary:
-          'Pantau langganan yayasan, modul nu aktif, unit sakola, jeung mayar tagihan dina kaca Akun yayasan.',
+          'Pantau langganan lembaga, modul nu aktif, unit sakola, jeung mayar tagihan dina kaca Akun lembaga.',
         sections: [
           {
             heading: 'Nempo langganan jeung modul',
-            body: 'Kaca Akun yayasan mintonkeun status langganan (Aktif, Masa tenggang, Ditangguhkan, Dibatalkan, atawa Menunggu bayar), periode bulanan atawa taunan, tanggal réngsé, jeung modul nu aktif. Kaca ieu ngan bisa ditempo ku pamilik yayasan.',
+            body: 'Kaca Akun lembaga mintonkeun status langganan (Aktif, Masa tenggang, Ditangguhkan, Dibatalkan, atawa Menunggu bayar), periode bulanan atawa taunan, tanggal réngsé, jeung modul nu aktif. Kaca ieu ngan bisa ditempo ku pangurus lembaga.',
           },
           {
             heading: 'Mayar jeung perpanjang',
             body: 'Tagihan langganan némbongan dina bagian Tagihan kalawan status Belum dibayar, Lunas, Kedaluwarsa, atawa Dibatalkan. Langganan dipanjangkeun ku mayar tagihan saterusna.',
             steps: [
-              'Buka kaca Akun yayasan.',
+              'Buka kaca Akun lembaga.',
               'Golédah tagihan status Belum dibayar dina bagian Tagihan.',
               'Klik Bayar sekarang tuluy réngsékeun pambayaran.',
             ],
@@ -808,8 +808,8 @@ export const DOC_ARTICLES: DocArticle[] = [
             body: 'Pastikan nama akun Anda benar karena dipakai pada undangan dan catatan aktivitas. Selalu keluar setelah memakai komputer bersama.',
           },
           {
-            heading: 'Pemilik yayasan',
-            body: 'Hanya pemilik yayasan yang dapat melihat langganan dan tagihan. Berikan akses sekolah kepada staf lewat undangan dan peran, bukan dengan berbagi akun.',
+            heading: 'Pengelola lembaga',
+            body: 'Hanya pengelola lembaga yang dapat melihat langganan dan tagihan. Berikan akses sekolah kepada staf lewat undangan dan peran, bukan dengan berbagi akun.',
           },
         ],
       },
@@ -844,8 +844,8 @@ export const DOC_ARTICLES: DocArticle[] = [
             body: 'Pastikeun ngaran akun anjeun bener sabab dipaké dina undangan jeung catetan aktivitas. Salawasna kaluar sanggeus maké komputer babarengan.',
           },
           {
-            heading: 'Pamilik yayasan',
-            body: 'Ngan pamilik yayasan nu bisa nempo langganan jeung tagihan. Pasihan staf aksés sakola lewat undangan jeung peran, lain ku babagi akun.',
+            heading: 'Pangurus lembaga',
+            body: 'Ngan pangurus lembaga nu bisa nempo langganan jeung tagihan. Pasihan staf aksés sakola lewat undangan jeung peran, lain ku babagi akun.',
           },
         ],
       },
