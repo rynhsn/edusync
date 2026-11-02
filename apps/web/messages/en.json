@@ -88,6 +88,10 @@
       "ops": "Daily operations",
       "config": "Platform settings",
       "watch": "Monitoring",
+      "start": "Start here",
+      "school_ops": "Running the school",
+      "billing": "Subscription and billing",
+      "safety": "Account security",
       "other": "Other"
     }
   },

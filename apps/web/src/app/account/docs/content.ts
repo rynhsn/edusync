@@ -8,6 +8,7 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'getting-started',
     icon: 'rocket',
     tone: 'teal',
+    group: 'start',
     text: {
       id: {
         title: 'Memulai sebagai pengelola lembaga',
@@ -230,6 +231,7 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'students',
     icon: 'users',
     tone: 'sky',
+    group: 'school_ops',
     text: {
       id: {
         title: 'Data siswa dan jumlah siswa di paket',
@@ -414,6 +416,7 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'rfid-attendance',
     icon: 'scan',
     tone: 'emerald',
+    group: 'school_ops',
     text: {
       id: {
         title: 'Absensi kartu dan gerbang',
@@ -568,6 +571,7 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'grades-report-cards',
     icon: 'graduation',
     tone: 'violet',
+    group: 'school_ops',
     text: {
       id: {
         title: 'Nilai dan rapor',
@@ -738,6 +742,7 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'finance',
     icon: 'wallet',
     tone: 'amber',
+    group: 'school_ops',
     text: {
       id: {
         title: 'Keuangan sekolah dan tagihan Edusync',
@@ -932,6 +937,7 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'admissions',
     icon: 'clipboard',
     tone: 'rose',
+    group: 'school_ops',
     text: {
       id: {
         title: 'SPMB (penerimaan siswa baru)',
@@ -1104,6 +1110,7 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'whatsapp',
     icon: 'message',
     tone: 'emerald',
+    group: 'school_ops',
     text: {
       id: {
         title: 'Notifikasi WhatsApp ke wali',
@@ -1258,6 +1265,7 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'roles-permissions',
     icon: 'shield',
     tone: 'slate',
+    group: 'school_ops',
     text: {
       id: {
         title: 'Pengelola lembaga, peran, dan akses staf',
@@ -1442,6 +1450,7 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'subscription-billing',
     icon: 'credit',
     tone: 'amber',
+    group: 'billing',
     text: {
       id: {
         title: 'Langganan, tagihan, dan unit sekolah',
@@ -1740,6 +1749,7 @@ export const DOC_ARTICLES: DocArticle[] = [
     slug: 'security',
     icon: 'lock',
     tone: 'slate',
+    group: 'safety',
     text: {
       id: {
         title: 'Keamanan akun',

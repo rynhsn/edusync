@@ -35,7 +35,11 @@ export type DocGroup =
   | 'access'
   | 'ops'
   | 'config'
-  | 'watch';
+  | 'watch'
+  | 'start'
+  | 'school_ops'
+  | 'billing'
+  | 'safety';
 export interface DocSection {
   heading: string;
   body: string;

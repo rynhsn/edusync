@@ -88,6 +88,10 @@
       "ops": "Operasional harian",
       "config": "Pengaturan platform",
       "watch": "Pemantauan",
+      "start": "Mulai di sini",
+      "school_ops": "Mengelola sekolah",
+      "billing": "Langganan dan tagihan",
+      "safety": "Keamanan akun",
       "other": "Lainnya"
     }
   },

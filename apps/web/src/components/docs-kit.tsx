@@ -82,6 +82,10 @@ const GROUP_ORDER: (DocGroup | 'other')[] = [
   'ops',
   'config',
   'watch',
+  'start',
+  'school_ops',
+  'billing',
+  'safety',
   'other',
 ];
 
@@ -338,9 +342,9 @@ export function DocsArticle({ articles, slug, base, labels }: Props & { slug: st
         </p>
       )}
 
-      <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1fr)_14rem]">
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_14rem]">
         <div className="grid min-w-0 gap-6">
-          <nav aria-label={t('onThisPage')} className="bg-card rounded-2xl border p-4 lg:hidden">
+          <nav aria-label={t('onThisPage')} className="bg-card rounded-2xl border p-4 xl:hidden">
             <p className="font-heading mb-2 flex items-center gap-2 text-sm font-semibold">
               <ListTree className="size-4" aria-hidden /> {t('onThisPage')}
             </p>
@@ -438,7 +442,7 @@ export function DocsArticle({ articles, slug, base, labels }: Props & { slug: st
           </nav>
         </div>
 
-        <aside className="sticky top-20 hidden lg:block">
+        <aside className="sticky top-20 hidden xl:block">
           <nav aria-label={t('onThisPage')}>
             <p className="font-heading text-muted-foreground mb-2 flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
               <ListTree className="size-3.5" aria-hidden /> {t('onThisPage')}
