@@ -68,12 +68,11 @@ describe.each(SETS)('dokumentasi $name', ({ articles, group }) => {
     }
   });
 
-  it('artikel panduan sekolah dan platform punya kelompok serta ditulis untuk pengguna (tanpa istilah teknis)', () => {
-    if (!group) return;
+  it('artikel ditulis untuk pengguna awam: tanpa istilah teknis, ada "untuk siapa" dan tanya-jawab', () => {
     const banned =
       /\b(API|endpoint|webhook|JSON|payload|token|hash|UID|env|\.env|RLS|dry ?run|localhost|enum)\b|[a-z_]+:[a-z_]+/i;
     for (const a of articles) {
-      expect(a.group, `${a.slug} kelompok`).toBeTruthy();
+      if (group) expect(a.group, `${a.slug} kelompok`).toBeTruthy();
       for (const loc of LOCALES) {
         const t = a.text[loc];
         const all = [t.title, t.summary, t.forWho ?? '']
