@@ -2318,6 +2318,8 @@
     "qrRefresh": "Kode diganti otomatis; kaca mariksa unggal 3 detik.",
     "connect": "Sambungkeun WhatsApp",
     "disconnect": "Peuntaskeun",
+    "connecting": "Nyambungkeun…",
+    "disconnecting": "Peuntaskeun…",
     "riskNote": "Perhatikeun: maké WhatsApp teu resmi bisa ngabalukarkeun nomer diblokir. Paké nomer husus sakola, lain nomer pribadi.",
     "templateSaved": "Citakan disimpen.",
     "templateReset": "Citakan dibalikkeun ka bawaan.",
@@ -3856,6 +3858,8 @@
     }
   },
   "portalAdmin": {
+    "statPending": "Uleman nungguan",
+    "statAccounts": "Akun aktip",
     "title": "Akun portal",
     "subtitle": "Uleman wali atawa murid supados tiasa ningali kahadiran, nilai, jeung tagihan lewat HP.",
     "newTitle": "Jieun uleman",

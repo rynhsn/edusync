@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Info, TriangleAlert } from 'lucide-react';
+import { Info, Loader2, TriangleAlert } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import QRCode from 'qrcode';
 import { useEffect, useState } from 'react';
@@ -141,7 +141,8 @@ export function ConnectionPanel() {
       if (!d) return false;
       const waiting = d.status === 'connecting' || d.status === 'qr';
       const requestedButNotReady = d.desiredState === 'on' && d.status !== 'ready' && d.status !== 'failed';
-      return waiting || requestedButNotReady ? 3000 : false;
+      const closing = d.desiredState === 'off' && d.status !== 'disconnected' && d.status !== 'failed';
+      return waiting || requestedButNotReady || closing ? 3000 : false;
     },
     refetchIntervalInBackground: false,
   });
@@ -170,6 +171,12 @@ export function ConnectionPanel() {
   const style = STATUS_STYLE[status];
   const canConnect = status === 'disconnected' || status === 'failed';
   const canDisconnect = status !== 'disconnected' || a.desiredState === 'on';
+  // Perintah sudah diterima API tetapi worker belum selesai (menutup Chrome / membuka sesi): kunci tombol sampai status berubah.
+  const live = a.provider === 'whatsapp';
+  const starting = live && a.desiredState === 'on' && status === 'disconnected';
+  const closing = live && a.desiredState === 'off' && status !== 'disconnected' && status !== 'failed';
+  const connectBusy = connect.isPending || starting;
+  const disconnectBusy = disconnect.isPending || closing;
 
   return (
     <div className="grid gap-6">
@@ -197,7 +204,7 @@ export function ConnectionPanel() {
           <CardDescription>{t('connectionHint')}</CardDescription>
         </CardHeader>
         <CardContent className="grid gap-4">
-          {a.phone && (
+          {a.phone && status === 'ready' && !closing && (
             <p className="text-sm">
               <span className="text-muted-foreground">{t('connectedPhone')}: </span>
               <span className="font-mono">{a.phone}</span>
@@ -230,17 +237,19 @@ export function ConnectionPanel() {
 
           <div className="flex flex-wrap gap-2">
             {canConnect && (
-              <Button disabled={!canManage || connect.isPending} onClick={() => connect.mutate()}>
-                {t('connect')}
+              <Button disabled={!canManage || connectBusy} onClick={() => connect.mutate()}>
+                {connectBusy && <Loader2 className="animate-spin" aria-hidden />}
+                {connectBusy ? t('connecting') : t('connect')}
               </Button>
             )}
             {canDisconnect && (
               <Button
                 variant="outline"
-                disabled={!canManage || disconnect.isPending}
+                disabled={!canManage || disconnectBusy || connectBusy}
                 onClick={() => disconnect.mutate()}
               >
-                {t('disconnect')}
+                {disconnectBusy && <Loader2 className="animate-spin" aria-hidden />}
+                {disconnectBusy ? t('disconnecting') : t('disconnect')}
               </Button>
             )}
           </div>

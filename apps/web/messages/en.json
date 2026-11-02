@@ -2318,6 +2318,8 @@
     "qrRefresh": "The code refreshes automatically; this page checks every 3 seconds.",
     "connect": "Connect WhatsApp",
     "disconnect": "Disconnect",
+    "connecting": "Connecting…",
+    "disconnecting": "Disconnecting…",
     "riskNote": "Warning: using unofficial WhatsApp access can get the number banned. Use a number dedicated to the school, not a personal one.",
     "templateSaved": "Template saved.",
     "templateReset": "Template reset to default.",
@@ -3856,6 +3858,8 @@
     }
   },
   "portalAdmin": {
+    "statPending": "Pending invites",
+    "statAccounts": "Active accounts",
     "title": "Portal accounts",
     "subtitle": "Invite guardians or students so they can see attendance, grades, and fees on their phones.",
     "newTitle": "Create an invitation",

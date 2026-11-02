@@ -1,7 +1,17 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, Copy, KeyRound, Search, Trash2, UserRoundPlus } from 'lucide-react';
+import {
+  Check,
+  Copy,
+  KeyRound,
+  MailPlus,
+  Search,
+  Trash2,
+  UserCheck,
+  UserRoundPlus,
+  UsersRound,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -9,11 +19,11 @@ import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { EmptyPanel, PersonCell, StatCard, StatGrid, ToneBadge } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
@@ -26,8 +36,6 @@ import {
   type PortalKind,
   portalRequest,
 } from '@/lib/portal-api';
-import { cn } from '@/lib/utils';
-import { EmptyState } from '../portal/ui-bits';
 
 interface Target {
   kind: PortalKind;
@@ -153,8 +161,23 @@ export function PortalAdminView() {
   const relationOf = (id: string) => guardians.data?.find((g) => g.guardianId === id)?.relation;
 
   return (
-    <PageBody className="max-w-4xl">
-      <PageHeader title={t('title')} description={t('subtitle')} />
+    <PageBody>
+      <PageHeader icon={UsersRound} tone="violet" title={t('title')} description={t('subtitle')} />
+
+      <StatGrid className="lg:grid-cols-2">
+        <StatCard
+          label={t('statPending')}
+          value={items.filter((i) => !i.expired).length}
+          icon={MailPlus}
+          tone="amber"
+        />
+        <StatCard
+          label={t('statAccounts')}
+          value={accountItems.filter((a) => a.status === 'active').length}
+          icon={UserCheck}
+          tone="emerald"
+        />
+      </StatGrid>
 
       <section className="bg-card grid gap-4 rounded-2xl border p-4 sm:p-5" aria-labelledby="pa-new">
         <div className="flex items-center gap-3">
@@ -259,51 +282,42 @@ export function PortalAdminView() {
           {t('listTitle')}
         </h2>
         {invites.isError && <p className="text-destructive text-sm">{t('loadError')}</p>}
-        {invites.data && items.length === 0 && <EmptyState title={t('emptyTitle')} body={t('emptyBody')} />}
-        <ul className="grid gap-2">
-          {items.map((inv) => (
-            <li
-              key={inv.id}
-              className="bg-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">
-                  {inv.targetName}{' '}
-                  <Badge variant="outline" className="ml-1">
-                    {t(`kind.${inv.kind}`)}
-                  </Badge>
-                </p>
-                <p className="text-muted-foreground text-xs">
-                  {inv.email ? `${inv.email} · ` : ''}
-                  {t('expiresOn', { date: formatCalendarDate(locale, inv.expiresAt.slice(0, 10)) })}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    'rounded-full px-2.5 py-0.5 text-xs font-medium',
-                    inv.expired ? 'bg-muted text-muted-foreground' : 'bg-chart-2/25',
-                  )}
-                >
-                  {t(inv.expired ? 'status.expired' : 'status.pending')}
-                </span>
-                <ConfirmDialog
-                  trigger={
-                    <Button variant="ghost" size="icon" aria-label={t('revoke')}>
-                      <Trash2 className="size-4" />
-                    </Button>
-                  }
-                  title={t('revokeTitle')}
-                  description={t('revokeBody', { name: inv.targetName })}
-                  confirmLabel={t('revoke')}
-                  destructive
-                  pending={revoke.isPending}
-                  onConfirm={() => revoke.mutateAsync(inv.id)}
+        {invites.data && items.length === 0 && (
+          <EmptyPanel icon={MailPlus} tone="amber" title={t('emptyTitle')} body={t('emptyBody')} />
+        )}
+        {items.length > 0 && (
+          <ul className="bg-card divide-y overflow-hidden rounded-2xl border">
+            {items.map((inv) => (
+              <li key={inv.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                <PersonCell
+                  name={inv.targetName}
+                  sub={`${inv.email ? `${inv.email} · ` : ''}${t('expiresOn', { date: formatCalendarDate(locale, inv.expiresAt.slice(0, 10)) })}`}
                 />
-              </div>
-            </li>
-          ))}
-        </ul>
+                <div className="flex items-center gap-2">
+                  <ToneBadge tone="slate" dot={false}>
+                    {t(`kind.${inv.kind}`)}
+                  </ToneBadge>
+                  <ToneBadge tone={inv.expired ? 'slate' : 'amber'}>
+                    {t(inv.expired ? 'status.expired' : 'status.pending')}
+                  </ToneBadge>
+                  <ConfirmDialog
+                    trigger={
+                      <Button variant="ghost" size="icon" aria-label={t('revoke')}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    }
+                    title={t('revokeTitle')}
+                    description={t('revokeBody', { name: inv.targetName })}
+                    confirmLabel={t('revoke')}
+                    destructive
+                    pending={revoke.isPending}
+                    onConfirm={() => revoke.mutateAsync(inv.id)}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <section className="grid gap-3" aria-labelledby="pa-accounts">
@@ -312,51 +326,46 @@ export function PortalAdminView() {
         </h2>
         {accounts.isError && <p className="text-destructive text-sm">{t('loadError')}</p>}
         {accounts.data && accountItems.length === 0 && (
-          <EmptyState title={t('accountsEmptyTitle')} body={t('accountsEmptyBody')} />
+          <EmptyPanel
+            icon={UserCheck}
+            tone="emerald"
+            title={t('accountsEmptyTitle')}
+            body={t('accountsEmptyBody')}
+          />
         )}
-        <ul className="grid gap-2">
-          {accountItems.map((acc) => (
-            <li
-              key={acc.id}
-              className="bg-card flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3"
-            >
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium">
-                  {acc.userName}{' '}
-                  <Badge variant="outline" className="ml-1">
-                    {t(`kind.${acc.kind}`)}
-                  </Badge>
-                </p>
-                <p className="text-muted-foreground truncate text-xs">
-                  {acc.userEmail} · {t('linkedTo', { name: acc.targetName })}
-                </p>
-              </div>
-              <div className="flex items-center gap-2">
-                <span
-                  className={cn(
-                    'rounded-full px-2.5 py-0.5 text-xs font-medium',
-                    acc.status === 'active' ? 'bg-chart-5/20' : 'bg-muted text-muted-foreground',
-                  )}
-                >
-                  {t(`accountStatus.${acc.status}`)}
-                </span>
-                <ConfirmDialog
-                  trigger={
-                    <Button variant="ghost" size="icon" aria-label={t('revokeAccount')}>
-                      <Trash2 className="size-4" />
-                    </Button>
-                  }
-                  title={t('revokeAccountTitle')}
-                  description={t('revokeAccountBody', { name: acc.userName })}
-                  confirmLabel={t('revokeAccount')}
-                  destructive
-                  pending={revokeAccount.isPending}
-                  onConfirm={() => revokeAccount.mutateAsync(acc.id)}
+        {accountItems.length > 0 && (
+          <ul className="bg-card divide-y overflow-hidden rounded-2xl border">
+            {accountItems.map((acc) => (
+              <li key={acc.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3">
+                <PersonCell
+                  name={acc.userName}
+                  sub={`${acc.userEmail} · ${t('linkedTo', { name: acc.targetName })}`}
                 />
-              </div>
-            </li>
-          ))}
-        </ul>
+                <div className="flex items-center gap-2">
+                  <ToneBadge tone="slate" dot={false}>
+                    {t(`kind.${acc.kind}`)}
+                  </ToneBadge>
+                  <ToneBadge tone={acc.status === 'active' ? 'emerald' : 'slate'}>
+                    {t(`accountStatus.${acc.status}`)}
+                  </ToneBadge>
+                  <ConfirmDialog
+                    trigger={
+                      <Button variant="ghost" size="icon" aria-label={t('revokeAccount')}>
+                        <Trash2 className="size-4" />
+                      </Button>
+                    }
+                    title={t('revokeAccountTitle')}
+                    description={t('revokeAccountBody', { name: acc.userName })}
+                    confirmLabel={t('revokeAccount')}
+                    destructive
+                    pending={revokeAccount.isPending}
+                    onConfirm={() => revokeAccount.mutateAsync(acc.id)}
+                  />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
 
       <FormDialog

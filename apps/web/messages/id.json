@@ -2318,6 +2318,8 @@
     "qrRefresh": "Kode diperbarui otomatis; halaman memeriksa setiap 3 detik.",
     "connect": "Hubungkan WhatsApp",
     "disconnect": "Putuskan",
+    "connecting": "Menghubungkan…",
+    "disconnecting": "Memutuskan…",
     "riskNote": "Perhatian: memakai WhatsApp tidak resmi dapat membuat nomor diblokir. Gunakan nomor khusus sekolah, bukan nomor pribadi.",
     "templateSaved": "Templat disimpan.",
     "templateReset": "Templat dikembalikan ke bawaan.",
@@ -3856,6 +3858,8 @@
     }
   },
   "portalAdmin": {
+    "statPending": "Undangan menunggu",
+    "statAccounts": "Akun aktif",
     "title": "Akun portal",
     "subtitle": "Undang wali atau siswa agar bisa melihat kehadiran, nilai, dan tagihan lewat ponsel.",
     "newTitle": "Buat undangan",
