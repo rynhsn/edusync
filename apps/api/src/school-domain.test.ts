@@ -170,13 +170,15 @@ describe('domain sendiri: tambah dan validasi', () => {
     expect(d.records[1].value).toMatch(/^edusync-[0-9a-f]{32}$/);
   });
 
-  it('hostname unik global: sekolah lain dan sekolah sama ditolak 409', async () => {
+  it('hostname dobel di sekolah yang sama ditolak 409; sekolah lain boleh mendaftarkannya (pending)', async () => {
     expect((await add(host('satu'))).statusCode).toBe(409);
-    const other = await add(host('satu'), otherCookie, otherId);
-    expect(other.statusCode).toBe(409);
     // Sekolah lain tidak melihat domain milik sekolah ini.
-    const list = await call('GET', '/v1/school/domains', otherCookie, undefined, otherId);
-    expect(list.json()).toEqual([]);
+    const before = await call('GET', '/v1/school/domains', otherCookie, undefined, otherId);
+    expect(before.json()).toEqual([]);
+    // Mendaftarkan hostname yang sama tidak mengunci domain: baru yang lolos verifikasi yang memilikinya.
+    const other = await add(host('satu'), otherCookie, otherId);
+    expect(other.statusCode).toBe(201);
+    expect(other.json().status).toBe('pending');
   });
 
   it('maksimal 3 domain per sekolah', async () => {
@@ -240,6 +242,20 @@ describe('domain sendiri: verifikasi DNS dan resolusi host', () => {
     const res = await resolveHost(d.hostname.toUpperCase());
     expect(res.statusCode).toBe(200);
     expect(res.json()).toEqual({ schoolSlug: slug });
+  });
+
+  it('hostname yang sudah terverifikasi sekolah lain: verifikasi sekolah kedua ditolak 409', async () => {
+    const list = (await call('GET', '/v1/school/domains', otherCookie, undefined, otherId)).json();
+    const d = list.find((x: { hostname: string }) => x.hostname === host('satu'));
+    const name = `_edusync-verify.${d.hostname}`;
+    // Pemilik DNS menaruh kedua token: DNS lolos, tetapi domain sudah dimiliki sekolah pertama.
+    zone.txt.set(name, [...(zone.txt.get(name) ?? []), [d.records[1].value]]);
+    const res = await call('POST', `/v1/school/domains/${d.id}/verify`, otherCookie, undefined, otherId);
+    expect(res.statusCode).toBe(409);
+    expect(code(res)).toBe('conflict');
+    const after = (await call('GET', '/v1/school/domains', otherCookie, undefined, otherId)).json();
+    expect(after[0].status).toBe('pending');
+    expect((await resolveHost(d.hostname)).json()).toEqual({ schoolSlug: slug });
   });
 
   it('apex: A yang sama dengan target diterima', async () => {

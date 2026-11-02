@@ -12,6 +12,7 @@ import {
   text,
   timestamp,
   unique,
+  uniqueIndex,
   uuid,
 } from 'drizzle-orm/pg-core';
 
@@ -2227,7 +2228,7 @@ export const changeOrder = pgTable(
 /* ---------- Domain sendiri sekolah (situs publik, SPMB, verifikasi surat) ---------- */
 
 /**
- * Domain milik sekolah sendiri. `hostname` unik global (huruf kecil). Dimiliki hanya jika `status` = 'verified'
+ * Domain milik sekolah sendiri. `hostname` huruf kecil; unik global hanya untuk baris terverifikasi. Dimiliki hanya jika `status` = 'verified'
  * (DNS TXT berisi `verification_token` sudah terbaca). Resolusi host lintas-sekolah lewat fungsi
  * `resolve_school_domain` (SECURITY DEFINER), bukan lewat RLS.
  */
@@ -2249,7 +2250,8 @@ export const schoolDomain = pgTable(
     createdAt: createdAt(),
   },
   (t) => [
-    unique('school_domain_hostname_uq').on(t.hostname),
+    unique('school_domain_school_hostname_uq').on(t.schoolId, t.hostname),
+    uniqueIndex('school_domain_verified_hostname_uq').on(t.hostname).where(sql`${t.status} = 'verified'`),
     index('school_domain_school_idx').on(t.schoolId),
     check('school_domain_hostname_lower_ck', sql`${t.hostname} = lower(${t.hostname})`),
   ],

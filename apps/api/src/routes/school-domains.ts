@@ -105,7 +105,7 @@ export async function schoolDomainRoutes(instance: FastifyInstance, opts: School
         description:
           'Izin: `school:manage`; modul `website`. Hostname dinormalkan ke huruf kecil. 400 `invalid_hostname` ' +
           `bila bukan domain sah (IP, localhost, atau milik APP_DOMAIN); 409 \`domain_limit\` bila sudah ${MAX_SCHOOL_DOMAINS} ` +
-          'domain; 409 `conflict` bila hostname sudah dipakai sekolah mana pun. Status awal `pending` sampai ' +
+          'domain; 409 `conflict` bila hostname sudah ada di sekolah ini (sekolah lain boleh mendaftarkan hostname yang sama; yang pertama `verify` lolos yang memilikinya). Status awal `pending` sampai ' +
           '`POST /v1/school/domains/{id}/verify` lolos.',
         headers: schoolHeader,
         body: z.object({ hostname: z.string().trim().min(1).max(253) }),
@@ -118,7 +118,7 @@ export async function schoolDomainRoutes(instance: FastifyInstance, opts: School
       if (!checked.ok) {
         throw new HttpError(400, 'invalid_hostname', `Hostname tidak dapat dipakai (${checked.problem}).`);
       }
-      const created = await conflictAs409('Domain itu sudah dipakai.', () =>
+      const created = await conflictAs409('Domain itu sudah ada di sekolah ini.', () =>
         tenant(request, async (tx) => {
           const [n] = await tx.select({ n: count() }).from(schoolDomain);
           if ((n?.n ?? 0) >= MAX_SCHOOL_DOMAINS) {
@@ -151,12 +151,13 @@ export async function schoolDomainRoutes(instance: FastifyInstance, opts: School
           'Izin: `school:manage`; modul `website`. Memeriksa TXT `_edusync-verify.<hostname>` berisi token dan ' +
           'CNAME (atau A untuk apex) menuju target. Lolos keduanya = `verified`; selain itu `failed` dengan ' +
           '`checks` yang memuat isi diharapkan versus ditemukan. Boleh diulang kapan saja (mis. setelah DNS menyebar). ' +
-          '404 `not_found` bila domain tak ada.',
+          '404 `not_found` bila domain tak ada; 409 `conflict` bila sekolah lain sudah memverifikasi hostname yang sama.',
         headers: schoolHeader,
         params: idParams,
         response: {
           200: z.object({ domain: domainSchema, checks: z.array(checkSchema) }),
           404: errorSchema,
+          409: errorSchema,
           ...guarded,
         },
       },
@@ -171,23 +172,25 @@ export async function schoolDomainRoutes(instance: FastifyInstance, opts: School
       const result = await checkDomainDns(dns, found.hostname, found.verificationToken, target);
       const now = new Date();
       const failed = result.checks.filter((c) => !c.ok).map((c) => c.name);
-      const updated = await tenant(request, async (tx) => {
-        const [r] = await tx
-          .update(schoolDomain)
-          .set({
-            status: result.verified ? 'verified' : 'failed',
-            lastCheckedAt: now,
-            lastError: result.verified ? null : `Catatan belum sesuai: ${failed.join(', ')}`,
-            verifiedAt: result.verified ? (found.verifiedAt ?? now) : null,
-          })
-          .where(eq(schoolDomain.id, found.id))
-          .returning();
-        await audit(tx, ctx, 'school.domain_verify', 'school_domain', found.id, {
-          hostname: found.hostname,
-          verified: result.verified,
-        });
-        return r!;
-      });
+      const updated = await conflictAs409('Domain itu sudah terverifikasi oleh sekolah lain.', () =>
+        tenant(request, async (tx) => {
+          const [r] = await tx
+            .update(schoolDomain)
+            .set({
+              status: result.verified ? 'verified' : 'failed',
+              lastCheckedAt: now,
+              lastError: result.verified ? null : `Catatan belum sesuai: ${failed.join(', ')}`,
+              verifiedAt: result.verified ? (found.verifiedAt ?? now) : null,
+            })
+            .where(eq(schoolDomain.id, found.id))
+            .returning();
+          await audit(tx, ctx, 'school.domain_verify', 'school_domain', found.id, {
+            hostname: found.hostname,
+            verified: result.verified,
+          });
+          return r!;
+        }),
+      );
       hosts.invalidate();
       return { domain: view(updated), checks: result.checks };
     },

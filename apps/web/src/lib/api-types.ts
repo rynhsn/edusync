@@ -32531,7 +32531,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah domain sendiri
-         * @description Izin: `school:manage`; modul `website`. Hostname dinormalkan ke huruf kecil. 400 `invalid_hostname` bila bukan domain sah (IP, localhost, atau milik APP_DOMAIN); 409 `domain_limit` bila sudah 3 domain; 409 `conflict` bila hostname sudah dipakai sekolah mana pun. Status awal `pending` sampai `POST /v1/school/domains/{id}/verify` lolos.
+         * @description Izin: `school:manage`; modul `website`. Hostname dinormalkan ke huruf kecil. 400 `invalid_hostname` bila bukan domain sah (IP, localhost, atau milik APP_DOMAIN); 409 `domain_limit` bila sudah 3 domain; 409 `conflict` bila hostname sudah ada di sekolah ini (sekolah lain boleh mendaftarkan hostname yang sama; yang pertama `verify` lolos yang memilikinya). Status awal `pending` sampai `POST /v1/school/domains/{id}/verify` lolos.
          */
         post: {
             parameters: {
@@ -32654,7 +32654,7 @@ export interface paths {
         put?: never;
         /**
          * Periksa DNS domain sendiri
-         * @description Izin: `school:manage`; modul `website`. Memeriksa TXT `_edusync-verify.<hostname>` berisi token dan CNAME (atau A untuk apex) menuju target. Lolos keduanya = `verified`; selain itu `failed` dengan `checks` yang memuat isi diharapkan versus ditemukan. Boleh diulang kapan saja (mis. setelah DNS menyebar). 404 `not_found` bila domain tak ada.
+         * @description Izin: `school:manage`; modul `website`. Memeriksa TXT `_edusync-verify.<hostname>` berisi token dan CNAME (atau A untuk apex) menuju target. Lolos keduanya = `verified`; selain itu `failed` dengan `checks` yang memuat isi diharapkan versus ditemukan. Boleh diulang kapan saja (mis. setelah DNS menyebar). 404 `not_found` bila domain tak ada; 409 `conflict` bila sekolah lain sudah memverifikasi hostname yang sama.
          */
         post: {
             parameters: {
@@ -32740,6 +32740,20 @@ export interface paths {
                 };
                 /** @description Default Response */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
