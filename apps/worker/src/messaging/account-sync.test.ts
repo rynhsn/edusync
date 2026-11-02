@@ -42,6 +42,50 @@ describe('AccountSync mode log', () => {
   });
 });
 
+describe('AccountSync tanpa kunci env: mengikuti penyedia di konsol platform', () => {
+  it('provider log: akun siap (0000); beralih ke whatsapp menyambungkan klien; kembali ke log melepasnya', async () => {
+    const sid = await fx.newSchool({ account: { desiredState: 'on', status: 'disconnected' } });
+    let created = 0;
+    const manager = new WhatsAppManager(fx.db, {
+      factory: async () => {
+        created++;
+        return new FakeClient();
+      },
+    });
+    let provider: 'log' | 'whatsapp' = 'log';
+    const sync = new AccountSync(fx.db, {
+      mode: undefined,
+      manager,
+      getPlatform: async () => ({ ...on, provider }),
+      schoolIds: [sid],
+    });
+    await sync.tick();
+    expect(await account(sid)).toMatchObject({ status: 'ready', phone: '0000' });
+    expect(created).toBe(0);
+
+    provider = 'whatsapp';
+    await sync.tick();
+    expect(created).toBe(1);
+    expect(manager.has(sid)).toBe(true);
+
+    provider = 'log';
+    await sync.tick();
+    expect(manager.has(sid)).toBe(false);
+    expect((await account(sid)).status).toBe('ready');
+  });
+
+  it('env mengunci: pilihan platform diabaikan', async () => {
+    const sid = await fx.newSchool({ account: { desiredState: 'on', status: 'disconnected' } });
+    const sync = new AccountSync(fx.db, {
+      mode: 'log',
+      getPlatform: async () => ({ ...on, provider: 'whatsapp' }),
+      schoolIds: [sid],
+    });
+    await sync.tick();
+    expect(await account(sid)).toMatchObject({ status: 'ready', phone: '0000' });
+  });
+});
+
 /** Klien WhatsApp tiruan: peristiwa dipancarkan tes. */
 class FakeClient extends EventEmitter implements WaClient {
   info = { wid: { user: '628111222333' } };

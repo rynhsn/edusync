@@ -2416,7 +2416,8 @@
     "checkedAt": "Dipariksa {time}",
     "runtimeStale": "laporan heubeul, worker meureun eureun",
     "chromeFix": "Eusian WA_CHROME_PATH di .env worker ku jalur chrome.exe (atawa Chromium), tuluy mimitian deui worker.",
-    "runtimeNone": "Worker can ngalaporkeun. Pastikeun worker jalan maké panyadia WhatsApp."
+    "runtimeNone": "Worker can ngalaporkeun. Pastikeun worker jalan maké panyadia WhatsApp.",
+    "providerLocked": "Dikonci ku env server (MESSAGING_PROVIDER={provider}); pilihan ieu teu laku nepi ka env dikosongkeun."
   },
   "schoolMap": {
     "mapLabel": "Peta sakola hirup. {summary}",

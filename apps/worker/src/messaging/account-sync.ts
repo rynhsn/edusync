@@ -14,8 +14,8 @@ export interface PlatformMessagingSettings {
 export type PlatformLoader = () => Promise<PlatformMessagingSettings>;
 
 export interface AccountSyncOptions {
-  /** Mode pengirim proses ini: 'log' = akun langsung dianggap siap tanpa WhatsApp sungguhan. */
-  mode: 'log' | 'whatsapp';
+  /** Mengunci mode (dari env): 'log' = akun langsung dianggap siap tanpa WhatsApp sungguhan. Kosong = ikut konsol platform. */
+  mode?: 'log' | 'whatsapp' | undefined;
   manager?: WhatsAppManager | undefined;
   getPlatform: PlatformLoader;
   intervalMs?: number;
@@ -71,6 +71,7 @@ export class AccountSync {
       .from(waAccount)
       .where(this.options.schoolIds ? inArray(waAccount.schoolId, this.options.schoolIds) : undefined);
     const manager = this.options.manager;
+    const mode = this.options.mode ?? platform.provider;
 
     for (const acc of accounts) {
       try {
@@ -83,7 +84,9 @@ export class AccountSync {
           continue;
         }
 
-        if (this.options.mode === 'log') {
+        if (mode === 'log') {
+          // Beralih dari whatsapp ke log: lepas klien yang masih berjalan tanpa logout (sesi tetap tersimpan).
+          if (manager?.has(acc.schoolId)) await manager.release(acc.schoolId);
           if (acc.desiredState === 'on' && acc.status !== 'ready') {
             await this.setStatus(acc.schoolId, { status: 'ready', phone: '0000', qr: null, lastError: null });
           } else if (acc.desiredState === 'off' && acc.status !== 'disconnected') {

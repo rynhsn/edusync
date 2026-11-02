@@ -72,6 +72,10 @@ const settingsBody = z.object({
 });
 
 const viewSchema = settingsBody.extend({
+  envProvider: z
+    .enum(['whatsapp', 'log'])
+    .nullable()
+    .describe('Penyedia yang dikunci env (MESSAGING_PROVIDER); null = ikut pilihan di atas'),
   retry: retrySchema,
   runtime: runtimeSchema,
   messages24h: z.object({
@@ -116,6 +120,7 @@ export async function platformMessagingRoutes(instance: FastifyInstance, options
     const a = (s: string) => accs.find((r) => r.status === s)?.n ?? 0;
     return {
       ...settings,
+      envProvider: env.MESSAGING_PROVIDER ?? null,
       runtime: runtimeParsed.success ? runtimeParsed.data : null,
       messages24h: {
         queued: m('queued', 'sending'),

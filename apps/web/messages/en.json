@@ -2416,7 +2416,8 @@
     "checkedAt": "Checked {time}",
     "runtimeStale": "old report, the worker may have stopped",
     "chromeFix": "Set WA_CHROME_PATH in the worker .env to the chrome.exe (or Chromium) path, then restart the worker.",
-    "runtimeNone": "The worker has not reported yet. Make sure it runs with the WhatsApp provider."
+    "runtimeNone": "The worker has not reported yet. Make sure it runs with the WhatsApp provider.",
+    "providerLocked": "Locked by the server env (MESSAGING_PROVIDER={provider}); this choice has no effect until the env is cleared."
   },
   "schoolMap": {
     "mapLabel": "Living school map. {summary}",

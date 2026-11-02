@@ -66961,6 +66961,15 @@
                       ],
                       "additionalProperties": false
                     },
+                    "envProvider": {
+                      "nullable": true,
+                      "description": "Penyedia yang dikunci env (MESSAGING_PROVIDER); null = ikut pilihan di atas",
+                      "type": "string",
+                      "enum": [
+                        "whatsapp",
+                        "log"
+                      ]
+                    },
                     "runtime": {
                       "nullable": true,
                       "description": "Status yang dilaporkan worker; null bila worker belum pernah melapor",
@@ -67082,6 +67091,7 @@
                     "provider",
                     "maxQueuedPerSchool",
                     "retry",
+                    "envProvider",
                     "runtime",
                     "messages24h",
                     "accounts"
@@ -67306,6 +67316,15 @@
                       ],
                       "additionalProperties": false
                     },
+                    "envProvider": {
+                      "nullable": true,
+                      "description": "Penyedia yang dikunci env (MESSAGING_PROVIDER); null = ikut pilihan di atas",
+                      "type": "string",
+                      "enum": [
+                        "whatsapp",
+                        "log"
+                      ]
+                    },
                     "runtime": {
                       "nullable": true,
                       "description": "Status yang dilaporkan worker; null bila worker belum pernah melapor",
@@ -67427,6 +67446,7 @@
                     "provider",
                     "maxQueuedPerSchool",
                     "retry",
+                    "envProvider",
                     "runtime",
                     "messages24h",
                     "accounts"

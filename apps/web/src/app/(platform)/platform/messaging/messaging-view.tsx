@@ -178,8 +178,8 @@ export function PlatformMessagingView() {
               <Label htmlFor="msg-provider">{t('provider')}</Label>
               <SelectField
                 id="msg-provider"
-                value={provider}
-                disabled={!canEdit}
+                value={settings.data?.envProvider ?? provider}
+                disabled={!canEdit || !!settings.data?.envProvider}
                 onChange={(e) => {
                   setProvider(e.target.value as Provider);
                   setDirty(true);
@@ -188,7 +188,11 @@ export function PlatformMessagingView() {
                 <option value="whatsapp">{t('providerWhatsapp')}</option>
                 <option value="log">{t('providerLog')}</option>
               </SelectField>
-              <p className="text-muted-foreground text-xs">{t('providerHint')}</p>
+              <p className="text-muted-foreground text-xs">
+                {settings.data?.envProvider
+                  ? t('providerLocked', { provider: settings.data.envProvider })
+                  : t('providerHint')}
+              </p>
             </div>
 
             <div className="grid gap-2 sm:w-1/2">

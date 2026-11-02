@@ -2416,7 +2416,8 @@
     "checkedAt": "Dicek {time}",
     "runtimeStale": "laporan lama, worker mungkin berhenti",
     "chromeFix": "Isi WA_CHROME_PATH di .env worker dengan jalur chrome.exe (atau Chromium), lalu restart worker.",
-    "runtimeNone": "Worker belum melapor. Pastikan worker berjalan dengan penyedia WhatsApp."
+    "runtimeNone": "Worker belum melapor. Pastikan worker berjalan dengan penyedia WhatsApp.",
+    "providerLocked": "Dikunci oleh env server (MESSAGING_PROVIDER={provider}); pilihan ini tidak berlaku sampai env dikosongkan."
   },
   "schoolMap": {
     "mapLabel": "Peta sekolah hidup. {summary}",

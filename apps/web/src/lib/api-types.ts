@@ -31650,6 +31650,11 @@ export interface paths {
                                 /** @description Tap kiosk yang lebih tua dari ini (jam) tidak lagi diberitahukan ke wali */
                                 staleTapHours: number;
                             };
+                            /**
+                             * @description Penyedia yang dikunci env (MESSAGING_PROVIDER); null = ikut pilihan di atas
+                             * @enum {string|null}
+                             */
+                            envProvider: "whatsapp" | "log" | null;
                             /** @description Status yang dilaporkan worker; null bila worker belum pernah melapor */
                             runtime: {
                                 chrome: {
@@ -31771,6 +31776,11 @@ export interface paths {
                                 /** @description Tap kiosk yang lebih tua dari ini (jam) tidak lagi diberitahukan ke wali */
                                 staleTapHours: number;
                             };
+                            /**
+                             * @description Penyedia yang dikunci env (MESSAGING_PROVIDER); null = ikut pilihan di atas
+                             * @enum {string|null}
+                             */
+                            envProvider: "whatsapp" | "log" | null;
                             /** @description Status yang dilaporkan worker; null bila worker belum pernah melapor */
                             runtime: {
                                 chrome: {
