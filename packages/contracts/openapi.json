@@ -14839,6 +14839,39 @@
                       "items": {
                         "type": "object",
                         "properties": {
+                          "birthPlace": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "nik": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "religion": {
+                            "nullable": true,
+                            "type": "string",
+                            "enum": [
+                              "islam",
+                              "christian",
+                              "catholic",
+                              "hindu",
+                              "buddhist",
+                              "confucian",
+                              "other"
+                            ]
+                          },
+                          "address": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "phone": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "email": {
+                            "nullable": true,
+                            "type": "string"
+                          },
                           "id": {
                             "type": "string",
                             "format": "uuid",
@@ -14890,6 +14923,12 @@
                           }
                         },
                         "required": [
+                          "birthPlace",
+                          "nik",
+                          "religion",
+                          "address",
+                          "phone",
+                          "email",
                           "id",
                           "name",
                           "nis",
@@ -14989,7 +15028,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `student:manage`. NIS dan NISN (bila diisi) harus unik di sekolah. `classId` opsional: siswa langsung ditempatkan di kelas itu pada tahun ajaran kelasnya.",
+        "description": "Izin: `student:manage`. NIS dan NISN (bila diisi) harus unik di sekolah. Data diri lain (tempat lahir, NIK 16 digit, agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: siswa langsung ditempatkan di kelas itu pada tahun ajaran kelasnya.",
         "requestBody": {
           "required": true,
           "content": {
@@ -15038,6 +15077,59 @@
                       "dropped"
                     ]
                   },
+                  "birthPlace": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "nik": {
+                    "nullable": true,
+                    "type": "string",
+                    "pattern": "^(\\d{16})?$"
+                  },
+                  "religion": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "enum": [
+                      "islam",
+                      "christian",
+                      "catholic",
+                      "hindu",
+                      "buddhist",
+                      "confucian",
+                      "other"
+                    ]
+                  },
+                  "address": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "phone": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "email": {
+                    "default": null,
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 254,
+                        "format": "email",
+                        "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      }
+                    ]
+                  },
                   "classId": {
                     "default": null,
                     "nullable": true,
@@ -15075,6 +15167,39 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "birthPlace": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "nik": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "religion": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "islam",
+                        "christian",
+                        "catholic",
+                        "hindu",
+                        "buddhist",
+                        "confucian",
+                        "other"
+                      ]
+                    },
+                    "address": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "phone": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "nullable": true,
+                      "type": "string"
+                    },
                     "id": {
                       "type": "string",
                       "format": "uuid",
@@ -15126,6 +15251,12 @@
                     }
                   },
                   "required": [
+                    "birthPlace",
+                    "nik",
+                    "religion",
+                    "address",
+                    "phone",
+                    "email",
                     "id",
                     "name",
                     "nis",
@@ -15310,6 +15441,39 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "birthPlace": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "nik": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "religion": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "islam",
+                        "christian",
+                        "catholic",
+                        "hindu",
+                        "buddhist",
+                        "confucian",
+                        "other"
+                      ]
+                    },
+                    "address": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "phone": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "nullable": true,
+                      "type": "string"
+                    },
                     "id": {
                       "type": "string",
                       "format": "uuid",
@@ -15361,6 +15525,12 @@
                     }
                   },
                   "required": [
+                    "birthPlace",
+                    "nik",
+                    "religion",
+                    "address",
+                    "phone",
+                    "email",
                     "id",
                     "name",
                     "nis",
@@ -15527,6 +15697,59 @@
                       "transferred",
                       "dropped"
                     ]
+                  },
+                  "birthPlace": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "nik": {
+                    "nullable": true,
+                    "type": "string",
+                    "pattern": "^(\\d{16})?$"
+                  },
+                  "religion": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "enum": [
+                      "islam",
+                      "christian",
+                      "catholic",
+                      "hindu",
+                      "buddhist",
+                      "confucian",
+                      "other"
+                    ]
+                  },
+                  "address": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "phone": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "email": {
+                    "default": null,
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 254,
+                        "format": "email",
+                        "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      }
+                    ]
                   }
                 },
                 "required": [
@@ -15568,6 +15791,39 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "birthPlace": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "nik": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "religion": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "islam",
+                        "christian",
+                        "catholic",
+                        "hindu",
+                        "buddhist",
+                        "confucian",
+                        "other"
+                      ]
+                    },
+                    "address": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "phone": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "nullable": true,
+                      "type": "string"
+                    },
                     "id": {
                       "type": "string",
                       "format": "uuid",
@@ -15619,6 +15875,12 @@
                     }
                   },
                   "required": [
+                    "birthPlace",
+                    "nik",
+                    "religion",
+                    "address",
+                    "phone",
+                    "email",
                     "id",
                     "name",
                     "nis",
@@ -15974,6 +16236,39 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "birthPlace": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "nik": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "religion": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "islam",
+                        "christian",
+                        "catholic",
+                        "hindu",
+                        "buddhist",
+                        "confucian",
+                        "other"
+                      ]
+                    },
+                    "address": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "phone": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "nullable": true,
+                      "type": "string"
+                    },
                     "id": {
                       "type": "string",
                       "format": "uuid",
@@ -16025,6 +16320,12 @@
                     }
                   },
                   "required": [
+                    "birthPlace",
+                    "nik",
+                    "religion",
+                    "address",
+                    "phone",
+                    "email",
                     "id",
                     "name",
                     "nis",
@@ -74315,13 +74616,296 @@
         }
       }
     },
+    "/v1/students/export": {
+      "get": {
+        "summary": "Ekspor siswa beserta wali",
+        "tags": [
+          "People"
+        ],
+        "description": "Izin: `student:read`. Saringan sama dengan daftar siswa (`q`, `classId`, `status`) tetapi tanpa paginasi; maksimal 5000 siswa (`total` memuat jumlah sebenarnya). Setiap siswa membawa semua walinya, wali utama lebih dulu.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "maxLength": 80
+            },
+            "in": "query",
+            "name": "q",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "classId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "active",
+                "graduated",
+                "transferred",
+                "dropped"
+              ]
+            },
+            "in": "query",
+            "name": "status",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "items": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "nis": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "nisn": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "nik": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "gender": {
+                            "type": "string",
+                            "enum": [
+                              "L",
+                              "P"
+                            ]
+                          },
+                          "birthPlace": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "birthDate": {
+                            "nullable": true,
+                            "type": "string",
+                            "format": "date",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                          },
+                          "religion": {
+                            "nullable": true,
+                            "type": "string",
+                            "enum": [
+                              "islam",
+                              "christian",
+                              "catholic",
+                              "hindu",
+                              "buddhist",
+                              "confucian",
+                              "other"
+                            ]
+                          },
+                          "address": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "phone": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "email": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "status": {
+                            "type": "string",
+                            "enum": [
+                              "active",
+                              "graduated",
+                              "transferred",
+                              "dropped"
+                            ]
+                          },
+                          "className": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "guardians": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "relation": {
+                                  "type": "string",
+                                  "enum": [
+                                    "father",
+                                    "mother",
+                                    "guardian",
+                                    "other"
+                                  ]
+                                },
+                                "phone": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "email": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "isPrimary": {
+                                  "type": "boolean"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "relation",
+                                "phone",
+                                "email",
+                                "isPrimary"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "name",
+                          "nis",
+                          "nisn",
+                          "nik",
+                          "gender",
+                          "birthPlace",
+                          "birthDate",
+                          "religion",
+                          "address",
+                          "phone",
+                          "email",
+                          "status",
+                          "className",
+                          "guardians"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "items",
+                    "total"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/students/import": {
       "post": {
         "summary": "Impor siswa (pratinjau atau simpan)",
         "tags": [
           "People"
         ],
-        "description": "Izin: `student:manage`. Maksimal 1000 baris. Dengan `dryRun: true` hanya memeriksa dan melaporkan kesalahan per baris. Tanpa `dryRun`, siswa baru disimpan hanya bila semua baris valid. Kelas (`className`) dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah.",
+        "description": "Izin: `student:manage`. Maksimal 1000 baris. Dengan `dryRun: true` hanya memeriksa dan melaporkan kesalahan per baris. Tanpa `dryRun`, siswa baru disimpan hanya bila semua baris valid. Kelas (`className`) dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah. Data diri opsional: `nik` (16 digit), `birthPlace`, `religion` (Islam, Kristen, Katolik, Hindu, Buddha, Konghucu, Lainnya, atau padanan Inggris), `address`, `phone`, `email`. Dua wali per baris (`g1*` wali utama, `g2*`): hubungan Ayah/Ibu/Wali/Lainnya (kosong: wali 1 ayah, wali 2 ibu); nama wajib bila ada isian lain pada blok itu. Wali dipakai ulang bila telepon (setelah dinormalkan) sama dengan wali yang sudah ada di sekolah atau yang dibuat lebih awal di file yang sama; selain itu wali baru dibuat.",
         "requestBody": {
           "required": true,
           "content": {
@@ -74360,20 +74944,90 @@
                           "type": "string",
                           "maxLength": 60
                         },
+                        "nik": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
                         "gender": {
                           "default": "",
                           "type": "string",
                           "maxLength": 30
+                        },
+                        "birthPlace": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 200
                         },
                         "birthDate": {
                           "default": "",
                           "type": "string",
                           "maxLength": 30
                         },
+                        "religion": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "address": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 600
+                        },
+                        "phone": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "email": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 300
+                        },
                         "className": {
                           "default": "",
                           "type": "string",
                           "maxLength": 80
+                        },
+                        "g1Name": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "g1Relation": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 30
+                        },
+                        "g1Phone": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "g1Email": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 300
+                        },
+                        "g2Name": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "g2Relation": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 30
+                        },
+                        "g2Phone": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "g2Email": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 300
                         }
                       },
                       "required": [

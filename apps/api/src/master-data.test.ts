@@ -502,6 +502,99 @@ describe('impor siswa', () => {
     expect((await call('GET', '/v1/students?q=Siswa', opCookie)).json().total).toBe(3);
   });
 
+  it('data diri dan dua wali; wali dipakai ulang untuk kakak-adik; ekspor mengembalikan wali', async () => {
+    const full = (row: number, over: Record<string, string> = {}) =>
+      r(row, {
+        nis: `95${row}`,
+        nik: '3201010101010001',
+        birthPlace: 'Bandung',
+        religion: 'Kristen',
+        address: 'Jl. Merdeka 1',
+        phone: '0812-3456-7890',
+        email: 'Anak@Example.test',
+        g1Name: 'Pak Budi',
+        g1Phone: '081299990001',
+        g2Name: 'Bu Sari',
+        g2Relation: 'ibu',
+        g2Phone: '+62 812 9999 0002',
+        ...over,
+      });
+    const rows = [
+      full(2, { name: 'Kakak Siswa' }),
+      full(3, { name: 'Adik Siswa', g2Name: '', g2Relation: '', g2Phone: '' }),
+    ];
+
+    // Pratinjau tidak menyimpan.
+    const dry = await importRows(opCookie, rows, true);
+    expect(dry.json()).toMatchObject({ valid: 2, imported: 0, errors: [] });
+    expect((await call('GET', '/v1/students?q=Adik', opCookie)).json().total).toBe(0);
+
+    const res = await importRows(opCookie, rows, false);
+    expect(res.json()).toMatchObject({ imported: 2, errors: [] });
+
+    const exp = await call('GET', '/v1/students/export?q=Siswa', opCookie);
+    expect(exp.statusCode).toBe(200);
+    const items = exp.json().items as {
+      name: string;
+      nik: string;
+      religion: string;
+      phone: string;
+      email: string;
+      guardians: { name: string; relation: string; phone: string; isPrimary: boolean }[];
+    }[];
+    const kakak = items.find((s) => s.name === 'Kakak Siswa');
+    const adik = items.find((s) => s.name === 'Adik Siswa');
+    expect(kakak).toMatchObject({
+      nik: '3201010101010001',
+      religion: 'christian',
+      phone: '6281234567890',
+      email: 'anak@example.test',
+    });
+    expect(kakak?.guardians).toMatchObject([
+      { name: 'Pak Budi', relation: 'father', phone: '6281299990001', isPrimary: true },
+      { name: 'Bu Sari', relation: 'mother', phone: '6281299990002', isPrimary: false },
+    ]);
+    expect(adik?.guardians).toHaveLength(1);
+
+    // Wali bapak dipakai bersama: hanya dua wali di sekolah dari dua siswa.
+    const g = (await call('GET', '/v1/guardians?q=62812999900', opCookie)).json();
+    expect(g).toHaveLength(2);
+
+    // Siswa lain memakai kembali wali yang sudah ada di sekolah menurut telepon.
+    const later = await importRows(opCookie, [full(4, { name: 'Siswa Susulan', nis: '9504' })], false);
+    expect(later.json().imported).toBe(1);
+    expect((await call('GET', '/v1/guardians?q=62812999900', opCookie)).json()).toHaveLength(2);
+
+    // Rute statis tidak bentrok dengan /v1/students/:id.
+    expect((await call('GET', '/v1/students/export?status=graduated', opCookie)).json().items).toEqual([]);
+    expect((await call('GET', '/v1/students/export', teacherCookie)).statusCode).toBe(200);
+  });
+
+  it('galat data diri dan wali dilaporkan per baris', async () => {
+    const rows = [
+      r(2, { nik: '123' }),
+      r(3, { phone: 'abc' }),
+      r(4, { email: 'bukan-email' }),
+      r(5, { religion: 'Pagan' }),
+      r(6, { g1Phone: '081299900011' }), // nama wali kosong
+      r(7, { g1Name: 'Wali', g1Relation: 'Kakek' }),
+      r(8, { g1Name: 'Wali', g1Phone: '12' }),
+      r(9, { g1Name: 'Wali', g1Phone: '081211112222', g2Name: 'Wali Dua', g2Phone: '+6281211112222' }),
+    ];
+    const body = (await importRows(opCookie, rows, true)).json();
+    expect(body.valid).toBe(0);
+    const field = (n: number) =>
+      body.errors.filter((e: { row: number }) => e.row === n).map((e: { field: string }) => e.field);
+    expect(field(2)).toEqual(['nik']);
+    expect(field(3)).toEqual(['phone']);
+    expect(field(4)).toEqual(['email']);
+    expect(field(5)).toEqual(['religion']);
+    expect(field(6)).toEqual(['g1Name']);
+    expect(field(7)).toEqual(['g1Relation']);
+    expect(field(8)).toEqual(['g1Phone']);
+    expect(field(9)).toEqual(['g2Phone']);
+  });
+
   it('batas jumlah baris dan isolasi sekolah', async () => {
     const many = Array.from({ length: 1001 }, (_, i) => r(i + 2, { nis: `x${i}` }));
     expect((await importRows(opCookie, many, true)).statusCode).toBe(400);

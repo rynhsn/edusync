@@ -19,6 +19,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
+import { normalizePhone } from './guardians';
 import {
   audit,
   conflictAs409,
@@ -54,7 +55,66 @@ const teacherBody = z.object({
 });
 
 const STUDENT_STATUS = ['active', 'graduated', 'transferred', 'dropped'] as const;
+export const RELIGIONS = [
+  'islam',
+  'christian',
+  'catholic',
+  'hindu',
+  'buddhist',
+  'confucian',
+  'other',
+] as const;
+
+/** Isian opsional: string kosong menjadi null. Dipakai bersama oleh impor Excel. */
+const optionalText = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .transform((v) => (v === '' ? null : v))
+    .nullable()
+    .default(null);
+
+const studentProfile = {
+  birthPlace: optionalText(80),
+  nik: z
+    .string()
+    .trim()
+    .regex(/^(\d{16})?$/, 'NIK harus 16 digit angka.')
+    .transform((v) => (v === '' ? null : v))
+    .nullable()
+    .default(null),
+  religion: z.enum(RELIGIONS).nullable().default(null),
+  address: optionalText(300),
+  phone: z
+    .string()
+    .max(30)
+    .nullable()
+    .default(null)
+    .transform((v, ctx) => {
+      const phone = normalizePhone(v ?? '');
+      if (phone === undefined) {
+        ctx.addIssue({ code: 'custom', message: 'Nomor telepon tidak valid.' });
+        return z.NEVER;
+      }
+      return phone;
+    }),
+  email: z
+    .union([z.literal(''), z.email().max(254)])
+    .nullable()
+    .default(null)
+    .transform((v) => (v ? v.toLowerCase() : null)),
+};
+const studentProfileOut = {
+  birthPlace: z.string().nullable(),
+  nik: z.string().nullable(),
+  religion: z.enum(RELIGIONS).nullable(),
+  address: z.string().nullable(),
+  phone: z.string().nullable(),
+  email: z.string().nullable(),
+};
 const studentSchema = z.object({
+  ...studentProfileOut,
   id: z.uuid(),
   name: z.string(),
   nis: z.string().nullable(),
@@ -72,6 +132,7 @@ const studentBody = z.object({
   gender: z.enum(['L', 'P']),
   birthDate: z.iso.date().nullable().default(null),
   status: z.enum(STUDENT_STATUS).default('active'),
+  ...studentProfile,
 });
 
 /** Satu anggota hanya untuk satu guru (unique teacher_member_uq). */
@@ -141,6 +202,12 @@ async function studentRow(tx: Tx, id: string) {
     nisn: s.nisn,
     gender: s.gender,
     birthDate: s.birthDate,
+    birthPlace: s.birthPlace,
+    nik: s.nik,
+    religion: s.religion,
+    address: s.address,
+    phone: s.phone,
+    email: s.email,
     status: s.status,
     classId: current?.classId ?? null,
     className: current?.className ?? null,
@@ -414,6 +481,12 @@ export async function peopleRoutes(instance: FastifyInstance) {
             nisn: s.nisn,
             gender: s.gender,
             birthDate: s.birthDate,
+            birthPlace: s.birthPlace,
+            nik: s.nik,
+            religion: s.religion,
+            address: s.address,
+            phone: s.phone,
+            email: s.email,
             status: s.status,
             classId: current.get(s.id)?.classId ?? null,
             className: current.get(s.id)?.className ?? null,
@@ -431,7 +504,8 @@ export async function peopleRoutes(instance: FastifyInstance) {
         tags: ['People'],
         summary: 'Tambah siswa',
         description:
-          'Izin: `student:manage`. NIS dan NISN (bila diisi) harus unik di sekolah. `classId` opsional: siswa langsung ' +
+          'Izin: `student:manage`. NIS dan NISN (bila diisi) harus unik di sekolah. Data diri lain (tempat lahir, NIK 16 digit, ' +
+          'agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: siswa langsung ' +
           'ditempatkan di kelas itu pada tahun ajaran kelasnya.',
         headers: schoolHeader,
         body: studentBody.extend({ classId: z.uuid().nullable().default(null) }),

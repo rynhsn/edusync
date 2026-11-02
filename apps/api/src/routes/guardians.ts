@@ -18,7 +18,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
-import { audit, guarded, idParams, ok, schoolHeader } from './helpers';
+import { audit, guarded, idParams, isForeignKeyViolation, ok, schoolHeader } from './helpers';
 
 const RELATIONS = ['father', 'mother', 'guardian', 'other'] as const;
 
@@ -356,8 +356,17 @@ export async function guardianRoutes(instance: FastifyInstance) {
           .select({ n: count() })
           .from(studentGuardian)
           .where(eq(studentGuardian.guardianId, request.params.guardianId));
-        if ((others?.n ?? 0) === 0)
-          await tx.delete(guardian).where(eq(guardian.id, request.params.guardianId));
+        if ((others?.n ?? 0) === 0) {
+          // Wali yang pernah dikirimi pesan atau punya undangan/akun portal tidak bisa dihapus (riwayatnya dirujuk
+          // tabel lain); biarkan tanpa siswa, jangan gagalkan pelepasan. Savepoint agar transaksi tidak ikut batal.
+          try {
+            await tx.transaction((sp) =>
+              sp.delete(guardian).where(eq(guardian.id, request.params.guardianId)),
+            );
+          } catch (error) {
+            if (!isForeignKeyViolation(error)) throw error;
+          }
+        }
         if (rows[0]?.wasPrimary) {
           const [next] = await tx
             .select({ guardianId: studentGuardian.guardianId })

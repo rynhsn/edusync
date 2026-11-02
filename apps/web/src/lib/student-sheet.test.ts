@@ -1,6 +1,13 @@
 import ExcelJS from 'exceljs';
 import { describe, expect, it } from 'vitest';
-import { cellToString, normalizeHeader, parseStudentSheet, toIsoDate } from './student-sheet';
+import {
+  buildStudentTemplate,
+  cellToString,
+  normalizeHeader,
+  parseStudentSheet,
+  STUDENT_TEXT_COLUMNS,
+  toIsoDate,
+} from './student-sheet';
 
 async function workbookBuffer(build: (sheet: ExcelJS.Worksheet) => void) {
   const wb = new ExcelJS.Workbook();
@@ -37,7 +44,7 @@ describe('parseStudentSheet', () => {
     });
     const res = await parseStudentSheet(buf);
     expect(res.fatal).toBeNull();
-    expect(res.rows).toEqual([
+    expect(res.rows).toMatchObject([
       {
         row: 2,
         name: 'Ani Lestari',
@@ -49,6 +56,40 @@ describe('parseStudentSheet', () => {
       },
       { row: 4, name: 'Budi', nis: '0042', nisn: '', gender: 'P', birthDate: '', className: '' },
     ]);
+  });
+
+  it('berkas lama hanya berkolom lama: kolom baru kosong', async () => {
+    const buf = await workbookBuffer((s) => {
+      s.addRow(['Nama', 'Jenis Kelamin']);
+      s.addRow(['Ani', 'P']);
+    });
+    const res = await parseStudentSheet(buf);
+    expect(res.rows[0]).toMatchObject({ name: 'Ani', nik: '', phone: '', g1Name: '', g2Email: '' });
+  });
+
+  it('templat menjaga NIS/NIK/telepon sebagai teks dan bisa dibaca ulang dengan wali', async () => {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load((await buildStudentTemplate().then((b) => b.arrayBuffer())) as ArrayBuffer);
+    const sheet = wb.worksheets[0] as ExcelJS.Worksheet;
+    expect(sheet.getRow(1).values).toEqual(
+      expect.arrayContaining(['NIK', 'Wali 1 Nama', 'Wali 2 Telepon/WA']),
+    );
+    for (const col of STUDENT_TEXT_COLUMNS) expect(sheet.getColumn(col).numFmt).toBe('@');
+
+    sheet.addRow(['Ani', '007', '', '3201010101010001', 'P', 'Bandung', '2013-05-04', 'Islam', 'Jl. A']);
+    sheet.getRow(2).getCell(10).value = '0812345';
+    sheet.getRow(2).getCell(13).value = 'Pak Budi';
+    sheet.getRow(2).getCell(15).value = '081211112222';
+    const res = await parseStudentSheet((await wb.xlsx.writeBuffer()) as ArrayBuffer);
+    expect(res.rows[0]).toMatchObject({
+      nis: '007',
+      nik: '3201010101010001',
+      religion: 'Islam',
+      phone: '0812345',
+      g1Name: 'Pak Budi',
+      g1Phone: '081211112222',
+      g2Name: '',
+    });
   });
 
   it('kolom wajib hilang dilaporkan, berkas tanpa data dilaporkan', async () => {

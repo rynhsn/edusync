@@ -456,6 +456,14 @@ export const student = pgTable(
     nisn: text('nisn'),
     gender: text('gender', { enum: ['L', 'P'] }).notNull(),
     birthDate: date('birth_date'),
+    birthPlace: text('birth_place'),
+    nik: text('nik'),
+    religion: text('religion', { enum: ['islam', 'christian', 'catholic', 'hindu', 'buddhist', 'confucian', 'other'] }),
+    address: text('address'),
+    /** Digit berawalan 62, sama dengan nomor wali. */
+    phone: text('phone'),
+    /** Disiapkan untuk login siswa/orang tua; belum dipakai untuk masuk. */
+    email: text('email'),
     /** Siklus hidup siswa; perpindahan kelas ada di enrollment, bukan di sini. */
     status: text('status', { enum: ['active', 'graduated', 'transferred', 'dropped'] })
       .notNull()

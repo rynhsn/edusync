@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
+  CreditCard,
   Download,
   GraduationCap,
   Layers,
@@ -36,6 +37,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
+import { Textarea } from '@/components/ui/textarea';
 import {
   EmptyPanel,
   MODULE_TONE,
@@ -48,9 +50,9 @@ import {
 } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
-import { buildExport, saveBlob } from '@/lib/sheet';
 import { GuardiansPanel } from './guardians-panel';
 import { StudentCards } from './student-cards';
+import { exportStudentsExcel } from './student-export';
 
 const PAGE = 25;
 const STATUSES = ['active', 'graduated', 'transferred', 'dropped'] as const;
@@ -68,12 +70,21 @@ const STATUS_KEY = {
   dropped: 'statusDropped',
 } as const;
 
+const RELIGIONS = ['islam', 'christian', 'catholic', 'hindu', 'buddhist', 'confucian', 'other'] as const;
+type Religion = (typeof RELIGIONS)[number];
+
 interface Draft {
   name: string;
   nis: string;
   nisn: string;
+  nik: string;
   gender: 'L' | 'P';
+  birthPlace: string;
   birthDate: string;
+  religion: Religion | '';
+  address: string;
+  phone: string;
+  email: string;
   status: Status;
   classId: string;
 }
@@ -81,8 +92,14 @@ const EMPTY: Draft = {
   name: '',
   nis: '',
   nisn: '',
+  nik: '',
   gender: 'L',
+  birthPlace: '',
   birthDate: '',
+  religion: '',
+  address: '',
+  phone: '',
+  email: '',
   status: 'active',
   classId: '',
 };
@@ -91,8 +108,14 @@ const clean = (d: Draft) => ({
   name: d.name,
   nis: d.nis.trim() || null,
   nisn: d.nisn.trim() || null,
+  nik: d.nik.trim(),
   gender: d.gender,
+  birthPlace: d.birthPlace.trim(),
   birthDate: d.birthDate || null,
+  religion: d.religion || null,
+  address: d.address.trim(),
+  phone: d.phone.trim(),
+  email: d.email.trim(),
   status: d.status,
 });
 
@@ -141,6 +164,18 @@ function StudentFields({
           onChange={(e) => onChange({ ...draft, nisn: e.target.value })}
         />
       </div>
+      <div className="grid gap-2 sm:col-span-2">
+        <Label htmlFor={f('nik')}>{t('nik')}</Label>
+        <Input
+          id={f('nik')}
+          inputMode="numeric"
+          maxLength={16}
+          pattern="\d{16}"
+          title={t('nikHint')}
+          value={draft.nik}
+          onChange={(e) => onChange({ ...draft, nik: e.target.value.replace(/\D/g, '') })}
+        />
+      </div>
       <div className="grid gap-2">
         <Label htmlFor={f('gender')}>{t('gender')}</Label>
         <SelectField
@@ -153,6 +188,15 @@ function StudentFields({
         </SelectField>
       </div>
       <div className="grid gap-2">
+        <Label htmlFor={f('birthPlace')}>{t('birthPlace')}</Label>
+        <Input
+          id={f('birthPlace')}
+          maxLength={80}
+          value={draft.birthPlace}
+          onChange={(e) => onChange({ ...draft, birthPlace: e.target.value })}
+        />
+      </div>
+      <div className="grid gap-2">
         <Label htmlFor={f('birthDate')}>{t('birthDate')}</Label>
         <DatePicker
           id={f('birthDate')}
@@ -161,6 +205,21 @@ function StudentFields({
           clearable
           yearRange={{ from: thisYear - 40, to: thisYear }}
         />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor={f('religion')}>{t('religion')}</Label>
+        <SelectField
+          id={f('religion')}
+          value={draft.religion}
+          onChange={(e) => onChange({ ...draft, religion: e.target.value as Religion | '' })}
+        >
+          <option value="">{t('noReligion')}</option>
+          {RELIGIONS.map((r) => (
+            <option key={r} value={r}>
+              {t(`religions.${r}`)}
+            </option>
+          ))}
+        </SelectField>
       </div>
       <div className="grid gap-2">
         <Label htmlFor={f('status')}>{t('status')}</Label>
@@ -193,6 +252,38 @@ function StudentFields({
           </SelectField>
         </div>
       )}
+      <p className="font-heading border-t pt-4 text-sm font-semibold sm:col-span-2">{t('contactTitle')}</p>
+      <div className="grid gap-2">
+        <Label htmlFor={f('phone')}>{t('phone')}</Label>
+        <Input
+          id={f('phone')}
+          inputMode="tel"
+          maxLength={30}
+          value={draft.phone}
+          onChange={(e) => onChange({ ...draft, phone: e.target.value })}
+        />
+      </div>
+      <div className="grid gap-2">
+        <Label htmlFor={f('email')}>{t('email')}</Label>
+        <Input
+          id={f('email')}
+          type="email"
+          maxLength={254}
+          value={draft.email}
+          onChange={(e) => onChange({ ...draft, email: e.target.value })}
+        />
+      </div>
+      <p className="text-muted-foreground -mt-2 text-xs sm:col-span-2">{t('contactHint')}</p>
+      <div className="grid gap-2 sm:col-span-2">
+        <Label htmlFor={f('address')}>{t('address')}</Label>
+        <Textarea
+          id={f('address')}
+          rows={2}
+          maxLength={300}
+          value={draft.address}
+          onChange={(e) => onChange({ ...draft, address: e.target.value })}
+        />
+      </div>
     </div>
   );
 }
@@ -201,6 +292,7 @@ export function StudentsView() {
   const t = useTranslations('students');
   const tm = useTranslations('masterData');
   const tg = useTranslations('guardians');
+  const tc = useTranslations('gate');
   const te = useTranslations();
   const { school, can, hasModule } = useSchool();
   const queryClient = useQueryClient();
@@ -215,6 +307,8 @@ export function StudentsView() {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string; originalClassId: string } & Draft) | null>(null);
   const [guardiansFor, setGuardiansFor] = useState<{ id: string; name: string } | null>(null);
+  const [cardsFor, setCardsFor] = useState<{ id: string; name: string } | null>(null);
+  const cardsAllowed = hasModule('attendance') && can('attendance:configure');
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
 
@@ -297,26 +391,20 @@ export function StudentsView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
-  /** Ekspor hasil pencarian dan saringan yang sedang tampil (semua halaman), dengan judul kolom yang sama dengan templat impor. */
+  /** Ekspor hasil pencarian dan saringan yang sedang tampil (semua halaman), lengkap dengan data diri dan wali; bisa diimpor ulang. */
   async function exportExcel() {
     setExporting(true);
     try {
-      const all: NonNullable<typeof list.data>['items'] = [];
-      for (let offset = 0; ; offset += 100) {
-        const chunk = unwrap(
-          await api.GET('/v1/students', { params: { ...header, query: { ...query, limit: 100, offset } } }),
-        );
-        all.push(...chunk.items);
-        if (all.length >= chunk.total || chunk.items.length === 0) break;
-      }
-      if (all.length === 0) return void toast.info(tm('exportEmpty'));
-      const blob = await buildExport(
-        'Siswa',
-        ['Nama', 'NIS', 'NISN', 'Jenis Kelamin', 'Tanggal Lahir', 'Kelas', 'Status'],
-        all.map((x) => [x.name, x.nis, x.nisn, x.gender, x.birthDate, x.className, t(STATUS_KEY[x.status])]),
-        { textColumns: [2, 3], widths: [30, 14, 16, 16, 16, 14, 14] },
-      );
-      saveBlob(blob, `siswa-${school.schoolSlug}-${new Date().toISOString().slice(0, 10)}.xlsx`);
+      const done = await exportStudentsExcel({
+        schoolId: school.schoolId,
+        schoolSlug: school.schoolSlug,
+        query: {
+          ...(q.trim() ? { q: q.trim() } : {}),
+          ...(classFilter ? { classId: classFilter } : {}),
+          ...(statusFilter ? { status: statusFilter as Status } : {}),
+        },
+      });
+      if (done === 'empty') toast.info(tm('exportEmpty'));
     } catch {
       toast.error(tm('exportError'));
     } finally {
@@ -358,6 +446,12 @@ export function StudentsView() {
       nisn: s.nisn ?? '',
       gender: s.gender,
       birthDate: s.birthDate ?? '',
+      nik: s.nik ?? '',
+      birthPlace: s.birthPlace ?? '',
+      religion: s.religion ?? '',
+      address: s.address ?? '',
+      phone: s.phone ?? '',
+      email: s.email ?? '',
       status: s.status,
       classId: s.classId ?? '',
     });
@@ -580,6 +674,15 @@ export function StudentsView() {
                   icon: Users,
                   onSelect: () => setGuardiansFor({ id: s.id, name: s.name }),
                 },
+                ...(cardsAllowed
+                  ? [
+                      {
+                        label: tc('studentCardsTitle'),
+                        icon: CreditCard,
+                        onSelect: () => setCardsFor({ id: s.id, name: s.name }),
+                      },
+                    ]
+                  : []),
                 ...(manage
                   ? [
                       { label: tm('edit'), icon: Pencil, onSelect: () => openEdit(s) },
@@ -648,9 +751,17 @@ export function StudentsView() {
             </DialogTitle>
           </DialogHeader>
           {guardiansFor && <GuardiansPanel studentId={guardiansFor.id} />}
-          {guardiansFor && hasModule('attendance') && can('attendance:configure') && (
-            <StudentCards studentId={guardiansFor.id} />
-          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!cardsFor} onOpenChange={(open) => !open && setCardsFor(null)}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-lg">
+              {tc('studentCardsTitle')} · {cardsFor?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {cardsFor && <StudentCards studentId={cardsFor.id} />}
         </DialogContent>
       </Dialog>
     </PageBody>

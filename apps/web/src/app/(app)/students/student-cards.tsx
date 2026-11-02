@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CreditCard, Trash2 } from 'lucide-react';
+import { Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -48,10 +48,7 @@ export function StudentCards({ studentId }: { studentId: string }) {
   });
 
   return (
-    <section className="grid gap-3 border-t pt-4">
-      <h3 className="font-heading flex items-center gap-2 text-sm font-semibold">
-        <CreditCard className="size-4" aria-hidden /> {t('studentCardsTitle')}
-      </h3>
+    <section className="grid gap-3">
       {list.data?.length === 0 && <p className="text-muted-foreground text-sm">{t('studentCardsEmpty')}</p>}
       <ul className="grid gap-2">
         {list.data?.map((c) => (

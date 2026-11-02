@@ -7388,6 +7388,13 @@ export interface paths {
                     content: {
                         "application/json": {
                             items: {
+                                birthPlace: string | null;
+                                nik: string | null;
+                                /** @enum {string|null} */
+                                religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                                address: string | null;
+                                phone: string | null;
+                                email: string | null;
                                 /** Format: uuid */
                                 id: string;
                                 name: string;
@@ -7443,7 +7450,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah siswa
-         * @description Izin: `student:manage`. NIS dan NISN (bila diisi) harus unik di sekolah. `classId` opsional: siswa langsung ditempatkan di kelas itu pada tahun ajaran kelasnya.
+         * @description Izin: `student:manage`. NIS dan NISN (bila diisi) harus unik di sekolah. Data diri lain (tempat lahir, NIK 16 digit, agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: siswa langsung ditempatkan di kelas itu pada tahun ajaran kelasnya.
          */
         post: {
             parameters: {
@@ -7473,6 +7480,18 @@ export interface paths {
                          * @enum {string}
                          */
                         status?: "active" | "graduated" | "transferred" | "dropped";
+                        birthPlace?: string | null;
+                        nik?: string | null;
+                        /**
+                         * @default null
+                         * @enum {string|null}
+                         */
+                        religion?: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                        address?: string | null;
+                        /** @default null */
+                        phone?: string | null;
+                        /** @default null */
+                        email?: ("" | string) | null;
                         /**
                          * Format: uuid
                          * @default null
@@ -7489,6 +7508,13 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            birthPlace: string | null;
+                            nik: string | null;
+                            /** @enum {string|null} */
+                            religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                            address: string | null;
+                            phone: string | null;
+                            email: string | null;
                             /** Format: uuid */
                             id: string;
                             name: string;
@@ -7605,6 +7631,13 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            birthPlace: string | null;
+                            nik: string | null;
+                            /** @enum {string|null} */
+                            religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                            address: string | null;
+                            phone: string | null;
+                            email: string | null;
                             /** Format: uuid */
                             id: string;
                             name: string;
@@ -7703,6 +7736,18 @@ export interface paths {
                          * @enum {string}
                          */
                         status?: "active" | "graduated" | "transferred" | "dropped";
+                        birthPlace?: string | null;
+                        nik?: string | null;
+                        /**
+                         * @default null
+                         * @enum {string|null}
+                         */
+                        religion?: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                        address?: string | null;
+                        /** @default null */
+                        phone?: string | null;
+                        /** @default null */
+                        email?: ("" | string) | null;
                     };
                 };
             };
@@ -7714,6 +7759,13 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            birthPlace: string | null;
+                            nik: string | null;
+                            /** @enum {string|null} */
+                            religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                            address: string | null;
+                            phone: string | null;
+                            email: string | null;
                             /** Format: uuid */
                             id: string;
                             name: string;
@@ -7912,6 +7964,13 @@ export interface paths {
                     };
                     content: {
                         "application/json": {
+                            birthPlace: string | null;
+                            nik: string | null;
+                            /** @enum {string|null} */
+                            religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                            address: string | null;
+                            phone: string | null;
+                            email: string | null;
                             /** Format: uuid */
                             id: string;
                             name: string;
@@ -35209,6 +35268,111 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/students/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ekspor siswa beserta wali
+         * @description Izin: `student:read`. Saringan sama dengan daftar siswa (`q`, `classId`, `status`) tetapi tanpa paginasi; maksimal 5000 siswa (`total` memuat jumlah sebenarnya). Setiap siswa membawa semua walinya, wali utama lebih dulu.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                    classId?: string;
+                    status?: "active" | "graduated" | "transferred" | "dropped";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                nis: string | null;
+                                nisn: string | null;
+                                nik: string | null;
+                                /** @enum {string} */
+                                gender: "L" | "P";
+                                birthPlace: string | null;
+                                /** Format: date */
+                                birthDate: string | null;
+                                /** @enum {string|null} */
+                                religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                                address: string | null;
+                                phone: string | null;
+                                email: string | null;
+                                /** @enum {string} */
+                                status: "active" | "graduated" | "transferred" | "dropped";
+                                className: string | null;
+                                guardians: {
+                                    name: string;
+                                    /** @enum {string} */
+                                    relation: "father" | "mother" | "guardian" | "other";
+                                    phone: string | null;
+                                    email: string | null;
+                                    isPrimary: boolean;
+                                }[];
+                            }[];
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/students/import": {
         parameters: {
             query?: never;
@@ -35220,7 +35384,7 @@ export interface paths {
         put?: never;
         /**
          * Impor siswa (pratinjau atau simpan)
-         * @description Izin: `student:manage`. Maksimal 1000 baris. Dengan `dryRun: true` hanya memeriksa dan melaporkan kesalahan per baris. Tanpa `dryRun`, siswa baru disimpan hanya bila semua baris valid. Kelas (`className`) dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah.
+         * @description Izin: `student:manage`. Maksimal 1000 baris. Dengan `dryRun: true` hanya memeriksa dan melaporkan kesalahan per baris. Tanpa `dryRun`, siswa baru disimpan hanya bila semua baris valid. Kelas (`className`) dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah. Data diri opsional: `nik` (16 digit), `birthPlace`, `religion` (Islam, Kristen, Katolik, Hindu, Buddha, Konghucu, Lainnya, atau padanan Inggris), `address`, `phone`, `email`. Dua wali per baris (`g1*` wali utama, `g2*`): hubungan Ayah/Ibu/Wali/Lainnya (kosong: wali 1 ayah, wali 2 ibu); nama wajib bila ada isian lain pada blok itu. Wali dipakai ulang bila telepon (setelah dinormalkan) sama dengan wali yang sudah ada di sekolah atau yang dibuat lebih awal di file yang sama; selain itu wali baru dibuat.
          */
         post: {
             parameters: {
@@ -35246,11 +35410,39 @@ export interface paths {
                             /** @default  */
                             nisn?: string;
                             /** @default  */
+                            nik?: string;
+                            /** @default  */
                             gender?: string;
+                            /** @default  */
+                            birthPlace?: string;
                             /** @default  */
                             birthDate?: string;
                             /** @default  */
+                            religion?: string;
+                            /** @default  */
+                            address?: string;
+                            /** @default  */
+                            phone?: string;
+                            /** @default  */
+                            email?: string;
+                            /** @default  */
                             className?: string;
+                            /** @default  */
+                            g1Name?: string;
+                            /** @default  */
+                            g1Relation?: string;
+                            /** @default  */
+                            g1Phone?: string;
+                            /** @default  */
+                            g1Email?: string;
+                            /** @default  */
+                            g2Name?: string;
+                            /** @default  */
+                            g2Relation?: string;
+                            /** @default  */
+                            g2Phone?: string;
+                            /** @default  */
+                            g2Email?: string;
                         }[];
                     };
                 };

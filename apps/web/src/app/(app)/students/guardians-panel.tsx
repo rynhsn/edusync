@@ -253,7 +253,6 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                 value={draft.phone}
                 onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
               />
-              <p className="text-muted-foreground text-xs">{t('phoneHint')}</p>
             </div>
             <div className="grid gap-1.5">
               <Label htmlFor={`g-email-${studentId}`}>{t('email')}</Label>
@@ -264,6 +263,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                 onChange={(e) => setDraft({ ...draft, email: e.target.value })}
               />
             </div>
+            <p className="text-muted-foreground -mt-1.5 text-xs sm:col-span-2">{t('phoneHint')}</p>
             <label
               htmlFor={`g-primary-${studentId}`}
               className="flex items-center gap-2 text-sm sm:col-span-2"
