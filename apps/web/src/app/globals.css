@@ -167,3 +167,11 @@
     background-color: color-mix(in oklab, var(--muted-foreground) 65%, transparent);
   }
 }
+@keyframes kiosk-bar {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}

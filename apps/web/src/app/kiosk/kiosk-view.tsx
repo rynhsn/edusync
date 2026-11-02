@@ -1,10 +1,21 @@
 'use client';
 
-import { Maximize2, ScanLine, WifiOff } from 'lucide-react';
+import {
+  CircleAlert,
+  CircleCheck,
+  Clock,
+  Info as InfoIcon,
+  LogOut,
+  Maximize2,
+  Nfc,
+  School,
+  WifiOff,
+} from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { UserAvatar } from '@/components/ui-kit';
 import { cn } from '@/lib/utils';
 
 const KEY_STORAGE = 'edusync.kiosk.key';
@@ -27,6 +38,16 @@ interface Shown {
   tone: 'ok' | 'late' | 'out' | 'neutral' | 'error';
   title: string;
   detail: string;
+  /** Murid yang tap (kosong untuk galat umum); dipakai untuk avatar besar dan daftar terakhir. */
+  student?: { name: string; className: string };
+  /** Penanda tap ini, supaya bilah hitung mundur mulai ulang di tap berikutnya. */
+  id?: number;
+}
+interface Recent {
+  id: number;
+  name: string;
+  tone: Shown['tone'];
+  time: string;
 }
 interface Queued {
   code: string;
@@ -40,11 +61,25 @@ interface TapOk {
 }
 
 const TONE: Record<Shown['tone'], string> = {
-  ok: 'bg-emerald-600 text-white',
-  late: 'bg-amber-500 text-white',
-  out: 'bg-sky-600 text-white',
-  neutral: 'bg-slate-600 text-white',
-  error: 'bg-red-600 text-white',
+  ok: 'bg-linear-to-br from-emerald-500 to-teal-700 text-white',
+  late: 'bg-linear-to-br from-amber-400 to-orange-600 text-white',
+  out: 'bg-linear-to-br from-sky-500 to-indigo-700 text-white',
+  neutral: 'bg-linear-to-br from-slate-500 to-slate-700 text-white',
+  error: 'bg-linear-to-br from-rose-500 to-red-700 text-white',
+};
+const TONE_ICON = {
+  ok: CircleCheck,
+  late: Clock,
+  out: LogOut,
+  neutral: InfoIcon,
+  error: CircleAlert,
+} as const;
+const TONE_DOT: Record<Shown['tone'], string> = {
+  ok: 'bg-emerald-400',
+  late: 'bg-amber-400',
+  out: 'bg-sky-400',
+  neutral: 'bg-slate-400',
+  error: 'bg-rose-400',
 };
 
 function readQueue(): Queued[] {
@@ -89,6 +124,7 @@ export function KioskView() {
   const [now, setNow] = useState(() => new Date());
   const [offline, setOffline] = useState(0);
   const [code, setCode] = useState('');
+  const [recent, setRecent] = useState<Recent[]>([]);
   const inputRef = useRef<HTMLInputElement>(null);
   const hideTimer = useRef<ReturnType<typeof setTimeout>>(undefined);
 
@@ -106,7 +142,13 @@ export function KioskView() {
   }, []);
 
   const show = useCallback((s: Shown) => {
-    setShown(s);
+    const id = Date.now();
+    setShown({ ...s, id });
+    if (s.student) {
+      const time = new Date(id).toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+      const name = s.student.name;
+      setRecent((r) => [{ id, name, tone: s.tone, time }, ...r].slice(0, 5));
+    }
     clearTimeout(hideTimer.current);
     hideTimer.current = setTimeout(() => setShown(null), SHOW_MS);
     beep(s.tone !== 'error');
@@ -187,16 +229,18 @@ export function KioskView() {
         const tap = r.json as unknown as TapOk;
         const name = tap.student.name;
         const cls = tap.student.className ?? '';
+        const student = { name, className: cls };
+        const detail = cls ? `${name} · ${cls}` : name;
         if (tap.result === 'in') {
           show(
             tap.late
-              ? { tone: 'late', title: t('kiosk.late'), detail: `${name} · ${cls}` }
-              : { tone: 'ok', title: t('kiosk.welcome'), detail: `${name} · ${cls}` },
+              ? { tone: 'late', title: t('kiosk.late'), detail, student }
+              : { tone: 'ok', title: t('kiosk.welcome'), detail, student },
           );
         } else if (tap.result === 'out') {
-          show({ tone: 'out', title: t('kiosk.goodbye'), detail: `${name} · ${cls}` });
+          show({ tone: 'out', title: t('kiosk.goodbye'), detail, student });
         } else {
-          show({ tone: 'neutral', title: t(`result.${tap.result}`), detail: `${name} · ${cls}` });
+          show({ tone: 'neutral', title: t(`result.${tap.result}`), detail, student });
         }
       } else if (r.status === 401) {
         localStorage.removeItem(KEY_STORAGE);
@@ -223,9 +267,9 @@ export function KioskView() {
 
   if (!key) {
     return (
-      <main className="grid min-h-dvh place-items-center p-6">
+      <main className="grid min-h-dvh place-items-center bg-linear-to-br from-slate-900 via-slate-900 to-teal-950 p-6">
         <form
-          className="bg-card grid w-full max-w-md gap-4 rounded-xl border p-6"
+          className="bg-card grid w-full max-w-md gap-4 rounded-3xl border p-7 shadow-2xl"
           onSubmit={(e) => {
             e.preventDefault();
             const v = keyDraft.trim();
@@ -234,7 +278,10 @@ export function KioskView() {
             setKey(v);
           }}
         >
-          <h1 className="font-heading text-xl font-semibold">{t('kiosk.setupTitle')}</h1>
+          <span className="bg-primary/10 text-primary grid size-14 place-items-center rounded-2xl">
+            <Nfc className="size-7" aria-hidden />
+          </span>
+          <h1 className="font-heading text-2xl font-semibold">{t('kiosk.setupTitle')}</h1>
           <p className="text-muted-foreground text-sm">{t('kiosk.setupHint')}</p>
           <Input
             aria-label={t('kiosk.keyLabel')}
@@ -251,21 +298,35 @@ export function KioskView() {
     );
   }
 
-  const time = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const hm = now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', hour12: false });
+  const ss = String(now.getSeconds()).padStart(2, '0');
   const day = now.toLocaleDateString(undefined, {
     weekday: 'long',
     day: 'numeric',
     month: 'long',
     year: 'numeric',
   });
+  const ToneIcon = shown ? TONE_ICON[shown.tone] : null;
 
   return (
     <main
       className={cn(
-        'relative grid min-h-dvh place-items-center overflow-hidden p-6 transition-colors',
-        shown ? TONE[shown.tone] : 'bg-background',
+        'relative grid min-h-dvh place-items-center overflow-hidden p-6 text-white transition-colors duration-300',
+        shown ? TONE[shown.tone] : 'bg-linear-to-br from-slate-900 via-slate-900 to-teal-950',
       )}
     >
+      {!shown && (
+        <>
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -top-40 -left-32 size-[34rem] rounded-full bg-teal-500/15 blur-3xl"
+          />
+          <div
+            aria-hidden
+            className="pointer-events-none absolute -right-40 -bottom-48 size-[40rem] rounded-full bg-sky-500/10 blur-3xl"
+          />
+        </>
+      )}
       <input
         ref={inputRef}
         aria-label={t('kiosk.readerInput')}
@@ -282,40 +343,116 @@ export function KioskView() {
           }
         }}
       />
-      <header className="absolute top-0 right-0 left-0 flex items-center justify-between gap-3 p-5 text-sm opacity-80">
-        <div>
-          <div className="font-medium">{info?.school ?? '…'}</div>
-          <div>{info?.device}</div>
+
+      <header className="absolute top-0 right-0 left-0 flex items-center justify-between gap-3 p-5 sm:p-7">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="grid size-11 shrink-0 place-items-center rounded-2xl bg-white/15 backdrop-blur">
+            <School className="size-5" aria-hidden />
+          </span>
+          <div className="min-w-0">
+            <div className="font-heading truncate text-lg leading-tight font-semibold">
+              {info?.school ?? '…'}
+            </div>
+            <div className="truncate text-sm opacity-70">{info?.device}</div>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2">
           {offline > 0 && (
-            <span className="inline-flex items-center gap-1">
-              <WifiOff className="size-4" /> {t('kiosk.pending', { count: offline })}
+            <span className="inline-flex items-center gap-1.5 rounded-full bg-amber-400/20 px-3 py-1 text-sm text-amber-200">
+              <WifiOff className="size-4" aria-hidden /> {t('kiosk.pending', { count: offline })}
             </span>
           )}
           <Button
-            size="icon-sm"
+            size="icon"
             variant="ghost"
+            className="text-white hover:bg-white/15 hover:text-white"
             aria-label={t('kiosk.fullscreen')}
             onClick={() => document.documentElement.requestFullscreen?.()}
           >
-            <Maximize2 className="size-4" />
+            <Maximize2 className="size-5" />
           </Button>
         </div>
       </header>
 
-      {shown ? (
-        <div role="status" aria-live="assertive" className="grid gap-3 text-center">
-          <div className="font-heading text-5xl font-bold sm:text-7xl">{shown.title}</div>
-          <div className="text-2xl sm:text-4xl">{shown.detail}</div>
+      {shown && ToneIcon ? (
+        <div
+          key={shown.id}
+          role="status"
+          aria-live="assertive"
+          className="grid justify-items-center gap-5 text-center motion-safe:animate-in motion-safe:fade-in motion-safe:zoom-in-95 motion-safe:duration-300"
+        >
+          {shown.student ? (
+            <UserAvatar
+              name={shown.student.name}
+              className="size-32 bg-white/25 text-5xl text-white shadow-2xl ring-8 ring-white/30 sm:size-40 sm:text-6xl"
+            />
+          ) : (
+            <ToneIcon className="size-28 sm:size-36" aria-hidden />
+          )}
+          <div className="inline-flex items-center gap-3 rounded-full bg-white/20 px-5 py-2 text-2xl font-semibold backdrop-blur sm:text-3xl">
+            {shown.student && <ToneIcon className="size-7" aria-hidden />}
+            {shown.title}
+          </div>
+          {shown.student ? (
+            <>
+              <div className="font-heading max-w-[90vw] text-4xl leading-tight font-bold sm:text-6xl">
+                {shown.student.name}
+              </div>
+              {shown.student.className && (
+                <div className="text-2xl opacity-90 sm:text-4xl">{shown.student.className}</div>
+              )}
+            </>
+          ) : (
+            <div className="max-w-[90vw] text-3xl font-semibold sm:text-5xl">{shown.detail}</div>
+          )}
         </div>
       ) : (
-        <div className="grid gap-6 text-center">
-          <div className="font-heading text-8xl font-bold tabular-nums sm:text-9xl">{time}</div>
-          <div className="text-muted-foreground text-xl">{day}</div>
-          <div className="text-muted-foreground mx-auto flex items-center gap-2 text-lg">
-            <ScanLine className="size-6" /> {t('kiosk.tapPrompt')}
+        <div className="relative grid justify-items-center gap-8 text-center">
+          <div>
+            <div className="font-heading flex items-end justify-center gap-3 tabular-nums">
+              <span className="text-8xl leading-none font-bold sm:text-9xl">{hm}</span>
+              <span className="pb-2 text-3xl font-medium opacity-50 sm:pb-3 sm:text-4xl">{ss}</span>
+            </div>
+            <div className="mt-3 text-xl opacity-70 sm:text-2xl">{day}</div>
           </div>
+
+          <div className="flex items-center gap-4 rounded-3xl bg-white/10 py-4 pr-7 pl-4 ring-1 ring-white/15 backdrop-blur">
+            <span className="relative grid size-14 place-items-center">
+              <span
+                aria-hidden
+                className="absolute inset-0 rounded-full bg-teal-400/40 motion-safe:animate-ping"
+              />
+              <span className="relative grid size-14 place-items-center rounded-full bg-teal-400 text-slate-900">
+                <Nfc className="size-7" aria-hidden />
+              </span>
+            </span>
+            <span className="text-xl font-medium sm:text-2xl">{t('kiosk.tapPrompt')}</span>
+          </div>
+        </div>
+      )}
+
+      {!shown && recent.length > 0 && (
+        <ul className="absolute right-0 bottom-0 left-0 flex flex-wrap justify-center gap-2 p-5 sm:p-7">
+          {recent.map((r) => (
+            <li
+              key={r.id}
+              className="flex items-center gap-2 rounded-full bg-white/10 py-1.5 pr-3.5 pl-2.5 text-sm ring-1 ring-white/10 motion-safe:animate-in motion-safe:fade-in"
+            >
+              <span aria-hidden className={cn('size-2 rounded-full', TONE_DOT[r.tone])} />
+              <span className="max-w-40 truncate font-medium">{r.name}</span>
+              <span className="tabular-nums opacity-60">{r.time}</span>
+            </li>
+          ))}
+        </ul>
+      )}
+
+      {shown && (
+        <div aria-hidden className="absolute right-0 bottom-0 left-0 h-2 bg-white/20">
+          <div
+            key={shown.id}
+            className="h-full origin-left bg-white/70"
+            style={{ animation: `kiosk-bar ${SHOW_MS}ms linear forwards` }}
+          />
         </div>
       )}
     </main>
