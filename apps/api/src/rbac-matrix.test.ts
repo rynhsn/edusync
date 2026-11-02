@@ -265,6 +265,7 @@ describe('katalog route', () => {
     const allowed = [
       /^\/(health|ready|openapi\.json)$/,
       /^\/docs/,
+      /^\/internal\/tls-ask$/,
       /^\/api\/auth/,
       /^\/v1\/(config|catalog|slugs\/|public\/|kiosk\/|webhooks\/|dev\/|invitations\/by-token\/:token$)/,
     ];
