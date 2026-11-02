@@ -1460,4 +1460,201 @@ export const PLATFORM_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'my-profile',
+    icon: 'lock',
+    tone: 'slate',
+    group: 'ops',
+    text: {
+      id: {
+        title: 'Profil saya: nama, kata sandi, dan perangkat',
+        summary:
+          'Ubah nama, ganti kata sandi, dan keluarkan perangkat yang tidak Anda kenali dari akun Anda.',
+        forWho: 'Semua pengguna yang punya akun, apa pun perannya.',
+        sections: [
+          {
+            heading: 'Membuka profil Anda',
+            body: 'Profil ada di menu yang muncul saat Anda mengklik nama Anda di pojok kanan atas.',
+            steps: ['Klik nama atau foto inisial Anda di pojok kanan atas.', 'Pilih Profil saya.'],
+            href: '/platform/profile',
+          },
+          {
+            heading: 'Mengubah nama',
+            body: 'Nama tampil di daftar anggota dan di bagian atas halaman. Email dipakai untuk masuk dan tidak bisa diubah di sini.',
+            steps: [
+              'Di kartu Profil, ubah isian Nama lengkap.',
+              'Klik Simpan nama. Tombol baru aktif setelah nama berubah.',
+            ],
+            tip: 'Nama minimal 2 huruf.',
+          },
+          {
+            heading: 'Mengganti kata sandi',
+            body: 'Anda perlu mengisi kata sandi saat ini sebelum menggantinya. Kata sandi baru minimal 12 karakter.',
+            steps: [
+              'Di kartu Ganti kata sandi, isi Kata sandi saat ini.',
+              'Isi Kata sandi baru, lalu ulangi di Ulangi kata sandi baru.',
+              'Klik Simpan kata sandi.',
+            ],
+            tip: 'Pakai kalimat yang mudah diingat tetapi panjang, misalnya empat kata acak, lebih aman daripada satu kata dengan angka.',
+            warning:
+              'Setelah kata sandi diganti, semua perangkat lain yang sedang masuk dengan akun Anda otomatis keluar. Perangkat yang sedang Anda pakai tetap masuk.',
+          },
+          {
+            heading: 'Mengeluarkan perangkat yang tidak dikenal',
+            body: 'Kartu Perangkat yang sedang masuk menampilkan setiap perangkat yang masih masuk dengan akun Anda, lengkap dengan peramban, sistem, waktu masuk, dan alamat jaringannya.',
+            steps: [
+              'Lihat daftar perangkat. Perangkat yang sedang Anda pakai ditandai Perangkat ini.',
+              'Klik Keluarkan pada perangkat yang tidak Anda kenali.',
+              'Untuk mengeluarkan semuanya sekaligus, klik Keluarkan semua perangkat lain.',
+            ],
+            warning: 'Bila ada perangkat yang tidak Anda kenali, keluarkan lalu segera ganti kata sandi.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Bagaimana mengganti email saya?',
+            a: 'Email tidak bisa diubah sendiri dari halaman profil. Hubungi admin untuk meminta penggantian.',
+          },
+          {
+            q: 'Saya lupa kata sandi saat ini, bagaimana mengganti?',
+            a: 'Keluar dulu, lalu di halaman masuk klik Lupa kata sandi. Kode 6 digit dikirim ke email Anda dan berlaku 10 menit; dengan kode itu Anda bisa membuat kata sandi baru.',
+          },
+          {
+            q: 'Kenapa saya tiba-tiba keluar dari perangkat lain?',
+            a: 'Itu terjadi setelah kata sandi diganti, atau bila Anda atau admin mengeluarkan perangkat itu dari daftar perangkat. Masuk lagi dengan kata sandi yang baru.',
+          },
+          {
+            q: 'Muncul perangkat tak dikenal di daftar, apakah akun saya diretas?',
+            a: 'Belum tentu: perangkat lama atau peramban yang pernah Anda pakai juga tampil. Bila ragu, keluarkan semua perangkat lain lalu ganti kata sandi.',
+          },
+        ],
+      },
+      en: {
+        title: 'My profile: name, password, and devices',
+        summary: 'Change your name, update your password, and sign out devices you do not recognise.',
+        forWho: 'Everyone with an account, whatever their role.',
+        sections: [
+          {
+            heading: 'Opening your profile',
+            body: 'Your profile is in the menu that opens when you click your name at the top right.',
+            steps: ['Click your name or initials at the top right.', 'Choose My profile.'],
+            href: '/platform/profile',
+          },
+          {
+            heading: 'Changing your name',
+            body: 'Your name appears in the member list and at the top of the page. Your email is used to sign in and cannot be changed here.',
+            steps: [
+              'In the Profile card, edit the Full name field.',
+              'Click Save name. The button only turns on once the name has changed.',
+            ],
+            tip: 'A name needs at least 2 letters.',
+          },
+          {
+            heading: 'Changing your password',
+            body: 'You must enter your current password before changing it. The new password needs at least 12 characters.',
+            steps: [
+              'In the Change password card, fill in Current password.',
+              'Fill in New password, then repeat it in Repeat new password.',
+              'Click Save password.',
+            ],
+            tip: 'A long phrase that is easy to remember, such as four random words, is safer than one word with numbers.',
+            warning:
+              'Once the password is changed, every other device signed in to your account is signed out automatically. The device you are using stays signed in.',
+          },
+          {
+            heading: 'Signing out a device you do not recognise',
+            body: 'The Signed-in devices card lists every device still signed in to your account, with its browser, system, sign-in time, and network address.',
+            steps: [
+              'Look through the list. The device you are using is marked This device.',
+              'Click Sign out on any device you do not recognise.',
+              'To sign out all of them at once, click Sign out all other devices.',
+            ],
+            warning:
+              'If you see a device you do not recognise, sign it out and change your password right away.',
+          },
+        ],
+        faq: [
+          {
+            q: 'How do I change my email?',
+            a: 'You cannot change your email yourself from the profile page. Ask an administrator to change it.',
+          },
+          {
+            q: 'I forgot my current password. How do I change it?',
+            a: 'Sign out, then click Forgot password on the sign-in page. A 6-digit code is sent to your email and is valid for 10 minutes; with it you can create a new password.',
+          },
+          {
+            q: 'Why was I suddenly signed out on another device?',
+            a: 'That happens after the password is changed, or when you or an administrator signed that device out of the list. Sign in again with the new password.',
+          },
+          {
+            q: 'An unknown device is in the list. Has my account been hacked?',
+            a: 'Not necessarily: old devices or browsers you used before also appear. If in doubt, sign out all other devices and change your password.',
+          },
+        ],
+      },
+      su: {
+        title: 'Profil kuring: ngaran, kecap akses, jeung parangkat',
+        summary:
+          'Robah ngaran, ganti kecap akses, jeung kaluarkeun parangkat nu teu anjeun kenal tina akun anjeun.',
+        forWho: 'Sakabéh pamaké nu boga akun, naon waé perananna.',
+        sections: [
+          {
+            heading: 'Muka profil anjeun',
+            body: 'Profil aya dina ménu nu muncul waktu anjeun ngaklik ngaran anjeun di juru katuhu luhur.',
+            steps: ['Klik ngaran atawa inisial anjeun di juru katuhu luhur.', 'Pilih Profil kuring.'],
+            href: '/platform/profile',
+          },
+          {
+            heading: 'Ngarobah ngaran',
+            body: 'Ngaran kaciri dina daptar anggota jeung di luhureun kaca. Surélék dipaké pikeun asup jeung teu bisa dirobah di dieu.',
+            steps: [
+              'Dina kartu Profil, robah eusian Ngaran lengkep.',
+              'Klik Simpen ngaran. Tombolna anyar aktip sanggeus ngaran robah.',
+            ],
+            tip: 'Ngaran sahenteuna 2 hurup.',
+          },
+          {
+            heading: 'Ngaganti kecap akses',
+            body: 'Anjeun kudu ngeusian kecap akses ayeuna samemeh ngagantina. Kecap akses anyar sahenteuna 12 karakter.',
+            steps: [
+              'Dina kartu Ganti kecap akses, eusian Kecap akses ayeuna.',
+              'Eusian Kecap akses anyar, tuluy ulang dina Ulang kecap akses anyar.',
+              'Klik Simpen kecap akses.',
+            ],
+            tip: 'Kalimah panjang nu gampang diinget, upamana opat kecap acak, leuwih aman tibatan hiji kecap jeung angka.',
+            warning:
+              'Sanggeus kecap akses diganti, sakabéh parangkat séjén nu keur asup maké akun anjeun otomatis kaluar. Parangkat nu keur dipaké tetep asup.',
+          },
+          {
+            heading: 'Ngaluarkeun parangkat nu teu dikenal',
+            body: 'Kartu Parangkat nu keur asup nuduhkeun unggal parangkat nu masih asup maké akun anjeun, lengkep jeung panyungsi, sistem, waktu asup, jeung alamat jaringanna.',
+            steps: [
+              'Tenjo daptar parangkat. Parangkat nu keur dipaké dicirian Parangkat ieu.',
+              'Klik Kaluarkeun dina parangkat nu teu anjeun kenal.',
+              'Pikeun ngaluarkeun kabéhna sakaligus, klik Kaluarkeun sakabéh parangkat séjén.',
+            ],
+            warning: 'Lamun aya parangkat nu teu anjeun kenal, kaluarkeun tuluy geuwat ganti kecap akses.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kumaha ngaganti surélék kuring?',
+            a: 'Surélék teu bisa dirobah sorangan tina kaca profil. Hubungi admin pikeun menta diganti.',
+          },
+          {
+            q: 'Poho kecap akses ayeuna, kumaha ngagantina?',
+            a: 'Kaluar heula, tuluy dina kaca asup klik Poho kecap sandi. Kode 6 angka dikirim ka surélék anjeun sarta lumaku 10 menit; maké kode éta anjeun bisa nyieun kecap akses anyar.',
+          },
+          {
+            q: 'Naha kuring ujug-ujug kaluar tina parangkat séjén?',
+            a: 'Éta kajadian sanggeus kecap akses diganti, atawa lamun anjeun atawa admin ngaluarkeun parangkat éta tina daptar. Asup deui maké kecap akses anyar.',
+          },
+          {
+            q: 'Aya parangkat teu dikenal dina daptar, naha akun kuring dibobol?',
+            a: 'Teu salawasna: parangkat atawa panyungsi lawas nu kungsi dipaké ogé kaciri. Lamun ragu, kaluarkeun sakabéh parangkat séjén tuluy ganti kecap akses.',
+          },
+        ],
+      },
+    },
+  },
 ];

@@ -21,9 +21,11 @@ describe('homePathFor', () => {
 });
 
 describe('isPortalPath', () => {
-  it('mengenali /portal dan turunannya saja', () => {
+  it('mengenali /portal dan turunannya serta profil sendiri', () => {
     expect(isPortalPath('/portal')).toBe(true);
     expect(isPortalPath('/portal/children/x')).toBe(true);
+    expect(isPortalPath('/profile')).toBe(true);
+    expect(isPortalPath('/profile/x')).toBe(false);
     expect(isPortalPath('/portal-admin')).toBe(false);
     expect(isPortalPath('/dashboard')).toBe(false);
   });

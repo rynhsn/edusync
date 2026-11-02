@@ -13,6 +13,7 @@ import {
   Package,
   Send,
   ShieldCheck,
+  UserCog,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -21,7 +22,17 @@ import { createContext, useContext, useEffect } from 'react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 import { Logo } from '@/components/logo';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToneBadge } from '@/components/ui-kit';
 import { ApiError, api, unwrap } from '@/lib/api';
@@ -74,6 +85,9 @@ const GROUPS = [
 export function PlatformShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations('platform');
   const tc = useTranslations('common');
+  const tp = useTranslations('profile');
+  const session = authClient.useSession();
+  const account = session.data?.user;
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -192,9 +206,29 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
             <div className="flex items-center gap-1">
               <LanguageSwitcher />
               <ThemeToggle />
-              <Button variant="ghost" size="sm" onClick={signOut}>
-                <LogOut className="size-4" /> {tc('signOut')}
-              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger render={<Button variant="ghost" className="h-auto gap-2 py-1" />}>
+                  <Avatar className="size-7">
+                    <AvatarFallback>{(account?.name ?? '?').slice(0, 2).toUpperCase()}</AvatarFallback>
+                  </Avatar>
+                  <span className="hidden text-sm sm:inline">{account?.name}</span>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="min-w-56">
+                  <DropdownMenuGroup>
+                    <DropdownMenuLabel className="font-normal">
+                      <span className="block text-sm font-medium">{account?.name}</span>
+                      <span className="text-muted-foreground block text-xs">{account?.email}</span>
+                    </DropdownMenuLabel>
+                  </DropdownMenuGroup>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push('/platform/profile')}>
+                    <UserCog className="size-4" /> {tp('menu')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={signOut}>
+                    <LogOut className="size-4" /> {tc('signOut')}
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </header>
           <main className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-8">{children}</main>

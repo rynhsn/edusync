@@ -13,7 +13,7 @@ export function homePathFor(permissions: readonly string[]): '/portal' | '/dashb
   return isPortalOnly(permissions) ? '/portal' : '/dashboard';
 }
 
-/** Halaman yang boleh dibuka pengguna portal: hanya /portal dan turunannya. */
+/** Halaman yang boleh dibuka pengguna portal: /portal dan turunannya, serta profil akun sendiri. */
 export function isPortalPath(pathname: string): boolean {
-  return pathname === '/portal' || pathname.startsWith('/portal/');
+  return pathname === '/portal' || pathname.startsWith('/portal/') || pathname === '/profile';
 }

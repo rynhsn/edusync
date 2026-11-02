@@ -43,6 +43,7 @@ import {
   SlidersHorizontal,
   Sprout,
   Trophy,
+  UserCog,
   UserPlus,
   UserRound,
   Users,
@@ -556,6 +557,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations('nav');
   const tc = useTranslations('common');
   const tr = useTranslations('roles');
+  const tp = useTranslations('profile');
   const router = useRouter();
   const pathname = usePathname();
   const queryClient = useQueryClient();
@@ -678,6 +680,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                     </DropdownMenuLabel>
                   </DropdownMenuGroup>
                   <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => router.push('/profile')}>
+                    <UserCog className="size-4" /> {tp('menu')}
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={signOut}>
                     <LogOut className="size-4" /> {tc('signOut')}
                   </DropdownMenuItem>
@@ -750,6 +755,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
                   </DropdownMenuLabel>
                 </DropdownMenuGroup>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => router.push('/profile')}>
+                  <UserCog className="size-4" /> {tp('menu')}
+                </DropdownMenuItem>
                 <DropdownMenuItem onClick={signOut}>
                   <LogOut className="size-4" /> {tc('signOut')}
                 </DropdownMenuItem>
