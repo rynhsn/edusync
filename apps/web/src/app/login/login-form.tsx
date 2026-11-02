@@ -60,7 +60,15 @@ export function LoginForm() {
           <Input id="email" name="email" type="email" autoComplete="username" required className="h-10" />
         </div>
         <div className="grid gap-2">
-          <Label htmlFor="password">{t('password')}</Label>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="password">{t('password')}</Label>
+            <Link
+              href="/forgot-password"
+              className="text-primary text-xs font-medium underline-offset-4 hover:underline"
+            >
+              {t('forgotLink')}
+            </Link>
+          </div>
           <PasswordInput
             id="password"
             name="password"

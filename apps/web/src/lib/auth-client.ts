@@ -1,3 +1,4 @@
+import { emailOTPClient } from 'better-auth/client/plugins';
 import { createAuthClient } from 'better-auth/react';
 
 // Alamat sama dengan halaman yang sedang dibuka; Next meneruskannya ke API. Di server (SSR) klien ini
@@ -6,4 +7,5 @@ export const authClient = createAuthClient({
   baseURL: typeof window === 'undefined' ? 'http://localhost:3000' : window.location.origin,
   basePath: '/api/auth',
   fetchOptions: { credentials: 'include' },
+  plugins: [emailOTPClient()],
 });

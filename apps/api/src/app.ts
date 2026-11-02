@@ -87,7 +87,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   const hosts = createHostResolver((host) => lookupVerifiedHost(tenantDb.db, host));
   const isTrustedOrigin = dynamicOriginCheckerFor(env, hosts);
   app.decorate('hosts', hosts);
-  app.decorate('auth', createAuth(env, tenantDb.db, hosts));
+  app.decorate('auth', createAuth(env, tenantDb.db, hosts, platformDb.db));
   app.decorate('payments', new PaymentProviderResolver(platformDb.db, env.AUTH_SECRET, paymentConfig(env)));
   app.addHook('onClose', async () => {
     await Promise.all([tenantDb.pool.end(), platformDb.pool.end()]);
