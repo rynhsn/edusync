@@ -130,12 +130,12 @@ afterAll(async () => {
 describe('tingkatkan paket / tambah modul', () => {
   it('menghitung prorata dengan harga katalog server, modul syarat ikut, tanpa menyimpan', async () => {
     const res = await post(owner.cookie, `/v1/account/units/${schoolId}/change-quote`, {
-      modules: ['attendance', 'grades', 'parent_portal', 'assessments'],
+      modules: ['attendance', 'grades', 'parent_portal', 'internship'],
       tier: 't300',
     });
     expect(res.statusCode).toBe(200);
     const q = res.json();
-    expect(q.addModules).toEqual(['assessments', 'parent_portal']);
+    expect(q.addModules).toEqual(['administration', 'internship', 'parent_portal']);
     expect(q.fraction).toBeGreaterThan(0.99);
     const portal = q.lines.find((l: { key: string }) => l.key === 'parent_portal');
     expect(portal.amount).toBe(Math.round(50_000 * q.fraction));

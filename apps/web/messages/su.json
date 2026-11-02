@@ -1822,7 +1822,7 @@
     "statWithCoach": "Boga pembina",
     "emptyTitle": "Acan aya kagiatan",
     "emptyFiltered": "Euweuh ekstrakurikuler anu cocog jeung pamilarian atawa kategori ieu.",
-    "confirmDelete": "Hapus ekstrakurikuler \"{name}\"? Anggota jeung patepunganana milu kahapus.",
+    "confirmDelete": "Hapus ekstrakurikuler \"{name}\"? Anggotana milu kahapus. Kagiatan nu geus boga patepungan atawa penilaian teu bisa dihapus; nonaktifkeun wae.",
     "categories": {
       "manage": "Atur kategori",
       "title": "Kategori ekstrakurikuler",

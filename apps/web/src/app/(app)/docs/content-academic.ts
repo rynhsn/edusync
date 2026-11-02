@@ -43,7 +43,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Yang perlu diperhatikan',
-            body: 'Nilai dan rapor adalah satu modul (Nilai dan rapor); modul Penilaian non-akademik bergantung padanya. Di halaman Penilaian sendiri tidak ada fitur khusus non-akademik; predikat ekstrakurikuler dicatat di modul Ekstrakurikuler.',
+            body: 'Nilai dan rapor adalah satu modul (Nilai dan rapor). Penilaian non-akademik tidak punya fitur terpisah; predikat ekstrakurikuler dicatat di modul Ekstrakurikuler.',
             steps: [
               'Guru hanya bisa melihat dan mengisi kelas serta mata pelajaran yang ia ampu. Pengelola nilai, kepala sekolah, dan kurikulum bisa melihat semua kelas dan mapel.',
               'Membuat, mengubah, dan menghapus penilaian serta mengisi nilai memerlukan izin mengisi nilai, dan hanya untuk pengelola nilai atau guru pengampu kelas dan mapel itu.',
@@ -89,7 +89,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Things to keep in mind',
-            body: 'Grades and report cards are one module (Grades and report cards); the Non-academic assessment module depends on it. The Grading page itself has no separate non-academic feature; extracurricular predicates are recorded in the Extracurricular module.',
+            body: 'Grades and report cards are one module (Grades and report cards). Non-academic assessment has no separate feature; extracurricular predicates are recorded in the Extracurricular module.',
             steps: [
               'Teachers can only view and fill the classes and subjects they teach. The grading manager, principal, and curriculum staff can see all classes and subjects.',
               'Creating, editing, and deleting assessments and entering scores requires the score-entry permission, and only for the grading manager or the teacher assigned to that class and subject.',
@@ -135,7 +135,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Nu kedah diperhatoskeun',
-            body: 'Nilai sareng rapor téh hiji modul (Nilai dan rapor); modul Penilaian non-akademik gumantung kana éta. Dina kaca Penilaian sorangan teu aya fitur non-akademik nu misah; predikat ékstrakurikuler dicatet dina modul Ekstrakurikuler.',
+            body: 'Nilai sareng rapor téh hiji modul (Nilai dan rapor). Penilaian non-akademik teu boga fitur nu misah; predikat ékstrakurikuler dicatet dina modul Ekstrakurikuler.',
             steps: [
               'Guru ngan tiasa ningali sareng ngeusian kelas sareng mata pelajaran nu diampuna. Pangurus nilai, kepala sakola, sareng kurikulum tiasa ningali sadaya kelas sareng mapel.',
               'Nyieun, ngarobih, sareng mupus panilaian ogé ngeusian nilai merlukeun idin ngeusian nilai, sareng ngan kanggo pangurus nilai atanapi guru pangampu kelas sareng mapel éta.',

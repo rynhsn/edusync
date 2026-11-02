@@ -299,7 +299,7 @@ describe('ketergantungan modul dan batas tingkat dari katalog', () => {
     expect(pub.requires[top]).toEqual([base]);
     expect(pub.items.find((i: { key: string }) => i.key === top)).toMatchObject({ requires: [base] });
     // Syarat bawaan yang sudah ada di katalog tetap berlaku.
-    expect(pub.requires.assessments).toEqual(['grades']);
+    expect(pub.requires.internship).toEqual(['administration']);
 
     const catalog = await loadCatalog(app.platformDb);
     expect(withRequirements([top], catalog).sort()).toEqual([base, top].sort());

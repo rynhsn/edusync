@@ -1822,7 +1822,7 @@
     "statWithCoach": "With a coach",
     "emptyTitle": "No activities yet",
     "emptyFiltered": "No extracurricular matches this search or category.",
-    "confirmDelete": "Delete extracurricular \"{name}\"? Its members and sessions are removed too.",
+    "confirmDelete": "Delete extracurricular \"{name}\"? Its members are removed too. An activity that already has sessions or assessments cannot be deleted; deactivate it instead.",
     "categories": {
       "manage": "Manage categories",
       "title": "Extracurricular categories",

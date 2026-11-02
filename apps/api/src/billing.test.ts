@@ -72,7 +72,7 @@ const units = (label: string) => [
   {
     name: 'SMP IT Contoh',
     slug: `smp-${label}-${run}`,
-    modules: ['attendance', 'assessments'],
+    modules: ['attendance', 'internship'],
     tier: 't300',
   },
   { name: 'SMK Contoh', slug: `smk-${label}-${run}`, modules: ['internship'], tier: 't800' },
@@ -136,7 +136,7 @@ describe('katalog dan subdomain', () => {
     const body = res.json();
     expect(body.currency).toBe('IDR');
     expect(body.items.find((i: { key: string }) => i.key === 'attendance').priceMonthly).toBe(100_000);
-    expect(body.requires.assessments).toEqual(['grades']);
+    expect(body.requires.internship).toEqual(['administration']);
   });
 
   it('ketersediaan subdomain: tidak valid, tersedia', async () => {
@@ -197,7 +197,7 @@ describe('pendaftaran dan aktivasi otomatis', () => {
           sql`select module_key from entitlement where school_id = ${schoolId} order by 1`,
         )
       ).rows.map((r) => r.module_key);
-    expect(await mods(smp.schoolId)).toEqual(['assessments', 'attendance', 'grades']);
+    expect(await mods(smp.schoolId)).toEqual(['administration', 'attendance', 'internship']);
     expect(await mods(smk.schoolId)).toEqual(['administration', 'internship']);
 
     // Email selamat datang masuk antrean dalam transaksi aktivasi.
@@ -375,7 +375,7 @@ describe('portal akun pemilik yayasan', () => {
     expect(f.subscription).toMatchObject({ status: 'active', period: 'yearly' });
     expect(f.schools).toHaveLength(2);
     const smp = f.schools.find((s: { slug: string }) => s.slug === `smp-akun-${run}`);
-    expect(smp.modules).toEqual(['attendance', 'assessments', 'grades'].sort());
+    expect(smp.modules).toEqual(['attendance', 'internship', 'administration'].sort());
     expect(f.invoices).toHaveLength(1);
     expect(f.invoices[0]).toMatchObject({ status: 'paid', amount, paymentUrl: null });
 

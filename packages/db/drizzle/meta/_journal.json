@@ -435,6 +435,13 @@
       "when": 1794300200000,
       "tag": "0061_student_profile",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1794400200000,
+      "tag": "0062_deactivate_unused_modules",
+      "breakpoints": true
     }
   ]
 }

@@ -1822,7 +1822,7 @@
     "statWithCoach": "Punya pembina",
     "emptyTitle": "Belum ada kegiatan",
     "emptyFiltered": "Tidak ada ekstrakurikuler yang cocok dengan pencarian atau kategori ini.",
-    "confirmDelete": "Hapus ekstrakurikuler \"{name}\"? Anggota dan pertemuannya ikut terhapus.",
+    "confirmDelete": "Hapus ekstrakurikuler \"{name}\"? Anggotanya ikut terhapus. Kegiatan yang sudah punya pertemuan atau penilaian tidak bisa dihapus; nonaktifkan saja.",
     "categories": {
       "manage": "Kelola kategori",
       "title": "Kategori ekstrakurikuler",
