@@ -125,7 +125,7 @@ if (sub) {
           'messaging',
           'administration',
           'admissions',
-          'internship',
+          ...(s === smk ? ['internship'] : []), // PKL hanya untuk SMK
           'tahfidz',
           'parent_portal',
           'announcements',
@@ -268,8 +268,8 @@ for (const [s, signerName, signerTitle] of [
   }
 }
 
-// PKL dan prakerin: aspek bawaan, dua mitra, satu periode, dan penempatan contoh (hanya bila belum ada).
-for (const s of [smp, smk]) {
+// PKL dan prakerin (hanya SMK): aspek bawaan, dua mitra, satu periode, dan penempatan contoh (hanya bila belum ada).
+for (const s of [smk]) {
   await db
     .insert(pklAspect)
     .values(DEFAULT_PKL_ASPECTS.map((a, sort) => ({ schoolId: s.id, ...a, sort })))
