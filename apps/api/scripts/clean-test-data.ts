@@ -41,6 +41,8 @@ const TEST_FOUNDATION_PREFIXES = [
   'ys',
   'yt',
   'yu',
+  'lu',
+  'lu2',
 ];
 /** Yayasan dan sekolah seed-dev.ts: dilindungi mutlak. */
 const PROTECTED_FOUNDATIONS = ['miftahul-huda'];
