@@ -152,6 +152,15 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   });
   // Dokumentasi dibuat otomatis dari skema Zod pada setiap route.
   await app.register(scalar, { routePrefix: '/docs' });
+  // Halaman Scalar menyalakan dirinya lewat skrip inline; CSP bawaan helmet (script-src 'self') memblokirnya.
+  app.addHook('onSend', async (req, reply) => {
+    if (req.url.startsWith('/docs')) {
+      reply.header(
+        'content-security-policy',
+        "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' https: 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https: data:; connect-src 'self'",
+      );
+    }
+  });
   app.get('/openapi.json', { schema: { hide: true } }, async () => app.swagger());
 
   app.get(
