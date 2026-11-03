@@ -149,6 +149,265 @@ if (sub) {
   }
 }
 
+// Data akademik contoh per sekolah: tahun ajaran, semester, kelas, mapel, guru, siswa, wali, dan penugasan mengajar.
+// Hanya dibuat bila sekolah belum punya tahun ajaran, dalam satu transaksi supaya tidak setengah jadi.
+interface AcademicSeed {
+  school: { id: string };
+  program?: { code: string; name: string };
+  /** `homeroom` = indeks guru di `teachers`. */
+  classes: { name: string; level: string; homeroom: number }[];
+  /** [kode, nama, indeks guru pengampu] */
+  subjects: [string, string, number][];
+  teachers: [string, string][];
+  /** Dibagi rata ke semua kelas. */
+  students: [string, 'L' | 'P'][];
+  /** Tahun lahir siswa per kelas (urut seperti `classes`). */
+  birthYears: number[];
+  nisPrefix: string;
+  address: string;
+}
+
+async function seedAcademic(c: AcademicSeed) {
+  const [existing] = await db
+    .select({ id: academicYear.id })
+    .from(academicYear)
+    .where(eq(academicYear.schoolId, c.school.id));
+  if (existing) return;
+  const schoolId = c.school.id;
+  await db.transaction(async (tx) => {
+    const [year] = await tx
+      .insert(academicYear)
+      .values({ schoolId, name: '2026/2027', startsOn: '2026-07-13', endsOn: '2027-06-30', isActive: true })
+      .returning();
+    await tx.insert(semester).values([
+      {
+        schoolId,
+        academicYearId: year!.id,
+        name: 'Ganjil',
+        startsOn: '2026-07-13',
+        endsOn: '2026-12-19',
+        isActive: true,
+      },
+      {
+        schoolId,
+        academicYearId: year!.id,
+        name: 'Genap',
+        startsOn: '2027-01-04',
+        endsOn: '2027-06-30',
+        isActive: false,
+      },
+    ]);
+    const [prog] = c.program
+      ? await tx
+          .insert(program)
+          .values({ schoolId, ...c.program })
+          .returning()
+      : [];
+    const t = await tx
+      .insert(teacher)
+      .values(c.teachers.map(([name, nip]) => ({ schoolId, name, nip })))
+      .returning();
+    const classRows = await tx
+      .insert(classRoom)
+      .values(
+        c.classes.map((k) => ({
+          schoolId,
+          academicYearId: year!.id,
+          programId: prog?.id,
+          name: k.name,
+          level: k.level,
+          homeroomTeacherId: t[k.homeroom]!.id,
+        })),
+      )
+      .returning();
+    const subjectRows = await tx
+      .insert(subject)
+      .values(c.subjects.map(([code, name]) => ({ schoolId, code, name })))
+      .returning();
+    await tx.insert(teachingAssignment).values(
+      classRows.flatMap((k) =>
+        subjectRows.map((s, i) => ({
+          schoolId,
+          classId: k.id,
+          subjectId: s.id,
+          teacherId: t[c.subjects[i]![2]]!.id,
+        })),
+      ),
+    );
+
+    // Satu wali per siswa (ayah/ibu bergantian).
+    const guardianNames = [
+      'Bapak Hendra Gunawan',
+      'Ibu Sri Wahyuni',
+      'Bapak Ujang Suryana',
+      'Ibu Euis Komariah',
+    ];
+    const perClass = Math.ceil(c.students.length / classRows.length);
+    for (const [i, [name, gender]] of c.students.entries()) {
+      const klass = Math.floor(i / perClass);
+      const cls = classRows[klass]!;
+      const [s] = await tx
+        .insert(student)
+        .values({
+          schoolId,
+          name,
+          nis: `${c.nisPrefix}${1001 + i}`,
+          nisn: `00${26_000_001 + i + Number(c.nisPrefix) * 1000}`,
+          gender,
+          birthPlace: 'Bandung',
+          birthDate: `${c.birthYears[klass]}-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 27) + 1).padStart(2, '0')}`,
+          religion: 'islam',
+          address: `${c.address} No. ${i + 1}, Bandung`,
+          phone: `62857${String(1_000_000 + i * 137).padStart(8, '0')}`,
+        })
+        .returning();
+      await tx
+        .insert(enrollment)
+        .values({ schoolId, studentId: s!.id, classId: cls.id, academicYearId: year!.id });
+      const [g] = await tx
+        .insert(guardian)
+        .values({
+          schoolId,
+          name: `${guardianNames[i % 4]} (wali ${name.split(' ')[0]})`,
+          phone: `62812${String(3_000_000 + i * 211).padStart(8, '0')}`,
+        })
+        .returning();
+      await tx.insert(studentGuardian).values({
+        schoolId,
+        studentId: s!.id,
+        guardianId: g!.id,
+        relation: i % 2 === 0 ? 'father' : 'mother',
+        isPrimary: true,
+      });
+    }
+  });
+}
+
+await seedAcademic({
+  school: smp,
+  classes: [
+    { name: '7 A', level: '7', homeroom: 0 },
+    { name: '8 A', level: '8', homeroom: 4 },
+    { name: '9 A', level: '9', homeroom: 5 },
+  ],
+  subjects: [
+    ['PAI', 'Pendidikan Agama Islam dan Budi Pekerti', 0],
+    ['PPKN', 'Pendidikan Pancasila', 6],
+    ['BIN', 'Bahasa Indonesia', 1],
+    ['MTK', 'Matematika', 2],
+    ['IPA', 'Ilmu Pengetahuan Alam', 4],
+    ['IPS', 'Ilmu Pengetahuan Sosial', 6],
+    ['BIG', 'Bahasa Inggris', 3],
+    ['PJOK', 'Pendidikan Jasmani, Olahraga, dan Kesehatan', 7],
+    ['SBK', 'Seni dan Budaya', 7],
+    ['INF', 'Informatika', 5],
+    ['BAR', 'Bahasa Arab', 0],
+    ['TAH', 'Tahfidz Al-Qur’an', 0],
+  ],
+  teachers: [
+    ['Ustadz Hasan Basri, S.Pd.I.', '198204122006011001'],
+    ['Ratna Sari, S.Pd.', '198806152011012002'],
+    ['Wawan Setiawan, S.Pd.', '199109202016011003'],
+    ['Fitri Handayani, S.Pd.', '199307042018012004'],
+    ['Ahmad Zaenal, S.Si.', '199002112014011005'],
+    ['Maya Anggraeni, S.Kom.', '199508302021012006'],
+    ['Dewi Sartika, S.Pd.', '198911232013012007'],
+    ['Irfan Hakim, S.Pd.', '199404172019011008'],
+  ],
+  students: [
+    ['Abdullah Faqih', 'L'],
+    ['Zahra Nur Aini', 'P'],
+    ['Rafif Alfarizi', 'L'],
+    ['Kayla Azzahra', 'P'],
+    ['Naufal Hakim', 'L'],
+    ['Humaira Salsabila', 'P'],
+    ['Ghazi Maulana', 'L'],
+    ['Aqila Safitri', 'P'],
+    ['Hafidz Ramadhan', 'L'],
+    ['Nadia Kamila', 'P'],
+    ['Rayhan Fadilah', 'L'],
+    ['Alya Putri Nabila', 'P'],
+    ['Faiz Al Hasan', 'L'],
+    ['Zaskia Ramadhani', 'P'],
+    ['Arkan Prasetyo', 'L'],
+    ['Khansa Maulida', 'P'],
+    ['Mikail Anshori', 'L'],
+    ['Syakira Anindya', 'P'],
+    ['Zidan Firmansyah', 'L'],
+    ['Najwa Aulia', 'P'],
+    ['Umar Abdul Aziz', 'L'],
+    ['Qonita Rahmawati', 'P'],
+    ['Habib Nurrahman', 'L'],
+    ['Lubna Azkia', 'P'],
+  ],
+  birthYears: [2013, 2012, 2011],
+  nisPrefix: '25',
+  address: 'Jl. Pasir Impun',
+});
+
+await seedAcademic({
+  school: smk,
+  program: { code: 'TJKT', name: 'Teknik Jaringan Komputer dan Telekomunikasi' },
+  classes: [
+    { name: 'X TJKT 1', level: 'X', homeroom: 0 },
+    { name: 'XI TJKT 1', level: 'XI', homeroom: 4 },
+    { name: 'XII TJKT 1', level: 'XII', homeroom: 5 },
+  ],
+  subjects: [
+    ['PAI', 'Pendidikan Agama Islam dan Budi Pekerti', 0],
+    ['PPKN', 'Pendidikan Pancasila dan Kewarganegaraan', 6],
+    ['BIN', 'Bahasa Indonesia', 1],
+    ['MTK', 'Matematika', 2],
+    ['BIG', 'Bahasa Inggris', 3],
+    ['SEJ', 'Sejarah', 6],
+    ['PJOK', 'Pendidikan Jasmani, Olahraga, dan Kesehatan', 7],
+    ['DDTJKT', 'Dasar-Dasar TJKT', 4],
+    ['KJD', 'Komputer dan Jaringan Dasar', 4],
+    ['ASJ', 'Administrasi Sistem Jaringan', 5],
+    ['TLJ', 'Teknologi Layanan Jaringan', 5],
+    ['PKK', 'Produk Kreatif dan Kewirausahaan', 7],
+  ],
+  teachers: [
+    ['Drs. Asep Saepudin, M.Pd.', '198003142005011001'],
+    ['Rina Marlina, S.Pd.', '198507222010012002'],
+    ['Dedi Kurniawan, S.Pd.', '199001052015011003'],
+    ['Nurul Hidayah, S.Pd.', '199203182016012004'],
+    ['Yoga Pratama, S.Kom.', '199305112019011005'],
+    ['Ahmad Fadli, S.T.', '198809302012011006'],
+    ['Lina Herlina, S.Pd.', '199108252017012007'],
+    ['Budi Santoso, S.Pd.', '199412102020011008'],
+  ],
+  students: [
+    ['Muhammad Rizki Ramadhan', 'L'],
+    ['Siti Nurhaliza', 'P'],
+    ['Ahmad Fauzan', 'L'],
+    ['Nabila Putri Salsabila', 'P'],
+    ['Raka Aditya Nugraha', 'L'],
+    ['Aisyah Zahra', 'P'],
+    ['Fikri Maulana', 'L'],
+    ['Dinda Ayu Lestari', 'P'],
+    ['Alif Rahman Hakim', 'L'],
+    ['Salsa Amelia', 'P'],
+    ['Zaki Abdurrahman', 'L'],
+    ['Kirana Dewi Anjani', 'P'],
+    ['Farhan Hidayatullah', 'L'],
+    ['Nisa Khairunnisa', 'P'],
+    ['Iqbal Ramdani', 'L'],
+    ['Tiara Maharani', 'P'],
+    ['Gilang Permana', 'L'],
+    ['Syifa Fadhilah', 'P'],
+    ['Daffa Al Ghifari', 'L'],
+    ['Rani Oktaviani', 'P'],
+    ['Yusuf Maulidin', 'L'],
+    ['Intan Permatasari', 'P'],
+    ['Bagas Setiawan', 'L'],
+    ['Wulan Apriliani', 'P'],
+  ],
+  birthYears: [2010, 2009, 2008],
+  nisPrefix: '26',
+  address: 'Jl. Cibiru',
+});
+
 // Pengaturan penilaian dan komponen bawaan (Tugas, Ulangan Harian, UTS, UAS) untuk modul `grades`.
 for (const s of [smp, smk]) {
   await db.insert(gradingSetting).values({ schoolId: s.id }).onConflictDoNothing();
@@ -274,185 +533,6 @@ for (const [s, signerName, signerTitle] of [
       })
       .onConflictDoNothing();
   }
-}
-
-// Data akademik SMK (jurusan TJKT): tahun ajaran, semester, tiga kelas, mapel, guru, siswa, wali, dan penugasan mengajar.
-// Hanya dibuat bila SMK belum punya tahun ajaran, dan satu transaksi supaya tidak setengah jadi.
-const [smkYear] = await db
-  .select({ id: academicYear.id })
-  .from(academicYear)
-  .where(eq(academicYear.schoolId, smk.id));
-if (!smkYear) {
-  await db.transaction(async (tx) => {
-    const [year] = await tx
-      .insert(academicYear)
-      .values({
-        schoolId: smk.id,
-        name: '2026/2027',
-        startsOn: '2026-07-13',
-        endsOn: '2027-06-30',
-        isActive: true,
-      })
-      .returning();
-    await tx.insert(semester).values([
-      {
-        schoolId: smk.id,
-        academicYearId: year!.id,
-        name: 'Ganjil',
-        startsOn: '2026-07-13',
-        endsOn: '2026-12-19',
-        isActive: true,
-      },
-      {
-        schoolId: smk.id,
-        academicYearId: year!.id,
-        name: 'Genap',
-        startsOn: '2027-01-04',
-        endsOn: '2027-06-30',
-        isActive: false,
-      },
-    ]);
-    const [tjkt] = await tx
-      .insert(program)
-      .values({ schoolId: smk.id, code: 'TJKT', name: 'Teknik Jaringan Komputer dan Telekomunikasi' })
-      .returning();
-
-    const teacherRows = await tx
-      .insert(teacher)
-      .values(
-        [
-          ['Drs. Asep Saepudin, M.Pd.', '198003142005011001'],
-          ['Rina Marlina, S.Pd.', '198507222010012002'],
-          ['Dedi Kurniawan, S.Pd.', '199001052015011003'],
-          ['Nurul Hidayah, S.Pd.', '199203182016012004'],
-          ['Yoga Pratama, S.Kom.', '199305112019011005'],
-          ['Ahmad Fadli, S.T.', '198809302012011006'],
-          ['Lina Herlina, S.Pd.', '199108252017012007'],
-          ['Budi Santoso, S.Pd.', '199412102020011008'],
-        ].map(([name, nip]) => ({ schoolId: smk.id, name: name!, nip: nip! })),
-      )
-      .returning();
-    const t = teacherRows;
-
-    const classRows = await tx
-      .insert(classRoom)
-      .values(
-        [
-          ['X TJKT 1', 'X', t[0]!],
-          ['XI TJKT 1', 'XI', t[4]!],
-          ['XII TJKT 1', 'XII', t[5]!],
-        ].map(([name, level, homeroom]) => ({
-          schoolId: smk.id,
-          academicYearId: year!.id,
-          programId: tjkt!.id,
-          name: name as string,
-          level: level as string,
-          homeroomTeacherId: (homeroom as { id: string }).id,
-        })),
-      )
-      .returning();
-
-    // Mapel dan pengampunya (indeks guru di `t`).
-    const subjectDefs: [string, string, number][] = [
-      ['PAI', 'Pendidikan Agama Islam dan Budi Pekerti', 0],
-      ['PPKN', 'Pendidikan Pancasila dan Kewarganegaraan', 6],
-      ['BIN', 'Bahasa Indonesia', 1],
-      ['MTK', 'Matematika', 2],
-      ['BIG', 'Bahasa Inggris', 3],
-      ['SEJ', 'Sejarah', 6],
-      ['PJOK', 'Pendidikan Jasmani, Olahraga, dan Kesehatan', 7],
-      ['DDTJKT', 'Dasar-Dasar TJKT', 4],
-      ['KJD', 'Komputer dan Jaringan Dasar', 4],
-      ['ASJ', 'Administrasi Sistem Jaringan', 5],
-      ['TLJ', 'Teknologi Layanan Jaringan', 5],
-      ['PKK', 'Produk Kreatif dan Kewirausahaan', 7],
-    ];
-    const subjectRows = await tx
-      .insert(subject)
-      .values(subjectDefs.map(([code, name]) => ({ schoolId: smk.id, code, name })))
-      .returning();
-    await tx.insert(teachingAssignment).values(
-      classRows.flatMap((c) =>
-        subjectRows.map((s, i) => ({
-          schoolId: smk.id,
-          classId: c.id,
-          subjectId: s.id,
-          teacherId: t[subjectDefs[i]![2]]!.id,
-        })),
-      ),
-    );
-
-    // 8 siswa per kelas, masing-masing dengan satu wali (ayah/ibu bergantian).
-    const names: [string, 'L' | 'P'][] = [
-      ['Muhammad Rizki Ramadhan', 'L'],
-      ['Siti Nurhaliza', 'P'],
-      ['Ahmad Fauzan', 'L'],
-      ['Nabila Putri Salsabila', 'P'],
-      ['Raka Aditya Nugraha', 'L'],
-      ['Aisyah Zahra', 'P'],
-      ['Fikri Maulana', 'L'],
-      ['Dinda Ayu Lestari', 'P'],
-      ['Alif Rahman Hakim', 'L'],
-      ['Salsa Amelia', 'P'],
-      ['Zaki Abdurrahman', 'L'],
-      ['Kirana Dewi Anjani', 'P'],
-      ['Farhan Hidayatullah', 'L'],
-      ['Nisa Khairunnisa', 'P'],
-      ['Iqbal Ramdani', 'L'],
-      ['Tiara Maharani', 'P'],
-      ['Gilang Permana', 'L'],
-      ['Syifa Fadhilah', 'P'],
-      ['Daffa Al Ghifari', 'L'],
-      ['Rani Oktaviani', 'P'],
-      ['Yusuf Maulidin', 'L'],
-      ['Intan Permatasari', 'P'],
-      ['Bagas Setiawan', 'L'],
-      ['Wulan Apriliani', 'P'],
-    ];
-    const guardianNames = [
-      'Bapak Hendra Gunawan',
-      'Ibu Sri Wahyuni',
-      'Bapak Ujang Suryana',
-      'Ibu Euis Komariah',
-    ];
-    const birthYear: Record<string, number> = { X: 2010, XI: 2009, XII: 2008 };
-    for (const [i, [name, gender]] of names.entries()) {
-      const cls = classRows[Math.floor(i / 8)]!;
-      const [s] = await tx
-        .insert(student)
-        .values({
-          schoolId: smk.id,
-          name,
-          nis: `26${String(1001 + i)}`,
-          nisn: `00${String(26_000_001 + i)}`,
-          gender,
-          birthPlace: 'Bandung',
-          birthDate: `${birthYear[cls.level]}-${String((i % 12) + 1).padStart(2, '0')}-${String((i % 27) + 1).padStart(2, '0')}`,
-          religion: 'islam',
-          address: `Jl. Cibiru No. ${i + 1}, Bandung`,
-          phone: `62857${String(1_000_000 + i * 137).padStart(8, '0')}`,
-        })
-        .returning();
-      await tx
-        .insert(enrollment)
-        .values({ schoolId: smk.id, studentId: s!.id, classId: cls.id, academicYearId: year!.id });
-      const [g] = await tx
-        .insert(guardian)
-        .values({
-          schoolId: smk.id,
-          name: `${guardianNames[i % 4]} (wali ${name.split(' ')[0]})`,
-          phone: `62812${String(3_000_000 + i * 211).padStart(8, '0')}`,
-        })
-        .returning();
-      await tx.insert(studentGuardian).values({
-        schoolId: smk.id,
-        studentId: s!.id,
-        guardianId: g!.id,
-        relation: i % 2 === 0 ? 'father' : 'mother',
-        isPrimary: true,
-      });
-    }
-  });
 }
 
 // PKL dan prakerin (hanya SMK): aspek bawaan, dua mitra, satu periode, dan penempatan contoh (hanya bila belum ada).
