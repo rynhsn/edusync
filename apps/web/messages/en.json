@@ -3863,7 +3863,16 @@
     "previewTaglineEmpty": "Your school tagline appears here",
     "previewAboutEmpty": "The story of your school will appear here.",
     "previewUnpublished": "The website is not published yet, so visitors cannot see it.",
-    "chars": "{count} characters"
+    "chars": "{count} characters",
+    "sourceLabel": "Website contact source",
+    "source": {
+      "school": "Follow school settings",
+      "schoolHint": "Address, phone, email, fax, website, and logo come from the school identity.",
+      "custom": "Fill in manually",
+      "customHint": "Address, phone, and email specific to this website."
+    },
+    "sourceFromSchool": "The fields below follow the school identity.",
+    "sourceOpenSchool": "Edit in School settings"
   },
   "site": {
     "skip": "Skip to content",
@@ -4206,6 +4215,36 @@
   "schoolSettings": {
     "title": "School settings",
     "subtitle": "Time zone, working days, semesters, lesson times, and the list of grade levels for this unit.",
+    "identity": {
+      "title": "School identity",
+      "body": "Official logo, full address, and contacts for this unit. Used on exam sheet and letter letterheads, and optionally on the school website.",
+      "loadError": "Could not load the school identity.",
+      "saved": "School identity saved.",
+      "save": "Save identity",
+      "discard": "Discard",
+      "logoAlt": "{name} logo",
+      "logoHint": "PNG, JPEG, or WebP, up to 512 KB. A square or wide image on a clean background looks best on a letterhead.",
+      "logoUpload": "Upload logo",
+      "logoReplace": "Replace logo",
+      "logoRemove": "Remove logo",
+      "logoSaved": "Logo saved.",
+      "logoRemoved": "Logo removed.",
+      "logoInvalid": "The logo must be PNG, JPEG, or WebP and up to 512 KB.",
+      "officialNameHint": "Leave empty to use the unit name.",
+      "fields": {
+        "officialName": "Official name on letterhead",
+        "street": "Address (street, number, neighborhood)",
+        "village": "Village",
+        "district": "District",
+        "city": "City / regency",
+        "province": "Province",
+        "postalCode": "Postal code",
+        "phone": "Phone",
+        "fax": "Fax",
+        "email": "Email",
+        "website": "Website"
+      }
+    },
     "timezoneTitle": "Time zone",
     "timezoneBody": "Decides dates and times across the app: attendance, invoices, messages, and admissions.",
     "timezone": "School time zone",

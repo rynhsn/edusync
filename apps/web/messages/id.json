@@ -3863,7 +3863,16 @@
     "previewTaglineEmpty": "Slogan sekolah Anda tampil di sini",
     "previewAboutEmpty": "Cerita tentang sekolah Anda akan tampil di sini.",
     "previewUnpublished": "Situs belum diterbitkan, pengunjung belum bisa melihatnya.",
-    "chars": "{count} karakter"
+    "chars": "{count} karakter",
+    "sourceLabel": "Sumber kontak situs",
+    "source": {
+      "school": "Ikuti pengaturan sekolah",
+      "schoolHint": "Alamat, telepon, email, fax, situs web, dan logo diambil dari identitas sekolah.",
+      "custom": "Isi sendiri",
+      "customHint": "Alamat, telepon, dan email khusus untuk situs ini."
+    },
+    "sourceFromSchool": "Isian di bawah mengikuti identitas sekolah.",
+    "sourceOpenSchool": "Ubah di Pengaturan sekolah"
   },
   "site": {
     "skip": "Lewati ke konten",
@@ -4206,6 +4215,36 @@
   "schoolSettings": {
     "title": "Pengaturan sekolah",
     "subtitle": "Zona waktu, hari efektif, semester, jam pelajaran, dan daftar tingkat kelas untuk unit ini.",
+    "identity": {
+      "title": "Identitas sekolah",
+      "body": "Logo, alamat lengkap, dan kontak resmi unit ini. Dipakai di kop lembar ujian dan surat, dan bisa dipakai di situs sekolah.",
+      "loadError": "Identitas sekolah tidak dapat dimuat.",
+      "saved": "Identitas sekolah disimpan.",
+      "save": "Simpan identitas",
+      "discard": "Batalkan",
+      "logoAlt": "Logo {name}",
+      "logoHint": "PNG, JPEG, atau WebP, maksimal 512 KB. Gambar persegi atau mendatar dengan latar bersih paling rapi di kop.",
+      "logoUpload": "Unggah logo",
+      "logoReplace": "Ganti logo",
+      "logoRemove": "Hapus logo",
+      "logoSaved": "Logo disimpan.",
+      "logoRemoved": "Logo dihapus.",
+      "logoInvalid": "Logo harus PNG, JPEG, atau WebP dan maksimal 512 KB.",
+      "officialNameHint": "Kosongkan untuk memakai nama unit.",
+      "fields": {
+        "officialName": "Nama resmi pada kop",
+        "street": "Alamat (jalan, nomor, RT/RW)",
+        "village": "Kelurahan / desa",
+        "district": "Kecamatan",
+        "city": "Kota / kabupaten",
+        "province": "Provinsi",
+        "postalCode": "Kode pos",
+        "phone": "Telepon",
+        "fax": "Fax",
+        "email": "Email",
+        "website": "Situs web"
+      }
+    },
     "timezoneTitle": "Zona waktu",
     "timezoneBody": "Dasar penentuan tanggal dan jam di seluruh aplikasi: absensi, tagihan, pesan, dan SPMB.",
     "timezone": "Zona waktu sekolah",

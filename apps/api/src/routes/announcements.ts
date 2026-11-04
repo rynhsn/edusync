@@ -25,6 +25,7 @@ import { jakarta } from '../gate';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { audit, guarded, idParams, ok, schoolHeader } from './helpers';
+import { composeAddress, readIdentity } from './school-identity';
 
 const tags = ['Announcements'];
 const publicTags = ['Situs sekolah (publik)'];
@@ -151,6 +152,7 @@ const profileBody = z.object({
     .nullish()
     .transform((v) => (v ? v.toLowerCase() : null)),
   published: z.boolean().default(false),
+  identitySource: z.enum(['school', 'custom']).default('school'),
 });
 
 const profileFields = z.object({
@@ -165,8 +167,15 @@ const profileFields = z.object({
   mapUrl: z.string().nullable(),
   accentColor: z.string().nullable(),
 });
+/** Kontak yang tampil di situs publik: dari identitas sekolah atau isian custom, plus fax, situs web, dan logo. */
+const publicProfileFields = profileFields.extend({
+  fax: z.string().nullable(),
+  website: z.string().nullable(),
+  logoUrl: z.string().nullable(),
+});
 const profileSchema = profileFields.extend({
   published: z.boolean(),
+  identitySource: z.enum(['school', 'custom']),
   updatedAt: z.string().nullable(),
 });
 
@@ -183,6 +192,19 @@ const profileView = (p: ProfileRow | undefined) => ({
   mapUrl: p?.mapUrl ?? null,
   accentColor: p?.accentColor ?? null,
 });
+
+/** Bagian kontak yang berlaku untuk publik: identitas sekolah bila dipilih, selain itu isian custom. */
+function publicContact(p: ProfileRow, identity: Awaited<ReturnType<typeof readIdentity>>) {
+  const own = identity && p.identitySource === 'school';
+  return {
+    address: own ? composeAddress(identity) : (p.address ?? null),
+    phone: own ? identity.phone : (p.phone ?? null),
+    email: own ? identity.email : (p.email ?? null),
+    fax: own ? identity.fax : null,
+    website: own ? identity.website : null,
+    logoUrl: identity.logoUrl,
+  };
+}
 
 /* ---------- Publik ---------- */
 
@@ -239,6 +261,7 @@ async function resolveSite(app: FastifyInstance, rawSlug: string) {
       name: row.name,
       slug: row.slug,
       profile,
+      identity: await readIdentity(tx, row.id),
       hasAnnouncements: keys.has('announcements'),
       hasAdmissions: keys.has('admissions'),
     };
@@ -528,6 +551,7 @@ export async function announcementRoutes(instance: FastifyInstance) {
         const [p] = await tx.select().from(schoolProfile);
         return {
           ...profileView(p),
+          identitySource: p?.identitySource ?? 'school',
           published: p?.published ?? false,
           updatedAt: p?.updatedAt.toISOString() ?? null,
         };
@@ -562,7 +586,12 @@ export async function announcementRoutes(instance: FastifyInstance) {
           .onConflictDoUpdate({ target: schoolProfile.schoolId, set: values })
           .returning();
         await audit(tx, ctx, 'site.profile.save', 'school_profile', ctx.schoolId, { published });
-        return { ...profileView(p), published: p!.published, updatedAt: p!.updatedAt.toISOString() };
+        return {
+          ...profileView(p),
+          identitySource: p!.identitySource,
+          published: p!.published,
+          updatedAt: p!.updatedAt.toISOString(),
+        };
       });
     },
   );
@@ -588,7 +617,7 @@ export async function announcementRoutes(instance: FastifyInstance) {
         response: {
           200: z.object({
             school: z.object({ name: z.string(), slug: z.string() }),
-            profile: profileFields,
+            profile: publicProfileFields,
             admission: z.object({ enabled: z.boolean(), openLevels: z.array(z.string()) }),
             announcements: z.array(publicItem),
             agenda: z.array(publicItem),
@@ -637,7 +666,7 @@ export async function announcementRoutes(instance: FastifyInstance) {
       reply.header('cache-control', 'public, max-age=60');
       return {
         school: { name: site.name, slug: site.slug },
-        profile: profileView(site.profile),
+        profile: { ...profileView(site.profile), ...publicContact(site.profile, site.identity) },
         admission: { enabled: site.hasAdmissions, openLevels: data.openLevels },
         announcements: data.news.map(publicRow),
         agenda: data.agenda.map(publicRow),

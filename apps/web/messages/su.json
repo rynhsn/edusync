@@ -3863,7 +3863,16 @@
     "previewTaglineEmpty": "Slogan sakola anjeun muncul di dieu",
     "previewAboutEmpty": "Carita ngeunaan sakola anjeun bakal muncul di dieu.",
     "previewUnpublished": "Situs acan diterbitkeun, pangunjung acan bisa nempo.",
-    "chars": "{count} karakter"
+    "chars": "{count} karakter",
+    "sourceLabel": "Sumber kontak situs",
+    "source": {
+      "school": "Turutan pangaturan sakola",
+      "schoolHint": "Alamat, telepon, surélék, fax, situs wéb, jeung logo dicokot tina idéntitas sakola.",
+      "custom": "Eusian sorangan",
+      "customHint": "Alamat, telepon, jeung surélék husus pikeun situs ieu."
+    },
+    "sourceFromSchool": "Eusian di handap nurutan idéntitas sakola.",
+    "sourceOpenSchool": "Robah di Pangaturan sakola"
   },
   "site": {
     "skip": "Luncat ka eusi",
@@ -4206,6 +4215,36 @@
   "schoolSettings": {
     "title": "Setélan sakola",
     "subtitle": "Zona waktu, poé éféktif, semester, jam pelajaran, jeung daptar tingkat kelas pikeun unit ieu.",
+    "identity": {
+      "title": "Idéntitas sakola",
+      "body": "Logo, alamat lengkep, jeung kontak resmi unit ieu. Dipaké dina kop lambaran ujian jeung surat, sarta bisa dipaké dina situs sakola.",
+      "loadError": "Idéntitas sakola teu bisa dimuat.",
+      "saved": "Idéntitas sakola disimpen.",
+      "save": "Simpen idéntitas",
+      "discard": "Batalkeun",
+      "logoAlt": "Logo {name}",
+      "logoHint": "PNG, JPEG, atawa WebP, pangluhurna 512 KB. Gambar pasagi atawa manjang kalawan latar bersih pang rapina dina kop.",
+      "logoUpload": "Unggah logo",
+      "logoReplace": "Ganti logo",
+      "logoRemove": "Hapus logo",
+      "logoSaved": "Logo disimpen.",
+      "logoRemoved": "Logo dihapus.",
+      "logoInvalid": "Logo kudu PNG, JPEG, atawa WebP jeung pangluhurna 512 KB.",
+      "officialNameHint": "Kosongkeun pikeun maké ngaran unit.",
+      "fields": {
+        "officialName": "Ngaran resmi dina kop",
+        "street": "Alamat (jalan, nomer, RT/RW)",
+        "village": "Désa / kalurahan",
+        "district": "Kacamatan",
+        "city": "Kota / kabupatén",
+        "province": "Propinsi",
+        "postalCode": "Kode pos",
+        "phone": "Telepon",
+        "fax": "Fax",
+        "email": "Surélék",
+        "website": "Situs wéb"
+      }
+    },
     "timezoneTitle": "Zona waktu",
     "timezoneBody": "Dasar nangtukeun tanggal jeung jam di sakabéh aplikasi: absénsi, tagihan, talatah, jeung SPMB.",
     "timezone": "Zona waktu sakola",

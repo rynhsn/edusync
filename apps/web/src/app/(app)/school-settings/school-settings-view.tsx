@@ -37,6 +37,7 @@ import { EmptyPanel, IconTile, TONES, type Tone } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { IdentityPanel } from './identity-panel';
 
 const DAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 const SEMESTER_TONES: Tone[] = ['teal', 'sky', 'violet', 'amber'];
@@ -729,6 +730,7 @@ export function SchoolSettingsView() {
   return (
     <PageBody>
       <PageHeader icon={Settings2} tone="slate" title={t('title')} description={t('subtitle')} />
+      <IdentityPanel />
       <GeneralSettings />
       <LevelsPanel />
     </PageBody>

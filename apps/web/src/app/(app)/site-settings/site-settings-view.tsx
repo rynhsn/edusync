@@ -43,6 +43,7 @@ interface Form {
   whatsapp: string;
   mapUrl: string;
   accent: string;
+  identitySource: 'school' | 'custom';
   published: boolean;
 }
 
@@ -57,6 +58,7 @@ interface Profile {
   whatsapp: string | null;
   mapUrl: string | null;
   accentColor: string | null;
+  identitySource: 'school' | 'custom';
   published: boolean;
   updatedAt: string | null;
 }
@@ -72,6 +74,7 @@ const fromProfile = (p: Profile): Form => ({
   whatsapp: p.whatsapp ?? '',
   mapUrl: p.mapUrl ?? '',
   accent: p.accentColor ?? '',
+  identitySource: p.identitySource,
   published: p.published,
 });
 
@@ -86,6 +89,7 @@ const toBody = (f: Form) => ({
   whatsapp: f.whatsapp.trim() || null,
   mapUrl: f.mapUrl.trim() || null,
   accentColor: normalizeHex(f.accent),
+  identitySource: f.identitySource,
   published: f.published,
 });
 
@@ -104,6 +108,10 @@ export function SiteSettingsView() {
     queryKey: ['site-profile', school.schoolId],
     enabled: manage,
     queryFn: async () => unwrap(await api.GET('/v1/site/profile', { params: header })),
+  });
+  const identity = useQuery({
+    queryKey: ['school-identity', school.schoolId],
+    queryFn: async () => unwrap(await api.GET('/v1/school/identity', { params: header })),
   });
   const [draft, setDraft] = useState<Form | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -143,6 +151,17 @@ export function SiteSettingsView() {
   const canSave = !!form && dirty && accentOk && mapOk && !save.isPending;
   const publicUrl = site.ready ? site.urlFor(school.schoolSlug, '/site') : null;
   const currentAccent = normalizeHex(form?.accent) ?? DEFAULT_ACCENT;
+  const fromSchool = form?.identitySource === 'school';
+  const id = identity.data;
+  const shown = fromSchool
+    ? {
+        address: [id?.street, id?.village, id?.district, id?.city, id?.province, id?.postalCode]
+          .filter(Boolean)
+          .join(', '),
+        phone: id?.phone ?? '',
+        email: id?.email ?? '',
+      }
+    : { address: form?.address ?? '', phone: form?.phone ?? '', email: form?.email ?? '' };
 
   async function copyLink() {
     if (!publicUrl) return;
@@ -401,12 +420,41 @@ export function SiteSettingsView() {
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-2">
                 <div className="grid gap-2 sm:col-span-2">
+                  {/* biome-ignore lint/a11y/useSemanticElements: dua tombol pilihan, bukan isian formulir. */}
+                  <div role="group" aria-label={t('sourceLabel')} className="grid gap-2 sm:grid-cols-2">
+                    {(['school', 'custom'] as const).map((k) => (
+                      <button
+                        key={k}
+                        type="button"
+                        aria-pressed={form.identitySource === k}
+                        onClick={() => set('identitySource', k)}
+                        className={cn(
+                          'focus-visible:ring-ring/50 rounded-xl border p-3 text-left outline-none focus-visible:ring-3',
+                          form.identitySource === k ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+                        )}
+                      >
+                        <span className="font-heading block text-sm font-semibold">{t(`source.${k}`)}</span>
+                        <span className="text-muted-foreground block text-xs">{t(`source.${k}Hint`)}</span>
+                      </button>
+                    ))}
+                  </div>
+                  {fromSchool && (
+                    <p className="text-muted-foreground text-xs">
+                      {t('sourceFromSchool')}{' '}
+                      <Link href="/school-settings" className="text-foreground underline">
+                        {t('sourceOpenSchool')}
+                      </Link>
+                    </p>
+                  )}
+                </div>
+                <div className="grid gap-2 sm:col-span-2">
                   <Label htmlFor="site-address">{t('address')}</Label>
                   <Textarea
                     id="site-address"
                     rows={2}
                     maxLength={400}
-                    value={form.address}
+                    value={shown.address}
+                    readOnly={fromSchool}
                     onChange={(e) => set('address', e.target.value)}
                   />
                 </div>
@@ -416,7 +464,8 @@ export function SiteSettingsView() {
                     id="site-phone"
                     type="tel"
                     maxLength={30}
-                    value={form.phone}
+                    value={shown.phone}
+                    readOnly={fromSchool}
                     onChange={(e) => set('phone', e.target.value)}
                   />
                 </div>
@@ -426,7 +475,8 @@ export function SiteSettingsView() {
                     id="site-email"
                     type="email"
                     maxLength={254}
-                    value={form.email}
+                    value={shown.email}
+                    readOnly={fromSchool}
                     onChange={(e) => set('email', e.target.value)}
                   />
                 </div>
@@ -502,9 +552,9 @@ export function SiteSettingsView() {
                 tagline: form.tagline,
                 about: form.about,
                 vision: form.vision,
-                address: form.address,
-                phone: form.phone,
-                email: form.email,
+                address: shown.address,
+                phone: shown.phone,
+                email: shown.email,
                 whatsapp: form.whatsapp,
                 accent: currentAccent,
               }}

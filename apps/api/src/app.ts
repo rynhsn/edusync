@@ -64,6 +64,7 @@ import { reportCardRoutes } from './routes/report-card';
 import { roleRoutes } from './routes/roles';
 import { scheduleRoutes } from './routes/schedule';
 import { lookupVerifiedHost, schoolDomainRoutes } from './routes/school-domains';
+import { schoolIdentityRoutes } from './routes/school-identity';
 import { schoolSettingsRoutes } from './routes/school-settings';
 import { semesterRoutes } from './routes/semesters';
 import { studentImportRoutes } from './routes/student-import';
@@ -251,6 +252,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(platformMessagingRoutes, { env });
   await app.register(platformUserRoutes);
   await app.register(schoolSettingsRoutes);
+  await app.register(schoolIdentityRoutes);
   await app.register(schoolDomainRoutes, { env, hosts, dns: deps.dns ?? systemDns });
   await app.register(tlsAskRoutes, { env, hosts });
   await app.register(semesterRoutes);

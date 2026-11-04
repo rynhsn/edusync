@@ -25136,6 +25136,8 @@ export interface paths {
                             mapUrl: string | null;
                             accentColor: string | null;
                             published: boolean;
+                            /** @enum {string} */
+                            identitySource: "school" | "custom";
                             updatedAt: string | null;
                         };
                     };
@@ -25199,6 +25201,11 @@ export interface paths {
                         accentColor?: ("" | string) | null;
                         /** @default false */
                         published?: boolean;
+                        /**
+                         * @default school
+                         * @enum {string}
+                         */
+                        identitySource?: "school" | "custom";
                     };
                 };
             };
@@ -25221,6 +25228,8 @@ export interface paths {
                             mapUrl: string | null;
                             accentColor: string | null;
                             published: boolean;
+                            /** @enum {string} */
+                            identitySource: "school" | "custom";
                             updatedAt: string | null;
                         };
                     };
@@ -25306,6 +25315,9 @@ export interface paths {
                                 whatsapp: string | null;
                                 mapUrl: string | null;
                                 accentColor: string | null;
+                                fax: string | null;
+                                website: string | null;
+                                logoUrl: string | null;
                             };
                             admission: {
                                 enabled: boolean;
@@ -33187,6 +33199,415 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/school/identity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Identitas sekolah
+         * @description Izin: anggota aktif sekolah. Nama resmi, logo, alamat lengkap, telepon, fax, email, dan situs web. Bila belum diisi, semua kolom null dan `name` tetap nama unit.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Nama unit di sistem (`school.name`) */
+                            name: string;
+                            /** @description Nama pada kop; kosong = pakai `name` */
+                            officialName: string | null;
+                            /** @description Jalur gambar logo (publik, tidak bisa ditebak), null bila belum ada */
+                            logoUrl: string | null;
+                            street: string | null;
+                            village: string | null;
+                            district: string | null;
+                            city: string | null;
+                            province: string | null;
+                            postalCode: string | null;
+                            phone: string | null;
+                            fax: string | null;
+                            email: string | null;
+                            website: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan identitas sekolah
+         * @description Izin: `school:manage`. Mengganti seluruh teks identitas; logo diubah lewat endpoint terpisah dan tidak tersentuh. `email` harus valid, `website` harus http(s) (400 `validation`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        officialName?: string | null;
+                        street?: string | null;
+                        village?: string | null;
+                        district?: string | null;
+                        city?: string | null;
+                        province?: string | null;
+                        postalCode?: string | null;
+                        phone?: string | null;
+                        fax?: string | null;
+                        email?: ("" | string) | null;
+                        website?: ("" | string) | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Nama unit di sistem (`school.name`) */
+                            name: string;
+                            /** @description Nama pada kop; kosong = pakai `name` */
+                            officialName: string | null;
+                            /** @description Jalur gambar logo (publik, tidak bisa ditebak), null bila belum ada */
+                            logoUrl: string | null;
+                            street: string | null;
+                            village: string | null;
+                            district: string | null;
+                            city: string | null;
+                            province: string | null;
+                            postalCode: string | null;
+                            phone: string | null;
+                            fax: string | null;
+                            email: string | null;
+                            website: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/school/identity/logo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unggah logo sekolah
+         * @description Izin: `school:manage`. Gambar PNG, JPEG, atau WebP sampai 512 KB, dikirim sebagai base64 di `data` (tanpa awalan `data:`). Isi berkas diperiksa terhadap `mime` (400 `validation` bila tidak cocok atau terlalu besar). SVG ditolak. Logo lama diganti.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        mime: "image/png" | "image/jpeg" | "image/webp";
+                        data: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Nama unit di sistem (`school.name`) */
+                            name: string;
+                            /** @description Nama pada kop; kosong = pakai `name` */
+                            officialName: string | null;
+                            /** @description Jalur gambar logo (publik, tidak bisa ditebak), null bila belum ada */
+                            logoUrl: string | null;
+                            street: string | null;
+                            village: string | null;
+                            district: string | null;
+                            city: string | null;
+                            province: string | null;
+                            postalCode: string | null;
+                            phone: string | null;
+                            fax: string | null;
+                            email: string | null;
+                            website: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Hapus logo sekolah
+         * @description Izin: `school:manage`. Tidak error bila logo memang belum ada.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/school-files/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gambar logo sekolah (publik)
+         * @description Tanpa login. Hanya berkas berjenis logo; alamatnya memuat UUID sehingga tidak bisa ditebak. 404 `not_found` bila tidak ada. Isi di-cache karena berkas tidak pernah diubah (logo baru = berkas baru).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Isi gambar (PNG, JPEG, atau WebP) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;

@@ -449,6 +449,13 @@
       "when": 1794500200000,
       "tag": "0063_user_phone",
       "breakpoints": true
+    },
+    {
+      "idx": 64,
+      "version": "7",
+      "when": 1794600200000,
+      "tag": "0064_school_identity",
+      "breakpoints": true
     }
   ]
 }

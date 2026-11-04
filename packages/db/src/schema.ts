@@ -2,6 +2,7 @@ import { sql } from 'drizzle-orm';
 import {
   boolean,
   check,
+  customType,
   date,
   index,
   integer,
@@ -18,6 +19,7 @@ import {
 
 const id = () => uuid('id').primaryKey().default(sql`uuidv7()`);
 const createdAt = () => timestamp('created_at', { withTimezone: true }).notNull().defaultNow();
+const bytea = customType<{ data: Buffer; driverData: Buffer }>({ dataType: () => 'bytea' });
 
 /** Yayasan. Sekolah tunggal tetap punya satu yayasan agar hanya ada satu model. */
 export const foundation = pgTable('foundation', {
@@ -2108,6 +2110,48 @@ export const schoolProfile = pgTable('school_profile', {
   /** Warna aksen heksadesimal (#RRGGBB). */
   accentColor: text('accent_color'),
   published: boolean('published').notNull().default(false),
+  /** `school` = alamat, telepon, email, dan logo diambil dari identitas sekolah; `custom` = kolom di atas. */
+  identitySource: text('identity_source', { enum: ['school', 'custom'] })
+    .notNull()
+    .default('school'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Berkas biner milik sekolah (logo, nanti gambar soal). Disimpan di database; dibatasi kecil oleh API. */
+export const schoolFile = pgTable(
+  'school_file',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    kind: text('kind', { enum: ['logo', 'question_image'] }).notNull(),
+    mime: text('mime').notNull(),
+    size: integer('size').notNull(),
+    data: bytea('data').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [index('school_file_school_idx').on(t.schoolId, t.kind)],
+);
+
+/** Identitas resmi unit: sumber tunggal kop surat/ujian dan, bila dipilih, situs publik. */
+export const schoolIdentity = pgTable('school_identity', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  /** Nama pada kop; kosong = pakai `school.name`. */
+  officialName: text('official_name'),
+  logoFileId: uuid('logo_file_id').references(() => schoolFile.id, { onDelete: 'set null' }),
+  street: text('street'),
+  village: text('village'),
+  district: text('district'),
+  city: text('city'),
+  province: text('province'),
+  postalCode: text('postal_code'),
+  phone: text('phone'),
+  fax: text('fax'),
+  email: text('email'),
+  website: text('website'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
