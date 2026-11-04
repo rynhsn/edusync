@@ -4,7 +4,18 @@ import { FakeSender } from './sender';
 import { createFixture } from './test-helpers';
 
 const fx = createFixture('disp');
-const NOW = new Date('2026-11-04T03:00:00Z'); // Rabu 10:00 Jakarta, di dalam jendela 06:00-20:00
+/**
+ * Rabu 10:00 Jakarta (di dalam jendela 06:00-20:00) paling cepat besok. Pesan uji dibuat "sekarang" oleh database,
+ * jadi jam uji harus setelah itu; tanggal tetap membuat tes gagal begitu waktu nyata melewatinya.
+ */
+function nextWednesdayJakarta10() {
+  const d = new Date(Date.now() + 86_400_000);
+  d.setUTCHours(3, 0, 0, 0);
+  while (d.getUTCDay() !== 3) d.setUTCDate(d.getUTCDate() + 1);
+  return d;
+}
+const NOW = nextWednesdayJakarta10();
+const HOUR = 3_600_000;
 const platformOn = async () => ({ enabled: true, provider: 'log' as const, maxQueuedPerSchool: 500 });
 
 function make(
@@ -198,15 +209,16 @@ describe('Dispatcher', () => {
     const sid = await fx.newSchool({ setting: { windowStart: '06:00', windowEnd: '20:00' } });
     const m = await fx.addMessage(sid);
     const sender = new FakeSender();
-    const night = new Date('2026-11-04T14:00:00Z'); // 21:00 Jakarta
+    const night = new Date(NOW.getTime() + 11 * HOUR); // 21:00 Jakarta
     await make(sender, { now: night }).tick();
     expect(sender.calls).toHaveLength(0);
     const row = await fx.getMessage(m.id);
     expect(row.status).toBe('queued');
     expect(row.attempts).toBe(0);
-    expect(row.notBefore).toEqual(new Date('2026-11-04T23:00:00Z'));
+    const windowOpens = new Date(NOW.getTime() + 20 * HOUR); // 06:00 Jakarta hari berikutnya
+    expect(row.notBefore).toEqual(windowOpens);
     // Begitu jendela terbuka, terkirim.
-    await make(sender, { now: new Date('2026-11-04T23:00:00Z') }).tick();
+    await make(sender, { now: windowOpens }).tick();
     expect((await fx.getMessage(m.id)).status).toBe('sent');
   });
 
