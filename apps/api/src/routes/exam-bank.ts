@@ -72,46 +72,75 @@ const questionSchema = z.object({
   points: z.number().int(),
   updatedAt: z.string(),
 });
-const questionBody = z
-  .object({
-    subjectId: z.uuid(),
-    level: z
-      .string()
-      .trim()
-      .max(20)
-      .nullish()
-      .transform((v) => v || null),
-    type: z.enum(['mcq', 'essay']),
-    body: z.string().trim().min(1).max(10_000),
-    options: z.array(optionSchema).max(6).default([]),
-    answer: z
-      .string()
-      .trim()
-      .max(5000)
-      .nullish()
-      .transform((v) => v || null),
-    explanation: z
-      .string()
-      .trim()
-      .max(5000)
-      .nullish()
-      .transform((v) => v || null),
-    points: z.number().int().min(1).max(1000).default(1),
-  })
-  .superRefine((q, ctx) => {
-    if (q.type === 'essay') {
-      if (q.options.length > 0)
-        ctx.addIssue({ code: 'custom', path: ['options'], message: 'Esai tidak memakai opsi.' });
-      return;
-    }
-    const keys = q.options.map((o) => o.key.toUpperCase());
-    if (q.options.length < 2)
-      ctx.addIssue({ code: 'custom', path: ['options'], message: 'Minimal dua opsi.' });
-    if (new Set(keys).size !== keys.length)
-      ctx.addIssue({ code: 'custom', path: ['options'], message: 'Kunci opsi tidak boleh sama.' });
-    if (!q.answer || !keys.includes(q.answer.toUpperCase()))
-      ctx.addIssue({ code: 'custom', path: ['answer'], message: 'Kunci jawaban harus salah satu opsi.' });
-  });
+const questionFields = z.object({
+  level: z
+    .string()
+    .trim()
+    .max(20)
+    .nullish()
+    .transform((v) => v || null),
+  type: z.enum(['mcq', 'essay']),
+  body: z.string().trim().min(1).max(10_000),
+  options: z.array(optionSchema).max(6).default([]),
+  answer: z
+    .string()
+    .trim()
+    .max(5000)
+    .nullish()
+    .transform((v) => v || null),
+  explanation: z
+    .string()
+    .trim()
+    .max(5000)
+    .nullish()
+    .transform((v) => v || null),
+  points: z.number().int().min(1).max(1000).default(1),
+});
+
+/** Aturan isi soal, dipakai tambah satu soal dan impor massal supaya keduanya tak pernah berbeda. */
+function checkQuestion(
+  q: z.infer<typeof questionFields>,
+  ctx: z.core.$RefinementCtx<z.infer<typeof questionFields>>,
+) {
+  if (q.type === 'essay') {
+    if (q.options.length > 0)
+      ctx.addIssue({ code: 'custom', path: ['options'], message: 'Esai tidak memakai opsi.' });
+    return;
+  }
+  const keys = q.options.map((o) => o.key.toUpperCase());
+  if (q.options.length < 2) ctx.addIssue({ code: 'custom', path: ['options'], message: 'Minimal dua opsi.' });
+  if (new Set(keys).size !== keys.length)
+    ctx.addIssue({ code: 'custom', path: ['options'], message: 'Kunci opsi tidak boleh sama.' });
+  if (!q.answer || !keys.includes(q.answer.toUpperCase()))
+    ctx.addIssue({ code: 'custom', path: ['answer'], message: 'Kunci jawaban harus salah satu opsi.' });
+}
+
+const questionBody = questionFields.extend({ subjectId: z.uuid() }).superRefine(checkQuestion);
+const importRow = questionFields.superRefine(checkQuestion);
+const MAX_IMPORT_ROWS = 500;
+const importBody = z.object({
+  subjectId: z.uuid(),
+  level: z
+    .string()
+    .trim()
+    .max(20)
+    .nullish()
+    .transform((v) => v || null),
+  dryRun: z.boolean().default(true),
+  // Longgar sengaja: baris yang salah dilaporkan per nomor baris, bukan menolak seluruh permintaan.
+  rows: z.array(z.record(z.string(), z.unknown())).min(1).max(MAX_IMPORT_ROWS),
+});
+const importReport = z.object({
+  total: z.number().int(),
+  valid: z.number().int().describe('Baris yang lolos validasi (termasuk yang duplikat)'),
+  invalid: z.number().int(),
+  duplicates: z.number().int().describe('Baris valid yang dilewati karena soalnya sudah ada di bank'),
+  created: z.number().int().describe('Soal yang ditambahkan; 0 pada dryRun'),
+  errors: z.array(z.object({ row: z.number().int(), message: z.string() })),
+});
+
+/** Teks soal dinormalkan (huruf kecil, spasi tunggal) untuk mendeteksi soal yang sama. */
+const normBody = (t: string) => t.toLowerCase().replace(/\s+/g, ' ').trim();
 
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
 
@@ -415,6 +444,103 @@ export async function examBankRoutes(instance: FastifyInstance) {
         return view(r!, s);
       });
       return reply.code(201).send(created);
+    },
+  );
+
+  app.post(
+    '/v1/exam/questions/import',
+    {
+      onRequest: authorGate,
+      schema: {
+        tags: tag,
+        summary: 'Impor soal massal (dari Word/Excel yang sudah dibaca di peramban)',
+        description:
+          'Izin: `exam:author`; modul `exams`. Guru hanya untuk mapel yang ia ampu (403). Berkas dibaca di peramban; ' +
+          `API menerima baris hasil bacaannya (maks ${MAX_IMPORT_ROWS}): {type: mcq|essay, body, options: [{key, text}], ` +
+          'answer, points, explanation, level}. Tiap baris divalidasi dengan aturan yang sama seperti tambah satu soal; ' +
+          '`level` di tubuh permintaan dipakai bila baris tidak punya. Baris yang salah dilaporkan per nomor (mulai 1) ' +
+          'di `errors`. Soal yang teksnya sama (huruf besar/kecil dan spasi diabaikan) dengan soal yang sudah ada di ' +
+          'mapel itu, atau dengan baris lain di berkas yang sama, dilewati dan dihitung di `duplicates`. ' +
+          '`dryRun` = true (bawaan): hanya memeriksa, tidak menulis. `dryRun` = false: semua-atau-tidak-sama-sekali ' +
+          'dalam satu transaksi; bila ada baris tidak valid, 400 `import_invalid` dengan `errors` dan tidak ada yang ditulis.',
+        headers: schoolHeader,
+        body: importBody,
+        response: {
+          200: importReport,
+          400: errorSchema.extend({ errors: importReport.shape.errors.optional() }),
+          ...guarded,
+        },
+      },
+    },
+    async (request, reply) => {
+      const ctx = request.ctx as TenantContext;
+      const { subjectId, level, dryRun, rows } = request.body;
+      const result = await tenant(request, async (tx) => {
+        await guardSubject(tx, ctx, subjectId);
+        const s = await subjectOrThrow(tx, subjectId);
+        const seen = new Set(
+          (
+            await tx.select({ body: question.body }).from(question).where(eq(question.subjectId, subjectId))
+          ).map((r) => normBody(r.body)),
+        );
+        const errors: { row: number; message: string }[] = [];
+        const fresh: z.infer<typeof importRow>[] = [];
+        let valid = 0;
+        let duplicates = 0;
+        for (const [i, raw] of rows.entries()) {
+          const parsed = importRow.safeParse(raw);
+          if (!parsed.success) {
+            const issue = parsed.error.issues[0];
+            const field = issue?.path.join('.');
+            errors.push({
+              row: i + 1,
+              message: issue
+                ? issue.code === 'custom'
+                  ? issue.message
+                  : `${field}: ${issue.message}`
+                : 'Baris tidak valid.',
+            });
+            continue;
+          }
+          valid += 1;
+          const key = normBody(parsed.data.body);
+          if (seen.has(key)) {
+            duplicates += 1;
+            continue;
+          }
+          seen.add(key);
+          fresh.push(parsed.data);
+        }
+        const report = { total: rows.length, valid, invalid: errors.length, duplicates, created: 0, errors };
+        if (dryRun || errors.length > 0) return report;
+        if (fresh.length > 0) {
+          await tx.insert(question).values(
+            fresh.map((q) => ({
+              ...q,
+              level: q.level ?? level,
+              subjectId,
+              schoolId: ctx.schoolId,
+              createdBy: ctx.userId,
+            })),
+          );
+        }
+        await audit(tx, ctx, 'exam.questions_import', 'subject', s.id, {
+          created: fresh.length,
+          duplicates,
+          total: rows.length,
+        });
+        return { ...report, created: fresh.length };
+      });
+      if (!dryRun && result.invalid > 0) {
+        return reply.code(400).send({
+          error: {
+            code: 'import_invalid',
+            message: `${result.invalid} baris tidak valid; tidak ada soal yang ditambahkan.`,
+          },
+          errors: result.errors,
+        });
+      }
+      return result;
     },
   );
 

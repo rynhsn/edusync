@@ -273,6 +273,8 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
           if (!win || now < win.start.getTime() || now >= win.end.getTime()) {
             throw new HttpError(409, 'not_open', 'Ujian belum dibuka atau waktunya sudah lewat.');
           }
+          // Jawaban yang dimasukkan guru dari kertas tidak boleh terbawa ke percobaan CBT siswa.
+          if (at) await tx.delete(examAnswer).where(eq(examAnswer.attemptId, at.id));
           const startedAt = new Date(now);
           const deadlineAt = new Date(
             Math.min(now + (found.e.durationMinutes as number) * 60_000, win.end.getTime()),

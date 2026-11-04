@@ -425,6 +425,23 @@ describe('kirim ke buku nilai', () => {
     expect(after.map((s) => s.value)).toEqual([100]);
   });
 
+  it('esai belum dinilai menahan pengiriman kecuali dikonfirmasi', async () => {
+    const ex = await makeExam({ title: 'Esai tertunda' });
+    const [q1] = ex.q;
+    await call('PUT', `/v1/exams/${ex.id}/scoresheet`, adminCookie, {
+      records: [{ studentId: students.andi, answers: [{ questionId: q1, answer: 'B' }] }], // esai tak diisi
+    });
+    const held = await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId });
+    expect(held.statusCode).toBe(409);
+    expect(held.json().error.code).toBe('essay_pending');
+    const sent = await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, {
+      componentId,
+      allowPending: true,
+    });
+    expect(sent.statusCode, sent.body).toBe(200);
+    expect(sent.json().scores).toBe(1);
+  });
+
   it('ujian tanpa soal ditolak', async () => {
     const ex = (
       await call('POST', '/v1/exams', adminCookie, {

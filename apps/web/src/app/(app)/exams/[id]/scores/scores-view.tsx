@@ -39,6 +39,8 @@ interface Student {
   className: string;
   entered: boolean;
   absent: boolean;
+  /** Dari server: ada esai yang belum diberi skor. */
+  essayPending: boolean;
   answers: Record<string, { answer: string | null; score: number | null }>;
   startedAt: string | null;
   submittedAt: string | null;
@@ -82,6 +84,7 @@ export function ScoresView({ id }: { id: string }) {
   const [sendOpen, setSendOpen] = useState(false);
   const [componentId, setComponentId] = useState('');
   const [sendDate, setSendDate] = useState('');
+  const [allowPending, setAllowPending] = useState(false);
   const [reading, setReading] = useState<{ s: Student; qid: string; n: number } | null>(null);
 
   const exam = useQuery({
@@ -104,6 +107,7 @@ export function ScoresView({ id }: { id: string }) {
   const maxTotal = sheet.data?.maxTotal ?? 0;
   const multiClass = new Set(students.map((s) => s.classId)).size > 1;
   const dirty = Object.keys(edits).length > 0;
+  const pendingEssays = students.filter((s) => s.entered && !s.absent && s.essayPending).length;
 
   const view = (s: Student): Edit =>
     edits[s.studentId] ?? {
@@ -187,7 +191,7 @@ export function ScoresView({ id }: { id: string }) {
       unwrap(
         await api.POST('/v1/exams/{id}/grades', {
           params: { ...header, path: { id } },
-          body: { componentId, ...(sendDate ? { date: sendDate } : {}) },
+          body: { componentId, allowPending, ...(sendDate ? { date: sendDate } : {}) },
         }),
       ),
     onSuccess: (r) => {
@@ -515,7 +519,7 @@ export function ScoresView({ id }: { id: string }) {
         title={t('sendTitle')}
         description={t('sendBody')}
         submitLabel={t('sendSubmit')}
-        disabled={!componentId}
+        disabled={!componentId || (pendingEssays > 0 && !allowPending)}
         error={send.error ? te(errorKey(send.error)) : null}
         onSubmit={() => send.mutateAsync()}
       >
@@ -537,6 +541,19 @@ export function ScoresView({ id }: { id: string }) {
               <p className="text-muted-foreground text-xs">{t('noComponents')}</p>
             )}
           </div>
+          {pendingEssays > 0 && (
+            <div className="grid gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-500/40 dark:bg-amber-500/10">
+              <p>{t('pendingWarn', { n: pendingEssays })}</p>
+              <label className="flex items-center gap-2" htmlFor="send-pending">
+                <Checkbox
+                  id="send-pending"
+                  checked={allowPending}
+                  onCheckedChange={(v) => setAllowPending(v === true)}
+                />
+                {t('pendingConfirm')}
+              </label>
+            </div>
+          )}
           <div className="grid gap-2">
             <Label htmlFor="send-date">{t('date')}</Label>
             <DatePicker id="send-date" value={sendDate} onChange={setSendDate} clearable />

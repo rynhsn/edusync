@@ -318,10 +318,15 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           'memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total ' +
           'poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. ' +
           'Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; ' +
-          'komponen tidak ada: 400 `invalid_reference`.',
+          'komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 ' +
+          '`essay_pending` kecuali `allowPending` = true (esai itu dihitung 0).',
         headers: schoolHeader,
         params: idParams,
-        body: z.object({ componentId: z.uuid(), date: z.iso.date().optional() }),
+        body: z.object({
+          componentId: z.uuid(),
+          date: z.iso.date().optional(),
+          allowPending: z.boolean().default(false),
+        }),
         response: {
           200: z.object({ assessments: z.number().int(), scores: z.number().int() }),
           400: errorSchema,
@@ -341,6 +346,10 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         if (!comp) throw invalidRef('Komponen nilai tidak ditemukan.');
         const data = await sheet(tx, ex);
         if (data.maxTotal <= 0) throw new HttpError(400, 'no_questions', 'Ujian belum memiliki soal.');
+        const pending = data.students.filter((s) => s.entered && !s.absent && s.essayPending).length;
+        if (pending > 0 && !request.body.allowPending) {
+          throw new HttpError(409, 'essay_pending', `${pending} siswa masih punya esai yang belum dinilai.`);
+        }
         const [me] = await tx
           .select({ id: teacher.id })
           .from(teacher)

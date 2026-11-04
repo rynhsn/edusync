@@ -369,6 +369,15 @@ describe('mengerjakan ujian', () => {
     expect(view.state).toBe('submitted');
   });
 
+  it('jawaban kertas yang dimasukkan guru tidak terbawa ke CBT siswa', async () => {
+    const ex = await makeExam({ title: 'Kertas lalu CBT', mode: 'both' });
+    await call('PUT', `/v1/exams/${ex.id}/scoresheet`, adminCookie, {
+      records: [{ studentId, answers: [{ questionId: ex.q[0], answer: 'B' }] }],
+    });
+    const s = (await call('POST', `/v1/portal/exams/${ex.id}/start`, studentCookie)).json();
+    expect(Object.values(s.answers).filter(Boolean)).toHaveLength(0);
+  });
+
   it('acak soal dan opsi tetap untuk satu percobaan', async () => {
     const ex = await makeExam({ title: 'Acak', shuffleQuestions: true, shuffleOptions: true });
     const a = (await call('POST', `/v1/portal/exams/${ex.id}/start`, studentCookie)).json();

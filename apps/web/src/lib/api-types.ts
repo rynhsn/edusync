@@ -34227,8 +34227,6 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** Format: uuid */
-                        subjectId: string;
                         level?: string | null;
                         /** @enum {string} */
                         type: "mcq" | "essay";
@@ -34242,6 +34240,8 @@ export interface paths {
                         explanation?: string | null;
                         /** @default 1 */
                         points?: number;
+                        /** Format: uuid */
+                        subjectId: string;
                     };
                 };
             };
@@ -34324,6 +34324,120 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/exam/questions/import": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Impor soal massal (dari Word/Excel yang sudah dibaca di peramban)
+         * @description Izin: `exam:author`; modul `exams`. Guru hanya untuk mapel yang ia ampu (403). Berkas dibaca di peramban; API menerima baris hasil bacaannya (maks 500): {type: mcq|essay, body, options: [{key, text}], answer, points, explanation, level}. Tiap baris divalidasi dengan aturan yang sama seperti tambah satu soal; `level` di tubuh permintaan dipakai bila baris tidak punya. Baris yang salah dilaporkan per nomor (mulai 1) di `errors`. Soal yang teksnya sama (huruf besar/kecil dan spasi diabaikan) dengan soal yang sudah ada di mapel itu, atau dengan baris lain di berkas yang sama, dilewati dan dihitung di `duplicates`. `dryRun` = true (bawaan): hanya memeriksa, tidak menulis. `dryRun` = false: semua-atau-tidak-sama-sekali dalam satu transaksi; bila ada baris tidak valid, 400 `import_invalid` dengan `errors` dan tidak ada yang ditulis.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        subjectId: string;
+                        level?: string | null;
+                        /** @default true */
+                        dryRun?: boolean;
+                        rows: {
+                            [key: string]: unknown;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            total: number;
+                            /** @description Baris yang lolos validasi (termasuk yang duplikat) */
+                            valid: number;
+                            invalid: number;
+                            /** @description Baris valid yang dilewati karena soalnya sudah ada di bank */
+                            duplicates: number;
+                            /** @description Soal yang ditambahkan; 0 pada dryRun */
+                            created: number;
+                            errors: {
+                                row: number;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                            errors?: {
+                                row: number;
+                                message: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/exam/questions/{id}": {
         parameters: {
             query?: never;
@@ -34351,8 +34465,6 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** Format: uuid */
-                        subjectId: string;
                         level?: string | null;
                         /** @enum {string} */
                         type: "mcq" | "essay";
@@ -34366,6 +34478,8 @@ export interface paths {
                         explanation?: string | null;
                         /** @default 1 */
                         points?: number;
+                        /** Format: uuid */
+                        subjectId: string;
                     };
                 };
             };
@@ -36885,7 +36999,7 @@ export interface paths {
         put?: never;
         /**
          * Kirim hasil ujian ke buku nilai
-         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`.
+         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0).
          */
         post: {
             parameters: {
@@ -36906,6 +37020,8 @@ export interface paths {
                         componentId: string;
                         /** Format: date */
                         date?: string;
+                        /** @default false */
+                        allowPending?: boolean;
                     };
                 };
             };

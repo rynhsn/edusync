@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Check, FileQuestion, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
+import { Check, FileQuestion, FileUp, Pencil, Plus, Search, Trash2, X } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -23,6 +23,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useSchoolLevels } from '@/lib/school-settings';
 import { cn } from '@/lib/utils';
+import { ImportDialog } from './import-dialog';
 import { RichEditor } from './rich-editor';
 
 const KEYS = ['A', 'B', 'C', 'D', 'E', 'F'];
@@ -96,6 +97,8 @@ export function BankView() {
   const [type, setType] = useState('');
   const [q, setQ] = useState('');
   const [draft, setDraft] = useState<Draft | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+  const tImport = useTranslations('questionImport');
   const [deleting, setDeleting] = useState<Question | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -186,9 +189,18 @@ export function BankView() {
         description={t('bankSubtitle')}
         actions={
           author && (
-            <Button onClick={openNew} disabled={subjectList.length === 0}>
-              <Plus className="size-4" aria-hidden /> {t('addQuestion')}
-            </Button>
+            <>
+              <Button
+                variant="outline"
+                onClick={() => setImportOpen(true)}
+                disabled={subjectList.length === 0}
+              >
+                <FileUp className="size-4" aria-hidden /> {tImport('button')}
+              </Button>
+              <Button onClick={openNew} disabled={subjectList.length === 0}>
+                <Plus className="size-4" aria-hidden /> {t('addQuestion')}
+              </Button>
+            </>
           )
         }
       />
@@ -331,6 +343,14 @@ export function BankView() {
           )}
         </ul>
       )}
+
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        subjects={subjectList}
+        levels={levelList}
+        defaultSubjectId={subjectId}
+      />
 
       <FormDialog
         open={!!draft}
