@@ -45,12 +45,14 @@ export interface SiteSections {
 export async function SiteShell({
   name,
   accent,
+  logoUrl,
   links,
   sections,
   children,
 }: {
   name: string;
   accent: string | null;
+  logoUrl?: string | null;
   links: SiteLinks;
   sections: SiteSections;
   children: React.ReactNode;
@@ -81,7 +83,7 @@ export async function SiteShell({
             aria-label={t('homeLabel', { name })}
             className="site-link flex min-w-0 items-center gap-2.5"
           >
-            <Badge name={name} />
+            <Badge name={name} logoUrl={logoUrl} />
             <span className="font-heading truncate text-base font-semibold tracking-tight sm:text-lg">
               {name}
             </span>
@@ -135,7 +137,25 @@ export async function SiteShell({
   );
 }
 
-function Badge({ name, size = 'md' }: { name: string; size?: 'md' | 'lg' }) {
+function Badge({
+  name,
+  logoUrl,
+  size = 'md',
+}: {
+  name: string;
+  logoUrl?: string | null;
+  size?: 'md' | 'lg';
+}) {
+  if (logoUrl) {
+    return (
+      // biome-ignore lint/performance/noImgElement: logo kecil dari API sendiri.
+      <img
+        src={logoUrl}
+        alt=""
+        className={`shrink-0 object-contain ${size === 'lg' ? 'size-16' : 'size-9'}`}
+      />
+    );
+  }
   return (
     <span
       aria-hidden

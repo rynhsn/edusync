@@ -78,6 +78,7 @@ export async function HomePage({ mode, slug }: { mode: SiteMode; slug?: string }
     <SiteShell
       name={data.school.name}
       accent={data.profile.accentColor}
+      logoUrl={data.profile.logoUrl ?? null}
       links={links}
       sections={sectionsOf(data)}
     >
@@ -134,6 +135,7 @@ export async function ListPage({
     <SiteShell
       name={data.school.name}
       accent={data.profile.accentColor}
+      logoUrl={data.profile.logoUrl ?? null}
       links={links}
       sections={sectionsOf(data)}
     >
@@ -184,6 +186,7 @@ export async function DetailPage({ mode, id, slug }: { mode: SiteMode; id: strin
     <SiteShell
       name={data.school.name}
       accent={data.profile.accentColor}
+      logoUrl={data.profile.logoUrl ?? null}
       links={links}
       sections={sectionsOf(data)}
     >

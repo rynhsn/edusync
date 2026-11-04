@@ -37,6 +37,10 @@ export interface SiteProfile {
   whatsapp: string | null;
   mapUrl: string | null;
   accentColor: string | null;
+  fax?: string | null;
+  website?: string | null;
+  /** Jalur gambar logo dari identitas sekolah. */
+  logoUrl?: string | null;
 }
 
 export interface SiteHome {

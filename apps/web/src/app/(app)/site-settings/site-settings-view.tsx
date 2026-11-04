@@ -547,6 +547,7 @@ export function SiteSettingsView() {
             <p className="text-muted-foreground mb-3 text-xs">{t('previewHint')}</p>
             <SitePreview
               name={school.schoolName}
+              logoUrl={id?.logoUrl}
               published={form.published}
               profile={{
                 tagline: form.tagline,
