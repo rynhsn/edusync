@@ -1112,9 +1112,14 @@ export const assessment = pgTable(
     title: text('title').notNull(),
     date: date('date').notNull(),
     maxScore: integer('max_score').notNull().default(100),
+    /** Ujian asal bila penilaian ini dikirim dari modul ujian (satu penilaian per kelas peserta). */
+    examId: uuid('exam_id').references(() => exam.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
   },
-  (t) => [index('assessment_scope_idx').on(t.classId, t.subjectId, t.semesterId)],
+  (t) => [
+    index('assessment_scope_idx').on(t.classId, t.subjectId, t.semesterId),
+    uniqueIndex('assessment_exam_class_uq').on(t.examId, t.classId).where(sql`${t.examId} is not null`),
+  ],
 );
 
 /** Skor siswa pada satu penilaian. `value` kosong berarti belum diisi. */
@@ -2271,6 +2276,47 @@ export const examQuestion = pgTable(
     points: integer('points').notNull().default(1),
   },
   (t) => [index('exam_question_exam_idx').on(t.examId, t.sort)],
+);
+
+/** Peserta ujian yang hasilnya dimasukkan (kertas atau, nanti, CBT). `absent` = tidak hadir. */
+export const examAttempt = pgTable(
+  'exam_attempt',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    examId: uuid('exam_id')
+      .notNull()
+      .references(() => exam.id, { onDelete: 'cascade' }),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    absent: boolean('absent').notNull().default(false),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('exam_attempt_exam_student_uq').on(t.examId, t.studentId)],
+);
+
+/** Jawaban satu siswa pada satu soal ujian. Pilihan ganda: `answer` = kunci opsi, `score` dihitung otomatis; esai: `score` dari guru. */
+export const examAnswer = pgTable(
+  'exam_answer',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    attemptId: uuid('attempt_id')
+      .notNull()
+      .references(() => examAttempt.id, { onDelete: 'cascade' }),
+    examQuestionId: uuid('exam_question_id')
+      .notNull()
+      .references(() => examQuestion.id, { onDelete: 'cascade' }),
+    answer: text('answer'),
+    score: numeric('score', { precision: 6, scale: 2, mode: 'number' }),
+  },
+  (t) => [unique('exam_answer_attempt_question_uq').on(t.attemptId, t.examQuestionId)],
 );
 
 /** Pengaturan lembar ujian cetak per sekolah (bentuknya: `examPaperConfigSchema` di packages/contracts). */

@@ -36570,6 +36570,384 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/exams/{id}/scoresheet": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lembar nilai ujian
+         * @description Izin: `exam:read`; modul `exams`. Siswa aktif kelas peserta (menurut pendaftaran tahun ajaran semester ujian) dengan jawaban dan skor yang sudah dimasukkan, jumlah skor, dan persentase. 404 `not_found` (juga bagi guru yang tidak mengampu mapelnya).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            examId: string;
+                            maxTotal: number;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                sort: number;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                points: number;
+                                key: string | null;
+                                optionKeys: string[];
+                            }[];
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                                /** @description Sudah ada data hasil untuk siswa ini */
+                                entered: boolean;
+                                absent: boolean;
+                                /** @description Kunci = id soal ujian */
+                                answers: {
+                                    [key: string]: {
+                                        answer: string | null;
+                                        score: number | null;
+                                    };
+                                };
+                                /** @description Jumlah skor yang sudah terisi */
+                                total: number;
+                                /** @description total / maxTotal x 100; null bila belum ada data atau tidak hadir */
+                                percent: number | null;
+                                /** @description Ada esai yang belum diberi skor */
+                                essayPending: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan hasil ujian siswa
+         * @description Izin: `exam:author`; modul `exams`; guru hanya untuk mapel yang ia ampu (403). Per siswa: `absent` (tidak hadir menghapus jawabannya) dan `answers`. Pilihan ganda: `answer` = huruf opsi atau kosong; skor dihitung otomatis (benar = poin soal, selain itu 0) dan `score` kiriman diabaikan. Esai: `score` 0 sampai poin soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Siswa di luar kelas peserta, soal di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        records: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** @default false */
+                            absent?: boolean;
+                            /** @default [] */
+                            answers?: {
+                                /** Format: uuid */
+                                questionId: string;
+                                answer?: string | null;
+                                score?: number | null;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            examId: string;
+                            maxTotal: number;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                sort: number;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                points: number;
+                                key: string | null;
+                                optionKeys: string[];
+                            }[];
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                                /** @description Sudah ada data hasil untuk siswa ini */
+                                entered: boolean;
+                                absent: boolean;
+                                /** @description Kunci = id soal ujian */
+                                answers: {
+                                    [key: string]: {
+                                        answer: string | null;
+                                        score: number | null;
+                                    };
+                                };
+                                /** @description Jumlah skor yang sudah terisi */
+                                total: number;
+                                /** @description total / maxTotal x 100; null bila belum ada data atau tidak hadir */
+                                percent: number | null;
+                                /** @description Ada esai yang belum diberi skor */
+                                essayPending: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams/{id}/grades": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kirim hasil ujian ke buku nilai
+         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        componentId: string;
+                        /** Format: date */
+                        date?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            assessments: number;
+                            scores: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/school/domains": {
         parameters: {
             query?: never;

@@ -470,6 +470,13 @@
       "when": 1794800200000,
       "tag": "0066_exam",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1794900200000,
+      "tag": "0067_exam_scores",
+      "breakpoints": true
     }
   ]
 }

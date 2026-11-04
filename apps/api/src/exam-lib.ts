@@ -1,5 +1,5 @@
-import { eq, type Tx, teacher, teachingAssignment } from '@edusync/db';
-import { forbidden } from './http-error';
+import { eq, exam, type Tx, teacher, teachingAssignment } from '@edusync/db';
+import { forbidden, HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
 
 /**
@@ -23,4 +23,17 @@ export async function guardSubject(tx: Tx, ctx: TenantContext, subjectId: string
   if (scope && !scope.includes(subjectId)) {
     throw forbidden('Anda hanya boleh mengelola ujian dan soal untuk mata pelajaran yang Anda ampu.');
   }
+}
+
+/** Ujian, sekaligus pemeriksaan hak: tulis = harus boleh menyentuh mapelnya (403); baca = tidak terlihat (404). */
+export async function examOrThrow(tx: Tx, ctx: TenantContext, id: string, write: boolean) {
+  const [row] = await tx.select().from(exam).where(eq(exam.id, id));
+  if (!row) throw new HttpError(404, 'not_found', 'Ujian tidak ditemukan.');
+  if (write) await guardSubject(tx, ctx, row.subjectId);
+  else {
+    const scope = await subjectScope(tx, ctx);
+    if (scope && !scope.includes(row.subjectId))
+      throw new HttpError(404, 'not_found', 'Ujian tidak ditemukan.');
+  }
+  return row;
 }

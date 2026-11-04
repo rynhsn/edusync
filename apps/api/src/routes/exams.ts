@@ -26,7 +26,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { guardSubject, subjectScope } from '../exam-lib';
+import { examOrThrow, guardSubject, subjectScope } from '../exam-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { audit, guarded, idParams, ok, schoolHeader } from './helpers';
@@ -138,18 +138,6 @@ async function describeExams(tx: Tx, rows: ExamRow[]) {
     totalPoints: Number(tot.get(r.id)?.pts ?? 0),
     updatedAt: r.updatedAt.toISOString(),
   }));
-}
-
-/** Ujian dan sekaligus pemeriksaan bahwa pengguna boleh menyentuh mapelnya. */
-async function examOrThrow(tx: Tx, ctx: TenantContext, id: string, write: boolean) {
-  const [row] = await tx.select().from(exam).where(eq(exam.id, id));
-  if (!row) throw notFound('Ujian');
-  if (write) await guardSubject(tx, ctx, row.subjectId);
-  else {
-    const scope = await subjectScope(tx, ctx);
-    if (scope && !scope.includes(row.subjectId)) throw notFound('Ujian');
-  }
-  return row;
 }
 
 async function questionsOf(tx: Tx, examId: string) {
