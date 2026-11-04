@@ -13,14 +13,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { cn } from '@/lib/utils';
 import { ExamSheet, PrintPortal, type SheetView } from '../../paper/exam-sheet';
+import { OmrPanel } from './omr-panel';
 
-const VIEWS: SheetView[] = ['questions', 'answers', 'key'];
+const VIEWS: (SheetView | 'omr')[] = ['questions', 'answers', 'key', 'omr'];
 
 /** Halaman cetak: pilih lembar soal, lembar jawaban, atau kunci, lalu cetak / simpan sebagai PDF dari peramban. */
 export function PrintView({ id }: { id: string }) {
   const t = useTranslations('examPaper');
+  const to = useTranslations('examOmr');
   const { school } = useSchool();
-  const [view, setView] = useState<SheetView>('questions');
+  const [view, setView] = useState<SheetView | 'omr'>('questions');
+  const [omrPrintable, setOmrPrintable] = useState(false);
   const print = useQuery({
     queryKey: ['exam-print', school.schoolId, id],
     queryFn: async () =>
@@ -43,7 +46,7 @@ export function PrintView({ id }: { id: string }) {
         }
         actions={
           <>
-            <Button disabled={!data} onClick={() => window.print()}>
+            <Button disabled={!data || (view === 'omr' && !omrPrintable)} onClick={() => window.print()}>
               <Printer className="size-4" aria-hidden /> {t('printButton')}
             </Button>
             <BackLink href={`/exams/${id}`} />
@@ -72,24 +75,32 @@ export function PrintView({ id }: { id: string }) {
                   view === v ? 'border-primary bg-primary/10' : 'hover:bg-muted/50',
                 )}
               >
-                {t(`view.${v}`)}
+                {v === 'omr' ? to('tab') : t(`view.${v}`)}
               </button>
             ))}
-            <span className="text-muted-foreground text-xs">
-              {t('printHint', { size: data.config.paperSize })}
-            </span>
+            {view !== 'omr' && (
+              <span className="text-muted-foreground text-xs">
+                {t('printHint', { size: data.config.paperSize })}
+              </span>
+            )}
           </div>
           {data.exam.questions.length === 0 && (
             <Alert>
               <AlertDescription>{t('noQuestions')}</AlertDescription>
             </Alert>
           )}
-          <div className="bg-muted/60 overflow-auto rounded-xl border p-4">
-            <div className="mx-auto w-fit shadow-md">
-              <ExamSheet data={data} view={view} />
-            </div>
-          </div>
-          <PrintPortal data={data} view={view} />
+          {view === 'omr' ? (
+            <OmrPanel id={id} data={data} onPrintable={setOmrPrintable} />
+          ) : (
+            <>
+              <div className="bg-muted/60 overflow-auto rounded-xl border p-4">
+                <div className="mx-auto w-fit shadow-md">
+                  <ExamSheet data={data} view={view} />
+                </div>
+              </div>
+              <PrintPortal data={data} view={view} />
+            </>
+          )}
         </>
       ) : (
         !print.isError && <Skeleton className="h-96 rounded-2xl" />

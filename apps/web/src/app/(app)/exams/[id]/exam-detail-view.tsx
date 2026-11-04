@@ -10,6 +10,7 @@ import {
   Pencil,
   Plus,
   Printer,
+  ScanLine,
   Search,
   SlidersHorizontal,
   Trash2,
@@ -60,6 +61,7 @@ export function ExamDetailView({ id }: { id: string }) {
   const t = useTranslations('examList');
   const tc = useTranslations('examCbtAdmin');
   const ts = useTranslations('examScores');
+  const tscan = useTranslations('examScan');
   const te = useTranslations();
   const locale = useLocale() as Locale;
   const { school, can } = useSchool();
@@ -205,6 +207,11 @@ export function ExamDetailView({ id }: { id: string }) {
             <Button variant="outline" nativeButton={false} render={<Link href={`/exams/${id}/scores`} />}>
               <ClipboardPen className="size-4" aria-hidden /> {ts('inputScores')}
             </Button>
+            {author && (
+              <Button variant="outline" nativeButton={false} render={<Link href={`/exams/${id}/scan`} />}>
+                <ScanLine className="size-4" aria-hidden /> {tscan('scanButton')}
+              </Button>
+            )}
             {author && (
               <Button variant="outline" nativeButton={false} render={<Link href={`/exams/${id}/paper`} />}>
                 <SlidersHorizontal className="size-4" aria-hidden /> {t('paperSettings')}
