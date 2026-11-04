@@ -7,6 +7,7 @@ export * from './finance-late-fee';
 export * from './grading';
 export * from './letters';
 export * from './messaging';
+export * from './omr';
 export * from './permissions';
 export * from './pkl';
 export * from './quran';
