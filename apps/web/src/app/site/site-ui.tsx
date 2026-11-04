@@ -3,11 +3,13 @@ import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
+  Globe,
   Mail,
   MapPin,
   MessageCircle,
   Phone,
   Pin,
+  Printer,
 } from 'lucide-react';
 import Link from 'next/link';
 import { getLocale, getTranslations } from 'next-intl/server';
@@ -587,6 +589,11 @@ export async function SiteHomeView({ data, links }: { data: SiteHome; links: Sit
                     )}
                   </ContactRow>
                 )}
+                {profile.fax && (
+                  <ContactRow icon={<Printer className="size-5" aria-hidden />} label={t('fax')}>
+                    {profile.fax}
+                  </ContactRow>
+                )}
                 {profile.email && (
                   <ContactRow icon={<Mail className="size-5" aria-hidden />} label={t('email')}>
                     <a
@@ -594,6 +601,18 @@ export async function SiteHomeView({ data, links }: { data: SiteHome; links: Sit
                       className="site-link break-all underline-offset-4 hover:underline"
                     >
                       {profile.email}
+                    </a>
+                  </ContactRow>
+                )}
+                {safeHttpUrl(profile.website) && (
+                  <ContactRow icon={<Globe className="size-5" aria-hidden />} label={t('website')}>
+                    <a
+                      href={safeHttpUrl(profile.website) as string}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="site-link break-all underline-offset-4 hover:underline"
+                    >
+                      {profile.website}
                     </a>
                   </ContactRow>
                 )}
