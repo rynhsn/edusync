@@ -5,6 +5,7 @@ import {
   ArrowDown,
   ArrowUp,
   Check,
+  ClipboardPen,
   FileQuestion,
   Pencil,
   Plus,
@@ -50,6 +51,7 @@ interface ExamQuestion {
 /** Susun ujian: soal-soal dari bank, urutan, poin, dan jalan pintas ke lembar cetak. */
 export function ExamDetailView({ id }: { id: string }) {
   const t = useTranslations('examList');
+  const ts = useTranslations('examScores');
   const te = useTranslations();
   const locale = useLocale() as Locale;
   const { school, can } = useSchool();
@@ -154,6 +156,9 @@ export function ExamDetailView({ id }: { id: string }) {
           <>
             <Button variant="outline" nativeButton={false} render={<Link href={`/exams/${id}/print`} />}>
               <Printer className="size-4" aria-hidden /> {t('print')}
+            </Button>
+            <Button variant="outline" nativeButton={false} render={<Link href={`/exams/${id}/scores`} />}>
+              <ClipboardPen className="size-4" aria-hidden /> {ts('inputScores')}
             </Button>
             {author && (
               <Button variant="outline" nativeButton={false} render={<Link href={`/exams/${id}/paper`} />}>
