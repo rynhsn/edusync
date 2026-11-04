@@ -59,6 +59,8 @@ const examBody = z.object({
   startTime: hhmm.nullish(),
   durationMinutes: z.number().int().min(5).max(600).nullish(),
   status: z.enum(['draft', 'ready']).default('draft'),
+  shuffleQuestions: z.boolean().default(false),
+  shuffleOptions: z.boolean().default(false),
 });
 
 const examSchema = z.object({
@@ -78,6 +80,8 @@ const examSchema = z.object({
   startTime: z.string().nullable(),
   durationMinutes: z.number().int().nullable(),
   status: z.enum(['draft', 'ready']),
+  shuffleQuestions: z.boolean(),
+  shuffleOptions: z.boolean(),
   customPaper: z.boolean().describe('Ujian ini punya pengaturan lembar sendiri'),
   questionCount: z.number().int(),
   totalPoints: z.number().int(),
@@ -133,6 +137,8 @@ async function describeExams(tx: Tx, rows: ExamRow[]) {
     startTime: r.startTime,
     durationMinutes: r.durationMinutes,
     status: r.status,
+    shuffleQuestions: r.shuffleQuestions,
+    shuffleOptions: r.shuffleOptions,
     customPaper: r.paper !== null,
     questionCount: Number(tot.get(r.id)?.n ?? 0),
     totalPoints: Number(tot.get(r.id)?.pts ?? 0),

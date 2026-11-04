@@ -409,8 +409,8 @@ describe('kirim ke buku nilai', () => {
       .from(score)
       .where(eq(score.assessmentId, assessments.find((a) => a.classId === classA)!.id));
     const byStudent = new Map(scores.map((s) => [s.studentId, s.value]));
-    expect(byStudent.get(students.andi)).toBe(70); // 4 + 3 dari 10
-    expect(byStudent.get(students.budi)).toBeNull(); // tidak hadir
+    expect(byStudent.get(students.andi as string)).toBe(70); // 4 + 3 dari 10
+    expect(byStudent.get(students.budi as string)).toBeNull(); // tidak hadir
 
     // Ubah nilai lalu kirim ulang: penilaian yang sama diperbarui, tidak ganda.
     await call('PUT', `/v1/exams/${ex.id}/scoresheet`, adminCookie, {
@@ -418,7 +418,10 @@ describe('kirim ke buku nilai', () => {
     });
     await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId });
     expect(await db.select().from(assessment).where(eq(assessment.examId, ex.id))).toHaveLength(2);
-    const after = await db.select().from(score).where(eq(score.studentId, students.andi));
+    const after = await db
+      .select()
+      .from(score)
+      .where(eq(score.studentId, students.andi as string));
     expect(after.map((s) => s.value)).toEqual([100]);
   });
 

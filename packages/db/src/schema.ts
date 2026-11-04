@@ -2247,6 +2247,9 @@ export const exam = pgTable(
     status: text('status', { enum: ['draft', 'ready'] })
       .notNull()
       .default('draft'),
+    /** CBT: urutan soal dan urutan opsi diacak per siswa (acak tetap untuk satu percobaan). */
+    shuffleQuestions: boolean('shuffle_questions').notNull().default(false),
+    shuffleOptions: boolean('shuffle_options').notNull().default(false),
     /** Pengaturan lembar khusus ujian ini; kosong = ikut pengaturan sekolah. */
     paper: jsonb('paper').$type<Record<string, unknown>>(),
     createdBy: text('created_by').notNull(),
@@ -2293,6 +2296,12 @@ export const examAttempt = pgTable(
       .notNull()
       .references(() => student.id),
     absent: boolean('absent').notNull().default(false),
+    /** CBT: mulai, batas akhir (dihitung server), dan waktu dikumpulkan. Kosong untuk ujian kertas. */
+    startedAt: timestamp('started_at', { withTimezone: true }),
+    deadlineAt: timestamp('deadline_at', { withTimezone: true }),
+    submittedAt: timestamp('submitted_at', { withTimezone: true }),
+    /** Berapa kali siswa meninggalkan tab ujian (catatan untuk guru). */
+    blurCount: integer('blur_count').notNull().default(0),
     updatedBy: text('updated_by').notNull(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },

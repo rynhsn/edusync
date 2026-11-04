@@ -35077,6 +35077,8 @@ export interface paths {
                             durationMinutes: number | null;
                             /** @enum {string} */
                             status: "draft" | "ready";
+                            shuffleQuestions: boolean;
+                            shuffleOptions: boolean;
                             /** @description Ujian ini punya pengaturan lembar sendiri */
                             customPaper: boolean;
                             questionCount: number;
@@ -35155,6 +35157,10 @@ export interface paths {
                          * @enum {string}
                          */
                         status?: "draft" | "ready";
+                        /** @default false */
+                        shuffleQuestions?: boolean;
+                        /** @default false */
+                        shuffleOptions?: boolean;
                     };
                 };
             };
@@ -35188,6 +35194,8 @@ export interface paths {
                             durationMinutes: number | null;
                             /** @enum {string} */
                             status: "draft" | "ready";
+                            shuffleQuestions: boolean;
+                            shuffleOptions: boolean;
                             /** @description Ujian ini punya pengaturan lembar sendiri */
                             customPaper: boolean;
                             questionCount: number;
@@ -35316,6 +35324,8 @@ export interface paths {
                             durationMinutes: number | null;
                             /** @enum {string} */
                             status: "draft" | "ready";
+                            shuffleQuestions: boolean;
+                            shuffleOptions: boolean;
                             /** @description Ujian ini punya pengaturan lembar sendiri */
                             customPaper: boolean;
                             questionCount: number;
@@ -35425,6 +35435,10 @@ export interface paths {
                          * @enum {string}
                          */
                         status?: "draft" | "ready";
+                        /** @default false */
+                        shuffleQuestions?: boolean;
+                        /** @default false */
+                        shuffleOptions?: boolean;
                     };
                 };
             };
@@ -35458,6 +35472,8 @@ export interface paths {
                             durationMinutes: number | null;
                             /** @enum {string} */
                             status: "draft" | "ready";
+                            shuffleQuestions: boolean;
+                            shuffleOptions: boolean;
                             /** @description Ujian ini punya pengaturan lembar sendiri */
                             customPaper: boolean;
                             questionCount: number;
@@ -35682,6 +35698,8 @@ export interface paths {
                             durationMinutes: number | null;
                             /** @enum {string} */
                             status: "draft" | "ready";
+                            shuffleQuestions: boolean;
+                            shuffleOptions: boolean;
                             /** @description Ujian ini punya pengaturan lembar sendiri */
                             customPaper: boolean;
                             questionCount: number;
@@ -35831,6 +35849,8 @@ export interface paths {
                             durationMinutes: number | null;
                             /** @enum {string} */
                             status: "draft" | "ready";
+                            shuffleQuestions: boolean;
+                            shuffleOptions: boolean;
                             /** @description Ujian ini punya pengaturan lembar sendiri */
                             customPaper: boolean;
                             questionCount: number;
@@ -35982,6 +36002,8 @@ export interface paths {
                             durationMinutes: number | null;
                             /** @enum {string} */
                             status: "draft" | "ready";
+                            shuffleQuestions: boolean;
+                            shuffleOptions: boolean;
                             /** @description Ujian ini punya pengaturan lembar sendiri */
                             customPaper: boolean;
                             questionCount: number;
@@ -36099,6 +36121,8 @@ export interface paths {
                             durationMinutes: number | null;
                             /** @enum {string} */
                             status: "draft" | "ready";
+                            shuffleQuestions: boolean;
+                            shuffleOptions: boolean;
                             /** @description Ujian ini punya pengaturan lembar sendiri */
                             customPaper: boolean;
                             questionCount: number;
@@ -36428,6 +36452,8 @@ export interface paths {
                                 durationMinutes: number | null;
                                 /** @enum {string} */
                                 status: "draft" | "ready";
+                                shuffleQuestions: boolean;
+                                shuffleOptions: boolean;
                                 /** @description Ujian ini punya pengaturan lembar sendiri */
                                 customPaper: boolean;
                                 questionCount: number;
@@ -36639,6 +36665,12 @@ export interface paths {
                                 percent: number | null;
                                 /** @description Ada esai yang belum diberi skor */
                                 essayPending: boolean;
+                                /** @description CBT: waktu mulai; null untuk ujian kertas */
+                                startedAt: string | null;
+                                /** @description CBT: waktu dikumpulkan; null bila belum */
+                                submittedAt: string | null;
+                                /** @description CBT: berapa kali siswa meninggalkan tab ujian */
+                                blurCount: number;
                             }[];
                         };
                     };
@@ -36767,6 +36799,12 @@ export interface paths {
                                 percent: number | null;
                                 /** @description Ada esai yang belum diberi skor */
                                 essayPending: boolean;
+                                /** @description CBT: waktu mulai; null untuk ujian kertas */
+                                startedAt: string | null;
+                                /** @description CBT: waktu dikumpulkan; null bila belum */
+                                submittedAt: string | null;
+                                /** @description CBT: berapa kali siswa meninggalkan tab ujian */
+                                blurCount: number;
                             }[];
                         };
                     };
@@ -36895,6 +36933,545 @@ export interface paths {
                                 code: string;
                                 message: string;
                             };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/exams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar ujian di layar untuk siswa
+         * @description Izin: `portal:read` (akun siswa, 403 untuk wali); modul `exams`. Ujian bermode `cbt`/`both` berstatus `ready` untuk kelas siswa pada tahun ajaran semester ujian. `state`: `unscheduled` (belum ada jadwal), `upcoming`, `open` (boleh mulai), `in_progress`, `submitted`, `closed` (waktu lewat tanpa dikerjakan). Ujian yang selesai lebih dari 30 hari lalu tidak ditampilkan.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            title: string;
+                            typeShort: string;
+                            subjectName: string;
+                            startsAt: string | null;
+                            endsAt: string | null;
+                            durationMinutes: number | null;
+                            questionCount: number;
+                            /** @enum {string} */
+                            state: "unscheduled" | "upcoming" | "open" | "in_progress" | "submitted" | "closed";
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/exams/{id}/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Mulai (atau lanjutkan) ujian
+         * @description Izin: `portal:read` (akun siswa); modul `exams`. Hanya saat `state` = `open`/`in_progress`. Waktu dihitung server: batas akhir = yang lebih awal antara mulai + durasi dan akhir jendela ujian. Memanggil lagi melanjutkan percobaan yang sama (tidak mengulang waktu). Sudah dikumpulkan: 409 `already_submitted`; belum waktunya/lewat: 409 `not_open`. Soal dikirim tanpa kunci jawaban.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            state: "in_progress" | "submitted";
+                            exam: {
+                                /** Format: uuid */
+                                id: string;
+                                title: string;
+                                subjectName: string;
+                            };
+                            startedAt: string | null;
+                            deadlineAt: string | null;
+                            serverNow: string;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                body: string;
+                                points: number;
+                                options: {
+                                    key: string;
+                                    text: string;
+                                }[];
+                            }[];
+                            answers: {
+                                [key: string]: string | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/exams/{id}/session": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Muat ulang sesi ujian yang sedang berjalan
+         * @description Izin: `portal:read` (akun siswa); modul `exams`. Soal (tanpa kunci), jawaban tersimpan, dan batas akhir; dipakai saat halaman dimuat ulang. 404 `not_found` bila belum dimulai. Bila waktu sudah habis, percobaan otomatis dikumpulkan dan `state` = `submitted`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            state: "in_progress" | "submitted";
+                            exam: {
+                                /** Format: uuid */
+                                id: string;
+                                title: string;
+                                subjectName: string;
+                            };
+                            startedAt: string | null;
+                            deadlineAt: string | null;
+                            serverNow: string;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                body: string;
+                                points: number;
+                                options: {
+                                    key: string;
+                                    text: string;
+                                }[];
+                            }[];
+                            answers: {
+                                [key: string]: string | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/exams/{id}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Simpan jawaban (otomatis, berkala)
+         * @description Izin: `portal:read` (akun siswa); modul `exams`. Menyimpan jawaban yang disebut saja. Pilihan ganda: huruf opsi atau kosong (400 `validation` bila huruf tidak ada); esai: teks sampai 10.000 karakter. `blurs` = jumlah siswa meninggalkan tab (hanya naik). Sesudah dikumpulkan atau waktu habis: 409 `closed`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        answers: {
+                            /** Format: uuid */
+                            questionId: string;
+                            answer: string | null;
+                        }[];
+                        blurs?: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                            serverNow: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/exams/{id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kumpulkan ujian
+         * @description Izin: `portal:read` (akun siswa); modul `exams`. Menutup percobaan; sesudahnya jawaban tidak bisa diubah. Memanggil ulang pada percobaan yang sudah terkumpul tidak error. Skor tidak dikembalikan ke siswa.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
                         };
                     };
                 };

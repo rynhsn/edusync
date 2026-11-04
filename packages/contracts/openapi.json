@@ -74905,6 +74905,12 @@
                           "ready"
                         ]
                       },
+                      "shuffleQuestions": {
+                        "type": "boolean"
+                      },
+                      "shuffleOptions": {
+                        "type": "boolean"
+                      },
                       "customPaper": {
                         "type": "boolean",
                         "description": "Ujian ini punya pengaturan lembar sendiri"
@@ -74940,6 +74946,8 @@
                       "startTime",
                       "durationMinutes",
                       "status",
+                      "shuffleQuestions",
+                      "shuffleOptions",
                       "customPaper",
                       "questionCount",
                       "totalPoints",
@@ -75094,6 +75102,14 @@
                       "draft",
                       "ready"
                     ]
+                  },
+                  "shuffleQuestions": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "shuffleOptions": {
+                    "default": false,
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -75206,6 +75222,12 @@
                         "ready"
                       ]
                     },
+                    "shuffleQuestions": {
+                      "type": "boolean"
+                    },
+                    "shuffleOptions": {
+                      "type": "boolean"
+                    },
                     "customPaper": {
                       "type": "boolean",
                       "description": "Ujian ini punya pengaturan lembar sendiri"
@@ -75314,6 +75336,8 @@
                     "startTime",
                     "durationMinutes",
                     "status",
+                    "shuffleQuestions",
+                    "shuffleOptions",
                     "customPaper",
                     "questionCount",
                     "totalPoints",
@@ -75541,6 +75565,12 @@
                         "ready"
                       ]
                     },
+                    "shuffleQuestions": {
+                      "type": "boolean"
+                    },
+                    "shuffleOptions": {
+                      "type": "boolean"
+                    },
                     "customPaper": {
                       "type": "boolean",
                       "description": "Ujian ini punya pengaturan lembar sendiri"
@@ -75649,6 +75679,8 @@
                     "startTime",
                     "durationMinutes",
                     "status",
+                    "shuffleQuestions",
+                    "shuffleOptions",
                     "customPaper",
                     "questionCount",
                     "totalPoints",
@@ -75835,6 +75867,14 @@
                       "draft",
                       "ready"
                     ]
+                  },
+                  "shuffleQuestions": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "shuffleOptions": {
+                    "default": false,
+                    "type": "boolean"
                   }
                 },
                 "required": [
@@ -75957,6 +75997,12 @@
                         "ready"
                       ]
                     },
+                    "shuffleQuestions": {
+                      "type": "boolean"
+                    },
+                    "shuffleOptions": {
+                      "type": "boolean"
+                    },
                     "customPaper": {
                       "type": "boolean",
                       "description": "Ujian ini punya pengaturan lembar sendiri"
@@ -76065,6 +76111,8 @@
                     "startTime",
                     "durationMinutes",
                     "status",
+                    "shuffleQuestions",
+                    "shuffleOptions",
                     "customPaper",
                     "questionCount",
                     "totalPoints",
@@ -76499,6 +76547,12 @@
                         "ready"
                       ]
                     },
+                    "shuffleQuestions": {
+                      "type": "boolean"
+                    },
+                    "shuffleOptions": {
+                      "type": "boolean"
+                    },
                     "customPaper": {
                       "type": "boolean",
                       "description": "Ujian ini punya pengaturan lembar sendiri"
@@ -76607,6 +76661,8 @@
                     "startTime",
                     "durationMinutes",
                     "status",
+                    "shuffleQuestions",
+                    "shuffleOptions",
                     "customPaper",
                     "questionCount",
                     "totalPoints",
@@ -76890,6 +76946,12 @@
                         "ready"
                       ]
                     },
+                    "shuffleQuestions": {
+                      "type": "boolean"
+                    },
+                    "shuffleOptions": {
+                      "type": "boolean"
+                    },
                     "customPaper": {
                       "type": "boolean",
                       "description": "Ujian ini punya pengaturan lembar sendiri"
@@ -76998,6 +77060,8 @@
                     "startTime",
                     "durationMinutes",
                     "status",
+                    "shuffleQuestions",
+                    "shuffleOptions",
                     "customPaper",
                     "questionCount",
                     "totalPoints",
@@ -77287,6 +77351,12 @@
                         "ready"
                       ]
                     },
+                    "shuffleQuestions": {
+                      "type": "boolean"
+                    },
+                    "shuffleOptions": {
+                      "type": "boolean"
+                    },
                     "customPaper": {
                       "type": "boolean",
                       "description": "Ujian ini punya pengaturan lembar sendiri"
@@ -77395,6 +77465,8 @@
                     "startTime",
                     "durationMinutes",
                     "status",
+                    "shuffleQuestions",
+                    "shuffleOptions",
                     "customPaper",
                     "questionCount",
                     "totalPoints",
@@ -77630,6 +77702,12 @@
                         "ready"
                       ]
                     },
+                    "shuffleQuestions": {
+                      "type": "boolean"
+                    },
+                    "shuffleOptions": {
+                      "type": "boolean"
+                    },
                     "customPaper": {
                       "type": "boolean",
                       "description": "Ujian ini punya pengaturan lembar sendiri"
@@ -77738,6 +77816,8 @@
                     "startTime",
                     "durationMinutes",
                     "status",
+                    "shuffleQuestions",
+                    "shuffleOptions",
                     "customPaper",
                     "questionCount",
                     "totalPoints",
@@ -78655,6 +78735,12 @@
                             "ready"
                           ]
                         },
+                        "shuffleQuestions": {
+                          "type": "boolean"
+                        },
+                        "shuffleOptions": {
+                          "type": "boolean"
+                        },
                         "customPaper": {
                           "type": "boolean",
                           "description": "Ujian ini punya pengaturan lembar sendiri"
@@ -78763,6 +78849,8 @@
                         "startTime",
                         "durationMinutes",
                         "status",
+                        "shuffleQuestions",
+                        "shuffleOptions",
                         "customPaper",
                         "questionCount",
                         "totalPoints",
@@ -79378,6 +79466,22 @@
                           "essayPending": {
                             "type": "boolean",
                             "description": "Ada esai yang belum diberi skor"
+                          },
+                          "startedAt": {
+                            "nullable": true,
+                            "description": "CBT: waktu mulai; null untuk ujian kertas",
+                            "type": "string"
+                          },
+                          "submittedAt": {
+                            "nullable": true,
+                            "description": "CBT: waktu dikumpulkan; null bila belum",
+                            "type": "string"
+                          },
+                          "blurCount": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "description": "CBT: berapa kali siswa meninggalkan tab ujian"
                           }
                         },
                         "required": [
@@ -79391,7 +79495,10 @@
                           "answers",
                           "total",
                           "percent",
-                          "essayPending"
+                          "essayPending",
+                          "startedAt",
+                          "submittedAt",
+                          "blurCount"
                         ],
                         "additionalProperties": false
                       }
@@ -79732,6 +79839,22 @@
                           "essayPending": {
                             "type": "boolean",
                             "description": "Ada esai yang belum diberi skor"
+                          },
+                          "startedAt": {
+                            "nullable": true,
+                            "description": "CBT: waktu mulai; null untuk ujian kertas",
+                            "type": "string"
+                          },
+                          "submittedAt": {
+                            "nullable": true,
+                            "description": "CBT: waktu dikumpulkan; null bila belum",
+                            "type": "string"
+                          },
+                          "blurCount": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "description": "CBT: berapa kali siswa meninggalkan tab ujian"
                           }
                         },
                         "required": [
@@ -79745,7 +79868,10 @@
                           "answers",
                           "total",
                           "percent",
-                          "essayPending"
+                          "essayPending",
+                          "startedAt",
+                          "submittedAt",
+                          "blurCount"
                         ],
                         "additionalProperties": false
                       }
@@ -80002,6 +80128,1119 @@
                   },
                   "required": [
                     "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/exams": {
+      "get": {
+        "summary": "Daftar ujian di layar untuk siswa",
+        "tags": [
+          "Exams (siswa)"
+        ],
+        "description": "Izin: `portal:read` (akun siswa, 403 untuk wali); modul `exams`. Ujian bermode `cbt`/`both` berstatus `ready` untuk kelas siswa pada tahun ajaran semester ujian. `state`: `unscheduled` (belum ada jadwal), `upcoming`, `open` (boleh mulai), `in_progress`, `submitted`, `closed` (waktu lewat tanpa dikerjakan). Ujian yang selesai lebih dari 30 hari lalu tidak ditampilkan.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "title": {
+                        "type": "string"
+                      },
+                      "typeShort": {
+                        "type": "string"
+                      },
+                      "subjectName": {
+                        "type": "string"
+                      },
+                      "startsAt": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "endsAt": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "durationMinutes": {
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "questionCount": {
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "state": {
+                        "type": "string",
+                        "enum": [
+                          "unscheduled",
+                          "upcoming",
+                          "open",
+                          "in_progress",
+                          "submitted",
+                          "closed"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "title",
+                      "typeShort",
+                      "subjectName",
+                      "startsAt",
+                      "endsAt",
+                      "durationMinutes",
+                      "questionCount",
+                      "state"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/exams/{id}/start": {
+      "post": {
+        "summary": "Mulai (atau lanjutkan) ujian",
+        "tags": [
+          "Exams (siswa)"
+        ],
+        "description": "Izin: `portal:read` (akun siswa); modul `exams`. Hanya saat `state` = `open`/`in_progress`. Waktu dihitung server: batas akhir = yang lebih awal antara mulai + durasi dan akhir jendela ujian. Memanggil lagi melanjutkan percobaan yang sama (tidak mengulang waktu). Sudah dikumpulkan: 409 `already_submitted`; belum waktunya/lewat: 409 `not_open`. Soal dikirim tanpa kunci jawaban.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "in_progress",
+                        "submitted"
+                      ]
+                    },
+                    "exam": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "subjectName": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "subjectName"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "startedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "deadlineAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "serverNow": {
+                      "type": "string"
+                    },
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "mcq",
+                              "essay"
+                            ]
+                          },
+                          "body": {
+                            "type": "string"
+                          },
+                          "points": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "options": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "text": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "text"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type",
+                          "body",
+                          "points",
+                          "options"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "answers": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "state",
+                    "exam",
+                    "startedAt",
+                    "deadlineAt",
+                    "serverNow",
+                    "questions",
+                    "answers"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/exams/{id}/session": {
+      "get": {
+        "summary": "Muat ulang sesi ujian yang sedang berjalan",
+        "tags": [
+          "Exams (siswa)"
+        ],
+        "description": "Izin: `portal:read` (akun siswa); modul `exams`. Soal (tanpa kunci), jawaban tersimpan, dan batas akhir; dipakai saat halaman dimuat ulang. 404 `not_found` bila belum dimulai. Bila waktu sudah habis, percobaan otomatis dikumpulkan dan `state` = `submitted`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "state": {
+                      "type": "string",
+                      "enum": [
+                        "in_progress",
+                        "submitted"
+                      ]
+                    },
+                    "exam": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "title": {
+                          "type": "string"
+                        },
+                        "subjectName": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "title",
+                        "subjectName"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "startedAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "deadlineAt": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "serverNow": {
+                      "type": "string"
+                    },
+                    "questions": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "mcq",
+                              "essay"
+                            ]
+                          },
+                          "body": {
+                            "type": "string"
+                          },
+                          "points": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "options": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "key": {
+                                  "type": "string"
+                                },
+                                "text": {
+                                  "type": "string"
+                                }
+                              },
+                              "required": [
+                                "key",
+                                "text"
+                              ],
+                              "additionalProperties": false
+                            }
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "type",
+                          "body",
+                          "points",
+                          "options"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "answers": {
+                      "type": "object",
+                      "additionalProperties": {
+                        "nullable": true,
+                        "type": "string"
+                      }
+                    }
+                  },
+                  "required": [
+                    "state",
+                    "exam",
+                    "startedAt",
+                    "deadlineAt",
+                    "serverNow",
+                    "questions",
+                    "answers"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/exams/{id}/answers": {
+      "put": {
+        "summary": "Simpan jawaban (otomatis, berkala)",
+        "tags": [
+          "Exams (siswa)"
+        ],
+        "description": "Izin: `portal:read` (akun siswa); modul `exams`. Menyimpan jawaban yang disebut saja. Pilihan ganda: huruf opsi atau kosong (400 `validation` bila huruf tidak ada); esai: teks sampai 10.000 karakter. `blurs` = jumlah siswa meninggalkan tab (hanya naik). Sesudah dikumpulkan atau waktu habis: 409 `closed`.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "answers": {
+                    "maxItems": 500,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "questionId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "answer": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 10000
+                        }
+                      },
+                      "required": [
+                        "questionId",
+                        "answer"
+                      ]
+                    }
+                  },
+                  "blurs": {
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 10000
+                  }
+                },
+                "required": [
+                  "answers"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "saved": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "serverNow": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "saved",
+                    "serverNow"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/portal/exams/{id}/submit": {
+      "post": {
+        "summary": "Kumpulkan ujian",
+        "tags": [
+          "Exams (siswa)"
+        ],
+        "description": "Izin: `portal:read` (akun siswa); modul `exams`. Menutup percobaan; sesudahnya jawaban tidak bisa diubah. Memanggil ulang pada percobaan yang sudah terkumpul tidak error. Skor tidak dikembalikan ke siswa.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
                   ],
                   "additionalProperties": false
                 }

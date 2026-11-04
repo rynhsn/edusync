@@ -69,6 +69,9 @@ const sheetSchema = z.object({
         .nullable()
         .describe('total / maxTotal x 100; null bila belum ada data atau tidak hadir'),
       essayPending: z.boolean().describe('Ada esai yang belum diberi skor'),
+      startedAt: z.string().nullable().describe('CBT: waktu mulai; null untuk ujian kertas'),
+      submittedAt: z.string().nullable().describe('CBT: waktu dikumpulkan; null bila belum'),
+      blurCount: z.number().int().describe('CBT: berapa kali siswa meninggalkan tab ujian'),
     }),
   ),
 });
@@ -179,6 +182,9 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           total,
           percent: at && !absent && maxTotal > 0 ? round2((total / maxTotal) * 100) : null,
           essayPending: !absent && !!at && qs.some((q) => q.type === 'essay' && cells[q.id]?.score == null),
+          startedAt: at?.startedAt?.toISOString() ?? null,
+          submittedAt: at?.submittedAt?.toISOString() ?? null,
+          blurCount: at?.blurCount ?? 0,
         };
       }),
     };
@@ -271,6 +277,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           }
           for (const a of rec.answers) {
             const q = qById.get(a.questionId) as NonNullable<ReturnType<typeof qById.get>>;
+            // Esai: teks jawaban dari CBT dipertahankan; hanya skornya yang diatur guru di sini.
             const answer = q.type === 'mcq' ? a.answer?.toUpperCase() || null : null;
             const value =
               q.type === 'mcq'
@@ -289,7 +296,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
               })
               .onConflictDoUpdate({
                 target: [examAnswer.attemptId, examAnswer.examQuestionId],
-                set: { answer, score: value },
+                set: q.type === 'mcq' ? { answer, score: value } : { score: value },
               });
           }
         }
