@@ -15,6 +15,7 @@ export {
   ne,
   or,
   sql,
+  sum,
 } from 'drizzle-orm';
 export * from './billing-settings';
 export * from './catalog';

@@ -12,14 +12,13 @@ import {
   schoolFile,
   subject,
   type Tx,
-  teacher,
-  teachingAssignment,
   withTenant,
 } from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { errorSchema, forbidden, HttpError } from '../http-error';
+import { guardSubject, subjectScope } from '../exam-lib';
+import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
@@ -137,21 +136,6 @@ export async function examBankRoutes(instance: FastifyInstance) {
   const app = instance.withTypeProvider<ZodTypeProvider>();
   const tenant = <T>(request: { ctx?: TenantContext; server: FastifyInstance }, fn: (tx: Tx) => Promise<T>) =>
     withTenant(request.server.tenantDb, [(request.ctx as TenantContext).schoolId], fn);
-
-  /**
-   * Mata pelajaran yang boleh disentuh pengguna: `null` = semua (pengelola ujian, atau peran baca-saja seperti
-   * kepala sekolah); selain itu hanya mapel yang diampu gurunya.
-   */
-  async function subjectScope(tx: Tx, ctx: TenantContext): Promise<string[] | null> {
-    if (ctx.permissions.has('exam:manage') || !ctx.permissions.has('exam:author')) return null;
-    const [me] = await tx.select({ id: teacher.id }).from(teacher).where(eq(teacher.memberId, ctx.memberId));
-    if (!me) return [];
-    const rows = await tx
-      .selectDistinct({ id: teachingAssignment.subjectId })
-      .from(teachingAssignment)
-      .where(eq(teachingAssignment.teacherId, me.id));
-    return rows.map((r) => r.id);
-  }
 
   async function subjectOrThrow(tx: Tx, subjectId: string) {
     const [s] = await tx
@@ -401,13 +385,6 @@ export async function examBankRoutes(instance: FastifyInstance) {
         return { items: rows.map((r) => view(r.q, r)), total };
       }),
   );
-
-  async function guardSubject(tx: Tx, ctx: TenantContext, subjectId: string) {
-    const scope = await subjectScope(tx, ctx);
-    if (scope && !scope.includes(subjectId)) {
-      throw forbidden('Anda hanya boleh mengelola soal untuk mata pelajaran yang Anda ampu.');
-    }
-  }
 
   app.post(
     '/v1/exam/questions',

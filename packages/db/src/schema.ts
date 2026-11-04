@@ -2209,6 +2209,79 @@ export const question = pgTable(
   (t) => [index('question_school_subject_idx').on(t.schoolId, t.subjectId)],
 );
 
+/**
+ * Ujian: satu mata pelajaran untuk satu atau beberapa kelas. Nama jenis ujian disalin saat dibuat supaya
+ * dokumen lama tidak berubah bila sekolah mengganti nama jenis ujian.
+ */
+export const exam = pgTable(
+  'exam',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    examTypeId: uuid('exam_type_id').references(() => examType.id, { onDelete: 'set null' }),
+    typeName: text('type_name').notNull(),
+    typeShort: text('type_short').notNull(),
+    title: text('title').notNull(),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    /** Kelas peserta (`class_room.id`); dicek saat disimpan. */
+    classIds: jsonb('class_ids').$type<string[]>().notNull().default([]),
+    /** `cbt` = di layar, `paper` = cetak lalu dinilai manual, `both` = keduanya. */
+    mode: text('mode', { enum: ['cbt', 'paper', 'both'] })
+      .notNull()
+      .default('paper'),
+    examDate: date('exam_date'),
+    startTime: text('start_time'),
+    durationMinutes: integer('duration_minutes'),
+    status: text('status', { enum: ['draft', 'ready'] })
+      .notNull()
+      .default('draft'),
+    /** Pengaturan lembar khusus ujian ini; kosong = ikut pengaturan sekolah. */
+    paper: jsonb('paper').$type<Record<string, unknown>>(),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('exam_school_idx').on(t.schoolId, t.semesterId)],
+);
+
+/** Soal di dalam ujian: salinan isi dari bank soal, jadi perubahan di bank tidak merusak ujian yang sudah disusun. */
+export const examQuestion = pgTable(
+  'exam_question',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    examId: uuid('exam_id')
+      .notNull()
+      .references(() => exam.id, { onDelete: 'cascade' }),
+    sourceQuestionId: uuid('source_question_id').references(() => question.id, { onDelete: 'set null' }),
+    sort: integer('sort').notNull().default(0),
+    type: text('type', { enum: ['mcq', 'essay'] }).notNull(),
+    body: text('body').notNull(),
+    options: jsonb('options').$type<QuestionOption[]>().notNull().default([]),
+    answer: text('answer'),
+    points: integer('points').notNull().default(1),
+  },
+  (t) => [index('exam_question_exam_idx').on(t.examId, t.sort)],
+);
+
+/** Pengaturan lembar ujian cetak per sekolah (bentuknya: `examPaperConfigSchema` di packages/contracts). */
+export const examPaperSetting = pgTable('exam_paper_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  config: jsonb('config').$type<Record<string, unknown>>().notNull(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 /* ---------- Data dinamis: pengaturan per sekolah dan acuan platform ---------- */
 
 /** Pengaturan umum satu unit (zona waktu ada di `school.timezone`). */

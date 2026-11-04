@@ -2,6 +2,7 @@ export * from './admission';
 export * from './billing-settings';
 export * from './calendar';
 export * from './catalog';
+export * from './exam-paper';
 export * from './finance-late-fee';
 export * from './grading';
 export * from './letters';

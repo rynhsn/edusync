@@ -215,11 +215,26 @@ export const NAV_GROUPS = [
         module: 'extracurricular',
       },
       {
+        href: '/exams',
+        labelKey: 'exams',
+        icon: ClipboardCheck,
+        permission: 'exam:read',
+        module: 'exams',
+      },
+      {
         href: '/exams/bank',
         labelKey: 'questionBank',
         icon: FileQuestion,
         permission: 'exam:read',
         module: 'exams',
+      },
+      {
+        href: '/exams/paper',
+        labelKey: 'examPaper',
+        icon: FileText,
+        permission: 'exam:manage',
+        module: 'exams',
+        settings: true,
       },
       {
         href: '/exams/types',

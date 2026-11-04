@@ -32,6 +32,7 @@ import { billingRoutes } from './routes/billing';
 import { calendarRoutes } from './routes/calendar';
 import { curriculumRoutes } from './routes/curriculum';
 import { examBankRoutes } from './routes/exam-bank';
+import { examRoutes } from './routes/exams';
 import { extracurricularRoutes } from './routes/extracurricular';
 import { extracurricularCategoryRoutes } from './routes/extracurricular-categories';
 import { financeRoutes } from './routes/finance';
@@ -255,6 +256,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(schoolSettingsRoutes);
   await app.register(schoolIdentityRoutes);
   await app.register(examBankRoutes);
+  await app.register(examRoutes);
   await app.register(schoolDomainRoutes, { env, hosts, dns: deps.dns ?? systemDns });
   await app.register(tlsAskRoutes, { env, hosts });
   await app.register(semesterRoutes);

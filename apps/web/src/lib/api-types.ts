@@ -34632,6 +34632,1944 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/exam/paper-settings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pengaturan lembar ujian sekolah
+         * @description Izin: `exam:read`; modul `exams`. Kop, judul, blok keterangan, petunjuk umum, dan blok identitas siswa. `custom` false = belum pernah disimpan, nilai bawaan dikembalikan.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            config: {
+                                /** @enum {string} */
+                                paperSize: "A4" | "F4" | "Letter";
+                                marginMm: number;
+                                fontSizePt: number;
+                                kop: {
+                                    enabled: boolean;
+                                    showLogo: boolean;
+                                    /** @enum {string} */
+                                    source: "identity" | "custom";
+                                    preLines: string[];
+                                    show: {
+                                        address: boolean;
+                                        phone: boolean;
+                                        fax: boolean;
+                                        email: boolean;
+                                        website: boolean;
+                                    };
+                                    customLines: {
+                                        text: string;
+                                        bold: boolean;
+                                        sizePt: number;
+                                    }[];
+                                };
+                                title: {
+                                    enabled: boolean;
+                                    template: string;
+                                };
+                                info: {
+                                    enabled: boolean;
+                                    columns: 1 | 2;
+                                    rows: {
+                                        label: string;
+                                        value: string;
+                                    }[];
+                                };
+                                instructions: {
+                                    enabled: boolean;
+                                    title: string;
+                                    items: string[];
+                                };
+                                studentBlock: {
+                                    enabled: boolean;
+                                    fields: ("name" | "number" | "class")[];
+                                };
+                                footer: string;
+                            };
+                            custom: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan pengaturan lembar ujian sekolah
+         * @description Izin: `exam:manage`; modul `exams`. Mengganti seluruh pengaturan (400 `validation` bila di luar rentang). Teks boleh memuat penampung seperti `{subject}`, `{class}`, `{dayDate}`, `{time}`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        paperSize: "A4" | "F4" | "Letter";
+                        marginMm: number;
+                        fontSizePt: number;
+                        kop: {
+                            enabled: boolean;
+                            showLogo: boolean;
+                            /** @enum {string} */
+                            source: "identity" | "custom";
+                            preLines: string[];
+                            show: {
+                                address: boolean;
+                                phone: boolean;
+                                fax: boolean;
+                                email: boolean;
+                                website: boolean;
+                            };
+                            customLines: {
+                                text: string;
+                                bold: boolean;
+                                sizePt: number;
+                            }[];
+                        };
+                        title: {
+                            enabled: boolean;
+                            template: string;
+                        };
+                        info: {
+                            enabled: boolean;
+                            columns: 1 | 2;
+                            rows: {
+                                label: string;
+                                value: string;
+                            }[];
+                        };
+                        instructions: {
+                            enabled: boolean;
+                            title: string;
+                            items: string[];
+                        };
+                        studentBlock: {
+                            enabled: boolean;
+                            fields: ("name" | "number" | "class")[];
+                        };
+                        footer: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            config: {
+                                /** @enum {string} */
+                                paperSize: "A4" | "F4" | "Letter";
+                                marginMm: number;
+                                fontSizePt: number;
+                                kop: {
+                                    enabled: boolean;
+                                    showLogo: boolean;
+                                    /** @enum {string} */
+                                    source: "identity" | "custom";
+                                    preLines: string[];
+                                    show: {
+                                        address: boolean;
+                                        phone: boolean;
+                                        fax: boolean;
+                                        email: boolean;
+                                        website: boolean;
+                                    };
+                                    customLines: {
+                                        text: string;
+                                        bold: boolean;
+                                        sizePt: number;
+                                    }[];
+                                };
+                                title: {
+                                    enabled: boolean;
+                                    template: string;
+                                };
+                                info: {
+                                    enabled: boolean;
+                                    columns: 1 | 2;
+                                    rows: {
+                                        label: string;
+                                        value: string;
+                                    }[];
+                                };
+                                instructions: {
+                                    enabled: boolean;
+                                    title: string;
+                                    items: string[];
+                                };
+                                studentBlock: {
+                                    enabled: boolean;
+                                    fields: ("name" | "number" | "class")[];
+                                };
+                                footer: string;
+                            };
+                            custom: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Kembalikan pengaturan lembar ke bawaan
+         * @description Izin: `exam:manage`; modul `exams`. Menghapus pengaturan tersimpan; tidak error bila belum ada.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            config: {
+                                /** @enum {string} */
+                                paperSize: "A4" | "F4" | "Letter";
+                                marginMm: number;
+                                fontSizePt: number;
+                                kop: {
+                                    enabled: boolean;
+                                    showLogo: boolean;
+                                    /** @enum {string} */
+                                    source: "identity" | "custom";
+                                    preLines: string[];
+                                    show: {
+                                        address: boolean;
+                                        phone: boolean;
+                                        fax: boolean;
+                                        email: boolean;
+                                        website: boolean;
+                                    };
+                                    customLines: {
+                                        text: string;
+                                        bold: boolean;
+                                        sizePt: number;
+                                    }[];
+                                };
+                                title: {
+                                    enabled: boolean;
+                                    template: string;
+                                };
+                                info: {
+                                    enabled: boolean;
+                                    columns: 1 | 2;
+                                    rows: {
+                                        label: string;
+                                        value: string;
+                                    }[];
+                                };
+                                instructions: {
+                                    enabled: boolean;
+                                    title: string;
+                                    items: string[];
+                                };
+                                studentBlock: {
+                                    enabled: boolean;
+                                    fields: ("name" | "number" | "class")[];
+                                };
+                                footer: string;
+                            };
+                            custom: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar ujian
+         * @description Izin: `exam:read`; modul `exams`. Filter `semesterId`, `subjectId`, `status`. Guru hanya melihat ujian mapel yang ia ampu. Terbaru diubah lebih dulu.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    semesterId?: string;
+                    subjectId?: string;
+                    status?: "draft" | "ready";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            examTypeId: string | null;
+                            typeName: string;
+                            typeShort: string;
+                            title: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            classIds: string[];
+                            classNames: string[];
+                            /** @enum {string} */
+                            mode: "cbt" | "paper" | "both";
+                            examDate: string | null;
+                            startTime: string | null;
+                            durationMinutes: number | null;
+                            /** @enum {string} */
+                            status: "draft" | "ready";
+                            /** @description Ujian ini punya pengaturan lembar sendiri */
+                            customPaper: boolean;
+                            questionCount: number;
+                            totalPoints: number;
+                            updatedAt: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat ujian
+         * @description Izin: `exam:author`; modul `exams`. Guru hanya untuk mapel yang ia ampu (403). Semester, mapel, kelas, dan jenis ujian harus milik sekolah (400 `invalid_reference`). Nama jenis ujian disalin ke ujian.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        examTypeId?: string | null;
+                        title: string;
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        subjectId: string;
+                        classIds: string[];
+                        /**
+                         * @default paper
+                         * @enum {string}
+                         */
+                        mode?: "cbt" | "paper" | "both";
+                        /** Format: date */
+                        examDate?: string | null;
+                        startTime?: string | null;
+                        durationMinutes?: number | null;
+                        /**
+                         * @default draft
+                         * @enum {string}
+                         */
+                        status?: "draft" | "ready";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            examTypeId: string | null;
+                            typeName: string;
+                            typeShort: string;
+                            title: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            classIds: string[];
+                            classNames: string[];
+                            /** @enum {string} */
+                            mode: "cbt" | "paper" | "both";
+                            examDate: string | null;
+                            startTime: string | null;
+                            durationMinutes: number | null;
+                            /** @enum {string} */
+                            status: "draft" | "ready";
+                            /** @description Ujian ini punya pengaturan lembar sendiri */
+                            customPaper: boolean;
+                            questionCount: number;
+                            totalPoints: number;
+                            updatedAt: string;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                sourceQuestionId: string | null;
+                                sort: number;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                body: string;
+                                options: {
+                                    key: string;
+                                    text: string;
+                                }[];
+                                answer: string | null;
+                                points: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail ujian beserta soalnya
+         * @description Izin: `exam:read`; modul `exams`. Soal berurutan menurut `sort`, memuat kunci jawaban. 404 `not_found` (juga bagi guru yang tidak mengampu mapelnya).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            examTypeId: string | null;
+                            typeName: string;
+                            typeShort: string;
+                            title: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            classIds: string[];
+                            classNames: string[];
+                            /** @enum {string} */
+                            mode: "cbt" | "paper" | "both";
+                            examDate: string | null;
+                            startTime: string | null;
+                            durationMinutes: number | null;
+                            /** @enum {string} */
+                            status: "draft" | "ready";
+                            /** @description Ujian ini punya pengaturan lembar sendiri */
+                            customPaper: boolean;
+                            questionCount: number;
+                            totalPoints: number;
+                            updatedAt: string;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                sourceQuestionId: string | null;
+                                sort: number;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                body: string;
+                                options: {
+                                    key: string;
+                                    text: string;
+                                }[];
+                                answer: string | null;
+                                points: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah ujian
+         * @description Izin: `exam:author`; modul `exams`. Validasi seperti saat membuat. Mengganti mapel membuang soal yang sudah dipilih (soal milik mapel lain); nama jenis ujian disalin ulang dari jenis yang dipilih.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        examTypeId?: string | null;
+                        title: string;
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        subjectId: string;
+                        classIds: string[];
+                        /**
+                         * @default paper
+                         * @enum {string}
+                         */
+                        mode?: "cbt" | "paper" | "both";
+                        /** Format: date */
+                        examDate?: string | null;
+                        startTime?: string | null;
+                        durationMinutes?: number | null;
+                        /**
+                         * @default draft
+                         * @enum {string}
+                         */
+                        status?: "draft" | "ready";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            examTypeId: string | null;
+                            typeName: string;
+                            typeShort: string;
+                            title: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            classIds: string[];
+                            classNames: string[];
+                            /** @enum {string} */
+                            mode: "cbt" | "paper" | "both";
+                            examDate: string | null;
+                            startTime: string | null;
+                            durationMinutes: number | null;
+                            /** @enum {string} */
+                            status: "draft" | "ready";
+                            /** @description Ujian ini punya pengaturan lembar sendiri */
+                            customPaper: boolean;
+                            questionCount: number;
+                            totalPoints: number;
+                            updatedAt: string;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                sourceQuestionId: string | null;
+                                sort: number;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                body: string;
+                                options: {
+                                    key: string;
+                                    text: string;
+                                }[];
+                                answer: string | null;
+                                points: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus ujian
+         * @description Izin: `exam:author`; modul `exams`. Soal di dalam ujian ikut terhapus; soal di bank tidak.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams/{id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tambah soal dari bank ke ujian
+         * @description Izin: `exam:author`; modul `exams`. Isi soal disalin (perubahan di bank sesudahnya tidak ikut). Soal harus bermapel sama dengan ujian (400 `invalid_reference`); soal yang sudah ada di ujian dilewati. Ditambahkan di akhir sesuai urutan `questionIds`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        questionIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            examTypeId: string | null;
+                            typeName: string;
+                            typeShort: string;
+                            title: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            classIds: string[];
+                            classNames: string[];
+                            /** @enum {string} */
+                            mode: "cbt" | "paper" | "both";
+                            examDate: string | null;
+                            startTime: string | null;
+                            durationMinutes: number | null;
+                            /** @enum {string} */
+                            status: "draft" | "ready";
+                            /** @description Ujian ini punya pengaturan lembar sendiri */
+                            customPaper: boolean;
+                            questionCount: number;
+                            totalPoints: number;
+                            updatedAt: string;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                sourceQuestionId: string | null;
+                                sort: number;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                body: string;
+                                options: {
+                                    key: string;
+                                    text: string;
+                                }[];
+                                answer: string | null;
+                                points: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams/{id}/questions/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Atur urutan soal ujian
+         * @description Izin: `exam:author`; modul `exams`. `ids` harus memuat semua soal ujian tepat sekali (400 `invalid_reference` bila tidak).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        ids: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            examTypeId: string | null;
+                            typeName: string;
+                            typeShort: string;
+                            title: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            classIds: string[];
+                            classNames: string[];
+                            /** @enum {string} */
+                            mode: "cbt" | "paper" | "both";
+                            examDate: string | null;
+                            startTime: string | null;
+                            durationMinutes: number | null;
+                            /** @enum {string} */
+                            status: "draft" | "ready";
+                            /** @description Ujian ini punya pengaturan lembar sendiri */
+                            customPaper: boolean;
+                            questionCount: number;
+                            totalPoints: number;
+                            updatedAt: string;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                sourceQuestionId: string | null;
+                                sort: number;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                body: string;
+                                options: {
+                                    key: string;
+                                    text: string;
+                                }[];
+                                answer: string | null;
+                                points: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams/{id}/questions/{questionId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah poin soal di ujian
+         * @description Izin: `exam:author`; modul `exams`. Hanya poin; isi soal tetap salinan dari bank.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                    questionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        points: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            examTypeId: string | null;
+                            typeName: string;
+                            typeShort: string;
+                            title: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            classIds: string[];
+                            classNames: string[];
+                            /** @enum {string} */
+                            mode: "cbt" | "paper" | "both";
+                            examDate: string | null;
+                            startTime: string | null;
+                            durationMinutes: number | null;
+                            /** @enum {string} */
+                            status: "draft" | "ready";
+                            /** @description Ujian ini punya pengaturan lembar sendiri */
+                            customPaper: boolean;
+                            questionCount: number;
+                            totalPoints: number;
+                            updatedAt: string;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                sourceQuestionId: string | null;
+                                sort: number;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                body: string;
+                                options: {
+                                    key: string;
+                                    text: string;
+                                }[];
+                                answer: string | null;
+                                points: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Keluarkan soal dari ujian
+         * @description Izin: `exam:author`; modul `exams`. Soal di bank tidak terhapus.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                    questionId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            examTypeId: string | null;
+                            typeName: string;
+                            typeShort: string;
+                            title: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            classIds: string[];
+                            classNames: string[];
+                            /** @enum {string} */
+                            mode: "cbt" | "paper" | "both";
+                            examDate: string | null;
+                            startTime: string | null;
+                            durationMinutes: number | null;
+                            /** @enum {string} */
+                            status: "draft" | "ready";
+                            /** @description Ujian ini punya pengaturan lembar sendiri */
+                            customPaper: boolean;
+                            questionCount: number;
+                            totalPoints: number;
+                            updatedAt: string;
+                            questions: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                sourceQuestionId: string | null;
+                                sort: number;
+                                /** @enum {string} */
+                                type: "mcq" | "essay";
+                                body: string;
+                                options: {
+                                    key: string;
+                                    text: string;
+                                }[];
+                                answer: string | null;
+                                points: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams/{id}/paper": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Atur lembar khusus untuk satu ujian
+         * @description Izin: `exam:author`; modul `exams`. `config` terisi = ujian ini memakai pengaturan lembar sendiri; `null` = kembali mengikuti pengaturan sekolah.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        config: {
+                            /** @enum {string} */
+                            paperSize: "A4" | "F4" | "Letter";
+                            marginMm: number;
+                            fontSizePt: number;
+                            kop: {
+                                enabled: boolean;
+                                showLogo: boolean;
+                                /** @enum {string} */
+                                source: "identity" | "custom";
+                                preLines: string[];
+                                show: {
+                                    address: boolean;
+                                    phone: boolean;
+                                    fax: boolean;
+                                    email: boolean;
+                                    website: boolean;
+                                };
+                                customLines: {
+                                    text: string;
+                                    bold: boolean;
+                                    sizePt: number;
+                                }[];
+                            };
+                            title: {
+                                enabled: boolean;
+                                template: string;
+                            };
+                            info: {
+                                enabled: boolean;
+                                columns: 1 | 2;
+                                rows: {
+                                    label: string;
+                                    value: string;
+                                }[];
+                            };
+                            instructions: {
+                                enabled: boolean;
+                                title: string;
+                                items: string[];
+                            };
+                            studentBlock: {
+                                enabled: boolean;
+                                fields: ("name" | "number" | "class")[];
+                            };
+                            footer: string;
+                        } | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            config: {
+                                /** @enum {string} */
+                                paperSize: "A4" | "F4" | "Letter";
+                                marginMm: number;
+                                fontSizePt: number;
+                                kop: {
+                                    enabled: boolean;
+                                    showLogo: boolean;
+                                    /** @enum {string} */
+                                    source: "identity" | "custom";
+                                    preLines: string[];
+                                    show: {
+                                        address: boolean;
+                                        phone: boolean;
+                                        fax: boolean;
+                                        email: boolean;
+                                        website: boolean;
+                                    };
+                                    customLines: {
+                                        text: string;
+                                        bold: boolean;
+                                        sizePt: number;
+                                    }[];
+                                };
+                                title: {
+                                    enabled: boolean;
+                                    template: string;
+                                };
+                                info: {
+                                    enabled: boolean;
+                                    columns: 1 | 2;
+                                    rows: {
+                                        label: string;
+                                        value: string;
+                                    }[];
+                                };
+                                instructions: {
+                                    enabled: boolean;
+                                    title: string;
+                                    items: string[];
+                                };
+                                studentBlock: {
+                                    enabled: boolean;
+                                    fields: ("name" | "number" | "class")[];
+                                };
+                                footer: string;
+                            };
+                            custom: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exams/{id}/print": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Data lengkap untuk mencetak lembar ujian
+         * @description Izin: `exam:read`; modul `exams`. Satu panggilan berisi ujian beserta soalnya, identitas sekolah (kop), tahun ajaran, nama guru pengampu, label zona waktu (WIB/WITA/WIT), dan pengaturan lembar yang berlaku (milik ujian bila ada, selain itu milik sekolah, selain itu bawaan).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            exam: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                examTypeId: string | null;
+                                typeName: string;
+                                typeShort: string;
+                                title: string;
+                                /** Format: uuid */
+                                semesterId: string;
+                                semesterName: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                                subjectName: string;
+                                classIds: string[];
+                                classNames: string[];
+                                /** @enum {string} */
+                                mode: "cbt" | "paper" | "both";
+                                examDate: string | null;
+                                startTime: string | null;
+                                durationMinutes: number | null;
+                                /** @enum {string} */
+                                status: "draft" | "ready";
+                                /** @description Ujian ini punya pengaturan lembar sendiri */
+                                customPaper: boolean;
+                                questionCount: number;
+                                totalPoints: number;
+                                updatedAt: string;
+                                questions: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    /** Format: uuid */
+                                    sourceQuestionId: string | null;
+                                    sort: number;
+                                    /** @enum {string} */
+                                    type: "mcq" | "essay";
+                                    body: string;
+                                    options: {
+                                        key: string;
+                                        text: string;
+                                    }[];
+                                    answer: string | null;
+                                    points: number;
+                                }[];
+                            };
+                            school: {
+                                name: string;
+                                officialName: string | null;
+                                logoUrl: string | null;
+                                street: string | null;
+                                village: string | null;
+                                district: string | null;
+                                city: string | null;
+                                province: string | null;
+                                postalCode: string | null;
+                                phone: string | null;
+                                fax: string | null;
+                                email: string | null;
+                                website: string | null;
+                            };
+                            academicYear: string;
+                            teacherNames: string[];
+                            zoneLabel: string;
+                            config: {
+                                /** @enum {string} */
+                                paperSize: "A4" | "F4" | "Letter";
+                                marginMm: number;
+                                fontSizePt: number;
+                                kop: {
+                                    enabled: boolean;
+                                    showLogo: boolean;
+                                    /** @enum {string} */
+                                    source: "identity" | "custom";
+                                    preLines: string[];
+                                    show: {
+                                        address: boolean;
+                                        phone: boolean;
+                                        fax: boolean;
+                                        email: boolean;
+                                        website: boolean;
+                                    };
+                                    customLines: {
+                                        text: string;
+                                        bold: boolean;
+                                        sizePt: number;
+                                    }[];
+                                };
+                                title: {
+                                    enabled: boolean;
+                                    template: string;
+                                };
+                                info: {
+                                    enabled: boolean;
+                                    columns: 1 | 2;
+                                    rows: {
+                                        label: string;
+                                        value: string;
+                                    }[];
+                                };
+                                instructions: {
+                                    enabled: boolean;
+                                    title: string;
+                                    items: string[];
+                                };
+                                studentBlock: {
+                                    enabled: boolean;
+                                    fields: ("name" | "number" | "class")[];
+                                };
+                                footer: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/school/domains": {
         parameters: {
             query?: never;

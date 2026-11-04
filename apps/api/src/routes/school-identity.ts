@@ -74,10 +74,8 @@ export function composeAddress(i: Partial<IdentityRow> | undefined): string | nu
 }
 
 export async function readIdentity(tx: Tx, schoolId: string) {
-  const [[sch], [row]] = await Promise.all([
-    tx.select({ name: school.name }).from(school).where(eq(school.id, schoolId)),
-    tx.select().from(schoolIdentity).where(eq(schoolIdentity.schoolId, schoolId)),
-  ]);
+  const [sch] = await tx.select({ name: school.name }).from(school).where(eq(school.id, schoolId));
+  const [row] = await tx.select().from(schoolIdentity).where(eq(schoolIdentity.schoolId, schoolId));
   return {
     name: sch?.name ?? '',
     officialName: row?.officialName ?? null,
