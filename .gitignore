@@ -11,6 +11,7 @@ coverage/
 .mcp.json
 .turbo/
 .wa-sessions/
+.key/
 graphify-out/
 apps/worker/.wwebjs_cache/
 testsprite_tests/tmp/
