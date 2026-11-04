@@ -14,6 +14,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { IconTile } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { toBase64 } from '@/lib/file-base64';
 import { cn } from '@/lib/utils';
 
 const MAX_LOGO_BYTES = 512 * 1024;
@@ -35,16 +36,6 @@ type Field = (typeof FIELDS)[number];
 type Draft = Record<Field, string>;
 
 const WIDE: Field[] = ['officialName', 'street', 'website'];
-
-/** Base64 isi berkas tanpa awalan `data:`. */
-function toBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onerror = () => reject(reader.error);
-    reader.onload = () => resolve(String(reader.result).split(',')[1] ?? '');
-    reader.readAsDataURL(file);
-  });
-}
 
 /** Identitas sekolah: logo, alamat lengkap, dan kontak. Satu sumber untuk kop ujian, surat, dan (opsional) situs. */
 export function IdentityPanel() {

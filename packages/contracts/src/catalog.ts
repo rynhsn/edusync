@@ -79,6 +79,14 @@ export const DEFAULT_CATALOG: readonly CatalogItem[] = [
   { kind: 'module', key: 'extracurricular', name: 'Ekstrakurikuler', priceMonthly: 50_000, sort: 22 },
   { kind: 'module', key: 'finance', name: 'Keuangan sekolah', priceMonthly: 75_000, sort: 23 },
   { kind: 'module', key: 'messaging', name: 'Notifikasi WhatsApp', priceMonthly: 40_000, sort: 24 },
+  {
+    kind: 'module',
+    key: 'exams',
+    name: 'Ujian dan bank soal',
+    priceMonthly: 60_000,
+    sort: 25,
+    requires: ['grades'],
+  },
 ];
 
 /**
@@ -89,6 +97,7 @@ export const MODULE_REQUIRES: Readonly<Record<string, readonly string[]>> = {
   assessments: ['grades'],
   parent_portal: ['attendance'],
   internship: ['administration'],
+  exams: ['grades'],
 };
 
 /** Syarat satu modul: dari katalog bila modul itu ada di sana (termasuk daftar kosong), kalau tidak dari bawaan. */

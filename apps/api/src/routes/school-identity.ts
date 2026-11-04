@@ -236,9 +236,9 @@ export async function schoolIdentityRoutes(instance: FastifyInstance) {
       config: { rateLimit: { max: 300, timeWindow: '1 minute' } },
       schema: {
         tags: ['Site'],
-        summary: 'Gambar logo sekolah (publik)',
+        summary: 'Gambar logo sekolah dan gambar soal (publik)',
         description:
-          'Tanpa login. Hanya berkas berjenis logo; alamatnya memuat UUID sehingga tidak bisa ditebak. ' +
+          'Tanpa login. Logo dan gambar soal; alamatnya memuat UUID sehingga tidak bisa ditebak. ' +
           '404 `not_found` bila tidak ada. Isi di-cache karena berkas tidak pernah diubah (logo baru = berkas baru).',
         params: z.object({ id: z.uuid() }),
         response: { 200: z.any().describe('Isi gambar (PNG, JPEG, atau WebP)'), 404: errorSchema },
@@ -249,7 +249,7 @@ export async function schoolIdentityRoutes(instance: FastifyInstance) {
         .select({ mime: schoolFile.mime, data: schoolFile.data, kind: schoolFile.kind })
         .from(schoolFile)
         .where(eq(schoolFile.id, request.params.id));
-      if (!file || file.kind !== 'logo') throw new HttpError(404, 'not_found', 'Berkas tidak ditemukan.');
+      if (!file) throw new HttpError(404, 'not_found', 'Berkas tidak ditemukan.');
       return reply
         .header('content-type', file.mime)
         .header('cache-control', 'public, max-age=31536000, immutable')

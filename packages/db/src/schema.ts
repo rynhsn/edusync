@@ -2155,6 +2155,60 @@ export const schoolIdentity = pgTable('school_identity', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+/* ---------- Ujian (modul `exams`) ---------- */
+
+/** Jenis ujian milik sekolah (mis. ASTS, ASAS). Namanya sering berganti mengikuti kebijakan, jadi bebas diubah. */
+export const examType = pgTable(
+  'exam_type',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    name: text('name').notNull(),
+    shortName: text('short_name').notNull(),
+    sort: integer('sort').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('exam_type_school_name_uq').on(t.schoolId, t.name)],
+);
+
+export interface QuestionOption {
+  key: string;
+  text: string;
+}
+
+/**
+ * Bank soal, dikelompokkan per mata pelajaran. `body`, opsi, dan pembahasan berisi teks dengan rumus ($...$, $$...$$)
+ * dan gambar (`![](/v1/public/school-files/<id>)`). Pilihan ganda: `options` + `answer` = kunci opsi; esai: `answer` =
+ * pedoman jawaban untuk guru.
+ */
+export const question = pgTable(
+  'question',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    /** Kode tingkat (`school_level.code`); kosong = semua tingkat. */
+    level: text('level'),
+    type: text('type', { enum: ['mcq', 'essay'] }).notNull(),
+    body: text('body').notNull(),
+    options: jsonb('options').$type<QuestionOption[]>().notNull().default([]),
+    answer: text('answer'),
+    explanation: text('explanation'),
+    points: integer('points').notNull().default(1),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('question_school_subject_idx').on(t.schoolId, t.subjectId)],
+);
+
 /* ---------- Data dinamis: pengaturan per sekolah dan acuan platform ---------- */
 
 /** Pengaturan umum satu unit (zona waktu ada di `school.timezone`). */

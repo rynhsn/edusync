@@ -249,7 +249,13 @@ describe('katalog route', () => {
       .map((e) => `${e.method} ${e.url}`)
       .sort();
     // Semuanya menyaring isi menurut izin/modul di handler (lihat live.test.ts dan school-settings.test.ts).
-    expect(rows).toEqual(['GET /v1/live/events', 'GET /v1/live/snapshot', 'GET /v1/school/settings']);
+    // Identitas sekolah (logo, alamat, kontak) bukan rahasia: sudah tampil di situs publik dan kop surat.
+    expect(rows).toEqual([
+      'GET /v1/live/events',
+      'GET /v1/live/snapshot',
+      'GET /v1/school/identity',
+      'GET /v1/school/settings',
+    ]);
   });
 
   it('route akun tanpa sekolah (requireUser) hanya yang disengaja', () => {

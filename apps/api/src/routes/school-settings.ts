@@ -240,7 +240,7 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
       return tenant(request, async (tx) => {
         const existing = new Set((await listLevels(tx)).map((l) => l.code));
         const [m] = await tx.select({ top: max(schoolLevel.sort) }).from(schoolLevel);
-        let sort = m?.top ?? 0;
+        const sort = m?.top ?? 0;
         const fresh = (DEFAULT_LEVELS[request.body.stage] ?? []).filter((l) => !existing.has(l.code));
         if (fresh.length > 0) {
           await tx

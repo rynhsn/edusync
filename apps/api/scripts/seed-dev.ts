@@ -138,6 +138,7 @@ if (sub) {
           'parent_portal',
           'announcements',
           'website',
+          'exams',
         ].map((moduleKey) => ({
           schoolId: s.id,
           moduleKey,

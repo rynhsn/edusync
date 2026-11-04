@@ -37,6 +37,8 @@ const PRIMARY: Record<string, string> = {
   '/pkl/partners': 'GET /v1/pkl/partners',
   '/tahfidz/settings': 'POST /v1/tahfidz/ibadah-items',
   '/pkl/settings': 'PUT /v1/pkl/settings-thresholds',
+  '/exams/bank': 'GET /v1/exam/questions',
+  '/exams/types': 'POST /v1/exam/types',
   '/finance': 'POST /v1/finance/payments',
   '/finance/invoices': 'GET /v1/finance/invoices',
   '/finance/reports': 'GET /v1/finance/reports/arrears',
