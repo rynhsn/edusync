@@ -3901,7 +3901,7 @@
     "rowLabelN": "Label baris {n}",
     "rowValueN": "Isi baris {n}",
     "rowLabel": "Label",
-    "rowValue": "Isi, mis. {subject}",
+    "rowValue": "Isi, mis. '{'subject'}'",
     "addRow": "Tambah baris",
     "secInstructions": "Petunjuk umum",
     "instructionsEnabled": "Tampilkan petunjuk umum",

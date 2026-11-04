@@ -3901,7 +3901,7 @@
     "rowLabelN": "Row {n} label",
     "rowValueN": "Row {n} value",
     "rowLabel": "Label",
-    "rowValue": "Value, e.g. {subject}",
+    "rowValue": "Value, e.g. '{'subject'}'",
     "addRow": "Add row",
     "secInstructions": "General instructions",
     "instructionsEnabled": "Show general instructions",

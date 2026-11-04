@@ -3901,7 +3901,7 @@
     "rowLabelN": "Labél baris {n}",
     "rowValueN": "Eusi baris {n}",
     "rowLabel": "Labél",
-    "rowValue": "Eusi, upamana {subject}",
+    "rowValue": "Eusi, upamana '{'subject'}'",
     "addRow": "Tambah baris",
     "secInstructions": "Pitunjuk umum",
     "instructionsEnabled": "Témbongkeun pitunjuk umum",
