@@ -346,8 +346,8 @@ export function BankView() {
       >
         {draft && (
           <div className="grid gap-4">
-            <div className="grid gap-4 sm:grid-cols-3">
-              <div className="grid content-start gap-2">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid content-start gap-2 sm:col-span-2">
                 <Label htmlFor="q-subject">{t('subject')}</Label>
                 <SelectField
                   id="q-subject"
