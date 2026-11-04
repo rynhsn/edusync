@@ -22,7 +22,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { errorSchema, forbidden, HttpError } from '../http-error';
+import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { audit, guarded, idParams, ok, schoolHeader } from './helpers';
 
@@ -83,12 +83,17 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
   const tenant = <T>(request: { ctx?: TenantContext; server: FastifyInstance }, fn: (tx: Tx) => Promise<T>) =>
     withTenant(request.server.tenantDb, [(request.ctx as TenantContext).schoolId], fn);
 
+  /** Id siswa milik akun ini; null untuk akun wali/staf (bukan peserta ujian). */
   async function myStudentId(tx: Tx, ctx: TenantContext) {
     const [link] = await tx.select().from(portalLink).where(eq(portalLink.memberId, ctx.memberId));
-    if (!link || link.kind !== 'student' || !link.studentId) {
-      throw forbidden('Ujian di layar hanya untuk akun siswa.');
-    }
-    return link.studentId;
+    return link?.kind === 'student' && link.studentId ? link.studentId : null;
+  }
+
+  /** Untuk rute satu ujian: bukan siswa = ujian tidak ada baginya. */
+  async function studentOrThrow(tx: Tx, ctx: TenantContext) {
+    const sid = await myStudentId(tx, ctx);
+    if (!sid) throw new HttpError(404, 'not_found', 'Ujian tidak ditemukan.');
+    return sid;
   }
 
   async function schoolTz(tx: Tx, ctx: TenantContext) {
@@ -149,7 +154,7 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Daftar ujian di layar untuk siswa',
         description:
-          'Izin: `portal:read` (akun siswa, 403 untuk wali); modul `exams`. Ujian bermode `cbt`/`both` berstatus ' +
+          'Izin: `portal:read`; modul `exams`. Akun yang bukan siswa (wali, staf) mendapat daftar kosong. Ujian bermode `cbt`/`both` berstatus ' +
           '`ready` untuk kelas siswa pada tahun ajaran semester ujian. `state`: `unscheduled` (belum ada jadwal), ' +
           '`upcoming`, `open` (boleh mulai), `in_progress`, `submitted`, `closed` (waktu lewat tanpa dikerjakan). ' +
           `Ujian yang selesai lebih dari ${LIST_DAYS_BACK} hari lalu tidak ditampilkan.`,
@@ -161,6 +166,7 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
         const sid = await myStudentId(tx, ctx);
+        if (!sid) return [];
         const tz = await schoolTz(tx, ctx);
         const now = Date.now();
         const mine = await eligible(tx, sid);
@@ -257,7 +263,7 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
-        const sid = await myStudentId(tx, ctx);
+        const sid = await studentOrThrow(tx, ctx);
         const found = await ownExam(tx, sid, request.params.id);
         let at = await finalizeIfExpired(tx, await attemptOf(tx, found.e.id, sid));
         if (at?.submittedAt) throw new HttpError(409, 'already_submitted', 'Ujian ini sudah dikumpulkan.');
@@ -312,7 +318,7 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
-        const sid = await myStudentId(tx, ctx);
+        const sid = await studentOrThrow(tx, ctx);
         const found = await ownExam(tx, sid, request.params.id);
         const at = await finalizeIfExpired(tx, await attemptOf(tx, found.e.id, sid));
         if (!at?.startedAt) throw new HttpError(404, 'not_found', 'Ujian belum dimulai.');
@@ -352,7 +358,7 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
-        const sid = await myStudentId(tx, ctx);
+        const sid = await studentOrThrow(tx, ctx);
         const found = await ownExam(tx, sid, request.params.id);
         const at = await finalizeIfExpired(tx, await attemptOf(tx, found.e.id, sid));
         if (!at?.startedAt) throw new HttpError(404, 'not_found', 'Ujian belum dimulai.');
@@ -417,7 +423,7 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       await tenant(request, async (tx) => {
-        const sid = await myStudentId(tx, ctx);
+        const sid = await studentOrThrow(tx, ctx);
         const found = await ownExam(tx, sid, request.params.id);
         const at = await finalizeIfExpired(tx, await attemptOf(tx, found.e.id, sid));
         if (!at?.startedAt) throw new HttpError(404, 'not_found', 'Ujian belum dimulai.');

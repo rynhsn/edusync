@@ -28,6 +28,8 @@ export interface ExamLike {
   startTime: string | null;
   durationMinutes: number | null;
   status: 'draft' | 'ready';
+  shuffleQuestions: boolean;
+  shuffleOptions: boolean;
 }
 
 interface Draft {
@@ -43,6 +45,8 @@ interface Draft {
   startTime: string;
   durationMinutes: string;
   status: 'draft' | 'ready';
+  shuffleQuestions: boolean;
+  shuffleOptions: boolean;
 }
 
 const MODES = ['paper', 'cbt', 'both'] as const;
@@ -62,6 +66,7 @@ export function ExamDialog({
   onSaved?: (id: string) => void;
 }) {
   const t = useTranslations('examList');
+  const tc = useTranslations('examCbtAdmin');
   const te = useTranslations();
   const { school, can } = useSchool();
   const header = { header: schoolHeader(school.schoolId) };
@@ -106,6 +111,8 @@ export function ExamDialog({
             startTime: exam.startTime ?? '',
             durationMinutes: exam.durationMinutes ? String(exam.durationMinutes) : '',
             status: exam.status,
+            shuffleQuestions: exam.shuffleQuestions,
+            shuffleOptions: exam.shuffleOptions,
           }
         : {
             id: null,
@@ -120,6 +127,8 @@ export function ExamDialog({
             startTime: '',
             durationMinutes: '',
             status: 'draft',
+            shuffleQuestions: false,
+            shuffleOptions: false,
           },
     );
   }
@@ -151,6 +160,9 @@ export function ExamDialog({
         startTime: d.startTime || null,
         durationMinutes: d.durationMinutes ? Number(d.durationMinutes) : null,
         status: d.status,
+        // Acak hanya berarti untuk CBT; mode kertas selalu mati.
+        shuffleQuestions: d.mode !== 'paper' && d.shuffleQuestions,
+        shuffleOptions: d.mode !== 'paper' && d.shuffleOptions,
       };
       if (d.id) {
         return unwrap(await api.PUT('/v1/exams/{id}', { params: { ...header, path: { id: d.id } }, body }));
@@ -173,8 +185,20 @@ export function ExamDialog({
   };
   const set = (patch: Partial<Draft>) => draft && setDraft(suggest({ ...draft, ...patch }));
 
+  const cbt = draft?.mode === 'cbt' || draft?.mode === 'both';
+  // CBT yang sudah "Siap" harus punya jadwal lengkap, kalau tidak siswa tidak bisa memulainya.
+  const scheduleMissing =
+    !!draft &&
+    cbt &&
+    draft.status === 'ready' &&
+    !(draft.examDate && draft.startTime && draft.durationMinutes);
   const valid =
-    !!draft && !!draft.title.trim() && !!draft.semesterId && !!draft.subjectId && draft.classIds.length > 0;
+    !!draft &&
+    !!draft.title.trim() &&
+    !!draft.semesterId &&
+    !!draft.subjectId &&
+    draft.classIds.length > 0 &&
+    !scheduleMissing;
 
   return (
     <FormDialog
@@ -330,6 +354,28 @@ export function ExamDialog({
               <option value="ready">{t('status_ready')}</option>
             </SelectField>
           </div>
+          {cbt && (
+            <div className="grid gap-2 sm:col-span-2">
+              <p className="text-muted-foreground text-xs">{tc('cbtHint')}</p>
+              {scheduleMissing && (
+                <p role="alert" className="text-destructive text-xs">
+                  {tc('scheduleMissing')}
+                </p>
+              )}
+              <div className="flex flex-wrap gap-x-6 gap-y-2">
+                {(['shuffleQuestions', 'shuffleOptions'] as const).map((f) => (
+                  <div key={f} className="flex items-center gap-2">
+                    <Checkbox
+                      id={`ex-${f}`}
+                      checked={draft[f]}
+                      onCheckedChange={(v) => setDraft({ ...draft, [f]: v === true })}
+                    />
+                    <Label htmlFor={`ex-${f}`}>{tc(f)}</Label>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       )}
     </FormDialog>

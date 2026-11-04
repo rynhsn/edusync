@@ -35,6 +35,7 @@ import {
   pklPeriod,
   pklPlacement,
   platformStaff,
+  portalLink,
   program,
   reportSetting,
   school,
@@ -933,11 +934,29 @@ const guru = await ensureUser('guru@edusync.test', 'Guru Contoh');
 await ensureMember(guru, smp.id, ['teacher', 'operator']);
 await ensureMember(guru, smk.id, ['teacher']);
 
+// Akun siswa untuk mencoba ujian di layar (CBT): terhubung ke siswa contoh SMK lewat portal.
+const siswa = await ensureUser('siswa@edusync.test', 'Ahmad Fauzan');
+await ensureMember(siswa, smk.id, ['student']);
+const [ahmad] = await db
+  .select({ id: student.id })
+  .from(student)
+  .where(and(eq(student.schoolId, smk.id), eq(student.name, 'Ahmad Fauzan')));
+const [siswaMember] = await db
+  .select({ id: member.id })
+  .from(member)
+  .where(and(eq(member.userId, siswa), eq(member.schoolId, smk.id)));
+if (ahmad && siswaMember) {
+  await db
+    .insert(portalLink)
+    .values({ schoolId: smk.id, memberId: siswaMember.id, kind: 'student', studentId: ahmad.id })
+    .onConflictDoNothing();
+}
+
 const staff = await ensureUser('staff@edusync.test', 'Staf Edusync');
 await db.insert(platformStaff).values({ userId: staff, role: 'admin' }).onConflictDoNothing();
 
 console.log(
-  'Seed selesai: admin@edusync.test, guru@edusync.test, dan staff@edusync.test (staf platform) (kata sandi dari DEV_SEED_PASSWORD)',
+  'Seed selesai: admin@edusync.test, guru@edusync.test, siswa@edusync.test (Ahmad Fauzan, SMK), dan staff@edusync.test (staf platform) (kata sandi dari DEV_SEED_PASSWORD)',
 );
 await pool.end();
 await app.close();

@@ -48,9 +48,17 @@ interface ExamQuestion {
   points: number;
 }
 
+/** "07:30" + 90 menit -> "09:00" (lewat tengah malam kembali ke 00:xx). */
+function endTime(start: string, minutes: number) {
+  const [h = 0, m = 0] = start.split(':').map(Number);
+  const total = (h * 60 + m + minutes) % (24 * 60);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
 /** Susun ujian: soal-soal dari bank, urutan, poin, dan jalan pintas ke lembar cetak. */
 export function ExamDetailView({ id }: { id: string }) {
   const t = useTranslations('examList');
+  const tc = useTranslations('examCbtAdmin');
   const ts = useTranslations('examScores');
   const te = useTranslations();
   const locale = useLocale() as Locale;
@@ -109,6 +117,43 @@ export function ExamDetailView({ id }: { id: string }) {
       onData(data);
     },
     onError: failed,
+  });
+
+  /** Tandai siap / kembalikan ke draf memakai PUT penuh dari data yang sudah dimuat. */
+  const toggleStatus = useMutation({
+    mutationFn: async () => {
+      if (!ex) return null;
+      const status = ex.status === 'ready' ? ('draft' as const) : ('ready' as const);
+      if (status === 'ready' && ex.mode !== 'paper' && !(ex.examDate && ex.startTime && ex.durationMinutes)) {
+        throw new Error('schedule');
+      }
+      return unwrap(
+        await api.PUT('/v1/exams/{id}', {
+          params: { ...header, path: { id } },
+          body: {
+            examTypeId: ex.examTypeId,
+            title: ex.title,
+            semesterId: ex.semesterId,
+            subjectId: ex.subjectId,
+            classIds: ex.classIds,
+            mode: ex.mode,
+            examDate: ex.examDate,
+            startTime: ex.startTime,
+            durationMinutes: ex.durationMinutes,
+            status,
+            shuffleQuestions: ex.shuffleQuestions,
+            shuffleOptions: ex.shuffleOptions,
+          },
+        }),
+      );
+    },
+    onSuccess: (data) => {
+      if (!data) return;
+      toast.success(tc('statusUpdated'));
+      onData(data);
+    },
+    onError: (e) =>
+      toast.error(e instanceof Error && e.message === 'schedule' ? tc('scheduleMissing') : te(errorKey(e))),
   });
 
   function move(i: number, dir: -1 | 1) {
@@ -190,11 +235,31 @@ export function ExamDetailView({ id }: { id: string }) {
           {t('questionsPoints', { n: ex.questionCount, pts: ex.totalPoints })}
         </span>
         {author && (
+          <Button variant="outline" disabled={toggleStatus.isPending} onClick={() => toggleStatus.mutate()}>
+            {ex.status === 'ready' ? tc('backToDraft') : tc('markReady')}
+          </Button>
+        )}
+        {author && (
           <Button onClick={() => setBankOpen(true)}>
             <Plus className="size-4" aria-hidden /> {t('addFromBank')}
           </Button>
         )}
       </div>
+
+      {ex.mode !== 'paper' && (
+        <Alert>
+          <AlertDescription>
+            {ex.examDate && ex.startTime && ex.durationMinutes
+              ? tc('cbtWindow', {
+                  date: formatCalendarDate(locale, ex.examDate),
+                  start: ex.startTime,
+                  end: endTime(ex.startTime, ex.durationMinutes),
+                })
+              : tc('cbtNoSchedule')}{' '}
+            {ex.status === 'ready' ? tc('cbtVisible') : tc('cbtNotVisible')}
+          </AlertDescription>
+        </Alert>
+      )}
 
       {questions.length === 0 ? (
         <EmptyPanel

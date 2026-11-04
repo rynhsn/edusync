@@ -80239,7 +80239,7 @@
         "tags": [
           "Exams (siswa)"
         ],
-        "description": "Izin: `portal:read` (akun siswa, 403 untuk wali); modul `exams`. Ujian bermode `cbt`/`both` berstatus `ready` untuk kelas siswa pada tahun ajaran semester ujian. `state`: `unscheduled` (belum ada jadwal), `upcoming`, `open` (boleh mulai), `in_progress`, `submitted`, `closed` (waktu lewat tanpa dikerjakan). Ujian yang selesai lebih dari 30 hari lalu tidak ditampilkan.",
+        "description": "Izin: `portal:read`; modul `exams`. Akun yang bukan siswa (wali, staf) mendapat daftar kosong. Ujian bermode `cbt`/`both` berstatus `ready` untuk kelas siswa pada tahun ajaran semester ujian. `state`: `unscheduled` (belum ada jadwal), `upcoming`, `open` (boleh mulai), `in_progress`, `submitted`, `closed` (waktu lewat tanpa dikerjakan). Ujian yang selesai lebih dari 30 hari lalu tidak ditampilkan.",
         "parameters": [
           {
             "schema": {

@@ -1,6 +1,6 @@
 'use client';
 
-import { BookHeart, ChevronRight, Coins, Sparkles, Star } from 'lucide-react';
+import { BookHeart, ChevronRight, ClipboardCheck, Coins, Sparkles, Star } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useSchool } from '@/components/app-shell';
@@ -114,6 +114,7 @@ function ChildCard({ child }: { child: PortalMe['children'][number] }) {
 
 export function PortalHome() {
   const t = useTranslations('portal');
+  const tx = useTranslations('examCbt');
   const { userName, school } = useSchool();
   const me = usePortalMe();
   const news = useOverview(me.data?.children[0]?.id);
@@ -140,6 +141,22 @@ export function PortalHome() {
         </h1>
         <p className="text-muted-foreground mt-1 max-w-md text-sm">{t('heroSub')}</p>
       </section>
+
+      {me.data?.kind === 'student' && (
+        <Link
+          href="/portal/exams"
+          className="bg-card hover:bg-muted/40 flex items-center gap-3 rounded-2xl border p-4 transition-colors"
+        >
+          <span className="bg-primary/10 text-primary grid size-11 shrink-0 place-items-center rounded-xl">
+            <ClipboardCheck className="size-5" aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="font-heading block font-semibold">{tx('homeCardTitle')}</span>
+            <span className="text-muted-foreground block text-sm">{tx('homeCardBody')}</span>
+          </span>
+          <ChevronRight className="text-muted-foreground size-5" aria-hidden />
+        </Link>
+      )}
 
       <section className="grid gap-3" aria-labelledby="portal-children">
         <h2 id="portal-children" className="font-heading text-lg font-semibold">

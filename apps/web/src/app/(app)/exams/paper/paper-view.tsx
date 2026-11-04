@@ -53,6 +53,8 @@ export function sampleSheet(school: Identity, config: ExamPaperConfig): SheetDat
       startTime: '07:30',
       durationMinutes: 90,
       status: 'draft',
+      shuffleQuestions: false,
+      shuffleOptions: false,
       customPaper: false,
       questionCount: 3,
       totalPoints: 14,

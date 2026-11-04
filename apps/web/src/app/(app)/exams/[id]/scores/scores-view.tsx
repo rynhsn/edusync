@@ -1,18 +1,20 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookCheck, ClipboardList, Info, Save, Undo2 } from 'lucide-react';
-import { useTranslations } from 'next-intl';
+import { BookCheck, ClipboardList, Info, MessageSquareText, Save, Undo2 } from 'lucide-react';
+import { useLocale, useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
+import { RichText } from '@/components/rich-text';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -38,6 +40,9 @@ interface Student {
   entered: boolean;
   absent: boolean;
   answers: Record<string, { answer: string | null; score: number | null }>;
+  startedAt: string | null;
+  submittedAt: string | null;
+  blurCount: number;
 }
 /** Isian siswa yang sedang diedit: huruf untuk pilihan ganda, angka (teks) untuk esai. */
 interface Edit {
@@ -63,6 +68,8 @@ function scoreOf(q: Question, v: string): number {
 /** Input nilai ujian: jawaban pilihan ganda dan skor esai per siswa, lalu kirim ke buku nilai. */
 export function ScoresView({ id }: { id: string }) {
   const t = useTranslations('examScores');
+  const tc = useTranslations('examCbtAdmin');
+  const locale = useLocale();
   const te = useTranslations();
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
@@ -75,6 +82,7 @@ export function ScoresView({ id }: { id: string }) {
   const [sendOpen, setSendOpen] = useState(false);
   const [componentId, setComponentId] = useState('');
   const [sendDate, setSendDate] = useState('');
+  const [reading, setReading] = useState<{ s: Student; qid: string; n: number } | null>(null);
 
   const exam = useQuery({
     queryKey: ['exam', school.schoolId, id],
@@ -208,6 +216,12 @@ export function ScoresView({ id }: { id: string }) {
     else if (e.key === 'ArrowLeft' && e.currentTarget.selectionStart === 0) move(0, -1);
   }
 
+  const clock = (iso: string) =>
+    new Date(iso).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' });
+  const cbtRows = students.filter((s) => s.startedAt);
+  const examQuestionBody = (qid: string) =>
+    (exam.data?.questions ?? []).find((q) => q.id === qid)?.body ?? '';
+
   const loading = sheet.isPending || exam.isPending;
   const ex = exam.data;
   const componentList = components.data ?? [];
@@ -279,6 +293,15 @@ export function ScoresView({ id }: { id: string }) {
             ))}
           </div>
 
+          {cbtRows.length > 0 && (
+            <p className="text-sm">
+              {tc('submittedSummary', {
+                done: cbtRows.filter((s) => s.submittedAt).length,
+                total: students.length,
+              })}
+            </p>
+          )}
+
           {!author && (
             <Alert>
               <AlertDescription>{t('readOnly')}</AlertDescription>
@@ -321,6 +344,20 @@ export function ScoresView({ id }: { id: string }) {
                       <div className="text-muted-foreground text-xs">
                         {[multiClass ? row.s.className : null, row.s.nis].filter(Boolean).join(' · ')}
                       </div>
+                      {row.s.startedAt && (
+                        <div className="mt-0.5 flex flex-wrap items-center gap-1.5 text-xs">
+                          <ToneBadge tone={row.s.submittedAt ? 'emerald' : 'sky'} dot={false}>
+                            {row.s.submittedAt
+                              ? tc('submittedAt', { time: clock(row.s.submittedAt) })
+                              : tc('working', { time: clock(row.s.startedAt) })}
+                          </ToneBadge>
+                          {row.s.blurCount > 0 && (
+                            <ToneBadge tone="amber" dot={false}>
+                              {tc('blurs', { n: row.s.blurCount })}
+                            </ToneBadge>
+                          )}
+                        </div>
+                      )}
                     </td>
                     {questions.map((q, c) => {
                       const v = row.e.cells[q.id] ?? '';
@@ -330,35 +367,50 @@ export function ScoresView({ id }: { id: string }) {
                       const over = !mcq && scoreOf(q, v) > q.points;
                       return (
                         <td key={q.id} className="border-b px-1.5 py-1.5 text-center">
-                          <input
-                            data-cell={`${r}-${c}`}
-                            // biome-ignore lint/a11y/noAutofocus: guru langsung mengetik di sel pertama.
-                            autoFocus={r === 0 && c === 0}
-                            inputMode={mcq ? 'text' : 'decimal'}
-                            maxLength={mcq ? 1 : 6}
-                            disabled={!author || row.e.absent}
-                            value={v}
-                            aria-label={t(mcq ? 'cellMcq' : 'cellEssay', { name: row.s.name, n: c + 1 })}
-                            aria-invalid={over}
-                            title={over ? t('scoreTooHigh', { max: q.points }) : undefined}
-                            onKeyDown={(e) => onKey(e, r, c)}
-                            onFocus={(e) => e.currentTarget.select()}
-                            onChange={(e) => {
-                              const raw = e.target.value;
-                              const next = mcq ? raw.toUpperCase().slice(-1) : raw.replace(/[^0-9.,]/g, '');
-                              if (mcq && next && !q.optionKeys.map((k) => k.toUpperCase()).includes(next))
-                                return;
-                              patch(row.s, (ed) => ({ ...ed, cells: { ...ed.cells, [q.id]: next } }));
-                            }}
-                            className={cn(
-                              'border-input h-8 w-12 rounded-md border bg-transparent text-center tabular-nums outline-none',
-                              'focus-visible:ring-ring/50 focus-visible:ring-2 disabled:cursor-not-allowed',
-                              right &&
-                                'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
-                              wrong && 'border-rose-400 bg-rose-500/10 text-rose-700 dark:text-rose-300',
-                              over && 'border-destructive',
+                          <div className="flex items-center justify-center gap-0.5">
+                            <input
+                              data-cell={`${r}-${c}`}
+                              // biome-ignore lint/a11y/noAutofocus: guru langsung mengetik di sel pertama.
+                              autoFocus={r === 0 && c === 0}
+                              inputMode={mcq ? 'text' : 'decimal'}
+                              maxLength={mcq ? 1 : 6}
+                              disabled={!author || row.e.absent}
+                              value={v}
+                              aria-label={t(mcq ? 'cellMcq' : 'cellEssay', { name: row.s.name, n: c + 1 })}
+                              aria-invalid={over}
+                              title={over ? t('scoreTooHigh', { max: q.points }) : undefined}
+                              onKeyDown={(e) => onKey(e, r, c)}
+                              onFocus={(e) => e.currentTarget.select()}
+                              onChange={(e) => {
+                                const raw = e.target.value;
+                                const next = mcq ? raw.toUpperCase().slice(-1) : raw.replace(/[^0-9.,]/g, '');
+                                if (mcq && next && !q.optionKeys.map((k) => k.toUpperCase()).includes(next))
+                                  return;
+                                patch(row.s, (ed) => ({ ...ed, cells: { ...ed.cells, [q.id]: next } }));
+                              }}
+                              className={cn(
+                                'border-input h-8 w-12 rounded-md border bg-transparent text-center tabular-nums outline-none',
+                                'focus-visible:ring-ring/50 focus-visible:ring-2 disabled:cursor-not-allowed',
+                                right &&
+                                  'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
+                                wrong && 'border-rose-400 bg-rose-500/10 text-rose-700 dark:text-rose-300',
+                                over && 'border-destructive',
+                              )}
+                            />
+                            {!mcq && row.s.answers[q.id]?.answer && (
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                tabIndex={-1}
+                                className="size-6"
+                                aria-label={tc('viewAnswer', { name: row.s.name, n: c + 1 })}
+                                onClick={() => setReading({ s: row.s, qid: q.id, n: c + 1 })}
+                              >
+                                <MessageSquareText className="size-3.5" />
+                              </Button>
                             )}
-                          />
+                          </div>
                         </td>
                       );
                     })}
@@ -430,6 +482,32 @@ export function ScoresView({ id }: { id: string }) {
           )}
         </>
       )}
+
+      <Dialog open={!!reading} onOpenChange={(o) => !o && setReading(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{tc('answerTitle')}</DialogTitle>
+            <DialogDescription>
+              {reading ? tc('answerOf', { name: reading.s.name, n: reading.n }) : ''}
+            </DialogDescription>
+          </DialogHeader>
+          {reading && (
+            <div className="grid gap-3 text-sm">
+              <div>
+                <p className="text-muted-foreground mb-1 text-xs">{tc('questionLabel')}</p>
+                <RichText text={examQuestionBody(reading.qid)} />
+              </div>
+              <div>
+                <p className="text-muted-foreground mb-1 text-xs">{tc('studentAnswer')}</p>
+                {/* Teks siswa: tampil apa adanya (tanpa rumus/gambar), bukan RichText. */}
+                <p className="bg-muted/40 rounded-lg border p-3 break-words whitespace-pre-wrap">
+                  {reading.s.answers[reading.qid]?.answer}
+                </p>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
 
       <FormDialog
         open={sendOpen}
