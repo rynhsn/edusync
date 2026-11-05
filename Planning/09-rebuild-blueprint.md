@@ -158,7 +158,7 @@ Menandatangani membuat `signed_document` (hash SHA-256 PDF, penandatangan, waktu
 - **Data:** soft-delete + restore; retensi tap/log terdokumentasi (privasi data anak).
 
 ## 11. Lingkungan lokal
-Lihat `README.md`. Konfigurasi penting di `.env`: `DATABASE_*_URL` (owner/app/platform/jobs), `AUTH_SECRET`, `AUTH_URL`, `TRUSTED_ORIGINS`, `SMTP_*`, `PAYMENT_PROVIDER` + `PAYMENT_DEV_SECRET`/`MIDTRANS_SERVER_KEY`, `APP_DOMAIN`, `API_URL`, `DEV_SEED_PASSWORD`. Akun seed: `admin@edusync.test`, `guru@edusync.test`, `staff@edusync.test`; sekolah contoh `smpit-miftahul-huda` dan `smk-miftahul-huda`.
+Lihat `README.md`. Konfigurasi penting di `.env`: `DATABASE_*_URL` (owner/app/platform/jobs), `AUTH_SECRET`, `AUTH_URL`, `TRUSTED_ORIGINS`, `SMTP_*`, `PAYMENT_PROVIDER` + `PAYMENT_DEV_SECRET`/`MIDTRANS_SERVER_KEY`, `APP_DOMAIN`, `API_URL`, `DEV_SEED_PASSWORD`. Akun seed: `admin@edusync.test`, `guru@edusync.test`, `admin@edusync.web.id`; sekolah contoh `smpit-miftahul-huda` dan `smk-miftahul-huda`.
 
 ## 12. Rencana dan status
 

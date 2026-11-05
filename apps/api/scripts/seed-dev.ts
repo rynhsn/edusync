@@ -952,11 +952,11 @@ if (ahmad && siswaMember) {
     .onConflictDoNothing();
 }
 
-const staff = await ensureUser('staff@edusync.test', 'Staf Edusync');
+const staff = await ensureUser('admin@edusync.web.id', 'Staf Edusync');
 await db.insert(platformStaff).values({ userId: staff, role: 'admin' }).onConflictDoNothing();
 
 console.log(
-  'Seed selesai: admin@edusync.test, guru@edusync.test, siswa@edusync.test (Ahmad Fauzan, SMK), dan staff@edusync.test (staf platform) (kata sandi dari DEV_SEED_PASSWORD)',
+  'Seed selesai: admin@edusync.test, guru@edusync.test, siswa@edusync.test (Ahmad Fauzan, SMK), dan admin@edusync.web.id (staf platform) (kata sandi dari DEV_SEED_PASSWORD)',
 );
 await pool.end();
 await app.close();

@@ -13,7 +13,7 @@ const apiUrl = process.env.API_URL ?? 'http://localhost:4000';
 
 const nextConfig: NextConfig = {
   // Subdomain sekolah di lokal (<alamat>.localhost:3000) harus boleh memakai dev server dan HMR.
-  allowedDevOrigins: ['*.localhost'],
+  allowedDevOrigins: ['*.localhost', 'edusync.web.id', '*.edusync.web.id'],
 
   // Semua panggilan API lewat alamat web yang sama. Dengan begitu cookie sesi menjadi milik alamat itu
   // (alamat utama, subdomain sekolah, atau nanti domain milik sekolah) dan tidak ada permintaan lintas-situs.

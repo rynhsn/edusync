@@ -17,3 +17,6 @@ apps/worker/.wwebjs_cache/
 testsprite_tests/tmp/
 testsprite_tests/tmp/config.json
 staff-transfer*.json
+
+# Cadangan database lokal
+backups/

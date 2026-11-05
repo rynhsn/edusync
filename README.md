@@ -55,7 +55,7 @@ pnpm dev
 
 Setiap sekolah punya alamat sendiri: `<alamat-sekolah>.localhost:3000`. Chrome, Edge, dan Firefox mengarahkan `*.localhost` ke komputer Anda tanpa pengaturan tambahan. Sesi login terikat ke alamat tempat login dilakukan, jadi guru masuk di alamat sekolahnya, dan staf serta pemilik yayasan di alamat utama. Pindah sekolah memindahkan alamat dengan token sekali pakai (satu menit).
 
-Akun contoh: `admin@edusync.test`, `guru@edusync.test`, `staff@edusync.test` (staf platform). Kata sandi ada di `.env`, baris `DEV_SEED_PASSWORD`.
+Akun contoh: `admin@edusync.test`, `guru@edusync.test`, `admin@edusync.web.id` (staf platform). Kata sandi ada di `.env`, baris `DEV_SEED_PASSWORD`.
 
 ### Port yang dipakai
 

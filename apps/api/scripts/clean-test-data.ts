@@ -53,6 +53,7 @@ const isTestSlug = (slug: string) =>
   TEST_FOUNDATION_PREFIXES.some((p) => new RegExp(`^${p}-[a-z0-9][a-z0-9-]*$`).test(slug));
 
 const apply = process.argv.includes('--apply');
+const all = process.argv.includes('--all');
 /** Dengan --apply: jalankan semua DELETE lalu rollback (membuktikan urutan FK tanpa menyimpan apa pun). */
 const rollbackOnly = process.argv.includes('--rollback');
 const env = loadEnv();
@@ -90,7 +91,10 @@ async function main(c: pg.PoolClient) {
   for (const s of schools)
     if (PROTECTED_SCHOOLS.includes(s.slug)) protectedFoundationIds.add(s.foundation_id);
 
-  const targets = foundations.filter((f) => isTestSlug(f.slug) && !protectedFoundationIds.has(f.id));
+  // --all: hapus SEMUA lembaga (reset data sekolah, akun staf platform tidak tersentuh).
+  const targets = all
+    ? foundations
+    : foundations.filter((f) => isTestSlug(f.slug) && !protectedFoundationIds.has(f.id));
   const kept = foundations.filter((f) => !targets.includes(f));
   const targetIds = targets.map((f) => f.id);
   const schoolIds = schools.filter((s) => targetIds.includes(s.foundation_id)).map((s) => s.id);
