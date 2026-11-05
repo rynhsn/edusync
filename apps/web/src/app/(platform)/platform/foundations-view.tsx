@@ -203,7 +203,7 @@ export function FoundationsView() {
         ) : null}
       </StatGrid>
 
-      <section className="grid gap-3" aria-labelledby="foundations-heading">
+      <section className="grid grid-cols-[minmax(0,1fr)] gap-3" aria-labelledby="foundations-heading">
         <h2 id="foundations-heading" className="font-heading text-lg font-semibold">
           {t('foundations')}
         </h2>
@@ -318,9 +318,12 @@ export function FoundationsView() {
               </Table>
             </div>
 
-            <ul className="grid gap-3 md:hidden">
+            <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 md:hidden">
               {rows.map((f) => (
-                <li key={f.id} className="bg-card grid gap-3 rounded-2xl border p-3.5">
+                <li
+                  key={f.id}
+                  className="bg-card grid grid-cols-[minmax(0,1fr)] gap-3 rounded-2xl border p-3.5"
+                >
                   <div className="flex items-start justify-between gap-2">
                     <button
                       type="button"

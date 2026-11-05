@@ -191,9 +191,12 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
                 <span className="md:hidden">
                   <Logo />
                 </span>
-                <ToneBadge tone={me.data.role === 'admin' ? 'emerald' : 'slate'}>
-                  {me.data.role === 'admin' ? t('roleAdmin') : t('roleReadOnly')}
-                </ToneBadge>
+                {/* Di ponsel ruang topbar sempit: lencana peran hanya tampil mulai lebar sm. */}
+                <span className="hidden sm:inline-flex">
+                  <ToneBadge tone={me.data.role === 'admin' ? 'emerald' : 'slate'}>
+                    {me.data.role === 'admin' ? t('roleAdmin') : t('roleReadOnly')}
+                  </ToneBadge>
+                </span>
               </>
             }
           >

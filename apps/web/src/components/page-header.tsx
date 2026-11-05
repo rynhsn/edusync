@@ -38,5 +38,9 @@ export function PageHeader({
 
 /** Pembungkus isi halaman: jarak antar-bagian yang konsisten. */
 export function PageBody({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn('grid w-full content-start gap-6', className)}>{children}</div>;
+  return (
+    <div className={cn('grid w-full grid-cols-[minmax(0,1fr)] content-start gap-6 *:min-w-0', className)}>
+      {children}
+    </div>
+  );
 }

@@ -481,7 +481,7 @@ export function ReportView() {
               </div>
 
               {/* Layar sempit: kartu bertumpuk, tanpa scroll horizontal */}
-              <ul className="grid gap-3 md:hidden">
+              <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 md:hidden">
                 {shownRows.map((r, i) => (
                   <li
                     key={r.studentId}

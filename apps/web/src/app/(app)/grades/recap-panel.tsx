@@ -244,7 +244,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
             {data.students.map((s, i) => (
               <li
                 key={s.studentId}
-                className="bg-card grid gap-3 rounded-2xl border p-3.5 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300"
+                className="bg-card grid grid-cols-[minmax(0,1fr)] gap-3 rounded-2xl border p-3.5 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300"
               >
                 <div className="flex items-center justify-between gap-3">
                   <PersonCell name={s.name} sub={s.nis ? `${i + 1} · ${s.nis}` : String(i + 1)} />
