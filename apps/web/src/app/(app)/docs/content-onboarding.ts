@@ -17,7 +17,7 @@ export const ONBOARDING_DOCS: DocArticle[] = [
           {
             heading: 'Mengapa halaman terlihat kosong',
             body: 'Sekolah baru dimulai tanpa data apa pun. Banyak halaman bergantung pada data lain, misalnya ujian butuh mata pelajaran dan semester, kelas butuh tahun ajaran. Bila data itu belum ada, halaman menampilkan pemberitahuan apa yang kurang beserta tombol menuju halaman untuk membuatnya.',
-            tip: 'Di beranda, kartu Panduan awal sekolah mencentang langkah otomatis begitu datanya ada. Kartu hilang sendiri saat semua langkah selesai, atau bisa ditutup dengan tombol silang.',
+            tip: 'Di beranda, kartu Panduan awal sekolah mencentang langkah otomatis begitu datanya ada. Kartu ringkas: terbuka saat kunjungan pertama, lalu hanya menampilkan langkah berikutnya beserta tombolnya; pilih Lihat semua langkah untuk daftar lengkap. Bila ditutup dengan tombol silang, tombol kecil Panduan di beranda membukanya kembali. Kartu hilang sendiri saat semua langkah selesai. Halaman daftar yang masih kosong (siswa, guru, kelas, mata pelajaran, ujian, bank soal, tagihan) juga menjelaskan fungsinya dan langkah pertamanya.',
             href: '/dashboard',
           },
           {
@@ -49,7 +49,7 @@ export const ONBOARDING_DOCS: DocArticle[] = [
         faq: [
           {
             q: 'Kartu panduan tidak muncul di beranda.',
-            a: 'Kartu hanya tampil untuk pengguna yang boleh mengelola sekolah, dan hilang bila semua langkah selesai atau sudah ditutup di peramban itu.',
+            a: 'Kartu hanya tampil untuk pengguna yang boleh mengelola sekolah, dan hilang bila semua langkah selesai. Bila sudah ditutup di peramban itu, yang tersisa hanya tombol kecil Panduan untuk membukanya lagi.',
           },
           {
             q: 'Apakah semua langkah wajib?',
@@ -66,7 +66,7 @@ export const ONBOARDING_DOCS: DocArticle[] = [
           {
             heading: 'Why pages look empty',
             body: 'A new school starts with no data. Many pages depend on other data, for example exams need subjects and a semester, and classes need an academic year. When something is missing, the page shows a notice saying what and a button to the page where it is created.',
-            tip: 'On the home page, the School setup guide card ticks steps automatically once their data exists. It disappears when every step is done, or you can close it with the cross button.',
+            tip: 'On the home page, the School setup guide card ticks steps automatically once their data exists. The card is compact: it opens on your first visit, then shows only the next step with its button; choose Show all steps for the full list. If you close it with the cross, the small Guide button on the home page reopens it. It disappears when every step is done. List pages that are still empty (students, teachers, classes, subjects, exams, question bank, invoices) also explain their purpose and the first step.',
             href: '/dashboard',
           },
           {
@@ -98,7 +98,7 @@ export const ONBOARDING_DOCS: DocArticle[] = [
         faq: [
           {
             q: 'The guide card does not show on the home page.',
-            a: 'The card only shows to users who can manage the school, and it is hidden when all steps are done or after it was closed in that browser.',
+            a: 'The card only shows to users who can manage the school, and it is hidden when all steps are done. If it was closed in that browser, only a small Guide button remains to reopen it.',
           },
           {
             q: 'Is every step mandatory?',
@@ -115,7 +115,7 @@ export const ONBOARDING_DOCS: DocArticle[] = [
           {
             heading: 'Naha kaca katingalina kosong',
             body: 'Sakola anyar dimimitian tanpa data. Loba kaca gumantung kana data séjén, contona ujian meryogikeun mata pelajaran jeung semester, kelas meryogikeun taun pangajaran. Mun data éta can aya, kaca nampilkeun béwara naon nu kurang jeung tombol ka kaca pikeun nyieunna.',
-            tip: 'Di béranda, kartu Pituduh awal sakola méré centang léngkah sacara otomatis sanggeus datana aya. Kartu leungit sorangan lamun sakabéh léngkah geus rengse, atawa bisa ditutup ku tombol kali.',
+            tip: 'Di béranda, kartu Pituduh awal sakola méré centang léngkah sacara otomatis sanggeus datana aya. Kartuna ringkes: muka dina kunjungan kahiji, terus ngan nembongkeun léngkah satuluyna jeung tombolna; pilih Témbongkeun sadaya léngkah pikeun daptar lengkep. Mun ditutup ku tombol kali, tombol leutik Pituduh di béranda muka deui. Kartu leungit sorangan lamun sakabéh léngkah geus rengse. Kaca daptar nu masih kosong (siswa, guru, kelas, mata pelajaran, ujian, bank soal, tagihan) ogé ngajelaskeun gunana jeung léngkah kahijina.',
             href: '/dashboard',
           },
           {
@@ -147,7 +147,7 @@ export const ONBOARDING_DOCS: DocArticle[] = [
         faq: [
           {
             q: 'Kartu pituduh teu muncul di béranda.',
-            a: 'Kartu ukur muncul pikeun pamaké nu meunang ngatur sakola, sarta disumputkeun lamun sakabéh léngkah rengse atawa geus ditutup di panyungsi éta.',
+            a: 'Kartu ukur muncul pikeun pamaké nu meunang ngatur sakola, sarta disumputkeun lamun sakabéh léngkah rengse. Mun geus ditutup di panyungsi éta, ngan tombol leutik Pituduh anu nyésa pikeun muka deui.',
           },
           {
             q: 'Naha sakabéh léngkah wajib?',

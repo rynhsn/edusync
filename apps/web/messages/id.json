@@ -246,6 +246,33 @@
     "viewStandard": "Tampilan standar",
     "subtitleMap": "Denyut sekolah hari ini, langsung dari data."
   },
+  "onboardingCard": {
+    "next": "Langkah berikutnya",
+    "showAll": "Lihat semua langkah",
+    "hideAll": "Sembunyikan langkah",
+    "done": "selesai",
+    "shortcuts": "Pintasan",
+    "reopen": "Panduan",
+    "reopenAria": "Buka kembali: {title}"
+  },
+  "emptyState": {
+    "needsFirst": "Perlu disiapkan dulu",
+    "firstStep": "Mulai dari sini:",
+    "askAdmin": "Anda belum punya izin menambahkannya. Minta admin sekolah untuk menambahkan.",
+    "pages": {
+      "students": "Sebaiknya buat kelas lebih dulu supaya siswa langsung bisa ditempatkan.",
+      "teachers": "Setelah ditambahkan, tetapkan guru sebagai wali kelas atau pengampu mata pelajaran.",
+      "classes": "Pastikan tahun ajaran dan semester sudah dibuat, karena kelas menempel pada tahun ajaran.",
+      "subjects": "Mata pelajaran dibutuhkan oleh jadwal, nilai, bank soal, dan ujian.",
+      "years": "Buat tahun ajaran, tambahkan semester di dalamnya, lalu jadikan aktif.",
+      "exams": "Isi bank soal lebih dulu agar soal bisa langsung dipilih saat menyusun ujian.",
+      "bank": "Untuk banyak soal sekaligus, impor dari Excel atau Word.",
+      "announcements": "Pengumuman tampil di dashboard dan di portal wali serta siswa.",
+      "invoices": "Atur tarif di Pengaturan keuangan, lalu buat tagihan dengan tombol Buat tagihan.",
+      "plans": "Tambahkan jenis biaya lebih dulu, lalu tetapkan nominalnya per tingkat.",
+      "extracurriculars": "Setelah kegiatan dibuat, daftarkan anggotanya dan catat pertemuan."
+    }
+  },
   "schoolOnboarding": {
     "title": "Panduan awal sekolah",
     "description": "Lengkapi data dasar berikut secara berurutan. Centang otomatis muncul begitu datanya ada.",

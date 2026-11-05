@@ -246,6 +246,33 @@
     "viewStandard": "Tampilan baku",
     "subtitleMap": "Denyut sakola poé ieu, langsung tina data."
   },
+  "onboardingCard": {
+    "next": "Léngkah satuluyna",
+    "showAll": "Témbongkeun sadaya léngkah",
+    "hideAll": "Sumputkeun léngkah",
+    "done": "réngsé",
+    "shortcuts": "Jalan pondok",
+    "reopen": "Pituduh",
+    "reopenAria": "Buka deui: {title}"
+  },
+  "emptyState": {
+    "needsFirst": "Kedah disiapkeun heula",
+    "firstStep": "Mimitian ti dieu:",
+    "askAdmin": "Anjeun can gaduh idin pikeun nambahkeunana. Pénta admin sakola nambahkeun.",
+    "pages": {
+      "students": "Hadé jieun kelas heula supados siswa langsung tiasa dipasihkeun tempat.",
+      "teachers": "Saatos ditambahkeun, tetepkeun guru salaku wali kelas atawa pangampu mata pelajaran.",
+      "classes": "Pastikeun taun ajaran jeung semester geus dijieun, sabab kelas napel dina taun ajaran.",
+      "subjects": "Mata pelajaran diperlukeun ku jadwal, nilai, bank soal, jeung ujian.",
+      "years": "Jieun taun ajaran, tambahkeun semésterna, terus jantenkeun aktif.",
+      "exams": "Eusian bank soal heula supados soal langsung tiasa dipilih nalika nyusun ujian.",
+      "bank": "Pikeun seueur soal sakaligus, impor tina Excel atawa Word.",
+      "announcements": "Pengumuman muncul di dashboard jeung di portal wali sarta siswa.",
+      "invoices": "Atur tarif di Pangaturan kauangan, terus jieun tagihan ku tombol Jieun tagihan.",
+      "plans": "Tambahkeun jinis biaya heula, terus tetepkeun nominalna per tingkat.",
+      "extracurriculars": "Saatos kagiatan dijieun, daptarkeun anggotana jeung catet patepangan."
+    }
+  },
   "schoolOnboarding": {
     "title": "Pituduh awal sakola",
     "description": "Lengkapan data dasar ieu sacara berurutan. Tanda centang muncul otomatis sanggeus datana aya.",

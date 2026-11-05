@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   BookMarked,
   BookOpen,
@@ -9,34 +9,22 @@ import {
   CreditCard,
   History,
   LifeBuoy,
-  LogOut,
   Mail,
   Package,
   Send,
   ShieldCheck,
-  UserCog,
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createContext, useContext, useEffect } from 'react';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { AppHeader, MobileNavDrawer } from '@/components/app-header';
 import { Logo } from '@/components/logo';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToneBadge } from '@/components/ui-kit';
+import { UserMenu, useSignOut } from '@/components/user-menu';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
@@ -89,12 +77,10 @@ const GROUPS = [
 export function PlatformShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations('platform');
   const tc = useTranslations('common');
-  const tp = useTranslations('profile');
   const session = authClient.useSession();
   const account = session.data?.user;
   const router = useRouter();
   const pathname = usePathname();
-  const queryClient = useQueryClient();
 
   const me = useQuery({
     queryKey: ['platform-me'],
@@ -113,11 +99,7 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
     if (unauthenticated) router.replace('/login');
   }, [unauthenticated, router]);
 
-  async function signOut() {
-    await authClient.signOut();
-    queryClient.clear();
-    router.replace('/login');
-  }
+  const signOut = useSignOut();
 
   if (me.isPending || unauthenticated) {
     return (
@@ -146,97 +128,83 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const sidebar = (
+    <>
+      <div className="flex flex-col items-start gap-3 p-4">
+        <Logo />
+        <span className="bg-amber text-amber-foreground inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium">
+          <ShieldCheck className="size-3" aria-hidden /> {t('title')}
+        </span>
+      </div>
+      <nav className="flex flex-col gap-0.5 px-4 pb-4" aria-label={t('title')}>
+        {GROUPS.map((group) => (
+          <div key={group.key} className="mt-4 grid gap-0.5 first:mt-0">
+            <p className="text-muted-foreground px-3 pt-1 pb-1 text-[11px] font-semibold tracking-wider uppercase">
+              {t(group.key)}
+            </p>
+            {group.items.map((item) => {
+              const active =
+                pathname === item.href || (item.href !== '/platform' && pathname.startsWith(`${item.href}/`));
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  aria-current={active ? 'page' : undefined}
+                  className={cn(
+                    'focus-visible:ring-ring relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-2',
+                    active
+                      ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
+                      : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
+                  )}
+                >
+                  {active && (
+                    <span aria-hidden className="bg-primary absolute inset-y-1.5 left-0 w-0.5 rounded-full" />
+                  )}
+                  <item.icon className={cn('size-4', active && 'text-primary')} />
+                  <span className="flex-1">{t(item.key)}</span>
+                  {item.key === 'pending' && pendingCount > 0 && (
+                    <span className="bg-amber text-amber-foreground rounded-full px-1.5 text-[11px] font-semibold tabular-nums">
+                      {pendingCount}
+                    </span>
+                  )}
+                </Link>
+              );
+            })}
+          </div>
+        ))}
+      </nav>
+    </>
+  );
+
   return (
     <StaffContext.Provider value={{ role: me.data.role }}>
       <div className="flex flex-1 flex-col md:flex-row">
-        <aside className="bg-sidebar text-sidebar-foreground border-b md:sticky md:top-0 md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r md:border-b-0">
-          <div className="flex items-center justify-between gap-2 p-3 md:flex-col md:items-start md:gap-3 md:p-4">
-            <Logo />
-            <span className="bg-amber text-amber-foreground inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium">
-              <ShieldCheck className="size-3" aria-hidden /> {t('title')}
-            </span>
-          </div>
-          <nav
-            className="flex gap-1 overflow-x-auto px-3 pb-3 [scrollbar-width:none] md:flex-col md:gap-0.5 md:overflow-visible md:px-4 [&::-webkit-scrollbar]:hidden"
-            aria-label={t('title')}
-          >
-            {GROUPS.map((group) => (
-              <div key={group.key} className="contents md:mt-4 md:grid md:gap-0.5 md:first:mt-0">
-                <p className="text-muted-foreground hidden px-3 pt-1 pb-1 text-[11px] font-semibold tracking-wider uppercase md:block">
-                  {t(group.key)}
-                </p>
-                {group.items.map((item) => {
-                  const active =
-                    pathname === item.href ||
-                    (item.href !== '/platform' && pathname.startsWith(`${item.href}/`));
-                  return (
-                    <Link
-                      key={item.href}
-                      href={item.href}
-                      aria-current={active ? 'page' : undefined}
-                      className={cn(
-                        'relative flex items-center gap-2.5 rounded-lg px-3 py-2 text-sm whitespace-nowrap transition-colors outline-none focus-visible:ring-2 focus-visible:ring-ring',
-                        active
-                          ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium'
-                          : 'text-muted-foreground hover:bg-sidebar-accent/60 hover:text-foreground',
-                      )}
-                    >
-                      {active && (
-                        <span
-                          aria-hidden
-                          className="bg-primary absolute inset-y-1.5 left-0 hidden w-0.5 rounded-full md:block"
-                        />
-                      )}
-                      <item.icon className={cn('size-4', active && 'text-primary')} />
-                      <span className="flex-1">{t(item.key)}</span>
-                      {item.key === 'pending' && pendingCount > 0 && (
-                        <span className="bg-amber text-amber-foreground rounded-full px-1.5 text-[11px] font-semibold tabular-nums">
-                          {pendingCount}
-                        </span>
-                      )}
-                    </Link>
-                  );
-                })}
-              </div>
-            ))}
-          </nav>
+        <aside className="bg-sidebar text-sidebar-foreground hidden md:sticky md:top-0 md:block md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r">
+          {sidebar}
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="bg-background/80 sticky top-0 z-10 flex items-center justify-between gap-1 border-b p-3 backdrop-blur">
-            <ToneBadge tone={me.data.role === 'admin' ? 'emerald' : 'slate'}>
-              {me.data.role === 'admin' ? t('roleAdmin') : t('roleReadOnly')}
-            </ToneBadge>
-            <div className="flex items-center gap-1">
-              <LanguageSwitcher />
-              <ThemeToggle />
-              <DropdownMenu>
-                <DropdownMenuTrigger render={<Button variant="ghost" className="h-auto gap-2 py-1" />}>
-                  <Avatar className="size-7">
-                    {account?.image && <AvatarImage src={account.image} alt="" />}
-                    <AvatarFallback>{(account?.name ?? '?').slice(0, 2).toUpperCase()}</AvatarFallback>
-                  </Avatar>
-                  <span className="hidden text-sm sm:inline">{account?.name}</span>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-56">
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="font-normal">
-                      <span className="block text-sm font-medium">{account?.name}</span>
-                      <span className="text-muted-foreground block text-xs">{account?.email}</span>
-                    </DropdownMenuLabel>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/platform/profile')}>
-                    <UserCog className="size-4" /> {tp('menu')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut}>
-                    <LogOut className="size-4" /> {tc('signOut')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </header>
-          <main className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-8">{children}</main>
+          <AppHeader
+            mobileNav={<MobileNavDrawer>{sidebar}</MobileNavDrawer>}
+            leading={
+              <>
+                <span className="md:hidden">
+                  <Logo />
+                </span>
+                <ToneBadge tone={me.data.role === 'admin' ? 'emerald' : 'slate'}>
+                  {me.data.role === 'admin' ? t('roleAdmin') : t('roleReadOnly')}
+                </ToneBadge>
+              </>
+            }
+          >
+            <UserMenu
+              profileHref="/platform/profile"
+              name={account?.name}
+              email={account?.email}
+              image={account?.image}
+            />
+          </AppHeader>
+          <main className="mx-auto w-full max-w-7xl min-w-0 flex-1 p-4 md:p-8">{children}</main>
         </div>
       </div>
     </StaffContext.Provider>

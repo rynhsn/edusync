@@ -246,6 +246,33 @@
     "viewStandard": "Standard view",
     "subtitleMap": "Today's pulse of the school, live from the data."
   },
+  "onboardingCard": {
+    "next": "Next step",
+    "showAll": "Show all steps",
+    "hideAll": "Hide steps",
+    "done": "done",
+    "shortcuts": "Shortcuts",
+    "reopen": "Guide",
+    "reopenAria": "Reopen: {title}"
+  },
+  "emptyState": {
+    "needsFirst": "Set up first",
+    "firstStep": "Start here:",
+    "askAdmin": "You do not have permission to add this. Ask your school admin to add it.",
+    "pages": {
+      "students": "Create classes first so students can be placed right away.",
+      "teachers": "Once added, assign teachers as homeroom teachers or subject teachers.",
+      "classes": "Make sure the academic year and semester exist, since classes belong to an academic year.",
+      "subjects": "Subjects are needed by the schedule, grades, the question bank, and exams.",
+      "years": "Create an academic year, add its semesters, then make it active.",
+      "exams": "Fill the question bank first so questions can be picked right away when building an exam.",
+      "bank": "For many questions at once, import from Excel or Word.",
+      "announcements": "Announcements appear on the dashboard and in the guardian and student portals.",
+      "invoices": "Set fee plans in Finance settings, then create invoices with the Create invoice button.",
+      "plans": "Add fee types first, then set the amount per grade level.",
+      "extracurriculars": "Once an activity is created, enroll its members and record sessions."
+    }
+  },
   "schoolOnboarding": {
     "title": "School setup guide",
     "description": "Complete these basics in order. Each step is ticked automatically once its data exists.",

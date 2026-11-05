@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import { FORM_GRID } from '@/components/form-field';
 import { PageBody, PageHeader } from '@/components/page-header';
@@ -414,7 +415,14 @@ export function FinanceSettingsView() {
               </Alert>
             )}
             {plans.data?.length === 0 && (
-              <EmptyPanel icon={Coins} tone="emerald" title={t('noPlans')} body={t('noPlansHint')} />
+              <EmptyState
+                icon={Coins}
+                tone="emerald"
+                title={t('noPlans')}
+                body={t('noPlansHint')}
+                first={te('emptyState.pages.plans')}
+                canAct={manage}
+              />
             )}
             {planList.length > 0 && (
               <>

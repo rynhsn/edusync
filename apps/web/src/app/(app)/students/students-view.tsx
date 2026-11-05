@@ -19,6 +19,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import {
   ConfirmDelete,
@@ -612,20 +613,20 @@ export function StudentsView() {
             }
           />
         ) : (
-          <EmptyPanel
+          <EmptyState
             icon={GraduationCap}
             tone={MODULE_TONE.master}
             title={t('emptyTitle')}
-            body={manage ? t('emptyBody') : tm('empty')}
+            body={t('emptyBody')}
+            first={te('emptyState.pages.students')}
+            canAct={manage}
             action={
-              manage && (
-                <div className="flex flex-wrap justify-center gap-2">
-                  {addButton}
-                  <Button variant="outline" nativeButton={false} render={<Link href="/students/import" />}>
-                    <Upload className="size-4" /> {t('importLink')}
-                  </Button>
-                </div>
-              )
+              <>
+                {addButton}
+                <Button variant="outline" nativeButton={false} render={<Link href="/students/import" />}>
+                  <Upload className="size-4" /> {t('importLink')}
+                </Button>
+              </>
             }
           />
         ))}

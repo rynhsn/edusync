@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { ActionMenu } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { EmptyState } from '@/components/empty-state';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { type PrerequisiteKind, PrerequisiteNotice } from '@/components/prerequisite-notice';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -176,17 +177,17 @@ export function ExamsView() {
           ))}
         </div>
       ) : list.length === 0 ? (
-        <EmptyPanel
+        <EmptyState
           icon={ClipboardCheck}
           tone="violet"
           title={t('emptyTitle')}
           body={t('emptyBody')}
+          first={te('emptyState.pages.exams')}
+          canAct={author}
           action={
-            author && (
-              <Button onClick={openNew} disabled={blocked}>
-                <Plus className="size-4" aria-hidden /> {t('addExam')}
-              </Button>
-            )
+            <Button onClick={openNew} disabled={blocked}>
+              <Plus className="size-4" aria-hidden /> {t('addExam')}
+            </Button>
           }
         />
       ) : (

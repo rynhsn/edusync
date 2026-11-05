@@ -19,6 +19,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import { FORM_GRID } from '@/components/form-field';
 import { PageBody, PageHeader } from '@/components/page-header';
@@ -31,7 +32,6 @@ import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TimeField } from '@/components/ui/time-field';
 import {
-  EmptyPanel,
   IconTile,
   MODULE_TONE,
   PersonCell,
@@ -418,11 +418,13 @@ export function ExtracurricularsView() {
         </Alert>
       )}
       {list.data && rows.length === 0 && (
-        <EmptyPanel
+        <EmptyState
           icon={Trophy}
           tone={MODULE_TONE.academic}
           title={t('emptyTitle')}
           body={all.length === 0 ? t('empty') : t('emptyFiltered')}
+          first={all.length === 0 ? te('emptyState.pages.extracurriculars') : undefined}
+          canAct={manage || all.length > 0}
           action={
             manage &&
             all.length === 0 && (

@@ -1,12 +1,10 @@
 'use client';
 
-import { useQueryClient } from '@tanstack/react-query';
 import {
   BookOpen,
   Building2,
   LayoutDashboard,
   LifeBuoy,
-  LogOut,
   type LucideIcon,
   Receipt,
   School,
@@ -18,14 +16,14 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useEffect } from 'react';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { AppHeader, MobileNavDrawer } from '@/components/app-header';
 import { Logo } from '@/components/logo';
-import { ThemeToggle } from '@/components/theme-toggle';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, UserAvatar } from '@/components/ui-kit';
+import { UserMenu } from '@/components/user-menu';
 import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { AccountProvider, useAccount, useAccountQuery } from './account-context';
@@ -67,7 +65,7 @@ function FoundationPicker() {
   const t = useTranslations('account.nav');
   if (foundations.length < 2) return null;
   return (
-    <div className="grid gap-1.5 px-3 pb-3 md:px-4">
+    <div className="grid gap-1.5 px-4 pb-3">
       <Label htmlFor="foundation-picker" className="text-xs">
         {t('foundation')}
       </Label>
@@ -90,13 +88,10 @@ function SideNav() {
   const t = useTranslations('account.nav');
   const path = usePathname();
   return (
-    <nav
-      aria-label={t('label')}
-      className="flex gap-1 overflow-x-auto px-3 pb-3 [scrollbar-width:none] md:flex-col md:gap-0.5 md:overflow-visible md:px-4 [&::-webkit-scrollbar]:hidden"
-    >
+    <nav aria-label={t('label')} className="flex flex-col gap-0.5 px-4 pb-4">
       {GROUPS.map((group) => (
-        <div key={group.key} className="contents md:mt-4 md:grid md:gap-0.5 md:first:mt-0">
-          <p className="text-muted-foreground hidden px-3 pt-1 pb-1 text-[11px] font-semibold tracking-wider uppercase md:block">
+        <div key={group.key} className="mt-4 grid gap-0.5 first:mt-0">
+          <p className="text-muted-foreground px-3 pt-1 pb-1 text-[11px] font-semibold tracking-wider uppercase">
             {t(group.key)}
           </p>
           {group.items.map(({ href, key, icon: Icon, exact }) => {
@@ -114,10 +109,7 @@ function SideNav() {
                 )}
               >
                 {active && (
-                  <span
-                    aria-hidden
-                    className="bg-primary absolute inset-y-1.5 left-0 hidden w-0.5 rounded-full md:block"
-                  />
+                  <span aria-hidden className="bg-primary absolute inset-y-1.5 left-0 w-0.5 rounded-full" />
                 )}
                 <Icon className={cn('size-4', active && 'text-primary')} aria-hidden />
                 <span className="flex-1">{t(key)}</span>
@@ -149,42 +141,35 @@ export function AccountShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations('account');
   const tc = useTranslations('common');
   const router = useRouter();
-  const queryClient = useQueryClient();
   const { query, unauthenticated } = useAccountQuery();
 
   useEffect(() => {
     if (unauthenticated) router.replace('/login');
   }, [unauthenticated, router]);
 
-  async function signOut() {
-    await authClient.signOut();
-    queryClient.clear();
-    router.replace('/login');
-  }
-
+  const logoLink = (
+    <Link href="/account" aria-label={t('title')}>
+      <Logo />
+    </Link>
+  );
   const foundations = query.data?.foundations ?? [];
 
+  const account = authClient.useSession().data?.user;
   const controls = (
-    <div className="flex items-center gap-1">
-      <LanguageSwitcher />
-      <ThemeToggle />
-      <Button variant="ghost" size="sm" onClick={signOut}>
-        <LogOut className="size-4" /> {tc('signOut')}
-      </Button>
-    </div>
+    <UserMenu
+      profileHref="/account/profile"
+      name={account?.name}
+      email={account?.email}
+      image={account?.image}
+    />
   );
 
   if (!query.data || foundations.length === 0) {
     // Memuat, galat, atau akun ini bukan pengelola lembaga: belum ada menu untuk ditampilkan.
     return (
       <div className="flex flex-1 flex-col">
-        <header className="bg-background/80 sticky top-0 z-20 flex items-center justify-between gap-3 border-b p-3 backdrop-blur md:px-6">
-          <Link href="/account" aria-label={t('title')}>
-            <Logo />
-          </Link>
-          {controls}
-        </header>
-        <div className="mx-auto w-full max-w-6xl flex-1 p-4 md:p-8">
+        <AppHeader leading={logoLink}>{controls}</AppHeader>
+        <div className="mx-auto w-full max-w-7xl flex-1 p-4 md:p-8">
           {(query.isPending || unauthenticated) && (
             <div className="grid gap-4" aria-busy="true">
               <Skeleton className="h-12 w-72" />
@@ -212,25 +197,32 @@ export function AccountShell({ children }: { children: React.ReactNode }) {
     );
   }
 
+  const sidebar = (
+    <>
+      <div className="flex flex-col items-start gap-3 p-4">
+        {logoLink}
+        <FoundationBadge />
+      </div>
+      <FoundationPicker />
+      <SideNav />
+    </>
+  );
+
   return (
     <AccountProvider foundations={foundations}>
       <div className="flex flex-1 flex-col md:flex-row">
-        <aside className="bg-sidebar text-sidebar-foreground border-b md:sticky md:top-0 md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r md:border-b-0">
-          <div className="flex items-center justify-between gap-2 p-3 md:flex-col md:items-start md:gap-3 md:p-4">
-            <Link href="/account" aria-label={t('title')}>
-              <Logo />
-            </Link>
-            <FoundationBadge />
-          </div>
-          <FoundationPicker />
-          <SideNav />
+        <aside className="bg-sidebar text-sidebar-foreground hidden md:sticky md:top-0 md:block md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r">
+          {sidebar}
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="bg-background/80 sticky top-0 z-10 flex items-center justify-end gap-1 border-b p-3 backdrop-blur">
+          <AppHeader
+            mobileNav={<MobileNavDrawer>{sidebar}</MobileNavDrawer>}
+            leading={<span className="md:hidden">{logoLink}</span>}
+          >
             {controls}
-          </header>
-          <main className="mx-auto w-full max-w-6xl min-w-0 flex-1 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 md:p-8">
+          </AppHeader>
+          <main className="mx-auto w-full max-w-7xl min-w-0 flex-1 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 md:p-8">
             {children}
           </main>
         </div>

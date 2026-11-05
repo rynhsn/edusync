@@ -1,6 +1,6 @@
 'use client';
 
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import {
   Award,
   BookHeart,
@@ -9,7 +9,6 @@ import {
   BriefcaseBusiness,
   CalendarDays,
   CalendarRange,
-  ChevronDown,
   ChevronRight,
   ChevronsUpDown,
   ClipboardCheck,
@@ -25,14 +24,11 @@ import {
   Globe,
   GraduationCap,
   HardHat,
-  HeartHandshake,
   KeyRound,
   Landmark,
   LayoutDashboard,
-  LogOut,
   Mail,
   Megaphone,
-  Menu,
   MessageCircle,
   MoonStar,
   PenLine,
@@ -44,7 +40,6 @@ import {
   SlidersHorizontal,
   Sprout,
   Trophy,
-  UserCog,
   UserPlus,
   UserRound,
   Users,
@@ -55,10 +50,8 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createContext, useContext, useEffect, useState } from 'react';
-import { LanguageSwitcher } from '@/components/language-switcher';
+import { AppHeader, MobileNavDrawer } from '@/components/app-header';
 import { Logo } from '@/components/logo';
-import { ThemeToggle } from '@/components/theme-toggle';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import {
@@ -67,10 +60,10 @@ import {
   DropdownMenuGroup,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
+import { UserMenu, useSignOut } from '@/components/user-menu';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import { isPortalOnly, isPortalPath } from '@/lib/portal-access';
@@ -456,7 +449,6 @@ function SidebarNav({
 }) {
   const t = useTranslations('nav');
   const [openGroups, setOpenGroups] = useState<string[]>([]);
-  const [mobileOpen, setMobileOpen] = useState(false);
 
   const allowed = (n: NavItem) =>
     (n.permission === null ||
@@ -476,13 +468,11 @@ function SidebarNav({
     matches(n.href) &&
     !all.some((o) => o.href !== n.href && o.href.startsWith(`${n.href}/`) && matches(o.href));
   const activeGroup = groups.find((g) => g.key !== null && g.items.some(isActive))?.key ?? null;
-  const activeItem = all.find(isActive);
 
-  // Kelompok yang berisi halaman aktif selalu terbuka; menu mobile menutup setelah berpindah halaman.
+  // Kelompok yang berisi halaman aktif selalu terbuka; laci mobile menutup sendiri (MobileNavDrawer).
   // biome-ignore lint/correctness/useExhaustiveDependencies: hanya bereaksi pada perubahan halaman
   useEffect(() => {
     if (activeGroup) setOpenGroups((cur) => (cur.includes(activeGroup) ? cur : [...cur, activeGroup]));
-    setMobileOpen(false);
   }, [pathname]);
 
   const toggle = (key: string) =>
@@ -511,26 +501,8 @@ function SidebarNav({
   };
 
   return (
-    <div className="px-3 pb-3 md:px-4">
-      <button
-        type="button"
-        onClick={() => setMobileOpen((v) => !v)}
-        aria-expanded={mobileOpen}
-        aria-controls="sidebar-menu"
-        className="bg-card flex w-full items-center justify-between gap-2 rounded-lg border px-3 py-2 text-sm font-medium md:hidden"
-      >
-        <span className="flex items-center gap-2">
-          <Menu className="size-4" aria-hidden />
-          {activeItem ? t(activeItem.labelKey) : t('menu')}
-        </span>
-        <ChevronDown className={cn('size-4 transition-transform', mobileOpen && 'rotate-180')} />
-      </button>
-
-      <nav
-        id="sidebar-menu"
-        aria-label={t('menu')}
-        className={cn('mt-2 grid gap-0.5 md:mt-0 md:grid', mobileOpen ? 'grid' : 'hidden')}
-      >
+    <div className="px-4 pb-4">
+      <nav id="sidebar-menu" aria-label={t('menu')} className="grid gap-0.5">
         {groups.map((g) => {
           if (g.key === null) return g.items.map((n) => link(n, false));
           const open = openGroups.includes(g.key);
@@ -588,11 +560,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations('nav');
   const tc = useTranslations('common');
   const tr = useTranslations('roles');
-  const tp = useTranslations('profile');
   const photo = authClient.useSession().data?.user.image ?? undefined;
   const router = useRouter();
   const pathname = usePathname();
-  const queryClient = useQueryClient();
   const site = useSite();
 
   // Sumber kebenaran sesi adalah API: 401 dari /v1/me berarti belum masuk.
@@ -620,11 +590,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     if (strayFromPortal) router.replace('/portal');
   }, [strayFromPortal, router]);
 
-  async function signOut() {
-    await authClient.signOut();
-    queryClient.clear();
-    router.replace('/login');
-  }
+  const signOut = useSignOut();
 
   const roleLabel = (key: string) => (tr.has(key as never) ? tr(key as never) : key);
 
@@ -677,7 +643,6 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     can: (p) => permissions.has(p),
     hasModule: (m) => school.modules.includes(m),
   };
-  const initials = user.name.slice(0, 2).toUpperCase();
   const roles = school.roles.map(roleLabel).join(', ') || tr('none');
 
   // Kerangka ringan untuk wali/siswa: tanpa menu samping, nyaman di ponsel.
@@ -685,119 +650,87 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return (
       <SchoolContext.Provider value={value}>
         <div className="flex flex-1 flex-col">
-          <header className="bg-background/90 sticky top-0 z-20 flex items-center justify-between gap-2 border-b p-3 backdrop-blur">
-            <div className="flex min-w-0 items-center gap-3">
-              <Logo />
-              <span className="text-muted-foreground hidden truncate text-sm sm:inline">
-                {school.schoolName}
-              </span>
-            </div>
-            <div className="flex items-center gap-1">
-              <LanguageSwitcher />
-              <ThemeToggle />
-              <DropdownMenu>
-                <DropdownMenuTrigger
-                  render={<Button variant="ghost" className="h-auto gap-2 py-1" aria-label={user.name} />}
-                >
-                  <Avatar className="size-7">
-                    {photo && <AvatarImage src={photo} alt="" />}
-                    <AvatarFallback>{initials}</AvatarFallback>
-                  </Avatar>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="min-w-56">
-                  <DropdownMenuGroup>
-                    <DropdownMenuLabel className="font-normal">
-                      <span className="block text-sm font-medium">{user.name}</span>
-                      <span className="text-muted-foreground block text-xs">{user.email}</span>
-                      <span className="text-muted-foreground block text-xs">{roles}</span>
-                    </DropdownMenuLabel>
-                  </DropdownMenuGroup>
-                  <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={() => router.push('/profile')}>
-                    <UserCog className="size-4" /> {tp('menu')}
-                  </DropdownMenuItem>
-                  <DropdownMenuItem onClick={signOut}>
-                    <LogOut className="size-4" /> {tc('signOut')}
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </header>
+          <AppHeader
+            leading={
+              <>
+                <Logo />
+                <span className="text-muted-foreground hidden truncate text-sm sm:inline">
+                  {school.schoolName}
+                </span>
+              </>
+            }
+          >
+            <UserMenu
+              profileHref="/profile"
+              name={user.name}
+              email={user.email}
+              image={photo}
+              detail={roles}
+            />
+          </AppHeader>
           <main className="flex-1 p-4 md:p-8">{children}</main>
         </div>
       </SchoolContext.Provider>
     );
   }
 
+  const sidebar = (
+    <>
+      <div className="flex flex-col items-stretch gap-5 p-4">
+        <span className="hidden md:block">
+          <Logo />
+        </span>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={<Button variant="outline" className="bg-card h-auto justify-between py-2 md:w-full" />}
+          >
+            <span className="truncate text-left">
+              <span className="block truncate text-sm font-medium">{school.schoolName}</span>
+              <span className="text-muted-foreground block truncate text-xs">{roles}</span>
+            </span>
+            <ChevronsUpDown className="size-4 shrink-0 opacity-60" />
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="min-w-60">
+            <DropdownMenuGroup>
+              <DropdownMenuLabel>{t('switchSchool')}</DropdownMenuLabel>
+              {memberships.map((m) => (
+                <DropdownMenuItem
+                  key={m.schoolId}
+                  // Pindah sekolah = pindah alamat. Sekolah yang sedang dibuka tidak perlu berpindah.
+                  onClick={() => m.schoolSlug !== slug && goToSchool(site, m.schoolSlug)}
+                >
+                  <span className="flex-1 truncate">{m.schoolName}</span>
+                  {m.schoolId === school.schoolId && <Badge variant="secondary">{t('active')}</Badge>}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuGroup>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
+
+      <SidebarNav permissions={permissions} modules={school.modules} pathname={pathname} />
+    </>
+  );
+
   return (
     <SchoolContext.Provider value={value}>
       <div className="flex flex-1 flex-col md:flex-row">
-        <aside className="bg-sidebar text-sidebar-foreground border-b md:sticky md:top-0 md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r md:border-b-0">
-          <div className="flex items-center justify-between gap-2 p-3 md:flex-col md:items-stretch md:gap-5 md:p-4">
-            <Logo />
-
-            <DropdownMenu>
-              <DropdownMenuTrigger
-                render={
-                  <Button variant="outline" className="bg-card h-auto justify-between py-2 md:w-full" />
-                }
-              >
-                <span className="truncate text-left">
-                  <span className="block truncate text-sm font-medium">{school.schoolName}</span>
-                  <span className="text-muted-foreground block truncate text-xs">{roles}</span>
-                </span>
-                <ChevronsUpDown className="size-4 shrink-0 opacity-60" />
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="min-w-60">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel>{t('switchSchool')}</DropdownMenuLabel>
-                  {memberships.map((m) => (
-                    <DropdownMenuItem
-                      key={m.schoolId}
-                      // Pindah sekolah = pindah alamat. Sekolah yang sedang dibuka tidak perlu berpindah.
-                      onClick={() => m.schoolSlug !== slug && goToSchool(site, m.schoolSlug)}
-                    >
-                      <span className="flex-1 truncate">{m.schoolName}</span>
-                      {m.schoolId === school.schoolId && <Badge variant="secondary">{t('active')}</Badge>}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuGroup>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          <SidebarNav permissions={permissions} modules={school.modules} pathname={pathname} />
+        <aside className="bg-sidebar text-sidebar-foreground hidden md:sticky md:top-0 md:block md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r">
+          {sidebar}
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center justify-end gap-1 border-b p-3">
-            <LanguageSwitcher />
-            <ThemeToggle />
-            <DropdownMenu>
-              <DropdownMenuTrigger render={<Button variant="ghost" className="h-auto gap-2 py-1" />}>
-                <Avatar className="size-7">
-                  {photo && <AvatarImage src={photo} alt="" />}
-                  <AvatarFallback>{initials}</AvatarFallback>
-                </Avatar>
-                <span className="hidden text-sm sm:inline">{user.name}</span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="min-w-56">
-                <DropdownMenuGroup>
-                  <DropdownMenuLabel className="font-normal">
-                    <span className="block text-sm font-medium">{user.name}</span>
-                    <span className="text-muted-foreground block text-xs">{user.email}</span>
-                  </DropdownMenuLabel>
-                </DropdownMenuGroup>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => router.push('/profile')}>
-                  <UserCog className="size-4" /> {tp('menu')}
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={signOut}>
-                  <LogOut className="size-4" /> {tc('signOut')}
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </header>
+          <AppHeader
+            mobileNav={<MobileNavDrawer>{sidebar}</MobileNavDrawer>}
+            leading={
+              <span className="md:hidden">
+                <Logo />
+              </span>
+            }
+          >
+            <UserMenu profileHref="/profile" name={user.name} email={user.email} image={photo} />
+          </AppHeader>
           <main className="flex-1 p-4 md:p-8">{children}</main>
         </div>
       </div>

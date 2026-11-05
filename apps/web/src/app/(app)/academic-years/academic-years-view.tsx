@@ -6,6 +6,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import { ListSkeleton, REVEAL } from '@/components/master-kit';
 import { PageBody, PageHeader } from '@/components/page-header';
@@ -206,11 +207,13 @@ export function AcademicYearsView() {
         </Alert>
       )}
       {list.data?.length === 0 && (
-        <EmptyPanel
+        <EmptyState
           icon={CalendarDays}
           tone={MODULE_TONE.master}
           title={t('empty')}
-          body={manage ? t('emptyManage') : t('emptyReadonly')}
+          body={t('subtitle')}
+          first={te('emptyState.pages.years')}
+          canAct={manage}
           action={createButton}
         />
       )}

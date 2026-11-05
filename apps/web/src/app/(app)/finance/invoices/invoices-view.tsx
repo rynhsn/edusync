@@ -22,6 +22,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
+import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -714,7 +715,14 @@ export function InvoicesView() {
         </Alert>
       )}
       {list.data?.items.length === 0 && (
-        <EmptyPanel icon={FileText} tone="amber" title={t('noInvoices')} body={t('noInvoicesHint')} />
+        <EmptyState
+          icon={FileText}
+          tone="amber"
+          title={t('noInvoices')}
+          body={t('noInvoicesHint')}
+          first={te('emptyState.pages.invoices')}
+          canAct={manage}
+        />
       )}
 
       {list.data && list.data.items.length > 0 && (

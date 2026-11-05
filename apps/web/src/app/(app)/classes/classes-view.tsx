@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import { LevelField } from '@/components/level-field';
 import { ConfirmDelete, ListSkeleton, REVEAL, RowMenu, SearchBox } from '@/components/master-kit';
@@ -540,11 +541,13 @@ export function ClassesView() {
 
           {classes.isPending && <ListSkeleton rows={4} />}
           {classes.data && classRows.length === 0 && (
-            <EmptyPanel
+            <EmptyState
               icon={School}
               tone={MODULE_TONE.master}
               title={t('emptyTitle')}
-              body={manage ? t('emptyBody') : tm('empty')}
+              body={t('emptyBody')}
+              first={te('emptyState.pages.classes')}
+              canAct={manage}
               action={addButton}
             />
           )}

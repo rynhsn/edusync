@@ -74,6 +74,7 @@ export function RoleWelcome({ kind, childHref }: Props) {
       progressLabel={t('progress', { n: steps.length })}
       openLabel={t('open')}
       dismissLabel={t('dismiss')}
+      variant="welcome"
     />
   );
 }

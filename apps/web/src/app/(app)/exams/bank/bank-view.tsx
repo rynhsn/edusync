@@ -8,9 +8,9 @@ import { toast } from 'sonner';
 import { ActionMenu } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
-import { PrerequisiteNotice } from '@/components/prerequisite-notice';
 import { RichText } from '@/components/rich-text';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -87,7 +87,6 @@ const fromQuestion = (q: Question): Draft => ({
 /** Bank soal per mata pelajaran: pilihan ganda dan esai, dengan rumus dan gambar. */
 export function BankView() {
   const t = useTranslations('exams');
-  const tp = useTranslations('schoolOnboarding.prereq');
   const te = useTranslations();
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
@@ -255,27 +254,26 @@ export function BankView() {
           ))}
         </div>
       ) : subjectList.length === 0 ? (
-        <>
-          <PrerequisiteNotice title={tp('bankBlockedTitle')} missing={['subjects']} />
-          <EmptyPanel
-            icon={FileQuestion}
-            tone="violet"
-            title={t('noSubjectsTitle')}
-            body={t('noSubjectsBody')}
-          />
-        </>
+        <EmptyState
+          icon={FileQuestion}
+          tone="violet"
+          title={t('noSubjectsTitle')}
+          body={t('noSubjectsBody')}
+          needs={['subjects']}
+          canAct={author}
+        />
       ) : items.length === 0 ? (
-        <EmptyPanel
+        <EmptyState
           icon={FileQuestion}
           tone="violet"
           title={t('emptyTitle')}
           body={t('emptyBody')}
+          first={te('emptyState.pages.bank')}
+          canAct={author}
           action={
-            author && (
-              <Button onClick={openNew}>
-                <Plus className="size-4" aria-hidden /> {t('addQuestion')}
-              </Button>
-            )
+            <Button onClick={openNew}>
+              <Plus className="size-4" aria-hidden /> {t('addQuestion')}
+            </Button>
           }
         />
       ) : (
