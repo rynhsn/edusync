@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { formatCalendarDate } from '@/lib/format-date';
+import { useSchoolSettings } from '@/lib/school-settings';
 import { saveBlob } from '@/lib/sheet';
 import { KIND_COLORS, LEGEND, monthName, weekdayNames } from './planner-style';
 
@@ -35,7 +36,7 @@ export function YearView() {
   const { school } = useSchool();
   const header = { header: schoolHeader(school.schoolId) };
   const [yearChoice, setYearChoice] = useState('');
-  const [daysPerWeek, setDaysPerWeek] = useState<5 | 6>(5);
+  const { settings } = useSchoolSettings();
   const [generating, setGenerating] = useState(false);
 
   const years = useQuery({
@@ -47,12 +48,12 @@ export function YearView() {
     years.data?.[0];
 
   const calendar = useQuery({
-    queryKey: ['calendar', school.schoolId, year?.id, daysPerWeek],
+    queryKey: ['calendar', school.schoolId, year?.id, settings.workingDays.join(',')],
     enabled: !!year,
     queryFn: async () =>
       unwrap(
         await api.GET('/v1/academic-years/{id}/calendar', {
-          params: { ...header, path: { id: year?.id as string }, query: { daysPerWeek } },
+          params: { ...header, path: { id: year?.id as string } },
         }),
       ),
   });
@@ -70,9 +71,10 @@ export function YearView() {
         ? buildYearPlanner(
             year,
             calendar.data.events.filter((e) => e.scope === 'school'),
+            settings.workingDays,
           )
         : [],
-    [year, calendar.data],
+    [year, calendar.data, settings.workingDays],
   );
   const heads = weekdayNames(locale);
   const typeLabel = (x: EventType) => t(x);
@@ -156,17 +158,6 @@ export function YearView() {
                 {y.name}
               </option>
             ))}
-          </SelectField>
-        </div>
-        <div className="grid gap-2">
-          <Label htmlFor="year-week">{t('workweek')}</Label>
-          <SelectField
-            id="year-week"
-            value={String(daysPerWeek)}
-            onChange={(e) => setDaysPerWeek(e.target.value === '6' ? 6 : 5)}
-          >
-            <option value="5">{t('days5')}</option>
-            <option value="6">{t('days6')}</option>
           </SelectField>
         </div>
       </div>

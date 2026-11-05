@@ -90,7 +90,12 @@ const PRIORITY: EventType[] = ['holiday', 'break', 'exam', 'activity'];
  * Kalender tahunan: satu grid per bulan dari bulan mulai sampai bulan akhir tahun ajaran. Hari di luar rentang
  * tahun ajaran tetap tampil tetapi tanpa penanda. Minggu dimulai hari Senin.
  */
-export function buildYearPlanner(range: DayRange, events: PlannerEvent[]): PlannerMonth[] {
+export function buildYearPlanner(
+  range: DayRange,
+  events: PlannerEvent[],
+  /** Hari efektif sekolah (1 = Senin ... 7 = Minggu); hari lain ditandai akhir pekan. Bawaan Senin-Jumat. */
+  workingDays: readonly number[] = [1, 2, 3, 4, 5],
+): PlannerMonth[] {
   const from = parse(range.startsOn);
   const to = parse(range.endsOn);
   const start = new Date(from);
@@ -101,8 +106,8 @@ export function buildYearPlanner(range: DayRange, events: PlannerEvent[]): Plann
     if (ms < from || ms > to) return null;
     const hit = events.filter((e) => ms >= parse(e.startsOn) && ms <= parse(e.endsOn)).map((e) => e.type);
     for (const t of PRIORITY) if (hit.includes(t)) return t;
-    const wd = new Date(ms).getUTCDay();
-    return wd === 0 || wd === 6 ? 'weekend' : null;
+    const wd = new Date(ms).getUTCDay() || 7; // 1 = Senin ... 7 = Minggu
+    return workingDays.includes(wd) ? null : 'weekend';
   };
 
   const firstIndex = start.getUTCFullYear() * 12 + start.getUTCMonth();

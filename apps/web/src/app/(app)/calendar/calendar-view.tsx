@@ -39,6 +39,7 @@ import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
+import { useSchoolSettings } from '@/lib/school-settings';
 import { cn } from '@/lib/utils';
 
 const TYPES = ['holiday', 'break', 'exam', 'activity'] as const;
@@ -73,7 +74,10 @@ function isoOf(d: Date): string {
 }
 
 /** Sel grid bulan (YYYY-MM), pekan mulai Senin, selalu kelipatan 7 hari. */
-function monthGrid(month: string): { iso: string; day: number; inMonth: boolean; weekend: boolean }[] {
+function monthGrid(
+  month: string,
+  workingDays: readonly number[],
+): { iso: string; day: number; inMonth: boolean; weekend: boolean }[] {
   const [y, m] = month.split('-').map(Number) as [number, number];
   const first = new Date(Date.UTC(y, m - 1, 1));
   const lead = (first.getUTCDay() + 6) % 7;
@@ -84,7 +88,8 @@ function monthGrid(month: string): { iso: string; day: number; inMonth: boolean;
       iso: d.toISOString().slice(0, 10),
       day: d.getUTCDate(),
       inMonth: d.getUTCMonth() === m - 1,
-      weekend: i % 7 >= 5,
+      // Hari di luar hari efektif sekolah (pengaturan sekolah), bukan Sabtu-Minggu secara tetap.
+      weekend: !workingDays.includes((i % 7) + 1),
     };
   });
 }
@@ -99,7 +104,7 @@ export function CalendarView() {
   const manage = can('academic_year:manage');
 
   const [yearChoice, setYearChoice] = useState('');
-  const [daysPerWeek, setDaysPerWeek] = useState<5 | 6>(5);
+  const { settings } = useSchoolSettings();
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
 
@@ -110,12 +115,13 @@ export function CalendarView() {
   const yearId = yearChoice || years.data?.find((y) => y.isActive)?.id || years.data?.[0]?.id || '';
 
   const calendar = useQuery({
-    queryKey: ['calendar', school.schoolId, yearId, daysPerWeek],
+    // Hari efektif dihitung server dari pengaturan sekolah; ikut di kunci agar segar saat pengaturan berubah.
+    queryKey: ['calendar', school.schoolId, yearId, settings.workingDays.join(',')],
     enabled: !!yearId,
     queryFn: async () =>
       unwrap(
         await api.GET('/v1/academic-years/{id}/calendar', {
-          params: { ...header, path: { id: yearId }, query: { daysPerWeek } },
+          params: { ...header, path: { id: yearId } },
         }),
       ),
   });
@@ -181,7 +187,7 @@ export function CalendarView() {
   })();
   const month = cursor ?? defaultMonth;
   const events = calendar.data?.events ?? [];
-  const monthDays = monthGrid(month);
+  const monthDays = monthGrid(month, settings.workingDays);
   const monthEvents = events.filter((e) => e.startsOn.slice(0, 7) <= month && e.endsOn.slice(0, 7) >= month);
   const covering = (iso: string) => events.filter((e) => e.startsOn <= iso && e.endsOn >= iso);
   const agenda = picked ? covering(picked) : agendaAll ? events : monthEvents;
@@ -345,15 +351,6 @@ export function CalendarView() {
                   {y.name}
                 </option>
               ))}
-            </SelectField>
-            <SelectField
-              aria-label={t('workweek')}
-              className="sm:w-52"
-              value={String(daysPerWeek)}
-              onChange={(e) => setDaysPerWeek(e.target.value === '6' ? 6 : 5)}
-            >
-              <option value="5">{t('days5')}</option>
-              <option value="6">{t('days6')}</option>
             </SelectField>
           </Toolbar>
 

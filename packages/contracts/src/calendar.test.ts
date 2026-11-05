@@ -64,6 +64,17 @@ describe('buildYearPlanner', () => {
     expect(cell('2026-07-24').kind).toBeNull();
   });
 
+  it('akhir pekan mengikuti hari efektif sekolah (Senin-Sabtu: Sabtu bukan libur, hanya Minggu)', () => {
+    const range = { startsOn: '2026-07-13', endsOn: '2026-07-31' };
+    const cell = (months: ReturnType<typeof buildYearPlanner>, d: string) =>
+      months[0]!.weeks.flat().find((c) => c.date === d && c.inMonth)!;
+    const sixDays = buildYearPlanner(range, [], [1, 2, 3, 4, 5, 6]);
+    expect(cell(sixDays, '2026-07-18').kind).toBeNull(); // Sabtu efektif
+    expect(cell(sixDays, '2026-07-19').kind).toBe('weekend'); // Minggu
+    const fiveDays = buildYearPlanner(range, []);
+    expect(cell(fiveDays, '2026-07-18').kind).toBe('weekend');
+  });
+
   it('tahun ajaran penuh mencakup 12 bulan', () => {
     expect(buildYearPlanner({ startsOn: '2026-07-13', endsOn: '2027-06-30' }, [])).toHaveLength(12);
   });
