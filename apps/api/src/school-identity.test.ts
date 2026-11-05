@@ -142,10 +142,16 @@ describe('identitas sekolah', () => {
       phone: '022-123456',
       fax: '022-654321',
       email: 'Info@Contoh.sch.id',
-      website: 'https://contoh.sch.id',
+      // Tanpa skema: dilengkapi https://, bukan ditolak.
+      website: 'contoh.sch.id',
     });
     expect(res.statusCode, res.body).toBe(200);
-    expect(res.json()).toMatchObject({ email: 'info@contoh.sch.id', fax: '022-654321', village: null });
+    expect(res.json()).toMatchObject({
+      email: 'info@contoh.sch.id',
+      fax: '022-654321',
+      village: null,
+      website: 'https://contoh.sch.id',
+    });
   });
 
   it('logo: tolak isi yang bukan gambar, terima PNG, ganti, hapus, dan layani publik', async () => {

@@ -12,6 +12,7 @@ import {
   auditLog,
   changeOrder,
   type Db,
+  desc,
   entitlement,
   eq,
   foundation,
@@ -211,6 +212,18 @@ export async function getRegistration(db: Db, registrationId: string, userId: st
         .where(eq(school.foundationId, reg.foundationId))
     : [];
   return { reg, invoice: inv, schools };
+}
+
+/** Pendaftaran terbaru milik pengguna (untuk melanjutkan pembayaran setelah halaman bayar tertutup). */
+export async function latestRegistration(db: Db, userId: string) {
+  const [row] = await db
+    .select({ id: registration.id })
+    .from(registration)
+    .where(eq(registration.userId, userId))
+    .orderBy(desc(registration.createdAt))
+    .limit(1);
+  if (!row) throw new DomainError(404, 'not_found', 'Belum ada pendaftaran.');
+  return getRegistration(db, row.id, userId);
 }
 
 async function uniqueFoundationSlug(tx: Tx, base: string) {

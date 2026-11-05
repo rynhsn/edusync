@@ -1,9 +1,10 @@
 'use client';
 
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, unwrap } from '@/lib/api';
@@ -16,7 +17,7 @@ import { goToSchool, useSite } from '@/lib/site';
  * - Alamat sekolah → dashboard sekolah itu.
  * - Alamat utama: staf platform → konsol; anggota sekolah → dipindahkan ke alamat sekolahnya.
  */
-export function GatewayView() {
+export function GatewayView({ landing }: { landing: ReactNode }) {
   const t = useTranslations('nav');
   const tc = useTranslations('common');
   const router = useRouter();
@@ -48,10 +49,24 @@ export function GatewayView() {
     queryFn: async () => unwrap(await api.GET('/v1/account')),
   });
 
+  // Pendaftar yang menutup halaman bayar harus bisa melanjutkan, bukan buntu di "belum terdaftar".
+  const latest = useQuery({
+    queryKey: ['registration-latest'],
+    enabled: !!me.data && site.ready && site.kind === 'main',
+    queryFn: async () => {
+      const res = await api.GET('/v1/registrations/latest');
+      return res.response.ok ? unwrap(res) : null;
+    },
+  });
+
   useEffect(() => {
     if (site.ready && site.custom) return void router.replace('/site');
     if (!site.ready || me.isPending || me.isError) return;
-    if (me.data === null) return void router.replace('/login');
+    if (me.data === null) {
+      // Alamat utama menampilkan profil perusahaan; alamat sekolah langsung ke login.
+      if (site.kind === 'main') return;
+      return void router.replace('/login');
+    }
     if (site.kind === 'school') {
       // Wali/siswa mendarat di portal, staf di dasbor.
       const here = me.data.memberships.find((m) => m.schoolSlug === site.slug);
@@ -93,8 +108,11 @@ export function GatewayView() {
     !staff.isPending &&
     !staff.data &&
     !owner.isPending &&
+    !latest.isPending &&
     !owner.data?.foundations.length &&
     me.data.memberships.length === 0;
+  const reg = latest.data;
+  const regExpired = !!reg && (reg.status === 'expired' || new Date(reg.expiresAt) < new Date());
 
   if (me.isError || moveFailed) {
     return (
@@ -109,6 +127,44 @@ export function GatewayView() {
         >
           {tc('retry')}
         </Button>
+      </div>
+    );
+  }
+
+  if (site.ready && !site.custom && site.kind === 'main' && me.data === null) return landing;
+
+  if (noSchool && reg && reg.status !== 'paid') {
+    return (
+      <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
+        <p className="font-medium">
+          {t(regExpired ? 'expiredTitle' : 'resumeTitle', { name: reg.foundationName })}
+        </p>
+        <p className="text-muted-foreground text-sm">{t(regExpired ? 'expiredBody' : 'resumeBody')}</p>
+        <div className="flex flex-wrap justify-center gap-2">
+          {regExpired ? (
+            <Button nativeButton={false} render={<Link href="/register" />}>
+              {t('registerAgain')}
+            </Button>
+          ) : (
+            <>
+              {reg.paymentUrl && (
+                <Button nativeButton={false} render={<a href={reg.paymentUrl} />}>
+                  {t('resumePay')}
+                </Button>
+              )}
+              <Button
+                variant="outline"
+                nativeButton={false}
+                render={<Link href={`/register/status/${reg.id}`} />}
+              >
+                {t('resumeStatus')}
+              </Button>
+            </>
+          )}
+          <Button variant="ghost" onClick={signOut}>
+            {tc('signOut')}
+          </Button>
+        </div>
       </div>
     );
   }

@@ -35,8 +35,13 @@ const identityBody = z.object({
     .union([z.literal(''), z.email().max(254)])
     .nullish()
     .transform((v) => (v ? v.toLowerCase() : null)),
+  // Alamat tanpa skema ("www.sekolah.sch.id") dilengkapi https:// daripada ditolak dengan "data tidak valid".
   website: z
-    .union([z.literal(''), z.url({ protocol: /^https?$/ }).max(300)])
+    .preprocess(
+      (v) =>
+        typeof v === 'string' && v.trim() && !/^https?:\/\//i.test(v.trim()) ? `https://${v.trim()}` : v,
+      z.union([z.literal(''), z.url({ protocol: /^https?$/ }).max(300)]),
+    )
     .nullish()
     .transform((v) => v || null),
 });

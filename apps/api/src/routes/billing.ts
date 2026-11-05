@@ -4,6 +4,7 @@ import {
   getRegistration,
   handlePaymentEvent,
   InvalidWebhookError,
+  latestRegistration,
   signDevEvent,
   slugStatus,
 } from '@edusync/billing';
@@ -42,6 +43,28 @@ const outcomeSchema = z.object({
 export async function billingRoutes(instance: FastifyInstance, options: { env: Env }) {
   const app = instance.withTypeProvider<ZodTypeProvider>();
   const { env } = options;
+
+  /**
+   * Cadangan webhook: bila pendaftaran masih menunggu, tanya penyedia langsung (dibatasi sekali per 4 detik per
+   * pesanan). Galat jaringan atau transaksi yang belum ada diabaikan; tanda tangan tetap diverifikasi.
+   */
+  const lastChecked = new Map<string, number>();
+  async function reconcile(registrationId: string, userId: string) {
+    const { reg, invoice: inv } = await getRegistration(app.platformDb, registrationId, userId);
+    if (reg.status !== 'pending_payment' || !inv?.providerRef) return;
+    const provider = await app.payments.get();
+    if (!provider.fetchStatus) return;
+    if (Date.now() - (lastChecked.get(inv.providerRef) ?? 0) < 4000) return;
+    lastChecked.set(inv.providerRef, Date.now());
+    try {
+      const body = await provider.fetchStatus(inv.providerRef);
+      if (!body || typeof body !== 'object') return;
+      const event = provider.parseWebhook(body);
+      await handlePaymentEvent(app.platformDb, provider.name, event, body as Record<string, unknown>);
+    } catch (error) {
+      app.log.warn({ err: error }, 'rekonsiliasi pembayaran gagal');
+    }
+  }
 
   app.get(
     '/v1/catalog',
@@ -169,6 +192,43 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
   );
 
   app.get(
+    '/v1/registrations/latest',
+    {
+      onRequest: [requireUser],
+      schema: {
+        tags: ['Billing'],
+        summary: 'Pendaftaran terbaru milik saya',
+        description:
+          'Dipakai agar pendaftar yang belum membayar bisa melanjutkan pembayaran setelah halaman bayar tertutup. ' +
+          '404 bila pengguna belum pernah mendaftar.',
+        response: {
+          200: z.object({
+            id: z.uuid(),
+            status: z.enum(['pending_payment', 'paid', 'expired']),
+            foundationName: z.string(),
+            expiresAt: z.iso.datetime(),
+            paymentUrl: z.string().nullable(),
+          }),
+          401: errorSchema,
+          404: errorSchema,
+        },
+      },
+    },
+    async (request) => {
+      const first = await latestRegistration(app.platformDb, request.userId as string);
+      await reconcile(first.reg.id, request.userId as string);
+      const { reg, invoice: inv } = await latestRegistration(app.platformDb, request.userId as string);
+      return {
+        id: reg.id,
+        status: reg.status,
+        foundationName: reg.foundationName,
+        expiresAt: reg.expiresAt.toISOString(),
+        paymentUrl: inv?.paymentUrl ?? null,
+      };
+    },
+  );
+
+  app.get(
     '/v1/registrations/:id',
     {
       onRequest: [requireUser],
@@ -194,6 +254,7 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
       },
     },
     async (request) => {
+      await reconcile(request.params.id, request.userId as string);
       const {
         reg,
         invoice: inv,

@@ -350,6 +350,24 @@ describe('pendaftaran dan aktivasi otomatis', () => {
     ).json();
     expect((await get(`/v1/registrations/${created.registrationId}`, b.cookie)).statusCode).toBe(404);
   });
+
+  it('pendaftar yang menutup halaman bayar bisa menemukan pendaftaran terbarunya', async () => {
+    const a = await makeUser('terbaru-a');
+    const b = await makeUser('terbaru-b');
+    expect((await get('/v1/registrations/latest', a.cookie)).statusCode).toBe(404);
+    const created = (
+      await register(a.cookie, {
+        foundationName: 'Yayasan Terbaru',
+        period: 'monthly',
+        units: [units('terbaru')[0]],
+      })
+    ).json();
+    const latest = (await get('/v1/registrations/latest', a.cookie)).json();
+    expect(latest).toMatchObject({ id: created.registrationId, status: 'pending_payment' });
+    expect(latest.paymentUrl).toBe(created.paymentUrl);
+    // Milik orang lain tidak bocor.
+    expect((await get('/v1/registrations/latest', b.cookie)).statusCode).toBe(404);
+  });
 });
 
 describe('portal akun pemilik yayasan', () => {

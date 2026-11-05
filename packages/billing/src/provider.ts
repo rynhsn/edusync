@@ -42,6 +42,11 @@ export interface PaymentProvider {
   createCharge(request: ChargeRequest): Promise<Charge>;
   /** Verifikasi tanda tangan dan ubah isi webhook menjadi PaymentEvent. Melempar InvalidWebhookError. */
   parseWebhook(body: unknown): PaymentEvent;
+  /**
+   * Tanya penyedia langsung status transaksi (cadangan bila webhook tidak sampai). Hasilnya berbentuk sama
+   * dengan isi webhook, jadi lewat `parseWebhook` yang sama (tanda tangan tetap diverifikasi). Null bila belum ada.
+   */
+  fetchStatus?(orderId: string): Promise<unknown | null>;
 }
 
 const safeEqual = (a: string, b: string) => {
@@ -144,6 +149,19 @@ function midtransProvider(env: PaymentConfig): PaymentProvider {
       if (!res.ok || !data.redirect_url)
         throw new Error(`Midtrans menolak pembuatan transaksi (${res.status})`);
       return { paymentUrl: data.redirect_url };
+    },
+    async fetchStatus(orderId) {
+      const base = env.midtransSnapUrl.includes('sandbox')
+        ? 'https://api.sandbox.midtrans.com'
+        : 'https://api.midtrans.com';
+      const res = await fetch(`${base}/v2/${encodeURIComponent(orderId)}/status`, {
+        headers: {
+          accept: 'application/json',
+          authorization: `Basic ${Buffer.from(`${serverKey}:`).toString('base64')}`,
+        },
+        signal: AbortSignal.timeout(5000),
+      });
+      return res.ok ? ((await res.json().catch(() => null)) as unknown) : null;
     },
     parseWebhook(body) {
       const n = body as MidtransNotification;
