@@ -5,11 +5,13 @@ import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { NAV_GROUPS, useSchool } from '@/components/app-shell';
 import { PageBody, PageHeader } from '@/components/page-header';
+import { StaffWelcomeGate } from '@/components/role-welcome';
 import { SchoolMapView } from '@/components/school-map/school-map-view';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { AnnouncementsWidget } from './announcements-widget';
+import { SchoolOnboardingCard } from './school-onboarding-card';
 import { useDashboardView } from './view-mode';
 
 /** Pilih antara peta sekolah hidup dan tampilan standar; pilihan diingat di peramban. */
@@ -47,6 +49,8 @@ export function DashboardView() {
         description={`${school.schoolName} · ${t(view === 'map' ? 'subtitleMap' : 'subtitle')}`}
         actions={toggle}
       />
+      <StaffWelcomeGate />
+      <SchoolOnboardingCard />
       {view === 'map' ? <SchoolMapView /> : <StandardDashboard />}
     </PageBody>
   );

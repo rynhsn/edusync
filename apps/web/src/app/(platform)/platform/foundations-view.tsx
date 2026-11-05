@@ -32,6 +32,7 @@ import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { FoundationDetail } from './foundation-detail';
 import { type Foundation, QueryError, ReasonDialog, SUB_KEY, SUB_TONE, useMoney } from './platform-kit';
+import { StaffOnboarding } from './staff-onboarding';
 
 const FILTERS = ['all', 'active', 'past_due', 'suspended', 'canceled', 'none'] as const;
 type Filter = (typeof FILTERS)[number];
@@ -141,6 +142,8 @@ export function FoundationsView() {
   return (
     <PageBody>
       <PageHeader icon={Building2} tone="teal" title={t('dashTitle')} description={t('dashSubtitle')} />
+
+      <StaffOnboarding />
 
       {overview.isError && <QueryError error={overview.error} onRetry={() => overview.refetch()} />}
       <StatGrid className="lg:grid-cols-3">

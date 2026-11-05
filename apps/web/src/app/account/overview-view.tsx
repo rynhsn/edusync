@@ -23,6 +23,7 @@ import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { goPay, useAccount } from './account-context';
 import { PeriodBar, periodStats, SubscriptionBadge } from './account-ui';
+import { OwnerOnboarding, SchoolsQuickOpen } from './onboarding';
 
 export function OverviewView() {
   const t = useTranslations('account');
@@ -69,6 +70,9 @@ export function OverviewView() {
         </Alert>
       )}
 
+      <OwnerOnboarding />
+      <SchoolsQuickOpen />
+
       <StatGrid>
         <StatCard label={t('statUnits')} value={f.schools.length} icon={School} tone="teal" />
         <StatCard
@@ -102,6 +106,14 @@ export function OverviewView() {
             {sub ? <SubscriptionBadge status={sub.status} /> : <ToneBadge>{t('noSubscription')}</ToneBadge>}
           </CardHeader>
           <CardContent className="grid gap-4">
+            {!sub && (
+              <p className="text-muted-foreground text-sm">
+                {te('accountOnboarding.noSubscription')}{' '}
+                <Link href="/account/billing" className="text-primary underline-offset-4 hover:underline">
+                  {t('nav.billing')}
+                </Link>
+              </p>
+            )}
             {sub && (
               <>
                 <p className="text-muted-foreground text-sm">

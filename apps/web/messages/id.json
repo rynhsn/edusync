@@ -107,6 +107,13 @@
     "active": "aktif",
     "noSchoolTitle": "Akun Anda belum terdaftar di sekolah mana pun.",
     "noSchoolBody": "Hubungi admin sekolah atau lembaga Anda untuk diundang.",
+    "resumeTitle": "Pendaftaran {name} belum dibayar.",
+    "resumeBody": "Selesaikan pembayaran agar lembaga dan sekolah Anda diaktifkan.",
+    "resumePay": "Lanjutkan pembayaran",
+    "resumeStatus": "Cek status pendaftaran",
+    "expiredTitle": "Pendaftaran {name} sudah kedaluwarsa.",
+    "expiredBody": "Waktu pembayaran habis. Daftarkan lembaga Anda kembali.",
+    "registerAgain": "Daftar ulang",
     "loadError": "Data akun tidak dapat dimuat. Periksa koneksi lalu coba lagi.",
     "notMemberTitle": "Anda bukan anggota sekolah ini.",
     "notMemberBody": "Masuk dengan akun yang terdaftar di sekolah ini, atau hubungi admin sekolah untuk diundang.",
@@ -238,6 +245,59 @@
     "viewMap": "Tampilan peta",
     "viewStandard": "Tampilan standar",
     "subtitleMap": "Denyut sekolah hari ini, langsung dari data."
+  },
+  "schoolOnboarding": {
+    "title": "Panduan awal sekolah",
+    "description": "Lengkapi data dasar berikut secara berurutan. Centang otomatis muncul begitu datanya ada.",
+    "progress": "{done} dari {total} langkah",
+    "open": "Buka",
+    "dismiss": "Tutup panduan",
+    "steps": {
+      "identity": {
+        "label": "Isi identitas sekolah",
+        "hint": "Nama resmi, alamat, dan kontak dipakai di kop lembar ujian, surat, dan situs sekolah."
+      },
+      "levels": {
+        "label": "Atur jenjang dan tingkat kelas",
+        "hint": "Daftar tingkat (misalnya 7, 8, 9) dipakai saat membuat kelas dan soal."
+      },
+      "year": {
+        "label": "Buat tahun ajaran dan semesternya",
+        "hint": "Kelas, jadwal, nilai, dan ujian selalu menempel pada tahun ajaran dan semester."
+      },
+      "subjects": {
+        "label": "Tambah mata pelajaran",
+        "hint": "Diperlukan untuk jadwal, nilai, bank soal, dan ujian."
+      },
+      "classes": {
+        "label": "Buat kelas",
+        "hint": "Kelas menampung siswa dan menjadi dasar absensi, jadwal, nilai, dan ujian."
+      },
+      "teachers": {
+        "label": "Tambah guru",
+        "hint": "Guru ditetapkan sebagai wali kelas dan pengampu mata pelajaran."
+      },
+      "students": {
+        "label": "Tambah atau impor siswa",
+        "hint": "Isi satu per satu atau impor dari Excel, lalu tempatkan ke kelas."
+      },
+      "examTypes": {
+        "label": "Atur jenis ujian",
+        "hint": "Contoh ASTS dan ASAS. Jenis ujian dipilih saat membuat ujian."
+      }
+    },
+    "prereq": {
+      "askAdmin": "Hubungi admin sekolah untuk menambahkannya.",
+      "subjectsText": "Belum ada mata pelajaran. Setiap ujian dan soal dibuat untuk satu mata pelajaran.",
+      "subjectsCta": "Tambah mata pelajaran",
+      "semestersText": "Belum ada tahun ajaran dengan semester. Ujian dicatat pada satu semester.",
+      "semestersCta": "Atur tahun ajaran",
+      "examTypesText": "Belum ada jenis ujian (misalnya ASTS atau ASAS). Tidak wajib, tetapi memudahkan penamaan dan pengelompokan.",
+      "examTypesCta": "Atur jenis ujian",
+      "examBlockedTitle": "Tombol Tambah ujian belum bisa dipakai. Lengkapi dulu:",
+      "examSoftTitle": "Disarankan sebelum menambah ujian",
+      "bankBlockedTitle": "Soal belum bisa ditambah. Lengkapi dulu:"
+    }
   },
   "academicYears": {
     "title": "Tahun ajaran",
@@ -4128,10 +4188,10 @@
       "absent": "Alpa"
     },
     "gradesEmptyTitle": "Belum ada nilai",
-    "gradesEmptyBody": "Nilai akan tampil setelah guru memasukkannya.",
+    "gradesEmptyBody": "Belum ada nilai yang dimasukkan guru untuk semester ini. Nilai tampil di sini otomatis begitu guru menyimpannya.",
     "kkm": "KKM {value}",
     "invoicesEmptyTitle": "Belum ada tagihan",
-    "invoicesEmptyBody": "Tagihan sekolah akan tampil di sini.",
+    "invoicesEmptyBody": "Belum ada tagihan untuk saat ini, jadi tidak ada yang perlu dibayar. Tagihan baru tampil di sini begitu sekolah menerbitkannya.",
     "outstandingTotal": "Total yang belum dibayar",
     "allPaid": "Semua lunas",
     "dueOn": "Jatuh tempo {date}",
@@ -4179,6 +4239,56 @@
       "fluent": "Lancar",
       "fair": "Cukup",
       "repeat": "Ulang"
+    }
+  },
+  "roleWelcome": {
+    "staffTitle": "Selamat datang! Ini yang bisa Anda kerjakan",
+    "staffDescription": "Menu di kiri hanya menampilkan fitur yang diizinkan untuk peran Anda. Berikut pintasannya.",
+    "guardianTitle": "Selamat datang di portal wali",
+    "guardianDescription": "Semua kabar tentang putra/putri Anda ada di sini. Bagian yang masih kosong akan terisi setelah sekolah mencatatnya.",
+    "studentTitle": "Selamat datang di portal siswa",
+    "studentDescription": "Lihat kehadiran, nilai, dan kerjakan ujian di layar. Bagian yang kosong terisi setelah guru atau sekolah mencatatnya.",
+    "progress": "{n} hal yang bisa dibuka",
+    "open": "Buka",
+    "dismiss": "Tutup panduan",
+    "noneOpen": "Tidak ada ujian yang terbuka sekarang. Tombol Mulai muncul di ujian yang jadwalnya sedang berjalan; halaman ini diperbarui otomatis.",
+    "staff": {
+      "schedule": { "label": "Jadwal pelajaran", "hint": "Lihat jam mengajar dan kelas Anda." },
+      "attendance": { "label": "Rekap absensi", "hint": "Pantau kehadiran siswa per hari dan per kelas." },
+      "lessons": {
+        "label": "Absensi per jam",
+        "hint": "Catat kehadiran siswa di setiap jam pelajaran Anda."
+      },
+      "grades": { "label": "Penilaian", "hint": "Masukkan dan periksa nilai siswa untuk mapel Anda." },
+      "exams": { "label": "Ujian", "hint": "Buat ujian, jadwalkan, dan nilai hasilnya." },
+      "questionBank": {
+        "label": "Bank soal",
+        "hint": "Simpan soal agar bisa dipakai ulang di banyak ujian."
+      },
+      "announcements": { "label": "Pengumuman", "hint": "Baca kabar dan agenda terbaru dari sekolah." },
+      "tahfidz": { "label": "Tahfidz", "hint": "Catat setoran hafalan siswa di halaqah Anda." },
+      "docs": { "label": "Dokumentasi", "hint": "Panduan langkah demi langkah untuk setiap fitur." }
+    },
+    "guardian": {
+      "attendance": {
+        "label": "Kehadiran",
+        "hint": "Rekap harian. Kosong bila sekolah belum mencatat absensi."
+      },
+      "grades": { "label": "Nilai", "hint": "Muncul setelah guru memasukkan nilai." },
+      "invoices": {
+        "label": "Tagihan",
+        "hint": "Tagihan, sisa bayar, dan kwitansi. Kosong berarti belum ada tagihan."
+      },
+      "reports": { "label": "Rapor", "hint": "Tersedia untuk diunduh setelah sekolah menerbitkannya." }
+    },
+    "student": {
+      "exams": {
+        "label": "Ujian di layar",
+        "hint": "Lihat jadwal dan kerjakan saat ujian dibuka. Kosong berarti guru belum menjadwalkan."
+      },
+      "attendance": { "label": "Kehadiran saya", "hint": "Rekap kehadiran bulanan." },
+      "grades": { "label": "Nilai saya", "hint": "Muncul setelah guru memasukkan nilai." },
+      "invoices": { "label": "Tagihan", "hint": "Tagihan sekolah dan statusnya." }
     }
   },
   "portalAdmin": {
@@ -4554,7 +4664,7 @@
     "studentOnlyTitle": "Hanya untuk akun siswa",
     "studentOnlyBody": "Ujian di layar dikerjakan siswa dengan akunnya sendiri. Wali dapat melihat hasil di halaman anak.",
     "emptyTitle": "Belum ada ujian",
-    "emptyBody": "Ujian di layar yang dijadwalkan guru akan muncul di sini.",
+    "emptyBody": "Tidak ada ujian di layar untuk kelasmu saat ini. Ujian yang dijadwalkan guru akan muncul di sini, lengkap dengan waktu dibukanya.",
     "state": {
       "unscheduled": "Belum dijadwalkan",
       "upcoming": "Segera",
@@ -4875,6 +4985,39 @@
     "linkBody": "Tampilkan situs di alamat milik sekolah.",
     "linkOpen": "Kelola domain"
   },
+  "accountOnboarding": {
+    "title": "Mulai di sini",
+    "description": "Tiga hal singkat supaya sekolah Anda siap dipakai.",
+    "progress": "{done} dari {total} langkah",
+    "open": "Buka",
+    "dismiss": "Tutup panduan",
+    "payLabel": "Pastikan langganan aktif dan tagihan lunas",
+    "payHint": "Sekolah hanya bisa dipakai selama langganan aktif.",
+    "payCta": "Lihat tagihan",
+    "schoolLabel": "Buka sekolah Anda dan isi data induk",
+    "schoolHint": "Di dalam sekolah: lengkapi identitas sekolah, tambah kelas, lalu undang admin dan guru lewat menu Anggota.",
+    "schoolCta": "Pilih sekolah",
+    "yourSchools": "Sekolah Anda",
+    "yourSchoolsBody": "Klik Buka sekolah untuk masuk ke panel sekolah. Guru dan staf tidak masuk lewat sini; undang mereka dari menu Anggota di dalam sekolah.",
+    "opening": "Membuka...",
+    "openError": "Tidak dapat membuka sekolah. Coba lagi.",
+    "allUnits": "Semua unit",
+    "noSubscription": "Belum ada langganan aktif untuk lembaga ini. Buka Tagihan dan pembayaran untuk menyelesaikannya.",
+    "guide": "Baca panduan awal"
+  },
+  "platformOnboarding": {
+    "title": "Mulai di sini",
+    "description": "Atur ini lebih dulu supaya pendaftaran, pembayaran, dan email berjalan.",
+    "progress": "{done} dari {total} langkah",
+    "open": "Buka",
+    "dismiss": "Tutup panduan",
+    "emailLabel": "Atur email keluar (SMTP) di konsol",
+    "emailHint": "Tanpa ini kode OTP dan undangan memakai Mailpit lokal dan tidak sampai ke penerima.",
+    "paymentLabel": "Atur penyedia pembayaran",
+    "paymentHint": "Pilih Midtrans dan isi kunci server. Setelah itu tinjau juga parameter penagihan di halaman yang sama.",
+    "catalogLabel": "Periksa katalog dan paket",
+    "catalogHint": "Pendaftaran butuh harga dasar, minimal satu tingkat siswa, dan satu paket aktif."
+  },
   "platformEmail": {
     "title": "Email",
     "subtitle": "Server email keluar untuk kode OTP, undangan, dan pemberitahuan. Berlaku tanpa restart.",
@@ -4904,5 +5047,79 @@
     "testTo": "Kirim ke",
     "testSend": "Kirim email uji",
     "testSent": "Email uji terkirim. Periksa kotak masuk."
+  },
+  "landing": {
+    "metaTitle": "Edusync — Platform manajemen sekolah untuk yayasan dan banyak unit",
+    "metaDescription": "Edusync membantu satu lembaga mengelola banyak unit sekolah: akademik, absensi, nilai dan rapor, keuangan, ujian CBT, PPDB, portal wali, dan situs web sekolah.",
+    "skip": "Lewati ke konten utama",
+    "navLabel": "Navigasi utama",
+    "navFeatures": "Fitur",
+    "navHow": "Cara kerja",
+    "navAudience": "Untuk siapa",
+    "navSecurity": "Keamanan",
+    "login": "Masuk",
+    "register": "Daftarkan lembaga",
+    "eyebrow": "Platform manajemen sekolah multi-lembaga",
+    "heroTitle": "Satu platform untuk seluruh unit sekolah di lembaga Anda",
+    "heroBody": "Yayasan dapat mengelola SMP, SMK, dan unit lainnya dalam satu tempat. Setiap sekolah punya alamat sendiri, data yang terpisah, dan hak akses sesuai peran.",
+    "heroPrimary": "Daftarkan lembaga",
+    "heroSecondary": "Masuk ke akun",
+    "heroPreviewLabel": "Contoh alamat sekolah",
+    "heroPreviewMain": "Satu lembaga",
+    "heroPreviewDomain": "Atau pakai domain sendiri milik sekolah",
+    "featuresTitle": "Semua kebutuhan sekolah dalam satu sistem",
+    "featuresBody": "Dari ruang kelas sampai kantor tata usaha, modul-modul Edusync saling terhubung.",
+    "f1Title": "Akademik dan kurikulum",
+    "f1Body": "Kelola tahun ajaran, kelas, mata pelajaran, dan kurikulum tiap unit sekolah.",
+    "f2Title": "Absensi",
+    "f2Body": "Catat kehadiran siswa dengan cepat dan lihat rekapnya.",
+    "f3Title": "Buku nilai dan rapor",
+    "f3Body": "Guru mengisi nilai, lalu rapor tersusun dari data yang sama.",
+    "f4Title": "Keuangan dan tagihan SPP",
+    "f4Body": "Terbitkan tagihan, pantau pembayaran, dan kelola administrasi keuangan sekolah.",
+    "f5Title": "Ujian CBT dan cetak",
+    "f5Body": "Bank soal, ujian berbasis komputer atau cetak, serta pemindaian lembar jawaban OMR.",
+    "f6Title": "PPDB / penerimaan siswa",
+    "f6Body": "Terima pendaftar baru secara daring dan proses seleksinya di satu tempat.",
+    "f7Title": "Portal wali dan siswa",
+    "f7Body": "Wali murid dan siswa melihat informasi yang relevan dengan akun masing-masing.",
+    "f8Title": "Situs web dan pengumuman",
+    "f8Body": "Setiap sekolah memiliki situs web publik dengan pengumuman yang mudah diperbarui.",
+    "f9Title": "Identitas sekolah",
+    "f9Body": "Atur nama, logo, dan data identitas sekolah yang dipakai di seluruh dokumen.",
+    "f10Title": "Hak akses per peran",
+    "f10Body": "Setiap pengguna hanya melihat dan mengubah apa yang menjadi tanggung jawabnya.",
+    "howTitle": "Mulai dalam tiga langkah",
+    "howBody": "Tanpa instalasi: cukup buka peramban.",
+    "s1Title": "Daftarkan lembaga",
+    "s1Body": "Buat akun lembaga atau yayasan Anda.",
+    "s2Title": "Atur unit sekolah",
+    "s2Body": "Tambahkan tiap sekolah, beri alamatnya sendiri, lalu undang guru dan staf.",
+    "s3Title": "Mulai dipakai",
+    "s3Body": "Guru, tata usaha, wali, dan siswa masuk dan bekerja sesuai perannya.",
+    "audienceTitle": "Dirancang untuk semua orang di sekolah",
+    "a1Title": "Yayasan",
+    "a1Body": "Melihat dan mengelola banyak unit sekolah dari satu akun.",
+    "a2Title": "Kepala sekolah",
+    "a2Body": "Memantau jalannya sekolah dan mengatur akses staf.",
+    "a3Title": "Guru",
+    "a3Body": "Mengisi absensi, nilai, dan menyelenggarakan ujian.",
+    "a4Title": "Tata usaha dan keuangan",
+    "a4Body": "Mengurus administrasi, data siswa, tagihan, dan pembayaran.",
+    "a5Title": "Wali murid dan siswa",
+    "a5Body": "Mengakses informasi dan layanan sekolah lewat portal.",
+    "securityTitle": "Data tiap sekolah terpisah",
+    "securityBody": "Banyak sekolah dalam satu lembaga tidak berarti data bercampur.",
+    "sec1Title": "Terpisah per sekolah",
+    "sec1Body": "Data setiap sekolah diisolasi dari sekolah lain.",
+    "sec2Title": "Izin mengikuti peran",
+    "sec2Body": "Akses ditentukan oleh peran tiap orang, bukan sekadar akun.",
+    "sec3Title": "Alamat sendiri",
+    "sec3Body": "Tiap sekolah dibuka lewat alamat khususnya, atau domain sendiri.",
+    "ctaTitle": "Siap merapikan administrasi sekolah Anda?",
+    "ctaBody": "Daftarkan lembaga Anda dan atur unit sekolah pertama hari ini.",
+    "footerTagline": "Platform manajemen sekolah multi-lembaga.",
+    "footerCopyright": "© {year} Edusync. Hak cipta dilindungi.",
+    "footerNav": "Tautan"
   }
 }

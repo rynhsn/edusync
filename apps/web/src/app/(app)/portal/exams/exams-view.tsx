@@ -28,6 +28,7 @@ const BADGE: Record<State, string> = {
 /** Daftar ujian di layar untuk siswa: jadwal, status, dan tombol mulai/lanjutkan. */
 export function ExamsView() {
   const t = useTranslations('examCbt');
+  const tw = useTranslations('roleWelcome');
   const locale = useLocale() as Locale;
   const { school } = useSchool();
   const now = useTick();
@@ -73,6 +74,14 @@ export function ExamsView() {
         </Alert>
       )}
       {exams.data?.length === 0 && <EmptyState title={t('emptyTitle')} body={t('emptyBody')} />}
+
+      {exams.data &&
+        exams.data.length > 0 &&
+        !exams.data.some((x) => x.state === 'open' || x.state === 'in_progress') && (
+          <Alert>
+            <AlertDescription>{tw('noneOpen')}</AlertDescription>
+          </Alert>
+        )}
 
       <ul className="grid gap-3">
         {exams.data?.map((x) => {

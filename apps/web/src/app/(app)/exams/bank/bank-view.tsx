@@ -10,6 +10,7 @@ import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
+import { PrerequisiteNotice } from '@/components/prerequisite-notice';
 import { RichText } from '@/components/rich-text';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -86,6 +87,7 @@ const fromQuestion = (q: Question): Draft => ({
 /** Bank soal per mata pelajaran: pilihan ganda dan esai, dengan rumus dan gambar. */
 export function BankView() {
   const t = useTranslations('exams');
+  const tp = useTranslations('schoolOnboarding.prereq');
   const te = useTranslations();
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
@@ -253,12 +255,15 @@ export function BankView() {
           ))}
         </div>
       ) : subjectList.length === 0 ? (
-        <EmptyPanel
-          icon={FileQuestion}
-          tone="violet"
-          title={t('noSubjectsTitle')}
-          body={t('noSubjectsBody')}
-        />
+        <>
+          <PrerequisiteNotice title={tp('bankBlockedTitle')} missing={['subjects']} />
+          <EmptyPanel
+            icon={FileQuestion}
+            tone="violet"
+            title={t('noSubjectsTitle')}
+            body={t('noSubjectsBody')}
+          />
+        </>
       ) : items.length === 0 ? (
         <EmptyPanel
           icon={FileQuestion}

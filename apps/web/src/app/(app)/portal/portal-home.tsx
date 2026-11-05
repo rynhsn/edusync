@@ -4,6 +4,7 @@ import { BookHeart, ChevronRight, ClipboardCheck, Coins, Sparkles, Star } from '
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useSchool } from '@/components/app-shell';
+import { RoleWelcome } from '@/components/role-welcome';
 import { Button } from '@/components/ui/button';
 import { ApiError } from '@/lib/api';
 import { formatRupiah } from '@/lib/money';
@@ -141,6 +142,15 @@ export function PortalHome() {
         </h1>
         <p className="text-muted-foreground mt-1 max-w-md text-sm">{t('heroSub')}</p>
       </section>
+
+      {me.data?.linked && (
+        <RoleWelcome
+          kind={me.data.kind === 'student' ? 'student' : 'guardian'}
+          childHref={
+            me.data.children.length === 1 ? `/portal/children/${me.data.children[0]?.id}` : undefined
+          }
+        />
+      )}
 
       {me.data?.kind === 'student' && (
         <Link

@@ -5,6 +5,116 @@ export type { DocArticle, DocIcon, DocLocale, DocSection, DocText, DocTone } fro
 /** Panduan Portal Akun untuk pengelola lembaga: langganan, tagihan, unit, keamanan, dan cara membuka sekolah. Isi: id, en, su. */
 export const DOC_ARTICLES: DocArticle[] = [
   {
+    slug: 'first-steps',
+    icon: 'rocket',
+    tone: 'emerald',
+    group: 'start',
+    text: {
+      id: {
+        title: 'Panduan awal pengelola lembaga',
+        summary:
+          'Kartu Mulai di sini di Ringkasan menuntun Anda dari pembayaran sampai membuka sekolah dan mengundang tim.',
+        forWho: 'Pengelola lembaga yang baru selesai mendaftar dan membayar.',
+        sections: [
+          {
+            heading: 'Memakai kartu Mulai di sini',
+            body: 'Kartu ini muncul di Ringkasan dan hilang sendiri bila semua langkah selesai. Anda juga bisa menutupnya dengan tombol X; penutupan hanya berlaku di peramban yang Anda pakai.',
+            steps: [
+              'Buka Ringkasan pada Menu akun.',
+              'Pastikan langganan berstatus aktif dan Tagihan terbuka bernilai nol.',
+              'Pada kartu Sekolah Anda, klik Buka sekolah.',
+            ],
+            href: '/account',
+          },
+          {
+            heading: 'Mengisi sekolah setelah dibuka',
+            body: 'Pekerjaan harian dikerjakan di panel sekolah, bukan di Portal Akun. Mulailah dari identitas sekolah dan data induk.',
+            steps: [
+              'Lengkapi identitas sekolah di Pengaturan sekolah.',
+              'Tambah Tahun ajaran, Kelas, dan Mata pelajaran.',
+              'Buka menu Anggota lalu klik Kirim undangan untuk admin sekolah dan guru.',
+            ],
+            tip: 'Guru dan staf masuk lewat alamat sekolah, bukan lewat Portal Akun. Jangan bagikan kata sandi Anda.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kartu Mulai di sini hilang. Bagaimana menampilkannya lagi?',
+            a: 'Kartu hilang bila semua langkah selesai atau Anda menutupnya. Panduan yang sama selalu ada di artikel ini.',
+          },
+        ],
+      },
+      en: {
+        title: 'Getting started guide for institution managers',
+        summary:
+          'The Start here card on the Overview takes you from payment to opening the school and inviting your team.',
+        forWho: 'Institution managers who have just registered and paid.',
+        sections: [
+          {
+            heading: 'Using the Start here card',
+            body: 'This card appears on the Overview and disappears by itself when every step is done. You can also close it with the X button; closing only applies to the browser you use.',
+            steps: [
+              'Open Overview in the account menu.',
+              'Make sure the subscription is active and Open invoices is zero.',
+              'On the Your schools card, click Open school.',
+            ],
+            href: '/account',
+          },
+          {
+            heading: 'Filling in the school once it is open',
+            body: 'Daily work happens in the school panel, not in the Account Portal. Start with the school identity and master data.',
+            steps: [
+              'Complete the school identity in School settings.',
+              'Add the Academic year, Classes, and Subjects.',
+              'Open Members and click Send invitation for school admins and teachers.',
+            ],
+            tip: 'Teachers and staff sign in through the school address, not the Account Portal. Never share your password.',
+          },
+        ],
+        faq: [
+          {
+            q: 'The Start here card is gone. How do I see it again?',
+            a: 'The card disappears when every step is done or when you close it. The same guide is always available in this article.',
+          },
+        ],
+      },
+      su: {
+        title: 'Pituduh awal pangurus lembaga',
+        summary:
+          'Kartu Mimitian ti dieu di Ringkesan nungtun Anjeun ti pamayaran nepi ka muka sakola jeung ngulem tim.',
+        forWho: 'Pangurus lembaga nu karék réngsé ngadaptar jeung mayar.',
+        sections: [
+          {
+            heading: 'Maké kartu Mimitian ti dieu',
+            body: 'Kartu ieu aya di Ringkesan sarta leungit sorangan lamun sakabéh léngkah geus réngsé. Anjeun ogé bisa nutupna ku tombol X; panutupan ngan lumaku di pangbaruan nu dipaké.',
+            steps: [
+              'Buka Ringkesan dina Menu akun.',
+              'Pastikeun langganan aktif jeung Tagihan kabuka nol.',
+              'Dina kartu Sakola Anjeun, klik Buka sakola.',
+            ],
+            href: '/account',
+          },
+          {
+            heading: 'Ngeusian sakola sanggeus dibuka',
+            body: 'Gawé unggal poé dilakukeun di panel sakola, lain di Portal Akun. Mimitian ti identitas sakola jeung data induk.',
+            steps: [
+              'Lengkepan identitas sakola di Setélan sakola.',
+              'Tambihan Taun ajar, Kelas, jeung Mata pelajaran.',
+              'Buka menu Anggota terus klik Kirim uleman pikeun admin sakola jeung guru.',
+            ],
+            tip: 'Guru jeung staf lebet lewat alamat sakola, lain lewat Portal Akun. Ulah bagikeun kecap akses Anjeun.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kartu Mimitian ti dieu leungit. Kumaha nampilkeun deui?',
+            a: 'Kartu leungit lamun sakabéh léngkah réngsé atawa Anjeun nutupna. Pituduh nu sarua salawasna aya dina artikel ieu.',
+          },
+        ],
+      },
+    },
+  },
+  {
     slug: 'getting-started',
     icon: 'rocket',
     tone: 'teal',

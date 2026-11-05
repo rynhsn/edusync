@@ -10,6 +10,7 @@ import { ActionMenu } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { PageBody, PageHeader } from '@/components/page-header';
+import { type PrerequisiteKind, PrerequisiteNotice } from '@/components/prerequisite-notice';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { SelectField } from '@/components/ui/select-field';
@@ -33,6 +34,7 @@ type ExamRow = ExamLike & {
 /** Daftar ujian: saring menurut semester, mapel, dan status; buka halaman susun per ujian. */
 export function ExamsView() {
   const t = useTranslations('examList');
+  const tp = useTranslations('schoolOnboarding.prereq');
   const te = useTranslations();
   const locale = useLocale() as Locale;
   const { school, can } = useSchool();
@@ -83,8 +85,19 @@ export function ExamsView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
+  const types = useQuery({
+    queryKey: ['exam-types', school.schoolId],
+    queryFn: async () => unwrap(await api.GET('/v1/exam/types', { params: header })),
+  });
+
   const list = (exams.data ?? []) as ExamRow[];
   const subjectList = subjects.data ?? [];
+  // Prasyarat: ujian butuh mapel dan semester; jenis ujian tidak wajib tetapi dianjurkan.
+  const missing: PrerequisiteKind[] = [];
+  if (subjects.data && subjectList.length === 0) missing.push('subjects');
+  if (semesters.data && semesters.data.length === 0) missing.push('semesters');
+  const blocked = missing.length > 0;
+  if (types.data && types.data.length === 0) missing.push('examTypes');
 
   function openNew() {
     setEditing(null);
@@ -98,12 +111,16 @@ export function ExamsView() {
         description={t('subtitle')}
         actions={
           author && (
-            <Button onClick={openNew} disabled={subjectList.length === 0}>
+            <Button onClick={openNew} disabled={blocked}>
               <Plus className="size-4" aria-hidden /> {t('addExam')}
             </Button>
           )
         }
       />
+
+      {author && missing.length > 0 && (
+        <PrerequisiteNotice title={tp(blocked ? 'examBlockedTitle' : 'examSoftTitle')} missing={missing} />
+      )}
 
       <Toolbar>
         <div className="w-56">
@@ -166,7 +183,7 @@ export function ExamsView() {
           body={t('emptyBody')}
           action={
             author && (
-              <Button onClick={openNew} disabled={subjectList.length === 0}>
+              <Button onClick={openNew} disabled={blocked}>
                 <Plus className="size-4" aria-hidden /> {t('addExam')}
               </Button>
             )

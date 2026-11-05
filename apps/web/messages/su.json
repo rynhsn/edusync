@@ -107,6 +107,13 @@
     "active": "aktif",
     "noSchoolTitle": "Akun Anjeun can kadaptar di sakola mana waé.",
     "noSchoolBody": "Hubungi admin sakola atawa lembaga Anjeun pikeun diondang.",
+    "resumeTitle": "Pendaptaran {name} acan dibayar.",
+    "resumeBody": "Réngsékeun pamayaran supados lembaga sareng sakola Anjeun diaktipkeun.",
+    "resumePay": "Teraskeun pamayaran",
+    "resumeStatus": "Pariksa status pendaptaran",
+    "expiredTitle": "Pendaptaran {name} geus kadaluwarsa.",
+    "expiredBody": "Waktos pamayaran parantos béak. Daptarkeun deui lembaga Anjeun.",
+    "registerAgain": "Daptar deui",
     "loadError": "Data akun teu bisa dimuat. Parios sambungan, teras cobian deui.",
     "notMemberTitle": "Anjeun lain anggota sakola ieu.",
     "notMemberBody": "Lebet nganggo akun nu kadaptar di sakola ieu, atawa hubungi admin sakola pikeun diondang.",
@@ -238,6 +245,59 @@
     "viewMap": "Tampilan peta",
     "viewStandard": "Tampilan baku",
     "subtitleMap": "Denyut sakola poé ieu, langsung tina data."
+  },
+  "schoolOnboarding": {
+    "title": "Pituduh awal sakola",
+    "description": "Lengkapan data dasar ieu sacara berurutan. Tanda centang muncul otomatis sanggeus datana aya.",
+    "progress": "{done} ti {total} léngkah",
+    "open": "Buka",
+    "dismiss": "Tutup pituduh",
+    "steps": {
+      "identity": {
+        "label": "Eusian identitas sakola",
+        "hint": "Ngaran resmi, alamat, jeung kontak dipaké dina kop lambar ujian, surat, jeung situs sakola."
+      },
+      "levels": {
+        "label": "Atur jenjang jeung tingkat kelas",
+        "hint": "Daptar tingkat (contona 7, 8, 9) dipaké nalika nyieun kelas jeung soal."
+      },
+      "year": {
+        "label": "Jieun taun pangajaran jeung semesterna",
+        "hint": "Kelas, jadwal, nilai, jeung ujian salawasna nempel kana taun pangajaran jeung semester."
+      },
+      "subjects": {
+        "label": "Tambahkeun mata pelajaran",
+        "hint": "Diperlukeun pikeun jadwal, nilai, bank soal, jeung ujian."
+      },
+      "classes": {
+        "label": "Jieun kelas",
+        "hint": "Kelas ngandung siswa jeung jadi dasar absénsi, jadwal, nilai, jeung ujian."
+      },
+      "teachers": {
+        "label": "Tambahkeun guru",
+        "hint": "Guru ditetepkeun jadi wali kelas jeung pangampu mata pelajaran."
+      },
+      "students": {
+        "label": "Tambahkeun atawa impor siswa",
+        "hint": "Eusian hiji-hiji atawa impor tina Excel, tuluy panggihan kana kelas."
+      },
+      "examTypes": {
+        "label": "Atur jenis ujian",
+        "hint": "Contona ASTS jeung ASAS. Jenis ujian dipilih nalika nyieun ujian."
+      }
+    },
+    "prereq": {
+      "askAdmin": "Hubungi admin sakola pikeun nambahkeunana.",
+      "subjectsText": "Can aya mata pelajaran. Unggal ujian jeung soal dijieun pikeun hiji mata pelajaran.",
+      "subjectsCta": "Tambahkeun mata pelajaran",
+      "semestersText": "Can aya taun pangajaran nu boga semester. Ujian dicatet dina hiji semester.",
+      "semestersCta": "Atur taun pangajaran",
+      "examTypesText": "Can aya jenis ujian (contona ASTS atawa ASAS). Teu wajib, tapi ngagampangkeun ngaran jeung pangelompokan.",
+      "examTypesCta": "Atur jenis ujian",
+      "examBlockedTitle": "Tombol Tambah ujian can bisa dipaké. Lengkapan heula:",
+      "examSoftTitle": "Dianjurkeun saméméh nambahkeun ujian",
+      "bankBlockedTitle": "Soal can bisa ditambahkeun. Lengkapan heula:"
+    }
   },
   "academicYears": {
     "title": "Taun pangajaran",
@@ -4128,10 +4188,10 @@
       "absent": "Alpa"
     },
     "gradesEmptyTitle": "Can aya nilai",
-    "gradesEmptyBody": "Nilai bakal muncul sanggeus guru ngalebetkeunana.",
+    "gradesEmptyBody": "Acan aya nilai anu dilebetkeun ku guru pikeun semester ieu. Nilai muncul di dieu sorangan sanggeus guru nyimpenna.",
     "kkm": "KKM {value}",
     "invoicesEmptyTitle": "Can aya tagihan",
-    "invoicesEmptyBody": "Tagihan sakola bakal muncul di dieu.",
+    "invoicesEmptyBody": "Ayeuna acan aya tagihan, jadi euweuh anu kudu dibayar. Tagihan anyar muncul di dieu sanggeus sakola nerbitkeunana.",
     "outstandingTotal": "Total nu can dibayar",
     "allPaid": "Sadayana lunas",
     "dueOn": "Tempo {date}",
@@ -4179,6 +4239,53 @@
       "fluent": "Lancar",
       "fair": "Cekap",
       "repeat": "Ulang"
+    }
+  },
+  "roleWelcome": {
+    "staffTitle": "Wilujeng sumping! Ieu anu tiasa dilakukeun",
+    "staffDescription": "Ménu di kénca ngan nembongkeun fitur anu diidinan pikeun peran Anjeun. Ieu jalan pondokna.",
+    "guardianTitle": "Wilujeng sumping di portal wali",
+    "guardianDescription": "Sagala kabar ngeunaan putra/putri Anjeun aya di dieu. Bagian anu kosong bakal kaeusi sanggeus sakola nyatetna.",
+    "studentTitle": "Wilujeng sumping di portal siswa",
+    "studentDescription": "Tingali kahadiran jeung nilai, tur ngerjakeun ujian dina layar. Bagian anu kosong kaeusi sanggeus guru atawa sakola nyatetna.",
+    "progress": "{n} hal anu tiasa dibuka",
+    "open": "Buka",
+    "dismiss": "Tutup pituduh",
+    "noneOpen": "Teu aya ujian anu muka ayeuna. Tombol Mimitian muncul dina ujian anu jadwalna keur jalan; kaca ieu dianyaran sorangan.",
+    "staff": {
+      "schedule": { "label": "Jadwal pelajaran", "hint": "Tingali jam ngajar jeung kelas Anjeun." },
+      "attendance": { "label": "Rekap absensi", "hint": "Pantau kahadiran siswa per poé jeung per kelas." },
+      "lessons": {
+        "label": "Absensi per jam",
+        "hint": "Catet kahadiran siswa dina unggal jam pelajaran Anjeun."
+      },
+      "grades": { "label": "Penilaian", "hint": "Lebetkeun jeung pariksa nilai siswa pikeun mapel Anjeun." },
+      "exams": { "label": "Ujian", "hint": "Jieun ujian, jadwalkeun, tur nilaian hasilna." },
+      "questionBank": {
+        "label": "Bank soal",
+        "hint": "Simpen soal sangkan bisa dipaké deui dina loba ujian."
+      },
+      "announcements": { "label": "Pengumuman", "hint": "Baca kabar jeung agenda panganyarna ti sakola." },
+      "tahfidz": { "label": "Tahfidz", "hint": "Catet setoran hafalan siswa di halaqah Anjeun." },
+      "docs": { "label": "Dokuméntasi", "hint": "Pituduh léngkah demi léngkah pikeun unggal fitur." }
+    },
+    "guardian": {
+      "attendance": { "label": "Kahadiran", "hint": "Rekap poéan. Kosong upami sakola acan nyatet absensi." },
+      "grades": { "label": "Nilai", "hint": "Muncul sanggeus guru ngalebetkeun nilai." },
+      "invoices": {
+        "label": "Tagihan",
+        "hint": "Tagihan, sésa bayar, jeung kuitansi. Kosong hartosna acan aya tagihan."
+      },
+      "reports": { "label": "Rapor", "hint": "Tiasa diunduh sanggeus sakola nerbitkeunana." }
+    },
+    "student": {
+      "exams": {
+        "label": "Ujian dina layar",
+        "hint": "Tingali jadwal tur kerjakeun nalika ujian muka. Kosong hartosna guru acan ngajadwalkeun."
+      },
+      "attendance": { "label": "Kahadiran abdi", "hint": "Rekap kahadiran bulanan." },
+      "grades": { "label": "Nilai abdi", "hint": "Muncul sanggeus guru ngalebetkeun nilai." },
+      "invoices": { "label": "Tagihan", "hint": "Tagihan sakola jeung statusna." }
     }
   },
   "portalAdmin": {
@@ -4554,7 +4661,7 @@
     "studentOnlyTitle": "Ngan pikeun akun siswa",
     "studentOnlyBody": "Ujian dina layar dikerjakeun ku siswa maké akunna sorangan. Wali bisa nempo hasilna dina kaca anak.",
     "emptyTitle": "Can aya ujian",
-    "emptyBody": "Ujian dina layar anu dijadwalkeun ku guru bakal muncul di dieu.",
+    "emptyBody": "Ayeuna teu aya ujian dina layar pikeun kelas anjeun. Ujian anu dijadwalkeun ku guru bakal muncul di dieu, lengkep jeung waktu muka na.",
     "state": {
       "unscheduled": "Can dijadwalkeun",
       "upcoming": "Geura",
@@ -4875,6 +4982,39 @@
     "linkBody": "Témbongkeun situs dina alamat milik sakola.",
     "linkOpen": "Urus domain"
   },
+  "accountOnboarding": {
+    "title": "Mimitian ti dieu",
+    "description": "Tilu hal pondok sangkan sakola Anjeun siap dipaké.",
+    "progress": "{done} ti {total} léngkah",
+    "open": "Buka",
+    "dismiss": "Tutup pituduh",
+    "payLabel": "Pastikeun langganan aktif jeung tagihan geus lunas",
+    "payHint": "Sakola ngan bisa dipaké salila langganan aktif.",
+    "payCta": "Tingali tagihan",
+    "schoolLabel": "Buka sakola Anjeun terus eusian data induk",
+    "schoolHint": "Di jero sakola: lengkepan identitas sakola, tambihan kelas, terus uleman admin jeung guru lewat menu Anggota.",
+    "schoolCta": "Pilih sakola",
+    "yourSchools": "Sakola Anjeun",
+    "yourSchoolsBody": "Klik Buka sakola pikeun lebet ka panel sakola. Guru jeung staf teu lebet ti dieu; uleman maranéhna tina menu Anggota di jero sakola.",
+    "opening": "Muka...",
+    "openError": "Teu bisa muka sakola. Cobaan deui.",
+    "allUnits": "Sadaya unit",
+    "noSubscription": "Lembaga ieu can boga langganan aktif. Buka Tagihan jeung pamayaran pikeun nyelesaikeunana.",
+    "guide": "Baca pituduh awal"
+  },
+  "platformOnboarding": {
+    "title": "Mimitian ti dieu",
+    "description": "Atur ieu heula sangkan pendaptaran, pamayaran, jeung surélék jalan.",
+    "progress": "{done} ti {total} léngkah",
+    "open": "Buka",
+    "dismiss": "Tutup pituduh",
+    "emailLabel": "Atur surélék kaluar (SMTP) di konsol",
+    "emailHint": "Tanpa ieu kode OTP jeung uleman maké Mailpit lokal sarta teu nepi ka panampi.",
+    "paymentLabel": "Atur panyadia pamayaran",
+    "paymentHint": "Pilih Midtrans terus eusian konci server. Sanggeus éta tinjau ogé parameter penagihan di kaca nu sarua.",
+    "catalogLabel": "Parios katalog jeung pakét",
+    "catalogHint": "Pendaptaran peryogi harga dasar, sahenteuna hiji tingkat siswa, jeung hiji pakét aktif."
+  },
   "platformEmail": {
     "title": "Surélék",
     "subtitle": "Server surélék kaluar pikeun kode OTP, uleman, jeung béwara. Lumaku tanpa restart.",
@@ -4904,5 +5044,79 @@
     "testTo": "Kirim ka",
     "testSend": "Kirim surélék uji",
     "testSent": "Surélék uji geus kakirim. Pariksa kotak lebet."
+  },
+  "landing": {
+    "metaTitle": "Edusync — Platform manajemén sakola pikeun yayasan jeung loba unit",
+    "metaDescription": "Edusync ngabantu hiji lembaga ngokolakeun loba unit sakola: akadémik, absénsi, nilai jeung rapor, kauangan, ujian CBT, PPDB, portal wali, jeung situs wéb sakola.",
+    "skip": "Luncat ka eusi utama",
+    "navLabel": "Navigasi utama",
+    "navFeatures": "Fitur",
+    "navHow": "Cara gawé",
+    "navAudience": "Pikeun saha",
+    "navSecurity": "Kaamanan",
+    "login": "Lebet",
+    "register": "Daftarkeun lembaga",
+    "eyebrow": "Platform manajemén sakola multi-lembaga",
+    "heroTitle": "Hiji platform pikeun sakumna unit sakola di lembaga Anjeun",
+    "heroBody": "Yayasan tiasa ngokolakeun SMP, SMK, jeung unit séjénna dina hiji tempat. Unggal sakola boga alamat nyalira, data anu kapisah, jeung hak aksés luyu jeung peran.",
+    "heroPrimary": "Daftarkeun lembaga",
+    "heroSecondary": "Lebet kana akun",
+    "heroPreviewLabel": "Conto alamat sakola",
+    "heroPreviewMain": "Hiji lembaga",
+    "heroPreviewDomain": "Atawa nganggo domain milik sakola nyalira",
+    "featuresTitle": "Sagala kabutuhan sakola dina hiji sistem",
+    "featuresBody": "Ti rohangan kelas nepi ka kantor tata usaha, modul Edusync nyambung hiji jeung lianna.",
+    "f1Title": "Akadémik jeung kurikulum",
+    "f1Body": "Kokolakeun taun ajar, kelas, mata pelajaran, jeung kurikulum unggal unit sakola.",
+    "f2Title": "Absénsi",
+    "f2Body": "Catet kahadiran siswa gancang tur tingali rekapna.",
+    "f3Title": "Buku nilai jeung rapor",
+    "f3Body": "Guru ngeusian nilai, tuluy rapor disusun tina data anu sarua.",
+    "f4Title": "Kauangan jeung tagihan SPP",
+    "f4Body": "Kaluarkeun tagihan, pantau pamayaran, jeung kokolakeun administrasi kauangan sakola.",
+    "f5Title": "Ujian CBT jeung citak",
+    "f5Body": "Bank soal, ujian basis komputer atawa citak, sarta pamindaian lambar jawaban OMR.",
+    "f6Title": "PPDB / panarimaan siswa",
+    "f6Body": "Tampa pendaptar anyar sacara daring tur prosés seléksina dina hiji tempat.",
+    "f7Title": "Portal wali jeung siswa",
+    "f7Body": "Wali murid jeung siswa nempo inpormasi anu patali jeung akun masing-masing.",
+    "f8Title": "Situs wéb jeung pengumuman",
+    "f8Body": "Unggal sakola boga situs wéb umum kalayan pengumuman anu gampang dianyarkeun.",
+    "f9Title": "Idéntitas sakola",
+    "f9Body": "Atur ngaran, logo, jeung data idéntitas sakola anu dipaké dina sakabéh dokumén.",
+    "f10Title": "Hak aksés per peran",
+    "f10Body": "Unggal pamaké ngan ukur nempo jeung ngarobah naon anu jadi tanggung jawabna.",
+    "howTitle": "Mimitian dina tilu léngkah",
+    "howBody": "Teu kudu masang nanaon: cukup buka panyungsi.",
+    "s1Title": "Daftarkeun lembaga",
+    "s1Body": "Jieun akun lembaga atawa yayasan Anjeun.",
+    "s2Title": "Atur unit sakola",
+    "s2Body": "Tambahkeun unggal sakola, pasihan alamat nyalira, tuluy uleman guru jeung staf.",
+    "s3Title": "Mimiti dipaké",
+    "s3Body": "Guru, tata usaha, wali, jeung siswa lebet sarta digawé luyu jeung perana.",
+    "audienceTitle": "Dirarancang pikeun sakumna jalma di sakola",
+    "a1Title": "Yayasan",
+    "a1Body": "Nempo jeung ngokolakeun loba unit sakola tina hiji akun.",
+    "a2Title": "Kepala sakola",
+    "a2Body": "Mantau jalanna sakola jeung ngatur aksés staf.",
+    "a3Title": "Guru",
+    "a3Body": "Ngeusian absénsi, nilai, jeung ngayakeun ujian.",
+    "a4Title": "Tata usaha jeung kauangan",
+    "a4Body": "Ngurus administrasi, data siswa, tagihan, jeung pamayaran.",
+    "a5Title": "Wali murid jeung siswa",
+    "a5Body": "Ngaksés inpormasi jeung layanan sakola ngaliwatan portal.",
+    "securityTitle": "Data unggal sakola kapisah",
+    "securityBody": "Loba sakola dina hiji lembaga lain hartina data nyampur.",
+    "sec1Title": "Kapisah per sakola",
+    "sec1Body": "Data unggal sakola diasingkeun tina sakola séjénna.",
+    "sec2Title": "Idin nuturkeun peran",
+    "sec2Body": "Aksés ditangtukeun ku peran unggal jalma, lain ngan ukur boga akun.",
+    "sec3Title": "Alamat nyalira",
+    "sec3Body": "Unggal sakola dibuka ngaliwatan alamat husus, atawa domain nyalira.",
+    "ctaTitle": "Geus siap ngarapihkeun administrasi sakola Anjeun?",
+    "ctaBody": "Daftarkeun lembaga Anjeun tuluy atur unit sakola munggaran ayeuna.",
+    "footerTagline": "Platform manajemén sakola multi-lembaga.",
+    "footerCopyright": "© {year} Edusync. Hak cipta kajaga.",
+    "footerNav": "Tautan"
   }
 }

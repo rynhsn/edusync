@@ -3,6 +3,116 @@ import type { DocArticle } from '@/lib/docs-types';
 /** Panduan konsol platform untuk staf operasional EduSync, disusun menurut pekerjaan. Isi: id, en, su. */
 export const PLATFORM_DOCS: DocArticle[] = [
   {
+    slug: 'first-setup',
+    icon: 'rocket',
+    tone: 'emerald',
+    group: 'config',
+    text: {
+      id: {
+        title: 'Pengaturan awal konsol',
+        summary:
+          'Tiga hal yang perlu diatur staf admin lebih dulu: email keluar, penyedia pembayaran, dan katalog paket.',
+        forWho: 'Staf dengan peran Admin platform yang pertama kali memakai konsol.',
+        sections: [
+          {
+            heading: 'Kartu Mulai di sini',
+            body: 'Di halaman Lembaga & unit muncul kartu Mulai di sini bagi Admin platform. Centangnya dihitung dari pengaturan yang tersimpan, dan kartu hilang bila semuanya beres.',
+            href: '/platform',
+          },
+          {
+            heading: 'Email keluar (SMTP)',
+            body: 'Selama belum disimpan di konsol, kode OTP dan undangan memakai Mailpit lokal sehingga tidak sampai ke pengguna.',
+            steps: [
+              'Buka menu Email.',
+              'Isi host, port, pengguna, kata sandi, dan alamat pengirim lalu klik Simpan.',
+              'Kirim email uji ke alamat Anda sendiri untuk memastikan.',
+            ],
+            href: '/platform/email',
+          },
+          {
+            heading: 'Pembayaran dan katalog',
+            body: 'Di menu Pembayaran pilih Midtrans dan isi kunci server, lalu tinjau parameter penagihan. Di menu Harga & modul pastikan ada harga dasar, minimal satu tingkat siswa, dan satu paket aktif; tanpa itu pendaftaran tidak bisa dipilih.',
+            href: '/platform/payments',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kartu Mulai di sini tidak muncul. Mengapa?',
+            a: 'Kartu hanya tampil untuk Admin platform, dan hilang bila semua langkah selesai atau Anda menutupnya di peramban ini.',
+          },
+        ],
+      },
+      en: {
+        title: 'First-time console setup',
+        summary:
+          'Three things platform admins should set first: outgoing email, payment provider, and the plan catalog.',
+        forWho: 'Staff with the Platform admin role using the console for the first time.',
+        sections: [
+          {
+            heading: 'The Start here card',
+            body: 'On the Institutions & units page, platform admins see a Start here card. Its checks come from the saved settings, and it disappears when everything is done.',
+            href: '/platform',
+          },
+          {
+            heading: 'Outgoing email (SMTP)',
+            body: 'Until it is saved in the console, OTP codes and invitations use the local Mailpit and never reach users.',
+            steps: [
+              'Open the Email menu.',
+              'Enter host, port, user, password, and sender address, then click Save.',
+              'Send a test email to your own address to confirm.',
+            ],
+            href: '/platform/email',
+          },
+          {
+            heading: 'Payments and catalog',
+            body: 'In Payments choose Midtrans and enter the server key, then review the billing parameters. In Prices & modules make sure there is a base price, at least one student tier, and one active plan; without them registration cannot be selected.',
+            href: '/platform/payments',
+          },
+        ],
+        faq: [
+          {
+            q: 'The Start here card is not showing. Why?',
+            a: 'The card only shows for Platform admins, and disappears when every step is done or you close it in this browser.',
+          },
+        ],
+      },
+      su: {
+        title: 'Setélan awal konsol',
+        summary:
+          'Tilu hal nu kudu diatur staf admin heula: surélék kaluar, panyadia pamayaran, jeung katalog pakét.',
+        forWho: 'Staf nu peranna Admin platform nu mimiti maké konsol.',
+        sections: [
+          {
+            heading: 'Kartu Mimitian ti dieu',
+            body: 'Di kaca Lembaga & unit aya kartu Mimitian ti dieu pikeun Admin platform. Centangna diitung tina setélan nu disimpen, sarta leungit lamun sagalana geus anggeus.',
+            href: '/platform',
+          },
+          {
+            heading: 'Surélék kaluar (SMTP)',
+            body: 'Salila can disimpen di konsol, kode OTP jeung uleman maké Mailpit lokal jadi teu nepi ka pamaké.',
+            steps: [
+              'Buka menu Surélék.',
+              'Eusian host, port, pamaké, kecap akses, jeung alamat pangirim terus klik Simpen.',
+              'Kirim surélék uji ka alamat Anjeun sorangan pikeun mastikeun.',
+            ],
+            href: '/platform/email',
+          },
+          {
+            heading: 'Pamayaran jeung katalog',
+            body: 'Di menu Pamayaran pilih Midtrans terus eusian konci server, tuluy tinjau parameter penagihan. Di menu Harga & modul pastikeun aya harga dasar, sahenteuna hiji tingkat siswa, jeung hiji pakét aktif; tanpa éta pendaptaran teu bisa dipilih.',
+            href: '/platform/payments',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kartu Mimitian ti dieu teu muncul. Naha?',
+            a: 'Kartu ngan muncul pikeun Admin platform, sarta leungit lamun sakabéh léngkah réngsé atawa Anjeun nutupna di pangbaruan ieu.',
+          },
+        ],
+      },
+    },
+  },
+  {
     slug: 'overview',
     icon: 'rocket',
     tone: 'teal',

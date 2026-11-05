@@ -107,6 +107,13 @@
     "active": "active",
     "noSchoolTitle": "Your account is not a member of any school yet.",
     "noSchoolBody": "Ask your school or institution admin to invite you.",
+    "resumeTitle": "The registration for {name} has not been paid.",
+    "resumeBody": "Finish the payment to activate your organization and schools.",
+    "resumePay": "Continue payment",
+    "resumeStatus": "Check registration status",
+    "expiredTitle": "The registration for {name} has expired.",
+    "expiredBody": "The payment window has closed. Register your organization again.",
+    "registerAgain": "Register again",
     "loadError": "Your account data could not be loaded. Check your connection and try again.",
     "notMemberTitle": "You are not a member of this school.",
     "notMemberBody": "Sign in with an account registered at this school, or ask the school admin to invite you.",
@@ -238,6 +245,59 @@
     "viewMap": "Map view",
     "viewStandard": "Standard view",
     "subtitleMap": "Today's pulse of the school, live from the data."
+  },
+  "schoolOnboarding": {
+    "title": "School setup guide",
+    "description": "Complete these basics in order. Each step is ticked automatically once its data exists.",
+    "progress": "{done} of {total} steps",
+    "open": "Open",
+    "dismiss": "Close guide",
+    "steps": {
+      "identity": {
+        "label": "Fill in the school identity",
+        "hint": "The official name, address, and contacts are used on exam sheet headers, letters, and the school website."
+      },
+      "levels": {
+        "label": "Set up grade levels",
+        "hint": "The list of levels (for example 7, 8, 9) is used when creating classes and questions."
+      },
+      "year": {
+        "label": "Create the academic year and its semesters",
+        "hint": "Classes, schedules, grades, and exams are always tied to an academic year and semester."
+      },
+      "subjects": {
+        "label": "Add subjects",
+        "hint": "Needed for schedules, grades, the question bank, and exams."
+      },
+      "classes": {
+        "label": "Create classes",
+        "hint": "Classes hold students and are the basis for attendance, schedules, grades, and exams."
+      },
+      "teachers": {
+        "label": "Add teachers",
+        "hint": "Teachers are assigned as homeroom teachers and subject teachers."
+      },
+      "students": {
+        "label": "Add or import students",
+        "hint": "Enter them one by one or import from Excel, then place them in classes."
+      },
+      "examTypes": {
+        "label": "Set up exam types",
+        "hint": "For example mid-term and final tests. The exam type is chosen when creating an exam."
+      }
+    },
+    "prereq": {
+      "askAdmin": "Ask the school admin to add it.",
+      "subjectsText": "There are no subjects yet. Every exam and question belongs to one subject.",
+      "subjectsCta": "Add subjects",
+      "semestersText": "There is no academic year with a semester yet. An exam is recorded in one semester.",
+      "semestersCta": "Set up academic year",
+      "examTypesText": "There are no exam types yet (for example mid-term or final). Optional, but it makes naming and grouping easier.",
+      "examTypesCta": "Set up exam types",
+      "examBlockedTitle": "The Add exam button cannot be used yet. Please complete first:",
+      "examSoftTitle": "Recommended before adding an exam",
+      "bankBlockedTitle": "Questions cannot be added yet. Please complete first:"
+    }
   },
   "academicYears": {
     "title": "Academic years",
@@ -4128,10 +4188,10 @@
       "absent": "Absent"
     },
     "gradesEmptyTitle": "No grades yet",
-    "gradesEmptyBody": "Grades show up once teachers enter them.",
+    "gradesEmptyBody": "No grades have been entered by teachers for this semester yet. They show up here automatically once teachers save them.",
     "kkm": "Pass mark {value}",
     "invoicesEmptyTitle": "No invoices yet",
-    "invoicesEmptyBody": "School fees will appear here.",
+    "invoicesEmptyBody": "There are no invoices right now, so nothing is due. New invoices show up here as soon as the school issues them.",
     "outstandingTotal": "Total unpaid",
     "allPaid": "All paid",
     "dueOn": "Due {date}",
@@ -4179,6 +4239,53 @@
       "fluent": "Fluent",
       "fair": "Fair",
       "repeat": "Repeat"
+    }
+  },
+  "roleWelcome": {
+    "staffTitle": "Welcome! Here is what you can do",
+    "staffDescription": "The menu on the left only shows features allowed for your role. Here are shortcuts.",
+    "guardianTitle": "Welcome to the guardian portal",
+    "guardianDescription": "Everything about your child is here. Empty sections fill in once the school records them.",
+    "studentTitle": "Welcome to the student portal",
+    "studentDescription": "See your attendance and grades, and take on-screen exams. Empty sections fill in once teachers or the school record them.",
+    "progress": "{n} things you can open",
+    "open": "Open",
+    "dismiss": "Close guide",
+    "noneOpen": "No exam is open right now. The Start button appears on an exam whose schedule is running; this page refreshes automatically.",
+    "staff": {
+      "schedule": { "label": "Class schedule", "hint": "See your teaching hours and classes." },
+      "attendance": {
+        "label": "Attendance summary",
+        "hint": "Track student attendance per day and per class."
+      },
+      "lessons": { "label": "Per-lesson attendance", "hint": "Record attendance in each of your lessons." },
+      "grades": { "label": "Grading", "hint": "Enter and review student grades for your subjects." },
+      "exams": { "label": "Exams", "hint": "Create exams, schedule them, and grade the results." },
+      "questionBank": { "label": "Question bank", "hint": "Keep questions to reuse across many exams." },
+      "announcements": {
+        "label": "Announcements",
+        "hint": "Read the latest news and agenda from the school."
+      },
+      "tahfidz": { "label": "Tahfidz", "hint": "Record memorization submissions in your halaqah." },
+      "docs": { "label": "Documentation", "hint": "Step-by-step guides for every feature." }
+    },
+    "guardian": {
+      "attendance": {
+        "label": "Attendance",
+        "hint": "Daily summary. Empty until the school records attendance."
+      },
+      "grades": { "label": "Grades", "hint": "Appear once teachers enter grades." },
+      "invoices": { "label": "Fees", "hint": "Invoices, balance, and receipts. Empty means no invoice yet." },
+      "reports": { "label": "Report card", "hint": "Available to download once the school publishes it." }
+    },
+    "student": {
+      "exams": {
+        "label": "On-screen exams",
+        "hint": "See the schedule and take the exam when it opens. Empty means no exam is scheduled yet."
+      },
+      "attendance": { "label": "My attendance", "hint": "Monthly attendance summary." },
+      "grades": { "label": "My grades", "hint": "Appear once teachers enter grades." },
+      "invoices": { "label": "Fees", "hint": "School fees and their status." }
     }
   },
   "portalAdmin": {
@@ -4554,7 +4661,7 @@
     "studentOnlyTitle": "Student accounts only",
     "studentOnlyBody": "On-screen exams are taken by students with their own account. Guardians can see results on the child page.",
     "emptyTitle": "No exams yet",
-    "emptyBody": "On-screen exams scheduled by your teacher will appear here.",
+    "emptyBody": "There are no on-screen exams for your class right now. Exams scheduled by your teacher will appear here, with the time they open.",
     "state": {
       "unscheduled": "Not scheduled",
       "upcoming": "Upcoming",
@@ -4875,6 +4982,39 @@
     "linkBody": "Show the website on an address the school owns.",
     "linkOpen": "Manage domains"
   },
+  "accountOnboarding": {
+    "title": "Start here",
+    "description": "A few quick things to get your school ready.",
+    "progress": "{done} of {total} steps",
+    "open": "Open",
+    "dismiss": "Close guide",
+    "payLabel": "Make sure the subscription is active and invoices are paid",
+    "payHint": "The school can only be used while the subscription is active.",
+    "payCta": "View invoices",
+    "schoolLabel": "Open your school and fill in the basic data",
+    "schoolHint": "Inside the school: complete the school identity, add classes, then invite admins and teachers from the Members menu.",
+    "schoolCta": "Choose a school",
+    "yourSchools": "Your schools",
+    "yourSchoolsBody": "Click Open school to enter the school panel. Teachers and staff do not sign in here; invite them from the Members menu inside the school.",
+    "opening": "Opening...",
+    "openError": "Could not open the school. Try again.",
+    "allUnits": "All units",
+    "noSubscription": "This institution has no active subscription yet. Open Billing and payments to finish it.",
+    "guide": "Read the getting-started guide"
+  },
+  "platformOnboarding": {
+    "title": "Start here",
+    "description": "Set these up first so registration, payments, and email work.",
+    "progress": "{done} of {total} steps",
+    "open": "Open",
+    "dismiss": "Close guide",
+    "emailLabel": "Set up outgoing email (SMTP) in the console",
+    "emailHint": "Without it, OTP codes and invitations use the local Mailpit and never reach recipients.",
+    "paymentLabel": "Set up the payment provider",
+    "paymentHint": "Choose Midtrans and enter the server key. Then also review the billing parameters on the same page.",
+    "catalogLabel": "Check the catalog and plans",
+    "catalogHint": "Registration needs a base price, at least one student tier, and one active plan."
+  },
   "platformEmail": {
     "title": "Email",
     "subtitle": "Outgoing mail server for OTP codes, invitations, and notices. Takes effect without a restart.",
@@ -4904,5 +5044,79 @@
     "testTo": "Send to",
     "testSend": "Send test email",
     "testSent": "Test email sent. Check the inbox."
+  },
+  "landing": {
+    "metaTitle": "Edusync — School management platform for foundations and multiple schools",
+    "metaDescription": "Edusync lets one organization manage many schools: academics, attendance, grades and report cards, finance, CBT exams, admissions, parent portal, and school websites.",
+    "skip": "Skip to main content",
+    "navLabel": "Main navigation",
+    "navFeatures": "Features",
+    "navHow": "How it works",
+    "navAudience": "Who it is for",
+    "navSecurity": "Security",
+    "login": "Sign in",
+    "register": "Register your organization",
+    "eyebrow": "Multi-organization school management platform",
+    "heroTitle": "One platform for every school in your organization",
+    "heroBody": "A foundation can manage junior highs, vocational schools, and other units in one place. Each school has its own address, separate data, and role-based access.",
+    "heroPrimary": "Register your organization",
+    "heroSecondary": "Sign in",
+    "heroPreviewLabel": "Example school addresses",
+    "heroPreviewMain": "One organization",
+    "heroPreviewDomain": "Or use the school’s own domain",
+    "featuresTitle": "Everything a school needs in one system",
+    "featuresBody": "From the classroom to the administration office, Edusync modules work together.",
+    "f1Title": "Academics and curriculum",
+    "f1Body": "Manage academic years, classes, subjects, and curricula for each school.",
+    "f2Title": "Attendance",
+    "f2Body": "Record student attendance quickly and review the summaries.",
+    "f3Title": "Gradebook and report cards",
+    "f3Body": "Teachers enter grades, and report cards are built from the same data.",
+    "f4Title": "Finance and tuition billing",
+    "f4Body": "Issue invoices, track payments, and manage school finance administration.",
+    "f5Title": "CBT and printed exams",
+    "f5Body": "Question bank, computer-based or printed exams, and OMR answer sheet scanning.",
+    "f6Title": "Admissions",
+    "f6Body": "Receive new applicants online and handle selection in one place.",
+    "f7Title": "Parent and student portal",
+    "f7Body": "Parents and students see the information relevant to their own accounts.",
+    "f8Title": "Website and announcements",
+    "f8Body": "Every school gets a public website with announcements that are easy to update.",
+    "f9Title": "School identity",
+    "f9Body": "Set the name, logo, and identity details used across all documents.",
+    "f10Title": "Role-based access",
+    "f10Body": "Each user sees and changes only what they are responsible for.",
+    "howTitle": "Get started in three steps",
+    "howBody": "No installation: just open your browser.",
+    "s1Title": "Register your organization",
+    "s1Body": "Create the account for your organization or foundation.",
+    "s2Title": "Set up your schools",
+    "s2Body": "Add each school, give it its own address, then invite teachers and staff.",
+    "s3Title": "Start using it",
+    "s3Body": "Teachers, administrators, parents, and students sign in and work according to their roles.",
+    "audienceTitle": "Designed for everyone at school",
+    "a1Title": "Foundations",
+    "a1Body": "View and manage many schools from one account.",
+    "a2Title": "Principals",
+    "a2Body": "Oversee the school and manage staff access.",
+    "a3Title": "Teachers",
+    "a3Body": "Take attendance, enter grades, and run exams.",
+    "a4Title": "Administration and finance",
+    "a4Body": "Handle administration, student records, invoices, and payments.",
+    "a5Title": "Parents and students",
+    "a5Body": "Access school information and services through the portal.",
+    "securityTitle": "Each school’s data stays separate",
+    "securityBody": "Many schools in one organization does not mean mixed data.",
+    "sec1Title": "Separate per school",
+    "sec1Body": "Each school’s data is isolated from every other school.",
+    "sec2Title": "Permissions follow roles",
+    "sec2Body": "Access is decided by each person’s role, not just by having an account.",
+    "sec3Title": "Its own address",
+    "sec3Body": "Each school opens at its own address, or at its own domain.",
+    "ctaTitle": "Ready to simplify your school administration?",
+    "ctaBody": "Register your organization and set up your first school today.",
+    "footerTagline": "Multi-organization school management platform.",
+    "footerCopyright": "© {year} Edusync. All rights reserved.",
+    "footerNav": "Links"
   }
 }

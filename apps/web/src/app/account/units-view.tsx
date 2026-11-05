@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { EmptyPanel, ToneBadge, UserAvatar } from '@/components/ui-kit';
+import { markOpenedSchool } from '@/lib/onboarding-steps';
 import { goToSchool, useSite } from '@/lib/site';
 import { type AccountSchool, useAccount } from './account-context';
 
@@ -14,7 +15,8 @@ const MAX_BADGES = 5;
 
 function UnitCard({ unit, index }: { unit: AccountSchool; index: number }) {
   const t = useTranslations('account');
-  const { moduleLabel, tierLabel } = useAccount();
+  const { moduleLabel, tierLabel, foundation } = useAccount();
+  const foundationId = foundation.id;
   const site = useSite();
   const [opening, setOpening] = useState(false);
   const shown = unit.modules.slice(0, MAX_BADGES);
@@ -83,6 +85,7 @@ function UnitCard({ unit, index }: { unit: AccountSchool; index: number }) {
             onClick={async () => {
               setOpening(true);
               try {
+                markOpenedSchool(foundationId);
                 await goToSchool(site, unit.slug);
               } finally {
                 setOpening(false);
