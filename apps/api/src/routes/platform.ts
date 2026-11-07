@@ -22,6 +22,12 @@ const schoolSchema = z.object({
   slug: z.string(),
   status: z.enum(['active', 'suspended']),
   suspendedReason: z.enum(['billing', 'staff']).nullable(),
+  suspendedNote: z
+    .string()
+    .nullable()
+    .describe('Alasan yang ditulis staf; tampil ke pengguna sekolah dan pemilik'),
+  suspendedAt: iso.nullable(),
+  suspendedBy: z.string().nullable().describe('Nama staf yang menangguhkan; hanya di konsol platform'),
 });
 
 const foundationSummary = z.object({
@@ -41,6 +47,15 @@ const foundationSummary = z.object({
 });
 
 const reason = z.object({ reason: z.string().trim().min(3).max(500) });
+/** Alasan penangguhan ditampilkan kepada pengguna sekolah dan pemilik lembaga, jadi dibatasi lebih pendek. */
+const suspendReason = z.object({
+  reason: z
+    .string()
+    .trim()
+    .min(3)
+    .max(300)
+    .describe('Ditampilkan kepada pengguna sekolah dan pemilik lembaga'),
+});
 const ok = z.object({ ok: z.literal(true) });
 const tag = ['Platform'];
 const guarded = { 401: errorSchema, 403: errorSchema };
@@ -52,6 +67,7 @@ const serializeSummary = (f: Summary) => ({
   subscription: f.subscription
     ? { ...f.subscription, currentPeriodEnd: date(f.subscription.currentPeriodEnd) }
     : null,
+  schools: f.schools.map((s) => ({ ...s, suspendedAt: s.suspendedAt ? date(s.suspendedAt) : null })),
 });
 
 /** Konsol staf Edusync. Semua endpoint di sini hanya untuk staf platform, bukan anggota sekolah. */
@@ -199,7 +215,7 @@ export async function platformRoutes(instance: FastifyInstance) {
           description:
             'Dicatat di audit log beserta alasan. Penangguhan oleh staf tidak dilepas oleh pembayaran perpanjangan.',
           params: z.object({ id: z.uuid() }),
-          body: reason,
+          body: action === 'suspend' ? suspendReason : reason,
           response: { 200: ok, 404: errorSchema, ...guarded },
         },
       },

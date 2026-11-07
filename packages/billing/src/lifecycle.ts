@@ -21,6 +21,7 @@ import {
   user,
 } from '@edusync/db';
 import { enqueue, QUEUES } from '@edusync/jobs';
+import { queueLifecycleNotice } from './notices';
 import type { PaymentProvider } from './provider';
 
 /** Bawaan; nilai yang berlaku dibaca dari pengaturan platform 'billing' (loadBillingSettings). */
@@ -28,6 +29,7 @@ export const GRACE_DAYS = DEFAULT_BILLING_SETTINGS.graceDays;
 export const RENEWAL_LEAD_DAYS = DEFAULT_BILLING_SETTINGS.renewalLeadDays;
 
 const DAY = 86_400_000;
+const DEFAULT_WEB_URL = 'http://localhost:3000';
 
 export const addMonths = (from: Date, months: number) => {
   const d = new Date(from);
@@ -40,7 +42,12 @@ export const addMonths = (from: Date, months: number) => {
  * agar membayar lebih awal tidak menghilangkan waktu), hak modul diperpanjang, dan unit yang
  * ditangguhkan karena tagihan dibuka kembali. Penangguhan oleh staf tidak disentuh.
  */
-export async function applyRenewal(tx: Tx, inv: typeof invoice.$inferSelect, now = new Date()) {
+export async function applyRenewal(
+  tx: Tx,
+  inv: typeof invoice.$inferSelect,
+  now = new Date(),
+  opts: { webUrl?: string } = {},
+) {
   const foundationId = inv.foundationId as string;
   const [sub] = await tx
     .select()
@@ -90,7 +97,7 @@ export async function applyRenewal(tx: Tx, inv: typeof invoice.$inferSelect, now
     }
     await tx
       .update(school)
-      .set({ status: 'active', suspendedReason: null })
+      .set({ status: 'active', suspendedReason: null, suspendedNote: null, suspendedAt: null })
       .where(and(inArray(school.id, ids), eq(school.suspendedReason, 'billing')));
   }
   await tx.insert(auditLog).values({
@@ -99,6 +106,17 @@ export async function applyRenewal(tx: Tx, inv: typeof invoice.$inferSelect, now
     entityId: sub.id,
     details: { invoiceId: inv.id, foundationId, periodEnd: end.toISOString() },
   });
+
+  // Hanya perpanjangan yang menyelamatkan langganan telat (masa tenggang/ditangguhkan) yang diberi kabar
+  // "aktif kembali"; perpanjangan biasa sebelum jatuh tempo cukup dengan tagihan dan bukti bayar.
+  if (sub.status !== 'active') {
+    await queueLifecycleNotice(tx, 'reactivated', {
+      foundationId,
+      periodEnd: end,
+      graceDays: 0,
+      webUrl: opts.webUrl ?? DEFAULT_WEB_URL,
+    });
+  }
 }
 
 /** Syarat invoice terbuka milik perpanjangan: bukan pendaftaran dan bukan pesanan perubahan paket. */
@@ -251,37 +269,55 @@ export async function createRenewalInvoices(db: Db, provider: PaymentProvider, n
  * Perbarui status langganan menurut tanggal: lewat jatuh tempo menjadi past_due (masa tenggang, sekolah tetap
  * jalan), lewat masa tenggang menjadi suspended dan semua unit ditangguhkan karena tagihan.
  */
-export async function sweepSubscriptions(db: Db, now = new Date()) {
-  const pastDue = await db
-    .update(subscription)
-    .set({ status: 'past_due' })
-    .where(and(eq(subscription.status, 'active'), lt(subscription.currentPeriodEnd, now)))
-    .returning({ id: subscription.id });
-
+export async function sweepSubscriptions(db: Db, now = new Date(), opts: { webUrl?: string } = {}) {
+  const webUrl = opts.webUrl ?? DEFAULT_WEB_URL;
   const { graceDays } = await loadBillingSettings(db);
-  const cutoff = new Date(now.getTime() - graceDays * DAY);
-  const toSuspend = await db
-    .update(subscription)
-    .set({ status: 'suspended' })
-    .where(and(eq(subscription.status, 'past_due'), lt(subscription.currentPeriodEnd, cutoff)))
-    .returning({ foundationId: subscription.foundationId });
 
+  // Peralihan status dan email pemberitahuannya satu transaksi: baris yang sudah beralih tidak terpilih
+  // lagi pada putaran berikutnya, jadi email terkirim tepat sekali per peralihan.
+  const pastDue = await db.transaction(async (tx) => {
+    const rows = await tx
+      .update(subscription)
+      .set({ status: 'past_due' })
+      .where(and(eq(subscription.status, 'active'), lt(subscription.currentPeriodEnd, now)))
+      .returning({ foundationId: subscription.foundationId, periodEnd: subscription.currentPeriodEnd });
+    for (const r of rows) {
+      await queueLifecycleNotice(tx, 'past_due', {
+        foundationId: r.foundationId,
+        periodEnd: r.periodEnd,
+        graceDays,
+        webUrl,
+      });
+    }
+    return rows;
+  });
+
+  const cutoff = new Date(now.getTime() - graceDays * DAY);
   let suspendedSchools = 0;
-  for (const { foundationId } of toSuspend) {
-    const rows = await db
-      .update(school)
-      .set({ status: 'suspended', suspendedReason: 'billing' })
-      .where(and(eq(school.foundationId, foundationId), eq(school.status, 'active')))
-      .returning({ id: school.id });
-    suspendedSchools += rows.length;
-    await db.insert(auditLog).values({
-      action: 'subscription.suspended',
-      entityType: 'foundation',
-      entityId: foundationId,
-      details: { reason: 'billing', schools: rows.length },
-    });
-  }
-  return { pastDue: pastDue.length, suspendedFoundations: toSuspend.length, suspendedSchools };
+  const suspendedFoundations = await db.transaction(async (tx) => {
+    const toSuspend = await tx
+      .update(subscription)
+      .set({ status: 'suspended' })
+      .where(and(eq(subscription.status, 'past_due'), lt(subscription.currentPeriodEnd, cutoff)))
+      .returning({ foundationId: subscription.foundationId, periodEnd: subscription.currentPeriodEnd });
+    for (const { foundationId, periodEnd } of toSuspend) {
+      const rows = await tx
+        .update(school)
+        .set({ status: 'suspended', suspendedReason: 'billing', suspendedNote: null, suspendedAt: now })
+        .where(and(eq(school.foundationId, foundationId), eq(school.status, 'active')))
+        .returning({ id: school.id });
+      suspendedSchools += rows.length;
+      await tx.insert(auditLog).values({
+        action: 'subscription.suspended',
+        entityType: 'foundation',
+        entityId: foundationId,
+        details: { reason: 'billing', schools: rows.length },
+      });
+      await queueLifecycleNotice(tx, 'suspended', { foundationId, periodEnd, graceDays, webUrl });
+    }
+    return toSuspend.length;
+  });
+  return { pastDue: pastDue.length, suspendedFoundations, suspendedSchools };
 }
 
 /** Dipakai tes dan konsol staf: apakah modul masih berlaku pada waktu tertentu. */

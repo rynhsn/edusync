@@ -533,6 +533,13 @@
       "when": 1795350200000,
       "tag": "0075_card_template_bindings",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1795400200000,
+      "tag": "0076_school_suspension_note",
+      "breakpoints": true
     }
   ]
 }

@@ -35,6 +35,8 @@ const foundationSchema = z.object({
       slug: z.string(),
       status: z.enum(['active', 'suspended']),
       suspendedReason: z.enum(['billing', 'staff']).nullable(),
+      suspendedNote: z.string().nullable().describe('Alasan yang ditulis staf platform; null untuk tagihan'),
+      suspendedAt: iso.nullable(),
       tier: z.string(),
       modules: z.array(z.string()),
       scheduled: z.object({ removeModules: z.array(z.string()), tier: z.string().nullable() }).nullable(),
@@ -118,6 +120,7 @@ export async function accountRoutes(instance: FastifyInstance) {
                 currentPeriodEnd: f.subscription.currentPeriodEnd.toISOString(),
               }
             : null,
+          schools: f.schools.map((s) => ({ ...s, suspendedAt: s.suspendedAt?.toISOString() ?? null })),
           invoices: f.invoices.map((i) => ({
             ...i,
             dueAt: i.dueAt.toISOString(),

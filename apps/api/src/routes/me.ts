@@ -20,6 +20,22 @@ const membershipSchema = z.object({
   schoolId: z.uuid(),
   schoolName: z.string(),
   schoolSlug: z.string(),
+  schoolStatus: z
+    .enum(['active', 'suspended'])
+    .describe(
+      'Status sekolah; "suspended" berarti semua panggilan data sekolah ditolak (403 school_suspended)',
+    ),
+  suspendedReason: z
+    .enum(['billing', 'staff'])
+    .nullable()
+    .describe(
+      'Alasan penangguhan: "billing" dibuka otomatis saat tagihan lunas, "staff" hanya oleh staf platform; null bila aktif',
+    ),
+  suspendedNote: z
+    .string()
+    .nullable()
+    .describe('Alasan yang ditulis staf platform untuk penangguhan; null untuk tagihan atau sekolah aktif'),
+  suspendedAt: z.iso.datetime().nullable().describe('Kapan sekolah ditangguhkan; null bila aktif'),
   timezone: z
     .string()
     .describe('Zona waktu IANA sekolah (mis. Asia/Jakarta); dasar tanggal "hari ini" di layar'),
@@ -56,6 +72,10 @@ export async function meRoutes(instance: FastifyInstance) {
           schoolId: school.id,
           schoolName: school.name,
           schoolSlug: school.slug,
+          schoolStatus: school.status,
+          suspendedReason: school.suspendedReason,
+          suspendedNote: school.suspendedNote,
+          suspendedAt: school.suspendedAt,
           timezone: school.timezone,
           roleKey: role.key,
           permission: rolePermission.permission,
@@ -73,6 +93,10 @@ export async function meRoutes(instance: FastifyInstance) {
           schoolId: r.schoolId,
           schoolName: r.schoolName,
           schoolSlug: r.schoolSlug,
+          schoolStatus: r.schoolStatus,
+          suspendedReason: r.suspendedReason,
+          suspendedNote: r.suspendedNote,
+          suspendedAt: r.suspendedAt?.toISOString() ?? null,
           timezone: r.timezone,
           roles: [],
           permissions: [],

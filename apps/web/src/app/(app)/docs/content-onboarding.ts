@@ -55,6 +55,10 @@ export const ONBOARDING_DOCS: DocArticle[] = [
             q: 'Apakah semua langkah wajib?',
             a: 'Tidak. Urutan ini hanya saran. Tetapi beberapa halaman baru bisa dipakai setelah data prasyaratnya ada, dan halaman itu akan memberi tahu apa yang kurang.',
           },
+          {
+            q: 'Muncul layar "Sekolah ini sedang ditangguhkan". Apa artinya?',
+            a: 'Ada tiga tahap: masa tenggang (langganan lewat jatuh tempo, sekolah masih bisa dipakai), ditangguhkan (masa tenggang habis, semua sekolah lembaga dikunci sementara, data tetap aman), dan dibuka kembali (otomatis begitu tagihan dibayar; tekan Muat ulang). Hubungi pemilik atau pengelola lembaga agar membayar di Portal Akun.',
+          },
         ],
       },
       en: {
@@ -104,6 +108,10 @@ export const ONBOARDING_DOCS: DocArticle[] = [
             q: 'Is every step mandatory?',
             a: 'No. The order is only a suggestion. Some pages can only be used once their prerequisite data exists, and they tell you what is missing.',
           },
+          {
+            q: 'A "This school is currently suspended" screen appears. What does it mean?',
+            a: 'There are three stages: grace period (the subscription is past due, the school still works), suspended (the grace period ended, all schools of the institution are locked temporarily, data stays safe), and reopened (automatic once the invoice is paid; press Reload). Ask the owner or manager of the institution to pay in the Account portal.',
+          },
         ],
       },
       su: {
@@ -152,6 +160,10 @@ export const ONBOARDING_DOCS: DocArticle[] = [
           {
             q: 'Naha sakabéh léngkah wajib?',
             a: 'Henteu. Urutan ieu ukur saran. Tapi sababaraha kaca ukur bisa dipaké sanggeus data prasyaratna aya, sarta kaca éta bakal méré tahu naon nu kurang.',
+          },
+          {
+            q: 'Aya layar "Sakola ieu keur ditangguhkeun". Naon hartosna?',
+            a: 'Aya tilu tahap: mangsa kalonggaran (langganan kaliwat tanggal bayar, sakola tetep jalan), ditangguhkeun (mangsa kalonggaran béak, sakabéh sakola lembaga dikonci samentawis, data tetep aman), jeung dibuka deui (otomatis pas tagihan dibayar; pencét Muat deui). Hubungi nu gaduh atawa pangurus lembaga pikeun mayar di Portal Akun.',
           },
         ],
       },

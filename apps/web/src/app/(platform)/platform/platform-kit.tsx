@@ -62,7 +62,13 @@ export function ReasonDialog({
   submitLabel,
   error,
   onConfirm,
+  maxLength = 500,
+  notice,
 }: {
+  /** Batas panjang alasan (bawaan 500; penangguhan 300 karena alasan ditampilkan kepada pengguna). */
+  maxLength?: number;
+  /** Keterangan di bawah kolom alasan, mis. bahwa alasan akan terlihat oleh pengguna sekolah. */
+  notice?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   title: string;
@@ -95,10 +101,18 @@ export function ReasonDialog({
           onChange={(e) => setReason(e.target.value)}
           placeholder={t('reasonPlaceholder')}
           minLength={3}
-          maxLength={500}
+          maxLength={maxLength}
           required
           autoFocus
         />
+        {notice && (
+          <p className="text-muted-foreground flex justify-between gap-3 text-xs">
+            <span>{notice}</span>
+            <span className="shrink-0 tabular-nums">
+              {t('reasonCount', { count: reason.length, max: maxLength })}
+            </span>
+          </p>
+        )}
       </div>
     </FormDialog>
   );

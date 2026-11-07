@@ -172,6 +172,23 @@ export interface paths {
                                 schoolId: string;
                                 schoolName: string;
                                 schoolSlug: string;
+                                /**
+                                 * @description Status sekolah; "suspended" berarti semua panggilan data sekolah ditolak (403 school_suspended)
+                                 * @enum {string}
+                                 */
+                                schoolStatus: "active" | "suspended";
+                                /**
+                                 * @description Alasan penangguhan: "billing" dibuka otomatis saat tagihan lunas, "staff" hanya oleh staf platform; null bila aktif
+                                 * @enum {string|null}
+                                 */
+                                suspendedReason: "billing" | "staff" | null;
+                                /** @description Alasan yang ditulis staf platform untuk penangguhan; null untuk tagihan atau sekolah aktif */
+                                suspendedNote: string | null;
+                                /**
+                                 * Format: date-time
+                                 * @description Kapan sekolah ditangguhkan; null bila aktif
+                                 */
+                                suspendedAt: string | null;
                                 /** @description Zona waktu IANA sekolah (mis. Asia/Jakarta); dasar tanggal "hari ini" di layar */
                                 timezone: string;
                                 roles: string[];
@@ -1207,6 +1224,12 @@ export interface paths {
                                 status: "active" | "suspended";
                                 /** @enum {string|null} */
                                 suspendedReason: "billing" | "staff" | null;
+                                /** @description Alasan yang ditulis staf; tampil ke pengguna sekolah dan pemilik */
+                                suspendedNote: string | null;
+                                /** Format: date-time */
+                                suspendedAt: string | null;
+                                /** @description Nama staf yang menangguhkan; hanya di konsol platform */
+                                suspendedBy: string | null;
                             }[];
                         }[];
                     };
@@ -1300,6 +1323,12 @@ export interface paths {
                                     status: "active" | "suspended";
                                     /** @enum {string|null} */
                                     suspendedReason: "billing" | "staff" | null;
+                                    /** @description Alasan yang ditulis staf; tampil ke pengguna sekolah dan pemilik */
+                                    suspendedNote: string | null;
+                                    /** Format: date-time */
+                                    suspendedAt: string | null;
+                                    /** @description Nama staf yang menangguhkan; hanya di konsol platform */
+                                    suspendedBy: string | null;
                                 }[];
                             };
                             invoices: {
@@ -1414,6 +1443,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
+                        /** @description Ditampilkan kepada pengguna sekolah dan pemilik lembaga */
                         reason: string;
                     };
                 };
@@ -6465,6 +6495,10 @@ export interface paths {
                                     status: "active" | "suspended";
                                     /** @enum {string|null} */
                                     suspendedReason: "billing" | "staff" | null;
+                                    /** @description Alasan yang ditulis staf platform; null untuk tagihan */
+                                    suspendedNote: string | null;
+                                    /** Format: date-time */
+                                    suspendedAt: string | null;
                                     tier: string;
                                     modules: string[];
                                     scheduled: {

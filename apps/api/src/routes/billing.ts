@@ -60,7 +60,9 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
       const body = await provider.fetchStatus(inv.providerRef);
       if (!body || typeof body !== 'object') return;
       const event = provider.parseWebhook(body);
-      await handlePaymentEvent(app.platformDb, provider.name, event, body as Record<string, unknown>);
+      await handlePaymentEvent(app.platformDb, provider.name, event, body as Record<string, unknown>, {
+        webUrl: env.WEB_URL,
+      });
     } catch (error) {
       app.log.warn({ err: error }, 'rekonsiliasi pembayaran gagal');
     }
@@ -309,7 +311,9 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
         }
         throw error;
       }
-      const outcome = await handlePaymentEvent(app.platformDb, provider.name, event, request.body);
+      const outcome = await handlePaymentEvent(app.platformDb, provider.name, event, request.body, {
+        webUrl: env.WEB_URL,
+      });
       return { outcome };
     },
   );
@@ -343,7 +347,9 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
         };
         const body = { ...event, signature: signDevEvent(env.PAYMENT_DEV_SECRET, event) };
         const parsed = provider.parseWebhook(body);
-        return { outcome: await handlePaymentEvent(app.platformDb, 'dev', parsed, body) };
+        return {
+          outcome: await handlePaymentEvent(app.platformDb, 'dev', parsed, body, { webUrl: env.WEB_URL }),
+        };
       },
     );
   }

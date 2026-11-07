@@ -121,6 +121,10 @@ Mengosongkan database sama sekali: `docker compose down -v`, lalu ulangi langkah
 - `packages/billing` pendaftaran, pembayaran, langganan, konsol staf.
 - `packages/jobs` antrean dan outbox.
 
+## Siklus langganan
+
+Worker menjalankan `sweepSubscriptions` secara berkala: lewat jatuh tempo menjadi `past_due` (masa tenggang, sekolah tetap jalan), lewat `graceDays` menjadi `suspended` (semua sekolah lembaga `status=suspended`, `suspendedReason=billing`, panggilan data 403 `school_suspended`), dan pembayaran perpanjangan membuka kembali otomatis. Tiap peralihan mengantre satu email ke semua pemilik lembaga (`packages/billing/src/notices.ts`) dalam transaksi yang sama dengan perubahan statusnya, jadi tidak terkirim ganda. Web membaca `schoolStatus` dan `suspendedReason` dari `GET /v1/me` dan menampilkan layar "Sekolah ini sedang ditangguhkan".
+
 ## Isolasi tenant
 
 Request tenant memakai peran `edusync_app` (tunduk pada RLS) dan `withTenant(db, schoolIds, fn)`. Peran `edusync_platform` melewati RLS dan hanya untuk konsol staf, pendaftaran, dan webhook pembayaran.

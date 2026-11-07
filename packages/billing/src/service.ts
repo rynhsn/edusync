@@ -321,6 +321,7 @@ export async function handlePaymentEvent(
   providerName: string,
   event: PaymentEvent,
   raw: Record<string, unknown>,
+  opts: { webUrl?: string } = {},
 ): Promise<PaymentOutcome> {
   return db.transaction(async (tx) => {
     const [inv] = await tx.select().from(invoice).where(eq(invoice.providerRef, event.orderId)).for('update');
@@ -365,7 +366,7 @@ export async function handlePaymentEvent(
         .where(eq(changeOrder.invoiceId, inv.id))
         .for('update');
       if (order) return applyUpgradeOrder(tx, order, inv);
-      await applyRenewal(tx, inv);
+      await applyRenewal(tx, inv, new Date(), opts.webUrl ? { webUrl: opts.webUrl } : {});
       return 'renewed';
     }
 

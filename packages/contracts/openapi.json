@@ -176,6 +176,35 @@
                           "schoolSlug": {
                             "type": "string"
                           },
+                          "schoolStatus": {
+                            "type": "string",
+                            "enum": [
+                              "active",
+                              "suspended"
+                            ],
+                            "description": "Status sekolah; \"suspended\" berarti semua panggilan data sekolah ditolak (403 school_suspended)"
+                          },
+                          "suspendedReason": {
+                            "nullable": true,
+                            "description": "Alasan penangguhan: \"billing\" dibuka otomatis saat tagihan lunas, \"staff\" hanya oleh staf platform; null bila aktif",
+                            "type": "string",
+                            "enum": [
+                              "billing",
+                              "staff"
+                            ]
+                          },
+                          "suspendedNote": {
+                            "nullable": true,
+                            "description": "Alasan yang ditulis staf platform untuk penangguhan; null untuk tagihan atau sekolah aktif",
+                            "type": "string"
+                          },
+                          "suspendedAt": {
+                            "nullable": true,
+                            "description": "Kapan sekolah ditangguhkan; null bila aktif",
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                          },
                           "timezone": {
                             "type": "string",
                             "description": "Zona waktu IANA sekolah (mis. Asia/Jakarta); dasar tanggal \"hari ini\" di layar"
@@ -205,6 +234,10 @@
                           "schoolId",
                           "schoolName",
                           "schoolSlug",
+                          "schoolStatus",
+                          "suspendedReason",
+                          "suspendedNote",
+                          "suspendedAt",
                           "timezone",
                           "roles",
                           "permissions",
@@ -2130,6 +2163,22 @@
                                 "billing",
                                 "staff"
                               ]
+                            },
+                            "suspendedNote": {
+                              "nullable": true,
+                              "description": "Alasan yang ditulis staf; tampil ke pengguna sekolah dan pemilik",
+                              "type": "string"
+                            },
+                            "suspendedAt": {
+                              "nullable": true,
+                              "type": "string",
+                              "format": "date-time",
+                              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                            },
+                            "suspendedBy": {
+                              "nullable": true,
+                              "description": "Nama staf yang menangguhkan; hanya di konsol platform",
+                              "type": "string"
                             }
                           },
                           "required": [
@@ -2137,7 +2186,10 @@
                             "name",
                             "slug",
                             "status",
-                            "suspendedReason"
+                            "suspendedReason",
+                            "suspendedNote",
+                            "suspendedAt",
+                            "suspendedBy"
                           ],
                           "additionalProperties": false
                         }
@@ -2339,6 +2391,22 @@
                                   "billing",
                                   "staff"
                                 ]
+                              },
+                              "suspendedNote": {
+                                "nullable": true,
+                                "description": "Alasan yang ditulis staf; tampil ke pengguna sekolah dan pemilik",
+                                "type": "string"
+                              },
+                              "suspendedAt": {
+                                "nullable": true,
+                                "type": "string",
+                                "format": "date-time",
+                                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                              },
+                              "suspendedBy": {
+                                "nullable": true,
+                                "description": "Nama staf yang menangguhkan; hanya di konsol platform",
+                                "type": "string"
                               }
                             },
                             "required": [
@@ -2346,7 +2414,10 @@
                               "name",
                               "slug",
                               "status",
-                              "suspendedReason"
+                              "suspendedReason",
+                              "suspendedNote",
+                              "suspendedAt",
+                              "suspendedBy"
                             ],
                             "additionalProperties": false
                           }
@@ -2618,7 +2689,8 @@
                   "reason": {
                     "type": "string",
                     "minLength": 3,
-                    "maxLength": 500
+                    "maxLength": 300,
+                    "description": "Ditampilkan kepada pengguna sekolah dan pemilik lembaga"
                   }
                 },
                 "required": [
@@ -15375,6 +15447,17 @@
                                     "staff"
                                   ]
                                 },
+                                "suspendedNote": {
+                                  "nullable": true,
+                                  "description": "Alasan yang ditulis staf platform; null untuk tagihan",
+                                  "type": "string"
+                                },
+                                "suspendedAt": {
+                                  "nullable": true,
+                                  "type": "string",
+                                  "format": "date-time",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                                },
                                 "tier": {
                                   "type": "string"
                                 },
@@ -15412,6 +15495,8 @@
                                 "slug",
                                 "status",
                                 "suspendedReason",
+                                "suspendedNote",
+                                "suspendedAt",
                                 "tier",
                                 "modules",
                                 "scheduled"

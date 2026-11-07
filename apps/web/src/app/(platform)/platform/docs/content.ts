@@ -295,7 +295,7 @@ export const PLATFORM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Menangguhkan sekolah yang menunggak atau bermasalah',
-            body: 'Hanya staf dengan peran Admin platform yang melihat tombol Tangguhkan. Setelah ditangguhkan, sekolah langsung tidak bisa dipakai. Penangguhan yang dilakukan staf tidak terbuka hanya karena sekolah membayar; Anda harus mengaktifkannya kembali sendiri.',
+            body: 'Hanya staf dengan peran Admin platform yang melihat tombol Tangguhkan. Setelah ditangguhkan, sekolah langsung tidak bisa dipakai. Penangguhan yang dilakukan staf tidak terbuka hanya karena sekolah membayar; Anda harus mengaktifkannya kembali sendiri. Alasan yang Anda tulis (maksimal 300 karakter) ditampilkan kepada pengguna sekolah dan pemilik lembaga bersama tanggal penangguhan, jadi tulis dengan sopan dan tanpa data pribadi. Nama Anda hanya terlihat di konsol ini.',
             steps: [
               'Buka Lihat detail pada lembaga yang dimaksud.',
               'Di bagian Unit, cari unit sekolahnya lalu klik Tangguhkan.',
@@ -364,7 +364,7 @@ export const PLATFORM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Suspending a school that is behind or has a problem',
-            body: 'Only staff with the Platform admin role see the Suspend button. Once suspended, the school cannot be used at once. A suspension made by staff does not lift just because the school pays; you must reactivate it yourself.',
+            body: 'Only staff with the Platform admin role see the Suspend button. Once suspended, the school cannot be used at once. A suspension made by staff does not lift just because the school pays; you must reactivate it yourself. The reason you write (at most 300 characters) is shown to the users of the school and the institution owner together with the suspension date, so keep it polite and free of personal data. Your name is visible only in this console.',
             steps: [
               'Open View detail on the foundation.',
               'In the Units section, find the school unit and click Suspend.',
@@ -433,7 +433,7 @@ export const PLATFORM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Nangguhkeun sakola nu nunggak atawa bermasalah',
-            body: 'Ngan staf nu perannana Admin platform nu ningali tombol Tangguhkeun. Sanggeus ditangguhkeun, sakola langsung teu bisa dipaké. Penangguhan ku staf teu muka ngan ku sabab sakola mayar; anjeun kudu ngaktipkeunana deui sorangan.',
+            body: 'Ngan staf nu perannana Admin platform nu ningali tombol Tangguhkeun. Sanggeus ditangguhkeun, sakola langsung teu bisa dipaké. Penangguhan ku staf teu muka ngan ku sabab sakola mayar; anjeun kudu ngaktipkeunana deui sorangan. Alesan nu anjeun tulis (pangpangna 300 aksara) dipintonkeun ka pamaké sakola jeung nu gaduh lembaga babarengan jeung tanggal panangguhan, jadi tulis kalawan santun tur tanpa data pribadi. Ngaran anjeun ukur katingali dina konsol ieu.',
             steps: [
               'Buka Tingali detail dina lembaga nu dimaksud.',
               'Dina bagian Unit, pilarian unit sakolana tuluy klik Tangguhkeun.',

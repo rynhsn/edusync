@@ -62,6 +62,8 @@ export async function ownedFoundations(db: Db, userId: string) {
           slug: s.slug,
           status: s.status,
           suspendedReason: s.suspendedReason,
+          suspendedNote: s.suspendedNote,
+          suspendedAt: s.suspendedAt,
           tier: s.studentTier,
           scheduled: (() => {
             const o = orders.find((x) => x.schoolId === s.id && x.status === 'scheduled');

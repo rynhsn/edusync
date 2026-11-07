@@ -46,6 +46,10 @@ export const school = pgTable(
     studentTier: text('student_tier').notNull().default('t300'),
     /** Alasan penangguhan: 'billing' dilepas otomatis saat tagihan lunas, 'staff' hanya oleh staf platform. */
     suspendedReason: text('suspended_reason', { enum: ['billing', 'staff'] }),
+    /** Alasan yang ditulis staf (tampil ke pengguna sekolah dan pemilik); kosong untuk penangguhan karena tagihan. */
+    suspendedNote: text('suspended_note'),
+    /** Kapan sekolah ditangguhkan; kosong bila aktif. */
+    suspendedAt: timestamp('suspended_at', { withTimezone: true }),
     createdAt: createdAt(),
   },
   (t) => [index('school_foundation_idx').on(t.foundationId)],

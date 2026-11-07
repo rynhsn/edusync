@@ -1630,8 +1630,14 @@ export const DOC_ARTICLES: DocArticle[] = [
             href: '/account/units/new',
           },
           {
-            heading: 'Jika tagihan terlambat',
-            body: 'Setelah lewat jatuh tempo, langganan masuk Masa tenggang. Bila tetap belum dibayar, unit menjadi Ditangguhkan dan guru atau staf tidak bisa masuk ke sekolah.',
+            heading: 'Jika tagihan terlambat: masa tenggang, ditangguhkan, dibuka kembali',
+            body: 'Ada tiga tahap. Setiap peralihan tahap dikabari lewat email ke semua pemilik lembaga, satu kali, dengan tautan ke halaman Tagihan dan pembayaran.',
+            steps: [
+              'Masa tenggang: setelah lewat jatuh tempo, langganan masuk Masa tenggang. Email menyebut tanggal akhir masa tenggang. Sekolah tetap bisa dipakai.',
+              'Ditangguhkan: bila masih belum dibayar saat masa tenggang habis, semua sekolah di lembaga ditangguhkan. Guru dan staf melihat layar Sekolah ini sedang ditangguhkan, bukan halaman kerja, dan data sekolah tetap aman.',
+              'Dibuka kembali: begitu tagihan dibayar, akses semua sekolah dibuka otomatis dan Anda menerima email Langganan aktif kembali. Pengguna cukup menekan Muat ulang.',
+            ],
+            tip: 'Pemilik lembaga yang membuka sekolah ditangguhkan melihat tombol Buka portal pemilik lembaga untuk membayar. Penangguhan oleh pengelola platform tidak ikut terbuka oleh pembayaran. Alasan yang ditulis pengelola platform dan tanggal penangguhan tampil di layar sekolah dan di daftar Unit sekolah.',
             warning:
               'Bayar tagihan sebelum masa tenggang habis. Akses dibuka kembali otomatis setelah tagihan dibayar, tetapi sekolah tidak bisa dipakai selama ditangguhkan.',
           },
@@ -1727,8 +1733,14 @@ export const DOC_ARTICLES: DocArticle[] = [
             href: '/account/units/new',
           },
           {
-            heading: 'If an invoice is late',
-            body: 'After the due date the subscription enters the Grace period. If it is still unpaid, the unit becomes Suspended and teachers and staff cannot enter the school.',
+            heading: 'If an invoice is late: grace period, suspended, reopened',
+            body: 'There are three stages. Each change of stage is announced once by email to all institution owners, with a link to the Invoices and payments page.',
+            steps: [
+              'Grace period: after the due date the subscription enters the Grace period. The email states when it ends. The school can still be used.',
+              'Suspended: if it is still unpaid when the grace period ends, all schools of the institution are suspended. Teachers and staff see a "This school is currently suspended" screen instead of the work pages, and school data stays safe.',
+              'Reopened: as soon as the invoice is paid, access to all schools reopens automatically and you receive a "Subscription active again" email. Users only need to press Reload.',
+            ],
+            tip: 'Institution owners who open a suspended school see an Open the owner portal to pay button. A suspension by the platform administrator is not lifted by payment. The reason the administrator wrote and the suspension date appear on the school screen and in the School units list.',
             warning:
               'Pay the invoice before the grace period ends. Access reopens automatically once it is paid, but the school cannot be used while suspended.',
           },
@@ -1824,8 +1836,14 @@ export const DOC_ARTICLES: DocArticle[] = [
             href: '/account/units/new',
           },
           {
-            heading: 'Lamun tagihan telat',
-            body: 'Sanggeus kaliwat tanggal bayar, langganan asup Mangsa kalonggaran. Lamun tetep acan dibayar, unit jadi Dieureunkeun sarta guru atawa staf teu bisa lebet ka sakola.',
+            heading: 'Lamun tagihan telat: mangsa kalonggaran, dieureunkeun, dibuka deui',
+            body: 'Aya tilu tahap. Unggal robahan tahap diwartosan sakali ngaliwatan surélék ka sakabéh nu gaduh lembaga, jeung tumbu ka kaca Tagihan jeung pambayaran.',
+            steps: [
+              'Mangsa kalonggaran: sanggeus kaliwat tanggal bayar, langganan asup Mangsa kalonggaran. Surélékna nyebutkeun tanggal béakna. Sakola tetep bisa dipaké.',
+              'Dieureunkeun: lamun tetep acan dibayar nalika mangsa kalonggaran béak, sakabéh sakola di lembaga dieureunkeun. Guru jeung staf ningali layar "Sakola ieu keur ditangguhkeun", lain kaca gawé, sarta data sakola tetep aman.',
+              'Dibuka deui: pas tagihan dibayar, aksés sakabéh sakola dibuka otomatis sarta anjeun narima surélék "Langganan aktif deui". Pamaké cukup mencét Muat deui.',
+            ],
+            tip: 'Nu gaduh lembaga nu muka sakola nu dieureunkeun bakal ningali tombol Buka portal nu gaduh lembaga pikeun mayar. Panangguhan ku pangurus platform henteu muka ku pambayaran. Alesan nu ditulis pangurus platform jeung tanggal panangguhan muncul dina layar sakola jeung dina daptar Unit sakola.',
             warning:
               'Bayar tagihan samemeh mangsa kalonggaran béak. Aksés dibuka deui otomatis sanggeus tagihan dibayar, tapi sakola teu bisa dipaké salila dieureunkeun.',
           },

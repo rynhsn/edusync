@@ -54,6 +54,11 @@ const isTestSlug = (slug: string) =>
 
 const apply = process.argv.includes('--apply');
 const all = process.argv.includes('--all');
+/** --keep=slug1,slug2: hapus SEMUA lembaga kecuali slug yang disebut (mis. mempertahankan satu lembaga nyata). */
+const keepSlugs = (process.argv.find((a) => a.startsWith('--keep='))?.slice('--keep='.length) ?? '')
+  .split(',')
+  .map((x) => x.trim())
+  .filter(Boolean);
 /** Dengan --apply: jalankan semua DELETE lalu rollback (membuktikan urutan FK tanpa menyimpan apa pun). */
 const rollbackOnly = process.argv.includes('--rollback');
 const env = loadEnv();
@@ -92,9 +97,11 @@ async function main(c: pg.PoolClient) {
     if (PROTECTED_SCHOOLS.includes(s.slug)) protectedFoundationIds.add(s.foundation_id);
 
   // --all: hapus SEMUA lembaga (reset data sekolah, akun staf platform tidak tersentuh).
-  const targets = all
-    ? foundations
-    : foundations.filter((f) => isTestSlug(f.slug) && !protectedFoundationIds.has(f.id));
+  const targets = keepSlugs.length
+    ? foundations.filter((f) => !keepSlugs.includes(f.slug))
+    : all
+      ? foundations
+      : foundations.filter((f) => isTestSlug(f.slug) && !protectedFoundationIds.has(f.id));
   const kept = foundations.filter((f) => !targets.includes(f));
   const targetIds = targets.map((f) => f.id);
   const schoolIds = schools.filter((s) => targetIds.includes(s.foundation_id)).map((s) => s.id);

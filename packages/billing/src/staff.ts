@@ -16,6 +16,7 @@ import {
   registration,
   school,
   subscription,
+  user,
 } from '@edusync/db';
 import { DomainError } from './errors';
 import { activateRegistration } from './service';
@@ -56,6 +57,18 @@ export async function listFoundations(
     .select({ foundationId: invoice.foundationId })
     .from(invoice)
     .where(and(inArray(invoice.foundationId, ids), eq(invoice.status, 'open')));
+  // Staf pelaku penangguhan terakhir per sekolah; hanya untuk konsol platform, tidak pernah dikirim ke panel sekolah.
+  const suspendedIds = schools.filter((s) => s.suspendedReason === 'staff').map((s) => s.id);
+  const actors = new Map<string, string>();
+  if (suspendedIds.length > 0) {
+    const logs = await db
+      .select({ schoolId: auditLog.schoolId, name: user.name })
+      .from(auditLog)
+      .innerJoin(user, eq(user.id, auditLog.actorId))
+      .where(and(inArray(auditLog.schoolId, suspendedIds), eq(auditLog.action, 'school.suspended')))
+      .orderBy(desc(auditLog.createdAt));
+    for (const l of logs) if (l.schoolId && !actors.has(l.schoolId)) actors.set(l.schoolId, l.name);
+  }
   return rows.map((f) => {
     const sub = subs.find((s) => s.foundationId === f.id);
     return {
@@ -75,6 +88,9 @@ export async function listFoundations(
           slug: s.slug,
           status: s.status,
           suspendedReason: s.suspendedReason,
+          suspendedNote: s.suspendedNote,
+          suspendedAt: s.suspendedAt,
+          suspendedBy: actors.get(s.id) ?? null,
         })),
     };
   });
@@ -125,8 +141,8 @@ export async function setSchoolSuspended(
       .update(school)
       .set(
         suspended
-          ? { status: 'suspended', suspendedReason: 'staff' }
-          : { status: 'active', suspendedReason: null },
+          ? { status: 'suspended', suspendedReason: 'staff', suspendedNote: reason, suspendedAt: new Date() }
+          : { status: 'active', suspendedReason: null, suspendedNote: null, suspendedAt: null },
       )
       .where(eq(school.id, schoolId));
     await tx.insert(auditLog).values({

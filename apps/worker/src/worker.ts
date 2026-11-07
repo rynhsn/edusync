@@ -53,7 +53,7 @@ export async function startWorker(env: Env) {
     billingBusy = true;
     try {
       await createRenewalInvoices(platform.db, await payments.get());
-      await sweepSubscriptions(platform.db);
+      await sweepSubscriptions(platform.db, new Date(), { webUrl: env.WEB_URL });
     } catch (error) {
       console.error('[worker] siklus penagihan gagal', error);
     } finally {

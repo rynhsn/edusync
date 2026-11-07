@@ -109,6 +109,15 @@ export function FoundationDetail({
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">{s.name}</p>
                         <p className="text-muted-foreground font-mono text-xs">{s.slug}</p>
+                        {!active && (
+                          <p className="text-muted-foreground mt-1 text-xs break-words">
+                            {s.suspendedReason === 'staff' && s.suspendedNote
+                              ? t('suspendedNote', { note: s.suspendedNote })
+                              : t('billingNote')}
+                            {s.suspendedAt && ` · ${t('suspendedSince', { date: day(s.suspendedAt) })}`}
+                            {s.suspendedBy && ` · ${t('suspendedBy', { name: s.suspendedBy })}`}
+                          </p>
+                        )}
                       </div>
                       <div className="flex items-center gap-2">
                         <ToneBadge tone={active ? 'emerald' : 'rose'}>

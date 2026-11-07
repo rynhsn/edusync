@@ -54,6 +54,7 @@ import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AppHeader, MobileNavDrawer } from '@/components/app-header';
 import { ContextSwitcher } from '@/components/context-switcher';
 import { Logo } from '@/components/logo';
+import { SchoolSuspended } from '@/components/school-suspended';
 import { ShellAside, SidebarToggle } from '@/components/sidebar-toggle';
 import { type SearchPage, TopbarSearch } from '@/components/topbar-search';
 import { Button } from '@/components/ui/button';
@@ -62,6 +63,7 @@ import { UserMenu, useSignOut } from '@/components/user-menu';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import { isPortalOnly, isPortalPath } from '@/lib/portal-access';
+import { suspensionKind } from '@/lib/school-suspension';
 import { setSchoolTimezone } from '@/lib/school-time';
 import { useSite } from '@/lib/site';
 import { cn } from '@/lib/utils';
@@ -72,6 +74,11 @@ interface Membership {
   schoolSlug: string;
   /** Zona waktu IANA sekolah; kosong pada respons lama (dianggap Asia/Jakarta). */
   timezone?: string;
+  /** Status sekolah; kosong pada respons lama (dianggap aktif). */
+  schoolStatus?: string;
+  suspendedReason?: string | null;
+  suspendedNote?: string | null;
+  suspendedAt?: string | null;
   roles: string[];
   permissions: string[];
   modules: string[];
@@ -260,7 +267,8 @@ export const NAV_GROUPS = [
     ],
   },
   {
-    key: 'groupGuidance',
+    // Satu grup per modul: judul grup tidak boleh menyebut modul yang tidak dilanggan sekolah.
+    key: 'groupTahfidz',
     icon: BookHeart,
     items: [
       {
@@ -278,6 +286,20 @@ export const NAV_GROUPS = [
         module: 'tahfidz',
       },
       {
+        href: '/tahfidz/settings',
+        labelKey: 'ibadahSettings',
+        icon: Sprout,
+        permission: 'tahfidz:manage',
+        module: 'tahfidz',
+        settings: true,
+      },
+    ],
+  },
+  {
+    key: 'groupInternship',
+    icon: BriefcaseBusiness,
+    items: [
+      {
         href: '/pkl',
         labelKey: 'pkl',
         icon: BriefcaseBusiness,
@@ -290,14 +312,6 @@ export const NAV_GROUPS = [
         icon: Factory,
         permission: 'pkl:read',
         module: 'internship',
-      },
-      {
-        href: '/tahfidz/settings',
-        labelKey: 'ibadahSettings',
-        icon: Sprout,
-        permission: 'tahfidz:manage',
-        module: 'tahfidz',
-        settings: true,
       },
       {
         href: '/pkl/settings',
@@ -699,6 +713,38 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     hasModule: (m) => school.modules.includes(m),
   };
   const roles = school.roles.map(roleLabel).join(', ') || tr('none');
+
+  // Sekolah ditangguhkan: layar khusus menggantikan isi, tetapi kepala halaman, pemindah konteks, dan menu
+  // pengguna tetap ada agar pengguna bisa pindah sekolah atau keluar.
+  const suspended = suspensionKind(school);
+  if (suspended) {
+    return (
+      <SchoolContext.Provider value={value}>
+        <div className="flex flex-1 flex-col">
+          <AppHeader
+            leading={
+              <>
+                <Logo />
+                <div className="w-52 sm:w-64">
+                  <ContextSwitcher alwaysShow subtitle={roles} />
+                </div>
+              </>
+            }
+          >
+            <UserMenu profileHref="/profile" name={user.name} email={user.email} image={photo} />
+          </AppHeader>
+          <main className="flex flex-1 flex-col p-4 md:p-8">
+            <SchoolSuspended
+              kind={suspended}
+              schoolName={school.schoolName}
+              note={school.suspendedNote}
+              since={school.suspendedAt}
+            />
+          </main>
+        </div>
+      </SchoolContext.Provider>
+    );
+  }
 
   // Kerangka ringan untuk wali/siswa: tanpa menu samping, nyaman di ponsel.
   if (portalOnly) {

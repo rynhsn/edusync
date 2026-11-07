@@ -339,6 +339,11 @@ export function FoundationsView() {
                     <span className="text-muted-foreground">
                       {t('unitsCount', { count: f.schools.length })}
                     </span>
+                    {suspendedUnits(f) > 0 && (
+                      <ToneBadge tone="rose">
+                        {t('unitsSuspendedShort', { count: suspendedUnits(f) })}
+                      </ToneBadge>
+                    )}
                     {f.openInvoices > 0 && (
                       <ToneBadge tone="amber">{t('openInvoices', { count: f.openInvoices })}</ToneBadge>
                     )}
@@ -377,6 +382,7 @@ export function FoundationsView() {
         }
         description={acting ? t(acting.action === 'suspend' ? 'suspendHelp' : 'reactivateHelp') : undefined}
         submitLabel={acting?.action === 'suspend' ? t('suspend') : t('reactivate')}
+        {...(acting?.action === 'suspend' ? { maxLength: 300, notice: t('reasonVisibleNotice') } : {})}
         error={actError}
         onConfirm={(reason) =>
           acting

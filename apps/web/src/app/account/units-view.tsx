@@ -2,7 +2,7 @@
 
 import { CalendarClock, ExternalLink, Plus, School, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-import { useTranslations } from 'next-intl';
+import { useFormatter, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -15,6 +15,7 @@ const MAX_BADGES = 5;
 
 function UnitCard({ unit, index }: { unit: AccountSchool; index: number }) {
   const t = useTranslations('account');
+  const format = useFormatter();
   const { moduleLabel, tierLabel, foundation } = useAccount();
   const foundationId = foundation.id;
   const site = useSite();
@@ -35,6 +36,16 @@ function UnitCard({ unit, index }: { unit: AccountSchool; index: number }) {
             <p className="text-muted-foreground truncate font-mono text-xs">{unit.slug}</p>
           </div>
         </div>
+
+        {unit.status !== 'active' && (
+          <p className="bg-muted/50 rounded-lg px-3 py-2 text-xs break-words">
+            {unit.suspendedReason === 'staff' && unit.suspendedNote
+              ? t('suspendedNote', { note: unit.suspendedNote })
+              : t('billingNote')}
+            {unit.suspendedAt &&
+              ` · ${t('suspendedSince', { date: format.dateTime(new Date(unit.suspendedAt), { dateStyle: 'long' }) })}`}
+          </p>
+        )}
 
         <div className="flex flex-wrap gap-1.5">
           <ToneBadge tone={unit.status === 'active' ? 'emerald' : 'rose'}>
