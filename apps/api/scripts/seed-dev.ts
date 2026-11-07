@@ -100,7 +100,7 @@ const yayasan = await ensureFoundation('miftahul-huda', 'Yayasan Miftahul Huda')
 const smp = await ensureSchool(yayasan.id, 'smpit-miftahul-huda', 'SMP IT Miftahul Huda');
 const smk = await ensureSchool(yayasan.id, 'smk-miftahul-huda', 'SMK Miftahul Huda');
 
-const admin = await ensureUser('admin@edusync.test', 'Admin Yayasan');
+const admin = await ensureUser('admin@edusync.dev', 'Admin Yayasan');
 await ensureMember(admin, smp.id, ['school_admin']);
 await ensureMember(admin, smk.id, ['school_admin']);
 await db.insert(foundationOwner).values({ foundationId: yayasan.id, userId: admin }).onConflictDoNothing();
@@ -956,7 +956,7 @@ if (ahmad && siswaMember) {
 await db.insert(platformStaff).values({ userId: admin, role: 'admin' }).onConflictDoNothing();
 
 console.log(
-  'Seed selesai: admin@edusync.test (admin yayasan dan admin platform), guru@edusync.test, siswa@edusync.test (Ahmad Fauzan, SMK) (kata sandi dari DEV_SEED_PASSWORD)',
+  'Seed selesai: admin@edusync.dev (admin yayasan dan admin platform), guru@edusync.test, siswa@edusync.test (Ahmad Fauzan, SMK) (kata sandi dari DEV_SEED_PASSWORD)',
 );
 await pool.end();
 await app.close();
