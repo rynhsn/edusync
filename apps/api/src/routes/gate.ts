@@ -21,6 +21,7 @@ import {
   lte,
   ne,
   school,
+  sql,
   student,
   type Tx,
   teacher,
@@ -561,13 +562,18 @@ export async function gateRoutes(instance: FastifyInstance) {
             id: attendanceCard.id,
             studentId: attendanceCard.studentId,
             studentName: student.name,
-            kind: attendanceCard.kind,
+            kind: sql<'rfid'>`'rfid'`,
             code: attendanceCard.code,
             active: attendanceCard.active,
           })
           .from(attendanceCard)
           .innerJoin(student, eq(student.id, attendanceCard.studentId))
-          .where(request.query.studentId ? eq(attendanceCard.studentId, request.query.studentId) : undefined)
+          .where(
+            and(
+              eq(attendanceCard.kind, 'rfid'),
+              request.query.studentId ? eq(attendanceCard.studentId, request.query.studentId) : undefined,
+            ),
+          )
           .orderBy(asc(student.name))
           .limit(500),
       ),
@@ -750,7 +756,7 @@ export async function gateRoutes(instance: FastifyInstance) {
       await tenant(request, async (tx) => {
         const rows = await tx
           .delete(attendanceCard)
-          .where(eq(attendanceCard.id, request.params.id))
+          .where(and(eq(attendanceCard.id, request.params.id), eq(attendanceCard.kind, 'rfid')))
           .returning({ studentId: attendanceCard.studentId });
         if (rows.length === 0) throw new HttpError(404, 'not_found', 'Kartu tidak ditemukan.');
         await audit(tx, ctx, 'attendance.card.delete', 'student', rows[0]?.studentId ?? '');
@@ -853,6 +859,7 @@ export async function gateRoutes(instance: FastifyInstance) {
           .where(
             and(
               eq(attendanceCard.code, code),
+              eq(attendanceCard.kind, 'rfid'),
               eq(attendanceCard.active, true),
               inArray(attendanceCard.schoolId, d.schoolIds),
             ),
@@ -880,7 +887,13 @@ export async function gateRoutes(instance: FastifyInstance) {
         const [found] = await tx
           .select()
           .from(attendanceCard)
-          .where(and(eq(attendanceCard.code, code), eq(attendanceCard.active, true)));
+          .where(
+            and(
+              eq(attendanceCard.code, code),
+              eq(attendanceCard.kind, 'rfid'),
+              eq(attendanceCard.active, true),
+            ),
+          );
         if (!found) throw new HttpError(404, 'unknown_card', 'Kartu tidak dikenal.');
         if (!multi) {
           await tx

@@ -1,11 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
+  ATTENDANCE_QR_ALPHABET,
   cardElementSchema,
   cardLayoutSchema,
   defaultExamCardLayout,
   defaultStudentCardLayout,
+  formatAttendanceQr,
   formatParticipantNo,
+  hasAttendanceQrPrefix,
   invalidFieldsForKind,
+  parseAttendanceQr,
   resolveFieldValue,
 } from './card-layout';
 
@@ -43,7 +47,7 @@ describe('card-layout', () => {
     expect(cardLayoutSchema.safeParse({ widthMm: 10, heightMm: 54, elements: [] }).success).toBe(false);
   });
 
-  it('qr dan kode batang hanya boleh mengikat nis, rfidCode, atau participantNo', () => {
+  it('qr dan kode batang hanya boleh mengikat nis, rfidCode, qrCode, atau participantNo', () => {
     const qr = { type: 'qr', x: 0, y: 0, w: 10, h: 10 };
     expect(cardElementSchema.safeParse({ ...qr, field: 'nis' }).success).toBe(true);
     expect(cardElementSchema.safeParse({ ...qr, field: 'name' }).success).toBe(false);
@@ -72,5 +76,42 @@ describe('card-layout', () => {
   it('formatParticipantNo: singkatan, tahun, dan urutan 3 digit', () => {
     expect(formatParticipantNo('asts', '2026-07-13', 7)).toBe('ASTS-26-007');
     expect(formatParticipantNo('', 'x', 1234)).toBe('UJN-00-1234');
+  });
+
+  it('kartu siswa bawaan memuat QR absensi yang mengikat qrCode', () => {
+    const els = defaultStudentCardLayout().elements;
+    expect(els.some((e) => e.type === 'qr' && e.field === 'qrCode')).toBe(true);
+    expect(defaultExamCardLayout().elements.some((e) => e.type === 'qr' && e.field === 'qrCode')).toBe(false);
+  });
+
+  it('qrCode berlaku untuk kartu siswa saja dan hanya sebagai gambar kode', () => {
+    const qr = cardElementSchema.parse({ type: 'qr', field: 'qrCode', x: 0, y: 0, w: 10, h: 10 });
+    expect(invalidFieldsForKind('student', [qr])).toEqual([]);
+    expect(invalidFieldsForKind('exam', [qr])).toEqual(['qrCode']);
+    const bar = cardElementSchema.parse({ type: 'barcode', field: 'qrCode', x: 0, y: 0, w: 55, h: 8 });
+    expect(invalidFieldsForKind('student', [bar])).toEqual([]);
+    expect(invalidFieldsForKind('exam', [bar])).toEqual(['qrCode']);
+    const asText = cardElementSchema.parse({ type: 'field', field: 'qrCode', x: 0, y: 0, w: 10, h: 5 });
+    expect(invalidFieldsForKind('student', [asText])).toEqual(['qrCode']);
+  });
+
+  it('resolveFieldValue mengembalikan isi QR apa adanya', () => {
+    expect(resolveFieldValue('qrCode', { qrCode: 'ES1.ABC' })).toBe('ES1.ABC');
+    expect(resolveFieldValue('qrCode', {})).toBe('');
+  });
+
+  it('parseAttendanceQr: format ES1.<20 karakter Crockford>', () => {
+    const code = 'ABCDEFGHJKMNPQRSTVWX';
+    expect(ATTENDANCE_QR_ALPHABET).toHaveLength(32);
+    expect(parseAttendanceQr(formatAttendanceQr(code))).toBe(code);
+    expect(parseAttendanceQr(`  es1.${code.toLowerCase()} `)).toBe(code);
+    expect(parseAttendanceQr(`ES1.${code}A`)).toBeNull();
+    expect(parseAttendanceQr(`ES1.${code.slice(1)}`)).toBeNull();
+    expect(parseAttendanceQr(`ES1.${code.slice(1)}I`)).toBeNull(); // I tidak ada di abjad
+    expect(parseAttendanceQr(`ES2.${code}`)).toBeNull();
+    expect(parseAttendanceQr('https://contoh.id')).toBeNull();
+    expect(parseAttendanceQr(null)).toBeNull();
+    expect(hasAttendanceQrPrefix('ES1.apa-saja')).toBe(true);
+    expect(hasAttendanceQrPrefix('WIFI:S:x')).toBe(false);
   });
 });

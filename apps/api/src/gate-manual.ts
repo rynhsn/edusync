@@ -143,9 +143,17 @@ export function forbiddenClass() {
 export interface ManualInput {
   date: string;
   direction: 'in' | 'out';
-  entries: { studentId: string; at: Date; status?: 'present' | 'late' | undefined }[];
+  entries: {
+    studentId: string;
+    at: Date;
+    status?: 'present' | 'late' | undefined;
+    /** Kunci idempoten per entri (pindai QR); disimpan di `tap_event.client_id`. */
+    clientId?: string | undefined;
+  }[];
   overwrite: boolean;
   force: boolean;
+  /** Asal catatan pada `tap_event`; bawaan `manual`. Pindai QR memakai `qr`. */
+  source?: 'manual' | 'qr';
 }
 
 /**
@@ -161,6 +169,7 @@ export async function applyManual(
   policy: Policy,
 ) {
   const { date, direction, overwrite } = input;
+  const source = input.source ?? 'manual';
   const closed = await closureOn(tx, date);
   if (closed && !input.force) {
     throw new HttpError(
@@ -236,9 +245,10 @@ export async function applyManual(
         schoolId: ctx.schoolId,
         studentId,
         direction: 'in',
-        source: 'manual',
+        source,
         at,
         recordedBy: ctx.userId,
+        clientId: entry.clientId ?? null,
       });
       await tx
         .insert(dailyAttendance)
@@ -262,9 +272,10 @@ export async function applyManual(
         schoolId: ctx.schoolId,
         studentId,
         direction: 'out',
-        source: 'manual',
+        source,
         at,
         recordedBy: ctx.userId,
+        clientId: entry.clientId ?? null,
       });
       await tx
         .insert(dailyAttendance)

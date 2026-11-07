@@ -512,6 +512,13 @@
       "when": 1795200200000,
       "tag": "0072_staff_invitation",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1795250200000,
+      "tag": "0073_attendance_qr",
+      "breakpoints": true
     }
   ]
 }

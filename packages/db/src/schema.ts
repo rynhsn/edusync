@@ -858,7 +858,10 @@ export const attendanceDeviceSchool = pgTable(
   ],
 );
 
-/** Kartu RFID siswa (UID kartu). Satu siswa boleh punya beberapa kartu. */
+/**
+ * Kode kartu siswa. `rfid`: UID kartu RFID untuk kiosk (satu siswa boleh punya beberapa). `qr`: kode acak QR di kartu
+ * cetak untuk absensi cadangan lewat kamera guru; paling banyak satu per siswa, tidak pernah dipakai kiosk.
+ */
 export const attendanceCard = pgTable(
   'attendance_card',
   {
@@ -869,7 +872,7 @@ export const attendanceCard = pgTable(
     studentId: uuid('student_id')
       .notNull()
       .references(() => student.id),
-    kind: text('kind', { enum: ['rfid'] }).notNull(),
+    kind: text('kind', { enum: ['rfid', 'qr'] }).notNull(),
     code: text('code').notNull(),
     active: boolean('active').notNull().default(true),
     createdAt: createdAt(),
@@ -877,6 +880,7 @@ export const attendanceCard = pgTable(
   (t) => [
     unique('attendance_card_code_uq').on(t.schoolId, t.code),
     index('attendance_card_student_idx').on(t.studentId),
+    uniqueIndex('attendance_card_qr_student_uq').on(t.studentId).where(sql`${t.kind} = 'qr'`),
   ],
 );
 

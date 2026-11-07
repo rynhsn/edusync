@@ -29763,6 +29763,7 @@
                                           "birthPlaceDate",
                                           "gender",
                                           "rfidCode",
+                                          "qrCode",
                                           "schoolName",
                                           "address",
                                           "examTitle",
@@ -30003,6 +30004,7 @@
                                         "enum": [
                                           "nis",
                                           "rfidCode",
+                                          "qrCode",
                                           "participantNo"
                                         ]
                                       },
@@ -30069,6 +30071,7 @@
                                         "enum": [
                                           "nis",
                                           "rfidCode",
+                                          "qrCode",
                                           "participantNo"
                                         ]
                                       },
@@ -30422,6 +30425,7 @@
                                           "birthPlaceDate",
                                           "gender",
                                           "rfidCode",
+                                          "qrCode",
                                           "schoolName",
                                           "address",
                                           "examTitle",
@@ -30662,6 +30666,7 @@
                                         "enum": [
                                           "nis",
                                           "rfidCode",
+                                          "qrCode",
                                           "participantNo"
                                         ]
                                       },
@@ -30728,6 +30733,7 @@
                                         "enum": [
                                           "nis",
                                           "rfidCode",
+                                          "qrCode",
                                           "participantNo"
                                         ]
                                       },
@@ -31209,6 +31215,7 @@
                                         "birthPlaceDate",
                                         "gender",
                                         "rfidCode",
+                                        "qrCode",
                                         "schoolName",
                                         "address",
                                         "examTitle",
@@ -31449,6 +31456,7 @@
                                       "enum": [
                                         "nis",
                                         "rfidCode",
+                                        "qrCode",
                                         "participantNo"
                                       ]
                                     },
@@ -31515,6 +31523,7 @@
                                       "enum": [
                                         "nis",
                                         "rfidCode",
+                                        "qrCode",
                                         "participantNo"
                                       ]
                                     },
@@ -31972,6 +31981,7 @@
                                     "birthPlaceDate",
                                     "gender",
                                     "rfidCode",
+                                    "qrCode",
                                     "schoolName",
                                     "address",
                                     "examTitle",
@@ -32202,6 +32212,7 @@
                                   "enum": [
                                     "nis",
                                     "rfidCode",
+                                    "qrCode",
                                     "participantNo"
                                   ]
                                 },
@@ -32266,6 +32277,7 @@
                                   "enum": [
                                     "nis",
                                     "rfidCode",
+                                    "qrCode",
                                     "participantNo"
                                   ]
                                 },
@@ -32657,6 +32669,7 @@
                                       "birthPlaceDate",
                                       "gender",
                                       "rfidCode",
+                                      "qrCode",
                                       "schoolName",
                                       "address",
                                       "examTitle",
@@ -32897,6 +32910,7 @@
                                     "enum": [
                                       "nis",
                                       "rfidCode",
+                                      "qrCode",
                                       "participantNo"
                                     ]
                                   },
@@ -32963,6 +32977,7 @@
                                     "enum": [
                                       "nis",
                                       "rfidCode",
+                                      "qrCode",
                                       "participantNo"
                                     ]
                                   },
@@ -33524,6 +33539,7 @@
                                       "birthPlaceDate",
                                       "gender",
                                       "rfidCode",
+                                      "qrCode",
                                       "schoolName",
                                       "address",
                                       "examTitle",
@@ -33764,6 +33780,7 @@
                                     "enum": [
                                       "nis",
                                       "rfidCode",
+                                      "qrCode",
                                       "participantNo"
                                     ]
                                   },
@@ -33830,6 +33847,7 @@
                                     "enum": [
                                       "nis",
                                       "rfidCode",
+                                      "qrCode",
                                       "participantNo"
                                     ]
                                   },
@@ -34318,6 +34336,7 @@
                                     "birthPlaceDate",
                                     "gender",
                                     "rfidCode",
+                                    "qrCode",
                                     "schoolName",
                                     "address",
                                     "examTitle",
@@ -34548,6 +34567,7 @@
                                   "enum": [
                                     "nis",
                                     "rfidCode",
+                                    "qrCode",
                                     "participantNo"
                                   ]
                                 },
@@ -34612,6 +34632,7 @@
                                   "enum": [
                                     "nis",
                                     "rfidCode",
+                                    "qrCode",
                                     "participantNo"
                                   ]
                                 },
@@ -35005,6 +35026,7 @@
                                       "birthPlaceDate",
                                       "gender",
                                       "rfidCode",
+                                      "qrCode",
                                       "schoolName",
                                       "address",
                                       "examTitle",
@@ -35245,6 +35267,7 @@
                                     "enum": [
                                       "nis",
                                       "rfidCode",
+                                      "qrCode",
                                       "participantNo"
                                     ]
                                   },
@@ -35311,6 +35334,7 @@
                                     "enum": [
                                       "nis",
                                       "rfidCode",
+                                      "qrCode",
                                       "participantNo"
                                     ]
                                   },
@@ -36054,6 +36078,7 @@
                                       "birthPlaceDate",
                                       "gender",
                                       "rfidCode",
+                                      "qrCode",
                                       "schoolName",
                                       "address",
                                       "examTitle",
@@ -36294,6 +36319,7 @@
                                     "enum": [
                                       "nis",
                                       "rfidCode",
+                                      "qrCode",
                                       "participantNo"
                                     ]
                                   },
@@ -36360,6 +36386,7 @@
                                     "enum": [
                                       "nis",
                                       "rfidCode",
+                                      "qrCode",
                                       "participantNo"
                                     ]
                                   },
@@ -36921,6 +36948,7 @@
                                       "birthPlaceDate",
                                       "gender",
                                       "rfidCode",
+                                      "qrCode",
                                       "schoolName",
                                       "address",
                                       "examTitle",
@@ -37161,6 +37189,7 @@
                                     "enum": [
                                       "nis",
                                       "rfidCode",
+                                      "qrCode",
                                       "participantNo"
                                     ]
                                   },
@@ -37227,6 +37256,7 @@
                                     "enum": [
                                       "nis",
                                       "rfidCode",
+                                      "qrCode",
                                       "participantNo"
                                     ]
                                   },
@@ -38224,7 +38254,7 @@
         "tags": [
           "Cards"
         ],
-        "description": "Izin: `student:read`. Wajib `classId` (siswa aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). Hanya baca; PDF dirender di klien.",
+        "description": "Izin: `student:read`. Wajib `classId` (siswa aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). `qrCode` = isi QR absensi cadangan (`ES1.<kode acak>`, satu per siswa); kode yang belum ada dibuat otomatis secara idempoten (satu-satunya efek tulis endpoint ini, dicatat di audit `attendance.qr.create`). PDF dirender di klien.",
         "parameters": [
           {
             "schema": {
@@ -38308,6 +38338,10 @@
                             "type": "string",
                             "description": "Kode kartu RFID aktif pertama; kosong bila belum ada"
                           },
+                          "qrCode": {
+                            "type": "string",
+                            "description": "Isi QR absensi cadangan yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada"
+                          },
                           "photoUrl": {
                             "nullable": true,
                             "description": "Jalur foto (butuh login & x-school-id), null bila belum ada",
@@ -38330,6 +38364,7 @@
                           "birthPlaceDate",
                           "address",
                           "rfidCode",
+                          "qrCode",
                           "photoUrl",
                           "schoolName",
                           "academicYear"
@@ -39936,6 +39971,673 @@
                   },
                   "required": [
                     "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/gate/scan": {
+      "post": {
+        "summary": "Catat datang atau pulang dengan memindai QR kartu siswa",
+        "tags": [
+          "Gate attendance"
+        ],
+        "description": "Izin: `attendance:manage`; modul `attendance`. Cadangan bila kiosk RFID tidak bisa dipakai: guru memindai QR di kartu siswa dengan kamera. `payload` adalah teks hasil pindai (`ES1.<20 karakter>`); selain format itu 400 `invalid_qr`, kode yang tidak terdaftar atau sudah diganti 404 `unknown_qr`. Aturan akses sama dengan `/v1/gate/manual`: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan; selain itu 403 `forbidden_class`. Inti pencatatan SAMA dengan `/v1/gate/manual` (status terlambat dari kebijakan `lateAfter`, penjaga hari libur, pemberitahuan wali, aturan status izin/sakit/alpa) tetapi `tap_event` bersumber `qr` dengan `recordedBy` pencatat. `direction` dipilih eksplisit oleh guru (`in` datang, `out` pulang). `at` (ISO 8601 dengan zona) adalah jam pindai asli untuk kiriman ulang dari antrean offline: tidak boleh di masa depan dan maksimal 48 jam ke belakang (400 `invalid_time`); tanpa `at` dipakai jam server. `clientId` (kunci idempoten per pindaian, maks. 64 karakter): kiriman ulang dengan `clientId` yang sama mengembalikan hasil sebelumnya dengan `replayed: true` tanpa mencatat dua kali. Catatan datang/pulang yang sudah ada tidak ditimpa (`already_in`, `already_out`) kecuali `overwrite: true`; siswa berstatus izin/sakit/alpa dilewati (`skipped_status`) kecuali `overwrite`. Pulang tanpa catatan datang tetap dicatat dengan `warning` `no_check_in`. Hari libur/jeda sekolah: 409 `school_closed` kecuali `force: true`. Siswa tidak aktif: 409 `student_inactive`. Dibatasi 240 permintaan per menit per sesi (429). Satu entri audit dicatat per pindaian.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "payload": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200
+                  },
+                  "direction": {
+                    "type": "string",
+                    "enum": [
+                      "in",
+                      "out"
+                    ]
+                  },
+                  "at": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                  },
+                  "clientId": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 64
+                  },
+                  "overwrite": {
+                    "default": false,
+                    "type": "boolean"
+                  },
+                  "force": {
+                    "default": false,
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "payload",
+                  "direction"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "result": {
+                      "type": "string",
+                      "enum": [
+                        "in",
+                        "out",
+                        "already_in",
+                        "already_out",
+                        "skipped_status",
+                        "invalid_time"
+                      ]
+                    },
+                    "replayed": {
+                      "type": "boolean",
+                      "description": "true bila `clientId` sudah pernah diproses; hasil sebelumnya dikembalikan tanpa mencatat ulang"
+                    },
+                    "student": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "className": {
+                          "nullable": true,
+                          "type": "string"
+                        },
+                        "nis": {
+                          "nullable": true,
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "id",
+                        "name",
+                        "className",
+                        "nis"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "date": {
+                      "type": "string"
+                    },
+                    "at": {
+                      "nullable": true,
+                      "description": "Jam yang tercatat (ISO 8601)",
+                      "type": "string"
+                    },
+                    "status": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "present",
+                        "late",
+                        "excused",
+                        "sick",
+                        "absent"
+                      ]
+                    },
+                    "late": {
+                      "type": "boolean"
+                    },
+                    "warning": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "no_check_in"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "result",
+                    "replayed",
+                    "student",
+                    "date",
+                    "at",
+                    "status",
+                    "late",
+                    "warning"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/attendance/students/{studentId}/qr/rotate": {
+      "post": {
+        "summary": "Buat ulang QR absensi siswa",
+        "tags": [
+          "Gate attendance"
+        ],
+        "description": "Izin: `attendance:configure`; modul `attendance`. Untuk kartu yang hilang atau QR yang bocor: kode lama dihapus (QR yang sudah dicetak langsung tidak berlaku, pindaiannya 404 `unknown_qr`) dan kode baru dibuat. Kembalikan `qr` (isi QR `ES1.<kode>`) untuk dicetak ulang. QR dibuat otomatis saat pertama dibutuhkan (`GET /v1/cards/students`), jadi endpoint ini hanya untuk mengganti. Siswa tidak ada: 404. Satu entri audit dicatat (tanpa kode).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studentId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "studentId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "qr": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "studentId",
+                    "qr"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/attendance/students/{studentId}/qr": {
+      "get": {
+        "summary": "QR absensi siswa",
+        "tags": [
+          "Gate attendance"
+        ],
+        "description": "Izin: `attendance:configure`; modul `attendance`. Mengembalikan isi QR (`ES1.<kode>`) siswa; dibuat bila belum ada (idempoten). Siswa tidak ada: 404.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "studentId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "studentId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "qr": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "studentId",
+                    "qr"
                   ],
                   "additionalProperties": false
                 }

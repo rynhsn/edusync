@@ -7,6 +7,7 @@ import {
   defaultStudentCardLayout,
   examDateParts,
   examTimeRange,
+  formatAttendanceQr,
   formatLongDateId,
   formatParticipantNo,
   invalidFieldsForKind,
@@ -38,6 +39,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { ensureQrCodes } from '../attendance-qr';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
@@ -183,6 +185,9 @@ const studentCardItem = z.object({
   birthPlaceDate: z.string().describe('"Bandung, 5 Oktober 2010"'),
   address: z.string(),
   rfidCode: z.string().describe('Kode kartu RFID aktif pertama; kosong bila belum ada'),
+  qrCode: z
+    .string()
+    .describe('Isi QR absensi cadangan yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada'),
   photoUrl: z.string().nullable().describe('Jalur foto (butuh login & x-school-id), null bila belum ada'),
   ...dataItemBase,
 });
@@ -699,7 +704,9 @@ export async function cardRoutes(instance: FastifyInstance) {
           `Izin: \`student:read\`. Wajib \`classId\` (siswa aktif kelas itu) dan/atau \`studentIds\` (uuid dipisah koma, ` +
           `maks. ${MAX_CARD_ROWS}). Tanpa \`classId\`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai ` +
           'kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. ' +
-          `Dibatasi ${MAX_CARD_ROWS} baris (\`truncated: true\` bila lebih). Hanya baca; PDF dirender di klien.`,
+          `Dibatasi ${MAX_CARD_ROWS} baris (\`truncated: true\` bila lebih). \`qrCode\` = isi QR absensi cadangan ` +
+          '(`ES1.<kode acak>`, satu per siswa); kode yang belum ada dibuat otomatis secara idempoten (satu-satunya efek ' +
+          'tulis endpoint ini, dicatat di audit `attendance.qr.create`). PDF dirender di klien.',
         headers: schoolHeader,
         querystring: z.object({
           classId: z.uuid().optional(),
@@ -793,6 +800,7 @@ export async function cardRoutes(instance: FastifyInstance) {
                     attendanceCard.studentId,
                     page.map((r) => r.id),
                   ),
+                  eq(attendanceCard.kind, 'rfid'),
                   eq(attendanceCard.active, true),
                 ),
               )
@@ -800,6 +808,24 @@ export async function cardRoutes(instance: FastifyInstance) {
           : [];
         const firstCode = new Map<string, string>();
         for (const c of codes) if (!firstCode.has(c.studentId)) firstCode.set(c.studentId, c.code);
+        // QR absensi: dibuat secara malas dan idempoten (satu per siswa) agar kartu siap cetak tanpa langkah tambahan.
+        const qr = await ensureQrCodes(
+          tx,
+          (request.ctx as TenantContext).schoolId,
+          page.map((r) => r.id),
+        );
+        if (qr.created > 0) {
+          await audit(
+            tx,
+            request.ctx as TenantContext,
+            'attendance.qr.create',
+            'school',
+            (request.ctx as TenantContext).schoolId,
+            {
+              created: qr.created,
+            },
+          );
+        }
         return {
           schoolName,
           truncated,
@@ -815,6 +841,7 @@ export async function cardRoutes(instance: FastifyInstance) {
               .join(', '),
             address: r.address ?? '',
             rfidCode: firstCode.get(r.id) ?? '',
+            qrCode: qr.codes.has(r.id) ? formatAttendanceQr(qr.codes.get(r.id) as string) : '',
             photoUrl: photoPath(r.id, r.photo),
             schoolName,
             academicYear: year?.name ?? '',

@@ -45,6 +45,7 @@ import { financeLateFeeRoutes } from './routes/finance-late-fee';
 import { financePaymentMethodRoutes } from './routes/finance-payment-methods';
 import { gateRoutes } from './routes/gate';
 import { gateManualRoutes } from './routes/gate-manual';
+import { gateScanRoutes } from './routes/gate-scan';
 import { gradingRoutes } from './routes/grading';
 import { guardianRoutes } from './routes/guardians';
 import { invitationRoutes } from './routes/invitations';
@@ -243,6 +244,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(gateRoutes);
   await app.register(cardRoutes);
   await app.register(gateManualRoutes);
+  await app.register(gateScanRoutes);
   await app.register(lessonAttendanceRoutes);
   await app.register(letterRoutes);
   await app.register(extracurricularRoutes);

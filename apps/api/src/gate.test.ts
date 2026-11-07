@@ -420,8 +420,9 @@ describe('jadwal guru piket', () => {
     expect(roster).toEqual([{ date: today(), teacherId: ids.guruB, teacherName: 'Guru B' }]);
   });
 
-  it('endpoint scan sudah dicopot; bentuk lama absen manual (izin/sakit satu siswa) ditolak validasi', async () => {
-    expect((await call('POST', '/v1/gate/scan', teacherBCookie, { code: 'b0b0b0b0' })).statusCode).toBe(404);
+  it('bentuk lama scan kartu ({code}) dan absen manual (izin/sakit satu siswa) ditolak validasi', async () => {
+    // /v1/gate/scan kini pindai QR (lihat gate-scan.test.ts); bentuk lama {code} tidak lolos validasi.
+    expect((await call('POST', '/v1/gate/scan', teacherBCookie, { code: 'b0b0b0b0' })).statusCode).toBe(400);
     // /v1/gate/manual kini dipakai untuk catat datang/pulang massal (lihat gate-manual.test.ts).
     expect(
       (await call('POST', '/v1/gate/manual', adminCookie, { studentId: ids.siswa[0], kind: 'sick' }))

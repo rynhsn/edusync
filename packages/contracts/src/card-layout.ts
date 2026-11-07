@@ -18,6 +18,7 @@ export const STUDENT_CARD_FIELDS = [
   'birthPlaceDate',
   'gender',
   'rfidCode',
+  'qrCode',
   'schoolName',
   'address',
 ] as const;
@@ -48,6 +49,7 @@ export const CARD_FIELDS = [
   'birthPlaceDate',
   'gender',
   'rfidCode',
+  'qrCode',
   'schoolName',
   'address',
   'examTitle',
@@ -60,8 +62,36 @@ export const CARD_FIELDS = [
 ] as const;
 export type CardField = (typeof CARD_FIELDS)[number];
 
-/** Kolom yang boleh menjadi isi kode QR / kode batang. */
-export const CODE_FIELDS = ['nis', 'rfidCode', 'participantNo'] as const;
+/**
+ * Kolom yang boleh menjadi isi kode QR / kode batang. `qrCode` = isi QR absensi cadangan kartu siswa
+ * (`ES1.<kode acak>`), khusus kartu siswa dan hanya untuk elemen QR/kode batang, bukan elemen teks.
+ */
+export const CODE_FIELDS = ['nis', 'rfidCode', 'qrCode', 'participantNo'] as const;
+
+/** Awalan isi QR absensi; pemindai mengabaikan QR lain yang tidak berawalan ini. */
+export const ATTENDANCE_QR_PREFIX = 'ES1.';
+
+/** Abjad Crockford base32 (tanpa I, L, O, U) dan panjang kode acak: 20 karakter x 5 bit = 100 bit. */
+export const ATTENDANCE_QR_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+export const ATTENDANCE_QR_CODE_LENGTH = 20;
+
+const ATTENDANCE_QR_RE = /^ES1\.([0-9A-HJKMNP-TV-Z]{20})$/; // panjang = ATTENDANCE_QR_CODE_LENGTH
+
+/** Isi QR yang dicetak untuk satu kode. */
+export const formatAttendanceQr = (code: string): string => `${ATTENDANCE_QR_PREFIX}${code}`;
+
+/**
+ * Membaca teks hasil pindai. Mengembalikan kode acak (huruf besar) bila teks berformat `ES1.<20 karakter>`,
+ * selain itu null. Spasi di tepi dan huruf kecil ditoleransi (input ketik manual).
+ */
+export function parseAttendanceQr(text: string | null | undefined): string | null {
+  const m = ATTENDANCE_QR_RE.exec((text ?? '').trim().toUpperCase());
+  return m?.[1] ?? null;
+}
+
+/** Apakah teks tampak seperti QR absensi (berawalan `ES1.`), terlepas dari kelengkapan isinya. */
+export const hasAttendanceQrPrefix = (text: string | null | undefined): boolean =>
+  (text ?? '').trim().toUpperCase().startsWith(ATTENDANCE_QR_PREFIX);
 export type CodeField = (typeof CODE_FIELDS)[number];
 
 export const CARD_FIELD_LABELS: Record<CardField, string> = {
@@ -73,6 +103,7 @@ export const CARD_FIELD_LABELS: Record<CardField, string> = {
   birthPlaceDate: 'Tempat, tanggal lahir',
   gender: 'Jenis kelamin',
   rfidCode: 'Kode kartu RFID',
+  qrCode: 'QR absensi',
   schoolName: 'Nama sekolah',
   address: 'Alamat',
   examTitle: 'Judul ujian',
@@ -229,6 +260,8 @@ export function invalidFieldsForKind(kind: CardKind, elements: readonly CardElem
     if ((el.type === 'field' || el.type === 'qr' || el.type === 'barcode') && !allowed.includes(el.field)) {
       bad.add(el.field);
     }
+    // QR absensi hanya untuk gambar kode; sebagai teks akan membocorkan isinya di kartu.
+    if (el.type === 'field' && el.field === 'qrCode') bad.add(el.field);
   }
   return [...bad];
 }
@@ -280,13 +313,25 @@ export function defaultStudentCardLayout(): CardLayout {
       },
       { type: 'photo', x: 4, y: 16, w: 20, h: 26, shape: 'rect', fit: 'cover' },
       { type: 'field', field: 'name', x: 28, y: 16, w: 54, h: 6, ...DEFAULT_TEXT, fontSize: 10, bold: true },
+      { type: 'qr', field: 'qrCode', color: '#000000', x: 63, y: 24, w: 19, h: 19 },
+      {
+        type: 'text',
+        text: 'Pindai untuk absen',
+        x: 60,
+        y: 43.5,
+        w: 25,
+        h: 4,
+        ...DEFAULT_TEXT,
+        fontSize: 4,
+        align: 'center',
+      },
       {
         type: 'field',
         field: 'nis',
         prefix: 'NIS: ',
         x: 28,
         y: 24,
-        w: 54,
+        w: 33,
         h: 5,
         ...DEFAULT_TEXT,
         fontSize: 8,
@@ -297,7 +342,7 @@ export function defaultStudentCardLayout(): CardLayout {
         prefix: 'Kelas: ',
         x: 28,
         y: 30,
-        w: 54,
+        w: 33,
         h: 5,
         ...DEFAULT_TEXT,
         fontSize: 8,
@@ -308,7 +353,7 @@ export function defaultStudentCardLayout(): CardLayout {
         prefix: 'TA: ',
         x: 28,
         y: 36,
-        w: 54,
+        w: 33,
         h: 5,
         ...DEFAULT_TEXT,
         fontSize: 8,
@@ -321,7 +366,7 @@ export function defaultStudentCardLayout(): CardLayout {
         color: '#000000',
         x: 28,
         y: 43,
-        w: 54,
+        w: 30,
         h: 8,
       },
     ],
