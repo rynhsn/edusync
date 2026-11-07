@@ -31,6 +31,8 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 26, cache: pnpm }
       - run: pnpm install --frozen-lockfile
+      - name: Berkas .env dari contoh (skrip memuat ../../.env)
+        run: cp .env.example .env
       - name: Buat peran database
         run: PGPASSWORD=edusync_dev_only psql -h localhost -p 5440 -U edusync -d edusync -f docker/postgres-init.sql
       - run: pnpm db:migrate
