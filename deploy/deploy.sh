@@ -40,7 +40,7 @@ main() {
   systemctl --no-pager --lines=0 status edusync-api edusync-worker edusync-web caddy | grep -E "●|Active:" || true
 
   local DOMAIN
-  DOMAIN=$(grep -E '^APP_DOMAIN=' "$APP_DIR/.env" | cut -d= -f2)
+  DOMAIN=$(sudo grep -E '^APP_DOMAIN=' "$APP_DIR/.env" | cut -d= -f2)
   echo
   echo "Selesai: $(sudo -u edusync -H git -C "$APP_DIR" log -1 --format='%h %s')"
   echo "Cek: curl -I https://${DOMAIN}/login"
