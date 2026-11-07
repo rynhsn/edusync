@@ -8,6 +8,10 @@ set -euo pipefail
 
 ACME_EMAIL="${1:-}"
 APP_DIR=/opt/edusync/app
+# Nama database dan pemiliknya bisa diganti bila nama bawaan sudah dipakai program lain di server yang sama
+# (mis. DB_NAME=edusync_test). Peran edusync_app dan edusync_platform tetap: namanya terkunci di migrasi.
+DB_NAME="${DB_NAME:-edusync}"
+DB_OWNER="${DB_OWNER:-$DB_NAME}"
 
 if [ -z "$ACME_EMAIL" ]; then
   echo "Pemakaian: bash deploy/init-env.sh <email-untuk-sertifikat> [kunci-server-midtrans]"
@@ -35,14 +39,14 @@ PAYMENT_SECRET=$(rand 16)
 
 echo "==> Database dan peran"
 sudo -u postgres psql -v ON_ERROR_STOP=1 <<SQL
-CREATE ROLE edusync LOGIN PASSWORD '${OWNER_PW}' NOSUPERUSER;
-CREATE DATABASE edusync OWNER edusync;
+CREATE ROLE ${DB_OWNER} LOGIN PASSWORD '${OWNER_PW}' NOSUPERUSER;
+CREATE DATABASE ${DB_NAME} OWNER ${DB_OWNER};
 CREATE ROLE edusync_app LOGIN PASSWORD '${APP_PW}' NOSUPERUSER NOBYPASSRLS;
 CREATE ROLE edusync_platform LOGIN PASSWORD '${PLATFORM_PW}' NOSUPERUSER BYPASSRLS;
-GRANT CONNECT ON DATABASE edusync TO edusync_app, edusync_platform;
-\connect edusync
-ALTER DEFAULT PRIVILEGES FOR ROLE edusync IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO edusync_app, edusync_platform;
-ALTER DEFAULT PRIVILEGES FOR ROLE edusync IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO edusync_app, edusync_platform;
+GRANT CONNECT ON DATABASE ${DB_NAME} TO edusync_app, edusync_platform;
+\connect ${DB_NAME}
+ALTER DEFAULT PRIVILEGES FOR ROLE ${DB_OWNER} IN SCHEMA public GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO edusync_app, edusync_platform;
+ALTER DEFAULT PRIVILEGES FOR ROLE ${DB_OWNER} IN SCHEMA public GRANT USAGE, SELECT ON SEQUENCES TO edusync_app, edusync_platform;
 GRANT USAGE ON SCHEMA public TO edusync_app, edusync_platform;
 SQL
 
@@ -51,10 +55,10 @@ TMP=$(mktemp)
 chmod 600 "$TMP"
 cat >"$TMP" <<ENV
 NODE_ENV=development
-DATABASE_OWNER_URL=postgres://edusync:${OWNER_PW}@127.0.0.1:5432/edusync
-DATABASE_URL=postgres://edusync_app:${APP_PW}@127.0.0.1:5432/edusync
-DATABASE_PLATFORM_URL=postgres://edusync_platform:${PLATFORM_PW}@127.0.0.1:5432/edusync
-DATABASE_JOBS_URL=postgres://edusync:${OWNER_PW}@127.0.0.1:5432/edusync
+DATABASE_OWNER_URL=postgres://${DB_OWNER}:${OWNER_PW}@127.0.0.1:5432/${DB_NAME}
+DATABASE_URL=postgres://edusync_app:${APP_PW}@127.0.0.1:5432/${DB_NAME}
+DATABASE_PLATFORM_URL=postgres://edusync_platform:${PLATFORM_PW}@127.0.0.1:5432/${DB_NAME}
+DATABASE_JOBS_URL=postgres://${DB_OWNER}:${OWNER_PW}@127.0.0.1:5432/${DB_NAME}
 API_PORT=4000
 API_URL=http://127.0.0.1:4000
 AUTH_SECRET=${AUTH_SECRET}
