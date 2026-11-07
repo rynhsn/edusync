@@ -4,8 +4,9 @@ import {
   type CardElement,
   type CardField,
   type CardKind,
-  CODE_FIELDS,
+  type CodeField,
   cardFieldsFor,
+  codeFieldsFor,
 } from '@edusync/contracts';
 import {
   AlignCenter,
@@ -45,7 +46,7 @@ interface Props {
 
 function Row({ label, children, htmlFor }: { label: string; children: React.ReactNode; htmlFor?: string }) {
   return (
-    <div className="grid content-start gap-1.5">
+    <div className="grid min-w-0 content-start gap-1.5">
       <Label htmlFor={htmlFor} className="text-xs">
         {label}
       </Label>
@@ -127,7 +128,7 @@ export function PropertiesPanel({
   const id = (k: string) => `prop-${el.id}-${k}`;
   const flat = el.type === 'line';
   const bindable = cardFieldsFor(kind);
-  const codeFields = CODE_FIELDS.filter((f) => (bindable as readonly string[]).includes(f));
+  const codeFields = codeFieldsFor(kind);
 
   const num = (key: 'x' | 'y' | 'w' | 'h') => (
     <Row label={t(key)} htmlFor={id(key)}>
@@ -301,23 +302,27 @@ export function PropertiesPanel({
 
       {(el.type === 'qr' || el.type === 'barcode') && (
         <>
-          <Row label={t('codeField')} htmlFor={id('code')}>
-            <SelectField
-              id={id('code')}
-              value={el.field}
-              onChange={(e) => onChange({ field: e.target.value as (typeof CODE_FIELDS)[number] })}
-            >
-              {codeFields.map((f) => (
-                <option key={f} value={f}>
-                  {fieldLabel(f)}
-                </option>
-              ))}
-            </SelectField>
+          <Row label={t('codeField')} {...(codeFields.length === 1 ? {} : { htmlFor: id('code') })}>
+            {codeFields.length === 1 ? (
+              <p className="bg-muted/50 min-w-0 truncate rounded-lg border px-2.5 py-1.5 text-sm">
+                {fieldLabel(codeFields[0] as CodeField)}
+              </p>
+            ) : (
+              <SelectField
+                id={id('code')}
+                value={el.field}
+                onChange={(e) => onChange({ field: e.target.value as CodeField })}
+              >
+                {codeFields.map((f) => (
+                  <option key={f} value={f}>
+                    {fieldLabel(f)}
+                  </option>
+                ))}
+              </SelectField>
+            )}
           </Row>
-          {el.field === 'qrCode' && (
-            <p className="text-muted-foreground text-xs">
-              {t(el.type === 'barcode' ? 'qrCodeBarcodeHint' : 'qrCodeHint')}
-            </p>
+          {el.field === 'qrCode' && el.type === 'barcode' && (
+            <p className="text-muted-foreground text-xs">{t('qrCodeBarcodeHint')}</p>
           )}
           <Row label={t('color')} htmlFor={id('color')}>
             <ColorField

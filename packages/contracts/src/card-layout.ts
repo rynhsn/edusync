@@ -97,6 +97,14 @@ export const hasIdentityPrefix = (text: string | null | undefined): boolean =>
   (text ?? '').trim().toUpperCase().startsWith(IDENTITY_CODE_PREFIX);
 export type CodeField = (typeof CODE_FIELDS)[number];
 
+/**
+ * Kolom yang boleh menjadi isi QR / kode batang per jenis kartu: kartu siswa hanya `qrCode`, kartu ujian hanya
+ * `participantNo`. NIS dan kode RFID tidak boleh menjadi isi kode (tetap bisa tampil sebagai teks).
+ */
+export function codeFieldsFor(kind: CardKind): readonly CodeField[] {
+  return kind === 'student' ? ['qrCode'] : ['participantNo'];
+}
+
 export const CARD_FIELD_LABELS: Record<CardField, string> = {
   name: 'Nama',
   nis: 'NIS',
@@ -258,10 +266,14 @@ export type CardLayoutInput = z.input<typeof cardLayoutSchema>;
 /** Kolom terikat yang tidak berlaku untuk jenis kartu; daftar kosong = layout sah untuk jenis itu. */
 export function invalidFieldsForKind(kind: CardKind, elements: readonly CardElement[]): string[] {
   const allowed = cardFieldsFor(kind) as readonly string[];
+  const codeAllowed = codeFieldsFor(kind) as readonly string[];
   const bad = new Set<string>();
   for (const el of elements) {
     if ((el.type === 'field' || el.type === 'qr' || el.type === 'barcode') && !allowed.includes(el.field)) {
       bad.add(el.field);
+    } else if ((el.type === 'qr' || el.type === 'barcode') && !codeAllowed.includes(el.field)) {
+      // NIS dan kode kartu RFID hanya boleh tampil sebagai teks, tidak sebagai isi QR / kode batang.
+      bad.add(`${el.field} (isi ${el.type === 'qr' ? 'QR' : 'kode batang'})`);
     }
     // QR identitas hanya untuk gambar kode; sebagai teks akan membocorkan isinya di kartu.
     if (el.type === 'field' && el.field === 'qrCode') bad.add(el.field);
@@ -314,14 +326,14 @@ export function defaultStudentCardLayout(): CardLayout {
         align: 'center',
         color: '#ffffff',
       },
-      { type: 'photo', x: 4, y: 16, w: 20, h: 26, shape: 'rect', fit: 'cover' },
-      { type: 'field', field: 'name', x: 28, y: 16, w: 54, h: 6, ...DEFAULT_TEXT, fontSize: 10, bold: true },
-      { type: 'qr', field: 'qrCode', color: '#000000', x: 63, y: 24, w: 19, h: 19 },
+      { type: 'photo', x: 4, y: 17, w: 21, h: 28, shape: 'rect', fit: 'cover' },
+      { type: 'field', field: 'name', x: 28, y: 17, w: 54, h: 6, ...DEFAULT_TEXT, fontSize: 10, bold: true },
+      { type: 'qr', field: 'qrCode', color: '#000000', x: 63, y: 25, w: 19, h: 19 },
       {
         type: 'text',
         text: 'Kode identitas siswa',
         x: 60,
-        y: 43.5,
+        y: 44.5,
         w: 25,
         h: 4,
         ...DEFAULT_TEXT,
@@ -333,7 +345,7 @@ export function defaultStudentCardLayout(): CardLayout {
         field: 'nis',
         prefix: 'NIS: ',
         x: 28,
-        y: 24,
+        y: 26,
         w: 33,
         h: 5,
         ...DEFAULT_TEXT,
@@ -344,7 +356,7 @@ export function defaultStudentCardLayout(): CardLayout {
         field: 'className',
         prefix: 'Kelas: ',
         x: 28,
-        y: 30,
+        y: 33,
         w: 33,
         h: 5,
         ...DEFAULT_TEXT,
@@ -355,22 +367,11 @@ export function defaultStudentCardLayout(): CardLayout {
         field: 'academicYear',
         prefix: 'TA: ',
         x: 28,
-        y: 36,
+        y: 40,
         w: 33,
         h: 5,
         ...DEFAULT_TEXT,
         fontSize: 8,
-      },
-      {
-        type: 'barcode',
-        field: 'nis',
-        format: 'code128',
-        showText: false,
-        color: '#000000',
-        x: 28,
-        y: 43,
-        w: 30,
-        h: 8,
       },
     ],
   };

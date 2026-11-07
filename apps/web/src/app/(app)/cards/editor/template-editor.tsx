@@ -43,6 +43,7 @@ import {
   ensureIds,
   type LayoutIssue,
   moveInOrder,
+  normalizeCodeBindings,
   type OrderMove,
   removeElement,
   resizeCanvas,
@@ -132,7 +133,10 @@ export function TemplateEditor({ id, kind }: { id?: string; kind?: CardKind }) {
         kind={tpl.kind}
         initial={{
           name: tpl.name,
-          layout: { ...tpl.layout, elements: ensureIds(tpl.layout.elements as CardElement[]) },
+          layout: {
+            ...tpl.layout,
+            elements: normalizeCodeBindings(ensureIds(tpl.layout.elements as CardElement[]), tpl.kind),
+          },
           backgroundFileId: tpl.backgroundFileId,
           isDefault: tpl.isDefault,
         }}
@@ -416,7 +420,7 @@ function Workspace({
         <div className="grid content-start gap-2">
           <Label htmlFor="tpl-preset">{t('editor.size')}</Label>
           <div className="flex items-center gap-2">
-            <div className="w-28">
+            <div className="w-full min-w-0 xl:w-64">
               <SelectField
                 id="tpl-preset"
                 value={presetKey}
@@ -500,7 +504,7 @@ function Workspace({
         />
       </Card>
 
-      <div className="grid items-start gap-4 xl:grid-cols-[220px_minmax(0,1fr)_280px]">
+      <div className="grid items-start gap-4 xl:grid-cols-[17rem_minmax(0,1fr)_18rem]">
         {/* Kiri: tambah elemen + lapisan */}
         <Card className="gap-4 px-4">
           <div className="grid content-start gap-2">
@@ -511,10 +515,10 @@ function Workspace({
                   key={type}
                   variant="outline"
                   size="sm"
-                  className="justify-start"
+                  className="min-w-0 justify-start"
                   onClick={() => (type === 'image' ? pickFile('image-new') : addElement(type))}
                 >
-                  <Icon className="size-4" /> {tType(type)}
+                  <Icon className="size-4 shrink-0" /> <span className="truncate">{tType(type)}</span>
                 </Button>
               ))}
             </div>

@@ -5,6 +5,7 @@ import {
   type CardLayout,
   cardFieldsFor,
   cardLayoutSchema,
+  codeFieldsFor,
   formatParticipantNo,
   MAX_CARD_ELEMENTS,
   MAX_CARD_MM,
@@ -115,13 +116,13 @@ export function createElement(
     case 'photo':
       return { type, id, ...place(20, 26), shape: 'rect', fit: 'cover' };
     case 'qr':
-      return { type, id, ...place(20, 20), field: 'nis', color: '#000000' };
+      return { type, id, ...place(20, 20), field: codeFieldsFor(kind)[0] ?? 'qrCode', color: '#000000' };
     case 'barcode':
       return {
         type,
         id,
         ...place(50, 10),
-        field: 'nis',
+        field: codeFieldsFor(kind)[0] ?? 'qrCode',
         format: 'code128',
         showText: false,
         color: '#000000',
@@ -268,12 +269,23 @@ export function elementText(el: CardElement, data: CardData): string {
   return '';
 }
 
-/** Apakah tata letak memuat QR/kode batang identitas siswa (kolom `qrCode`); templat lama belum punya. */
-export function hasAttendanceQr(layout: Pick<CardLayout, 'elements'>): boolean {
-  return layout.elements.some((el) => (el.type === 'qr' || el.type === 'barcode') && el.field === 'qrCode');
+/** Templat lama: QR/kode batang yang terikat kolom tak diizinkan dialihkan ke kolom kode jenis kartunya. */
+export function normalizeCodeBindings(elements: readonly CardElement[], kind: CardKind): CardElement[] {
+  const allowed = codeFieldsFor(kind);
+  const fallback = allowed[0] ?? 'qrCode';
+  return elements.map((el) =>
+    (el.type === 'qr' || el.type === 'barcode') && !(allowed as readonly string[]).includes(el.field)
+      ? ({ ...el, field: fallback } as CardElement)
+      : el,
+  );
 }
 
-/** Isi QR / kode batang untuk elemen; kosong bila kolomnya kosong. */
+/**
+ * Isi QR / kode batang untuk elemen; kosong bila kolomnya kosong. NIS dan kode RFID tidak pernah menjadi isi kode
+ * (templat lama yang masih mengikatnya tidak mencetak kode yang salah).
+ */
 export function codeText(el: CardElement, data: CardData): string {
-  return el.type === 'qr' || el.type === 'barcode' ? resolveFieldValue(el.field, data) : '';
+  if (el.type !== 'qr' && el.type !== 'barcode') return '';
+  if (el.field === 'nis' || el.field === 'rfidCode') return '';
+  return resolveFieldValue(el.field, data);
 }

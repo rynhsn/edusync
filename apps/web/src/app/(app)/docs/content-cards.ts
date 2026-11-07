@@ -36,7 +36,7 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             heading: 'Kolom data, gambar, dan lapisan',
-            body: 'Kolom data diisi otomatis dari data siswa saat dicetak, misalnya nama, NIS, kelas, tahun ajaran, atau nama sekolah. Awalan seperti "NIS: " bisa ditulis di panel Properti. Foto siswa mengambil foto dari data siswa. Kode QR dan kode batang bisa berisi NIS, kode kartu RFID, atau nomor peserta. Elemen yang di bawah daftar Lapisan digambar lebih dulu; gunakan tombol urutan untuk membawa elemen ke depan atau belakang.',
+            body: 'Kolom data diisi otomatis dari data siswa saat dicetak, misalnya nama, NIS, kelas, tahun ajaran, atau nama sekolah. Awalan seperti "NIS: " bisa ditulis di panel Properti. Foto siswa mengambil foto dari data siswa. Kode QR dan kode batang pada kartu siswa berisi QR identitas siswa, dan pada kartu peserta ujian berisi nomor peserta; NIS dan kode kartu RFID hanya bisa tampil sebagai teks. Elemen yang di bawah daftar Lapisan digambar lebih dulu; gunakan tombol urutan untuk membawa elemen ke depan atau belakang.',
             warning:
               'Teks yang terlalu panjang untuk kotaknya dikecilkan otomatis sampai muat, jadi lebarkan kotaknya bila huruf terlihat terlalu kecil.',
           },
@@ -71,8 +71,7 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             heading: 'QR identitas siswa di kartu',
-            body: 'Kartu siswa bawaan memuat QR identitas siswa: satu kode acak unik per siswa (bukan NIS) yang dibuat otomatis saat data cetak dimuat, jadi tidak ada langkah tambahan. Kode hanya menunjuk siswa; menu tempat QR dipindai yang menentukan tindakannya. Contohnya, di menu Absen datang & pulang (tab Pindai QR) memindai berarti mencatat datang atau pulang sebagai cadangan saat kiosk RFID tidak bisa dipakai, sedangkan kiosk RFID tetap cara utama absensi. Menu lain yang kelak memakai kartu yang sama (misalnya peminjaman) cukup memindai QR yang sama. Di editor, elemen Kode QR atau Kode batang bisa memilih kolom QR identitas siswa; kolom ini hanya ada untuk kartu siswa. Kode batang boleh juga berisi QR identitas, tetapi panjang (perlu lebar minimal 55 mm); bila kartu tidak muat, cukup QR saja. NIS tetap bisa dicetak sebagai teks atau kode batang biasa, namun pemindai hanya menerima isi QR identitas, bukan NIS.',
-            tip: 'Templat lama yang dibuat sebelum fitur ini belum punya QR identitas siswa: buka editor, tambahkan elemen Kode QR, lalu pilih kolom QR identitas siswa. Panel Cetak memberi peringatan bila templat yang dipilih belum memilikinya.',
+            body: 'Kartu siswa bawaan memuat QR identitas siswa: satu kode acak unik per siswa (bukan NIS) yang dibuat otomatis saat data cetak dimuat, jadi tidak ada langkah tambahan. Kode hanya menunjuk siswa; menu tempat QR dipindai yang menentukan tindakannya. Contohnya, di menu Absen datang & pulang (tab Pindai QR) memindai berarti mencatat datang atau pulang sebagai cadangan saat kiosk RFID tidak bisa dipakai, sedangkan kiosk RFID tetap cara utama absensi. Menu lain yang kelak memakai kartu yang sama (misalnya peminjaman) cukup memindai QR yang sama. Di editor, elemen Kode QR dan Kode batang pada kartu siswa selalu berisi QR identitas siswa (tidak bisa diganti ke kolom lain). Kode batang berisi QR identitas yang sama, tetapi panjang (perlu lebar minimal 55 mm); bila kartu tidak muat, cukup QR saja. NIS dan kode kartu RFID tetap bisa dicetak sebagai teks lewat elemen Kolom data, tetapi tidak bisa menjadi isi QR atau kode batang. Templat lama yang QR atau kode batangnya berisi NIS atau kode RFID otomatis dialihkan ke QR identitas siswa.',
             warning:
               'Keamanan: QR hanya mengidentifikasi siswa dan tidak membuka data apa pun dengan sendirinya; setiap pemindai wajib masuk (login) dan memiliki izin fitur masing-masing. Karena itu orang yang hanya memegang kartu tidak bisa mencatat absensi tanpa akun guru. Kartu yang hilang: buka menu Siswa, pilih kartu siswa itu, lalu Buat ulang QR identitas. QR lama langsung tidak berlaku di SEMUA fitur sekaligus dan kartu baru harus dicetak ulang. Jangan membagikan foto kartu.',
             href: '/cards',
@@ -80,8 +79,7 @@ export const CARD_DOCS: DocArticle[] = [
           {
             heading: 'Kode kartu RFID harus didaftarkan lebih dulu',
             body: 'Kartu siswa hanya bisa mencetak kode RFID bila kode kartu fisik siswa sudah didaftarkan di menu Kartu RFID. Kartu cetak ini adalah desainnya; yang dibaca pembaca gerbang tetap kode pada kartu fisik yang terdaftar.',
-            warning:
-              'Bila kode RFID belum didaftarkan, kolom Kode kartu RFID dan kode QR atau kode batang berisi kode itu akan kosong di kartu.',
+            warning: 'Bila kode RFID belum didaftarkan, kolom Kode kartu RFID akan kosong di kartu.',
             href: '/attendance/cards',
           },
         ],
@@ -132,7 +130,7 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             heading: 'Data fields, images and layers',
-            body: 'Data fields are filled automatically from student data when printing, for example name, NIS, class, academic year or school name. You can write a prefix such as "NIS: " in the Properties panel. The student photo element takes the photo from the student record. QR codes and barcodes can hold the NIS, the RFID card code or the participant number. Elements lower in the Layers list are drawn first; use the order buttons to bring an element forward or backward.',
+            body: 'Data fields are filled automatically from student data when printing, for example name, NIS, class, academic year or school name. You can write a prefix such as "NIS: " in the Properties panel. The student photo element takes the photo from the student record. QR codes and barcodes hold the student identity QR on student cards and the participant number on exam cards; the NIS and the RFID card code can only appear as text. Elements lower in the Layers list are drawn first; use the order buttons to bring an element forward or backward.',
             warning:
               'Text that is too long for its box is shrunk automatically until it fits, so widen the box if the letters look too small.',
           },
@@ -167,8 +165,7 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             heading: 'Student identity QR on the card',
-            body: 'The built-in student card carries a student identity QR: one random code unique per student (not the NIS) that is created automatically when the print data loads, so there is no extra step. The code only points to a student; the menu where the QR is scanned decides the action. For example, in the Manual arrival & departure menu (Scan QR tab), scanning records an arrival or departure as a backup when the RFID kiosk cannot be used, while the RFID kiosk remains the main way to take attendance. Any other menu that later uses the same card (for example lending) just scans the same QR. In the editor, a QR code or Barcode element can choose the Student identity QR field; this field exists for student cards only. A Barcode may also hold the identity QR content, but it is long (needs at least 55 mm width); if the card has no room, the QR alone is enough. The NIS can still be printed as text or a normal barcode, but the scanners only accept the identity QR content, not the NIS.',
-            tip: 'Older templates created before this feature have no student identity QR: open the editor, add a QR code element, then choose the Student identity QR field. The Print panel warns when the chosen template does not have one.',
+            body: 'The built-in student card carries a student identity QR: one random code unique per student (not the NIS) that is created automatically when the print data loads, so there is no extra step. The code only points to a student; the menu where the QR is scanned decides the action. For example, in the Manual arrival & departure menu (Scan QR tab), scanning records an arrival or departure as a backup when the RFID kiosk cannot be used, while the RFID kiosk remains the main way to take attendance. Any other menu that later uses the same card (for example lending) just scans the same QR. In the editor, QR code and Barcode elements on a student card always hold the student identity QR (they cannot be switched to another field). A Barcode holds the same identity QR content, but it is long (needs at least 55 mm width); if the card has no room, the QR alone is enough. The NIS and the RFID card code can still be printed as text with a Data field element, but they cannot be the content of a QR code or barcode. Older templates whose QR or barcode held the NIS or RFID code are switched automatically to the student identity QR.',
             warning:
               'Security: the QR only identifies the student and opens no data by itself; every scanner requires a login and its own feature permission, so someone holding only the card cannot record attendance without a teacher account. Lost card: open the Students menu, choose that student card, then Regenerate identity QR. The old QR stops working in ALL features at once and a new card must be printed. Do not share photos of the card.',
             href: '/cards',
@@ -177,7 +174,7 @@ export const CARD_DOCS: DocArticle[] = [
             heading: 'RFID card codes must be registered first',
             body: 'A student card can print the RFID code only if the code of the physical card has been registered in the RFID cards menu. The printed card is the design; what the gate reader reads is still the code on the registered physical card.',
             warning:
-              'If the RFID code is not registered yet, the RFID card code field and any QR code or barcode holding it stay empty on the card.',
+              'If the RFID code is not registered yet, the RFID card code field stays empty on the card.',
             href: '/attendance/cards',
           },
         ],
@@ -227,7 +224,7 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             heading: 'Kolom data, gambar, jeung lapisan',
-            body: 'Kolom data diisi otomatis tina data siswa waktu dicitak, upamana ngaran, NIS, kelas, taun ajaran, atawa ngaran sakola. Awalan saperti "NIS: " bisa ditulis dina panél Properti. Poto siswa nyokot poto tina data siswa. Kode QR jeung kode bar bisa eusina NIS, kode kartu RFID, atawa nomer pamilon. Unsur anu aya handapeun daptar Lapisan digambar heula; paké tombol urutan pikeun mawa unsur ka hareup atawa ka tukang.',
+            body: 'Kolom data diisi otomatis tina data siswa waktu dicitak, upamana ngaran, NIS, kelas, taun ajaran, atawa ngaran sakola. Awalan saperti "NIS: " bisa ditulis dina panél Properti. Poto siswa nyokot poto tina data siswa. Kode QR jeung kode bar dina kartu murid eusina QR identitas murid, jeung dina kartu pamilon ujian eusina nomer pamilon; NIS jeung kode kartu RFID ngan bisa tampil salaku téks. Unsur anu aya handapeun daptar Lapisan digambar heula; paké tombol urutan pikeun mawa unsur ka hareup atawa ka tukang.',
             warning:
               'Téks anu pohara panjang pikeun kotakna dileutikan otomatis nepi ka muat, jadi lébarkeun kotakna upami hurupna katémbong leutik teuing.',
           },
@@ -262,8 +259,7 @@ export const CARD_DOCS: DocArticle[] = [
           },
           {
             heading: 'QR identitas murid dina kartu',
-            body: 'Kartu murid bawaan ngandung QR identitas murid: hiji kode acak unik per murid (lain NIS) anu dijieun otomatis nalika data citak dimuat, jadi euweuh léngkah tambahan. Kode ngan nunjuk ka murid; ménu tempat QR dipindai anu nangtukeun tindakanana. Contona, dina ménu Absén datang & mulih (tab Pindai QR) mindai hartina nyatet datang atawa mulih salaku cadangan lamun kiosk RFID teu bisa dipaké, sedengkeun kiosk RFID tetep cara utama absén. Ménu séjén anu engké maké kartu anu sarua (upamana injeuman) cukup mindai QR anu sarua. Dina éditor, unsur Kode QR atawa Kode batang bisa milih kolom QR identitas murid; kolom ieu ngan aya pikeun kartu murid. Kode batang oge meunang eusina QR identitas, tapi panjang (peryogi lébar sahanteuna 55 mm); lamun kartu teu muat, QR waé cukup. NIS tetep bisa dicitak salaku téks atawa kode batang biasa, tapi pamindai ngan narima eusi QR identitas, lain NIS.',
-            tip: 'Témplat heubeul anu dijieun saacan fitur ieu can boga QR identitas murid: buka éditor, tambahkeun unsur Kode QR, tuluy pilih kolom QR identitas murid. Panel Citak méré peringatan lamun témplat anu dipilih can boga.',
+            body: 'Kartu murid bawaan ngandung QR identitas murid: hiji kode acak unik per murid (lain NIS) anu dijieun otomatis nalika data citak dimuat, jadi euweuh léngkah tambahan. Kode ngan nunjuk ka murid; ménu tempat QR dipindai anu nangtukeun tindakanana. Contona, dina ménu Absén datang & mulih (tab Pindai QR) mindai hartina nyatet datang atawa mulih salaku cadangan lamun kiosk RFID teu bisa dipaké, sedengkeun kiosk RFID tetep cara utama absén. Ménu séjén anu engké maké kartu anu sarua (upamana injeuman) cukup mindai QR anu sarua. Dina éditor, unsur Kode QR jeung Kode batang dina kartu murid salawasna eusina QR identitas murid (teu bisa dipindahkeun ka kolom séjén). Kode batang eusina QR identitas anu sarua, tapi panjang (peryogi lébar sahanteuna 55 mm); lamun kartu teu muat, QR waé cukup. NIS jeung kode kartu RFID tetep bisa dicitak salaku téks ngaliwatan unsur Kolom data, tapi teu bisa jadi eusi QR atawa kode batang. Témplat heubeul anu QR atawa kode batangna eusina NIS atawa kode RFID otomatis dipindahkeun ka QR identitas murid.',
             warning:
               'Kaamanan: QR ngan ngaidentifikasi murid jeung teu muka data naon waé ku sorangan; unggal pamindai wajib lebet (login) tur boga idin fitur masing-masing, jadi jalma anu ngan nyekel kartu teu bisa nyatet absén tanpa akun guru. Kartu leungit: buka ménu Murid, pilih kartu murid éta, tuluy Jieun deui QR identitas. QR heubeul langsung teu kapaké di SAMPEURNA fitur sakaligus jeung kartu anyar kudu dicitak deui. Ulah babagi poto kartu.',
             href: '/cards',
@@ -271,8 +267,7 @@ export const CARD_DOCS: DocArticle[] = [
           {
             heading: 'Kode kartu RFID kudu didaptarkeun heula',
             body: 'Kartu siswa ngan bisa nyitak kode RFID upami kode kartu fisik siswa geus didaptarkeun dina ménu Kartu RFID. Kartu citak ieu rarancangna; anu dibaca ku pembaca gerbang tetep kode dina kartu fisik anu geus kadaptar.',
-            warning:
-              'Upami kode RFID can didaptarkeun, kolom Kode kartu RFID jeung kode QR atawa kode bar anu eusina kode éta bakal kosong dina kartu.',
+            warning: 'Upami kode RFID can didaptarkeun, kolom Kode kartu RFID bakal kosong dina kartu.',
             href: '/attendance/cards',
           },
         ],

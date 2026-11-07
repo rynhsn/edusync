@@ -110,7 +110,6 @@ export function TemplatesPanel({ kind, templates, system, selectedId, onPrint }:
           <p className="text-muted-foreground text-sm">
             {shown.length === 0 ? t('noTemplatesHint') : t('templatesHint')}
           </p>
-          {kind === 'student' && <p className="text-muted-foreground mt-1 text-sm">{t('qrHint')}</p>}
         </div>
         {manage && (
           <div className="flex flex-wrap gap-2">

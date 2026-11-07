@@ -8,7 +8,6 @@ import {
   duplicateElement,
   elementText,
   ensureIds,
-  hasAttendanceQr,
   moveInOrder,
   removeElement,
   resizeCanvas,
@@ -150,8 +149,8 @@ describe('teks elemen dan data contoh', () => {
     const data = sampleCardData('student');
     const g = { ...createElement('field', 'student', canvas), field: 'gender' } as CardElement;
     expect(elementText(g, data)).toBe('Laki-laki');
-    const q = { ...createElement('qr', 'student', canvas), field: 'rfidCode' } as CardElement;
-    expect(codeText(q, data)).toBe('04A1B2C3');
+    const q = { ...createElement('qr', 'student', canvas), field: 'qrCode' } as CardElement;
+    expect(codeText(q, data)).toBe(data.qrCode);
   });
 
   it('contoh kartu ujian memuat nomor peserta menurut aturan', () => {
@@ -168,15 +167,20 @@ describe('QR identitas siswa', () => {
     expect(validateLayout({ widthMm: 86, heightMm: 54, elements: [q] })).toEqual([]);
   });
 
-  it('hasAttendanceQr: templat bawaan punya, templat lama tanpa elemen itu tidak', () => {
-    const layout = defaultStudentCardLayout();
-    expect(hasAttendanceQr(layout)).toBe(true);
-    const old = {
-      ...layout,
-      elements: layout.elements.filter((e) => !(e.type === 'qr' && e.field === 'qrCode')),
-    };
-    expect(hasAttendanceQr(old)).toBe(false);
-    const nisQr = { ...createElement('qr', 'student', canvas), field: 'nis' } as CardElement;
-    expect(hasAttendanceQr({ elements: [nisQr] })).toBe(false);
+  it('QR dan kode batang baru mengikat kolom kode menurut jenis kartu', () => {
+    for (const type of ['qr', 'barcode'] as const) {
+      const s = createElement(type, 'student', canvas);
+      const e = createElement(type, 'exam', canvas);
+      expect(s.type === type && s.field).toBe('qrCode');
+      expect(e.type === type && e.field).toBe('participantNo');
+    }
+  });
+
+  it('codeText tidak pernah mencetak NIS atau kode RFID sebagai isi kode', () => {
+    const data = sampleCardData('student');
+    const nis = { ...createElement('qr', 'student', canvas), field: 'nis' } as CardElement;
+    const rfid = { ...createElement('barcode', 'student', canvas), field: 'rfidCode' } as CardElement;
+    expect(codeText(nis, data)).toBe('');
+    expect(codeText(rfid, data)).toBe('');
   });
 });

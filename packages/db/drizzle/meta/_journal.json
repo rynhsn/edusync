@@ -526,6 +526,13 @@
       "when": 1795300200000,
       "tag": "0074_student_identity_code",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1795350200000,
+      "tag": "0075_card_template_bindings",
+      "breakpoints": true
     }
   ]
 }

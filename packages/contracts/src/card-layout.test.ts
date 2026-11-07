@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   cardElementSchema,
   cardLayoutSchema,
+  codeFieldsFor,
   defaultExamCardLayout,
   defaultStudentCardLayout,
   formatIdentityPayload,
@@ -47,13 +48,32 @@ describe('card-layout', () => {
     expect(cardLayoutSchema.safeParse({ widthMm: 10, heightMm: 54, elements: [] }).success).toBe(false);
   });
 
-  it('qr dan kode batang hanya boleh mengikat nis, rfidCode, qrCode, atau participantNo', () => {
+  it('qr dan kode batang: kartu siswa hanya qrCode, kartu ujian hanya participantNo', () => {
     const qr = { type: 'qr', x: 0, y: 0, w: 10, h: 10 };
-    expect(cardElementSchema.safeParse({ ...qr, field: 'nis' }).success).toBe(true);
     expect(cardElementSchema.safeParse({ ...qr, field: 'name' }).success).toBe(false);
-    expect(cardElementSchema.safeParse({ ...qr, type: 'barcode', field: 'participantNo' }).success).toBe(
-      true,
-    );
+    const parse = (type: 'qr' | 'barcode', field: string) =>
+      cardElementSchema.parse({ ...qr, type, w: 55, h: 8, field });
+    for (const type of ['qr', 'barcode'] as const) {
+      expect(invalidFieldsForKind('student', [parse(type, 'qrCode')])).toEqual([]);
+      expect(invalidFieldsForKind('student', [parse(type, 'nis')])).toHaveLength(1);
+      expect(invalidFieldsForKind('student', [parse(type, 'rfidCode')])).toHaveLength(1);
+      expect(invalidFieldsForKind('exam', [parse(type, 'participantNo')])).toEqual([]);
+      expect(invalidFieldsForKind('exam', [parse(type, 'nis')])).toHaveLength(1);
+    }
+    expect(codeFieldsFor('student')).toEqual(['qrCode']);
+    expect(codeFieldsFor('exam')).toEqual(['participantNo']);
+  });
+
+  it('NIS dan kode RFID tetap bisa tampil sebagai teks biasa', () => {
+    const text = (field: string) =>
+      cardElementSchema.parse({ type: 'field', field, x: 0, y: 0, w: 20, h: 5 });
+    expect(invalidFieldsForKind('student', [text('nis'), text('rfidCode')])).toEqual([]);
+  });
+
+  it('kartu siswa bawaan tidak memuat kode batang dan tetap di dalam kartu', () => {
+    const layout = defaultStudentCardLayout();
+    expect(layout.elements.some((e) => e.type === 'barcode')).toBe(false);
+    expect(layout.elements.some((e) => e.type === 'field' && e.field === 'nis')).toBe(true);
   });
 
   it('garis boleh bernilai nol di satu sumbu, kotak lain tidak', () => {
