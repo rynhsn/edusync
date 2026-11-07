@@ -27,6 +27,14 @@ jobs:
           printf '%s\n' "$KEY" | tr -d '\r' > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
+          # Diagnostik aman: hanya metadata (jumlah/panjang baris, sidik jari), bukan isi kunci.
+          if ! ssh-keygen -y -f ~/.ssh/id_deploy >/dev/null 2>/tmp/keyerr; then
+            echo "Kunci SSH tidak valid: $(cat /tmp/keyerr)"
+            echo "Jumlah baris: $(wc -l < ~/.ssh/id_deploy), ukuran: $(wc -c < ~/.ssh/id_deploy) byte"
+            awk '{ printf "baris %d: %d karakter\n", NR, length($0) }' ~/.ssh/id_deploy
+            exit 1
+          fi
+          ssh-keygen -l -f ~/.ssh/id_deploy
       - name: Jalankan deploy di server
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
