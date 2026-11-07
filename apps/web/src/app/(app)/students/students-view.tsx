@@ -54,6 +54,7 @@ import { errorKey } from '@/lib/errors';
 import { GuardiansPanel } from './guardians-panel';
 import { StudentCards } from './student-cards';
 import { exportStudentsExcel } from './student-export';
+import { StudentPhotoField } from './student-photo';
 
 const PAGE = 25;
 const STATUSES = ['active', 'graduated', 'transferred', 'dropped'] as const;
@@ -735,12 +736,15 @@ export function StudentsView() {
         onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
       >
         {editing && (
-          <StudentFields
-            idPrefix="edit"
-            draft={editing}
-            classes={classList}
-            onChange={(d) => setEditing({ ...editing, ...d })}
-          />
+          <div className="grid gap-4">
+            <StudentPhotoField studentId={editing.id} />
+            <StudentFields
+              idPrefix="edit"
+              draft={editing}
+              classes={classList}
+              onChange={(d) => setEditing({ ...editing, ...d })}
+            />
+          </div>
         )}
       </FormDialog>
 

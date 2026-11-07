@@ -1414,6 +1414,210 @@ export const CORE_DOCS: DocArticle[] = [
     },
   },
   {
+    slug: 'manual-attendance',
+    icon: 'clipboard',
+    tone: 'sky',
+    group: 'attendance',
+    module: 'attendance',
+    text: {
+      id: {
+        title: 'Absen datang & pulang manual',
+        summary:
+          'Catat siswa datang dan pulang lewat satu ketukan saat kiosk RFID tidak bisa dipakai, misalnya listrik padam atau kartu hilang.',
+        forWho:
+          'Wali kelas, guru piket, dan pengurus absensi (Admin sekolah, Operator). Guru lain tidak melihat kelasnya.',
+        sections: [
+          {
+            heading: 'Kapan memakai absen manual, kapan kartu RFID',
+            body: 'Kartu RFID di kiosk tetap cara utama karena cepat dan dicatat siswa sendiri. Pakai absen manual hanya sebagai cadangan: listrik atau jaringan di gerbang padam, kiosk rusak, siswa lupa atau kehilangan kartu, atau Anda perlu melengkapi catatan hari sebelumnya. Catatan manual masuk ke absensi harian yang sama dengan tap kartu, ikut terhitung di laporan, dan memberi tahu wali seperti tap biasa.',
+            href: '/attendance/manual',
+          },
+          {
+            heading: 'Siapa yang boleh mencatat',
+            body: 'Wali kelas hanya bisa mencatat kelas yang ia walikan pada tahun ajaran aktif. Guru yang bertugas piket hari ini bisa mencatat semua kelas. Pengurus absensi (yang boleh mengatur absensi) bisa mencatat semua kelas kapan saja. Guru lain akan melihat pemberitahuan bahwa belum ada kelas yang bisa dicatat; hubungi pengurus absensi bila Anda perlu akses.',
+          },
+          {
+            heading: 'Mencatat datang atau pulang',
+            body: 'Pilih kelas dan tanggal (bawaan hari ini), lalu pilih Datang atau Pulang. Satu ketukan pada tombol siswa langsung mencatatnya pada jam sekarang. Sebuah pesan muncul sebentar dengan tombol Batalkan bila Anda salah mengetuk. Status Terlambat dihitung otomatis oleh sistem dari batas jam terlambat di Pengaturan absensi, dan hasilnya tampil pada lencana siswa.',
+            steps: [
+              'Buka menu Absen datang & pulang.',
+              'Pilih kelas. Angka di samping nama kelas menunjukkan berapa yang sudah datang, sudah pulang, dan belum datang.',
+              'Pilih Datang atau Pulang.',
+              'Ketuk tombol di baris siswa. Siswa yang sudah tercatat menampilkan jamnya; ketuk untuk mengoreksinya.',
+            ],
+            tip: 'Siswa yang izin, sakit, atau alpa tidak ikut tercatat saat Anda menandai massal. Ubah statusnya lewat koreksi bila ternyata hadir.',
+          },
+          {
+            heading: 'Mencatat untuk jam yang sudah lewat',
+            body: 'Isi kolom Jam dengan format 07:15 untuk mencatat jam tertentu. Dikosongkan berarti sekarang. Untuk tanggal yang sudah lewat jam wajib diisi. Jam tidak boleh di masa depan, dan tanggal yang belum tiba tidak bisa dicatat.',
+          },
+          {
+            heading: 'Menandai banyak siswa sekaligus',
+            body: 'Tandai semua hadir (belum datang) mencatat semua siswa kelas yang belum punya catatan datang dan tidak berstatus izin, sakit, atau alpa. Pada mode Pulang, tombolnya menandai semua yang sudah datang tetapi belum pulang. Untuk sebagian siswa saja, pakai Pilih beberapa, centang siswanya, lalu ketuk Catat. Hasil tiap siswa dirangkum: sudah tercatat (tidak ditimpa), dilewati karena izin/sakit/alpa, pulang tanpa catatan datang, atau jam yang tidak masuk akal.',
+          },
+          {
+            heading: 'Koreksi dan pembatalan',
+            body: 'Ketuk ikon pensil pada baris siswa untuk menghapus jam datang atau pulang, mengubah jamnya, atau menetapkan status Izin, Sakit, atau Alpa beserta catatannya. Koreksi tidak mengirim pemberitahuan ke wali. Bila kedua jam dikosongkan, catatan hari itu dihapus.',
+          },
+          {
+            heading: 'Hari libur',
+            body: 'Pada tanggal libur atau jeda sekolah, halaman memberi tahu dan tombol pencatatan terkunci. Pilih Tetap catat bila memang ada siswa yang masuk.',
+          },
+          {
+            heading: 'Bila jaringan putus',
+            body: 'Jika permintaan gagal karena tidak ada jaringan, catatan disimpan di perangkat ini beserta jam aslinya dan muncul spanduk Belum terkirim. Catatan dikirim otomatis saat jaringan kembali; Anda juga bisa menekan Kirim sekarang. Jam yang tercatat tetap jam saat Anda mengetuk, bukan jam saat terkirim.',
+            warning:
+              'Catatan yang belum terkirim hanya ada di perangkat itu. Jangan menghapus data situs peramban atau berganti perangkat sebelum spanduk hilang. Catatan yang ditolak server saat dikirim ulang akan dibuang dan Anda diberi tahu.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Saya wali kelas tetapi kelas saya tidak muncul. Kenapa?',
+            a: 'Kelas hanya muncul bila Anda terdaftar sebagai wali kelas pada tahun ajaran aktif. Minta admin menetapkan Anda di halaman Kelas.',
+          },
+          {
+            q: 'Siswa sudah tap kartu tetapi saya mengetuk lagi. Apakah dobel?',
+            a: 'Tidak. Catatan datang atau pulang yang sudah ada tidak ditimpa dan Anda diberi tahu bahwa siswa itu sudah tercatat. Untuk mengganti jamnya, pakai koreksi.',
+          },
+          {
+            q: 'Muncul pesan pulang tanpa catatan datang. Apa artinya?',
+            a: 'Siswa dicatat pulang padahal belum tercatat datang. Catatannya tetap tersimpan; lengkapi jam datangnya lewat koreksi bila perlu.',
+          },
+        ],
+      },
+      en: {
+        title: 'Manual arrival & departure',
+        summary:
+          'Record students arriving and leaving with one tap when the RFID kiosk cannot be used, for example during a power cut or a lost card.',
+        forWho:
+          'Homeroom teachers, duty teachers, and attendance managers (School admin, Operator). Other teachers do not see the class.',
+        sections: [
+          {
+            heading: 'When to use manual attendance and when the RFID card',
+            body: 'The RFID card at the kiosk stays the main way because it is fast and students record themselves. Use manual attendance only as a backup: power or network at the gate is down, the kiosk is broken, a student forgot or lost the card, or you need to complete the record of an earlier day. Manual records go into the same daily attendance as card taps, count in the reports, and notify guardians like a normal tap.',
+            href: '/attendance/manual',
+          },
+          {
+            heading: 'Who can record',
+            body: 'A homeroom teacher can only record the class they are homeroom teacher of in the active academic year. A teacher on duty today can record every class. Attendance managers (who may configure attendance) can record every class at any time. Other teachers see a notice that there is no class they can record yet; ask an attendance manager if you need access.',
+          },
+          {
+            heading: 'Recording arrival or departure',
+            body: 'Pick the class and date (today by default), then choose Arrival or Departure. One tap on the student button records them at the current time. A message appears briefly with an Undo button in case you tapped by mistake. The Late status is computed automatically from the late cutoff in Attendance settings, and the result shows on the student badge.',
+            steps: [
+              'Open the Manual arrival & departure menu.',
+              'Pick the class. The numbers beside the class name show how many arrived, left, and have not arrived.',
+              'Choose Arrival or Departure.',
+              'Tap the button on the student row. A student already recorded shows the time; tap it to correct it.',
+            ],
+            tip: 'Students who are excused, sick, or absent are not recorded when you mark in bulk. Change their status with a correction if they turn out to be present.',
+          },
+          {
+            heading: 'Recording a time that has passed',
+            body: 'Fill the Time field like 07:15 to record a specific time. Empty means now. For a past date the time is required. A time cannot be in the future, and a date that has not arrived cannot be recorded.',
+          },
+          {
+            heading: 'Marking many students at once',
+            body: 'Mark all present (not yet arrived) records every student in the class with no arrival record who is not excused, sick, or absent. In Departure mode the button marks everyone who arrived but has not left. For only some students, use Select several, tick them, then tap Record. The result per student is summarized: already recorded (not overwritten), skipped because excused/sick/absent, left without an arrival record, or a time that makes no sense.',
+          },
+          {
+            heading: 'Corrections and undo',
+            body: 'Tap the pencil icon on a student row to clear the arrival or departure time, change a time, or set the status Excused, Sick, or Absent with a note. Corrections do not notify guardians. If both times are cleared, that day record is removed.',
+          },
+          {
+            heading: 'Holidays',
+            body: 'On a holiday or school break the page tells you and the record buttons are locked. Choose Record anyway if students really did come.',
+          },
+          {
+            heading: 'When the network is down',
+            body: 'If a request fails because there is no network, the record is kept on this device with its original time and a Not sent yet banner appears. Records are sent automatically when the network is back; you can also press Send now. The recorded time stays the time you tapped, not the time it was sent.',
+            warning:
+              'Records that are not sent yet exist only on that device. Do not clear the browser site data or switch devices until the banner is gone. Records the server rejects when they are resent are dropped and you are told.',
+          },
+        ],
+        faq: [
+          {
+            q: 'I am a homeroom teacher but my class does not appear. Why?',
+            a: 'A class appears only if you are registered as its homeroom teacher in the active academic year. Ask an admin to set you on the Classes page.',
+          },
+          {
+            q: 'The student already tapped a card and I tapped again. Is it doubled?',
+            a: 'No. An existing arrival or departure record is not overwritten and you are told the student was already recorded. To change the time, use a correction.',
+          },
+          {
+            q: 'A message says left without an arrival record. What does it mean?',
+            a: 'The student was recorded as leaving without an arrival record. The record is still saved; complete the arrival time with a correction if needed.',
+          },
+        ],
+      },
+      su: {
+        title: 'Absén datang & mulih manual',
+        summary:
+          'Catet murid datang jeung mulih ku hiji ketukan lamun kiosk RFID teu bisa dipaké, upamana listrik pareum atawa kartu leungit.',
+        forWho:
+          'Wali kelas, guru piket, jeung pangurus absénsi (Admin sakola, Operator). Guru séjén teu ningali kelasna.',
+        sections: [
+          {
+            heading: 'Iraha maké absén manual, iraha maké kartu RFID',
+            body: 'Kartu RFID di kiosk tetep jadi cara utama sabab gancang jeung murid nyatet sorangan. Pake absén manual ngan salaku cadangan: listrik atawa jaringan di gerbang pareum, kiosk ruksak, murid poho atawa leungit kartu, atawa Anjeun kudu ngalengkepan catetan poé saméméhna. Catetan manual asup kana absénsi harian nu sarua jeung tap kartu, kaitung dina laporan, sarta mere béwara ka wali siga tap biasa.',
+            href: '/attendance/manual',
+          },
+          {
+            heading: 'Saha nu meunang nyatet',
+            body: 'Wali kelas ngan bisa nyatet kelas nu diwalikeun dina taun ajaran aktip. Guru nu piket poé ieu bisa nyatet sakabéh kelas. Pangurus absénsi (nu meunang ngatur absénsi) bisa nyatet sakabéh kelas iraha waé. Guru séjén bakal ningali béwara yén acan aya kelas nu bisa dicatet; hubungi pangurus absénsi lamun peryogi aksés.',
+          },
+          {
+            heading: 'Nyatet datang atawa mulih',
+            body: 'Pilih kelas jeung tanggal (poé ieu sacara baku), tuluy pilih Datang atawa Mulih. Hiji ketukan dina tombol murid langsung nyatet manéhna dina jam ayeuna. Hiji pesen némbongan sakedap jeung tombol Batalkeun lamun Anjeun lepat ngetuk. Status Telat diitung otomatis ku sistem tina wates jam telat dina Pangaturan absénsi, sarta hasilna némbongan dina lencana murid.',
+            steps: [
+              'Buka menu Absén datang & mulih.',
+              'Pilih kelas. Angka di gigireun ngaran kelas nuduhkeun sabaraha nu geus datang, geus mulih, jeung acan datang.',
+              'Pilih Datang atawa Mulih.',
+              'Ketuk tombol dina baris murid. Murid nu geus kacatet nuduhkeun jamna; ketuk pikeun ngoréksina.',
+            ],
+            tip: 'Murid nu izin, gering, atawa alpa teu milu kacatet waktu Anjeun nandaan sakaligus. Robah statusna ngaliwatan koréksi lamun ternyata hadir.',
+          },
+          {
+            heading: 'Nyatet pikeun jam nu geus kaliwat',
+            body: 'Eusian kolom Jam siga 07:15 pikeun nyatet jam nu tangtu. Kosong hartina ayeuna. Pikeun tanggal nu geus kaliwat jam wajib dieusian. Jam teu meunang di mangsa nu bakal datang, sarta tanggal nu acan datang teu bisa dicatet.',
+          },
+          {
+            heading: 'Nandaan loba murid sakaligus',
+            body: 'Tandaan sadayana hadir (acan datang) nyatet sakabéh murid sakelas nu acan boga catetan datang jeung teu ditandaan izin, gering, atawa alpa. Dina mode Mulih, tombolna nandaan sakabéh nu geus datang tapi acan mulih. Pikeun sawaréh murid wungkul, pake Pilih sababaraha, centang muridna, tuluy ketuk Catet. Hasil unggal murid diringkeskeun: geus kacatet (teu ditimpa), dilewat sabab izin/gering/alpa, mulih tanpa catetan datang, atawa jam nu teu lumrah.',
+          },
+          {
+            heading: 'Koréksi jeung pambatalan',
+            body: 'Ketuk ikon pénsil dina baris murid pikeun mupus jam datang atawa mulih, ngarobah jamna, atawa netepkeun status Izin, Gering, atawa Alpa jeung catetanana. Koréksi teu ngirim béwara ka wali. Lamun dua jam dikosongkeun, catetan poé éta dipupus.',
+          },
+          {
+            heading: 'Poé libur',
+            body: 'Dina tanggal libur atawa jeda sakola, kaca méré nyaho jeung tombol nyatet dikonci. Pilih Tetep catet lamun memang aya murid nu asup.',
+          },
+          {
+            heading: 'Lamun jaringan potong',
+            body: 'Lamun pamenta gagal sabab euweuh jaringan, catetan disimpen dina parangkat ieu jeung jam aslina sarta spanduk Acan kakirim némbongan. Catetan dikirim otomatis sanggeus jaringan balik; Anjeun ogé bisa mencét Kirim ayeuna. Jam nu kacatet tetep jam waktu Anjeun ngetuk, lain jam waktu dikirim.',
+            warning:
+              'Catetan nu acan kakirim ngan aya dina parangkat éta. Entong mupus data situs panyungsi atawa ganti parangkat saméméh spanduk leungit. Catetan nu ditolak server waktu dikirim deui bakal dibuang jeung Anjeun dibéré nyaho.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kuring wali kelas tapi kelas kuring teu némbongan. Naha?',
+            a: 'Kelas ngan némbongan lamun Anjeun kadaptar jadi wali kelasna dina taun ajaran aktip. Menta admin netepkeun Anjeun dina kaca Kelas.',
+          },
+          {
+            q: 'Murid geus tap kartu tapi kuring ngetuk deui. Naha dobel?',
+            a: 'Henteu. Catetan datang atawa mulih nu geus aya teu ditimpa jeung Anjeun dibéré nyaho yén muridna geus kacatet. Pikeun ngarobah jamna, pake koréksi.',
+          },
+          {
+            q: 'Aya pesen mulih tanpa catetan datang. Naon hartina?',
+            a: 'Murid kacatet mulih padahal acan kacatet datang. Catetanana tetep disimpen; lengkepan jam datangna ngaliwatan koréksi lamun peryogi.',
+          },
+        ],
+      },
+    },
+  },
+  {
     slug: 'schedule',
     icon: 'calendar',
     tone: 'sky',

@@ -45,6 +45,8 @@ const KNOWN = [
   'teacher_busy',
   'future_date',
   'school_closed',
+  'forbidden_class',
+  'time_required',
   'not_on_duty',
   'not_your_lesson',
   'unknown_card',
@@ -114,6 +116,13 @@ const KNOWN = [
   'no_change',
   'invalid_hostname',
   'domain_limit',
+  'gateway_disabled',
+  'gateway_error',
+  'already_paid',
+  'duplicate_item',
+  'invalid_key',
+  'key_required',
+  'svg_unsafe',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

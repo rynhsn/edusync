@@ -29,6 +29,20 @@ export const SERVICE_DOCS: DocArticle[] = [
             href: '/finance/settings',
           },
           {
+            heading: 'Menentukan siapa yang ditagih (Berlaku untuk)',
+            body: 'Setiap jenis biaya punya pilihan Berlaku untuk: Semua siswa, Kelas tertentu, atau Siswa tertentu. Saat Buat tagihan dijalankan, hanya siswa yang masuk sasaran yang ditagih. Siswa lain dihitung di hasil sebagai "Di luar sasaran" dan tidak dianggap kekurangan tarif.',
+            steps: [
+              'Buka Keuangan, Jenis biaya & tarif, lalu klik Tambah jenis biaya (atau Ubah pada jenis biaya yang ada).',
+              'Pada Berlaku untuk, pilih Kelas tertentu lalu centang kelasnya, atau pilih Siswa tertentu lalu cari dan pilih siswanya.',
+              'Simpan. Daftar jenis biaya menampilkan lencana cakupan dan ringkasan sasarannya.',
+              'Di Kasir, setelah memilih siswa, jenis biaya yang berlaku untuknya tampil di bawah kartu siswa.',
+            ],
+            tip: 'Contoh: Renang cukup dipasang ke kelas yang mengikuti renang; Praktikum dipasang ke siswa tertentu saja.',
+            warning:
+              'Kelas sasaran dipilih dari tahun ajaran yang sedang dipilih. Di Buat tagihan, memilih kelas di luar sasaran jenis biaya akan menampilkan peringatan karena tidak ada siswa yang ditagih.',
+            href: '/finance/settings',
+          },
+          {
             heading: 'Memberi keringanan atau beasiswa',
             body: 'Di halaman Jenis biaya & tarif, buat aturan potongan (persen atau nominal, untuk satu jenis biaya atau semua), lalu pasang ke satu kelas atau beberapa siswa tertentu. Potongan ini otomatis dipakai saat tagihan baru dibuat.',
             steps: [
@@ -97,6 +111,22 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Denda baru berlaku bila denda keterlambatan sudah diaktifkan di Jenis biaya & tarif. Nominal denda dibekukan saat tagihan denda dibuat, dan tidak berubah bila aturan denda diganti kemudian.',
             href: '/finance/reports',
           },
+          {
+            heading: 'Mengaktifkan pembayaran online (Midtrans)',
+            body: 'Sekolah dapat menerima pembayaran tagihan secara online lewat akun Midtrans milik sekolah sendiri, dengan uang langsung masuk ke akun sekolah. Setelah diaktifkan, wali dan siswa dapat mencentang tagihan di portal lalu menekan Bayar online. Kwitansi tercatat otomatis saat Midtrans mengabarkan pembayaran berhasil.',
+            steps: [
+              'Daftar atau masuk ke dasbor Midtrans. Untuk mencoba, pakai mode Sandbox dulu.',
+              'Di Midtrans, buka Settings, lalu Access Keys, kemudian salin Merchant ID, Client Key, dan Server Key.',
+              'Di edusync, buka Keuangan, lalu Pembayaran online (Midtrans). Pilih Mode, isi Merchant ID, Client Key, dan Server Key, centang Aktifkan pembayaran online, lalu klik Simpan.',
+              'Salin Alamat notifikasi pembayaran, lalu tempel di Midtrans pada Settings, Configuration, kolom Payment Notification URL, kemudian klik Update.',
+              'Klik Uji koneksi. Bila berhasil, coba satu pembayaran kecil dari portal wali, lalu cek di menu Transaksi online.',
+              'Setelah uji coba, ubah Mode menjadi Production dengan kunci production, lalu simpan lagi.',
+            ],
+            tip: 'Kunci Sandbox diawali SB-Mid- dan kunci Production diawali Mid-. Mode dan kunci harus cocok.',
+            warning:
+              'Server Key bersifat rahasia. Jangan dibagikan ke orang lain. Setelah tersimpan, kunci tidak ditampilkan lagi; kosongkan kolomnya bila ingin mempertahankan kunci yang ada.',
+            href: '/finance/gateway',
+          },
         ],
         faq: [
           {
@@ -137,6 +167,20 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Choose the fee type and level, fill in Amount (Rupiah), and save. Repeat for levels with a different rate.',
             ],
             tip: 'Start with one fee type, for example monthly tuition, and make sure its rates are right before adding others.',
+            href: '/finance/settings',
+          },
+          {
+            heading: 'Choosing who is billed (Applies to)',
+            body: 'Every fee type has an Applies to option: All students, Specific classes, or Specific students. When Generate invoices runs, only students within the targets are billed. Everyone else is counted in the result as "Outside targets" and is not treated as a missing rate.',
+            steps: [
+              'Open Finance, Fee types & rates, then click Add fee type (or Edit on an existing one).',
+              'Under Applies to, choose Specific classes and tick the classes, or choose Specific students and search for and select them.',
+              'Save. The fee type list shows a scope badge and a summary of the targets.',
+              'In the Cashier, once a student is chosen, the fee types that apply to them appear under the student card.',
+            ],
+            tip: 'Example: assign Swimming only to the classes that take swimming; assign Lab practicum to specific students only.',
+            warning:
+              'Target classes are picked from the selected academic year. In Generate invoices, choosing a class outside the fee type targets shows a warning because no student would be billed.',
             href: '/finance/settings',
           },
           {
@@ -207,6 +251,22 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Late fees only apply once the late fee is switched on in Fee types & rates. The late fee amount is frozen when its invoice is created and does not change if the rule is changed later.',
             href: '/finance/reports',
           },
+          {
+            heading: 'Enabling online payments (Midtrans)',
+            body: 'The school can accept invoice payments online through its own Midtrans account, with the money going straight to the school account. Once enabled, guardians and students can tick invoices in the portal and press Pay online. The receipt is recorded automatically when Midtrans reports a successful payment.',
+            steps: [
+              'Sign up or sign in to the Midtrans dashboard. To try it out, use Sandbox mode first.',
+              'In Midtrans, open Settings, then Access Keys, and copy the Merchant ID, Client Key, and Server Key.',
+              'In edusync, open Finance, then Online payments (Midtrans). Choose the Mode, fill in the Merchant ID, Client Key, and Server Key, tick Enable online payments, then click Save.',
+              'Copy the Payment notification address and paste it in Midtrans under Settings, Configuration, in the Payment Notification URL field, then click Update.',
+              'Click Test connection. If it works, try one small payment from a guardian portal, then check it in Online transactions.',
+              'After testing, change the Mode to Production with the production keys and save again.',
+            ],
+            tip: 'Sandbox keys start with SB-Mid- and Production keys start with Mid-. The mode and the keys must match.',
+            warning:
+              'The Server Key is secret. Do not share it. Once saved it is never shown again; leave the field empty to keep the existing key.',
+            href: '/finance/gateway',
+          },
         ],
         faq: [
           {
@@ -248,6 +308,20 @@ export const SERVICE_DOCS: DocArticle[] = [
               'Pilih jenis biaya jeung jenjang, eusian Nominal (Rupiah), tuluy simpen. Ulangan pikeun jenjang nu tarifna benten.',
             ],
             tip: 'Mimitian ku hiji jenis biaya, contona SPP bulanan, tuluy pastikeun tarifna bener samemeh nambihan nu sanes.',
+            href: '/finance/settings',
+          },
+          {
+            heading: 'Nangtukeun saha nu ditagih (Lumaku pikeun)',
+            body: 'Unggal jenis biaya boga pilihan Lumaku pikeun: Sakabéh siswa, Kelas nu tangtu, atawa Siswa nu tangtu. Basa Jieun tagihan dijalankeun, ngan siswa nu asup sasaran nu ditagih. Siswa sejenna diitung dina hasil minangka "Di luar sasaran" jeung lain kakurangan tarif.',
+            steps: [
+              'Buka Kauangan, Jenis biaya & tarif, tuluy klik Tambah jenis biaya (atawa Robah dina jenis biaya nu aya).',
+              'Dina Lumaku pikeun, pilih Kelas nu tangtu tuluy centang kelasna, atawa pilih Siswa nu tangtu tuluy pilarian jeung pilih siswana.',
+              'Simpen. Daptar jenis biaya mintonkeun lencana cakupan jeung ringkesan sasaranna.',
+              'Di Kasir, sanggeus milih siswa, jenis biaya nu lumaku pikeun manéhna tembong handapeun kartu siswa.',
+            ],
+            tip: 'Conto: Ngojay cukup dipasang ka kelas nu milu ngojay; Praktikum dipasang ka siswa nu tangtu wungkul.',
+            warning:
+              'Kelas sasaran dipilih tina taun ajaran nu keur dipilih. Dina Jieun tagihan, milih kelas di luar sasaran jenis biaya bakal mintonkeun peringatan sabab taya siswa nu ditagih.',
             href: '/finance/settings',
           },
           {
@@ -318,6 +392,22 @@ export const SERVICE_DOCS: DocArticle[] = [
             warning:
               'Denda ngan lumaku upami denda telat parantos dihurungkeun dina Jenis biaya & tarif. Nominal denda dikonci waktu tagihan dendana dijieun, sarta teu robah upami aturan denda diganti saparantosna.',
             href: '/finance/reports',
+          },
+          {
+            heading: 'Ngaktipkeun pambayaran online (Midtrans)',
+            body: 'Sakola tiasa nampi pambayaran tagihan sacara online ngalangkungan akun Midtrans milik sakola nyalira, kalayan artos langsung lebet ka akun sakola. Saparantos diaktipkeun, wali jeung siswa tiasa nyentang tagihan di portal tuluy mencét Bayar online. Kwitansi kacatet otomatis nalika Midtrans ngabarkeun pambayaran hasil.',
+            steps: [
+              'Daptar atawa lebet ka dasbor Midtrans. Pikeun nyobaan, paké mode Sandbox heula.',
+              'Di Midtrans, buka Settings, tuluy Access Keys, tuluy salin Merchant ID, Client Key, jeung Server Key.',
+              'Di edusync, buka Keuangan, tuluy Pambayaran online (Midtrans). Pilih Mode, eusian Merchant ID, Client Key, jeung Server Key, centang Aktipkeun pambayaran online, tuluy klik Simpen.',
+              'Salin Alamat béwara pambayaran, tuluy tempelkeun dina Midtrans di Settings, Configuration, kolom Payment Notification URL, tuluy klik Update.',
+              'Klik Uji sambungan. Upami hasil, cobian hiji pambayaran leutik tina portal wali, tuluy cek di menu Transaksi online.',
+              'Saparantos nyobaan, robah Mode jadi Production kalayan konci production, tuluy simpen deui.',
+            ],
+            tip: 'Konci Sandbox diawalan SB-Mid- jeung konci Production diawalan Mid-. Mode jeung konci kudu cocog.',
+            warning:
+              'Server Key rahasia. Ulah dibagikeun ka batur. Saparantos kasimpen, konci teu bakal ditémbongkeun deui; kosongkeun kolomna upami hayang ngajaga konci nu aya.',
+            href: '/finance/gateway',
           },
         ],
         faq: [

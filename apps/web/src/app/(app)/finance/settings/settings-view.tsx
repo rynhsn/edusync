@@ -24,19 +24,29 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatRupiah } from '@/lib/money';
 import { useSchoolLevels } from '@/lib/school-settings';
+import { scopeBody, scopeError, summarizeTargets } from '../fee-scope';
 import { digitsOnly, KIND_KEY, KINDS, type Kind, useFinanceYear, YearSelect } from '../shared';
 import { ListSkeleton, Money, RowMenu, SectionCard } from '../ui';
 import { DiscountsCard } from './discounts-card';
+import { FeeScopePicker, type ScopeValue } from './fee-scope-picker';
 import { LateFeeCard } from './late-fee-card';
 import { PaymentMethodsCard } from './payment-methods-card';
 
-interface FeeDraft {
+interface FeeDraft extends ScopeValue {
   id: string | null;
   name: string;
   kind: Kind;
   active: boolean;
 }
-const EMPTY_FEE: FeeDraft = { id: null, name: '', kind: 'monthly', active: true };
+const EMPTY_FEE: FeeDraft = {
+  id: null,
+  name: '',
+  kind: 'monthly',
+  active: true,
+  scope: 'all',
+  classIds: [],
+  students: [],
+};
 
 interface PlanDraft {
   feeTypeId: string;
@@ -108,7 +118,12 @@ export function FinanceSettingsView() {
 
   const saveFee = useMutation({
     mutationFn: async (v: FeeDraft) => {
-      const body = { name: v.name.trim(), kind: v.kind, active: v.active };
+      const body = {
+        name: v.name.trim(),
+        kind: v.kind,
+        active: v.active,
+        ...scopeBody({ scope: v.scope, classIds: v.classIds, studentIds: v.students.map((s) => s.id) }),
+      };
       if (v.id) {
         return unwrap(
           await api.PUT('/v1/finance/fee-types/{id}', { params: { ...header, path: { id: v.id } }, body }),
@@ -163,6 +178,48 @@ export function FinanceSettingsView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
+  const scopeIssue = scopeError({
+    scope: fee.scope,
+    classIds: fee.classIds,
+    studentIds: fee.students.map((s) => s.id),
+  });
+  const feeInvalid = !fee.name.trim() || scopeIssue !== null;
+
+  /** Buka dialog ubah; nama siswa sasaran dimuat belakangan karena daftar jenis biaya hanya memuat id-nya. */
+  const editFee = (f: NonNullable<typeof feeTypes.data>[number]) => {
+    setError(null);
+    setFee({
+      id: f.id,
+      name: f.name,
+      kind: f.kind,
+      active: f.active,
+      scope: f.scope,
+      classIds: f.classIds,
+      students: f.studentIds.map((id) => ({ id, name: '…' })),
+    });
+    if (f.studentIds.length === 0) return;
+    void (async () => {
+      const found: Record<string, string> = {};
+      for (let i = 0; i < f.studentIds.length; i += 20) {
+        await Promise.all(
+          f.studentIds.slice(i, i + 20).map(async (id) => {
+            try {
+              const s = unwrap(await api.GET('/v1/students/{id}', { params: { ...header, path: { id } } }));
+              found[id] = s.name;
+            } catch {
+              // nama gagal dimuat: chip tetap tampil dengan penanda
+            }
+          }),
+        );
+      }
+      setFee((cur) =>
+        cur.id === f.id
+          ? { ...cur, students: cur.students.map((s) => ({ id: s.id, name: found[s.id] ?? s.name })) }
+          : cur,
+      );
+    })();
+  };
+
   const feeFields = (
     <div className={FORM_GRID}>
       <div className="grid gap-2 sm:col-span-2">
@@ -196,6 +253,19 @@ export function FinanceSettingsView() {
           onCheckedChange={(v) => setFee({ ...fee, active: v === true })}
         />
         <Label htmlFor="fee-active">{t('active')}</Label>
+      </div>
+      <FeeScopePicker
+        value={fee}
+        onChange={(v) => setFee({ ...fee, ...v })}
+        classes={(classes.data ?? []).map((c) => ({ id: c.id, name: c.name }))}
+        errorText={scopeIssue === 'targets_required' ? t('feeScopeTargetsRequired') : null}
+      />
+      <div className="bg-muted/40 text-muted-foreground rounded-xl border p-3 text-xs sm:col-span-2">
+        <p className="text-foreground font-medium">{t('feeScopeExamplesTitle')}</p>
+        <ul className="mt-1 list-disc pl-4">
+          <li>{t('feeScopeExampleClass')}</li>
+          <li>{t('feeScopeExampleStudent')}</li>
+        </ul>
       </div>
     </div>
   );
@@ -314,6 +384,8 @@ export function FinanceSettingsView() {
                 }
                 title={t('addFeeType')}
                 submitLabel={tm('add')}
+                size="wide"
+                disabled={feeInvalid}
                 error={error}
                 onOpenChange={() => {
                   setFee(EMPTY_FEE);
@@ -350,7 +422,23 @@ export function FinanceSettingsView() {
                         <ToneBadge tone={f.active ? 'emerald' : 'slate'}>
                           {f.active ? t('active') : t('inactive')}
                         </ToneBadge>
+                        <ToneBadge tone={f.scope === 'all' ? 'slate' : 'violet'} dot={false}>
+                          {t(
+                            f.scope === 'all'
+                              ? 'feeScopeAll'
+                              : f.scope === 'class'
+                                ? 'feeScopeClass'
+                                : 'feeScopeStudent',
+                          )}
+                        </ToneBadge>
                       </div>
+                      {f.scope !== 'all' && f.targetCount > 0 && (
+                        <p className="text-muted-foreground mt-1.5 text-xs">
+                          {summarizeTargets(f.targetNames, f.targetCount).shown.join(', ')}
+                          {summarizeTargets(f.targetNames, f.targetCount).more > 0 &&
+                            ` ${t('feeScopeMore', { count: summarizeTargets(f.targetNames, f.targetCount).more })}`}
+                        </p>
+                      )}
                     </div>
                     <RowMenu
                       label={t('rowActions')}
@@ -359,10 +447,7 @@ export function FinanceSettingsView() {
                           key: 'edit',
                           label: tm('edit'),
                           icon: Pencil,
-                          onClick: () => {
-                            setError(null);
-                            setFee({ id: f.id, name: f.name, kind: f.kind, active: f.active });
-                          },
+                          onClick: () => editFee(f),
                         },
                         {
                           key: 'delete',
@@ -489,6 +574,8 @@ export function FinanceSettingsView() {
         open={!!fee.id}
         title={t('editFeeType')}
         submitLabel={tm('save')}
+        size="wide"
+        disabled={feeInvalid}
         error={error}
         onOpenChange={(o) => !o && setFee(EMPTY_FEE)}
         onSubmit={() => saveFee.mutateAsync(fee)}

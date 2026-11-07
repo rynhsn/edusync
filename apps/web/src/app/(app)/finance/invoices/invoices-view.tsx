@@ -48,6 +48,7 @@ import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { formatRupiah } from '@/lib/money';
 import { buildExport, saveBlob } from '@/lib/sheet';
+import { classOutsideScope } from '../fee-scope';
 import {
   DiscountMark,
   digitsOnly,
@@ -73,6 +74,7 @@ interface GenerateResult {
   skipped: number;
   free?: number;
   discounted?: number;
+  outOfScope?: number;
   missingPlan: unknown;
 }
 
@@ -209,6 +211,7 @@ export function InvoicesView() {
   const feeList = feeTypes.data ?? [];
   const genFee = feeList.find((f) => f.id === gen.feeTypeId);
   const genMonthly = genFee?.kind === 'monthly';
+  const genOutside = classOutsideScope(genFee, gen.classId);
   const genCount = Number(gen.installments || 0);
 
   // Tarif jenis biaya terpilih, untuk pratinjau nominal cicilan (hanya bila semua tarifnya sama).
@@ -486,6 +489,23 @@ export function InvoicesView() {
                           ))}
                         </SelectField>
                       </div>
+                      {genFee && (
+                        <div className="grid gap-2 sm:col-span-2">
+                          <p className="text-muted-foreground text-xs">
+                            {genFee.scope === 'all'
+                              ? t('genScopeAll')
+                              : t(genFee.scope === 'class' ? 'genScopeClass' : 'genScopeStudent', {
+                                  names: genFee.targetNames.slice(0, 5).join(', '),
+                                  count: genFee.targetCount,
+                                })}
+                          </p>
+                          {genOutside && (
+                            <Alert variant="destructive" role="alert">
+                              <AlertDescription>{t('genScopeClassOutside')}</AlertDescription>
+                            </Alert>
+                          )}
+                        </div>
+                      )}
                       {genMonthly && (
                         <div className="grid gap-2">
                           <Label htmlFor="gen-period-month">{t('period')}</Label>
@@ -999,6 +1019,11 @@ export function InvoicesView() {
               {(genResult.discounted ?? 0) > 0 && (
                 <li className="text-amber-700 dark:text-amber-300">
                   {t('resultDiscounted', { count: genResult.discounted ?? 0 })}
+                </li>
+              )}
+              {(genResult.outOfScope ?? 0) > 0 && (
+                <li className="text-muted-foreground">
+                  {t('resultOutOfScope', { count: genResult.outOfScope ?? 0 })}
                 </li>
               )}
               <li className={countOf(genResult.missingPlan) > 0 ? 'text-destructive' : ''}>

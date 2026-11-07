@@ -10,6 +10,7 @@
   "scripts": {
     "dev": "turbo run dev",
     "build": "turbo run build",
+    "start:all": "pnpm --parallel --filter @edusync/api --filter @edusync/worker --filter @edusync/web start",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "lint": "biome check .",

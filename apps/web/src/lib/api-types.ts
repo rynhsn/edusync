@@ -4191,6 +4191,1453 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/platform/site": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pengaturan situs Edusync (isi dan gambar)
+         * @description Staf platform (baca). Isi teks halaman utama per bahasa (id, en, su), daftar fitur, kontak, tautan sosial, saklar bagian, serta gambar yang sudah diunggah (ikon, logo, hero, OG). `customized` = false berarti belum pernah disimpan sehingga halaman utama memakai isi bawaan. `slots` memuat aturan tiap slot gambar.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            content: {
+                                brandName: string;
+                                locales: {
+                                    id: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    en: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    su: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                };
+                                features: {
+                                    /** @enum {string} */
+                                    icon: "BookOpenCheck" | "CalendarCheck" | "ClipboardList" | "Wallet" | "Printer" | "UserPlus" | "Users" | "Megaphone" | "Fingerprint" | "KeyRound" | "GraduationCap" | "School" | "Landmark" | "ShieldCheck" | "Globe" | "Rocket" | "Settings2" | "Building2" | "ChartBar" | "MessageSquare" | "Smartphone" | "FileText" | "Award" | "BookOpen" | "Heart" | "Star" | "Lock" | "Cloud" | "Mail" | "Phone";
+                                    text: {
+                                        id: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        en: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        su: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                    };
+                                }[];
+                                contact: {
+                                    email: "" | string;
+                                    phone: string;
+                                    whatsapp: string;
+                                    address: string;
+                                };
+                                social: {
+                                    instagram: "" | string;
+                                    facebook: "" | string;
+                                    youtube: "" | string;
+                                    tiktok: "" | string;
+                                    x: "" | string;
+                                    linkedin: "" | string;
+                                };
+                                sections: {
+                                    features: boolean;
+                                    how: boolean;
+                                    audience: boolean;
+                                    security: boolean;
+                                    about: boolean;
+                                    contact: boolean;
+                                    cta: boolean;
+                                };
+                            };
+                            /** @description Isi bawaan (sama dengan teks halaman utama sebelum disunting) */
+                            defaults: {
+                                brandName: string;
+                                locales: {
+                                    id: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    en: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    su: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                };
+                                features: {
+                                    /** @enum {string} */
+                                    icon: "BookOpenCheck" | "CalendarCheck" | "ClipboardList" | "Wallet" | "Printer" | "UserPlus" | "Users" | "Megaphone" | "Fingerprint" | "KeyRound" | "GraduationCap" | "School" | "Landmark" | "ShieldCheck" | "Globe" | "Rocket" | "Settings2" | "Building2" | "ChartBar" | "MessageSquare" | "Smartphone" | "FileText" | "Award" | "BookOpen" | "Heart" | "Star" | "Lock" | "Cloud" | "Mail" | "Phone";
+                                    text: {
+                                        id: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        en: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        su: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                    };
+                                }[];
+                                contact: {
+                                    email: "" | string;
+                                    phone: string;
+                                    whatsapp: string;
+                                    address: string;
+                                };
+                                social: {
+                                    instagram: "" | string;
+                                    facebook: "" | string;
+                                    youtube: "" | string;
+                                    tiktok: "" | string;
+                                    x: "" | string;
+                                    linkedin: "" | string;
+                                };
+                                sections: {
+                                    features: boolean;
+                                    how: boolean;
+                                    audience: boolean;
+                                    security: boolean;
+                                    about: boolean;
+                                    contact: boolean;
+                                    cta: boolean;
+                                };
+                            };
+                            /** @description false = belum pernah disimpan, halaman utama memakai isi bawaan */
+                            customized: boolean;
+                            assets: {
+                                /** @enum {string} */
+                                key: "favicon" | "app_icon" | "logo" | "logo_dark" | "hero" | "og_image";
+                                mime: string;
+                                size: number;
+                                /** @description ISO 8601 */
+                                updatedAt: string;
+                                updatedBy: string | null;
+                                /** @description Alamat publik gambar (relatif terhadap API), memuat versi agar cache ikut berganti */
+                                url: string;
+                            }[];
+                            /** @description Aturan tiap slot gambar: jenis berkas dan ukuran maksimal */
+                            slots: {
+                                /** @enum {string} */
+                                key: "favicon" | "app_icon" | "logo" | "logo_dark" | "hero" | "og_image";
+                                mimes: ("image/png" | "image/jpeg" | "image/webp" | "image/svg+xml" | "image/x-icon")[];
+                                maxBytes: number;
+                                /** @description Ukuran piksel yang disarankan */
+                                size: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan isi situs Edusync
+         * @description Staf platform (admin). Mengganti seluruh isi teks. Judul hero, label tombol, dan nama merek wajib; ikon fitur dari daftar tertutup, maksimal 12 fitur; tautan sosial http(s). Data tidak valid: 400 `validation`. Halaman utama memuat ulang isi dalam sekitar satu menit (cache). Tercatat di audit `site.content_update`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        brandName: string;
+                        locales: {
+                            id: {
+                                /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                tagline: string;
+                                /** @description Judul tab peramban dan judul saat dibagikan */
+                                metaTitle: string;
+                                /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                metaDescription: string;
+                                /** @description Label kecil di atas judul hero */
+                                eyebrow: string;
+                                heroTitle: string;
+                                heroSubtitle: string;
+                                /** @description Tombol utama (menuju pendaftaran) */
+                                ctaPrimary: string;
+                                /** @description Tombol kedua (menuju masuk) */
+                                ctaSecondary: string;
+                                featuresTitle: string;
+                                featuresSubtitle: string;
+                                aboutTitle: string;
+                                /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                aboutBody: string;
+                                /** @description Teks tambahan di footer */
+                                footerText: string;
+                            };
+                            en: {
+                                /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                tagline: string;
+                                /** @description Judul tab peramban dan judul saat dibagikan */
+                                metaTitle: string;
+                                /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                metaDescription: string;
+                                /** @description Label kecil di atas judul hero */
+                                eyebrow: string;
+                                heroTitle: string;
+                                heroSubtitle: string;
+                                /** @description Tombol utama (menuju pendaftaran) */
+                                ctaPrimary: string;
+                                /** @description Tombol kedua (menuju masuk) */
+                                ctaSecondary: string;
+                                featuresTitle: string;
+                                featuresSubtitle: string;
+                                aboutTitle: string;
+                                /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                aboutBody: string;
+                                /** @description Teks tambahan di footer */
+                                footerText: string;
+                            };
+                            su: {
+                                /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                tagline: string;
+                                /** @description Judul tab peramban dan judul saat dibagikan */
+                                metaTitle: string;
+                                /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                metaDescription: string;
+                                /** @description Label kecil di atas judul hero */
+                                eyebrow: string;
+                                heroTitle: string;
+                                heroSubtitle: string;
+                                /** @description Tombol utama (menuju pendaftaran) */
+                                ctaPrimary: string;
+                                /** @description Tombol kedua (menuju masuk) */
+                                ctaSecondary: string;
+                                featuresTitle: string;
+                                featuresSubtitle: string;
+                                aboutTitle: string;
+                                /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                aboutBody: string;
+                                /** @description Teks tambahan di footer */
+                                footerText: string;
+                            };
+                        };
+                        features: {
+                            /** @enum {string} */
+                            icon: "BookOpenCheck" | "CalendarCheck" | "ClipboardList" | "Wallet" | "Printer" | "UserPlus" | "Users" | "Megaphone" | "Fingerprint" | "KeyRound" | "GraduationCap" | "School" | "Landmark" | "ShieldCheck" | "Globe" | "Rocket" | "Settings2" | "Building2" | "ChartBar" | "MessageSquare" | "Smartphone" | "FileText" | "Award" | "BookOpen" | "Heart" | "Star" | "Lock" | "Cloud" | "Mail" | "Phone";
+                            text: {
+                                id: {
+                                    title: string;
+                                    description: string;
+                                };
+                                en: {
+                                    title: string;
+                                    description: string;
+                                };
+                                su: {
+                                    title: string;
+                                    description: string;
+                                };
+                            };
+                        }[];
+                        contact: {
+                            email: "" | string;
+                            phone: string;
+                            whatsapp: string;
+                            address: string;
+                        };
+                        social: {
+                            instagram: "" | string;
+                            facebook: "" | string;
+                            youtube: "" | string;
+                            tiktok: "" | string;
+                            x: "" | string;
+                            linkedin: "" | string;
+                        };
+                        sections: {
+                            features: boolean;
+                            how: boolean;
+                            audience: boolean;
+                            security: boolean;
+                            about: boolean;
+                            contact: boolean;
+                            cta: boolean;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            content: {
+                                brandName: string;
+                                locales: {
+                                    id: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    en: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    su: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                };
+                                features: {
+                                    /** @enum {string} */
+                                    icon: "BookOpenCheck" | "CalendarCheck" | "ClipboardList" | "Wallet" | "Printer" | "UserPlus" | "Users" | "Megaphone" | "Fingerprint" | "KeyRound" | "GraduationCap" | "School" | "Landmark" | "ShieldCheck" | "Globe" | "Rocket" | "Settings2" | "Building2" | "ChartBar" | "MessageSquare" | "Smartphone" | "FileText" | "Award" | "BookOpen" | "Heart" | "Star" | "Lock" | "Cloud" | "Mail" | "Phone";
+                                    text: {
+                                        id: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        en: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        su: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                    };
+                                }[];
+                                contact: {
+                                    email: "" | string;
+                                    phone: string;
+                                    whatsapp: string;
+                                    address: string;
+                                };
+                                social: {
+                                    instagram: "" | string;
+                                    facebook: "" | string;
+                                    youtube: "" | string;
+                                    tiktok: "" | string;
+                                    x: "" | string;
+                                    linkedin: "" | string;
+                                };
+                                sections: {
+                                    features: boolean;
+                                    how: boolean;
+                                    audience: boolean;
+                                    security: boolean;
+                                    about: boolean;
+                                    contact: boolean;
+                                    cta: boolean;
+                                };
+                            };
+                            /** @description Isi bawaan (sama dengan teks halaman utama sebelum disunting) */
+                            defaults: {
+                                brandName: string;
+                                locales: {
+                                    id: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    en: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    su: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                };
+                                features: {
+                                    /** @enum {string} */
+                                    icon: "BookOpenCheck" | "CalendarCheck" | "ClipboardList" | "Wallet" | "Printer" | "UserPlus" | "Users" | "Megaphone" | "Fingerprint" | "KeyRound" | "GraduationCap" | "School" | "Landmark" | "ShieldCheck" | "Globe" | "Rocket" | "Settings2" | "Building2" | "ChartBar" | "MessageSquare" | "Smartphone" | "FileText" | "Award" | "BookOpen" | "Heart" | "Star" | "Lock" | "Cloud" | "Mail" | "Phone";
+                                    text: {
+                                        id: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        en: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        su: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                    };
+                                }[];
+                                contact: {
+                                    email: "" | string;
+                                    phone: string;
+                                    whatsapp: string;
+                                    address: string;
+                                };
+                                social: {
+                                    instagram: "" | string;
+                                    facebook: "" | string;
+                                    youtube: "" | string;
+                                    tiktok: "" | string;
+                                    x: "" | string;
+                                    linkedin: "" | string;
+                                };
+                                sections: {
+                                    features: boolean;
+                                    how: boolean;
+                                    audience: boolean;
+                                    security: boolean;
+                                    about: boolean;
+                                    contact: boolean;
+                                    cta: boolean;
+                                };
+                            };
+                            /** @description false = belum pernah disimpan, halaman utama memakai isi bawaan */
+                            customized: boolean;
+                            assets: {
+                                /** @enum {string} */
+                                key: "favicon" | "app_icon" | "logo" | "logo_dark" | "hero" | "og_image";
+                                mime: string;
+                                size: number;
+                                /** @description ISO 8601 */
+                                updatedAt: string;
+                                updatedBy: string | null;
+                                /** @description Alamat publik gambar (relatif terhadap API), memuat versi agar cache ikut berganti */
+                                url: string;
+                            }[];
+                            /** @description Aturan tiap slot gambar: jenis berkas dan ukuran maksimal */
+                            slots: {
+                                /** @enum {string} */
+                                key: "favicon" | "app_icon" | "logo" | "logo_dark" | "hero" | "og_image";
+                                mimes: ("image/png" | "image/jpeg" | "image/webp" | "image/svg+xml" | "image/x-icon")[];
+                                maxBytes: number;
+                                /** @description Ukuran piksel yang disarankan */
+                                size: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Kembalikan isi situs ke bawaan
+         * @description Staf platform (admin). Menghapus isi teks tersimpan sehingga halaman utama kembali ke teks bawaan. Gambar yang sudah diunggah tidak ikut dihapus (hapus per slot). Tidak error bila memang belum pernah disimpan.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            content: {
+                                brandName: string;
+                                locales: {
+                                    id: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    en: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    su: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                };
+                                features: {
+                                    /** @enum {string} */
+                                    icon: "BookOpenCheck" | "CalendarCheck" | "ClipboardList" | "Wallet" | "Printer" | "UserPlus" | "Users" | "Megaphone" | "Fingerprint" | "KeyRound" | "GraduationCap" | "School" | "Landmark" | "ShieldCheck" | "Globe" | "Rocket" | "Settings2" | "Building2" | "ChartBar" | "MessageSquare" | "Smartphone" | "FileText" | "Award" | "BookOpen" | "Heart" | "Star" | "Lock" | "Cloud" | "Mail" | "Phone";
+                                    text: {
+                                        id: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        en: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        su: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                    };
+                                }[];
+                                contact: {
+                                    email: "" | string;
+                                    phone: string;
+                                    whatsapp: string;
+                                    address: string;
+                                };
+                                social: {
+                                    instagram: "" | string;
+                                    facebook: "" | string;
+                                    youtube: "" | string;
+                                    tiktok: "" | string;
+                                    x: "" | string;
+                                    linkedin: "" | string;
+                                };
+                                sections: {
+                                    features: boolean;
+                                    how: boolean;
+                                    audience: boolean;
+                                    security: boolean;
+                                    about: boolean;
+                                    contact: boolean;
+                                    cta: boolean;
+                                };
+                            };
+                            /** @description Isi bawaan (sama dengan teks halaman utama sebelum disunting) */
+                            defaults: {
+                                brandName: string;
+                                locales: {
+                                    id: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    en: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    su: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                };
+                                features: {
+                                    /** @enum {string} */
+                                    icon: "BookOpenCheck" | "CalendarCheck" | "ClipboardList" | "Wallet" | "Printer" | "UserPlus" | "Users" | "Megaphone" | "Fingerprint" | "KeyRound" | "GraduationCap" | "School" | "Landmark" | "ShieldCheck" | "Globe" | "Rocket" | "Settings2" | "Building2" | "ChartBar" | "MessageSquare" | "Smartphone" | "FileText" | "Award" | "BookOpen" | "Heart" | "Star" | "Lock" | "Cloud" | "Mail" | "Phone";
+                                    text: {
+                                        id: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        en: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        su: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                    };
+                                }[];
+                                contact: {
+                                    email: "" | string;
+                                    phone: string;
+                                    whatsapp: string;
+                                    address: string;
+                                };
+                                social: {
+                                    instagram: "" | string;
+                                    facebook: "" | string;
+                                    youtube: "" | string;
+                                    tiktok: "" | string;
+                                    x: "" | string;
+                                    linkedin: "" | string;
+                                };
+                                sections: {
+                                    features: boolean;
+                                    how: boolean;
+                                    audience: boolean;
+                                    security: boolean;
+                                    about: boolean;
+                                    contact: boolean;
+                                    cta: boolean;
+                                };
+                            };
+                            /** @description false = belum pernah disimpan, halaman utama memakai isi bawaan */
+                            customized: boolean;
+                            assets: {
+                                /** @enum {string} */
+                                key: "favicon" | "app_icon" | "logo" | "logo_dark" | "hero" | "og_image";
+                                mime: string;
+                                size: number;
+                                /** @description ISO 8601 */
+                                updatedAt: string;
+                                updatedBy: string | null;
+                                /** @description Alamat publik gambar (relatif terhadap API), memuat versi agar cache ikut berganti */
+                                url: string;
+                            }[];
+                            /** @description Aturan tiap slot gambar: jenis berkas dan ukuran maksimal */
+                            slots: {
+                                /** @enum {string} */
+                                key: "favicon" | "app_icon" | "logo" | "logo_dark" | "hero" | "og_image";
+                                mimes: ("image/png" | "image/jpeg" | "image/webp" | "image/svg+xml" | "image/x-icon")[];
+                                maxBytes: number;
+                                /** @description Ukuran piksel yang disarankan */
+                                size: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/platform/site/assets/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Unggah gambar situs (ikon, logo, hero, OG)
+         * @description Staf platform (admin). `key` salah satu dari favicon, app_icon, logo, logo_dark, hero, og_image. Gambar PNG, JPEG, WebP, ICO, atau SVG (sesuai slot) dikirim sebagai base64 di `data` tanpa awalan `data:`. Maksimal 2 MB, favicon dan app_icon 256 KB. Isi diperiksa terhadap `mime` (400 `validation` bila tidak cocok atau terlalu besar). SVG yang memuat skrip, penanganan peristiwa (`onload=`), `foreignObject`, atau `javascript:` ditolak: 400 `svg_unsafe`. Gambar lama pada slot yang sama diganti. Tercatat di audit `site.asset_upload`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    key: "favicon" | "app_icon" | "logo" | "logo_dark" | "hero" | "og_image";
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        mime: "image/png" | "image/jpeg" | "image/webp" | "image/svg+xml" | "image/x-icon";
+                        /** @description Isi berkas dalam base64 */
+                        data: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            key: "favicon" | "app_icon" | "logo" | "logo_dark" | "hero" | "og_image";
+                            mime: string;
+                            size: number;
+                            /** @description ISO 8601 */
+                            updatedAt: string;
+                            updatedBy: string | null;
+                            /** @description Alamat publik gambar (relatif terhadap API), memuat versi agar cache ikut berganti */
+                            url: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus gambar situs (kembali ke gambar bawaan)
+         * @description Staf platform (admin). Menghapus gambar pada slot; situs kembali memakai gambar bawaan aplikasi. Tidak error bila slot memang kosong. Tercatat di audit `site.asset_delete`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    key: "favicon" | "app_icon" | "logo" | "logo_dark" | "hero" | "og_image";
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/site": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Isi dan gambar situs Edusync (publik)
+         * @description Tanpa login. Isi halaman utama Edusync (teks tiga bahasa, fitur, kontak, tautan sosial, saklar bagian) dan alamat gambar yang sudah diunggah staf platform. Bila belum pernah diatur, isinya sama dengan teks bawaan. Dipakai halaman utama dan metadata di sisi server (cache sekitar satu menit).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            content: {
+                                brandName: string;
+                                locales: {
+                                    id: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    en: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                    su: {
+                                        /** @description Kalimat singkat di footer dan cadangan deskripsi */
+                                        tagline: string;
+                                        /** @description Judul tab peramban dan judul saat dibagikan */
+                                        metaTitle: string;
+                                        /** @description Deskripsi untuk mesin pencari dan pratinjau tautan */
+                                        metaDescription: string;
+                                        /** @description Label kecil di atas judul hero */
+                                        eyebrow: string;
+                                        heroTitle: string;
+                                        heroSubtitle: string;
+                                        /** @description Tombol utama (menuju pendaftaran) */
+                                        ctaPrimary: string;
+                                        /** @description Tombol kedua (menuju masuk) */
+                                        ctaSecondary: string;
+                                        featuresTitle: string;
+                                        featuresSubtitle: string;
+                                        aboutTitle: string;
+                                        /** @description Profil perusahaan; baris kosong memisahkan paragraf */
+                                        aboutBody: string;
+                                        /** @description Teks tambahan di footer */
+                                        footerText: string;
+                                    };
+                                };
+                                features: {
+                                    /** @enum {string} */
+                                    icon: "BookOpenCheck" | "CalendarCheck" | "ClipboardList" | "Wallet" | "Printer" | "UserPlus" | "Users" | "Megaphone" | "Fingerprint" | "KeyRound" | "GraduationCap" | "School" | "Landmark" | "ShieldCheck" | "Globe" | "Rocket" | "Settings2" | "Building2" | "ChartBar" | "MessageSquare" | "Smartphone" | "FileText" | "Award" | "BookOpen" | "Heart" | "Star" | "Lock" | "Cloud" | "Mail" | "Phone";
+                                    text: {
+                                        id: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        en: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                        su: {
+                                            title: string;
+                                            description: string;
+                                        };
+                                    };
+                                }[];
+                                contact: {
+                                    email: "" | string;
+                                    phone: string;
+                                    whatsapp: string;
+                                    address: string;
+                                };
+                                social: {
+                                    instagram: "" | string;
+                                    facebook: "" | string;
+                                    youtube: "" | string;
+                                    tiktok: "" | string;
+                                    x: "" | string;
+                                    linkedin: "" | string;
+                                };
+                                sections: {
+                                    features: boolean;
+                                    how: boolean;
+                                    audience: boolean;
+                                    security: boolean;
+                                    about: boolean;
+                                    contact: boolean;
+                                    cta: boolean;
+                                };
+                            };
+                            /** @description Gambar yang sudah diunggah, per slot. Slot yang tidak ada memakai gambar bawaan aplikasi */
+                            assets: {
+                                [key: string]: {
+                                    url: string;
+                                    mime: string;
+                                };
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/site-assets/{key}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Gambar situs Edusync (publik)
+         * @description Tanpa login. Gambar pada slot (favicon, app_icon, logo, logo_dark, hero, og_image). 404 `not_found` bila slot kosong (pakai gambar bawaan). Mendukung `ETag` dan `If-None-Match` (304); di-cache singkat supaya penggantian gambar cepat terlihat.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    key: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Isi gambar */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                304: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/account": {
         parameters: {
             query?: never;
@@ -11023,6 +12470,3392 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/templates/defaults": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Templat bawaan sistem (tidak disimpan)
+         * @description Izin: `student:read`. Tata letak kartu siswa (CR80 86x54 mm) dan kartu peserta ujian (100x60 mm) bawaan. Tidak menyimpan apa pun: UI menampilkannya sebagai pilihan "tambah dari bawaan" lalu menyimpannya lewat `POST /v1/cards/templates`. Sekolah tanpa templat tersimpan memakai bawaan ini saat mencetak.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            student: {
+                                name: string;
+                                layout: {
+                                    widthMm: number;
+                                    heightMm: number;
+                                    elements: ({
+                                        /** @enum {string} */
+                                        type: "text";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        text: string;
+                                        /** @default 9 */
+                                        fontSize: number;
+                                        /** @default false */
+                                        bold: boolean;
+                                        /**
+                                         * @default left
+                                         * @enum {string}
+                                         */
+                                        align: "left" | "center" | "right";
+                                        /** @default #111111 */
+                                        color: string;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "field";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @enum {string} */
+                                        field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                        prefix?: string;
+                                        maxWidth?: number;
+                                        /** @default 9 */
+                                        fontSize: number;
+                                        /** @default false */
+                                        bold: boolean;
+                                        /**
+                                         * @default left
+                                         * @enum {string}
+                                         */
+                                        align: "left" | "center" | "right";
+                                        /** @default #111111 */
+                                        color: string;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "image";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** Format: uuid */
+                                        fileId: string;
+                                        /**
+                                         * @default contain
+                                         * @enum {string}
+                                         */
+                                        fit: "contain" | "cover";
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "photo";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /**
+                                         * @default rect
+                                         * @enum {string}
+                                         */
+                                        shape: "rect" | "circle";
+                                        /**
+                                         * @default cover
+                                         * @enum {string}
+                                         */
+                                        fit: "cover";
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "qr";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @enum {string} */
+                                        field: "nis" | "rfidCode" | "participantNo";
+                                        /** @default #000000 */
+                                        color: string;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "barcode";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @enum {string} */
+                                        field: "nis" | "rfidCode" | "participantNo";
+                                        /**
+                                         * @default code128
+                                         * @enum {string}
+                                         */
+                                        format: "code128";
+                                        /** @default false */
+                                        showText: boolean;
+                                        /** @default #000000 */
+                                        color: string;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "rect";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @default null */
+                                        fill: string | null;
+                                        /** @default null */
+                                        borderColor: string | null;
+                                        /** @default 0 */
+                                        borderWidth: number;
+                                        /** @default 0 */
+                                        radius: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "line";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @default #111111 */
+                                        color: string;
+                                        /** @default 0.3 */
+                                        thickness: number;
+                                    })[];
+                                };
+                            };
+                            exam: {
+                                name: string;
+                                layout: {
+                                    widthMm: number;
+                                    heightMm: number;
+                                    elements: ({
+                                        /** @enum {string} */
+                                        type: "text";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        text: string;
+                                        /** @default 9 */
+                                        fontSize: number;
+                                        /** @default false */
+                                        bold: boolean;
+                                        /**
+                                         * @default left
+                                         * @enum {string}
+                                         */
+                                        align: "left" | "center" | "right";
+                                        /** @default #111111 */
+                                        color: string;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "field";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @enum {string} */
+                                        field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                        prefix?: string;
+                                        maxWidth?: number;
+                                        /** @default 9 */
+                                        fontSize: number;
+                                        /** @default false */
+                                        bold: boolean;
+                                        /**
+                                         * @default left
+                                         * @enum {string}
+                                         */
+                                        align: "left" | "center" | "right";
+                                        /** @default #111111 */
+                                        color: string;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "image";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** Format: uuid */
+                                        fileId: string;
+                                        /**
+                                         * @default contain
+                                         * @enum {string}
+                                         */
+                                        fit: "contain" | "cover";
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "photo";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /**
+                                         * @default rect
+                                         * @enum {string}
+                                         */
+                                        shape: "rect" | "circle";
+                                        /**
+                                         * @default cover
+                                         * @enum {string}
+                                         */
+                                        fit: "cover";
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "qr";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @enum {string} */
+                                        field: "nis" | "rfidCode" | "participantNo";
+                                        /** @default #000000 */
+                                        color: string;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "barcode";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @enum {string} */
+                                        field: "nis" | "rfidCode" | "participantNo";
+                                        /**
+                                         * @default code128
+                                         * @enum {string}
+                                         */
+                                        format: "code128";
+                                        /** @default false */
+                                        showText: boolean;
+                                        /** @default #000000 */
+                                        color: string;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "rect";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @default null */
+                                        fill: string | null;
+                                        /** @default null */
+                                        borderColor: string | null;
+                                        /** @default 0 */
+                                        borderWidth: number;
+                                        /** @default 0 */
+                                        radius: number;
+                                    } | {
+                                        /** @enum {string} */
+                                        type: "line";
+                                        id?: string;
+                                        x: number;
+                                        y: number;
+                                        w: number;
+                                        h: number;
+                                        rotation?: number;
+                                        /** @default #111111 */
+                                        color: string;
+                                        /** @default 0.3 */
+                                        thickness: number;
+                                    })[];
+                                };
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/templates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar templat kartu
+         * @description Izin: `student:read`. Filter `kind` (student atau exam). Templat bawaan sekolah (`isDefault`) paling atas. Sekolah baru belum punya templat tersimpan; lihat `GET /v1/cards/templates/defaults`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    kind?: "student" | "exam";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "student" | "exam";
+                            name: string;
+                            layout: {
+                                widthMm: number;
+                                heightMm: number;
+                                elements: ({
+                                    /** @enum {string} */
+                                    type: "text";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    text: string;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "field";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    prefix?: string;
+                                    maxWidth?: number;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "image";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** Format: uuid */
+                                    fileId: string;
+                                    /**
+                                     * @default contain
+                                     * @enum {string}
+                                     */
+                                    fit: "contain" | "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "photo";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /**
+                                     * @default rect
+                                     * @enum {string}
+                                     */
+                                    shape: "rect" | "circle";
+                                    /**
+                                     * @default cover
+                                     * @enum {string}
+                                     */
+                                    fit: "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "qr";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "barcode";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /**
+                                     * @default code128
+                                     * @enum {string}
+                                     */
+                                    format: "code128";
+                                    /** @default false */
+                                    showText: boolean;
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "rect";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default null */
+                                    fill: string | null;
+                                    /** @default null */
+                                    borderColor: string | null;
+                                    /** @default 0 */
+                                    borderWidth: number;
+                                    /** @default 0 */
+                                    radius: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "line";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default 0.3 */
+                                    thickness: number;
+                                })[];
+                            };
+                            /** Format: uuid */
+                            backgroundFileId: string | null;
+                            /** @description Jalur gambar latar (publik, tidak bisa ditebak) */
+                            backgroundUrl: string | null;
+                            isDefault: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat templat kartu
+         * @description Izin: `school:manage`. `layout` divalidasi (koordinat dalam mm di dalam kanvas, maksimal 60 elemen, kolom terikat sesuai `kind`): 400 `validation` bila salah, 400 `invalid_reference` bila gambar tidak ada. Templat pertama untuk suatu jenis otomatis menjadi bawaan; `isDefault: true` mengambil alih. Nama kembar dalam satu jenis ditolak (409 `conflict`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        layout: {
+                            widthMm: number;
+                            heightMm: number;
+                            elements: ({
+                                /** @enum {string} */
+                                type: "text";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                text: string;
+                                /** @default 9 */
+                                fontSize?: number;
+                                /** @default false */
+                                bold?: boolean;
+                                /**
+                                 * @default left
+                                 * @enum {string}
+                                 */
+                                align?: "left" | "center" | "right";
+                                /** @default #111111 */
+                                color?: string;
+                            } | {
+                                /** @enum {string} */
+                                type: "field";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @enum {string} */
+                                field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                prefix?: string;
+                                maxWidth?: number;
+                                /** @default 9 */
+                                fontSize?: number;
+                                /** @default false */
+                                bold?: boolean;
+                                /**
+                                 * @default left
+                                 * @enum {string}
+                                 */
+                                align?: "left" | "center" | "right";
+                                /** @default #111111 */
+                                color?: string;
+                            } | {
+                                /** @enum {string} */
+                                type: "image";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** Format: uuid */
+                                fileId: string;
+                                /**
+                                 * @default contain
+                                 * @enum {string}
+                                 */
+                                fit?: "contain" | "cover";
+                            } | {
+                                /** @enum {string} */
+                                type: "photo";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /**
+                                 * @default rect
+                                 * @enum {string}
+                                 */
+                                shape?: "rect" | "circle";
+                                /**
+                                 * @default cover
+                                 * @enum {string}
+                                 */
+                                fit?: "cover";
+                            } | {
+                                /** @enum {string} */
+                                type: "qr";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @enum {string} */
+                                field: "nis" | "rfidCode" | "participantNo";
+                                /** @default #000000 */
+                                color?: string;
+                            } | {
+                                /** @enum {string} */
+                                type: "barcode";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @enum {string} */
+                                field: "nis" | "rfidCode" | "participantNo";
+                                /**
+                                 * @default code128
+                                 * @enum {string}
+                                 */
+                                format?: "code128";
+                                /** @default false */
+                                showText?: boolean;
+                                /** @default #000000 */
+                                color?: string;
+                            } | {
+                                /** @enum {string} */
+                                type: "rect";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @default null */
+                                fill?: string | null;
+                                /** @default null */
+                                borderColor?: string | null;
+                                /** @default 0 */
+                                borderWidth?: number;
+                                /** @default 0 */
+                                radius?: number;
+                            } | {
+                                /** @enum {string} */
+                                type: "line";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @default #111111 */
+                                color?: string;
+                                /** @default 0.3 */
+                                thickness?: number;
+                            })[];
+                        };
+                        /**
+                         * Format: uuid
+                         * @description Berkas dari POST /v1/cards/backgrounds; kosong = tanpa latar
+                         */
+                        backgroundFileId?: string | null;
+                        /** @description Jadikan templat bawaan untuk jenisnya */
+                        isDefault?: boolean;
+                        /** @enum {string} */
+                        kind: "student" | "exam";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "student" | "exam";
+                            name: string;
+                            layout: {
+                                widthMm: number;
+                                heightMm: number;
+                                elements: ({
+                                    /** @enum {string} */
+                                    type: "text";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    text: string;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "field";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    prefix?: string;
+                                    maxWidth?: number;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "image";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** Format: uuid */
+                                    fileId: string;
+                                    /**
+                                     * @default contain
+                                     * @enum {string}
+                                     */
+                                    fit: "contain" | "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "photo";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /**
+                                     * @default rect
+                                     * @enum {string}
+                                     */
+                                    shape: "rect" | "circle";
+                                    /**
+                                     * @default cover
+                                     * @enum {string}
+                                     */
+                                    fit: "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "qr";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "barcode";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /**
+                                     * @default code128
+                                     * @enum {string}
+                                     */
+                                    format: "code128";
+                                    /** @default false */
+                                    showText: boolean;
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "rect";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default null */
+                                    fill: string | null;
+                                    /** @default null */
+                                    borderColor: string | null;
+                                    /** @default 0 */
+                                    borderWidth: number;
+                                    /** @default 0 */
+                                    radius: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "line";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default 0.3 */
+                                    thickness: number;
+                                })[];
+                            };
+                            /** Format: uuid */
+                            backgroundFileId: string | null;
+                            /** @description Jalur gambar latar (publik, tidak bisa ditebak) */
+                            backgroundUrl: string | null;
+                            isDefault: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/templates/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail templat kartu
+         * @description Izin: `student:read`. 404 `not_found` bila tidak ada.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "student" | "exam";
+                            name: string;
+                            layout: {
+                                widthMm: number;
+                                heightMm: number;
+                                elements: ({
+                                    /** @enum {string} */
+                                    type: "text";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    text: string;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "field";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    prefix?: string;
+                                    maxWidth?: number;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "image";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** Format: uuid */
+                                    fileId: string;
+                                    /**
+                                     * @default contain
+                                     * @enum {string}
+                                     */
+                                    fit: "contain" | "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "photo";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /**
+                                     * @default rect
+                                     * @enum {string}
+                                     */
+                                    shape: "rect" | "circle";
+                                    /**
+                                     * @default cover
+                                     * @enum {string}
+                                     */
+                                    fit: "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "qr";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "barcode";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /**
+                                     * @default code128
+                                     * @enum {string}
+                                     */
+                                    format: "code128";
+                                    /** @default false */
+                                    showText: boolean;
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "rect";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default null */
+                                    fill: string | null;
+                                    /** @default null */
+                                    borderColor: string | null;
+                                    /** @default 0 */
+                                    borderWidth: number;
+                                    /** @default 0 */
+                                    radius: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "line";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default 0.3 */
+                                    thickness: number;
+                                })[];
+                            };
+                            /** Format: uuid */
+                            backgroundFileId: string | null;
+                            /** @description Jalur gambar latar (publik, tidak bisa ditebak) */
+                            backgroundUrl: string | null;
+                            isDefault: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah templat kartu
+         * @description Izin: `school:manage`. Mengganti seluruh isi (nama, tata letak, latar); `kind` tidak bisa diubah. `isDefault: true` menjadikannya bawaan (false tidak melepas bawaan; pilih templat lain). Latar/gambar yang tidak lagi dipakai templat mana pun dihapus.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        layout: {
+                            widthMm: number;
+                            heightMm: number;
+                            elements: ({
+                                /** @enum {string} */
+                                type: "text";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                text: string;
+                                /** @default 9 */
+                                fontSize?: number;
+                                /** @default false */
+                                bold?: boolean;
+                                /**
+                                 * @default left
+                                 * @enum {string}
+                                 */
+                                align?: "left" | "center" | "right";
+                                /** @default #111111 */
+                                color?: string;
+                            } | {
+                                /** @enum {string} */
+                                type: "field";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @enum {string} */
+                                field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                prefix?: string;
+                                maxWidth?: number;
+                                /** @default 9 */
+                                fontSize?: number;
+                                /** @default false */
+                                bold?: boolean;
+                                /**
+                                 * @default left
+                                 * @enum {string}
+                                 */
+                                align?: "left" | "center" | "right";
+                                /** @default #111111 */
+                                color?: string;
+                            } | {
+                                /** @enum {string} */
+                                type: "image";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** Format: uuid */
+                                fileId: string;
+                                /**
+                                 * @default contain
+                                 * @enum {string}
+                                 */
+                                fit?: "contain" | "cover";
+                            } | {
+                                /** @enum {string} */
+                                type: "photo";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /**
+                                 * @default rect
+                                 * @enum {string}
+                                 */
+                                shape?: "rect" | "circle";
+                                /**
+                                 * @default cover
+                                 * @enum {string}
+                                 */
+                                fit?: "cover";
+                            } | {
+                                /** @enum {string} */
+                                type: "qr";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @enum {string} */
+                                field: "nis" | "rfidCode" | "participantNo";
+                                /** @default #000000 */
+                                color?: string;
+                            } | {
+                                /** @enum {string} */
+                                type: "barcode";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @enum {string} */
+                                field: "nis" | "rfidCode" | "participantNo";
+                                /**
+                                 * @default code128
+                                 * @enum {string}
+                                 */
+                                format?: "code128";
+                                /** @default false */
+                                showText?: boolean;
+                                /** @default #000000 */
+                                color?: string;
+                            } | {
+                                /** @enum {string} */
+                                type: "rect";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @default null */
+                                fill?: string | null;
+                                /** @default null */
+                                borderColor?: string | null;
+                                /** @default 0 */
+                                borderWidth?: number;
+                                /** @default 0 */
+                                radius?: number;
+                            } | {
+                                /** @enum {string} */
+                                type: "line";
+                                id?: string;
+                                x: number;
+                                y: number;
+                                w: number;
+                                h: number;
+                                rotation?: number;
+                                /** @default #111111 */
+                                color?: string;
+                                /** @default 0.3 */
+                                thickness?: number;
+                            })[];
+                        };
+                        /**
+                         * Format: uuid
+                         * @description Berkas dari POST /v1/cards/backgrounds; kosong = tanpa latar
+                         */
+                        backgroundFileId?: string | null;
+                        /** @description Jadikan templat bawaan untuk jenisnya */
+                        isDefault?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "student" | "exam";
+                            name: string;
+                            layout: {
+                                widthMm: number;
+                                heightMm: number;
+                                elements: ({
+                                    /** @enum {string} */
+                                    type: "text";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    text: string;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "field";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    prefix?: string;
+                                    maxWidth?: number;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "image";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** Format: uuid */
+                                    fileId: string;
+                                    /**
+                                     * @default contain
+                                     * @enum {string}
+                                     */
+                                    fit: "contain" | "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "photo";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /**
+                                     * @default rect
+                                     * @enum {string}
+                                     */
+                                    shape: "rect" | "circle";
+                                    /**
+                                     * @default cover
+                                     * @enum {string}
+                                     */
+                                    fit: "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "qr";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "barcode";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /**
+                                     * @default code128
+                                     * @enum {string}
+                                     */
+                                    format: "code128";
+                                    /** @default false */
+                                    showText: boolean;
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "rect";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default null */
+                                    fill: string | null;
+                                    /** @default null */
+                                    borderColor: string | null;
+                                    /** @default 0 */
+                                    borderWidth: number;
+                                    /** @default 0 */
+                                    radius: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "line";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default 0.3 */
+                                    thickness: number;
+                                })[];
+                            };
+                            /** Format: uuid */
+                            backgroundFileId: string | null;
+                            /** @description Jalur gambar latar (publik, tidak bisa ditebak) */
+                            backgroundUrl: string | null;
+                            isDefault: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus templat kartu
+         * @description Izin: `school:manage`. Bila yang dihapus adalah bawaan, templat tertua yang tersisa untuk jenis yang sama menjadi bawaan; bila tidak ada lagi, pencetakan memakai bawaan sistem. 404 `not_found` bila tidak ada.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/templates/{id}/duplicate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Gandakan templat kartu
+         * @description Izin: `school:manage`. Salinan bernama "<nama> (salinan)" (diberi nomor bila sudah ada), bukan bawaan. Latar dipakai bersama; berkas tidak dihapus selama masih ada templat yang merujuknya.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "student" | "exam";
+                            name: string;
+                            layout: {
+                                widthMm: number;
+                                heightMm: number;
+                                elements: ({
+                                    /** @enum {string} */
+                                    type: "text";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    text: string;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "field";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    prefix?: string;
+                                    maxWidth?: number;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "image";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** Format: uuid */
+                                    fileId: string;
+                                    /**
+                                     * @default contain
+                                     * @enum {string}
+                                     */
+                                    fit: "contain" | "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "photo";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /**
+                                     * @default rect
+                                     * @enum {string}
+                                     */
+                                    shape: "rect" | "circle";
+                                    /**
+                                     * @default cover
+                                     * @enum {string}
+                                     */
+                                    fit: "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "qr";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "barcode";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /**
+                                     * @default code128
+                                     * @enum {string}
+                                     */
+                                    format: "code128";
+                                    /** @default false */
+                                    showText: boolean;
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "rect";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default null */
+                                    fill: string | null;
+                                    /** @default null */
+                                    borderColor: string | null;
+                                    /** @default 0 */
+                                    borderWidth: number;
+                                    /** @default 0 */
+                                    radius: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "line";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default 0.3 */
+                                    thickness: number;
+                                })[];
+                            };
+                            /** Format: uuid */
+                            backgroundFileId: string | null;
+                            /** @description Jalur gambar latar (publik, tidak bisa ditebak) */
+                            backgroundUrl: string | null;
+                            isDefault: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/templates/{id}/default": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Jadikan templat bawaan
+         * @description Izin: `school:manage`. Tepat satu templat bawaan per jenis; yang sebelumnya otomatis dilepas.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            kind: "student" | "exam";
+                            name: string;
+                            layout: {
+                                widthMm: number;
+                                heightMm: number;
+                                elements: ({
+                                    /** @enum {string} */
+                                    type: "text";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    text: string;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "field";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    prefix?: string;
+                                    maxWidth?: number;
+                                    /** @default 9 */
+                                    fontSize: number;
+                                    /** @default false */
+                                    bold: boolean;
+                                    /**
+                                     * @default left
+                                     * @enum {string}
+                                     */
+                                    align: "left" | "center" | "right";
+                                    /** @default #111111 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "image";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** Format: uuid */
+                                    fileId: string;
+                                    /**
+                                     * @default contain
+                                     * @enum {string}
+                                     */
+                                    fit: "contain" | "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "photo";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /**
+                                     * @default rect
+                                     * @enum {string}
+                                     */
+                                    shape: "rect" | "circle";
+                                    /**
+                                     * @default cover
+                                     * @enum {string}
+                                     */
+                                    fit: "cover";
+                                } | {
+                                    /** @enum {string} */
+                                    type: "qr";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "barcode";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @enum {string} */
+                                    field: "nis" | "rfidCode" | "participantNo";
+                                    /**
+                                     * @default code128
+                                     * @enum {string}
+                                     */
+                                    format: "code128";
+                                    /** @default false */
+                                    showText: boolean;
+                                    /** @default #000000 */
+                                    color: string;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "rect";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default null */
+                                    fill: string | null;
+                                    /** @default null */
+                                    borderColor: string | null;
+                                    /** @default 0 */
+                                    borderWidth: number;
+                                    /** @default 0 */
+                                    radius: number;
+                                } | {
+                                    /** @enum {string} */
+                                    type: "line";
+                                    id?: string;
+                                    x: number;
+                                    y: number;
+                                    w: number;
+                                    h: number;
+                                    rotation?: number;
+                                    /** @default #111111 */
+                                    color: string;
+                                    /** @default 0.3 */
+                                    thickness: number;
+                                })[];
+                            };
+                            /** Format: uuid */
+                            backgroundFileId: string | null;
+                            /** @description Jalur gambar latar (publik, tidak bisa ditebak) */
+                            backgroundUrl: string | null;
+                            isDefault: boolean;
+                            createdAt: string;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/backgrounds": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Unggah gambar latar/elemen kartu
+         * @description Izin: `school:manage`. PNG atau JPEG sampai 1,5 MB, dikirim sebagai base64 di `data` (tanpa awalan `data:`); isi berkas diperiksa terhadap `mime` (400 `validation`). `id` dipakai sebagai `backgroundFileId` templat atau `fileId` elemen gambar; `url` publik dan tidak bisa ditebak. Berkas yang tak dirujuk templat apa pun dihapus saat templat diubah/dihapus.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        mime: "image/png" | "image/jpeg";
+                        data: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            url: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/students/{id}/photo": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Foto siswa
+         * @description Izin: `student:read`. Isi gambar (JPEG atau PNG), hanya untuk anggota sekolah yang berhak (bukan publik; klien menyertakan `x-school-id` dan cookie). 404 `not_found` bila siswa atau fotonya tidak ada.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Isi gambar (JPEG atau PNG) */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": unknown;
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Unggah foto siswa
+         * @description Izin: `student:manage`. JPEG atau PNG sampai 500 KB, base64 di `data` (tanpa awalan `data:`); isi berkas diperiksa terhadap `mime` (400 `validation`). Foto lama diganti. Foto tidak publik: diambil lewat `GET /v1/students/:id/photo`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        mime: "image/png" | "image/jpeg";
+                        data: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            photoUrl: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Hapus foto siswa
+         * @description Izin: `student:manage`. Tidak error bila foto memang belum ada; 404 bila siswa tidak ada.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/students": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Data cetak kartu siswa
+         * @description Izin: `student:read`. Wajib `classId` (siswa aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). Hanya baca; PDF dirender di klien.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    classId?: string;
+                    studentIds?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            schoolName: string;
+                            truncated: boolean;
+                            items: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string;
+                                nisn: string;
+                                /** @description L atau P */
+                                gender: string;
+                                className: string;
+                                /** @description "Bandung, 5 Oktober 2010" */
+                                birthPlaceDate: string;
+                                address: string;
+                                /** @description Kode kartu RFID aktif pertama; kosong bila belum ada */
+                                rfidCode: string;
+                                /** @description Jalur foto (butuh login & x-school-id), null bila belum ada */
+                                photoUrl: string | null;
+                                schoolName: string;
+                                academicYear: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cards/exam-participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Data cetak kartu peserta ujian
+         * @description Izin: `exam:read`; modul `exams`. Dua cara: `examId` (semua kelas ujian itu; jenis dan semester ikut ujian) atau `semesterId` + `classId` (opsional `examTypeId` untuk membatasi jenis ujian). **Nomor peserta** = `<singkatan jenis ujian>-<yy>-<urutan 3 digit>`, mis. `ASTS-26-007`: `yy` dua digit tahun mulai tahun ajaran kelas, urutan = posisi siswa aktif di kelasnya diurut nama lalu id. Tanpa jenis ujian singkatannya `UJN`. Stabil selama susunan kelas tidak berubah. **Jadwal** = ujian pada semester itu (dan jenis yang sama bila ada) yang mencakup kelas siswa, urut tanggal lalu jam (semua status, termasuk draf). `date`/`time` ringkasan untuk kartu; `room` belum punya sumber data sehingga kosong. Dibatasi 300 baris (`truncated`). Hanya baca.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    examId?: string;
+                    semesterId?: string;
+                    classId?: string;
+                    examTypeId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            schoolName: string;
+                            truncated: boolean;
+                            items: {
+                                /** Format: uuid */
+                                studentId: string;
+                                /** Format: uuid */
+                                classId: string;
+                                name: string;
+                                nis: string;
+                                className: string;
+                                participantNo: string;
+                                examTitle: string;
+                                typeName: string;
+                                /** @description Belum ada data ruang di sistem; selalu kosong */
+                                room: string;
+                                date: string;
+                                time: string;
+                                subjectList: string[];
+                                schedule: {
+                                    subject: string;
+                                    date: string | null;
+                                    /** @description "07.30 - 09.00 WIB" atau kosong */
+                                    time: string;
+                                }[];
+                                photoUrl: string | null;
+                                schoolName: string;
+                                academicYear: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gate/manual": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Catat datang atau pulang secara manual (massal)
+         * @description Izin: `attendance:manage`; modul `attendance`. Cadangan bila kiosk RFID tidak bisa dipakai. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Maksimal 200 siswa per permintaan. `date` bawaan hari ini (zona waktu sekolah); tanggal lampau wajib memberi jam. Jam (`at` di tingkat permintaan atau per entri; entri menang) bawaannya sekarang, tidak boleh di masa depan dan harus pada `date`. Perilaku meniru tap: menulis `tap_event` bersumber `manual` dengan `recordedBy` pencatat, memperbarui absensi harian, dan memberi tahu wali (arrival/departure). Datang: status dihitung dari kebijakan `lateAfter` (terlambat bila jam lebih dari batas) kecuali entri memberi `status` `present`/`late`. Aman diulang: catatan datang/pulang yang sudah ada tidak ditimpa (`already_in`, `already_out`) kecuali `overwrite: true`; siswa berstatus izin/sakit/alpa dilewati (`skipped_status`) kecuali `overwrite`. Pulang tanpa catatan datang tetap dicatat dengan peringatan `no_check_in`. Pulang sebelum jam datang (atau datang setelah jam pulang) menghasilkan `invalid_time`. Tanggal libur/jeda sekolah: 409 `school_closed` kecuali `force: true`. Hasil per entri: `in`, `out`, `already_in`, `already_out`, `skipped_status`, `not_found` (siswa tidak ada atau tidak aktif), `invalid_time`; `summary` merangkum. Satu entri audit ringkas dicatat.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        date?: string;
+                        /** @enum {string} */
+                        direction: "in" | "out";
+                        /** @description Jam `HH:MM` (waktu sekolah) atau ISO 8601 dengan zona; harus pada `date`. */
+                        at?: string;
+                        entries: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** @description Jam `HH:MM` (waktu sekolah) atau ISO 8601 dengan zona; harus pada `date`. */
+                            at?: string;
+                            /** @enum {string} */
+                            status?: "present" | "late";
+                        }[];
+                        /** @default false */
+                        overwrite?: boolean;
+                        /** @default false */
+                        force?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            /** @enum {string} */
+                            direction: "in" | "out";
+                            results: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string | null;
+                                className: string | null;
+                                /** @enum {string} */
+                                result: "in" | "out" | "already_in" | "already_out" | "skipped_status" | "not_found" | "invalid_time";
+                                at: string | null;
+                                /** @enum {string|null} */
+                                status: "present" | "late" | "excused" | "sick" | "absent" | null;
+                                late: boolean;
+                                /** @enum {string|null} */
+                                warning: "no_check_in" | null;
+                            }[];
+                            summary: {
+                                in: number;
+                                out: number;
+                                already_in: number;
+                                already_out: number;
+                                skipped_status: number;
+                                not_found: number;
+                                invalid_time: number;
+                                warnings: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gate/manual/mark-all": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tandai seluruh kelas datang atau pulang
+         * @description Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Jalan pintas atas `/v1/gate/manual` untuk satu kelas: `direction` `in` mencatat semua siswa kelas yang belum punya catatan datang dan tidak berstatus izin/sakit/alpa; `out` mencatat semua yang sudah datang tetapi belum pulang. Siswa yang tidak memenuhi syarat tidak disentuh. Jam `at` (HH:MM atau ISO) dan `date` sama seperti `/v1/gate/manual`. Respons sama dengan `/v1/gate/manual` (hanya siswa yang diproses), ditambah `candidates` (jumlah siswa yang dipilih). Kelas tidak ada: 404; libur: 409 `school_closed` kecuali `force`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        classId: string;
+                        /** @enum {string} */
+                        direction: "in" | "out";
+                        /** Format: date */
+                        date?: string;
+                        /** @description Jam `HH:MM` (waktu sekolah) atau ISO 8601 dengan zona; harus pada `date`. */
+                        at?: string;
+                        /** @default false */
+                        force?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            /** @enum {string} */
+                            direction: "in" | "out";
+                            results: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string | null;
+                                className: string | null;
+                                /** @enum {string} */
+                                result: "in" | "out" | "already_in" | "already_out" | "skipped_status" | "not_found" | "invalid_time";
+                                at: string | null;
+                                /** @enum {string|null} */
+                                status: "present" | "late" | "excused" | "sick" | "absent" | null;
+                                late: boolean;
+                                /** @enum {string|null} */
+                                warning: "no_check_in" | null;
+                            }[];
+                            summary: {
+                                in: number;
+                                out: number;
+                                already_in: number;
+                                already_out: number;
+                                skipped_status: number;
+                                not_found: number;
+                                invalid_time: number;
+                                warnings: number;
+                            };
+                            candidates: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gate/manual/classes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kelas yang boleh saya catat hari ini
+         * @description Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. `scope`: `all` (pengurus), `duty` (piket hari ini: semua kelas), atau `homeroom` (hanya kelas yang diwalikan; bisa kosong). Per kelas (tahun ajaran aktif): `total` siswa aktif, `checkedIn` (sudah ada jam datang), `checkedOut` (sudah ada jam pulang), `away` (izin/sakit/alpa), `notYet` (belum datang dan bukan izin/sakit/alpa), dan `homeroom` (apakah pengguna wali kelasnya). `closed` terisi bila hari ini libur.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            /** @enum {string} */
+                            scope: "all" | "duty" | "homeroom";
+                            closed: {
+                                /** @enum {string} */
+                                type: "holiday" | "break";
+                                title: string;
+                            } | null;
+                            classes: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                level: string;
+                                homeroom: boolean;
+                                total: number;
+                                checkedIn: number;
+                                checkedOut: number;
+                                away: number;
+                                notYet: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gate/daily/{studentId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Koreksi absensi gerbang satu siswa pada satu tanggal
+         * @description Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Mengoreksi atau membatalkan catatan datang/pulang. Setiap bidang opsional: tidak dikirim = tidak diubah, `null` = dikosongkan, nilai = jam `HH:MM` atau ISO pada `date`. `checkOutAt` tidak boleh sebelum `checkInAt`. `status` bila tidak dikirim: dihitung dari kebijakan saat jam datang diubah, selain itu tetap. Bila kedua jam dikosongkan tanpa `status` dan status lama `present`/`late`, catatan dihapus (kembali ke "belum ada catatan"; `removed: true`). Jam yang baru diset ikut dicatat sebagai `tap_event` `manual`. Tidak ada pemberitahuan ke wali. Siswa tidak ada/tidak aktif: 404. Satu entri audit dicatat.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: date */
+                        date: string;
+                        /** @description Jam `HH:MM` (waktu sekolah) atau ISO 8601 dengan zona; harus pada `date`. */
+                        checkInAt?: string | null;
+                        /** @description Jam `HH:MM` (waktu sekolah) atau ISO 8601 dengan zona; harus pada `date`. */
+                        checkOutAt?: string | null;
+                        /** @enum {string} */
+                        status?: "present" | "late" | "excused" | "sick" | "absent";
+                        note?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            name: string;
+                            className: string | null;
+                            removed: boolean;
+                            /** @enum {string|null} */
+                            status: "present" | "late" | "excused" | "sick" | "absent" | null;
+                            checkInAt: string | null;
+                            checkOutAt: string | null;
+                            note: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;
@@ -18358,7 +23191,7 @@ export interface paths {
         };
         /**
          * Daftar jenis biaya
-         * @description Izin: `finance:read`; modul `finance`. Urut nama. `planCount` dan `invoiceCount` = pemakaian jenis biaya ini.
+         * @description Izin: `finance:read`; modul `finance`. Urut nama. `planCount` dan `invoiceCount` = pemakaian jenis biaya ini. `scope` = `all` (semua siswa), `class` (hanya kelas di `classIds`), atau `student` (hanya siswa di `studentIds`); `targetCount` dan `targetNames` (nama kelas/siswa sasaran) untuk tampilan.
          */
         get: {
             parameters: {
@@ -18384,7 +23217,20 @@ export interface paths {
                             name: string;
                             /** @enum {string} */
                             kind: "monthly" | "one_time" | "yearly";
+                            /**
+                             * @description `all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu
+                             * @enum {string}
+                             */
+                            scope: "all" | "class" | "student";
                             active: boolean;
+                            /** @description Kelas sasaran (cakupan `class`); kosong untuk cakupan lain */
+                            classIds: string[];
+                            /** @description Siswa sasaran (cakupan `student`); kosong untuk cakupan lain */
+                            studentIds: string[];
+                            /** @description Jumlah sasaran (kelas atau siswa) */
+                            targetCount: number;
+                            /** @description Nama kelas atau siswa sasaran, urut abjad */
+                            targetNames: string[];
                             /** @description Jumlah tarif yang memakai jenis biaya ini */
                             planCount: number;
                             /** @description Jumlah tagihan yang memakai jenis biaya ini */
@@ -18425,7 +23271,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah jenis biaya
-         * @description Izin: `finance:manage`; modul `finance`. `kind`: `monthly` (per bulan, mis. SPP), `one_time` (sekali), `yearly` (per tahun ajaran). Nama unik di sekolah (409 `conflict`).
+         * @description Izin: `finance:manage`; modul `finance`. `kind`: `monthly` (per bulan, mis. SPP), `one_time` (sekali), `yearly` (per tahun ajaran). Nama unik di sekolah (409 `conflict`). `scope` (bawaan `all`): `all` = ditagihkan ke semua siswa; `class` = hanya siswa di kelas `classIds`; `student` = hanya siswa `studentIds`. Cakupan `class`/`student` wajib berisi sasaran (400 `targets_required`); id kelas/siswa yang tidak ada di sekolah ini ditolak 400 `invalid_reference`.
          */
         post: {
             parameters: {
@@ -18445,6 +23291,15 @@ export interface paths {
                         kind: "monthly" | "one_time" | "yearly";
                         /** @default true */
                         active?: boolean;
+                        /**
+                         * @default all
+                         * @enum {string}
+                         */
+                        scope?: "all" | "class" | "student";
+                        /** @description Wajib tak kosong bila `scope` = `class` */
+                        classIds?: string[];
+                        /** @description Wajib tak kosong bila `scope` = `student` */
+                        studentIds?: string[];
                     };
                 };
             };
@@ -18461,7 +23316,20 @@ export interface paths {
                             name: string;
                             /** @enum {string} */
                             kind: "monthly" | "one_time" | "yearly";
+                            /**
+                             * @description `all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu
+                             * @enum {string}
+                             */
+                            scope: "all" | "class" | "student";
                             active: boolean;
+                            /** @description Kelas sasaran (cakupan `class`); kosong untuk cakupan lain */
+                            classIds: string[];
+                            /** @description Siswa sasaran (cakupan `student`); kosong untuk cakupan lain */
+                            studentIds: string[];
+                            /** @description Jumlah sasaran (kelas atau siswa) */
+                            targetCount: number;
+                            /** @description Nama kelas atau siswa sasaran, urut abjad */
+                            targetNames: string[];
                             /** @description Jumlah tarif yang memakai jenis biaya ini */
                             planCount: number;
                             /** @description Jumlah tagihan yang memakai jenis biaya ini */
@@ -18543,7 +23411,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah jenis biaya
-         * @description Izin: `finance:manage`; modul `finance`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah `kind` ditolak 409 `in_use` bila sudah ada tagihan yang memakainya.
+         * @description Izin: `finance:manage`; modul `finance`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah `kind` ditolak 409 `in_use` bila sudah ada tagihan yang memakainya. `scope`, `classIds`, `studentIds` seperti pada tambah: sasaran diganti seluruhnya secara atomik; `scope` `all` menghapus semua sasaran; 400 `targets_required` bila cakupan `class`/`student` tanpa sasaran; 400 `invalid_reference` bila id tidak ditemukan di sekolah ini. Tagihan yang sudah dibuat tidak berubah.
          */
         put: {
             parameters: {
@@ -18565,6 +23433,15 @@ export interface paths {
                         kind: "monthly" | "one_time" | "yearly";
                         /** @default true */
                         active?: boolean;
+                        /**
+                         * @default all
+                         * @enum {string}
+                         */
+                        scope?: "all" | "class" | "student";
+                        /** @description Wajib tak kosong bila `scope` = `class` */
+                        classIds?: string[];
+                        /** @description Wajib tak kosong bila `scope` = `student` */
+                        studentIds?: string[];
                     };
                 };
             };
@@ -18581,7 +23458,20 @@ export interface paths {
                             name: string;
                             /** @enum {string} */
                             kind: "monthly" | "one_time" | "yearly";
+                            /**
+                             * @description `all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu
+                             * @enum {string}
+                             */
+                            scope: "all" | "class" | "student";
                             active: boolean;
+                            /** @description Kelas sasaran (cakupan `class`); kosong untuk cakupan lain */
+                            classIds: string[];
+                            /** @description Siswa sasaran (cakupan `student`); kosong untuk cakupan lain */
+                            studentIds: string[];
+                            /** @description Jumlah sasaran (kelas atau siswa) */
+                            targetCount: number;
+                            /** @description Nama kelas atau siswa sasaran, urut abjad */
+                            targetNames: string[];
                             /** @description Jumlah tarif yang memakai jenis biaya ini */
                             planCount: number;
                             /** @description Jumlah tagihan yang memakai jenis biaya ini */
@@ -18750,6 +23640,103 @@ export interface paths {
                 };
             };
         };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/students/{studentId}/fees": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Jenis biaya yang berlaku untuk seorang siswa
+         * @description Izin: `finance:read`; modul `finance`. Mengembalikan jenis biaya yang berlaku bagi siswa menurut cakupan: `all` selalu berlaku, `class` bila siswa terdaftar di salah satu kelas sasaran, `student` bila siswa ada di sasaran. `academicYearId` opsional membatasi pendaftaran kelas yang dihitung pada tahun ajaran itu (bila kosong, semua pendaftaran siswa). Urut nama; jenis biaya nonaktif ikut tampil dengan `active` false. 404 `not_found` bila siswa tak ada.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    academicYearId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            name: string;
+                            /** @enum {string} */
+                            kind: "monthly" | "one_time" | "yearly";
+                            /** @enum {string} */
+                            scope: "all" | "class" | "student";
+                            active: boolean;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
         options?: never;
         head?: never;
         patch?: never;
@@ -19042,7 +24029,7 @@ export interface paths {
         put?: never;
         /**
          * Buat tagihan massal
-         * @description Izin: `finance:manage`; modul `finance`. Membuat tagihan untuk setiap siswa aktif yang terdaftar di tahun ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas siswa; tarif tingkat yang cocok diutamakan daripada tarif semua tingkat (level null). Siswa tanpa tarif tidak dibuatkan tagihan dan dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (siswa, tahun, jenis biaya, periode) dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026". Galat: 400 `period_required` (`period` wajib TTTT-BB untuk jenis `monthly`, dan harus null untuk jenis lain), 400 `invalid_reference`, 409 `inactive` (jenis biaya nonaktif). Tarif bernominal 0 = gratis: tagihan tidak dibuat dan dihitung di `free`. Keringanan: aturan aktif yang dipasang pada siswa di tahun ajaran itu dan berlaku untuk jenis biaya ini (jenis kosong atau sama) dijumlahkan (persen dibulatkan ke bawah per aturan + nominal tetap, maksimal sebesar nominal) menjadi `discount` tagihan baru, nama aturan digabung di `discountReason`; `discounted` = jumlah tagihan baru yang berdiskon (tagihan yang sudah ada tidak diubah). `installments` (2..12, hanya jenis non-bulanan; 400 `installments_invalid`) membuat N tagihan berperiode `C01`..`C12` dengan nominal dibagi rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; siswa yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati.
+         * @description Izin: `finance:manage`; modul `finance`. Membuat tagihan untuk setiap siswa aktif yang terdaftar di tahun ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas siswa; tarif tingkat yang cocok diutamakan daripada tarif semua tingkat (level null). Siswa tanpa tarif tidak dibuatkan tagihan dan dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (siswa, tahun, jenis biaya, periode) dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026". Galat: 400 `period_required` (`period` wajib TTTT-BB untuk jenis `monthly`, dan harus null untuk jenis lain), 400 `invalid_reference`, 409 `inactive` (jenis biaya nonaktif). Tarif bernominal 0 = gratis: tagihan tidak dibuat dan dihitung di `free`. Keringanan: aturan aktif yang dipasang pada siswa di tahun ajaran itu dan berlaku untuk jenis biaya ini (jenis kosong atau sama) dijumlahkan (persen dibulatkan ke bawah per aturan + nominal tetap, maksimal sebesar nominal) menjadi `discount` tagihan baru, nama aturan digabung di `discountReason`; `discounted` = jumlah tagihan baru yang berdiskon (tagihan yang sudah ada tidak diubah). `installments` (2..12, hanya jenis non-bulanan; 400 `installments_invalid`) membuat N tagihan berperiode `C01`..`C12` dengan nominal dibagi rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; siswa yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati. Cakupan jenis biaya: `scope` `class` hanya menagih siswa yang pada tahun ajaran itu terdaftar di kelas sasaran, `student` hanya siswa sasaran, `all` semua siswa; bila `classId` juga diisi, hasilnya irisan keduanya. Siswa di luar sasaran dihitung di `outOfScope` (tidak masuk `missingPlan`).
          */
         post: {
             parameters: {
@@ -19086,6 +24073,8 @@ export interface paths {
                             free: number;
                             /** @description Jumlah tagihan baru yang berdiskon */
                             discounted: number;
+                            /** @description Siswa aktif terdaftar yang dilewati karena di luar sasaran cakupan jenis biaya */
+                            outOfScope: number;
                             missingPlan: {
                                 /** Format: uuid */
                                 studentId: string;
@@ -22213,6 +27202,877 @@ export interface paths {
                 };
             };
         };
+        trace?: never;
+    };
+    "/v1/finance/gateway": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pengaturan Midtrans sekolah
+         * @description Izin: `finance:manage`; modul `finance`. Pengaturan pembayaran online ke akun Midtrans milik sekolah sendiri. Kunci server tidak pernah dikembalikan, hanya `hasServerKey`. `webhookUrl` didaftarkan di dasbor Midtrans sekolah sebagai Payment Notification URL.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            enabled: boolean;
+                            /** @enum {string} */
+                            mode: "sandbox" | "production";
+                            merchantId: string | null;
+                            clientKey: string | null;
+                            /** @description Kunci server sudah tersimpan (nilainya tidak pernah dikembalikan) */
+                            hasServerKey: boolean;
+                            /** @description Aktif dan kunci server tersimpan, sehingga pembayaran online bisa dipakai */
+                            ready: boolean;
+                            /** @description Alamat notifikasi yang didaftarkan di dasbor Midtrans sekolah */
+                            webhookUrl: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah pengaturan Midtrans sekolah
+         * @description Izin: `finance:manage`; modul `finance`. `serverKey` kosong/dihilangkan berarti mempertahankan kunci tersimpan; kunci disimpan terenkripsi. Awalan kunci harus cocok dengan `mode` (sandbox: `SB-Mid-server-` dan `SB-Mid-client-`; production: `Mid-server-` dan `Mid-client-`). Galat: 400 `invalid_key` (awalan tidak cocok atau kunci tersimpan tidak cocok dengan mode baru), 400 `key_required` (diaktifkan tanpa kunci server).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        enabled: boolean;
+                        /** @enum {string} */
+                        mode: "sandbox" | "production";
+                        merchantId?: string | null;
+                        clientKey?: string | null;
+                        serverKey?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            enabled: boolean;
+                            /** @enum {string} */
+                            mode: "sandbox" | "production";
+                            merchantId: string | null;
+                            clientKey: string | null;
+                            /** @description Kunci server sudah tersimpan (nilainya tidak pernah dikembalikan) */
+                            hasServerKey: boolean;
+                            /** @description Aktif dan kunci server tersimpan, sehingga pembayaran online bisa dipakai */
+                            ready: boolean;
+                            /** @description Alamat notifikasi yang didaftarkan di dasbor Midtrans sekolah */
+                            webhookUrl: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/gateway/test": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Uji kunci Midtrans sekolah
+         * @description Izin: `finance:manage`; modul `finance`. Memeriksa kunci server tersimpan dengan bertanya status pesanan fiktif ke Midtrans (tanpa transaksi dan tanpa uang). `ok` true bila kunci diterima; selain itu `reason` menjelaskan penyebabnya.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            ok: boolean;
+                            reason: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/invoices/pay-online": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buat pembayaran online untuk tagihan siswa
+         * @description Izin: `finance:pay`; modul `finance`. Membuat transaksi Midtrans (Snap) milik sekolah untuk 1..50 tagihan satu siswa. Nominal dihitung server dari sisa tagihan (nominal dari klien tidak dipakai). Kwitansi baru tercatat setelah Midtrans mengabarkan pembayaran berhasil. Galat: 409 `gateway_disabled`, 409 `already_paid`, 409 `invoice_void`, 400 `invalid_reference`, 400 `duplicate_item`, 502 `gateway_error`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        invoiceIds: string[];
+                        /** Format: uuid */
+                        studentId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            paymentUrl: string;
+                            orderId: string;
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/children/{studentId}/pay-online": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Bayar tagihan anak secara online
+         * @description Izin: `portal:read`; modul `parent_portal` dan `finance`. Wali hanya untuk anaknya, siswa hanya untuk dirinya (selain itu 404 `not_found`). Perilaku dan galat sama dengan `/v1/finance/invoices/pay-online`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        invoiceIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            paymentUrl: string;
+                            orderId: string;
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                502: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/webhooks/school-payments/midtrans": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Webhook Midtrans milik sekolah
+         * @description Publik; dipanggil Midtrans. Sekolah dicari dari `order_id`, lalu tanda tangan diverifikasi dengan kunci server sekolah itu sendiri (bukan kunci platform). Kabar yang sama boleh dikirim berulang tanpa efek ganda. Nominal harus sama persis dengan transaksi (`amount_mismatch` bila beda) dan tidak pernah melebihi sisa tagihan. `order_id` yang tak dikenal dijawab 200 `unknown_order`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        [key: string]: unknown;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            outcome: "paid" | "failed" | "pending" | "duplicate" | "amount_mismatch" | "needs_review" | "unknown_order";
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/online-charges/{orderId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Status transaksi online
+         * @description Izin: `finance:read`; modul `finance`. Bila masih `pending`, server menanyakan status ke Midtrans sekolah (cadangan bila webhook tidak sampai; dibatasi sekali per 4 detik). 404 `not_found` bila bukan milik sekolah ini.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    orderId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            orderId: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            /** @enum {string} */
+                            status: "pending" | "paid" | "failed";
+                            total: number;
+                            paymentUrl: string | null;
+                            /** Format: date-time */
+                            paidAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            items: {
+                                /** Format: uuid */
+                                invoiceId: string;
+                                amount: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/online-charges/{orderId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Status transaksi online anak
+         * @description Izin: `portal:read`; modul `parent_portal`. Sama dengan status transaksi di keuangan, hanya untuk anak milik akun ini (selain itu 404 `not_found`). Memicu rekonsiliasi ke Midtrans bila masih `pending`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    orderId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            orderId: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            /** @enum {string} */
+                            status: "pending" | "paid" | "failed";
+                            total: number;
+                            paymentUrl: string | null;
+                            /** Format: date-time */
+                            paidAt: string | null;
+                            /** Format: date-time */
+                            createdAt: string;
+                            items: {
+                                /** Format: uuid */
+                                invoiceId: string;
+                                amount: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/online-charges": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar transaksi online
+         * @description Izin: `finance:read`; modul `finance`. Transaksi Midtrans terbaru sekolah (terbaru dulu), beserta nama siswa dan nomor kwitansi bila sudah dibayar. `limit` bawaan 50 (maksimal 200); `status` menyaring.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "pending" | "paid" | "failed";
+                    limit?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                orderId: string;
+                                /** Format: uuid */
+                                studentId: string;
+                                /** @enum {string} */
+                                status: "pending" | "paid" | "failed";
+                                total: number;
+                                paymentUrl: string | null;
+                                /** Format: date-time */
+                                paidAt: string | null;
+                                /** Format: date-time */
+                                createdAt: string;
+                                items: {
+                                    /** Format: uuid */
+                                    invoiceId: string;
+                                    amount: number;
+                                }[];
+                                studentName: string;
+                                receiptNo: string | null;
+                                createdBy: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
         trace?: never;
     };
     "/v1/admissions/periods": {

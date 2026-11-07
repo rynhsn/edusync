@@ -24,6 +24,7 @@ import {
   Globe,
   GraduationCap,
   HardHat,
+  IdCard,
   KeyRound,
   Landmark,
   LayoutDashboard,
@@ -40,6 +41,7 @@ import {
   SlidersHorizontal,
   Sprout,
   Trophy,
+  UserCheck,
   UserPlus,
   UserRound,
   Users,
@@ -114,6 +116,7 @@ export const NAV_GROUPS = [
     icon: Database,
     items: [
       { href: '/students', labelKey: 'students', icon: GraduationCap, permission: 'student:read' },
+      { href: '/cards', labelKey: 'cards', icon: IdCard, permission: 'student:read' },
       { href: '/teachers', labelKey: 'teachers', icon: UserRound, permission: 'teacher:read' },
       { href: '/classes', labelKey: 'classes', icon: School, permission: 'class:read' },
       { href: '/subjects', labelKey: 'subjects', icon: BookOpen, permission: 'subject:read' },
@@ -156,6 +159,14 @@ export const NAV_GROUPS = [
         labelKey: 'gate',
         icon: DoorOpen,
         permission: 'attendance:read',
+        module: 'attendance',
+      },
+      {
+        // Guru (wali kelas/piket) dan pengurus; kelas yang boleh dicatat disaring oleh API.
+        href: '/attendance/manual',
+        labelKey: 'attendanceManual',
+        icon: UserCheck,
+        permission: 'attendance:manage',
         module: 'attendance',
       },
       {
@@ -323,6 +334,21 @@ export const NAV_GROUPS = [
         icon: Landmark,
         permission: 'finance:read',
         module: 'finance',
+      },
+      {
+        href: '/finance/online',
+        labelKey: 'financeOnline',
+        icon: Globe,
+        permission: 'finance:read',
+        module: 'finance',
+      },
+      {
+        href: '/finance/gateway',
+        labelKey: 'financeGateway',
+        icon: CreditCard,
+        permission: 'finance:manage',
+        module: 'finance',
+        settings: true,
       },
       {
         href: '/finance/settings',

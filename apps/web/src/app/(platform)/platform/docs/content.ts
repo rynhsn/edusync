@@ -2029,4 +2029,147 @@ export const PLATFORM_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'site',
+    icon: 'globe',
+    tone: 'violet',
+    group: 'config',
+    text: {
+      id: {
+        title: 'Situs Edusync: ikon, gambar, dan isi halaman utama',
+        summary:
+          'Ganti favicon, logo, gambar hero, gambar pratinjau tautan, serta teks halaman utama dan profil perusahaan tanpa mengubah kode.',
+        forWho: 'Admin platform yang mengelola tampilan situs Edusync. Staf baca saja hanya bisa melihat.',
+        sections: [
+          {
+            heading: 'Ikon dan gambar',
+            body: 'Buka menu Situs, tab Ikon & gambar. Ada enam slot: ikon situs (favicon), ikon aplikasi, logo, logo tema gelap, gambar hero, dan gambar pratinjau tautan (OG). Slot yang kosong memakai gambar bawaan aplikasi.',
+            steps: [
+              'Klik Unggah pada slot yang ingin diganti dan pilih berkas.',
+              'Periksa pratinjau di kartu; ukuran dan jenis berkas tampil di bawahnya.',
+              'Klik Kembalikan ke bawaan untuk menghapus gambar unggahan.',
+            ],
+            tip: 'Favicon dan ikon aplikasi maksimal 256 KB, gambar lain 2 MB. Gambar pratinjau tautan paling baik berukuran 1200x630 piksel.',
+            warning:
+              'SVG yang memuat skrip, atribut peristiwa seperti onload, atau foreignObject ditolak demi keamanan.',
+            href: '/platform/site',
+          },
+          {
+            heading: 'Teks halaman utama dan profil perusahaan',
+            body: 'Tab Konten berisi nama merek, teks per bahasa (Indonesia, English, Sunda), daftar fitur, profil perusahaan, kontak, tautan media sosial, dan saklar bagian. Sebelum disimpan pertama kali, halaman utama memakai teks bawaan sehingga tampilannya tidak berubah.',
+            steps: [
+              'Pilih tab bahasa lalu isi judul, subjudul, dan label tombol.',
+              'Tambah, hapus, atau urutkan fitur; ikon dipilih dari daftar tertutup. Urutan berlaku untuk semua bahasa.',
+              'Isi profil perusahaan dan nyalakan saklar Tentang kami bila ingin menampilkannya.',
+              'Klik Simpan. Titik merah pada tab bahasa menandai kolom wajib yang masih kosong.',
+            ],
+          },
+          {
+            heading: 'Pratinjau dan waktu tampil',
+            body: 'Tombol Pratinjau halaman utama membuka halaman di tab baru dengan isi terbaru. Halaman utama sungguhan menyimpan cache sekitar satu menit, jadi perubahan baru terlihat penuh setelah itu. Bila layanan sedang tidak tersedia, halaman utama otomatis memakai teks bawaan.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Bagaimana mengembalikan semuanya seperti semula?',
+            a: 'Klik Kembalikan teks ke bawaan di tab Konten untuk teks, dan Kembalikan ke bawaan pada tiap slot untuk gambar. Keduanya tercatat di audit.',
+          },
+          {
+            q: 'Mengapa favicon belum berubah di peramban saya?',
+            a: 'Peramban menyimpan favicon cukup lama. Muat ulang keras atau tutup tab lalu buka lagi.',
+          },
+        ],
+      },
+      en: {
+        title: 'Edusync site: icons, images, and home page content',
+        summary:
+          'Change the favicon, logo, hero image, link preview image, and the home page and company profile text without changing code.',
+        forWho: 'Platform admins who manage how the Edusync site looks. View-only staff can only look.',
+        sections: [
+          {
+            heading: 'Icons and images',
+            body: 'Open the Site menu, Icons & images tab. There are six slots: site icon (favicon), app icon, logo, dark theme logo, hero image, and link preview image (OG). An empty slot uses the built-in image.',
+            steps: [
+              'Click Upload on the slot you want to change and pick a file.',
+              'Check the preview in the card; the file size and type appear below it.',
+              'Click Reset to default to delete the uploaded image.',
+            ],
+            tip: 'The favicon and app icon are limited to 256 KB, other images to 2 MB. The link preview image works best at 1200x630 pixels.',
+            warning:
+              'SVGs that contain scripts, event attributes such as onload, or foreignObject are rejected for safety.',
+            href: '/platform/site',
+          },
+          {
+            heading: 'Home page text and company profile',
+            body: 'The Content tab holds the brand name, text per language (Indonesian, English, Sundanese), the feature list, the company profile, contact details, social links, and section switches. Until it is saved for the first time, the home page uses the built-in text so nothing changes.',
+            steps: [
+              'Pick a language tab and fill in the heading, subheading, and button labels.',
+              'Add, remove, or reorder features; icons are chosen from a fixed list. The order applies to all languages.',
+              'Fill in the company profile and turn on the About us switch to show it.',
+              'Click Save. A red dot on a language tab marks required fields that are still empty.',
+            ],
+          },
+          {
+            heading: 'Preview and when changes appear',
+            body: 'The Preview home page button opens the page in a new tab with the latest content. The live home page is cached for about a minute, so changes fully appear after that. If the service is unavailable, the home page falls back to the built-in text automatically.',
+          },
+        ],
+        faq: [
+          {
+            q: 'How do I restore everything to the original?',
+            a: 'Click Reset text to default on the Content tab for text, and Reset to default on each slot for images. Both are recorded in the audit log.',
+          },
+          {
+            q: 'Why has the favicon not changed in my browser?',
+            a: 'Browsers cache favicons for a long time. Hard-reload, or close the tab and open it again.',
+          },
+        ],
+      },
+      su: {
+        title: 'Situs Edusync: ikon, gambar, jeung eusi kaca utama',
+        summary:
+          'Ganti favicon, logo, gambar hero, gambar pratayang tutumbu, sarta téks kaca utama jeung profil pausahaan tanpa ngarobah kode.',
+        forWho: 'Admin platform nu ngokolakeun tampilan situs Edusync. Staf maca wungkul ngan bisa ningali.',
+        sections: [
+          {
+            heading: 'Ikon jeung gambar',
+            body: 'Buka ménu Situs, tab Ikon & gambar. Aya genep slot: ikon situs (favicon), ikon aplikasi, logo, logo téma poék, gambar hero, jeung gambar pratayang tutumbu (OG). Slot kosong maké gambar bawaan aplikasi.',
+            steps: [
+              'Klik Unggah dina slot nu rék diganti tuluy pilih berkas.',
+              'Pariksa pratayang dina kartu; ukuran jeung jinis berkas tampil di handapeunana.',
+              'Klik Balikeun ka bawaan pikeun mupus gambar unggahan.',
+            ],
+            tip: 'Favicon jeung ikon aplikasi pangpanjangna 256 KB, gambar séjén 2 MB. Gambar pratayang tutumbu pangalusna ukuran 1200x630 piksel.',
+            warning:
+              'SVG nu ngandung skrip, atribut kajadian siga onload, atawa foreignObject ditolak demi kaamanan.',
+            href: '/platform/site',
+          },
+          {
+            heading: 'Téks kaca utama jeung profil pausahaan',
+            body: 'Tab Eusi ngandung ngaran mérek, téks per basa (Indonésia, Inggris, Sunda), daptar fitur, profil pausahaan, kontak, tutumbu média sosial, jeung saklar bagian. Saméméh disimpen kahiji kalina, kaca utama maké téks bawaan jadi tampilanna teu robah.',
+            steps: [
+              'Pilih tab basa tuluy eusian judul, sub-judul, jeung labél tombol.',
+              'Tambahkeun, piceun, atawa urutkeun fitur; ikon dipilih tina daptar nu geus tetep. Urutan lumaku pikeun sakabéh basa.',
+              'Eusian profil pausahaan tuluy hurungkeun saklar Ngeunaan kami lamun rék ditampilkeun.',
+              'Klik Simpen. Titik beureum dina tab basa nandaan kolom wajib nu masih kosong.',
+            ],
+          },
+          {
+            heading: 'Pratayang jeung iraha tampil',
+            body: 'Tombol Pratayang kaca utama muka kaca di tab anyar kalawan eusi panganyarna. Kaca utama nyata nyimpen cache kira-kira sa-menit, jadi parobahan pinuh katingali sanggeus éta. Lamun layanan keur teu sayaga, kaca utama otomatis maké téks bawaan.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Kumaha mulangkeun sakabéhna ka asal?',
+            a: 'Klik Balikeun téks ka bawaan di tab Eusi pikeun téks, jeung Balikeun ka bawaan dina unggal slot pikeun gambar. Duanana kacatet dina audit.',
+          },
+          {
+            q: 'Naha favicon can robah di panyungsi kuring?',
+            a: 'Panyungsi nyimpen favicon geus lila. Muat deui kuat, atawa tutup tab tuluy buka deui.',
+          },
+        ],
+      },
+    },
+  },
 ];

@@ -474,6 +474,8 @@ export const student = pgTable(
     status: text('status', { enum: ['active', 'graduated', 'transferred', 'dropped'] })
       .notNull()
       .default('active'),
+    /** Foto untuk kartu cetak (`school_file`, kind student_photo); tidak publik. */
+    photoFileId: uuid('photo_file_id').references(() => schoolFile.id, { onDelete: 'set null' }),
     createdAt: createdAt(),
     deletedAt: timestamp('deleted_at', { withTimezone: true }),
   },
@@ -707,6 +709,16 @@ export const planPreset = pgTable('plan_preset', {
 export const platformSetting = pgTable('platform_setting', {
   key: text('key').primaryKey(),
   value: jsonb('value').$type<Record<string, unknown>>().notNull(),
+  updatedBy: text('updated_by'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Gambar situs Edusync (ikon, logo, hero, OG) yang diatur staf platform. Satu baris per slot; tanpa RLS, tertutup bagi peran aplikasi. */
+export const siteAsset = pgTable('site_asset', {
+  key: text('key').primaryKey(),
+  mime: text('mime').notNull(),
+  size: integer('size').notNull(),
+  data: bytea('data').notNull(),
   updatedBy: text('updated_by'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
@@ -1209,6 +1221,7 @@ export const reportCard = pgTable(
 
 /** Tagihan sekolah milik tenant; berbeda dari tagihan langganan platform (`invoice` di packages/billing). */
 export const FIN_FEE_KINDS = ['monthly', 'one_time', 'yearly'] as const;
+export const FIN_FEE_SCOPES = ['all', 'class', 'student'] as const;
 /** Kunci metode bawaan yang diisi malas untuk sekolah tanpa baris `fin_payment_method`. */
 export const FIN_PAYMENT_METHODS = ['cash', 'transfer', 'other'] as const;
 
@@ -1222,10 +1235,110 @@ export const finFeeType = pgTable(
       .references(() => school.id),
     name: text('name').notNull(),
     kind: text('kind', { enum: FIN_FEE_KINDS }).notNull(),
+    /** Cakupan penugasan: `all` = semua siswa, `class` = kelas di `fin_fee_target`, `student` = siswa di `fin_fee_target`. */
+    scope: text('scope', { enum: FIN_FEE_SCOPES }).notNull().default('all'),
     active: boolean('active').notNull().default(true),
     createdAt: createdAt(),
   },
   (t) => [unique('fin_fee_type_school_name_uq').on(t.schoolId, t.name)],
+);
+
+/** Sasaran penugasan jenis biaya bercakupan `class` (isi `classId`) atau `student` (isi `studentId`). */
+export const finFeeTarget = pgTable(
+  'fin_fee_target',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    feeTypeId: uuid('fee_type_id')
+      .notNull()
+      .references(() => finFeeType.id, { onDelete: 'cascade' }),
+    classId: uuid('class_id').references(() => classRoom.id, { onDelete: 'cascade' }),
+    studentId: uuid('student_id').references(() => student.id, { onDelete: 'cascade' }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('fin_fee_target_class_uq').on(t.feeTypeId, t.classId),
+    unique('fin_fee_target_student_uq').on(t.feeTypeId, t.studentId),
+    check('fin_fee_target_one_ck', sql`(${t.classId} is null) <> (${t.studentId} is null)`),
+  ],
+);
+
+/**
+ * Midtrans milik sekolah sendiri (uang masuk ke rekening sekolah, bukan platform). Kunci server disimpan terenkripsi
+ * (`encryptSecret` dengan AUTH_SECRET); tidak pernah dikembalikan lewat API.
+ */
+export const finGatewaySetting = pgTable('fin_gateway_setting', {
+  schoolId: uuid('school_id')
+    .primaryKey()
+    .references(() => school.id),
+  enabled: boolean('enabled').notNull().default(false),
+  mode: text('mode', { enum: ['sandbox', 'production'] })
+    .notNull()
+    .default('sandbox'),
+  merchantId: text('merchant_id'),
+  clientKey: text('client_key'),
+  serverKeyEnc: text('server_key_enc'),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
+/** Transaksi online (Midtrans) untuk membayar satu atau beberapa tagihan siswa. `orderId` unik global (dipakai webhook). */
+export const finOnlineCharge = pgTable(
+  'fin_online_charge',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    orderId: text('order_id').notNull(),
+    /** Tagihan yang dibayar beserta nominal masing-masing: [{ invoiceId, amount }]. */
+    items: jsonb('items').$type<{ invoiceId: string; amount: number }[]>().notNull(),
+    total: integer('total').notNull(),
+    status: text('status', { enum: ['pending', 'paid', 'failed'] })
+      .notNull()
+      .default('pending'),
+    paymentUrl: text('payment_url'),
+    paymentId: uuid('payment_id').references(() => finPayment.id),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    paidAt: timestamp('paid_at', { withTimezone: true }),
+  },
+  (t) => [
+    unique('fin_online_charge_order_uq').on(t.orderId),
+    index('fin_online_charge_student_idx').on(t.studentId),
+    check('fin_online_charge_total_ck', sql`${t.total} > 0`),
+  ],
+);
+
+/**
+ * Templat kartu cetak (kartu siswa RFID atau kartu ujian). Tata letak = daftar elemen berkoordinat milimeter di
+ * atas kanvas `widthMm` x `heightMm`; bentuknya: `cardLayoutSchema` di packages/contracts.
+ */
+export const cardTemplate = pgTable(
+  'card_template',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    kind: text('kind', { enum: ['student', 'exam'] }).notNull(),
+    name: text('name').notNull(),
+    widthMm: integer('width_mm').notNull().default(86),
+    heightMm: integer('height_mm').notNull().default(54),
+    backgroundFileId: uuid('background_file_id').references(() => schoolFile.id, { onDelete: 'set null' }),
+    elements: jsonb('elements').$type<Record<string, unknown>[]>().notNull().default([]),
+    isDefault: boolean('is_default').notNull().default(false),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('card_template_name_uq').on(t.schoolId, t.kind, t.name),
+    check('card_template_size_ck', sql`${t.widthMm} between 20 and 300 and ${t.heightMm} between 20 and 300`),
+  ],
 );
 
 /** Tarif per tahun ajaran, jenis biaya, dan tingkat (`level` kosong = semua tingkat). Rupiah bulat. */
@@ -2130,7 +2243,7 @@ export const schoolFile = pgTable(
     schoolId: uuid('school_id')
       .notNull()
       .references(() => school.id),
-    kind: text('kind', { enum: ['logo', 'question_image'] }).notNull(),
+    kind: text('kind', { enum: ['logo', 'question_image', 'card_background', 'student_photo'] }).notNull(),
     mime: text('mime').notNull(),
     size: integer('size').notNull(),
     data: bytea('data').notNull(),

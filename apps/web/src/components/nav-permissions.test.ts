@@ -14,6 +14,7 @@ const spec = JSON.parse(
 /** Endpoint utama tiap halaman (data yang dimuat saat halaman dibuka, atau aksi inti halaman pengaturan). */
 const PRIMARY: Record<string, string> = {
   '/students': 'GET /v1/students',
+  '/cards': 'GET /v1/cards/templates',
   '/teachers': 'GET /v1/teachers',
   '/classes': 'GET /v1/classes',
   '/subjects': 'GET /v1/subjects',
@@ -23,6 +24,7 @@ const PRIMARY: Record<string, string> = {
   '/attendance': 'GET /v1/attendance/report',
   '/lessons': 'GET /v1/lessons',
   '/gate': 'GET /v1/gate/daily',
+  '/attendance/manual': 'GET /v1/gate/manual/classes',
   '/attendance/cards': 'GET /v1/attendance/cards',
   '/attendance-settings': 'GET /v1/attendance/devices',
   '/schedule': 'GET /v1/schedule',
@@ -45,6 +47,8 @@ const PRIMARY: Record<string, string> = {
   '/finance/invoices': 'GET /v1/finance/invoices',
   '/finance/reports': 'GET /v1/finance/reports/arrears',
   '/finance/settings': 'POST /v1/finance/fee-types',
+  '/finance/online': 'GET /v1/finance/online-charges',
+  '/finance/gateway': 'PUT /v1/finance/gateway',
   '/admissions': 'GET /v1/admissions/applications',
   '/admissions/periods': 'POST /v1/admissions/periods',
   '/letters': 'GET /v1/letters',

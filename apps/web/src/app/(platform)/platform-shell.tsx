@@ -7,6 +7,7 @@ import {
   Building2,
   ClipboardList,
   CreditCard,
+  Globe,
   History,
   LifeBuoy,
   Mail,
@@ -55,6 +56,7 @@ const GROUPS = [
     items: [
       { href: '/platform/catalog', key: 'catalog', icon: Package },
       { href: '/platform/curriculum', key: 'curriculum', icon: BookMarked },
+      { href: '/platform/site', key: 'site', icon: Globe },
     ],
   },
   {

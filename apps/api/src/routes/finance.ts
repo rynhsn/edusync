@@ -7,8 +7,10 @@ import {
   desc,
   enrollment,
   eq,
+  FIN_FEE_SCOPES,
   finDiscountRule,
   finFeePlan,
+  finFeeTarget,
   finFeeType,
   finInvoice,
   finPayment,
@@ -72,7 +74,14 @@ const feeTypeSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   kind: z.enum(KINDS),
+  scope: z
+    .enum(FIN_FEE_SCOPES)
+    .describe('`all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu'),
   active: z.boolean(),
+  classIds: z.array(z.uuid()).describe('Kelas sasaran (cakupan `class`); kosong untuk cakupan lain'),
+  studentIds: z.array(z.uuid()).describe('Siswa sasaran (cakupan `student`); kosong untuk cakupan lain'),
+  targetCount: z.number().int().describe('Jumlah sasaran (kelas atau siswa)'),
+  targetNames: z.array(z.string()).describe('Nama kelas atau siswa sasaran, urut abjad'),
   planCount: z.number().int().describe('Jumlah tarif yang memakai jenis biaya ini'),
   invoiceCount: z.number().int().describe('Jumlah tagihan yang memakai jenis biaya ini'),
 });
@@ -80,6 +89,9 @@ const feeTypeBody = z.object({
   name: z.string().trim().min(1).max(80),
   kind: z.enum(KINDS),
   active: z.boolean().default(true),
+  scope: z.enum(FIN_FEE_SCOPES).default('all'),
+  classIds: z.array(z.uuid()).max(500).optional().describe('Wajib tak kosong bila `scope` = `class`'),
+  studentIds: z.array(z.uuid()).max(2000).optional().describe('Wajib tak kosong bila `scope` = `student`'),
 });
 
 const planSchema = z.object({
@@ -209,14 +221,90 @@ export async function financeRoutes(instance: FastifyInstance) {
       .select({ id: finInvoice.feeTypeId, n: count() })
       .from(finInvoice)
       .groupBy(finInvoice.feeTypeId);
-    return rows.map((r) => ({
-      id: r.id,
-      name: r.name,
-      kind: r.kind,
-      active: r.active,
-      planCount: plans.find((p) => p.id === r.id)?.n ?? 0,
-      invoiceCount: invoices.find((p) => p.id === r.id)?.n ?? 0,
-    }));
+    const targets = await tx
+      .select({
+        feeTypeId: finFeeTarget.feeTypeId,
+        classId: finFeeTarget.classId,
+        studentId: finFeeTarget.studentId,
+        className: classRoom.name,
+        studentName: student.name,
+      })
+      .from(finFeeTarget)
+      .leftJoin(classRoom, eq(classRoom.id, finFeeTarget.classId))
+      .leftJoin(student, eq(student.id, finFeeTarget.studentId))
+      .where(onlyId ? eq(finFeeTarget.feeTypeId, onlyId) : undefined);
+    return rows.map((r) => {
+      const mine = targets.filter((t) => t.feeTypeId === r.id);
+      const classes = mine.filter((t) => t.classId !== null);
+      const students = mine.filter((t) => t.studentId !== null);
+      const names = [...classes.map((t) => t.className ?? ''), ...students.map((t) => t.studentName ?? '')]
+        .filter((n) => n !== '')
+        .sort((a, b) => a.localeCompare(b));
+      return {
+        id: r.id,
+        name: r.name,
+        kind: r.kind,
+        scope: r.scope,
+        active: r.active,
+        classIds: classes.map((t) => t.classId as string),
+        studentIds: students.map((t) => t.studentId as string),
+        targetCount: mine.length,
+        targetNames: names,
+        planCount: plans.find((p) => p.id === r.id)?.n ?? 0,
+        invoiceCount: invoices.find((p) => p.id === r.id)?.n ?? 0,
+      };
+    });
+  }
+
+  /** Validasi cakupan + sasaran dari body; kembalikan daftar id sasaran (kosong untuk `all`). */
+  async function resolveTargets(
+    tx: Tx,
+    b: {
+      scope: (typeof FIN_FEE_SCOPES)[number];
+      classIds?: string[] | undefined;
+      studentIds?: string[] | undefined;
+    },
+  ) {
+    if (b.scope === 'all') return { classIds: [] as string[], studentIds: [] as string[] };
+    if (b.scope === 'class') {
+      const classIds = [...new Set(b.classIds ?? [])];
+      if (classIds.length === 0) {
+        throw new HttpError(400, 'targets_required', 'Pilih minimal satu kelas untuk cakupan kelas.');
+      }
+      const found = await tx
+        .select({ id: classRoom.id })
+        .from(classRoom)
+        .where(inArray(classRoom.id, classIds));
+      if (found.length !== classIds.length) throw invalidRef('Ada kelas sasaran yang tidak ditemukan.');
+      return { classIds, studentIds: [] as string[] };
+    }
+    const studentIds = [...new Set(b.studentIds ?? [])];
+    if (studentIds.length === 0) {
+      throw new HttpError(400, 'targets_required', 'Pilih minimal satu siswa untuk cakupan siswa.');
+    }
+    const found = await tx
+      .select({ id: student.id })
+      .from(student)
+      .where(and(inArray(student.id, studentIds), isNull(student.deletedAt)));
+    if (found.length !== studentIds.length) throw invalidRef('Ada siswa sasaran yang tidak ditemukan.');
+    return { classIds: [] as string[], studentIds };
+  }
+
+  /** Ganti seluruh sasaran jenis biaya secara atomik (di dalam transaksi pemanggil). */
+  async function replaceTargets(
+    tx: Tx,
+    schoolId: string,
+    feeTypeId: string,
+    t: { classIds: string[]; studentIds: string[] },
+  ) {
+    await tx.delete(finFeeTarget).where(eq(finFeeTarget.feeTypeId, feeTypeId));
+    const rows = [
+      ...t.classIds.map((classId) => ({ schoolId, feeTypeId, classId })),
+      ...t.studentIds.map((studentId) => ({ schoolId, feeTypeId, studentId })),
+    ];
+    for (let i = 0; i < rows.length; i += 500) {
+      await tx.insert(finFeeTarget).values(rows.slice(i, i + 500));
+    }
   }
 
   app.get(
@@ -227,7 +315,9 @@ export async function financeRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Daftar jenis biaya',
         description:
-          'Izin: `finance:read`; modul `finance`. Urut nama. `planCount` dan `invoiceCount` = pemakaian jenis biaya ini.',
+          'Izin: `finance:read`; modul `finance`. Urut nama. `planCount` dan `invoiceCount` = pemakaian jenis biaya ini. ' +
+          '`scope` = `all` (semua siswa), `class` (hanya kelas di `classIds`), atau `student` (hanya siswa di `studentIds`); ' +
+          '`targetCount` dan `targetNames` (nama kelas/siswa sasaran) untuk tampilan.',
         headers: schoolHeader,
         response: { 200: z.array(feeTypeSchema), ...guarded },
       },
@@ -244,7 +334,10 @@ export async function financeRoutes(instance: FastifyInstance) {
         summary: 'Tambah jenis biaya',
         description:
           'Izin: `finance:manage`; modul `finance`. `kind`: `monthly` (per bulan, mis. SPP), `one_time` (sekali), `yearly` ' +
-          '(per tahun ajaran). Nama unik di sekolah (409 `conflict`).',
+          '(per tahun ajaran). Nama unik di sekolah (409 `conflict`). `scope` (bawaan `all`): `all` = ditagihkan ke semua ' +
+          'siswa; `class` = hanya siswa di kelas `classIds`; `student` = hanya siswa `studentIds`. Cakupan `class`/`student` ' +
+          'wajib berisi sasaran (400 `targets_required`); id kelas/siswa yang tidak ada di sekolah ini ditolak 400 ' +
+          '`invalid_reference`.',
         headers: schoolHeader,
         body: feeTypeBody,
         response: { 201: feeTypeSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -252,13 +345,19 @@ export async function financeRoutes(instance: FastifyInstance) {
     },
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
+      const { classIds: _c, studentIds: _s, ...fields } = request.body;
       const created = await conflictAs409('Nama jenis biaya itu sudah ada.', () =>
         tenant(request, async (tx) => {
+          const targets = await resolveTargets(tx, request.body);
           const [row] = await tx
             .insert(finFeeType)
-            .values({ schoolId: ctx.schoolId, ...request.body })
+            .values({ schoolId: ctx.schoolId, ...fields })
             .returning({ id: finFeeType.id });
-          await audit(tx, ctx, 'finance.fee_type_create', 'fin_fee_type', row!.id, request.body);
+          await replaceTargets(tx, ctx.schoolId, row!.id, targets);
+          await audit(tx, ctx, 'finance.fee_type_create', 'fin_fee_type', row!.id, {
+            ...fields,
+            ...targets,
+          });
           return (await feeTypeViews(tx, row!.id))[0]!;
         }),
       );
@@ -275,7 +374,10 @@ export async function financeRoutes(instance: FastifyInstance) {
         summary: 'Ubah jenis biaya',
         description:
           'Izin: `finance:manage`; modul `finance`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. ' +
-          'Mengubah `kind` ditolak 409 `in_use` bila sudah ada tagihan yang memakainya.',
+          'Mengubah `kind` ditolak 409 `in_use` bila sudah ada tagihan yang memakainya. `scope`, `classIds`, `studentIds` ' +
+          'seperti pada tambah: sasaran diganti seluruhnya secara atomik; `scope` `all` menghapus semua sasaran; ' +
+          '400 `targets_required` bila cakupan `class`/`student` tanpa sasaran; 400 `invalid_reference` bila id tidak ' +
+          'ditemukan di sekolah ini. Tagihan yang sudah dibuat tidak berubah.',
         headers: schoolHeader,
         params: idParams,
         body: feeTypeBody,
@@ -301,8 +403,14 @@ export async function financeRoutes(instance: FastifyInstance) {
               );
             }
           }
-          await tx.update(finFeeType).set(request.body).where(eq(finFeeType.id, current.id));
-          await audit(tx, ctx, 'finance.fee_type_update', 'fin_fee_type', current.id, request.body);
+          const { classIds: _c, studentIds: _s, ...fields } = request.body;
+          const targets = await resolveTargets(tx, request.body);
+          await tx.update(finFeeType).set(fields).where(eq(finFeeType.id, current.id));
+          await replaceTargets(tx, ctx.schoolId, current.id, targets);
+          await audit(tx, ctx, 'finance.fee_type_update', 'fin_fee_type', current.id, {
+            ...fields,
+            ...targets,
+          });
           return (await feeTypeViews(tx, current.id))[0]!;
         }),
       );
@@ -341,6 +449,78 @@ export async function financeRoutes(instance: FastifyInstance) {
         await tx.delete(finFeeType).where(eq(finFeeType.id, id));
         await audit(tx, ctx, 'finance.fee_type_delete', 'fin_fee_type', id, { name: current.name });
         return { ok: true as const };
+      });
+    },
+  );
+
+  app.get(
+    '/v1/finance/students/:studentId/fees',
+    {
+      onRequest: readGate,
+      schema: {
+        tags: tag,
+        summary: 'Jenis biaya yang berlaku untuk seorang siswa',
+        description:
+          'Izin: `finance:read`; modul `finance`. Mengembalikan jenis biaya yang berlaku bagi siswa menurut cakupan: ' +
+          '`all` selalu berlaku, `class` bila siswa terdaftar di salah satu kelas sasaran, `student` bila siswa ada di ' +
+          'sasaran. `academicYearId` opsional membatasi pendaftaran kelas yang dihitung pada tahun ajaran itu (bila ' +
+          'kosong, semua pendaftaran siswa). Urut nama; jenis biaya nonaktif ikut tampil dengan `active` false. 404 ' +
+          '`not_found` bila siswa tak ada.',
+        headers: schoolHeader,
+        params: z.object({ studentId: z.uuid() }),
+        querystring: z.object({ academicYearId: z.uuid().optional() }),
+        response: {
+          200: z.array(
+            z.object({
+              id: z.uuid(),
+              name: z.string(),
+              kind: z.enum(KINDS),
+              scope: z.enum(FIN_FEE_SCOPES),
+              active: z.boolean(),
+            }),
+          ),
+          404: errorSchema,
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const { studentId } = request.params;
+      return tenant(request, async (tx) => {
+        const [s] = await tx
+          .select({ id: student.id })
+          .from(student)
+          .where(and(eq(student.id, studentId), isNull(student.deletedAt)));
+        if (!s) throw notFound('Siswa');
+        const classes = await tx
+          .select({ classId: enrollment.classId })
+          .from(enrollment)
+          .where(
+            and(
+              eq(enrollment.studentId, studentId),
+              request.query.academicYearId
+                ? eq(enrollment.academicYearId, request.query.academicYearId)
+                : undefined,
+            ),
+          );
+        const classIds = classes.map((c) => c.classId);
+        const targets = await tx
+          .select({
+            feeTypeId: finFeeTarget.feeTypeId,
+            classId: finFeeTarget.classId,
+            studentId: finFeeTarget.studentId,
+          })
+          .from(finFeeTarget);
+        const types = await tx.select().from(finFeeType).orderBy(asc(finFeeType.name));
+        return types
+          .filter((f) => {
+            if (f.scope === 'all') return true;
+            const mine = targets.filter((t) => t.feeTypeId === f.id);
+            return f.scope === 'class'
+              ? mine.some((t) => t.classId !== null && classIds.includes(t.classId))
+              : mine.some((t) => t.studentId === studentId);
+          })
+          .map((f) => ({ id: f.id, name: f.name, kind: f.kind, scope: f.scope, active: f.active }));
       });
     },
   );
@@ -504,7 +684,10 @@ export async function financeRoutes(instance: FastifyInstance) {
           'jumlah tagihan baru yang berdiskon (tagihan yang sudah ada tidak diubah). `installments` (2..12, hanya jenis ' +
           'non-bulanan; 400 `installments_invalid`) membuat N tagihan berperiode `C01`..`C12` dengan nominal dibagi ' +
           'rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; siswa ' +
-          'yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati.',
+          'yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati. Cakupan jenis biaya: `scope` `class` hanya ' +
+          'menagih siswa yang pada tahun ajaran itu terdaftar di kelas sasaran, `student` hanya siswa sasaran, `all` ' +
+          'semua siswa; bila `classId` juga diisi, hasilnya irisan keduanya. Siswa di luar sasaran dihitung di ' +
+          '`outOfScope` (tidak masuk `missingPlan`).',
         headers: schoolHeader,
         body: generateBody,
         response: {
@@ -513,6 +696,10 @@ export async function financeRoutes(instance: FastifyInstance) {
             skipped: z.number().int(),
             free: z.number().int().describe('Siswa bertarif 0 (gratis); tagihan tidak dibuat'),
             discounted: z.number().int().describe('Jumlah tagihan baru yang berdiskon'),
+            outOfScope: z
+              .number()
+              .int()
+              .describe('Siswa aktif terdaftar yang dilewati karena di luar sasaran cakupan jenis biaya'),
             missingPlan: z.array(
               z.object({
                 studentId: z.uuid(),
@@ -580,6 +767,7 @@ export async function financeRoutes(instance: FastifyInstance) {
             id: student.id,
             name: student.name,
             nis: student.nis,
+            classId: enrollment.classId,
             className: classRoom.name,
             level: classRoom.level,
           })
@@ -595,6 +783,21 @@ export async function financeRoutes(instance: FastifyInstance) {
             ),
           )
           .orderBy(asc(student.name), asc(student.id));
+
+        // Cakupan jenis biaya: hanya siswa yang termasuk sasaran yang ditagih.
+        let outOfScope = 0;
+        if (fee.scope !== 'all') {
+          const targets = await tx.select().from(finFeeTarget).where(eq(finFeeTarget.feeTypeId, fee.id));
+          const classTargets = new Set(targets.map((t) => t.classId).filter((v): v is string => v !== null));
+          const studentTargets = new Set(
+            targets.map((t) => t.studentId).filter((v): v is string => v !== null),
+          );
+          const inScope = roster.filter((s) =>
+            fee.scope === 'class' ? classTargets.has(s.classId) : studentTargets.has(s.id),
+          );
+          outOfScope = roster.length - inScope.length;
+          roster.splice(0, roster.length, ...inScope);
+        }
 
         const existing = await tx
           .select({ studentId: finInvoice.studentId, period: finInvoice.period })
@@ -739,8 +942,10 @@ export async function financeRoutes(instance: FastifyInstance) {
           created,
           skipped,
           missingPlan: missingPlan.length,
+          scope: fee.scope,
+          outOfScope,
         });
-        return { created, skipped, free, discounted, missingPlan };
+        return { created, skipped, free, discounted, outOfScope, missingPlan };
       });
     },
   );

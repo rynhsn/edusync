@@ -27,6 +27,8 @@ describe('isPortalPath', () => {
     expect(isPortalPath('/profile')).toBe(true);
     expect(isPortalPath('/profile/x')).toBe(false);
     expect(isPortalPath('/portal-admin')).toBe(false);
+    expect(isPortalPath('/pay/online/FEE-1')).toBe(true);
+    expect(isPortalPath('/pay/FEE-1')).toBe(false);
     expect(isPortalPath('/dashboard')).toBe(false);
   });
 });

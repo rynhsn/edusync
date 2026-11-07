@@ -520,7 +520,14 @@ describe('generate: keringanan, gratis, cicilan', () => {
     await plan(ids.buku, 0);
     const res = await generate({ feeTypeId: ids.buku, dueDate: '2099-12-31' });
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ created: 0, skipped: 0, free: 4, discounted: 0, missingPlan: [] });
+    expect(res.json()).toEqual({
+      created: 0,
+      skipped: 0,
+      free: 4,
+      discounted: 0,
+      outOfScope: 0,
+      missingPlan: [],
+    });
     expect(await invoicesOf(ids.buku)).toHaveLength(0);
   });
 

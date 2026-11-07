@@ -13,7 +13,15 @@ export function homePathFor(permissions: readonly string[]): '/portal' | '/dashb
   return isPortalOnly(permissions) ? '/portal' : '/dashboard';
 }
 
-/** Halaman yang boleh dibuka pengguna portal: /portal dan turunannya, serta profil akun sendiri. */
+/**
+ * Halaman yang boleh dibuka pengguna portal: /portal dan turunannya, profil akun sendiri, dan halaman hasil
+ * pembayaran online (tujuan kembali dari Midtrans).
+ */
 export function isPortalPath(pathname: string): boolean {
-  return pathname === '/portal' || pathname.startsWith('/portal/') || pathname === '/profile';
+  return (
+    pathname === '/portal' ||
+    pathname.startsWith('/portal/') ||
+    pathname === '/profile' ||
+    pathname.startsWith('/pay/online/')
+  );
 }

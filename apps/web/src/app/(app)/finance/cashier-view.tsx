@@ -110,6 +110,19 @@ export function CashierView() {
       ),
   });
 
+  // Jenis biaya yang berlaku bagi siswa ini menurut cakupan (hanya yang aktif ditampilkan).
+  const applicableFees = useQuery({
+    queryKey: ['finance', school.schoolId, 'student-fees', student?.id, yearId],
+    enabled: !!student && !!yearId,
+    select: (rows) => rows.filter((f) => f.active),
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/v1/finance/students/{studentId}/fees', {
+          params: { ...header, path: { studentId: student?.id ?? '' }, query: { academicYearId: yearId } },
+        }),
+      ),
+  });
+
   const open = (statement.data?.invoices ?? []).filter(
     (i) => i.status !== 'paid' && i.status !== 'void' && i.outstanding > 0,
   );
@@ -335,6 +348,21 @@ export function CashierView() {
                 </Button>
               </div>
             </div>
+
+            {applicableFees.data && applicableFees.data.length > 0 && (
+              <div className="grid gap-1.5">
+                <p className="text-muted-foreground text-xs font-medium">{t('studentFeesTitle')}</p>
+                <div className="flex flex-wrap gap-1.5">
+                  {applicableFees.data.map((f) => (
+                    <ToneBadge key={f.id} tone={f.active ? 'sky' : 'slate'} dot={false}>
+                      {f.name}
+                      {f.scope !== 'all' &&
+                        ` · ${t(f.scope === 'class' ? 'feeScopeClass' : 'feeScopeStudent')}`}
+                    </ToneBadge>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {(statement.isPending || yearLoading) && !statement.isError && (
               <div className="grid gap-3">

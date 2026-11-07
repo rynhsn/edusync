@@ -1,13 +1,19 @@
 'use client';
 
-import { Download } from 'lucide-react';
+import { useMutation } from '@tanstack/react-query';
+import { CreditCard, Download } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
+import { useSchool } from '@/components/app-shell';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import type { Locale } from '@/i18n/config';
+import { api, schoolHeader, unwrap } from '@/lib/api';
+import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { formatRupiah } from '@/lib/money';
+import { isPayableOnline, MAX_ONLINE_INVOICES, selectedOutstanding } from '@/lib/online-charge';
 import { PORTAL_PATHS, type PortalInvoice, type PortalInvoices, type PortalReceipt } from '@/lib/portal-api';
 import { cn } from '@/lib/utils';
 import { downloadReceiptPdf } from '../../../finance/pdf/download';
@@ -30,9 +36,39 @@ export function InvoicesTab({ studentId }: { studentId: string }) {
   const locale = useLocale() as Locale;
   const me = usePortalMe();
   const q = usePortalDetail<PortalInvoices>(studentId, 'invoices', PORTAL_PATHS.invoices(studentId));
+  const te = useTranslations();
+  const { school } = useSchool();
   const [busy, setBusy] = useState<string | null>(null);
+  const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const data = q.data;
   const child = me.data?.children.find((c) => c.id === studentId);
+  const payable = (data?.invoices ?? []).filter(isPayableOnline);
+  // Hanya id yang masih bisa dibayar yang dihitung (data bisa berubah setelah muat ulang).
+  const chosen = new Set(payable.filter((i) => selected.has(i.id)).map((i) => i.id));
+  const chosenTotal = selectedOutstanding(payable, chosen);
+
+  function toggle(id: string, on: boolean) {
+    const next = new Set(selected);
+    if (on) next.add(id);
+    else next.delete(id);
+    setSelected(next);
+  }
+
+  // Tombol selalu tampil: portal tidak tahu apakah sekolah sudah mengaktifkan Midtrans, jadi 409
+  // `gateway_disabled` dijawab dengan pesan yang ramah.
+  const payOnline = useMutation({
+    mutationFn: async () =>
+      unwrap(
+        await api.POST('/v1/portal/children/{studentId}/pay-online', {
+          params: { header: schoolHeader(school.schoolId), path: { studentId } },
+          body: { invoiceIds: [...chosen] },
+        }),
+      ),
+    onSuccess: (r) => {
+      window.location.assign(r.paymentUrl);
+    },
+    onError: (e) => toast.error(te(errorKey(e))),
+  });
 
   async function receipt(r: PortalReceipt) {
     if (!child || !me.data) return;
@@ -88,6 +124,40 @@ export function InvoicesTab({ studentId }: { studentId: string }) {
               </p>
             )}
           </div>
+          {payable.length > 0 && (
+            <div className="bg-card grid gap-2 rounded-2xl border p-4">
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="pay-all"
+                    checked={chosen.size === Math.min(payable.length, MAX_ONLINE_INVOICES)}
+                    onCheckedChange={(v) =>
+                      setSelected(
+                        v === true
+                          ? new Set(payable.slice(0, MAX_ONLINE_INVOICES).map((i) => i.id))
+                          : new Set(),
+                      )
+                    }
+                  />
+                  <label htmlFor="pay-all" className="text-sm font-medium">
+                    {t('payOnlineSelectAll')}
+                  </label>
+                </div>
+                <Button
+                  disabled={chosen.size === 0 || payOnline.isPending}
+                  onClick={() => payOnline.mutate()}
+                >
+                  <CreditCard className="size-4" aria-hidden />
+                  {payOnline.isPending
+                    ? t('payOnlineWorking')
+                    : chosen.size === 0
+                      ? t('payOnline')
+                      : t('payOnlineCount', { count: chosen.size, total: formatRupiah(chosenTotal) })}
+                </Button>
+              </div>
+              <p className="text-muted-foreground text-xs">{t('payOnlineHint')}</p>
+            </div>
+          )}
           <ul className="grid gap-3">
             {data.invoices.map((inv) => {
               const state: Shown = inv.overdue ? 'overdue' : inv.status;
@@ -129,6 +199,19 @@ export function InvoicesTab({ studentId }: { studentId: string }) {
                       </div>
                     )}
                   </div>
+                  {isPayableOnline(inv) && (
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id={`pay-${inv.id}`}
+                        checked={chosen.has(inv.id)}
+                        disabled={!chosen.has(inv.id) && chosen.size >= MAX_ONLINE_INVOICES}
+                        onCheckedChange={(v) => toggle(inv.id, v === true)}
+                      />
+                      <label htmlFor={`pay-${inv.id}`} className="text-sm">
+                        {t('payOnlineSelect')}
+                      </label>
+                    </div>
+                  )}
                   {inv.paid > 0 && (
                     <div className="bg-muted h-1.5 overflow-hidden rounded-full" aria-hidden>
                       <span className="bg-chart-5 block h-full rounded-full" style={{ width: `${pct}%` }} />
