@@ -23,8 +23,8 @@ jobs:
           HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
           mkdir -p ~/.ssh
-          # Kunci yang disalin dari Windows berakhiran CR di tiap baris; OpenSSH di Linux menolaknya.
-          printf '%s\n' "$KEY" | tr -d '\r' > ~/.ssh/id_deploy
+          # Kunci yang disalin dari Windows bisa berawalan BOM dan berakhiran CR; OpenSSH di Linux menolaknya.
+          printf '%s\n' "$KEY" | tr -d '\r' | sed '1s/^\xEF\xBB\xBF//' > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
           # Diagnostik aman: hanya metadata (jumlah/panjang baris, sidik jari), bukan isi kunci.
