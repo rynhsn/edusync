@@ -1278,7 +1278,7 @@ export const reportCard = pgTable(
 /* ---------- Keuangan sekolah (modul `finance`) ---------- */
 
 /** Tagihan sekolah milik tenant; berbeda dari tagihan langganan platform (`invoice` di packages/billing). */
-export const FIN_FEE_KINDS = ['monthly', 'one_time', 'yearly'] as const;
+export const FIN_FEE_KINDS = ['monthly', 'semester', 'one_time', 'yearly'] as const;
 export const FIN_FEE_SCOPES = ['all', 'class', 'student'] as const;
 /** Kunci metode bawaan yang diisi malas untuk sekolah tanpa baris `fin_payment_method`. */
 export const FIN_PAYMENT_METHODS = ['cash', 'transfer', 'other'] as const;
@@ -1440,7 +1440,7 @@ export const finInvoice = pgTable(
     feeTypeId: uuid('fee_type_id')
       .notNull()
       .references(() => finFeeType.id),
-    /** TTTT-BB untuk biaya bulanan; kosong untuk lainnya. */
+    /** TTTT-BB untuk biaya bulanan; `S1`/`S2` untuk biaya semester; `C01`.. (atau `S1C01`..) untuk cicilan; kosong untuk lainnya. */
     period: text('period'),
     title: text('title').notNull(),
     amount: integer('amount').notNull(),
@@ -2555,6 +2555,25 @@ export const finPaymentMethod = pgTable(
     createdAt: createdAt(),
   },
   (t) => [unique('fin_payment_method_uq').on(t.schoolId, t.key)],
+);
+
+/** Rekening bank sekolah untuk pembayaran transfer; ditampilkan kepada wali dan siswa di portal. */
+export const finBankAccount = pgTable(
+  'fin_bank_account',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    bankName: text('bank_name').notNull(),
+    accountNumber: text('account_number').notNull(),
+    accountHolder: text('account_holder').notNull(),
+    note: text('note'),
+    active: boolean('active').notNull().default(true),
+    sort: integer('sort').notNull().default(0),
+    createdAt: createdAt(),
+  },
+  (t) => [index('fin_bank_account_school_idx').on(t.schoolId, t.sort)],
 );
 
 /** Kategori ekskul yang dikelola sekolah, lengkap dengan ikon dan warna. */

@@ -25,6 +25,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { todayInJakarta } from '../attendance-lib';
 import type { Env } from '../env';
+import { listBankAccounts } from '../finance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { schoolOrigin } from '../origins';
@@ -926,7 +927,8 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
           'Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `finance` (bila tidak aktif `available` ' +
           'false dan data kosong). Tagihan tanpa yang dibatalkan (terlama jatuh tempo dulu) beserta jumlah terbayar, ' +
           'sisa, dan tunggakan, memakai perhitungan keuangan sekolah; `receipts` adalah kwitansi yang tidak batal ' +
-          '(terbaru dulu, maksimal 50) dengan rincian tagihan yang dibayar.',
+          '(terbaru dulu, maksimal 50) dengan rincian tagihan yang dibayar. `bankAccounts` = rekening sekolah yang aktif ' +
+          '(tujuan transfer; hanya milik sekolah anak ini).',
         headers: schoolHeader,
         params: studentParams,
         response: {
@@ -937,6 +939,17 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
             overdueTotal: z.number().int(),
             invoices: z.array(invoiceSchema),
             receipts: z.array(receiptSchema),
+            bankAccounts: z
+              .array(
+                z.object({
+                  id: z.uuid(),
+                  bankName: z.string(),
+                  accountNumber: z.string(),
+                  accountHolder: z.string(),
+                  note: z.string().nullable(),
+                }),
+              )
+              .describe('Rekening sekolah yang aktif untuk pembayaran transfer (urut tampilan)'),
           }),
           404: errorSchema,
           ...guarded,
@@ -953,9 +966,19 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
             overdueTotal: 0,
             invoices: [],
             receipts: [],
+            bankAccounts: [],
           };
         }
         const inv = await invoicesFor(tx, request.params.studentId);
+        const bankAccounts = (await listBankAccounts(tx, { onlyActive: true })).map(
+          ({ id, bankName, accountNumber, accountHolder, note }) => ({
+            id,
+            bankName,
+            accountNumber,
+            accountHolder,
+            note,
+          }),
+        );
         return {
           available: true,
           openCount: inv.openCount,
@@ -963,6 +986,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
           overdueTotal: inv.overdueTotal,
           invoices: inv.invoices,
           receipts: await receiptsFor(tx, request.params.studentId),
+          bankAccounts,
         };
       }),
   );

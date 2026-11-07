@@ -39,6 +39,7 @@ import { examRoutes } from './routes/exams';
 import { extracurricularRoutes } from './routes/extracurricular';
 import { extracurricularCategoryRoutes } from './routes/extracurricular-categories';
 import { financeRoutes } from './routes/finance';
+import { financeBankAccountRoutes } from './routes/finance-bank-accounts';
 import { financeDiscountRoutes } from './routes/finance-discounts';
 import { financeGatewayRoutes } from './routes/finance-gateway';
 import { financeLateFeeRoutes } from './routes/finance-late-fee';
@@ -257,6 +258,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(financeDiscountRoutes);
   await app.register(financeLateFeeRoutes);
   await app.register(financePaymentMethodRoutes);
+  await app.register(financeBankAccountRoutes);
   await app.register(financeGatewayRoutes, { env });
   await app.register(admissionRoutes);
   await app.register(admissionDocumentTypeRoutes);

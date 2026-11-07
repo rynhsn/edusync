@@ -18,6 +18,9 @@ interface Props {
   placeholder?: string;
   className?: string;
   'aria-label'?: string;
+  'aria-invalid'?: boolean;
+  'aria-describedby'?: string | undefined;
+  onBlur?: () => void;
 }
 
 /** Teks dari anak sebuah <option> (bisa berupa gabungan teks dan ekspresi). */
@@ -42,6 +45,9 @@ export function SelectField({
   placeholder,
   className,
   'aria-label': ariaLabel,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedby,
+  onBlur,
 }: Props) {
   const items = Children.toArray(children)
     .filter(isValidElement<{ value?: string; children?: ReactNode }>)
@@ -57,7 +63,14 @@ export function SelectField({
       items={items}
       {...(disabled !== undefined ? { disabled } : {})}
     >
-      <SelectTrigger id={id} aria-label={ariaLabel} className={cn('w-full', className)}>
+      <SelectTrigger
+        id={id}
+        aria-label={ariaLabel}
+        aria-invalid={ariaInvalid}
+        aria-describedby={ariaDescribedby}
+        onBlur={onBlur}
+        className={cn('w-full', className)}
+      >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>
       <SelectContent alignItemWithTrigger={false}>

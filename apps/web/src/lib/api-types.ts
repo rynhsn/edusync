@@ -24371,7 +24371,7 @@ export interface paths {
                             id: string;
                             name: string;
                             /** @enum {string} */
-                            kind: "monthly" | "one_time" | "yearly";
+                            kind: "monthly" | "semester" | "one_time" | "yearly";
                             /**
                              * @description `all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu
                              * @enum {string}
@@ -24426,7 +24426,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah jenis biaya
-         * @description Izin: `finance:manage`; modul `finance`. `kind`: `monthly` (per bulan, mis. SPP), `one_time` (sekali), `yearly` (per tahun ajaran). Nama unik di sekolah (409 `conflict`). `scope` (bawaan `all`): `all` = ditagihkan ke semua siswa; `class` = hanya siswa di kelas `classIds`; `student` = hanya siswa `studentIds`. Cakupan `class`/`student` wajib berisi sasaran (400 `targets_required`); id kelas/siswa yang tidak ada di sekolah ini ditolak 400 `invalid_reference`.
+         * @description Izin: `finance:manage`; modul `finance`. `kind`: `monthly` (per bulan, mis. SPP), `semester` (per semester, mis. SPP semester atau uang ujian semester; tarif = nominal per semester), `one_time` (sekali), `yearly` (per tahun ajaran). Nama unik di sekolah (409 `conflict`). `scope` (bawaan `all`): `all` = ditagihkan ke semua siswa; `class` = hanya siswa di kelas `classIds`; `student` = hanya siswa `studentIds`. Cakupan `class`/`student` wajib berisi sasaran (400 `targets_required`); id kelas/siswa yang tidak ada di sekolah ini ditolak 400 `invalid_reference`.
          */
         post: {
             parameters: {
@@ -24443,7 +24443,7 @@ export interface paths {
                     "application/json": {
                         name: string;
                         /** @enum {string} */
-                        kind: "monthly" | "one_time" | "yearly";
+                        kind: "monthly" | "semester" | "one_time" | "yearly";
                         /** @default true */
                         active?: boolean;
                         /**
@@ -24470,7 +24470,7 @@ export interface paths {
                             id: string;
                             name: string;
                             /** @enum {string} */
-                            kind: "monthly" | "one_time" | "yearly";
+                            kind: "monthly" | "semester" | "one_time" | "yearly";
                             /**
                              * @description `all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu
                              * @enum {string}
@@ -24585,7 +24585,7 @@ export interface paths {
                     "application/json": {
                         name: string;
                         /** @enum {string} */
-                        kind: "monthly" | "one_time" | "yearly";
+                        kind: "monthly" | "semester" | "one_time" | "yearly";
                         /** @default true */
                         active?: boolean;
                         /**
@@ -24612,7 +24612,7 @@ export interface paths {
                             id: string;
                             name: string;
                             /** @enum {string} */
-                            kind: "monthly" | "one_time" | "yearly";
+                            kind: "monthly" | "semester" | "one_time" | "yearly";
                             /**
                              * @description `all` = semua siswa, `class` = kelas tertentu, `student` = siswa tertentu
                              * @enum {string}
@@ -24838,7 +24838,7 @@ export interface paths {
                             id: string;
                             name: string;
                             /** @enum {string} */
-                            kind: "monthly" | "one_time" | "yearly";
+                            kind: "monthly" | "semester" | "one_time" | "yearly";
                             /** @enum {string} */
                             scope: "all" | "class" | "student";
                             active: boolean;
@@ -25184,7 +25184,7 @@ export interface paths {
         put?: never;
         /**
          * Buat tagihan massal
-         * @description Izin: `finance:manage`; modul `finance`. Membuat tagihan untuk setiap siswa aktif yang terdaftar di tahun ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas siswa; tarif tingkat yang cocok diutamakan daripada tarif semua tingkat (level null). Siswa tanpa tarif tidak dibuatkan tagihan dan dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (siswa, tahun, jenis biaya, periode) dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026". Galat: 400 `period_required` (`period` wajib TTTT-BB untuk jenis `monthly`, dan harus null untuk jenis lain), 400 `invalid_reference`, 409 `inactive` (jenis biaya nonaktif). Tarif bernominal 0 = gratis: tagihan tidak dibuat dan dihitung di `free`. Keringanan: aturan aktif yang dipasang pada siswa di tahun ajaran itu dan berlaku untuk jenis biaya ini (jenis kosong atau sama) dijumlahkan (persen dibulatkan ke bawah per aturan + nominal tetap, maksimal sebesar nominal) menjadi `discount` tagihan baru, nama aturan digabung di `discountReason`; `discounted` = jumlah tagihan baru yang berdiskon (tagihan yang sudah ada tidak diubah). `installments` (2..12, hanya jenis non-bulanan; 400 `installments_invalid`) membuat N tagihan berperiode `C01`..`C12` dengan nominal dibagi rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; siswa yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati. Cakupan jenis biaya: `scope` `class` hanya menagih siswa yang pada tahun ajaran itu terdaftar di kelas sasaran, `student` hanya siswa sasaran, `all` semua siswa; bila `classId` juga diisi, hasilnya irisan keduanya. Siswa di luar sasaran dihitung di `outOfScope` (tidak masuk `missingPlan`).
+         * @description Izin: `finance:manage`; modul `finance`. Membuat tagihan untuk setiap siswa aktif yang terdaftar di tahun ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas siswa; tarif tingkat yang cocok diutamakan daripada tarif semua tingkat (level null). Siswa tanpa tarif tidak dibuatkan tagihan dan dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (siswa, tahun, jenis biaya, periode) dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026"; biaya semester: "SPP Semester Ganjil 2026/2027" (`S1` = ganjil, `S2` = genap; tarif = nominal per semester; cicilan berperiode `S1C01`.. agar tak bentrok antarsemester, dan hanya tagihan semester yang sama yang membuat siswa dilewati). Galat: 400 `period_required` (`period` wajib TTTT-BB untuk jenis `monthly`, wajib `S1`/`S2` untuk jenis `semester` (selain itu 400 `period_invalid`), dan harus null untuk jenis lain), 400 `invalid_reference`, 409 `inactive` (jenis biaya nonaktif). Tarif bernominal 0 = gratis: tagihan tidak dibuat dan dihitung di `free`. Keringanan: aturan aktif yang dipasang pada siswa di tahun ajaran itu dan berlaku untuk jenis biaya ini (jenis kosong atau sama) dijumlahkan (persen dibulatkan ke bawah per aturan + nominal tetap, maksimal sebesar nominal) menjadi `discount` tagihan baru, nama aturan digabung di `discountReason`; `discounted` = jumlah tagihan baru yang berdiskon (tagihan yang sudah ada tidak diubah). `installments` (2..12, hanya jenis non-bulanan; 400 `installments_invalid`) membuat N tagihan berperiode `C01`..`C12` dengan nominal dibagi rata (sisa ke cicilan pertama), jatuh tempo `dueDate` + (i-1) bulan, dan diskon dibagi proporsional; siswa yang sudah punya tagihan jenis itu pada tahun ajaran tsb dilewati. Cakupan jenis biaya: `scope` `class` hanya menagih siswa yang pada tahun ajaran itu terdaftar di kelas sasaran, `student` hanya siswa sasaran, `all` semua siswa; bila `classId` juga diisi, hasilnya irisan keduanya. Siswa di luar sasaran dihitung di `outOfScope` (tidak masuk `missingPlan`).
          */
         post: {
             parameters: {
@@ -25203,13 +25203,13 @@ export interface paths {
                         academicYearId: string;
                         /** Format: uuid */
                         feeTypeId: string;
-                        /** @description TTTT-BB untuk biaya bulanan; null untuk lainnya */
+                        /** @description TTTT-BB untuk biaya bulanan; `S1` (ganjil) atau `S2` (genap) untuk biaya semester; null untuk lainnya */
                         period: string | null;
                         /** Format: uuid */
                         classId: string | null;
                         /** Format: date */
                         dueDate: string;
-                        /** @description Cicilan 2..12, hanya untuk jenis biaya non-bulanan; kosong = satu tagihan */
+                        /** @description Cicilan 2..12, hanya untuk jenis biaya non-bulanan (termasuk semester); kosong = satu tagihan */
                         installments?: number | null;
                     };
                 };
@@ -25314,7 +25314,7 @@ export interface paths {
         };
         /**
          * Daftar tagihan
-         * @description Izin: `finance:read`; modul `finance`. Filter opsional: `academicYearId`, `classId` (kelas siswa pada tahun tagihan), `studentId`, `feeTypeId`, `period`, `status`. Status diturunkan dari kwitansi yang tidak batal: `unpaid`, `partial`, `paid`, `void`. Urut jatuh tempo, nama siswa. `limit` maks 100 (bawaan 50), `offset` bawaan 0. `overdue` = masih ada sisa dan lewat jatuh tempo (hari ini menurut zona waktu sekolah).
+         * @description Izin: `finance:read`; modul `finance`. Filter opsional: `academicYearId`, `classId` (kelas siswa pada tahun tagihan), `studentId`, `feeTypeId`, `period` (TTTT-BB atau `S1`/`S2`), `status`. Status diturunkan dari kwitansi yang tidak batal: `unpaid`, `partial`, `paid`, `void`. Urut jatuh tempo, nama siswa. `limit` maks 100 (bawaan 50), `offset` bawaan 0. `overdue` = masih ada sisa dan lewat jatuh tempo (hari ini menurut zona waktu sekolah).
          */
         get: {
             parameters: {
@@ -25720,7 +25720,7 @@ export interface paths {
         put?: never;
         /**
          * Pecah tagihan menjadi cicilan
-         * @description Izin: `finance:manage`; modul `finance`. Memecah satu tagihan terbuka yang belum punya pembayaran aktif menjadi `installments` (2..12) tagihan berperiode `C01`.., nominal dibagi rata (sisa ke cicilan pertama), diskon dibagi proporsional, jatuh tempo `firstDueDate` + (i-1) bulan. Tagihan asal dibatalkan (void, alasan "dipecah menjadi cicilan"). Atomik. Galat: 409 `has_payments`, 409 `invoice_void`, 409 `conflict` bila tagihan cicilan jenis itu sudah ada, 404 `not_found`.
+         * @description Izin: `finance:manage`; modul `finance`. Memecah satu tagihan terbuka yang belum punya pembayaran aktif menjadi `installments` (2..12) tagihan berperiode `C01`.. (`S1C01`.. bila tagihan asal berperiode semester `S1`/`S2`), nominal dibagi rata (sisa ke cicilan pertama), diskon dibagi proporsional, jatuh tempo `firstDueDate` + (i-1) bulan. Tagihan asal dibatalkan (void, alasan "dipecah menjadi cicilan"). Atomik. Galat: 409 `has_payments`, 409 `invoice_void`, 409 `conflict` bila tagihan cicilan jenis itu sudah ada, 404 `not_found`.
          */
         post: {
             parameters: {
@@ -28343,6 +28343,486 @@ export interface paths {
                 };
                 /** @description Default Response */
                 409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/finance/bank-accounts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar rekening sekolah
+         * @description Izin: `finance:read`; modul `finance`. Semua rekening sekolah (aktif dan nonaktif) urut `sort`. Rekening `active` tampil kepada wali dan siswa di tab tagihan portal sebagai tujuan pembayaran transfer.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                bankName: string;
+                                accountNumber: string;
+                                accountHolder: string;
+                                note: string | null;
+                                /** @description Hanya rekening aktif yang tampil di portal wali dan siswa */
+                                active: boolean;
+                                sort: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah rekening sekolah
+         * @description Izin: `finance:manage`; modul `finance`. `accountNumber` berisi angka, spasi, atau tanda hubung (5-30 karakter, minimal 5 angka). `note` opsional (maks 200 karakter, mis. cabang atau berita transfer). Rekening baru ditaruh di urutan terakhir. Galat: 400 validasi, 409 `limit_reached` bila sudah 10 rekening.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        bankName: string;
+                        accountNumber: string;
+                        accountHolder: string;
+                        note?: string | null;
+                        /** @default true */
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            bankName: string;
+                            accountNumber: string;
+                            accountHolder: string;
+                            note: string | null;
+                            /** @description Hanya rekening aktif yang tampil di portal wali dan siswa */
+                            active: boolean;
+                            sort: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/bank-accounts/order": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Atur urutan rekening sekolah
+         * @description Izin: `finance:manage`; modul `finance`. `ids` harus memuat SEMUA rekening sekolah tepat satu kali, sesuai urutan baru. Galat: 400 `invalid_reference` bila daftar tidak lengkap atau memuat id asing.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        ids: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                bankName: string;
+                                accountNumber: string;
+                                accountHolder: string;
+                                note: string | null;
+                                /** @description Hanya rekening aktif yang tampil di portal wali dan siswa */
+                                active: boolean;
+                                sort: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/bank-accounts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Hapus rekening sekolah
+         * @description Izin: `finance:manage`; modul `finance`. Menghapus rekening dari daftar (tidak memengaruhi kwitansi yang sudah ada). Untuk menyembunyikan sementara dari portal, nonaktifkan saja. 404 `not_found` bila tak ada.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        /**
+         * Ubah rekening sekolah
+         * @description Izin: `finance:manage`; modul `finance`. Ubah sebagian atau semua dari `bankName`, `accountNumber`, `accountHolder`, `note` (null/kosong menghapus), `active`. Galat: 400 validasi, 404 `not_found`.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        bankName?: string;
+                        accountNumber?: string;
+                        accountHolder?: string;
+                        note?: string | null;
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            bankName: string;
+                            accountNumber: string;
+                            accountHolder: string;
+                            note: string | null;
+                            /** @description Hanya rekening aktif yang tampil di portal wali dan siswa */
+                            active: boolean;
+                            sort: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -49106,7 +49586,7 @@ export interface paths {
         };
         /**
          * Tagihan dan kwitansi seorang anak
-         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `finance` (bila tidak aktif `available` false dan data kosong). Tagihan tanpa yang dibatalkan (terlama jatuh tempo dulu) beserta jumlah terbayar, sisa, dan tunggakan, memakai perhitungan keuangan sekolah; `receipts` adalah kwitansi yang tidak batal (terbaru dulu, maksimal 50) dengan rincian tagihan yang dibayar.
+         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `finance` (bila tidak aktif `available` false dan data kosong). Tagihan tanpa yang dibatalkan (terlama jatuh tempo dulu) beserta jumlah terbayar, sisa, dan tunggakan, memakai perhitungan keuangan sekolah; `receipts` adalah kwitansi yang tidak batal (terbaru dulu, maksimal 50) dengan rincian tagihan yang dibayar. `bankAccounts` = rekening sekolah yang aktif (tujuan transfer; hanya milik sekolah anak ini).
          */
         get: {
             parameters: {
@@ -49166,6 +49646,15 @@ export interface paths {
                                     title: string;
                                     amount: number;
                                 }[];
+                            }[];
+                            /** @description Rekening sekolah yang aktif untuk pembayaran transfer (urut tampilan) */
+                            bankAccounts: {
+                                /** Format: uuid */
+                                id: string;
+                                bankName: string;
+                                accountNumber: string;
+                                accountHolder: string;
+                                note: string | null;
                             }[];
                         };
                     };

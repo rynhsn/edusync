@@ -35,9 +35,29 @@ export function usePaymentMethods() {
   };
 }
 
-export const KINDS = ['monthly', 'one_time', 'yearly'] as const;
+export const KINDS = ['monthly', 'semester', 'one_time', 'yearly'] as const;
 export type Kind = (typeof KINDS)[number];
-export const KIND_KEY = { monthly: 'kindMonthly', one_time: 'kindOneTime', yearly: 'kindYearly' } as const;
+export const KIND_KEY = {
+  monthly: 'kindMonthly',
+  semester: 'kindSemester',
+  one_time: 'kindOneTime',
+  yearly: 'kindYearly',
+} as const;
+export const KIND_HINT_KEY = {
+  monthly: 'kindHintMonthly',
+  semester: 'kindHintSemester',
+  one_time: 'kindHintOneTime',
+  yearly: 'kindHintYearly',
+} as const;
+
+/** Periode tagihan semester: S1 = ganjil, S2 = genap. */
+export const SEMESTER_PERIODS = ['S1', 'S2'] as const;
+export type SemesterPeriod = (typeof SEMESTER_PERIODS)[number];
+export const isSemesterPeriod = (v: string | null | undefined): v is SemesterPeriod =>
+  v === 'S1' || v === 'S2';
+export const SEMESTER_KEY = { S1: 'semesterOdd', S2: 'semesterEven' } as const;
+/** Semester yang berjalan menurut bulan ini: Juli-Desember ganjil (S1), Januari-Juni genap (S2). */
+export const defaultSemester = (): SemesterPeriod => (new Date().getMonth() >= 6 ? 'S1' : 'S2');
 
 export const STATUSES = ['unpaid', 'partial', 'paid', 'void'] as const;
 export type InvoiceStatus = (typeof STATUSES)[number];
@@ -95,14 +115,14 @@ export function StatusBadge({ status, overdue }: { status: InvoiceStatus; overdu
 /** Pilihan jumlah cicilan; "lunas sekali" = tanpa cicilan. */
 export const INSTALLMENT_CHOICES = [2, 3, 4, 6, 10, 12] as const;
 
-/** Nomor dan jumlah cicilan dari periode `C01`.. dan judul "... (cicilan i/n) ..."; null bila bukan cicilan. */
+/** Nomor dan jumlah cicilan dari periode `C01`.. (`S1C01`.. untuk biaya semester) dan judul "... (cicilan i/n) ..."; null bila bukan cicilan. */
 export function installmentInfo(
   period: string | null | undefined,
   title: string,
 ): { index: number; total: number | null } | null {
   const fromTitle = /\(cicilan (\d+)\/(\d+)\)/i.exec(title);
   if (fromTitle) return { index: Number(fromTitle[1]), total: Number(fromTitle[2]) };
-  const fromPeriod = /^C(\d{2})$/.exec(period ?? '');
+  const fromPeriod = /^(?:S[12])?C(\d{2})$/.exec(period ?? '');
   return fromPeriod ? { index: Number(fromPeriod[1]), total: null } : null;
 }
 
@@ -237,6 +257,55 @@ export function YearSelect({
 /** Rupiah dari teks isian: hanya angka, tanpa nol di depan. '' bila kosong. */
 export function digitsOnly(v: string) {
   return v.replace(/\D/g, '').replace(/^0+(?=\d)/, '');
+}
+
+/**
+ * Pemilih semester (ganjil/genap) dari tahun ajaran terpilih; nilainya 'S1' atau 'S2'. Nama semester dari
+ * pengaturan tahun ajaran ikut tampil bila ada (urut tanggal mulai: pertama = ganjil, kedua = genap).
+ * Dengan `allowEmpty`, "Semua semester" menghasilkan '' (dipakai untuk saringan).
+ */
+export function SemesterPicker({
+  value,
+  onChange,
+  allowEmpty,
+  academicYearId,
+  id,
+  ...rest
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  allowEmpty?: boolean;
+  academicYearId: string;
+  id?: string;
+  'aria-label'?: string;
+  className?: string;
+}) {
+  const t = useTranslations('finance');
+  const { school, can } = useSchool();
+  const semesters = useQuery({
+    queryKey: ['semesters', school.schoolId, academicYearId],
+    enabled: can('academic_year:read') && !!academicYearId,
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/v1/semesters', {
+          params: { header: schoolHeader(school.schoolId), query: { academicYearId } },
+        }),
+      ),
+  });
+  const ordered = [...(semesters.data ?? [])].sort((a, b) => a.startsOn.localeCompare(b.startsOn));
+  return (
+    <SelectField id={id} value={value} onChange={(e) => onChange(e.target.value)} {...rest}>
+      {allowEmpty && <option value="">{t('allSemesters')}</option>}
+      {SEMESTER_PERIODS.map((p, i) => {
+        const name = ordered[i]?.name;
+        return (
+          <option key={p} value={p}>
+            {name ? `${t(SEMESTER_KEY[p])} · ${name}` : t(SEMESTER_KEY[p])}
+          </option>
+        );
+      })}
+    </SelectField>
+  );
 }
 
 const MONTHS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'] as const;

@@ -24,6 +24,13 @@ import { useSchool } from '@/components/app-shell';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import {
+  FieldError,
+  type FormValidation,
+  TOUCH_INPUT,
+  TOUCH_SELECT,
+  useFormValidation,
+} from '@/components/form-field-error';
+import {
   ConfirmDelete,
   DataRows,
   ListSkeleton,
@@ -49,6 +56,7 @@ import {
 } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { TEACHER_ORDER, type TeacherField, validateTeacher } from '@/lib/form-validation';
 import { buildExport, saveBlob } from '@/lib/sheet';
 
 interface Draft {
@@ -62,10 +70,13 @@ function TeacherFields({
   idPrefix,
   draft,
   onChange,
+  v,
 }: {
   idPrefix: string;
   draft: Draft;
   onChange: (d: Draft) => void;
+  /** Validasi galat-merah; id isian = `${idPrefix}-${field}`. */
+  v: FormValidation<TeacherField>;
 }) {
   const t = useTranslations('teachers');
   const tm = useTranslations('masterData');
@@ -74,26 +85,33 @@ function TeacherFields({
       <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
         <Input
-          id={`${idPrefix}-name`}
-          required
+          {...v.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
           maxLength={120}
           value={draft.name}
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
+        <FieldError id={v.idOf('name')} issue={v.issue('name')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-nip`}>{t('nip')}</Label>
         <Input
-          id={`${idPrefix}-nip`}
+          {...v.fieldProps('nip')}
+          className={TOUCH_INPUT}
+          autoComplete="off"
           maxLength={30}
           value={draft.nip}
           onChange={(e) => onChange({ ...draft, nip: e.target.value })}
         />
+        <FieldError id={v.idOf('nip')} issue={v.issue('nip')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-status`}>{t('status')}</Label>
         <SelectField
           id={`${idPrefix}-status`}
+          className={TOUCH_SELECT}
           value={draft.status}
           onChange={(e) => onChange({ ...draft, status: e.target.value as Draft['status'] })}
         >
@@ -126,6 +144,11 @@ export function TeachersView() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
+  const validation = useFormValidation<TeacherField>({
+    errors: validateTeacher(editing ?? draft),
+    order: TEACHER_ORDER,
+    idPrefix: editing ? 'edit' : 'new',
+  });
   const [account, setAccount] = useState<{ id: string; name: string; memberId: string | null } | null>(null);
   const [mode, setMode] = useState<'link' | 'invite'>('link');
   const [pick, setPick] = useState('');
@@ -256,6 +279,7 @@ export function TeachersView() {
 
   const openEdit = (r: NonNullable<typeof list.data>[number]) => {
     setError(null);
+    validation.reset();
     setEditing({ id: r.id, name: r.name, nip: r.nip ?? '', status: r.status });
   };
 
@@ -269,13 +293,14 @@ export function TeachersView() {
       title={t('addTitle')}
       submitLabel={tm('add')}
       error={error}
+      validation={validation}
       onOpenChange={() => {
         setDraft(EMPTY);
         setError(null);
       }}
       onSubmit={() => create.mutateAsync()}
     >
-      <TeacherFields idPrefix="new" draft={draft} onChange={setDraft} />
+      <TeacherFields idPrefix="new" draft={draft} onChange={setDraft} v={validation} />
     </FormDialog>
   );
 
@@ -552,6 +577,7 @@ export function TeachersView() {
         title={tm('edit')}
         submitLabel={tm('save')}
         error={error}
+        validation={validation}
         onOpenChange={(open) => !open && setEditing(null)}
         onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
       >
@@ -560,6 +586,7 @@ export function TeachersView() {
             idPrefix="edit"
             draft={editing}
             onChange={(d) => setEditing({ id: editing.id, ...d })}
+            v={validation}
           />
         )}
       </FormDialog>

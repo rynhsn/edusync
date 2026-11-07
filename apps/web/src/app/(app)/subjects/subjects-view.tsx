@@ -8,6 +8,12 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
+import {
+  FieldError,
+  type FormValidation,
+  TOUCH_INPUT,
+  useFormValidation,
+} from '@/components/form-field-error';
 import { ConfirmDelete, ListSkeleton, REVEAL, RowMenu, SearchBox } from '@/components/master-kit';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -17,6 +23,7 @@ import { Label } from '@/components/ui/label';
 import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, TONES, type Tone, Toolbar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { SUBJECT_ORDER, type SubjectField, validateSubject } from '@/lib/form-validation';
 import { cn } from '@/lib/utils';
 import { CurriculumBank } from './curriculum-bank';
 
@@ -39,10 +46,13 @@ function SubjectFields({
   idPrefix,
   draft,
   onChange,
+  v,
 }: {
   idPrefix: string;
   draft: Draft;
   onChange: (d: Draft) => void;
+  /** Validasi galat-merah; id isian = `${idPrefix}-${field}`. */
+  v: FormValidation<SubjectField>;
 }) {
   const tm = useTranslations('masterData');
   return (
@@ -50,22 +60,28 @@ function SubjectFields({
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-code`}>{tm('code')}</Label>
         <Input
-          id={`${idPrefix}-code`}
-          required
+          {...v.fieldProps('code')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
           maxLength={20}
           value={draft.code}
           onChange={(e) => onChange({ ...draft, code: e.target.value })}
         />
+        <FieldError id={v.idOf('code')} issue={v.issue('code')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
         <Input
-          id={`${idPrefix}-name`}
-          required
+          {...v.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
           maxLength={80}
           value={draft.name}
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
+        <FieldError id={v.idOf('name')} issue={v.issue('name')} />
       </div>
     </div>
   );
@@ -84,6 +100,11 @@ export function SubjectsView() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
+  const validation = useFormValidation<SubjectField>({
+    errors: validateSubject(editing ?? draft),
+    order: SUBJECT_ORDER,
+    idPrefix: editing ? 'edit' : 'new',
+  });
 
   const list = useQuery({
     queryKey: key,
@@ -133,6 +154,7 @@ export function SubjectsView() {
 
   const openEdit = (s: { id: string; code: string; name: string }) => {
     setError(null);
+    validation.reset();
     setEditing({ id: s.id, code: s.code, name: s.name });
   };
 
@@ -146,13 +168,14 @@ export function SubjectsView() {
       title={t('addTitle')}
       submitLabel={tm('add')}
       error={error}
+      validation={validation}
       onOpenChange={() => {
         setDraft(EMPTY);
         setError(null);
       }}
       onSubmit={() => create.mutateAsync()}
     >
-      <SubjectFields idPrefix="new" draft={draft} onChange={setDraft} />
+      <SubjectFields idPrefix="new" draft={draft} onChange={setDraft} v={validation} />
     </FormDialog>
   );
 
@@ -283,6 +306,7 @@ export function SubjectsView() {
         title={tm('edit')}
         submitLabel={tm('save')}
         error={error}
+        validation={validation}
         onOpenChange={(open) => !open && setEditing(null)}
         onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
       >
@@ -291,6 +315,7 @@ export function SubjectsView() {
             idPrefix="edit"
             draft={editing}
             onChange={(d) => setEditing({ id: editing.id, ...d })}
+            v={validation}
           />
         )}
       </FormDialog>

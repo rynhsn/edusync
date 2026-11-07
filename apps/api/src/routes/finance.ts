@@ -7,6 +7,7 @@ import {
   desc,
   enrollment,
   eq,
+  FIN_FEE_KINDS,
   FIN_FEE_SCOPES,
   finDiscountRule,
   finFeePlan,
@@ -34,15 +35,20 @@ import { z } from 'zod';
 import { todayInSchool } from '../attendance-lib';
 import {
   discountFor,
+  FILTER_PERIOD_PATTERN,
   type InstallmentPart,
   type InvoiceView,
   installmentParts,
   invoiceRows,
+  isInstallmentPeriodOf,
   listPaymentMethods,
   PERIOD_PATTERN,
   paidFor,
   periodLabel,
   requireActiveMethod,
+  SEMESTER_PERIOD_PATTERN,
+  type SemesterPeriod,
+  semesterLabel,
 } from '../finance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
@@ -61,7 +67,7 @@ const manageGate = [requirePermission('finance:manage'), requireModule(MODULE)];
 const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', message);
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
 
-const KINDS = ['monthly', 'one_time', 'yearly'] as const;
+const KINDS = FIN_FEE_KINDS;
 /** Kunci metode pembayaran (dinamis, dikelola sekolah di `fin_payment_method`). */
 const methodKey = z.string().trim().min(1).max(40);
 const INVOICE_STATUS = ['unpaid', 'partial', 'paid', 'void'] as const;
@@ -333,7 +339,8 @@ export async function financeRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Tambah jenis biaya',
         description:
-          'Izin: `finance:manage`; modul `finance`. `kind`: `monthly` (per bulan, mis. SPP), `one_time` (sekali), `yearly` ' +
+          'Izin: `finance:manage`; modul `finance`. `kind`: `monthly` (per bulan, mis. SPP), `semester` (per semester, ' +
+          'mis. SPP semester atau uang ujian semester; tarif = nominal per semester), `one_time` (sekali), `yearly` ' +
           '(per tahun ajaran). Nama unik di sekolah (409 `conflict`). `scope` (bawaan `all`): `all` = ditagihkan ke semua ' +
           'siswa; `class` = hanya siswa di kelas `classIds`; `student` = hanya siswa `studentIds`. Cakupan `class`/`student` ' +
           'wajib berisi sasaran (400 `targets_required`); id kelas/siswa yang tidak ada di sekolah ini ditolak 400 ' +
@@ -652,7 +659,12 @@ export async function financeRoutes(instance: FastifyInstance) {
   const generateBody = z.object({
     academicYearId: z.uuid(),
     feeTypeId: z.uuid(),
-    period: z.string().nullable().describe('TTTT-BB untuk biaya bulanan; null untuk lainnya'),
+    period: z
+      .string()
+      .nullable()
+      .describe(
+        'TTTT-BB untuk biaya bulanan; `S1` (ganjil) atau `S2` (genap) untuk biaya semester; null untuk lainnya',
+      ),
     classId: z.uuid().nullable(),
     dueDate: z.iso.date(),
     installments: z
@@ -660,7 +672,9 @@ export async function financeRoutes(instance: FastifyInstance) {
       .int()
       .nullable()
       .optional()
-      .describe('Cicilan 2..12, hanya untuk jenis biaya non-bulanan; kosong = satu tagihan'),
+      .describe(
+        'Cicilan 2..12, hanya untuk jenis biaya non-bulanan (termasuk semester); kosong = satu tagihan',
+      ),
   });
 
   app.post(
@@ -675,8 +689,11 @@ export async function financeRoutes(instance: FastifyInstance) {
           'ajaran itu (dibatasi `classId` bila diisi). Tarif dipilih dari tingkat kelas siswa; tarif tingkat yang cocok ' +
           'diutamakan daripada tarif semua tingkat (level null). Siswa tanpa tarif tidak dibuatkan tagihan dan ' +
           'dilaporkan di `missingPlan`. Idempoten: tagihan yang sudah ada (siswa, tahun, jenis biaya, periode) ' +
-          'dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026". Galat: 400 `period_required` ' +
-          '(`period` wajib TTTT-BB untuk jenis `monthly`, dan harus null untuk jenis lain), 400 `invalid_reference`, ' +
+          'dilewati dan dihitung di `skipped`. Judul otomatis, mis. "SPP Agustus 2026"; biaya semester: "SPP Semester Ganjil 2026/2027" (`S1` = ' +
+          'ganjil, `S2` = genap; tarif = nominal per semester; cicilan berperiode `S1C01`.. agar tak bentrok ' +
+          'antarsemester, dan hanya tagihan semester yang sama yang membuat siswa dilewati). Galat: 400 `period_required` ' +
+          '(`period` wajib TTTT-BB untuk jenis `monthly`, wajib `S1`/`S2` untuk jenis `semester` (selain itu 400 ' +
+          '`period_invalid`), dan harus null untuk jenis lain), 400 `invalid_reference`, ' +
           '409 `inactive` (jenis biaya nonaktif). Tarif bernominal 0 = gratis: tagihan tidak dibuat dan dihitung di ' +
           '`free`. Keringanan: aturan aktif yang dipasang pada siswa di tahun ajaran itu dan berlaku untuk jenis biaya ' +
           'ini (jenis kosong atau sama) dijumlahkan (persen dibulatkan ke bawah per aturan + nominal tetap, maksimal ' +
@@ -730,13 +747,29 @@ export async function financeRoutes(instance: FastifyInstance) {
               'Biaya bulanan wajib punya periode berformat TTTT-BB.',
             );
           }
+        } else if (fee.kind === 'semester') {
+          if (!b.period) {
+            throw new HttpError(
+              400,
+              'period_required',
+              'Biaya semester wajib punya periode S1 (ganjil) atau S2 (genap).',
+            );
+          }
+          if (!SEMESTER_PERIOD_PATTERN.test(b.period)) {
+            throw new HttpError(
+              400,
+              'period_invalid',
+              'Periode biaya semester hanya S1 (ganjil) atau S2 (genap).',
+            );
+          }
         } else if (b.period !== null) {
           throw new HttpError(
             400,
             'period_required',
-            'Periode hanya untuk biaya bulanan; isi null untuk jenis ini.',
+            'Periode hanya untuk biaya bulanan dan semester; isi null untuk jenis ini.',
           );
         }
+        const semesterPeriod = fee.kind === 'semester' ? (b.period as SemesterPeriod) : null;
         if (!fee.active) throw new HttpError(409, 'inactive', 'Jenis biaya ini tidak aktif.');
         const installments = b.installments ?? null;
         if (installments !== null && (fee.kind === 'monthly' || installments < 2 || installments > 12)) {
@@ -805,13 +838,15 @@ export async function financeRoutes(instance: FastifyInstance) {
           .where(and(eq(finInvoice.academicYearId, year.id), eq(finInvoice.feeTypeId, fee.id)));
         // Mode cicilan: siswa dengan tagihan apa pun (utuh atau cicilan) dilewati. Mode biasa: periode yang sama,
         // atau sudah dicicil (periode C..) agar tidak tertagih dua kali.
+        // Biaya semester: cicilan berperiode `S1C01`.. dan hanya semester yang sama yang dihitung.
         const have = new Set(
           existing
-            .filter(
-              (e) =>
-                installments !== null ||
-                (e.period ?? null) === b.period ||
-                (e.period !== null && /^C\d{2}$/.test(e.period)),
+            .filter((e) =>
+              semesterPeriod !== null
+                ? e.period === semesterPeriod || isInstallmentPeriodOf(e.period, semesterPeriod)
+                : installments !== null ||
+                  (e.period ?? null) === b.period ||
+                  isInstallmentPeriodOf(e.period, null),
             )
             .map((e) => e.studentId),
         );
@@ -841,7 +876,12 @@ export async function financeRoutes(instance: FastifyInstance) {
           rulesByStudent.set(a.studentId, list);
         }
 
-        const title = b.period ? `${fee.name} ${periodLabel(b.period)}` : `${fee.name} ${year.name}`;
+        const semesterName = semesterPeriod ? semesterLabel(semesterPeriod) : null;
+        const title = semesterName
+          ? `${fee.name} ${semesterName} ${year.name}`
+          : b.period
+            ? `${fee.name} ${periodLabel(b.period)}`
+            : `${fee.name} ${year.name}`;
         const missingPlan: {
           studentId: string;
           name: string;
@@ -900,8 +940,9 @@ export async function financeRoutes(instance: FastifyInstance) {
             });
           } else {
             for (const part of installmentParts({
-              base: fee.name,
+              base: semesterName ? `${fee.name} ${semesterName}` : fee.name,
               suffix: year.name,
+              ...(semesterPeriod ? { periodPrefix: semesterPeriod } : {}),
               amount,
               discount,
               installments,
@@ -959,7 +1000,7 @@ export async function financeRoutes(instance: FastifyInstance) {
         summary: 'Daftar tagihan',
         description:
           'Izin: `finance:read`; modul `finance`. Filter opsional: `academicYearId`, `classId` (kelas siswa pada tahun ' +
-          'tagihan), `studentId`, `feeTypeId`, `period`, `status`. Status diturunkan dari kwitansi yang tidak batal: ' +
+          'tagihan), `studentId`, `feeTypeId`, `period` (TTTT-BB atau `S1`/`S2`), `status`. Status diturunkan dari kwitansi yang tidak batal: ' +
           '`unpaid`, `partial`, `paid`, `void`. Urut jatuh tempo, nama siswa. `limit` maks 100 (bawaan 50), `offset` ' +
           'bawaan 0. `overdue` = masih ada sisa dan lewat jatuh tempo (hari ini menurut zona waktu sekolah).',
         headers: schoolHeader,
@@ -968,7 +1009,7 @@ export async function financeRoutes(instance: FastifyInstance) {
           classId: z.uuid().optional(),
           studentId: z.uuid().optional(),
           feeTypeId: z.uuid().optional(),
-          period: z.string().regex(PERIOD_PATTERN).optional(),
+          period: z.string().regex(FILTER_PERIOD_PATTERN).optional(),
           status: z.enum(INVOICE_STATUS).optional(),
           limit: z.coerce.number().int().min(1).max(100).default(50),
           offset: z.coerce.number().int().min(0).default(0),
@@ -1104,7 +1145,7 @@ export async function financeRoutes(instance: FastifyInstance) {
         summary: 'Pecah tagihan menjadi cicilan',
         description:
           'Izin: `finance:manage`; modul `finance`. Memecah satu tagihan terbuka yang belum punya pembayaran aktif ' +
-          'menjadi `installments` (2..12) tagihan berperiode `C01`.., nominal dibagi rata (sisa ke cicilan pertama), ' +
+          'menjadi `installments` (2..12) tagihan berperiode `C01`.. (`S1C01`.. bila tagihan asal berperiode semester `S1`/`S2`), nominal dibagi rata (sisa ke cicilan pertama), ' +
           'diskon dibagi proporsional, jatuh tempo `firstDueDate` + (i-1) bulan. Tagihan asal dibatalkan (void, alasan ' +
           '"dipecah menjadi cicilan"). Atomik. Galat: 409 `has_payments`, 409 `invoice_void`, 409 `conflict` bila ' +
           'tagihan cicilan jenis itu sudah ada, 404 `not_found`.',
@@ -1143,6 +1184,7 @@ export async function financeRoutes(instance: FastifyInstance) {
           const parts: InstallmentPart[] = installmentParts({
             base: inv.title,
             suffix: '',
+            ...(inv.period && SEMESTER_PERIOD_PATTERN.test(inv.period) ? { periodPrefix: inv.period } : {}),
             amount: inv.amount,
             discount: inv.discount,
             installments: b.installments,

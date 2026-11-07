@@ -1,7 +1,8 @@
 'use client';
 
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import type { FormGate } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import {
@@ -32,6 +33,11 @@ interface Props {
   /** Lebar dialog; formulir dengan banyak isian memakai "wide". */
   size?: 'default' | 'wide';
   disabled?: boolean;
+  /**
+   * Validasi galat-merah (useFormValidation). Bila diberikan, validasi bawaan browser dimatikan (`noValidate`), kirim
+   * ditahan sampai semua isian benar, isian salah pertama difokuskan, dan ringkasan tampil dekat tombol kirim.
+   */
+  validation?: FormGate;
   children: React.ReactNode;
 }
 
@@ -50,15 +56,24 @@ export function FormDialog({
   onOpenChange,
   size = 'default',
   disabled,
+  validation,
   children,
 }: Props) {
   const t = useTranslations('common');
+  const tv = useTranslations('formValidation');
   const [innerOpen, setInnerOpen] = useState(false);
   const open = controlledOpen ?? innerOpen;
   const [pending, setPending] = useState(false);
+  const errorRef = useRef<HTMLDivElement>(null);
+
+  // Galat dari server muncul di bawah dialog; di ponsel itu bisa di luar layar, jadi digulir ke terlihat.
+  useEffect(() => {
+    if (error) errorRef.current?.scrollIntoView({ block: 'nearest' });
+  }, [error]);
 
   function change(next: boolean) {
     setInnerOpen(next);
+    validation?.reset();
     onOpenChange?.(next);
   }
 
@@ -70,8 +85,10 @@ export function FormDialog({
       >
         <form
           className="grid gap-4"
+          noValidate={!!validation}
           onSubmit={async (e) => {
             e.preventDefault();
+            if (validation && !validation.attempt()) return;
             setPending(true);
             try {
               await onSubmit();
@@ -89,15 +106,22 @@ export function FormDialog({
           </DialogHeader>
           <div className="grid gap-4">{children}</div>
           {error && (
-            <Alert variant="destructive" role="alert">
-              <AlertDescription>{error}</AlertDescription>
-            </Alert>
+            <div ref={errorRef}>
+              <Alert variant="destructive" role="alert">
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            </div>
+          )}
+          {validation?.summary && (
+            <p aria-live="polite" className="text-destructive text-sm">
+              {tv('summary')}
+            </p>
           )}
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => change(false)}>
+            <Button type="button" variant="ghost" className="h-10 md:h-8" onClick={() => change(false)}>
               {t('cancel')}
             </Button>
-            <Button type="submit" disabled={pending || disabled}>
+            <Button type="submit" className="h-10 md:h-8" disabled={pending || disabled}>
               {submitLabel}
             </Button>
           </DialogFooter>

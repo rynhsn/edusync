@@ -14,7 +14,6 @@ import { FORM_GRID } from '@/components/form-field';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
@@ -25,8 +24,9 @@ import { errorKey } from '@/lib/errors';
 import { formatRupiah } from '@/lib/money';
 import { useSchoolLevels } from '@/lib/school-settings';
 import { scopeBody, scopeError, summarizeTargets } from '../fee-scope';
-import { digitsOnly, KIND_KEY, KINDS, type Kind, useFinanceYear, YearSelect } from '../shared';
+import { digitsOnly, KIND_HINT_KEY, KIND_KEY, KINDS, type Kind, useFinanceYear, YearSelect } from '../shared';
 import { ListSkeleton, Money, RowMenu, SectionCard } from '../ui';
+import { BankAccountsCard } from './bank-accounts-card';
 import { DiscountsCard } from './discounts-card';
 import { FeeScopePicker, type ScopeValue } from './fee-scope-picker';
 import { LateFeeCard } from './late-fee-card';
@@ -245,14 +245,18 @@ export function FinanceSettingsView() {
             </option>
           ))}
         </SelectField>
+        <p className="text-muted-foreground text-xs">{t(KIND_HINT_KEY[fee.kind])}</p>
       </div>
-      <div className="flex items-end gap-2 pb-2">
-        <Checkbox
+      <div className="grid content-start gap-2">
+        <Label htmlFor="fee-active">{t('status')}</Label>
+        <SelectField
           id="fee-active"
-          checked={fee.active}
-          onCheckedChange={(v) => setFee({ ...fee, active: v === true })}
-        />
-        <Label htmlFor="fee-active">{t('active')}</Label>
+          value={fee.active ? 'active' : 'inactive'}
+          onChange={(e) => setFee({ ...fee, active: e.target.value === 'active' })}
+        >
+          <option value="active">{t('active')}</option>
+          <option value="inactive">{t('inactive')}</option>
+        </SelectField>
       </div>
       <FeeScopePicker
         value={fee}
@@ -567,6 +571,8 @@ export function FinanceSettingsView() {
           <LateFeeCard feeTypes={feeList.map((f) => ({ id: f.id, name: f.name, active: f.active }))} />
 
           <PaymentMethodsCard />
+
+          <BankAccountsCard />
         </>
       )}
 

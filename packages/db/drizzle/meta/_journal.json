@@ -540,6 +540,13 @@
       "when": 1795400200000,
       "tag": "0076_school_suspension_note",
       "breakpoints": true
+    },
+    {
+      "idx": 77,
+      "version": "7",
+      "when": 1795450200000,
+      "tag": "0077_fin_bank_account",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation } from '@tanstack/react-query';
-import { CreditCard, Download } from 'lucide-react';
+import { Copy, CreditCard, Download, Landmark } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -14,7 +14,13 @@ import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { formatRupiah } from '@/lib/money';
 import { isPayableOnline, MAX_ONLINE_INVOICES, selectedOutstanding } from '@/lib/online-charge';
-import { PORTAL_PATHS, type PortalInvoice, type PortalInvoices, type PortalReceipt } from '@/lib/portal-api';
+import {
+  PORTAL_PATHS,
+  type PortalBankAccount,
+  type PortalInvoice,
+  type PortalInvoices,
+  type PortalReceipt,
+} from '@/lib/portal-api';
 import { cn } from '@/lib/utils';
 import { downloadReceiptPdf } from '../../../finance/pdf/download';
 import { usePortalDetail, usePortalMe } from '../../queries';
@@ -30,6 +36,61 @@ const STATUS_STYLE: Record<Shown, string> = {
   overdue: 'bg-chart-3/20 text-foreground',
   void: 'bg-muted text-muted-foreground line-through',
 };
+
+/** Rekening sekolah untuk pembayaran transfer, dengan tombol salin nomor rekening. */
+function BankAccounts({ accounts }: { accounts: PortalBankAccount[] }) {
+  const t = useTranslations('portal');
+
+  async function copy(number: string) {
+    try {
+      await navigator.clipboard.writeText(number.replace(/\D/g, ''));
+      toast.success(t('bankCopied'));
+    } catch {
+      toast.error(t('bankCopyError'));
+    }
+  }
+
+  return (
+    <section
+      className="bg-card grid content-start gap-3 rounded-2xl border p-4"
+      aria-labelledby="portal-bank"
+    >
+      <div className="flex items-start gap-2">
+        <Landmark className="text-primary mt-0.5 size-4 shrink-0" aria-hidden />
+        <div className="min-w-0">
+          <h3 id="portal-bank" className="font-heading font-semibold">
+            {t('bankTitle')}
+          </h3>
+          <p className="text-muted-foreground text-xs">{t('bankHint')}</p>
+        </div>
+      </div>
+      <ul className="grid gap-2">
+        {accounts.map((a) => (
+          <li key={a.id} className="bg-muted/40 flex items-center justify-between gap-3 rounded-xl p-3">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-medium">{a.bankName}</p>
+              <p className="font-mono text-base font-semibold tracking-wide tabular-nums">
+                {a.accountNumber}
+              </p>
+              <p className="text-muted-foreground text-xs break-words">
+                {t('bankHolder', { name: a.accountHolder })}
+                {a.note ? ` · ${a.note}` : ''}
+              </p>
+            </div>
+            <Button
+              variant="outline"
+              size="sm"
+              aria-label={t('bankCopyLabel', { bank: a.bankName })}
+              onClick={() => copy(a.accountNumber)}
+            >
+              <Copy className="size-3.5" aria-hidden /> {t('bankCopy')}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
+}
 
 export function InvoicesTab({ studentId }: { studentId: string }) {
   const t = useTranslations('portal');
@@ -158,6 +219,7 @@ export function InvoicesTab({ studentId }: { studentId: string }) {
               <p className="text-muted-foreground text-xs">{t('payOnlineHint')}</p>
             </div>
           )}
+          {data.bankAccounts.length > 0 && <BankAccounts accounts={data.bankAccounts} />}
           <ul className="grid gap-3">
             {data.invoices.map((inv) => {
               const state: Shown = inv.overdue ? 'overdue' : inv.status;

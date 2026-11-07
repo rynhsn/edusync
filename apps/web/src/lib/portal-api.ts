@@ -99,6 +99,16 @@ export interface PortalInvoices {
   overdueTotal: number;
   invoices: PortalInvoice[];
   receipts: PortalReceipt[];
+  /** Rekening sekolah yang aktif untuk pembayaran transfer. */
+  bankAccounts: PortalBankAccount[];
+}
+
+export interface PortalBankAccount {
+  id: string;
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+  note: string | null;
 }
 
 export interface RecentScore {

@@ -51,13 +51,17 @@ import { buildExport, saveBlob } from '@/lib/sheet';
 import { classOutsideScope } from '../fee-scope';
 import {
   DiscountMark,
+  defaultSemester,
   digitsOnly,
   INSTALLMENT_CHOICES,
   InstallmentBadge,
   InstallmentTimeline,
   type InvoiceStatus,
   installmentInfo,
+  isSemesterPeriod,
   PeriodPicker,
+  SEMESTER_KEY,
+  SemesterPicker,
   STATUS_KEY,
   STATUSES,
   StatusBadge,
@@ -211,6 +215,7 @@ export function InvoicesView() {
   const feeList = feeTypes.data ?? [];
   const genFee = feeList.find((f) => f.id === gen.feeTypeId);
   const genMonthly = genFee?.kind === 'monthly';
+  const genSemester = genFee?.kind === 'semester';
   const genOutside = classOutsideScope(genFee, gen.classId);
   const genCount = Number(gen.installments || 0);
 
@@ -236,7 +241,7 @@ export function InvoicesView() {
           body: {
             academicYearId: yearId,
             feeTypeId: gen.feeTypeId,
-            period: genMonthly ? gen.period : null,
+            period: genMonthly || genSemester ? gen.period : null,
             classId: gen.classId || null,
             dueDate: gen.dueDate,
             ...(!genMonthly && genCount >= 2 ? { installments: genCount } : {}),
@@ -334,7 +339,7 @@ export function InvoicesView() {
           x.nis,
           x.className,
           x.title,
-          x.period,
+          isSemesterPeriod(x.period) ? t(SEMESTER_KEY[x.period]) : x.period,
           x.dueDate.slice(0, 10),
           x.amount,
           x.discount,
@@ -435,7 +440,7 @@ export function InvoicesView() {
                     description={t('generateHint')}
                     submitLabel={t('generate')}
                     error={error}
-                    disabled={!gen.feeTypeId || !gen.dueDate || (genMonthly && !gen.period)}
+                    disabled={!gen.feeTypeId || !gen.dueDate || ((genMonthly || genSemester) && !gen.period)}
                     onOpenChange={() => {
                       setGen({
                         feeTypeId: '',
@@ -460,7 +465,12 @@ export function InvoicesView() {
                             setGen({
                               ...gen,
                               feeTypeId: e.target.value,
-                              period: f?.kind === 'monthly' ? todayIso().slice(0, 7) : '',
+                              period:
+                                f?.kind === 'monthly'
+                                  ? todayIso().slice(0, 7)
+                                  : f?.kind === 'semester'
+                                    ? defaultSemester()
+                                    : '',
                               installments: '',
                             });
                           }}
@@ -514,6 +524,18 @@ export function InvoicesView() {
                             value={gen.period}
                             onChange={(v) => setGen({ ...gen, period: v })}
                           />
+                        </div>
+                      )}
+                      {genSemester && (
+                        <div className="grid content-start gap-2">
+                          <Label htmlFor="gen-semester">{t('semesterFilter')}</Label>
+                          <SemesterPicker
+                            id="gen-semester"
+                            academicYearId={yearId}
+                            value={gen.period}
+                            onChange={(v) => setGen({ ...gen, period: v })}
+                          />
+                          <p className="text-muted-foreground text-xs">{t('semesterPeriodHint')}</p>
                         </div>
                       )}
                       <div className="grid content-start gap-2">
@@ -652,13 +674,24 @@ export function InvoicesView() {
           <PeriodPicker
             allowEmpty
             idPrefix="flt-period"
-            value={period}
+            value={isSemesterPeriod(period) ? '' : period}
             onChange={(v) => {
               setPeriod(v);
               resetPage();
             }}
           />
         </div>
+        <SemesterPicker
+          allowEmpty
+          aria-label={t('semesterFilter')}
+          className="sm:w-48"
+          academicYearId={yearId}
+          value={isSemesterPeriod(period) ? period : ''}
+          onChange={(v) => {
+            setPeriod(v);
+            resetPage();
+          }}
+        />
         <SelectField
           aria-label={t('status')}
           className="sm:w-40"

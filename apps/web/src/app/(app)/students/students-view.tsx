@@ -23,6 +23,13 @@ import { useSchool } from '@/components/app-shell';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import {
+  FieldError,
+  type FormValidation,
+  TOUCH_INPUT,
+  TOUCH_SELECT,
+  useFormValidation,
+} from '@/components/form-field-error';
+import {
   ConfirmDelete,
   DataRows,
   ListSkeleton,
@@ -52,6 +59,7 @@ import {
 } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { STUDENT_ORDER, type StudentField, validateStudent } from '@/lib/form-validation';
 import { GuardiansPanel } from './guardians-panel';
 import { StudentCards } from './student-cards';
 import { exportStudentsExcel } from './student-export';
@@ -127,11 +135,14 @@ function StudentFields({
   draft,
   classes,
   onChange,
+  v,
 }: {
   idPrefix: string;
   draft: Draft;
   classes: { id: string; name: string }[];
   onChange: (d: Draft) => void;
+  /** Validasi galat-merah; id isian = `${idPrefix}-${field}`. */
+  v: FormValidation<StudentField>;
 }) {
   const t = useTranslations('students');
   const tm = useTranslations('masterData');
@@ -142,47 +153,55 @@ function StudentFields({
       <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={f('name')}>{tm('name')}</Label>
         <Input
-          id={f('name')}
-          required
+          {...v.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
           maxLength={120}
           value={draft.name}
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
+        <FieldError id={f('name')} issue={v.issue('name')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={f('nis')}>{t('nis')}</Label>
         <Input
-          id={f('nis')}
+          {...v.fieldProps('nis')}
+          className={TOUCH_INPUT}
           maxLength={30}
           value={draft.nis}
           onChange={(e) => onChange({ ...draft, nis: e.target.value })}
         />
+        <FieldError id={f('nis')} issue={v.issue('nis')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={f('nisn')}>{t('nisn')}</Label>
         <Input
-          id={f('nisn')}
+          {...v.fieldProps('nisn')}
+          className={TOUCH_INPUT}
           maxLength={30}
           value={draft.nisn}
           onChange={(e) => onChange({ ...draft, nisn: e.target.value })}
         />
+        <FieldError id={f('nisn')} issue={v.issue('nisn')} />
       </div>
       <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={f('nik')}>{t('nik')}</Label>
         <Input
-          id={f('nik')}
+          {...v.fieldProps('nik')}
+          className={TOUCH_INPUT}
           inputMode="numeric"
           maxLength={16}
-          pattern="\d{16}"
-          title={t('nikHint')}
           value={draft.nik}
           onChange={(e) => onChange({ ...draft, nik: e.target.value.replace(/\D/g, '') })}
         />
+        <FieldError id={f('nik')} issue={v.issue('nik')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={f('gender')}>{t('gender')}</Label>
         <SelectField
           id={f('gender')}
+          className={TOUCH_SELECT}
           value={draft.gender}
           onChange={(e) => onChange({ ...draft, gender: e.target.value as 'L' | 'P' })}
         >
@@ -193,26 +212,34 @@ function StudentFields({
       <div className="grid content-start gap-2">
         <Label htmlFor={f('birthPlace')}>{t('birthPlace')}</Label>
         <Input
-          id={f('birthPlace')}
+          {...v.fieldProps('birthPlace')}
+          className={TOUCH_INPUT}
           maxLength={80}
           value={draft.birthPlace}
           onChange={(e) => onChange({ ...draft, birthPlace: e.target.value })}
         />
+        <FieldError id={f('birthPlace')} issue={v.issue('birthPlace')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={f('birthDate')}>{t('birthDate')}</Label>
         <DatePicker
-          id={f('birthDate')}
+          {...v.fieldProps('birthDate')}
+          className={TOUCH_INPUT}
           value={draft.birthDate}
-          onChange={(v) => onChange({ ...draft, birthDate: v })}
+          onChange={(date) => {
+            onChange({ ...draft, birthDate: date });
+            v.touch('birthDate');
+          }}
           clearable
           yearRange={{ from: thisYear - 40, to: thisYear }}
         />
+        <FieldError id={f('birthDate')} issue={v.issue('birthDate')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={f('religion')}>{t('religion')}</Label>
         <SelectField
           id={f('religion')}
+          className={TOUCH_SELECT}
           value={draft.religion}
           onChange={(e) => onChange({ ...draft, religion: e.target.value as Religion | '' })}
         >
@@ -228,6 +255,7 @@ function StudentFields({
         <Label htmlFor={f('status')}>{t('status')}</Label>
         <SelectField
           id={f('status')}
+          className={TOUCH_SELECT}
           value={draft.status}
           onChange={(e) => onChange({ ...draft, status: e.target.value as Status })}
         >
@@ -243,6 +271,7 @@ function StudentFields({
           <Label htmlFor={f('classId')}>{t('class')}</Label>
           <SelectField
             id={f('classId')}
+            className={TOUCH_SELECT}
             value={draft.classId}
             onChange={(e) => onChange({ ...draft, classId: e.target.value })}
           >
@@ -259,33 +288,41 @@ function StudentFields({
       <div className="grid content-start gap-2">
         <Label htmlFor={f('phone')}>{t('phone')}</Label>
         <Input
-          id={f('phone')}
+          {...v.fieldProps('phone')}
+          className={TOUCH_INPUT}
           inputMode="tel"
+          autoComplete="off"
           maxLength={30}
           value={draft.phone}
           onChange={(e) => onChange({ ...draft, phone: e.target.value })}
         />
+        <FieldError id={f('phone')} issue={v.issue('phone')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={f('email')}>{t('email')}</Label>
         <Input
-          id={f('email')}
+          {...v.fieldProps('email')}
+          className={TOUCH_INPUT}
           type="email"
+          inputMode="email"
+          autoComplete="off"
           maxLength={254}
           value={draft.email}
           onChange={(e) => onChange({ ...draft, email: e.target.value })}
         />
+        <FieldError id={f('email')} issue={v.issue('email')} />
       </div>
       <p className="text-muted-foreground -mt-2 text-xs sm:col-span-2">{t('contactHint')}</p>
       <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={f('address')}>{t('address')}</Label>
         <Textarea
-          id={f('address')}
+          {...v.fieldProps('address')}
           rows={2}
           maxLength={300}
           value={draft.address}
           onChange={(e) => onChange({ ...draft, address: e.target.value })}
         />
+        <FieldError id={f('address')} issue={v.issue('address')} />
       </div>
     </div>
   );
@@ -316,6 +353,13 @@ export function StudentsView() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string; originalClassId: string } & Draft) | null>(null);
+  // Hanya satu dialog isian yang terbuka pada satu waktu: satu penanda validasi untuk tambah dan ubah.
+  const formValues = editing ?? draft;
+  const validation = useFormValidation<StudentField>({
+    errors: validateStudent(formValues),
+    order: STUDENT_ORDER,
+    idPrefix: editing ? 'edit' : 'new',
+  });
   const [guardiansFor, setGuardiansFor] = useState<{ id: string; name: string } | null>(null);
   const [cardsFor, setCardsFor] = useState<{ id: string; name: string } | null>(null);
   // Kartu RFID: modul absensi + izin konfigurasi absensi. QR identitas: tidak terikat modul, cukup izin kelola siswa.
@@ -450,6 +494,7 @@ export function StudentsView() {
 
   const openEdit = (s: NonNullable<typeof list.data>['items'][number]) => {
     setError(null);
+    validation.reset();
     setEditing({
       id: s.id,
       originalClassId: s.classId ?? '',
@@ -480,13 +525,14 @@ export function StudentsView() {
       title={t('addTitle')}
       submitLabel={tm('add')}
       error={error}
+      validation={validation}
       onOpenChange={() => {
         setDraft(EMPTY);
         setError(null);
       }}
       onSubmit={() => create.mutateAsync()}
     >
-      <StudentFields idPrefix="new" draft={draft} classes={classList} onChange={setDraft} />
+      <StudentFields idPrefix="new" draft={draft} classes={classList} onChange={setDraft} v={validation} />
     </FormDialog>
   );
 
@@ -742,6 +788,7 @@ export function StudentsView() {
         title={tm('edit')}
         submitLabel={tm('save')}
         error={error}
+        validation={validation}
         onOpenChange={(open) => !open && setEditing(null)}
         onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
       >
@@ -753,6 +800,7 @@ export function StudentsView() {
               draft={editing}
               classes={classList}
               onChange={(d) => setEditing({ ...editing, ...d })}
+              v={validation}
             />
           </div>
         )}

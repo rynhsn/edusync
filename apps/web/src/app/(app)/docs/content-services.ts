@@ -18,7 +18,7 @@ export const SERVICE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Menyiapkan jenis biaya dan tarif',
-            body: 'Sebelum membuat tagihan, sekolah perlu mendaftarkan jenis biaya (misalnya SPP, uang gedung, seragam) dan berapa nominalnya. Jenis biaya bersifat Bulanan, Sekali bayar, atau Tahunan. Nominal diatur per tahun ajaran dan per tingkat. Bila ada tarif khusus satu tingkat, tarif itu dipakai lebih dulu daripada tarif "Semua tingkat".',
+            body: 'Sebelum membuat tagihan, sekolah perlu mendaftarkan jenis biaya (misalnya SPP, uang gedung, seragam) dan berapa nominalnya. Jenis biaya bersifat Bulanan, Per semester (misalnya SPP semester atau uang ujian semester), Sekali bayar, atau Tahunan. Untuk jenis Per semester, tarif adalah nominal untuk satu semester. Nominal diatur per tahun ajaran dan per tingkat. Bila ada tarif khusus satu tingkat, tarif itu dipakai lebih dulu daripada tarif "Semua tingkat".',
             steps: [
               'Buka menu Keuangan, lalu Jenis biaya & tarif.',
               'Klik Tambah jenis biaya, isi namanya, dan pilih sifatnya.',
@@ -60,7 +60,7 @@ export const SERVICE_DOCS: DocArticle[] = [
             body: 'Tagihan dibuat untuk siswa aktif sesuai tarif tingkat kelasnya. Bila Anda menjalankannya dua kali untuk jenis biaya dan bulan yang sama, tagihan yang sudah ada dilewati sehingga tidak menjadi ganda.',
             steps: [
               'Buka menu Tagihan, pilih Tahun ajaran, lalu klik Buat tagihan.',
-              'Pilih Jenis biaya. Untuk jenis Bulanan, pilih juga Periode (bulan dan tahunnya).',
+              'Pilih Jenis biaya. Untuk jenis Bulanan, pilih juga Periode (bulan dan tahunnya). Untuk jenis Per semester, pilih Semester Ganjil atau Semester Genap; judul tagihan menjadi, misalnya, "SPP Semester Ganjil 2026/2027".',
               'Pilih Kelas bila hanya untuk satu kelas, atau biarkan Semua kelas.',
               'Isi Jatuh tempo.',
               'Untuk biaya yang bukan bulanan, Anda boleh memilih Cicilan 2 sampai 12 kali.',
@@ -84,6 +84,20 @@ export const SERVICE_DOCS: DocArticle[] = [
             warning:
               'Setelah dikonfirmasi, pembayaran langsung tercatat dan kwitansi terbit. Periksa nama siswa dan jumlahnya dulu.',
             href: '/finance',
+          },
+          {
+            heading: 'Mengisi rekening sekolah untuk pembayaran transfer',
+            body: 'Agar wali dan siswa tahu ke mana harus mentransfer, isi rekening bank sekolah. Rekening yang aktif tampil di tab Tagihan pada portal wali dan siswa, lengkap dengan tombol Salin nomor. Kasir tetap mencatat pembayaran transfer setelah bukti transfer dikonfirmasi.',
+            steps: [
+              'Buka Keuangan, Jenis biaya & tarif, lalu gulir ke kartu Rekening sekolah.',
+              'Klik Tambah rekening. Isi Nama bank, Nomor rekening (angka, spasi, atau tanda hubung), dan Atas nama. Catatan boleh diisi, misalnya berita transfer yang diminta.',
+              'Gunakan tombol panah untuk mengatur urutan tampil. Pilih Nonaktifkan untuk menyembunyikan rekening dari portal tanpa menghapusnya.',
+              'Wali melihat rekening itu di portal, mentransfer, lalu mengonfirmasi ke sekolah. Bendahara mencatat pembayarannya di Kasir dengan metode Transfer.',
+            ],
+            tip: 'Satu sekolah dapat menyimpan sampai 10 rekening. Hanya Bendahara dan Admin sekolah yang dapat mengubahnya.',
+            warning:
+              'Periksa nomor rekening dengan teliti sebelum diaktifkan: wali akan mentransfer ke nomor yang tampil di portal.',
+            href: '/finance/settings',
           },
           {
             heading: 'Membatalkan pembayaran yang salah catat',
@@ -159,7 +173,7 @@ export const SERVICE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Setting up fee types and rates',
-            body: 'Before creating invoices, the school needs to list its fee types (for example tuition, building fee, uniform) and their amounts. A fee type is Monthly, One-time, or Yearly. Amounts are set per academic year and per level. A rate for one level is used before the "All levels" rate.',
+            body: 'Before creating invoices, the school needs to list its fee types (for example tuition, building fee, uniform) and their amounts. A fee type is Monthly, Per semester (for example semester tuition or semester exam fee), One-time, or Yearly. For a Per semester type, the rate is the amount for one semester. Amounts are set per academic year and per level. A rate for one level is used before the "All levels" rate.',
             steps: [
               'Open the Finance menu, then Fee types & rates.',
               'Click Add fee type, fill in the name, and choose its kind.',
@@ -201,7 +215,7 @@ export const SERVICE_DOCS: DocArticle[] = [
             body: 'Invoices are created for active students using the rate of their class level. If you run it twice for the same fee type and month, invoices that already exist are skipped, so nothing is duplicated.',
             steps: [
               'Open the Invoices menu, choose the Academic year, then click Generate invoices.',
-              'Choose the Fee type. For a Monthly type, also choose the Period (month and year).',
+              'Choose the Fee type. For a Monthly type, also choose the Period (month and year). For a Per semester type, choose Odd semester or Even semester; the invoice title becomes, for example, "Tuition Odd semester 2026/2027".',
               'Choose a Class for one class only, or leave All classes.',
               'Fill in the Due date.',
               'For fees that are not monthly, you may choose 2 to 12 installments.',
@@ -225,6 +239,20 @@ export const SERVICE_DOCS: DocArticle[] = [
             warning:
               'Once confirmed, the payment is recorded right away and a receipt is issued. Check the student name and the amount first.',
             href: '/finance',
+          },
+          {
+            heading: 'Entering the school bank accounts for transfer payments',
+            body: 'So guardians and students know where to transfer, enter the school bank accounts. Active accounts appear on the Invoices tab of the guardian and student portal, with a Copy number button. The cashier still records the transfer payment once the transfer proof is confirmed.',
+            steps: [
+              'Open Finance, Fee types & rates, then scroll to the School bank accounts card.',
+              'Click Add account. Fill in Bank name, Account number (digits, spaces or dashes), and Account holder. A note is optional, for example the transfer reference you want.',
+              'Use the arrow buttons to set the display order. Choose Deactivate to hide an account from the portal without deleting it.',
+              'The guardian sees the account in the portal, transfers, then confirms with the school. The treasurer records the payment at the Cashier with the Transfer method.',
+            ],
+            tip: 'A school can keep up to 10 accounts. Only the Treasurer and School admin can change them.',
+            warning:
+              'Check the account number carefully before activating it: guardians will transfer to the number shown in the portal.',
+            href: '/finance/settings',
           },
           {
             heading: 'Voiding a wrongly recorded payment',
@@ -300,7 +328,7 @@ export const SERVICE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Nyiapkeun jenis biaya jeung tarif',
-            body: 'Samemeh nyieun tagihan, sakola kedah ngadaptarkeun jenis biaya (contona SPP, artos gedong, saragam) jeung nominalna. Jenis biaya sifatna Bulanan, Sakali bayar, atawa Taunan. Nominal diatur per tahun ajaran jeung per jenjang. Upami aya tarif husus hiji jenjang, tarif eta dipake heula tibatan tarif "Sadaya jenjang".',
+            body: 'Samemeh nyieun tagihan, sakola kedah ngadaptarkeun jenis biaya (contona SPP, artos gedong, saragam) jeung nominalna. Jenis biaya sifatna Bulanan, Per semester (contona SPP semester atawa artos ujian semester), Sakali bayar, atawa Taunan. Pikeun jenis Per semester, tarif nyaéta nominal pikeun hiji semester. Nominal diatur per tahun ajaran jeung per jenjang. Upami aya tarif husus hiji jenjang, tarif eta dipake heula tibatan tarif "Sadaya jenjang".',
             steps: [
               'Buka menu Kauangan, tuluy Jenis biaya & tarif.',
               'Klik Tambah jenis biaya, eusian namina, tuluy pilih sifatna.',
@@ -342,7 +370,7 @@ export const SERVICE_DOCS: DocArticle[] = [
             body: 'Tagihan dijieun pikeun siswa aktif numutkeun tarif jenjang kelasna. Upami dijalankeun dua kali pikeun jenis biaya jeung bulan nu sarua, tagihan nu parantos aya dileueut sangkan teu dobel.',
             steps: [
               'Buka menu Tagihan, pilih Tahun ajaran, tuluy klik Jieun tagihan.',
-              'Pilih Jenis biaya. Pikeun jenis Bulanan, pilih oge Periode (bulan jeung taunna).',
+              'Pilih Jenis biaya. Pikeun jenis Bulanan, pilih oge Periode (bulan jeung taunna). Pikeun jenis Per semester, pilih Semester Ganjil atawa Semester Genap; judul tagihan jadi, contona, "SPP Semester Ganjil 2026/2027".',
               'Pilih Kelas upami ngan pikeun hiji kelas, atawa sina Sadaya kelas.',
               'Eusian Jatuh tempo.',
               'Pikeun biaya nu lain bulanan, tiasa milih Cicilan 2 dugi ka 12 kali.',
@@ -366,6 +394,20 @@ export const SERVICE_DOCS: DocArticle[] = [
             warning:
               'Saparantos dikonfirmasi, pambayaran langsung kacatet jeung kwitansi terbit. Pariksa heula nami siswa jeung jumlahna.',
             href: '/finance',
+          },
+          {
+            heading: 'Ngeusian rékening sakola pikeun pambayaran transfer',
+            body: 'Supaya wali jeung siswa terang kudu transfer ka mana, eusian rékening bank sakola. Rékening nu aktip mucunghul dina tab Tagihan di portal wali jeung siswa, lengkep jeung tombol Salin nomer. Kasir tetep nyatet pambayaran transfer sanggeus bukti transfer dikonfirmasi.',
+            steps: [
+              'Buka Kauangan, Jenis biaya & tarif, tuluy ngagulung ka kartu Rékening sakola.',
+              'Klik Tambah rékening. Eusian Ngaran bank, Nomer rékening (angka, spasi, atawa tanda hubung), jeung Atas nami. Catetan mah opsional, upamana béja transfer nu dipénta.',
+              'Paké tombol panah pikeun ngatur urutan tampil. Pilih Pareuman pikeun nyumputkeun rékening ti portal tanpa mupus.',
+              'Wali ningali rékening eta di portal, transfer, tuluy konfirmasi ka sakola. Bendahara nyatet pambayarana di Kasir ku cara Transfer.',
+            ],
+            tip: 'Hiji sakola tiasa nyimpen nepi ka 10 rékening. Ngan Bendahara jeung Admin sakola nu tiasa ngarobahna.',
+            warning:
+              'Pariksa nomer rékening taliti samemeh diaktipkeun: wali bakal transfer ka nomer nu mucunghul di portal.',
+            href: '/finance/settings',
           },
           {
             heading: 'Ngabatalkeun pambayaran nu salah dicatet',

@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { LevelField } from '@/components/level-field';
 import { ConfirmDelete, ListSkeleton, REVEAL, RowMenu, SearchBox } from '@/components/master-kit';
 import { PageBody, PageHeader } from '@/components/page-header';
@@ -28,6 +29,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, TONES, Toolbar, UserAvatar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { CLASS_ORDER, type ClassField, validateClass } from '@/lib/form-validation';
 import { cn } from '@/lib/utils';
 
 /** Guru pengampu mata pelajaran di satu kelas. */
@@ -171,6 +173,11 @@ export function ClassesView() {
   const [editing, setEditing] = useState<string | null>(null);
   const [editDraft, setEditDraft] = useState(emptyDraft);
   const [editError, setEditError] = useState<string | null>(null);
+  const validation = useFormValidation<ClassField>({
+    errors: validateClass(editing !== null ? editDraft : draft),
+    order: CLASS_ORDER,
+    idPrefix: editing !== null ? 'class-edit' : 'class',
+  });
   const [error, setError] = useState<string | null>(null);
   const [assignFor, setAssignFor] = useState<{ id: string; name: string } | null>(null);
   const [programDraft, setProgramDraft] = useState({ code: '', name: '' });
@@ -278,27 +285,37 @@ export function ClassesView() {
       <div className="grid content-start gap-2">
         <Label htmlFor={`${prefix}-name`}>{tm('name')}</Label>
         <Input
-          id={`${prefix}-name`}
-          required
+          {...validation.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
           maxLength={80}
           value={value.name}
           onChange={(e) => set({ ...value, name: e.target.value })}
         />
+        <FieldError id={validation.idOf('name')} issue={validation.issue('name')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${prefix}-level`}>{t('level')}</Label>
         <LevelField
-          id={`${prefix}-level`}
+          {...validation.fieldProps('level')}
           required
+          nativeRequired={false}
+          touch
           placeholder={t('levelHint')}
           value={value.level}
-          onChange={(level) => set({ ...value, level })}
+          onChange={(level) => {
+            set({ ...value, level });
+            validation.touch('level');
+          }}
         />
+        <FieldError id={validation.idOf('level')} issue={validation.issue('level')} />
       </div>
       <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${prefix}-program`}>{t('program')}</Label>
         <SelectField
           id={`${prefix}-program`}
+          className={TOUCH_SELECT}
           value={value.programId}
           onChange={(e) => set({ ...value, programId: e.target.value })}
         >
@@ -315,6 +332,7 @@ export function ClassesView() {
           <Label htmlFor={`${prefix}-homeroom`}>{t('homeroomTeacher')}</Label>
           <SelectField
             id={`${prefix}-homeroom`}
+            className={TOUCH_SELECT}
             value={value.homeroomTeacherId}
             onChange={(e) => set({ ...value, homeroomTeacherId: e.target.value })}
           >
@@ -350,6 +368,7 @@ export function ClassesView() {
 
   const openEdit = (c: (typeof classRows)[number]) => {
     setEditError(null);
+    validation.reset();
     setEditDraft({
       name: c.name,
       level: c.level,
@@ -370,6 +389,7 @@ export function ClassesView() {
         title={t('addTitle')}
         submitLabel={tm('add')}
         error={error}
+        validation={validation}
         onOpenChange={() => setError(null)}
         onSubmit={() => createClass.mutateAsync()}
       >
@@ -671,6 +691,7 @@ export function ClassesView() {
         title={t('editTitle')}
         submitLabel={tm('save')}
         error={editError}
+        validation={validation}
         onOpenChange={(o) => {
           if (!o) setEditing(null);
         }}

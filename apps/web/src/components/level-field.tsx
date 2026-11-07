@@ -1,5 +1,6 @@
 'use client';
 
+import { TOUCH_INPUT, TOUCH_SELECT } from '@/components/form-field-error';
 import { Input } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select-field';
 import { useSchoolLevels } from '@/lib/school-settings';
@@ -15,6 +16,13 @@ interface Props {
   placeholder?: string;
   maxLength?: number;
   disabled?: boolean;
+  /** Bila false, `required` hanya mengatur pilihan kosong dan tidak memasang validasi bawaan browser (untuk useFormValidation). */
+  nativeRequired?: boolean;
+  'aria-invalid'?: boolean;
+  'aria-describedby'?: string | undefined;
+  onBlur?: () => void;
+  /** Tinggi 40px di ponsel (sasaran sentuh). */
+  touch?: boolean;
 }
 
 /**
@@ -30,6 +38,11 @@ export function LevelField({
   placeholder,
   maxLength = 20,
   disabled,
+  nativeRequired = true,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedby,
+  onBlur,
+  touch,
 }: Props) {
   const levels = useSchoolLevels();
   const list = levels.data ?? [];
@@ -38,7 +51,12 @@ export function LevelField({
     return (
       <Input
         id={id}
-        required={required}
+        required={required && nativeRequired}
+        aria-required={required}
+        aria-invalid={ariaInvalid}
+        aria-describedby={ariaDescribedby}
+        onBlur={onBlur}
+        {...(touch ? { className: TOUCH_INPUT } : {})}
         maxLength={maxLength}
         placeholder={placeholder}
         disabled={disabled}
@@ -51,6 +69,10 @@ export function LevelField({
   return (
     <SelectField
       id={id}
+      aria-invalid={ariaInvalid}
+      aria-describedby={ariaDescribedby}
+      onBlur={onBlur}
+      {...(touch ? { className: TOUCH_SELECT } : {})}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       {...(disabled !== undefined ? { disabled } : {})}

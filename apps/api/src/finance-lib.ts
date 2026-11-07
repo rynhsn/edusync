@@ -6,6 +6,7 @@ import {
   count,
   enrollment,
   eq,
+  finBankAccount,
   finFeeType,
   finInvoice,
   finPaymentMethod,
@@ -61,6 +62,43 @@ export type InvoiceStatus = 'unpaid' | 'partial' | 'paid' | 'void';
 export const periodLabel = formatMonthYearId;
 
 export const PERIOD_PATTERN = /^\d{4}-(0[1-9]|1[0-2])$/;
+
+/** Periode biaya semester: `S1` (ganjil) dan `S2` (genap), urut menurut tanggal mulai semester pada tahun ajaran itu. */
+export const SEMESTER_PERIODS = ['S1', 'S2'] as const;
+export type SemesterPeriod = (typeof SEMESTER_PERIODS)[number];
+export const SEMESTER_PERIOD_PATTERN = /^S[12]$/;
+/** Periode yang sah untuk penyaring tagihan: bulan (TTTT-BB) atau semester (S1/S2). */
+export const FILTER_PERIOD_PATTERN = /^(\d{4}-(0[1-9]|1[0-2])|S[12])$/;
+
+/** "S1" menjadi "Semester Ganjil", "S2" menjadi "Semester Genap". */
+export function semesterLabel(period: SemesterPeriod): string {
+  return period === 'S1' ? 'Semester Ganjil' : 'Semester Genap';
+}
+
+/** Apakah `period` periode cicilan: `C01`.. untuk biaya biasa, `S1C01`.. untuk biaya semester (agar tidak bentrok antarsemester). */
+export function isInstallmentPeriodOf(period: string | null, semesterPeriod: string | null): boolean {
+  if (period === null) return false;
+  return semesterPeriod === null
+    ? /^C\d{2}$/.test(period)
+    : new RegExp(`^${semesterPeriod}C\\d{2}$`).test(period);
+}
+
+/** Rekening bank sekolah (urut `sort`, lalu dibuat); `onlyActive` untuk tampilan portal. */
+export async function listBankAccounts(tx: Tx, options: { onlyActive?: boolean } = {}) {
+  return tx
+    .select({
+      id: finBankAccount.id,
+      bankName: finBankAccount.bankName,
+      accountNumber: finBankAccount.accountNumber,
+      accountHolder: finBankAccount.accountHolder,
+      note: finBankAccount.note,
+      active: finBankAccount.active,
+      sort: finBankAccount.sort,
+    })
+    .from(finBankAccount)
+    .where(options.onlyActive ? eq(finBankAccount.active, true) : undefined)
+    .orderBy(asc(finBankAccount.sort), asc(finBankAccount.createdAt), asc(finBankAccount.id));
+}
 
 /** Jumlah yang sudah dibayar pada tagihan: item kwitansi yang tidak batal. Rujukan tabel ditulis lengkap karena dipakai di subquery. */
 export const paidSql = sql<number>`coalesce((select sum(pi.amount) from fin_payment_item pi join fin_payment p on p.id = pi.payment_id where pi.invoice_id = "fin_invoice"."id" and p.voided_at is null), 0)::int`;
@@ -251,10 +289,14 @@ export interface InstallmentPart {
   dueDate: string;
 }
 
-/** Rincian cicilan 1..n: periode `C01`.., judul "<dasar> (cicilan i/n) <akhiran>", nominal, diskon, dan jatuh tempo bulanan. */
+/**
+ * Rincian cicilan 1..n: periode `C01`.. (diawali `periodPrefix`, mis. `S1` untuk biaya semester), judul
+ * "<dasar> (cicilan i/n) <akhiran>", nominal, diskon, dan jatuh tempo bulanan.
+ */
 export function installmentParts(opts: {
   base: string;
   suffix: string;
+  periodPrefix?: string;
   amount: number;
   discount: number;
   installments: number;
@@ -264,7 +306,7 @@ export function installmentParts(opts: {
   const amounts = splitEven(opts.amount, n);
   const discounts = splitDiscount(opts.discount, amounts);
   return amounts.map((amount, i) => ({
-    period: `C${String(i + 1).padStart(2, '0')}`,
+    period: `${opts.periodPrefix ?? ''}C${String(i + 1).padStart(2, '0')}`,
     title: `${opts.base} (cicilan ${i + 1}/${n})${opts.suffix ? ` ${opts.suffix}` : ''}`,
     amount,
     discount: discounts[i] as number,

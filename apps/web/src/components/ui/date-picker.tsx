@@ -24,6 +24,9 @@ interface Props {
   clearable?: boolean;
   /** Pemilih bulan dan tahun (dropdown), cocok untuk tanggal lahir. */
   yearRange?: { from: number; to: number };
+  'aria-invalid'?: boolean;
+  'aria-describedby'?: string | undefined;
+  onBlur?: () => void;
 }
 
 const parse = (iso: string) => {
@@ -34,7 +37,20 @@ const pad = (n: number) => String(n).padStart(2, '0');
 const toIso = (d: Date) => `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
 
 /** Pemilih tanggal shadcn (Popover + Calendar). Bahasa Sunda memakai nama bulan Indonesia di kalender. */
-export function DatePicker({ id, 'aria-label': ariaLabel, value, onChange, placeholder, disabled, className, clearable, yearRange }: Props) {
+export function DatePicker({
+  id,
+  'aria-label': ariaLabel,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedby,
+  onBlur,
+  value,
+  onChange,
+  placeholder,
+  disabled,
+  className,
+  clearable,
+  yearRange,
+}: Props) {
   const locale = useLocale() as Locale;
   const t = useTranslations('common');
   const [open, setOpen] = useState(false);
@@ -47,6 +63,9 @@ export function DatePicker({ id, 'aria-label': ariaLabel, value, onChange, place
           <Button
             id={id}
             aria-label={ariaLabel}
+            aria-invalid={ariaInvalid}
+            aria-describedby={ariaDescribedby}
+            onBlur={onBlur}
             type="button"
             variant="outline"
             disabled={disabled}
