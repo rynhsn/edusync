@@ -318,7 +318,9 @@ export function StudentsView() {
   const [editing, setEditing] = useState<({ id: string; originalClassId: string } & Draft) | null>(null);
   const [guardiansFor, setGuardiansFor] = useState<{ id: string; name: string } | null>(null);
   const [cardsFor, setCardsFor] = useState<{ id: string; name: string } | null>(null);
-  const cardsAllowed = hasModule('attendance') && can('attendance:configure');
+  // Kartu RFID: modul absensi + izin konfigurasi absensi. QR identitas: tidak terikat modul, cukup izin kelola siswa.
+  const rfidAllowed = hasModule('attendance') && can('attendance:configure');
+  const cardsAllowed = rfidAllowed || manage;
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
 
@@ -774,7 +776,9 @@ export function StudentsView() {
               {tc('studentCardsTitle')} · {cardsFor?.name}
             </DialogTitle>
           </DialogHeader>
-          {cardsFor && <StudentCards studentId={cardsFor.id} name={cardsFor.name} />}
+          {cardsFor && (
+            <StudentCards studentId={cardsFor.id} name={cardsFor.name} rfid={rfidAllowed} qr={manage} />
+          )}
         </DialogContent>
       </Dialog>
     </PageBody>

@@ -859,8 +859,8 @@ export const attendanceDeviceSchool = pgTable(
 );
 
 /**
- * Kode kartu siswa. `rfid`: UID kartu RFID untuk kiosk (satu siswa boleh punya beberapa). `qr`: kode acak QR di kartu
- * cetak untuk absensi cadangan lewat kamera guru; paling banyak satu per siswa, tidak pernah dipakai kiosk.
+ * Kode kartu RFID untuk kiosk (satu siswa boleh punya beberapa). Kode QR identitas siswa TIDAK di sini, melainkan di
+ * `student_identity_code`.
  */
 export const attendanceCard = pgTable(
   'attendance_card',
@@ -872,7 +872,7 @@ export const attendanceCard = pgTable(
     studentId: uuid('student_id')
       .notNull()
       .references(() => student.id),
-    kind: text('kind', { enum: ['rfid', 'qr'] }).notNull(),
+    kind: text('kind', { enum: ['rfid'] }).notNull(),
     code: text('code').notNull(),
     active: boolean('active').notNull().default(true),
     createdAt: createdAt(),
@@ -880,7 +880,32 @@ export const attendanceCard = pgTable(
   (t) => [
     unique('attendance_card_code_uq').on(t.schoolId, t.code),
     index('attendance_card_student_idx').on(t.studentId),
-    uniqueIndex('attendance_card_qr_student_uq').on(t.studentId).where(sql`${t.kind} = 'qr'`),
+  ],
+);
+
+/**
+ * Kode identitas siswa yang dicetak sebagai QR di kartu (`ES1.<kode>`): satu kode aktif per siswa, tidak terikat modul
+ * mana pun. Kode hanya MENGIDENTIFIKASI siswa; menu tempat kode dipindai yang menentukan tindakannya, dan pemindai
+ * tetap butuh login + izin fiturnya sendiri. Membuat ulang kode mengganti isinya di tempat (`rotated_at` terisi) dan
+ * langsung mencabut kode lama untuk semua fitur.
+ */
+export const studentIdentityCode = pgTable(
+  'student_identity_code',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id, { onDelete: 'cascade' }),
+    code: text('code').notNull(),
+    createdAt: createdAt(),
+    rotatedAt: timestamp('rotated_at', { withTimezone: true }),
+  },
+  (t) => [
+    unique('student_identity_code_code_uq').on(t.schoolId, t.code),
+    unique('student_identity_code_student_uq').on(t.studentId),
   ],
 );
 

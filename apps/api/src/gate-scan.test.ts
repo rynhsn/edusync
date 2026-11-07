@@ -2,7 +2,6 @@ import {
   academicYear,
   and,
   assignRoles,
-  attendanceCard,
   calendarEvent,
   classRoom,
   dailyAttendance,
@@ -16,6 +15,7 @@ import {
   seedSchoolRoles,
   sql,
   student,
+  studentIdentityCode,
   subscription,
   tapEvent,
   teacher,
@@ -105,10 +105,7 @@ const call = (
 const scan = (cookie: string, body: object, sid = schoolId) =>
   call('POST', '/v1/gate/scan', cookie, body, sid);
 const qrRows = (studentId: string) =>
-  app.platformDb
-    .select()
-    .from(attendanceCard)
-    .where(and(eq(attendanceCard.studentId, studentId), eq(attendanceCard.kind, 'qr')));
+  app.platformDb.select().from(studentIdentityCode).where(eq(studentIdentityCode.studentId, studentId));
 const qrOf = async (studentId: string) => {
   const res = await call('GET', `/v1/cards/students?studentIds=${studentId}`, adminCookie);
   expect(res.statusCode).toBe(200);
@@ -234,6 +231,7 @@ afterAll(async () => {
       'tap_event',
       'attendance_device',
       'attendance_card',
+      'student_identity_code',
       'daily_attendance',
       'duty_roster',
       'calendar_event',
@@ -256,7 +254,7 @@ afterAll(async () => {
   await app.close();
 });
 
-describe('QR absensi di kartu', () => {
+describe('QR identitas siswa di kartu', () => {
   it('GET /v1/cards/students membuat QR secara malas, idempoten, satu per siswa', async () => {
     const q = `studentIds=${ids.ani},${ids.budi}`;
     const first = await call('GET', `/v1/cards/students?${q}`, adminCookie);
@@ -485,10 +483,10 @@ describe('buat ulang QR', () => {
   it('kode lama berhenti berlaku, kode baru berlaku, hanya pengurus kartu yang boleh', async () => {
     const before = await qrOf(ids.citra);
     expect(
-      (await call('POST', `/v1/attendance/students/${ids.citra}/qr/rotate`, waliCookie)).statusCode,
+      (await call('POST', `/v1/students/${ids.citra}/identity-code/rotate`, waliCookie)).statusCode,
     ).toBe(403);
 
-    const res = await call('POST', `/v1/attendance/students/${ids.citra}/qr/rotate`, adminCookie);
+    const res = await call('POST', `/v1/students/${ids.citra}/identity-code/rotate`, adminCookie);
     expect(res.statusCode).toBe(200);
     const next = res.json().qr as string;
     expect(next).toMatch(QR_RE);
@@ -502,23 +500,23 @@ describe('buat ulang QR', () => {
     expect((await scan(waliCookie, { payload: next, direction: 'in' })).statusCode).toBe(200);
 
     const logs = await app.platformDb.execute(
-      sql`select details from audit_log where school_id = ${schoolId} and action = 'attendance.qr.rotate' and entity_id = ${ids.citra}`,
+      sql`select details from audit_log where school_id = ${schoolId} and action = 'student.identity_code.rotate' and entity_id = ${ids.citra}`,
     );
     expect(logs.rows).toHaveLength(1);
     expect(JSON.stringify(logs.rows)).not.toContain(next.slice(4));
 
     expect(
-      (await call('POST', `/v1/attendance/students/${crypto.randomUUID()}/qr/rotate`, adminCookie))
+      (await call('POST', `/v1/students/${crypto.randomUUID()}/identity-code/rotate`, adminCookie))
         .statusCode,
     ).toBe(404);
     expect(
-      (await call('POST', `/v1/attendance/students/${ids.asing}/qr/rotate`, adminCookie)).statusCode,
+      (await call('POST', `/v1/students/${ids.asing}/identity-code/rotate`, adminCookie)).statusCode,
     ).toBe(404);
   });
 
-  it('GET /v1/attendance/students/:id/qr idempoten', async () => {
-    const a = await call('GET', `/v1/attendance/students/${ids.dina}/qr`, adminCookie);
-    const b = await call('GET', `/v1/attendance/students/${ids.dina}/qr`, adminCookie);
+  it('GET /v1/students/:id/identity-code idempoten', async () => {
+    const a = await call('GET', `/v1/students/${ids.dina}/identity-code`, adminCookie);
+    const b = await call('GET', `/v1/students/${ids.dina}/identity-code`, adminCookie);
     expect(a.json().qr).toMatch(QR_RE);
     expect(b.json().qr).toBe(a.json().qr);
   });

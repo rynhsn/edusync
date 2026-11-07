@@ -1,32 +1,14 @@
 import { createHash } from 'node:crypto';
-import { localParts, parseAttendanceQr } from '@edusync/contracts';
-import {
-  and,
-  attendanceCard,
-  currentTimezone,
-  dailyAttendance,
-  eq,
-  isNull,
-  student,
-  type Tx,
-  tapEvent,
-  withTenant,
-} from '@edusync/db';
+import { localParts } from '@edusync/contracts';
+import { and, currentTimezone, dailyAttendance, eq, type Tx, tapEvent, withTenant } from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { ensurePrintedQr, rotateQrCode } from '../attendance-qr';
 import { loadPolicy } from '../gate';
-import {
-  applyManual,
-  canRecordClass,
-  classesOf,
-  forbiddenClass,
-  manualScope,
-  parseWhen,
-} from '../gate-manual';
+import { applyManual, canRecordClass, forbiddenClass, manualScope, parseWhen } from '../gate-manual';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { resolveIdentityPayload } from '../identity-code';
 import { audit, guarded, isUniqueViolation, schoolHeader } from './helpers';
 
 const tag = ['Gate attendance'];
@@ -74,9 +56,10 @@ const scanLimit = {
 };
 
 /**
- * Absensi cadangan lewat pindai QR di kartu siswa (saat kiosk RFID tidak bisa dipakai) dan pengelolaan kode QR.
- * QR berisi `ES1.<kode acak 100 bit>`; kode disimpan sebagai `attendance_card` bertipe `qr` dan TIDAK PERNAH
- * diterima kiosk. Modul `attendance`.
+ * Absensi cadangan lewat pindai QR di kartu siswa (saat kiosk RFID tidak bisa dipakai). QR berisi kode identitas
+ * siswa `ES1.<kode acak 100 bit>` (tabel `student_identity_code`, lihat `identity-code.ts`) yang hanya menunjuk
+ * siswa; di menu ini pemindaian berarti mencatat datang/pulang. Kiosk RFID TIDAK PERNAH menerima kode ini. Modul
+ * `attendance`.
  */
 export async function gateScanRoutes(instance: FastifyInstance) {
   const app = instance.withTypeProvider<ZodTypeProvider>();
@@ -129,10 +112,6 @@ export async function gateScanRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       const b = request.body;
-      const code = parseAttendanceQr(b.payload);
-      if (!code)
-        throw new HttpError(400, 'invalid_qr', 'Format QR tidak dikenali. Gunakan QR dari kartu siswa.');
-
       const run = () =>
         tenant(request, async (tx) => {
           const now = new Date();
@@ -148,33 +127,20 @@ export async function gateScanRoutes(instance: FastifyInstance) {
           const date = localParts(at, tz).date;
           if (b.at) parseWhen(date, b.at, now); // menolak jam di masa depan
 
-          const [found] = await tx
-            .select({
-              id: student.id,
-              name: student.name,
-              nis: student.nis,
-              status: student.status,
-              deletedAt: student.deletedAt,
-            })
-            .from(attendanceCard)
-            .innerJoin(student, eq(student.id, attendanceCard.studentId))
-            .where(
-              and(
-                eq(attendanceCard.kind, 'qr'),
-                eq(attendanceCard.code, code),
-                eq(attendanceCard.active, true),
-                isNull(student.deletedAt),
-              ),
-            );
-          if (!found) throw new HttpError(404, 'unknown_qr', 'QR tidak dikenal atau sudah diganti.');
-          if (found.status !== 'active')
-            throw new HttpError(409, 'student_inactive', 'Siswa ini tidak aktif.');
+          // Kode identitas hanya menunjuk siswa; tindakan (absensi) dan izinnya ditentukan di sini.
+          const resolved = await resolveIdentityPayload(tx, b.payload);
+          const found = { id: resolved.studentId };
+          if (!resolved.active) throw new HttpError(409, 'student_inactive', 'Siswa ini tidak aktif.');
 
-          const cls = (await classesOf(tx, [found.id])).get(found.id) ?? null;
           const scope = await manualScope(tx, ctx, date);
-          if (!canRecordClass(scope, cls?.id ?? null)) throw forbiddenClass();
+          if (!canRecordClass(scope, resolved.classId)) throw forbiddenClass();
 
-          const info = { id: found.id, name: found.name, className: cls?.name ?? null, nis: found.nis };
+          const info = {
+            id: resolved.studentId,
+            name: resolved.name,
+            className: resolved.className,
+            nis: resolved.nis,
+          };
 
           if (b.clientId) {
             const [seen] = await tx
@@ -246,64 +212,6 @@ export async function gateScanRoutes(instance: FastifyInstance) {
         if (b.clientId && isUniqueViolation(error)) return run();
         throw error;
       }
-    },
-  );
-
-  app.post(
-    '/v1/attendance/students/:studentId/qr/rotate',
-    {
-      onRequest: [requirePermission('attendance:configure'), requireModule('attendance')],
-      schema: {
-        tags: tag,
-        summary: 'Buat ulang QR absensi siswa',
-        description:
-          'Izin: `attendance:configure`; modul `attendance`. Untuk kartu yang hilang atau QR yang bocor: kode lama ' +
-          'dihapus (QR yang sudah dicetak langsung tidak berlaku, pindaiannya 404 `unknown_qr`) dan kode baru dibuat. ' +
-          'Kembalikan `qr` (isi QR `ES1.<kode>`) untuk dicetak ulang. QR dibuat otomatis saat pertama dibutuhkan ' +
-          '(`GET /v1/cards/students`), jadi endpoint ini hanya untuk mengganti. Siswa tidak ada: 404. Satu entri audit ' +
-          'dicatat (tanpa kode).',
-        headers: schoolHeader,
-        params: z.object({ studentId: z.uuid() }),
-        response: { 200: z.object({ studentId: z.uuid(), qr: z.string() }), 404: errorSchema, ...guarded },
-      },
-    },
-    async (request) => {
-      const ctx = request.ctx as TenantContext;
-      const { studentId } = request.params;
-      return tenant(request, async (tx) => {
-        const code = await rotateQrCode(tx, ctx.schoolId, studentId);
-        if (!code) throw new HttpError(404, 'not_found', 'Siswa tidak ditemukan.');
-        await audit(tx, ctx, 'attendance.qr.rotate', 'student', studentId);
-        return { studentId, qr: `ES1.${code}` };
-      });
-    },
-  );
-
-  app.get(
-    '/v1/attendance/students/:studentId/qr',
-    {
-      onRequest: [requirePermission('attendance:configure'), requireModule('attendance')],
-      schema: {
-        tags: tag,
-        summary: 'QR absensi siswa',
-        description:
-          'Izin: `attendance:configure`; modul `attendance`. Mengembalikan isi QR (`ES1.<kode>`) siswa; dibuat bila ' +
-          'belum ada (idempoten). Siswa tidak ada: 404.',
-        headers: schoolHeader,
-        params: z.object({ studentId: z.uuid() }),
-        response: { 200: z.object({ studentId: z.uuid(), qr: z.string() }), 404: errorSchema, ...guarded },
-      },
-    },
-    async (request) => {
-      const ctx = request.ctx as TenantContext;
-      const { studentId } = request.params;
-      return tenant(request, async (tx) => {
-        const [s] = await tx.select({ id: student.id }).from(student).where(eq(student.id, studentId));
-        if (!s) throw new HttpError(404, 'not_found', 'Siswa tidak ditemukan.');
-        const qr = await ensurePrintedQr(tx, ctx.schoolId, studentId);
-        if (!qr) throw new HttpError(404, 'not_found', 'Siswa tidak ditemukan.');
-        return { studentId, qr };
-      });
     },
   );
 }

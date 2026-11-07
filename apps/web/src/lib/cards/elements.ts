@@ -268,7 +268,7 @@ export function elementText(el: CardElement, data: CardData): string {
   return '';
 }
 
-/** Apakah tata letak memuat QR/kode batang absensi (kolom `qrCode`); templat lama belum punya. */
+/** Apakah tata letak memuat QR/kode batang identitas siswa (kolom `qrCode`); templat lama belum punya. */
 export function hasAttendanceQr(layout: Pick<CardLayout, 'elements'>): boolean {
   return layout.elements.some((el) => (el.type === 'qr' || el.type === 'barcode') && el.field === 'qrCode');
 }

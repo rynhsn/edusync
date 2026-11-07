@@ -38254,7 +38254,7 @@
         "tags": [
           "Cards"
         ],
-        "description": "Izin: `student:read`. Wajib `classId` (siswa aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). `qrCode` = isi QR absensi cadangan (`ES1.<kode acak>`, satu per siswa); kode yang belum ada dibuat otomatis secara idempoten (satu-satunya efek tulis endpoint ini, dicatat di audit `attendance.qr.create`). PDF dirender di klien.",
+        "description": "Izin: `student:read`. Wajib `classId` (siswa aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). `qrCode` = isi QR identitas siswa (`ES1.<kode acak>`, satu per siswa, dipakai semua fitur); kode yang belum ada dibuat otomatis secara idempoten (satu-satunya efek tulis endpoint ini, dicatat di audit `student.identity_code.create`). PDF dirender di klien.",
         "parameters": [
           {
             "schema": {
@@ -38340,7 +38340,7 @@
                           },
                           "qrCode": {
                             "type": "string",
-                            "description": "Isi QR absensi cadangan yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada"
+                            "description": "Isi QR identitas siswa yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada"
                           },
                           "photoUrl": {
                             "nullable": true,
@@ -40433,13 +40433,13 @@
         }
       }
     },
-    "/v1/attendance/students/{studentId}/qr/rotate": {
-      "post": {
-        "summary": "Buat ulang QR absensi siswa",
+    "/v1/students/{studentId}/identity-code": {
+      "get": {
+        "summary": "QR identitas siswa",
         "tags": [
-          "Gate attendance"
+          "Students"
         ],
-        "description": "Izin: `attendance:configure`; modul `attendance`. Untuk kartu yang hilang atau QR yang bocor: kode lama dihapus (QR yang sudah dicetak langsung tidak berlaku, pindaiannya 404 `unknown_qr`) dan kode baru dibuat. Kembalikan `qr` (isi QR `ES1.<kode>`) untuk dicetak ulang. QR dibuat otomatis saat pertama dibutuhkan (`GET /v1/cards/students`), jadi endpoint ini hanya untuk mengganti. Siswa tidak ada: 404. Satu entri audit dicatat (tanpa kode).",
+        "description": "Izin: `student:manage`. Mengembalikan isi QR identitas (`ES1.<kode>`) siswa; dibuat bila belum ada (idempoten). Kode ini hanya mengidentifikasi siswa dan tidak memberi akses apa pun dengan sendirinya: pemindai (mis. absensi) wajib login dan punya izin fiturnya. Siswa tidak ada: 404.",
         "parameters": [
           {
             "schema": {
@@ -40477,7 +40477,8 @@
                       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                     },
                     "qr": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Isi QR identitas siswa (`ES1.<kode>`)"
                     }
                   },
                   "required": [
@@ -40588,13 +40589,13 @@
         }
       }
     },
-    "/v1/attendance/students/{studentId}/qr": {
-      "get": {
-        "summary": "QR absensi siswa",
+    "/v1/students/{studentId}/identity-code/rotate": {
+      "post": {
+        "summary": "Buat ulang QR identitas siswa",
         "tags": [
-          "Gate attendance"
+          "Students"
         ],
-        "description": "Izin: `attendance:configure`; modul `attendance`. Mengembalikan isi QR (`ES1.<kode>`) siswa; dibuat bila belum ada (idempoten). Siswa tidak ada: 404.",
+        "description": "Izin: `student:manage`. Untuk kartu yang hilang atau QR yang bocor: isi kode diganti di tempat sehingga QR lama langsung tidak berlaku untuk SEMUA fitur (pindaiannya 404 `unknown_qr`). Mengembalikan `qr` baru (`ES1.<kode>`) untuk dicetak ulang. QR dibuat otomatis saat pertama dibutuhkan (`GET /v1/cards/students`), jadi endpoint ini hanya untuk mengganti. Siswa tidak ada: 404. Satu entri audit dicatat (tanpa kode).",
         "parameters": [
           {
             "schema": {
@@ -40632,7 +40633,8 @@
                       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                     },
                     "qr": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Isi QR identitas siswa (`ES1.<kode>`)"
                     }
                   },
                   "required": [

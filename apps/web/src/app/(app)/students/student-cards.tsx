@@ -12,8 +12,21 @@ import { Input } from '@/components/ui/input';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 
-/** Ringkasan kartu RFID seorang siswa (pakai endpoint kartu absensi); hanya untuk pemegang `attendance:configure`. */
-export function StudentCards({ studentId, name }: { studentId: string; name: string }) {
+/**
+ * Kartu seorang siswa. Bagian RFID (endpoint kartu absensi) hanya untuk pemegang `attendance:configure` dengan modul
+ * absensi; bagian QR identitas (satu kode untuk semua fitur, tanpa modul) untuk pemegang `student:manage`.
+ */
+export function StudentCards({
+  studentId,
+  name,
+  rfid,
+  qr,
+}: {
+  studentId: string;
+  name: string;
+  rfid: boolean;
+  qr: boolean;
+}) {
   const t = useTranslations('gate');
   const te = useTranslations();
   const { school } = useSchool();
@@ -24,6 +37,7 @@ export function StudentCards({ studentId, name }: { studentId: string; name: str
 
   const list = useQuery({
     queryKey: key,
+    enabled: rfid,
     queryFn: async () =>
       unwrap(await api.GET('/v1/attendance/cards', { params: { ...header, query: { studentId } } })),
   });
@@ -44,7 +58,7 @@ export function StudentCards({ studentId, name }: { studentId: string; name: str
   const rotate = useMutation({
     mutationFn: async () =>
       unwrap(
-        await api.POST('/v1/attendance/students/{studentId}/qr/rotate', {
+        await api.POST('/v1/students/{studentId}/identity-code/rotate', {
           params: { ...header, path: { studentId } },
         }),
       ),
@@ -63,7 +77,9 @@ export function StudentCards({ studentId, name }: { studentId: string; name: str
 
   return (
     <section className="grid gap-3">
-      {list.data?.length === 0 && <p className="text-muted-foreground text-sm">{t('studentCardsEmpty')}</p>}
+      {rfid && list.data?.length === 0 && (
+        <p className="text-muted-foreground text-sm">{t('studentCardsEmpty')}</p>
+      )}
       <ul className="grid content-start gap-2">
         {list.data?.map((c) => (
           <li key={c.id} className="flex items-center justify-between gap-2 text-sm">
@@ -80,7 +96,7 @@ export function StudentCards({ studentId, name }: { studentId: string; name: str
           </li>
         ))}
       </ul>
-      {list.data?.length === 0 && (
+      {rfid && list.data?.length === 0 && (
         <form
           className="flex gap-2"
           onSubmit={(e) => {
@@ -100,22 +116,24 @@ export function StudentCards({ studentId, name }: { studentId: string; name: str
           </Button>
         </form>
       )}
-      <div className="border-t pt-3">
-        <p className="text-muted-foreground mb-2 text-xs">{t('qrRotateHint')}</p>
-        <ConfirmDialog
-          destructive
-          title={t('qrRotateTitle', { name })}
-          description={t('qrRotateBody')}
-          confirmLabel={t('qrRotateConfirm')}
-          pending={rotate.isPending}
-          onConfirm={() => rotate.mutateAsync()}
-          trigger={
-            <Button variant="outline" size="sm" disabled={rotate.isPending}>
-              <QrCode className="size-4" /> {t('qrRotate')}
-            </Button>
-          }
-        />
-      </div>
+      {qr && (
+        <div className={rfid ? 'border-t pt-3' : undefined}>
+          <p className="text-muted-foreground mb-2 text-xs">{t('qrRotateHint')}</p>
+          <ConfirmDialog
+            destructive
+            title={t('qrRotateTitle', { name })}
+            description={t('qrRotateBody')}
+            confirmLabel={t('qrRotateConfirm')}
+            pending={rotate.isPending}
+            onConfirm={() => rotate.mutateAsync()}
+            trigger={
+              <Button variant="outline" size="sm" disabled={rotate.isPending}>
+                <QrCode className="size-4" /> {t('qrRotate')}
+              </Button>
+            }
+          />
+        </div>
+      )}
     </section>
   );
 }

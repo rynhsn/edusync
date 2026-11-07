@@ -103,7 +103,7 @@ export function QrCamera({
       if (Ctor) {
         try {
           const formats = (await Ctor.getSupportedFormats?.()) ?? ['qr_code'];
-          // QR plus kode batang Code 128 (kartu bisa memuat QR absensi sebagai kode batang); hanya yang didukung.
+          // QR plus kode batang Code 128 (kartu bisa memuat QR identitas siswa sebagai kode batang); hanya yang didukung.
           const wanted = ['qr_code', 'code_128'].filter((f) => formats.includes(f));
           if (wanted.includes('qr_code')) {
             detector = new Ctor({ formats: wanted });

@@ -1,15 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import {
-  ATTENDANCE_QR_ALPHABET,
   cardElementSchema,
   cardLayoutSchema,
   defaultExamCardLayout,
   defaultStudentCardLayout,
-  formatAttendanceQr,
+  formatIdentityPayload,
   formatParticipantNo,
-  hasAttendanceQrPrefix,
+  hasIdentityPrefix,
+  IDENTITY_CODE_ALPHABET,
   invalidFieldsForKind,
-  parseAttendanceQr,
+  parseIdentityPayload,
   resolveFieldValue,
 } from './card-layout';
 
@@ -100,18 +100,18 @@ describe('card-layout', () => {
     expect(resolveFieldValue('qrCode', {})).toBe('');
   });
 
-  it('parseAttendanceQr: format ES1.<20 karakter Crockford>', () => {
+  it('parseIdentityPayload: format ES1.<20 karakter Crockford>', () => {
     const code = 'ABCDEFGHJKMNPQRSTVWX';
-    expect(ATTENDANCE_QR_ALPHABET).toHaveLength(32);
-    expect(parseAttendanceQr(formatAttendanceQr(code))).toBe(code);
-    expect(parseAttendanceQr(`  es1.${code.toLowerCase()} `)).toBe(code);
-    expect(parseAttendanceQr(`ES1.${code}A`)).toBeNull();
-    expect(parseAttendanceQr(`ES1.${code.slice(1)}`)).toBeNull();
-    expect(parseAttendanceQr(`ES1.${code.slice(1)}I`)).toBeNull(); // I tidak ada di abjad
-    expect(parseAttendanceQr(`ES2.${code}`)).toBeNull();
-    expect(parseAttendanceQr('https://contoh.id')).toBeNull();
-    expect(parseAttendanceQr(null)).toBeNull();
-    expect(hasAttendanceQrPrefix('ES1.apa-saja')).toBe(true);
-    expect(hasAttendanceQrPrefix('WIFI:S:x')).toBe(false);
+    expect(IDENTITY_CODE_ALPHABET).toHaveLength(32);
+    expect(parseIdentityPayload(formatIdentityPayload(code))).toBe(code);
+    expect(parseIdentityPayload(`  es1.${code.toLowerCase()} `)).toBe(code);
+    expect(parseIdentityPayload(`ES1.${code}A`)).toBeNull();
+    expect(parseIdentityPayload(`ES1.${code.slice(1)}`)).toBeNull();
+    expect(parseIdentityPayload(`ES1.${code.slice(1)}I`)).toBeNull(); // I tidak ada di abjad
+    expect(parseIdentityPayload(`ES2.${code}`)).toBeNull();
+    expect(parseIdentityPayload('https://contoh.id')).toBeNull();
+    expect(parseIdentityPayload(null)).toBeNull();
+    expect(hasIdentityPrefix('ES1.apa-saja')).toBe(true);
+    expect(hasIdentityPrefix('WIFI:S:x')).toBe(false);
   });
 });

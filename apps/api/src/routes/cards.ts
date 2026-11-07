@@ -7,7 +7,7 @@ import {
   defaultStudentCardLayout,
   examDateParts,
   examTimeRange,
-  formatAttendanceQr,
+  formatIdentityPayload,
   formatLongDateId,
   formatParticipantNo,
   invalidFieldsForKind,
@@ -39,9 +39,9 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { ensureQrCodes } from '../attendance-qr';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { ensureIdentityCodes } from '../identity-code';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 import { readIdentity } from './school-identity';
 
@@ -187,7 +187,7 @@ const studentCardItem = z.object({
   rfidCode: z.string().describe('Kode kartu RFID aktif pertama; kosong bila belum ada'),
   qrCode: z
     .string()
-    .describe('Isi QR absensi cadangan yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada'),
+    .describe('Isi QR identitas siswa yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada'),
   photoUrl: z.string().nullable().describe('Jalur foto (butuh login & x-school-id), null bila belum ada'),
   ...dataItemBase,
 });
@@ -704,9 +704,10 @@ export async function cardRoutes(instance: FastifyInstance) {
           `Izin: \`student:read\`. Wajib \`classId\` (siswa aktif kelas itu) dan/atau \`studentIds\` (uuid dipisah koma, ` +
           `maks. ${MAX_CARD_ROWS}). Tanpa \`classId\`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai ` +
           'kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. ' +
-          `Dibatasi ${MAX_CARD_ROWS} baris (\`truncated: true\` bila lebih). \`qrCode\` = isi QR absensi cadangan ` +
-          '(`ES1.<kode acak>`, satu per siswa); kode yang belum ada dibuat otomatis secara idempoten (satu-satunya efek ' +
-          'tulis endpoint ini, dicatat di audit `attendance.qr.create`). PDF dirender di klien.',
+          `Dibatasi ${MAX_CARD_ROWS} baris (\`truncated: true\` bila lebih). \`qrCode\` = isi QR identitas siswa ` +
+          '(`ES1.<kode acak>`, satu per siswa, dipakai semua fitur); kode yang belum ada dibuat otomatis secara ' +
+          'idempoten (satu-satunya efek tulis endpoint ini, dicatat di audit `student.identity_code.create`). PDF ' +
+          'dirender di klien.',
         headers: schoolHeader,
         querystring: z.object({
           classId: z.uuid().optional(),
@@ -808,8 +809,8 @@ export async function cardRoutes(instance: FastifyInstance) {
           : [];
         const firstCode = new Map<string, string>();
         for (const c of codes) if (!firstCode.has(c.studentId)) firstCode.set(c.studentId, c.code);
-        // QR absensi: dibuat secara malas dan idempoten (satu per siswa) agar kartu siap cetak tanpa langkah tambahan.
-        const qr = await ensureQrCodes(
+        // QR identitas: dibuat secara malas dan idempoten (satu per siswa) agar kartu siap cetak tanpa langkah tambahan.
+        const qr = await ensureIdentityCodes(
           tx,
           (request.ctx as TenantContext).schoolId,
           page.map((r) => r.id),
@@ -818,7 +819,7 @@ export async function cardRoutes(instance: FastifyInstance) {
           await audit(
             tx,
             request.ctx as TenantContext,
-            'attendance.qr.create',
+            'student.identity_code.create',
             'school',
             (request.ctx as TenantContext).schoolId,
             {
@@ -841,7 +842,7 @@ export async function cardRoutes(instance: FastifyInstance) {
               .join(', '),
             address: r.address ?? '',
             rfidCode: firstCode.get(r.id) ?? '',
-            qrCode: qr.codes.has(r.id) ? formatAttendanceQr(qr.codes.get(r.id) as string) : '',
+            qrCode: qr.codes.has(r.id) ? formatIdentityPayload(qr.codes.get(r.id) as string) : '',
             photoUrl: photoPath(r.id, r.photo),
             schoolName,
             academicYear: year?.name ?? '',

@@ -159,7 +159,7 @@ describe('teks elemen dan data contoh', () => {
   });
 });
 
-describe('QR absensi', () => {
+describe('QR identitas siswa', () => {
   it('contoh kartu siswa memuat QR bergaya ES1. dan bisa dipakai elemen QR', () => {
     const data = sampleCardData('student');
     expect(data.qrCode).toMatch(/^ES1\.[0-9A-HJKMNP-TV-Z]{20}$/);

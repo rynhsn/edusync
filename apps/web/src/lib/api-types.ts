@@ -15871,7 +15871,7 @@ export interface paths {
         };
         /**
          * Data cetak kartu siswa
-         * @description Izin: `student:read`. Wajib `classId` (siswa aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). `qrCode` = isi QR absensi cadangan (`ES1.<kode acak>`, satu per siswa); kode yang belum ada dibuat otomatis secara idempoten (satu-satunya efek tulis endpoint ini, dicatat di audit `attendance.qr.create`). PDF dirender di klien.
+         * @description Izin: `student:read`. Wajib `classId` (siswa aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). `qrCode` = isi QR identitas siswa (`ES1.<kode acak>`, satu per siswa, dipakai semua fitur); kode yang belum ada dibuat otomatis secara idempoten (satu-satunya efek tulis endpoint ini, dicatat di audit `student.identity_code.create`). PDF dirender di klien.
          */
         get: {
             parameters: {
@@ -15911,7 +15911,7 @@ export interface paths {
                                 address: string;
                                 /** @description Kode kartu RFID aktif pertama; kosong bila belum ada */
                                 rfidCode: string;
-                                /** @description Isi QR absensi cadangan yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada */
+                                /** @description Isi QR identitas siswa yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada */
                                 qrCode: string;
                                 /** @description Jalur foto (butuh login & x-school-id), null bila belum ada */
                                 photoUrl: string | null;
@@ -16802,97 +16802,7 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-    "/v1/attendance/students/{studentId}/qr/rotate": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        get?: never;
-        put?: never;
-        /**
-         * Buat ulang QR absensi siswa
-         * @description Izin: `attendance:configure`; modul `attendance`. Untuk kartu yang hilang atau QR yang bocor: kode lama dihapus (QR yang sudah dicetak langsung tidak berlaku, pindaiannya 404 `unknown_qr`) dan kode baru dibuat. Kembalikan `qr` (isi QR `ES1.<kode>`) untuk dicetak ulang. QR dibuat otomatis saat pertama dibutuhkan (`GET /v1/cards/students`), jadi endpoint ini hanya untuk mengganti. Siswa tidak ada: 404. Satu entri audit dicatat (tanpa kode).
-         */
-        post: {
-            parameters: {
-                query?: never;
-                header: {
-                    /** @description Sekolah yang sedang dipakai */
-                    "x-school-id": string;
-                };
-                path: {
-                    studentId: string;
-                };
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            /** Format: uuid */
-                            studentId: string;
-                            qr: string;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                403: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-                /** @description Default Response */
-                404: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/attendance/students/{studentId}/qr": {
+    "/v1/students/{studentId}/identity-code": {
         parameters: {
             query?: never;
             header?: never;
@@ -16900,8 +16810,8 @@ export interface paths {
             cookie?: never;
         };
         /**
-         * QR absensi siswa
-         * @description Izin: `attendance:configure`; modul `attendance`. Mengembalikan isi QR (`ES1.<kode>`) siswa; dibuat bila belum ada (idempoten). Siswa tidak ada: 404.
+         * QR identitas siswa
+         * @description Izin: `student:manage`. Mengembalikan isi QR identitas (`ES1.<kode>`) siswa; dibuat bila belum ada (idempoten). Kode ini hanya mengidentifikasi siswa dan tidak memberi akses apa pun dengan sendirinya: pemindai (mis. absensi) wajib login dan punya izin fiturnya. Siswa tidak ada: 404.
          */
         get: {
             parameters: {
@@ -16926,6 +16836,7 @@ export interface paths {
                         "application/json": {
                             /** Format: uuid */
                             studentId: string;
+                            /** @description Isi QR identitas siswa (`ES1.<kode>`) */
                             qr: string;
                         };
                     };
@@ -16976,6 +16887,97 @@ export interface paths {
         };
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/students/{studentId}/identity-code/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buat ulang QR identitas siswa
+         * @description Izin: `student:manage`. Untuk kartu yang hilang atau QR yang bocor: isi kode diganti di tempat sehingga QR lama langsung tidak berlaku untuk SEMUA fitur (pindaiannya 404 `unknown_qr`). Mengembalikan `qr` baru (`ES1.<kode>`) untuk dicetak ulang. QR dibuat otomatis saat pertama dibutuhkan (`GET /v1/cards/students`), jadi endpoint ini hanya untuk mengganti. Siswa tidak ada: 404. Satu entri audit dicatat (tanpa kode).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** @description Isi QR identitas siswa (`ES1.<kode>`) */
+                            qr: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;

@@ -1,8 +1,8 @@
-import { formatAttendanceQr, hasAttendanceQrPrefix, parseAttendanceQr } from '@edusync/contracts';
+import { formatIdentityPayload, hasIdentityPrefix, parseIdentityPayload } from '@edusync/contracts';
 import type { Direction, StorageLike } from './manual-logic';
 
 /**
- * Logika murni pemindai QR absensi (cadangan kiosk RFID): penyaringan teks hasil pindai, debounce, antrean luring
+ * Logika murni pemindai QR identitas siswa di menu absensi (cadangan kiosk RFID): penyaringan teks hasil pindai, debounce, antrean luring
  * di localStorage, daftar pindaian sesi, dan penerjemahan hasil API. Tanpa React dan tanpa kamera supaya mudah diuji.
  */
 
@@ -20,9 +20,9 @@ export type PayloadCheck = { kind: 'ignore' } | { kind: 'invalid' } | { kind: 'o
  * salah (rusak, kepotong) ditandai tidak sah. Yang sah dinormalkan (huruf besar).
  */
 export function classifyScan(text: string | null | undefined): PayloadCheck {
-  if (!hasAttendanceQrPrefix(text)) return { kind: 'ignore' };
-  const code = parseAttendanceQr(text);
-  return code ? { kind: 'ok', payload: formatAttendanceQr(code) } : { kind: 'invalid' };
+  if (!hasIdentityPrefix(text)) return { kind: 'ignore' };
+  const code = parseIdentityPayload(text);
+  return code ? { kind: 'ok', payload: formatIdentityPayload(code) } : { kind: 'invalid' };
 }
 
 /**
@@ -32,8 +32,8 @@ export function classifyScan(text: string | null | undefined): PayloadCheck {
 export function manualInputToPayload(input: string): string | null {
   const compact = input.replace(/[\s-]+/g, '');
   if (!compact) return null;
-  const code = parseAttendanceQr(hasAttendanceQrPrefix(compact) ? compact : formatAttendanceQr(compact));
-  return code ? formatAttendanceQr(code) : null;
+  const code = parseIdentityPayload(hasIdentityPrefix(compact) ? compact : formatIdentityPayload(compact));
+  return code ? formatIdentityPayload(code) : null;
 }
 
 /**
@@ -53,13 +53,13 @@ export function shouldHandle(
   return true;
 }
 
-/** Lama pemberitahuan "bukan QR absensi" tampil. */
+/** Lama pemberitahuan "bukan QR identitas siswa" tampil. */
 export const FOREIGN_NOTICE_MS = 3000;
 /** Kode asing yang sama tidak memicu pemberitahuan lagi selama ini (kamera membacanya berkali-kali per detik). */
 export const FOREIGN_COOLDOWN_MS = 10_000;
 
 /**
- * Putuskan apakah pemberitahuan "bukan QR absensi" perlu ditampilkan untuk teks asing ini. Kode yang sama tidak
+ * Putuskan apakah pemberitahuan "bukan QR identitas siswa" perlu ditampilkan untuk teks asing ini. Kode yang sama tidak
  * mengulang pemberitahuan dalam masa jeda; kode berbeda langsung diberitahukan. Teks kosong tidak diberitahukan.
  * Tidak pernah dihitung sebagai pindaian.
  */

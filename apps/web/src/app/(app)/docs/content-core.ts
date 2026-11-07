@@ -1465,7 +1465,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Memindai QR di kartu siswa (cadangan kiosk)',
-            body: 'Selain daftar kelas, halaman ini punya tab Pindai QR: guru mengarahkan kamera ponsel ke QR di kartu siswa, dan datang atau pulang langsung tercatat. Ini hanya cadangan saat kiosk RFID tidak bisa dipakai (listrik padam, pembaca rusak); kiosk RFID tetap cara utama. QR berisi kode acak yang unik per siswa (bukan NIS), dicetak otomatis di kartu siswa bawaan. Aturan akses, perhitungan terlambat, penjaga hari libur, dan pemberitahuan ke wali sama persis dengan pencatatan manual; catatannya bertanda sumber QR dan nama pencatat.',
+            body: 'Selain daftar kelas, halaman ini punya tab Pindai QR: guru mengarahkan kamera ponsel ke QR di kartu siswa, dan datang atau pulang langsung tercatat. Ini hanya cadangan saat kiosk RFID tidak bisa dipakai (listrik padam, pembaca rusak); kiosk RFID tetap cara utama. QR di kartu adalah QR identitas siswa: satu kode acak unik per siswa (bukan NIS), dicetak otomatis di kartu siswa bawaan dan dipakai semua fitur; kode hanya menunjuk siswa, sedangkan menu ini yang menentukan tindakannya (mencatat datang atau pulang). Pemindai butuh login dan izin absensi, jadi QR saja tidak memberi akses apa pun. Aturan akses, perhitungan terlambat, penjaga hari libur, dan pemberitahuan ke wali sama persis dengan pencatatan manual; catatannya bertanda sumber QR dan nama pencatat.',
             steps: [
               'Buka Absen datang & pulang lalu pilih tab Pindai QR.',
               'Pilih Datang atau Pulang dengan tombol besar. Pilihan diingat di perangkat itu.',
@@ -1486,7 +1486,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Pindai QR saat jaringan putus, dan kartu hilang',
-            body: 'Pindaian yang gagal terkirim karena jaringan disimpan di perangkat dengan jam pindai aslinya dan muncul pada spanduk Belum terkirim; dikirim otomatis saat jaringan kembali dan tidak pernah tercatat dua kali. Pindaian yang lebih dari 48 jam tidak bisa dikirim dan dibuang. Bila kartu hilang atau QR-nya bocor, admin membuka Siswa lalu kartu siswa itu dan memilih Buat ulang QR absensi: QR lama langsung tidak berlaku dan kartu baru perlu dicetak ulang.',
+            body: 'Pindaian yang gagal terkirim karena jaringan disimpan di perangkat dengan jam pindai aslinya dan muncul pada spanduk Belum terkirim; dikirim otomatis saat jaringan kembali dan tidak pernah tercatat dua kali. Pindaian yang lebih dari 48 jam tidak bisa dikirim dan dibuang. Bila kartu hilang atau QR-nya bocor, admin membuka Siswa lalu kartu siswa itu dan memilih Buat ulang QR identitas: QR lama langsung tidak berlaku di semua fitur sekaligus (bukan hanya absensi) dan kartu baru perlu dicetak ulang.',
           },
         ],
         faq: [
@@ -1549,7 +1549,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Scanning the QR on the student card (kiosk backup)',
-            body: 'Besides the class list, this page has a Scan QR tab: the teacher points a phone camera at the QR on the student card and the arrival or departure is recorded right away. This is only a backup for when the RFID kiosk cannot be used (power cut, broken reader); the RFID kiosk remains the main way. The QR holds a random code unique per student (not the NIS) and is printed automatically on the built-in student card. Access rules, late calculation, the holiday guard and guardian notifications are exactly the same as manual recording; the record is marked with the QR source and the recorder name.',
+            body: 'Besides the class list, this page has a Scan QR tab: the teacher points a phone camera at the QR on the student card and the arrival or departure is recorded right away. This is only a backup for when the RFID kiosk cannot be used (power cut, broken reader); the RFID kiosk remains the main way. The QR on the card is the student identity QR: one random code unique per student (not the NIS), printed automatically on the built-in student card and used by every feature; the code only points to a student, while this menu decides the action (recording an arrival or departure). The scanner needs a login and attendance permission, so the QR alone grants no access. Access rules, late calculation, the holiday guard and guardian notifications are exactly the same as manual recording; the record is marked with the QR source and the recorder name.',
             steps: [
               'Open Manual arrival & departure and choose the Scan QR tab.',
               'Choose Arrival or Departure with the big buttons. The choice is remembered on that device.',
@@ -1570,7 +1570,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Scanning when the network is down, and lost cards',
-            body: 'A scan that fails to send because of the network is kept on the device with its original scan time and appears in the Not sent yet banner; it is sent automatically when the network is back and is never recorded twice. A scan older than 48 hours cannot be sent and is dropped. If a card is lost or its QR leaked, an admin opens Students, then that student card, and chooses Regenerate attendance QR: the old QR stops working immediately and a new card must be printed.',
+            body: 'A scan that fails to send because of the network is kept on the device with its original scan time and appears in the Not sent yet banner; it is sent automatically when the network is back and is never recorded twice. A scan older than 48 hours cannot be sent and is dropped. If a card is lost or its QR leaked, an admin opens Students, then that student card, and chooses Regenerate identity QR: the old QR stops working in all features at once (not only attendance) and a new card must be printed.',
           },
         ],
         faq: [
@@ -1633,7 +1633,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mindai QR dina kartu murid (cadangan kiosk)',
-            body: 'Salian ti daptar kelas, kaca ieu boga tab Pindai QR: guru ngarahkeun kaméra ponsel kana QR dina kartu murid, tuluy datang atawa mulih langsung kacatet. Ieu ngan cadangan lamun kiosk RFID teu bisa dipaké (listrik pareum, pembaca rusak); kiosk RFID tetep cara utama. QR eusina kode acak unik per murid (lain NIS), dicitak otomatis dina kartu murid bawaan. Aturan aksés, itungan telat, panjaga poé libur, jeung béwara ka wali sarua jeung nyatet manual; catetanana ditandaan sumber QR jeung ngaran nu nyatet.',
+            body: 'Salian ti daptar kelas, kaca ieu boga tab Pindai QR: guru ngarahkeun kaméra ponsel kana QR dina kartu murid, tuluy datang atawa mulih langsung kacatet. Ieu ngan cadangan lamun kiosk RFID teu bisa dipaké (listrik pareum, pembaca rusak); kiosk RFID tetep cara utama. QR dina kartu nyaéta QR identitas murid: hiji kode acak unik per murid (lain NIS), dicitak otomatis dina kartu murid bawaan jeung dipaké sakabéh fitur; kode ngan nunjuk ka murid, sedengkeun ménu ieu anu nangtukeun tindakanana (nyatet datang atawa mulih). Pamindai peryogi login jeung idin absén, jadi QR waé teu méré aksés naon waé. Aturan aksés, itungan telat, panjaga poé libur, jeung béwara ka wali sarua jeung nyatet manual; catetanana ditandaan sumber QR jeung ngaran nu nyatet.',
             steps: [
               'Buka Absén datang & mulih tuluy pilih tab Pindai QR.',
               'Pilih Datang atawa Mulih nganggo tombol badag. Pilihanana diinget dina parangkat éta.',
@@ -1654,7 +1654,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mindai nalika jaringan potong, jeung kartu leungit',
-            body: 'Pindaian nu gagal dikirim sabab jaringan disimpen dina parangkat jeung jam pindai aslina tuluy muncul dina spanduk Can dikirim; dikirim otomatis lamun jaringan balik jeung teu pernah kacatet dua kali. Pindaian leuwih ti 48 jam teu bisa dikirim tuluy dibuang. Lamun kartu leungit atawa QR-na bocor, admin muka Murid tuluy kartu murid éta jeung milih Jieun deui QR absén: QR heubeul langsung teu kapaké jeung kartu anyar kudu dicitak deui.',
+            body: 'Pindaian nu gagal dikirim sabab jaringan disimpen dina parangkat jeung jam pindai aslina tuluy muncul dina spanduk Can dikirim; dikirim otomatis lamun jaringan balik jeung teu pernah kacatet dua kali. Pindaian leuwih ti 48 jam teu bisa dikirim tuluy dibuang. Lamun kartu leungit atawa QR-na bocor, admin muka Murid tuluy kartu murid éta jeung milih Jieun deui QR identitas: QR heubeul langsung teu kapaké di sakabéh fitur sakaligus (lain ngan absén) jeung kartu anyar kudu dicitak deui.',
           },
         ],
         faq: [

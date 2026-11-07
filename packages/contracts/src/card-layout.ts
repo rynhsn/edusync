@@ -63,35 +63,38 @@ export const CARD_FIELDS = [
 export type CardField = (typeof CARD_FIELDS)[number];
 
 /**
- * Kolom yang boleh menjadi isi kode QR / kode batang. `qrCode` = isi QR absensi cadangan kartu siswa
- * (`ES1.<kode acak>`), khusus kartu siswa dan hanya untuk elemen QR/kode batang, bukan elemen teks.
+ * Kolom yang boleh menjadi isi kode QR / kode batang. `qrCode` = kode identitas siswa (`ES1.<kode acak>`), satu
+ * kode per siswa untuk semua fitur; khusus kartu siswa dan hanya untuk elemen QR/kode batang, bukan elemen teks.
  */
 export const CODE_FIELDS = ['nis', 'rfidCode', 'qrCode', 'participantNo'] as const;
 
-/** Awalan isi QR absensi; pemindai mengabaikan QR lain yang tidak berawalan ini. */
-export const ATTENDANCE_QR_PREFIX = 'ES1.';
+/**
+ * Penanda versi format isi QR identitas (bukan jenis objek); pemindai mengabaikan QR lain yang tidak berawalan ini.
+ * Kode hanya MENGIDENTIFIKASI siswa; menu tempat kode dipindai yang menentukan tindakannya.
+ */
+export const IDENTITY_CODE_PREFIX = 'ES1.';
 
 /** Abjad Crockford base32 (tanpa I, L, O, U) dan panjang kode acak: 20 karakter x 5 bit = 100 bit. */
-export const ATTENDANCE_QR_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
-export const ATTENDANCE_QR_CODE_LENGTH = 20;
+export const IDENTITY_CODE_ALPHABET = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+export const IDENTITY_CODE_LENGTH = 20;
 
-const ATTENDANCE_QR_RE = /^ES1\.([0-9A-HJKMNP-TV-Z]{20})$/; // panjang = ATTENDANCE_QR_CODE_LENGTH
+const IDENTITY_CODE_RE = /^ES1\.([0-9A-HJKMNP-TV-Z]{20})$/; // panjang = IDENTITY_CODE_LENGTH
 
 /** Isi QR yang dicetak untuk satu kode. */
-export const formatAttendanceQr = (code: string): string => `${ATTENDANCE_QR_PREFIX}${code}`;
+export const formatIdentityPayload = (code: string): string => `${IDENTITY_CODE_PREFIX}${code}`;
 
 /**
  * Membaca teks hasil pindai. Mengembalikan kode acak (huruf besar) bila teks berformat `ES1.<20 karakter>`,
  * selain itu null. Spasi di tepi dan huruf kecil ditoleransi (input ketik manual).
  */
-export function parseAttendanceQr(text: string | null | undefined): string | null {
-  const m = ATTENDANCE_QR_RE.exec((text ?? '').trim().toUpperCase());
+export function parseIdentityPayload(text: string | null | undefined): string | null {
+  const m = IDENTITY_CODE_RE.exec((text ?? '').trim().toUpperCase());
   return m?.[1] ?? null;
 }
 
-/** Apakah teks tampak seperti QR absensi (berawalan `ES1.`), terlepas dari kelengkapan isinya. */
-export const hasAttendanceQrPrefix = (text: string | null | undefined): boolean =>
-  (text ?? '').trim().toUpperCase().startsWith(ATTENDANCE_QR_PREFIX);
+/** Apakah teks tampak seperti QR identitas siswa (berawalan `ES1.`), terlepas dari kelengkapan isinya. */
+export const hasIdentityPrefix = (text: string | null | undefined): boolean =>
+  (text ?? '').trim().toUpperCase().startsWith(IDENTITY_CODE_PREFIX);
 export type CodeField = (typeof CODE_FIELDS)[number];
 
 export const CARD_FIELD_LABELS: Record<CardField, string> = {
@@ -103,7 +106,7 @@ export const CARD_FIELD_LABELS: Record<CardField, string> = {
   birthPlaceDate: 'Tempat, tanggal lahir',
   gender: 'Jenis kelamin',
   rfidCode: 'Kode kartu RFID',
-  qrCode: 'QR absensi',
+  qrCode: 'QR identitas siswa',
   schoolName: 'Nama sekolah',
   address: 'Alamat',
   examTitle: 'Judul ujian',
@@ -260,7 +263,7 @@ export function invalidFieldsForKind(kind: CardKind, elements: readonly CardElem
     if ((el.type === 'field' || el.type === 'qr' || el.type === 'barcode') && !allowed.includes(el.field)) {
       bad.add(el.field);
     }
-    // QR absensi hanya untuk gambar kode; sebagai teks akan membocorkan isinya di kartu.
+    // QR identitas hanya untuk gambar kode; sebagai teks akan membocorkan isinya di kartu.
     if (el.type === 'field' && el.field === 'qrCode') bad.add(el.field);
   }
   return [...bad];
@@ -316,7 +319,7 @@ export function defaultStudentCardLayout(): CardLayout {
       { type: 'qr', field: 'qrCode', color: '#000000', x: 63, y: 24, w: 19, h: 19 },
       {
         type: 'text',
-        text: 'Pindai untuk absen',
+        text: 'Kode identitas siswa',
         x: 60,
         y: 43.5,
         w: 25,
