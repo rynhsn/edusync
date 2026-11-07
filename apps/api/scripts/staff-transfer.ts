@@ -7,7 +7,7 @@ import { account, and, createDb, eq, platformStaff, user } from '@edusync/db';
  * yang dipindah hanya hash kata sandi (scrypt, tidak bergantung pada AUTH_SECRET), lalu login memakai kata
  * sandi yang sama seperti di lokal.
  *
- *   Lokal : pnpm --filter @edusync/api staff:export admin@edusync.web.id berkas.json
+ *   Lokal : pnpm --filter @edusync/api staff:export admin@edusync.test berkas.json
  *   Server: pnpm --filter @edusync/api staff:import hi.edusync@gmail.com berkas.json
  *
  * Berkas berisi hash kata sandi: jangan di-commit (sudah masuk .gitignore), hapus setelah dipakai.
