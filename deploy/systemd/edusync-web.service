@@ -10,7 +10,8 @@ WorkingDirectory=/opt/edusync/app/apps/web
 Environment=HOME=/opt/edusync
 Environment=PATH=/usr/local/bin:/usr/bin:/bin
 EnvironmentFile=/opt/edusync/app/.env
-ExecStart=/usr/local/bin/pnpm exec next start -p 3000 -H 127.0.0.1
+# EnvironmentFile menimpa Environment=, dan .env berisi NODE_ENV=development; Next wajib production.
+ExecStart=/usr/bin/env NODE_ENV=production /usr/local/bin/pnpm exec next start -p 3000 -H 127.0.0.1
 Restart=on-failure
 RestartSec=5
 # Batasi dampak bila ada celah: tidak boleh menaikkan hak akses dan sistem berkas selain /opt/edusync read-only.

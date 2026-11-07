@@ -27,7 +27,8 @@ main() {
   echo "==> Dependensi"
   run pnpm install --frozen-lockfile
   echo "==> Build web (alamat API ikut tertanam saat build)"
-  run pnpm --filter @edusync/web build
+  # .env berisi NODE_ENV=development (API menolak mode produksi dengan penyedia pembayaran dev), tetapi Next wajib production.
+  run NODE_ENV=production pnpm --filter @edusync/web build
   echo "==> Migrasi database dan antrean"
   run pnpm db:migrate
 
