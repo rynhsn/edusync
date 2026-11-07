@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { Globe } from 'lucide-react';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { useSchool } from '@/components/app-shell';
@@ -9,6 +10,7 @@ import { BackLink } from '@/components/back-link';
 import { EmptyState } from '@/components/empty-state';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
 import { SelectField } from '@/components/ui/select-field';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { MODULE_TONE, ToneBadge } from '@/components/ui-kit';
@@ -88,7 +90,13 @@ export function OnlineChargesView() {
           title={t('ocEmpty')}
           body={t('ocEmptyHint')}
           first={t('ocEmptyFirst')}
-          canAct={false}
+          action={
+            can('finance:manage') ? (
+              <Button nativeButton={false} render={<Link href="/finance/gateway" />}>
+                {t('ocSetup')}
+              </Button>
+            ) : undefined
+          }
         />
       )}
 

@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,15 +15,17 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { THRESHOLD_ORDER, type ThresholdKey, validateThresholds } from '../pkl-validation';
 import { PREDICATE_STYLE, pklKey } from '../shared';
 
-type Key = 'A' | 'B' | 'C';
-const KEYS: Key[] = ['A', 'B', 'C'];
+type Key = ThresholdKey;
+const KEYS: Key[] = THRESHOLD_ORDER;
 
 /** Ambang predikat PKL: tiga batas minimal (A, B, C) dengan pratinjau pita nilai 0-100 yang langsung bergerak. */
 export function ThresholdsCard() {
   const t = useTranslations('pkl');
   const te = useTranslations();
+  const tv = useTranslations('formValidation');
   const { school, can } = useSchool();
   const manage = can('pkl:manage');
   const queryClient = useQueryClient();
@@ -46,6 +49,11 @@ export function ThresholdsCard() {
     }
   }, [current.data]);
 
+  const validation = useFormValidation<Key>({
+    errors: validateThresholds(draft),
+    order: KEYS,
+    idPrefix: 'pkl-th',
+  });
   const nums = { A: Number(draft.A), B: Number(draft.B), C: Number(draft.C) };
   const whole = KEYS.every(
     (k) => draft[k] !== '' && Number.isInteger(nums[k]) && nums[k] >= 1 && nums[k] <= 100,
@@ -96,9 +104,11 @@ export function ThresholdsCard() {
         ) : (
           <form
             className="grid gap-5"
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
-              if (valid) save.mutate();
+              if (!validation.attempt() || !valid) return;
+              save.mutate();
             }}
           >
             <div className="grid gap-4 sm:grid-cols-3">
@@ -117,17 +127,18 @@ export function ThresholdsCard() {
                     {t('thresholds.min', { predicate: k })}
                   </Label>
                   <Input
-                    id={`pkl-th-${k}`}
+                    {...validation.fieldProps(k)}
+                    aria-invalid={!valid && draft[k] !== ''}
+                    className={TOUCH_INPUT}
                     type="number"
                     inputMode="numeric"
-                    min={1}
-                    max={100}
+                    aria-required="true"
                     step={1}
                     disabled={!manage}
                     value={draft[k]}
-                    aria-invalid={!valid && draft[k] !== ''}
                     onChange={(e) => setDraft({ ...draft, [k]: e.target.value })}
                   />
+                  <FieldError id={validation.idOf(k)} issue={validation.issue(k)} />
                 </div>
               ))}
             </div>
@@ -172,9 +183,14 @@ export function ThresholdsCard() {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            {validation.summary && (
+              <p aria-live="polite" className="text-destructive text-sm">
+                {tv('summary')}
+              </p>
+            )}
             {manage && (
               <div className="flex justify-end">
-                <Button type="submit" disabled={!valid || !dirty || save.isPending}>
+                <Button type="submit" className="h-10 md:h-8" disabled={!dirty || save.isPending}>
                   {t('thresholds.save')}
                 </Button>
               </div>

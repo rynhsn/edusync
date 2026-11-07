@@ -23,11 +23,9 @@ export function shouldPollCharge(status: ChargeStatus | undefined, elapsedMs: nu
 
 export type GatewayMode = 'sandbox' | 'production';
 
-/** Awalan kunci yang diterima Midtrans menurut mode (mengikuti validasi API). */
-export function keyPrefixes(mode: GatewayMode): { server: string; client: string } {
-  return mode === 'sandbox'
-    ? { server: 'SB-Mid-server-', client: 'SB-Mid-client-' }
-    : { server: 'Mid-server-', client: 'Mid-client-' };
+/** Awalan kunci server yang diterima menurut mode (mengikuti validasi API). Kunci klien tidak diperiksa awalannya. */
+export function keyPrefixes(mode: GatewayMode): { server: string } {
+  return mode === 'sandbox' ? { server: 'SB-Mid-server-' } : { server: 'Mid-server-' };
 }
 
 export interface GatewayForm {

@@ -180,7 +180,6 @@ export function GatewayView() {
                     id="gw-client"
                     maxLength={200}
                     autoComplete="off"
-                    placeholder={`${prefixes.client}…`}
                     value={form.clientKey}
                     onChange={(e) => setForm({ ...form, clientKey: e.target.value })}
                   />

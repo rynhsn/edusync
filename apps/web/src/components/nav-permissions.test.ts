@@ -58,8 +58,10 @@ const PRIMARY: Record<string, string> = {
   '/messaging': 'GET /v1/messaging/messages',
   '/portal-admin': 'GET /v1/portal/accounts',
   '/site-settings': 'PUT /v1/site/profile',
+  '/support': 'GET /v1/support/tickets',
   '/members': 'GET /v1/members',
   '/roles': 'GET /v1/roles',
+  '/password-help': 'GET /v1/password-help/requests',
 };
 
 /**

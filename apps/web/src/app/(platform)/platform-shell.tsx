@@ -11,6 +11,7 @@ import {
   History,
   LifeBuoy,
   Mail,
+  MessagesSquare,
   Package,
   Send,
   ShieldCheck,
@@ -25,6 +26,8 @@ import { AppHeader, MobileNavDrawer } from '@/components/app-header';
 import { ContextSwitcher } from '@/components/context-switcher';
 import { Logo } from '@/components/logo';
 import { ShellAside, SidebarToggle } from '@/components/sidebar-toggle';
+import { usePlatformSupportUnread } from '@/components/support/support-api';
+import { CountBadge } from '@/components/support/support-kit';
 import { type SearchPage, TopbarSearch } from '@/components/topbar-search';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -51,6 +54,7 @@ export const PLATFORM_NAV_GROUPS = [
     items: [
       { href: '/platform', key: 'foundations', icon: Building2 },
       { href: '/platform/pending', key: 'pending', icon: ClipboardList },
+      { href: '/platform/support', key: 'support', icon: MessagesSquare },
       { href: '/platform/payments', key: 'payments', icon: CreditCard },
       { href: '/platform/email', key: 'email', icon: Mail },
     ],
@@ -118,6 +122,8 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
     enabled: me.isSuccess,
   });
   const pendingCount = overview.data?.pendingRegistrations ?? 0;
+  // Lencana merah menu Laporan: laporan dengan aktivitas sekolah/pemilik yang belum dibuka staf (polling ~60 detik).
+  const supportUnread = usePlatformSupportUnread(me.isSuccess);
   const unauthenticated = me.error instanceof ApiError && me.error.status === 401;
   const forbidden = me.error instanceof ApiError && me.error.status === 403;
 
@@ -189,6 +195,9 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
                   )}
                   <item.icon className={cn('size-4', active && 'text-primary')} />
                   <span className="flex-1">{t(item.key)}</span>
+                  {item.key === 'support' && (
+                    <CountBadge count={supportUnread} label={t('supportBadge', { count: supportUnread })} />
+                  )}
                   {item.key === 'pending' && pendingCount > 0 && (
                     <span className="bg-amber text-amber-foreground rounded-full px-1.5 text-[11px] font-semibold tabular-nums">
                       {pendingCount}

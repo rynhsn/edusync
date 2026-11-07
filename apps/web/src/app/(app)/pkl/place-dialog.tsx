@@ -5,6 +5,7 @@ import { CheckCircle2, Search, UserPlus } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useDeferredValue, useState } from 'react';
 import { useSchool } from '@/components/app-shell';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -23,6 +24,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { PLACE_ORDER, type PlaceField, validatePlace } from './pkl-validation';
 import { PersonAvatar, pklKey, usePklPartners, usePklPeriods } from './shared';
 
 interface Result {
@@ -56,6 +58,12 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
   const effectivePeriod = periodId || defaultPeriodId || periods.data?.[0]?.id || '';
   const period = periods.data?.find((p) => p.id === effectivePeriod);
   const activePartners = (partners.data ?? []).filter((p) => p.active);
+  const validation = useFormValidation<PlaceField>({
+    errors: validatePlace({ periodId: effectivePeriod, partnerId, picked: picked.size, indName, indPhone }),
+    order: PLACE_ORDER,
+    idPrefix: 'pl',
+  });
+  const tv = useTranslations('formValidation');
 
   const teachers = useQuery({
     queryKey: ['teachers', school.schoolId],
@@ -99,6 +107,7 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
     setPicked(new Map());
     setError(null);
     setResult(null);
+    validation.reset();
   }
 
   function toggle(id: string, name: string, on: boolean) {
@@ -143,8 +152,6 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
     onError: (e) => setError(te(errorKey(e))),
   });
 
-  const ready = !!effectivePeriod && !!partnerId && picked.size > 0;
-
   return (
     <Dialog
       open={open}
@@ -183,16 +190,19 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
         ) : (
           <form
             className="grid gap-4"
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
-              if (ready) place.mutate();
+              if (!validation.attempt()) return;
+              place.mutate();
             }}
           >
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid content-start gap-2">
-                <Label htmlFor="pl-period">{t('period')}</Label>
+                <Label htmlFor="pl-periodId">{t('period')}</Label>
                 <SelectField
-                  id="pl-period"
+                  {...validation.fieldProps('periodId')}
+                  className={TOUCH_SELECT}
                   value={effectivePeriod}
                   onChange={(e) => {
                     setPeriodId(e.target.value);
@@ -205,11 +215,13 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
                     </option>
                   ))}
                 </SelectField>
+                <FieldError id={validation.idOf('periodId')} issue={validation.issue('periodId')} />
               </div>
               <div className="grid content-start gap-2">
-                <Label htmlFor="pl-partner">{t('partner')}</Label>
+                <Label htmlFor="pl-partnerId">{t('partner')}</Label>
                 <SelectField
-                  id="pl-partner"
+                  {...validation.fieldProps('partnerId')}
+                  className={TOUCH_SELECT}
                   value={partnerId}
                   placeholder={t('choosePartner')}
                   onChange={(e) => setPartnerId(e.target.value)}
@@ -220,6 +232,7 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
                     </option>
                   ))}
                 </SelectField>
+                <FieldError id={validation.idOf('partnerId')} issue={validation.issue('partnerId')} />
               </div>
               <div className="grid content-start gap-2 sm:col-span-2">
                 <Label htmlFor="pl-teacher">{t('supervisor')}</Label>
@@ -240,23 +253,30 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
                 </SelectField>
               </div>
               <div className="grid content-start gap-2">
-                <Label htmlFor="pl-ind-name">{t('industrySupervisorName')}</Label>
+                <Label htmlFor="pl-indName">{t('industrySupervisorName')}</Label>
                 <Input
-                  id="pl-ind-name"
+                  {...validation.fieldProps('indName')}
+                  className={TOUCH_INPUT}
+                  autoComplete="off"
                   maxLength={120}
                   value={indName}
                   onChange={(e) => setIndName(e.target.value)}
                 />
+                <FieldError id={validation.idOf('indName')} issue={validation.issue('indName')} />
               </div>
               <div className="grid content-start gap-2">
-                <Label htmlFor="pl-ind-phone">{t('industrySupervisorPhone')}</Label>
+                <Label htmlFor="pl-indPhone">{t('industrySupervisorPhone')}</Label>
                 <Input
-                  id="pl-ind-phone"
+                  {...validation.fieldProps('indPhone')}
+                  className={TOUCH_INPUT}
                   type="tel"
+                  inputMode="tel"
+                  autoComplete="off"
                   maxLength={30}
                   value={indPhone}
                   onChange={(e) => setIndPhone(e.target.value)}
                 />
+                <FieldError id={validation.idOf('indPhone')} issue={validation.issue('indPhone')} />
               </div>
             </div>
 
@@ -306,7 +326,14 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
                   {t('selectAllShown')}
                 </Label>
               </div>
-              <ul className="max-h-56 overflow-y-auto rounded-lg border">
+              <ul
+                id={validation.idOf('picked')}
+                tabIndex={-1}
+                aria-describedby={
+                  validation.issue('picked') ? `${validation.idOf('picked')}-error` : undefined
+                }
+                className="max-h-56 overflow-y-auto rounded-lg border outline-none"
+              >
                 {students.isPending ? (
                   <li className="p-3">
                     <Skeleton className="h-6 w-full" />
@@ -341,6 +368,7 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
                   ))
                 )}
               </ul>
+              <FieldError id={validation.idOf('picked')} issue={validation.issue('picked')} />
               {(students.data?.total ?? 0) > list.length && (
                 <p className="text-muted-foreground px-1 text-xs">{t('narrowSearch')}</p>
               )}
@@ -351,11 +379,16 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            {validation.summary && (
+              <p aria-live="polite" className="text-destructive text-sm">
+                {tv('summary')}
+              </p>
+            )}
             <DialogFooter>
-              <Button type="button" variant="ghost" onClick={() => setOpen(false)}>
+              <Button type="button" variant="ghost" className="h-10 md:h-8" onClick={() => setOpen(false)}>
                 {t('cancel')}
               </Button>
-              <Button type="submit" disabled={!ready || place.isPending}>
+              <Button type="submit" className="h-10 md:h-8" disabled={place.isPending}>
                 {t('placeSubmit', { count: picked.size })}
               </Button>
             </DialogFooter>

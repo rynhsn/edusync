@@ -15,6 +15,7 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,7 @@ import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { insertAtCursor, placeholderToken, SAMPLE_VARS } from '../format';
 import { LetterPaper, PaperSheet } from '../letter-paper';
+import { TEMPLATE_ORDER, type TemplateField, validateTemplate } from '../letter-validation';
 import { PlaceholderChips, TextArea } from '../placeholder-chips';
 import { EnvelopeArt, useHeader, useLetterhead, useTemplates } from '../shared';
 import '../letters.css';
@@ -57,6 +59,11 @@ export function TemplatesView() {
   const [error, setError] = useState<string | null>(null);
   const [previewing, setPreviewing] = useState<string | null>(null);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const validation = useFormValidation<TemplateField>({
+    errors: form ? validateTemplate({ name: form.name, body: form.body }) : {},
+    order: TEMPLATE_ORDER,
+    idPrefix: 'tp',
+  });
 
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['letters', school.schoolId] });
 
@@ -271,7 +278,7 @@ export function TemplatesView() {
           submitLabel={t('save')}
           size="wide"
           error={error}
-          disabled={!form || !form.name.trim() || !form.body.trim()}
+          validation={validation}
           onSubmit={async () => {
             if (!form) return;
             setError(null);
@@ -281,20 +288,24 @@ export function TemplatesView() {
           {form && (
             <div className="grid gap-4">
               <div className="grid gap-4 sm:grid-cols-[1fr_11rem]">
-                <div className="grid content-start gap-1.5">
-                  <Label htmlFor="tp-name">{t('templateName')}</Label>
+                <div className="grid content-start gap-2">
+                  <Label htmlFor={validation.idOf('name')}>{t('templateName')}</Label>
                   <Input
-                    id="tp-name"
-                    required
+                    {...validation.fieldProps('name')}
+                    className={TOUCH_INPUT}
+                    aria-required="true"
+                    autoComplete="off"
                     maxLength={120}
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                   />
+                  <FieldError id={validation.idOf('name')} issue={validation.issue('name')} />
                 </div>
-                <div className="grid content-start gap-1.5">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="tp-kind">{t('templateKind')}</Label>
                   <SelectField
                     id="tp-kind"
+                    className={TOUCH_SELECT}
                     value={form.kind}
                     onChange={(e) => setForm({ ...form, kind: e.target.value as Form['kind'] })}
                   >
@@ -303,19 +314,20 @@ export function TemplatesView() {
                   </SelectField>
                 </div>
               </div>
-              <div className="grid content-start gap-1.5">
-                <Label htmlFor="tp-body">{t('body')}</Label>
+              <div className="grid content-start gap-2">
+                <Label htmlFor={validation.idOf('body')}>{t('body')}</Label>
                 <PlaceholderChips names={LETTER_PLACEHOLDERS} onPick={insert} />
                 <TextArea
-                  id="tp-body"
+                  {...validation.fieldProps('body')}
                   ref={bodyRef}
-                  required
+                  aria-required="true"
                   rows={11}
                   maxLength={20000}
                   className="font-serif text-[0.95rem] leading-relaxed"
                   value={form.body}
                   onChange={(e) => setForm({ ...form, body: e.target.value })}
                 />
+                <FieldError id={validation.idOf('body')} issue={validation.issue('body')} />
                 {unknown.length > 0 && (
                   <p className="text-destructive text-xs" role="alert">
                     {t('unknownPlaceholders', { list: unknown.map(placeholderToken).join(', ') })}

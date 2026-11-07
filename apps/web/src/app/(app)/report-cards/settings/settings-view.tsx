@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,11 @@ import { IconTile, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { predicateTone } from '../../grades/grade-ui';
+import {
+  REPORT_SETTINGS_ORDER,
+  type ReportSettingsField,
+  validateReportSettings,
+} from '../report-card-validation';
 import { Textarea } from '../textarea';
 
 const TEXT_KEYS = ['principalName', 'principalNip', 'city', 'address'] as const;
@@ -51,6 +57,7 @@ const EMPTY: Form = {
 /** Pengaturan rapor: identitas penandatangan, deskripsi capaian per predikat, dan tampilan peringkat. */
 export function ReportCardSettingsView() {
   const t = useTranslations('reportCards');
+  const tv = useTranslations('formValidation');
   const te = useTranslations();
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
@@ -58,6 +65,11 @@ export function ReportCardSettingsView() {
   const [form, setForm] = useState<Form>(EMPTY);
   const [dirty, setDirty] = useState(false);
   const manage = can('report_card:manage');
+  const validation = useFormValidation<ReportSettingsField>({
+    errors: validateReportSettings(form),
+    order: REPORT_SETTINGS_ORDER,
+    idPrefix: 'rc',
+  });
 
   const key = ['report-card-settings', school.schoolId];
   const settings = useQuery({
@@ -108,6 +120,7 @@ export function ReportCardSettingsView() {
     onSuccess: () => {
       toast.success(t('settingsSaved'));
       setDirty(false);
+      validation.reset();
       queryClient.invalidateQueries({ queryKey: key });
       queryClient.invalidateQueries({ queryKey: ['report-card', school.schoolId] });
     },
@@ -133,10 +146,11 @@ export function ReportCardSettingsView() {
 
       {settings.data && (
         <form
+          noValidate
           className="grid gap-6"
           onSubmit={(e) => {
             e.preventDefault();
-            save.mutate();
+            if (validation.attempt()) save.mutate();
           }}
         >
           <Card className="gap-4 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
@@ -155,13 +169,16 @@ export function ReportCardSettingsView() {
                     k === 'address' ? 'grid content-start gap-2 sm:col-span-2' : 'grid content-start gap-2'
                   }
                 >
-                  <Label htmlFor={`rc-${k}`}>{t(`field_${k}`)}</Label>
+                  <Label htmlFor={validation.idOf(k)}>{t(`field_${k}`)}</Label>
                   <Input
-                    id={`rc-${k}`}
+                    {...validation.fieldProps(k)}
+                    className={TOUCH_INPUT}
+                    autoComplete="off"
                     maxLength={k === 'address' ? 200 : 100}
                     value={form[k]}
                     onChange={(e) => patch({ [k]: e.target.value })}
                   />
+                  <FieldError id={validation.idOf(k)} issue={validation.issue(k)} />
                 </div>
               ))}
             </div>
@@ -178,7 +195,7 @@ export function ReportCardSettingsView() {
             <div className="grid gap-4 sm:grid-cols-2">
               {DESC_KEYS.map((k) => (
                 <div key={k} className="grid content-start gap-2">
-                  <Label htmlFor={`rc-${k}`} className="gap-2">
+                  <Label htmlFor={validation.idOf(k)} className="gap-2">
                     <ToneBadge
                       tone={predicateTone(k.slice(-1))}
                       dot={false}
@@ -189,12 +206,14 @@ export function ReportCardSettingsView() {
                     {t(`field_${k}`)}
                   </Label>
                   <Textarea
-                    id={`rc-${k}`}
+                    {...validation.fieldProps(k)}
+                    aria-required="true"
                     rows={3}
                     maxLength={300}
                     value={form[k]}
                     onChange={(e) => patch({ [k]: e.target.value })}
                   />
+                  <FieldError id={validation.idOf(k)} issue={validation.issue(k)} />
                 </div>
               ))}
             </div>
@@ -214,10 +233,15 @@ export function ReportCardSettingsView() {
             </div>
           </Card>
 
-          <div>
-            <Button type="submit" disabled={!dirty || save.isPending}>
+          <div className="flex flex-wrap items-center gap-3">
+            <Button type="submit" className="h-10 md:h-8" disabled={!dirty || save.isPending}>
               {t('save')}
             </Button>
+            {validation.summary && (
+              <p aria-live="polite" className="text-destructive text-sm">
+                {tv('summary')}
+              </p>
+            )}
           </div>
         </form>
       )}

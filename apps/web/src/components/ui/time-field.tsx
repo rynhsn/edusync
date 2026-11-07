@@ -17,6 +17,9 @@ interface Props {
   className?: string;
   /** Kelipatan menit pada daftar (default 5). Menit di luar kelipatan tetap tampil bila sedang terpilih. */
   step?: number;
+  'aria-invalid'?: boolean;
+  'aria-describedby'?: string | undefined;
+  onBlur?: () => void;
 }
 
 const pad = (n: number) => String(n).padStart(2, '0');
@@ -65,7 +68,18 @@ function Column({
 }
 
 /** Pemilih jam shadcn (Popover dengan dua kolom jam dan menit yang bisa digulir). Nilai berbentuk 'HH:mm'. */
-export function TimeField({ id, 'aria-label': ariaLabel, value, onChange, disabled, className, step = 5 }: Props) {
+export function TimeField({
+  id,
+  'aria-label': ariaLabel,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedby,
+  onBlur,
+  value,
+  onChange,
+  disabled,
+  className,
+  step = 5,
+}: Props) {
   const t = useTranslations('common');
   const [open, setOpen] = useState(false);
   const m = /^(\d{1,2}):(\d{2})/.exec(value);
@@ -86,6 +100,9 @@ export function TimeField({ id, 'aria-label': ariaLabel, value, onChange, disabl
           <Button
             id={id}
             aria-label={ariaLabel}
+            aria-invalid={ariaInvalid}
+            aria-describedby={ariaDescribedby}
+            onBlur={onBlur}
             type="button"
             variant="outline"
             disabled={disabled}

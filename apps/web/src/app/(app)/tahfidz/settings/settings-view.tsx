@@ -9,6 +9,13 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import {
+  FieldError,
+  type FormValidation,
+  TOUCH_INPUT,
+  TOUCH_SELECT,
+  useFormValidation,
+} from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -21,6 +28,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { GeoPattern, TahfidzBanner } from '../shared';
+import { IBADAH_ITEM_ORDER, type IbadahItemField, validateIbadahItem } from '../tahfidz-validation';
 
 interface ItemDraft {
   name: string;
@@ -33,10 +41,13 @@ function ItemFields({
   idPrefix,
   draft,
   onChange,
+  v,
 }: {
   idPrefix: string;
   draft: ItemDraft;
   onChange: (d: ItemDraft) => void;
+  /** Validasi galat-merah; id isian = `${idPrefix}-${field}`. */
+  v: FormValidation<IbadahItemField>;
 }) {
   const t = useTranslations('tahfidz');
   return (
@@ -44,17 +55,21 @@ function ItemFields({
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{t('itemName')}</Label>
         <Input
-          id={`${idPrefix}-name`}
-          required
+          {...v.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
           maxLength={100}
           value={draft.name}
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
+        <FieldError id={v.idOf('name')} issue={v.issue('name')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-kind`}>{t('itemKind')}</Label>
         <SelectField
           id={`${idPrefix}-kind`}
+          className={TOUCH_SELECT}
           value={draft.kind}
           onChange={(e) => onChange({ ...draft, kind: e.target.value as ItemDraft['kind'] })}
         >
@@ -78,6 +93,11 @@ function ItemsSection() {
   const [editing, setEditing] = useState<({ id: string; sort: number } & ItemDraft) | null>(null);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<IbadahItemField>({
+    errors: validateIbadahItem(editing ?? draft),
+    order: IBADAH_ITEM_ORDER,
+    idPrefix: editing ? 'edit-item' : 'new-item',
+  });
 
   const items = useQuery({
     queryKey: key,
@@ -169,13 +189,14 @@ function ItemsSection() {
           title={t('addItem')}
           submitLabel={t('addItem')}
           error={error}
+          validation={validation}
           onOpenChange={() => {
             setDraft(EMPTY_ITEM);
             setError(null);
           }}
           onSubmit={() => create.mutateAsync()}
         >
-          <ItemFields idPrefix="new-item" draft={draft} onChange={setDraft} />
+          <ItemFields idPrefix="new-item" draft={draft} onChange={setDraft} v={validation} />
         </FormDialog>
       </div>
 
@@ -242,6 +263,7 @@ function ItemsSection() {
                     aria-label={`${tm('edit')} ${i.name}`}
                     onClick={() => {
                       setError(null);
+                      validation.reset();
                       setEditing({ id: i.id, name: i.name, kind: i.kind, active: i.active, sort: i.sort });
                     }}
                   >
@@ -268,6 +290,7 @@ function ItemsSection() {
           title={t('itemName')}
           submitLabel={t('save')}
           error={error}
+          validation={validation}
           onOpenChange={(o) => !o && setEditing(null)}
           onSubmit={() => update.mutateAsync(editing)}
         >
@@ -275,6 +298,7 @@ function ItemsSection() {
             idPrefix="edit-item"
             draft={editing}
             onChange={(d) => setEditing({ ...editing, ...d })}
+            v={validation}
           />
         </FormDialog>
       )}

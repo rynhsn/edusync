@@ -30,6 +30,7 @@ import {
   Mail,
   Megaphone,
   MessageCircle,
+  MessagesSquare,
   MoonStar,
   PenLine,
   Receipt,
@@ -56,6 +57,8 @@ import { ContextSwitcher } from '@/components/context-switcher';
 import { Logo } from '@/components/logo';
 import { SchoolSuspended } from '@/components/school-suspended';
 import { ShellAside, SidebarToggle } from '@/components/sidebar-toggle';
+import { useSchoolSupportUnread } from '@/components/support/support-api';
+import { CountBadge } from '@/components/support/support-kit';
 import { type SearchPage, TopbarSearch } from '@/components/topbar-search';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -66,6 +69,7 @@ import { isPortalOnly, isPortalPath } from '@/lib/portal-access';
 import { suspensionKind } from '@/lib/school-suspension';
 import { setSchoolTimezone } from '@/lib/school-time';
 import { useSite } from '@/lib/site';
+import { rememberPage } from '@/lib/support';
 import { cn } from '@/lib/utils';
 
 interface Membership {
@@ -459,12 +463,17 @@ export const NAV_GROUPS = [
     items: [
       { href: '/members', labelKey: 'members', icon: Users, permission: 'member:read' },
       { href: '/roles', labelKey: 'roles', icon: ShieldCheck, permission: 'member:read' },
+      { href: '/password-help', labelKey: 'passwordHelp', icon: KeyRound, permission: 'account:reset' },
     ],
   },
   {
     key: null,
     icon: BookOpen,
-    items: [{ href: '/docs', labelKey: 'docs', icon: BookOpen, permission: null }],
+    items: [
+      // Admin sekolah melapor ke tim platform; lencana merah = ada balasan yang belum dibuka.
+      { href: '/support', labelKey: 'support', icon: MessagesSquare, permission: 'school:manage' },
+      { href: '/docs', labelKey: 'docs', icon: BookOpen, permission: null },
+    ],
   },
 ] as const;
 
@@ -490,13 +499,22 @@ function SidebarNav({
   permissions,
   modules,
   pathname,
+  schoolId,
 }: {
   permissions: Set<string>;
   modules: string[];
   pathname: string;
+  schoolId: string;
 }) {
   const t = useTranslations('nav');
   const [openGroups, setOpenGroups] = useState<string[]>([]);
+  // Lencana merah menu Laporan: jumlah laporan dengan balasan platform yang belum dibuka (polling ~60 detik).
+  const supportUnread = useSchoolSupportUnread(schoolId, permissions.has('school:manage'));
+
+  // Laporan baru membawa halaman terakhir yang dibuka sebagai konteks.
+  useEffect(() => {
+    rememberPage(pathname);
+  }, [pathname]);
 
   const groups = visibleNavGroups(permissions, modules);
 
@@ -535,7 +553,10 @@ function SidebarNav({
       >
         {!nested && <n.icon className={cn('size-4', active && 'text-primary')} />}
         {nested && 'settings' in n && <Settings2 className="size-3.5 opacity-70" aria-hidden />}
-        {t(n.labelKey)}
+        <span className="flex-1">{t(n.labelKey)}</span>
+        {n.href === '/support' && (
+          <CountBadge count={supportUnread} label={t('supportBadge', { count: supportUnread })} />
+        )}
       </Link>
     );
   };
@@ -785,7 +806,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         <ContextSwitcher alwaysShow subtitle={roles} />
       </div>
 
-      <SidebarNav permissions={permissions} modules={school.modules} pathname={pathname} />
+      <SidebarNav
+        permissions={permissions}
+        modules={school.modules}
+        pathname={pathname}
+        schoolId={school.schoolId}
+      />
     </>
   );
 

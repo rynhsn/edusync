@@ -10,6 +10,7 @@ import {
   numeric,
   pgTable,
   primaryKey,
+  smallint,
   text,
   timestamp,
   unique,
@@ -96,9 +97,29 @@ export const user = pgTable('user', {
   image: text('image'),
   /** Digit berawalan 62; opsional, belum dipakai untuk masuk. */
   phone: text('phone'),
+  /** Nama pengguna untuk masuk: huruf kecil, 3-30 karakter [a-z0-9._-], unik, bukan email/NIK. */
+  username: text('username').unique('user_username_uq'),
   createdAt: createdAt(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/** Kode pemulihan kata sandi (email atau WhatsApp): satu kode aktif per pengguna dan saluran, hanya hash-nya yang disimpan. */
+export const passwordResetOtp = pgTable(
+  'password_reset_otp',
+  {
+    id: id(),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    channel: text('channel', { enum: ['email', 'whatsapp'] }).notNull(),
+    codeHash: text('code_hash').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    attempts: integer('attempts').notNull().default(0),
+    sentAt: timestamp('sent_at', { withTimezone: true }).notNull().defaultNow(),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('password_reset_otp_user_channel_uq').on(t.userId, t.channel)],
+);
 
 export const session = pgTable(
   'session',
@@ -394,6 +415,88 @@ export const staffInvitation = pgTable(
       .on(t.email)
       .where(sql`${t.acceptedAt} is null and ${t.revokedAt} is null`),
   ],
+);
+
+/**
+ * Laporan (tiket bantuan) dari admin sekolah atau pemilik yayasan ke tim platform. Tanpa RLS dan tertutup bagi
+ * peran aplikasi seperti staff_invitation: hanya pool platform yang menyentuhnya, dan rute API tenant
+ * menyaring menurut sekolah/yayasan pengguna sendiri. `origin` memisahkan laporan panel sekolah (school_id)
+ * dari laporan portal pemilik (foundation_id, school_id opsional sebagai rujukan).
+ */
+export const supportTicket = pgTable(
+  'support_ticket',
+  {
+    id: id(),
+    ticketNo: text('ticket_no')
+      .notNull()
+      .unique()
+      .default(sql`'TKT-' || lpad(nextval('support_ticket_no_seq')::text, 6, '0')`),
+    origin: text('origin', { enum: ['school', 'owner'] }).notNull(),
+    schoolId: uuid('school_id').references(() => school.id, { onDelete: 'cascade' }),
+    foundationId: uuid('foundation_id').references(() => foundation.id, { onDelete: 'cascade' }),
+    createdBy: text('created_by').notNull(),
+    creatorName: text('creator_name').notNull(),
+    creatorEmail: text('creator_email').notNull(),
+    subject: text('subject').notNull(),
+    category: text('category', { enum: ['account', 'billing', 'bug', 'feature', 'data', 'other'] }).notNull(),
+    priority: text('priority', { enum: ['low', 'normal', 'high', 'urgent'] })
+      .notNull()
+      .default('normal'),
+    status: text('status', { enum: ['open', 'in_progress', 'waiting_reporter', 'resolved', 'closed'] })
+      .notNull()
+      .default('open'),
+    assignedStaffId: text('assigned_staff_id').references(() => platformStaff.userId, {
+      onDelete: 'set null',
+    }),
+    context: jsonb('context').$type<Record<string, unknown>>().notNull().default({}),
+    lastMessageAt: timestamp('last_message_at', { withTimezone: true }).notNull().defaultNow(),
+    lastMessageBySide: text('last_message_by_side', { enum: ['school', 'platform'] }).notNull(),
+    /** Ada balasan platform yang belum dibuka pihak pelapor. */
+    schoolUnread: boolean('school_unread').notNull().default(false),
+    /** Ada aktivitas pelapor yang belum dibuka staf platform. */
+    platformUnread: boolean('platform_unread').notNull().default(true),
+    resolvedAt: timestamp('resolved_at', { withTimezone: true }),
+    closedAt: timestamp('closed_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('support_ticket_school_idx').on(t.schoolId, t.lastMessageAt.desc()),
+    index('support_ticket_foundation_idx').on(t.foundationId, t.lastMessageAt.desc()),
+    index('support_ticket_status_idx').on(t.status, t.lastMessageAt.desc()),
+    index('support_ticket_platform_unread_idx').on(t.lastMessageAt).where(sql`${t.platformUnread}`),
+  ],
+);
+
+/** Isi percakapan laporan. `internal` = catatan khusus staf, tidak pernah tampil ke sekolah/pemilik. */
+export const supportMessage = pgTable(
+  'support_message',
+  {
+    id: id(),
+    ticketId: uuid('ticket_id')
+      .notNull()
+      .references(() => supportTicket.id, { onDelete: 'cascade' }),
+    authorUserId: text('author_user_id').notNull(),
+    authorName: text('author_name').notNull(),
+    authorSide: text('author_side', { enum: ['school', 'platform'] }).notNull(),
+    body: text('body').notNull(),
+    internal: boolean('internal').notNull().default(false),
+    createdAt: createdAt(),
+  },
+  (t) => [index('support_message_ticket_idx').on(t.ticketId, t.createdAt)],
+);
+
+/** Pembatas email laporan: satu email per laporan, penerima, dan jenis (balasan/status) dalam 2 menit. */
+export const supportEmailThrottle = pgTable(
+  'support_email_throttle',
+  {
+    ticketId: uuid('ticket_id')
+      .notNull()
+      .references(() => supportTicket.id, { onDelete: 'cascade' }),
+    recipient: text('recipient').notNull(),
+    kind: text('kind').notNull(),
+    sentAt: timestamp('sent_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [primaryKey({ columns: [t.ticketId, t.recipient, t.kind] })],
 );
 
 /** Pemilik yayasan: mengurus langganan dan tagihan di alamat utama. Bukan peran sekolah. */
@@ -2576,6 +2679,93 @@ export const finBankAccount = pgTable(
   (t) => [index('fin_bank_account_school_idx').on(t.schoolId, t.sort)],
 );
 
+/**
+ * Aturan penagihan otomatis: satu aturan per jenis biaya. Penjadwal harian di worker membuat tagihan (idempoten,
+ * sama dengan "Buat tagihan massal") pada tanggal yang diatur di sini. Aturan semantik: packages/contracts/auto-billing.ts.
+ */
+export const finAutoBillingRule = pgTable(
+  'fin_auto_billing_rule',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    feeTypeId: uuid('fee_type_id')
+      .notNull()
+      .references(() => finFeeType.id, { onDelete: 'cascade' }),
+    enabled: boolean('enabled').notNull().default(true),
+    /** Tanggal pembuatan tiap bulan (1..28); hanya biaya bulanan. */
+    runDay: smallint('run_day'),
+    dueMode: text('due_mode', { enum: ['fixed_day', 'days_after'] }).notNull(),
+    /** Tanggal jatuh tempo (1..28) untuk `fixed_day`; lebih kecil dari `runDay` berarti bulan berikutnya. */
+    dueDay: smallint('due_day'),
+    /** Hari setelah tanggal pembuatan untuk `days_after`. */
+    dueDays: smallint('due_days'),
+    /** Pembatas kelas (id kelas); null atau kosong = semua siswa dalam cakupan jenis biaya. */
+    classIds: jsonb('class_ids').$type<string[] | null>(),
+    /** Biaya semester: `start` = saat semester mulai, `custom` = selisih hari dari tanggal mulai semester. */
+    semesterRun: text('semester_run', { enum: ['start', 'custom'] }),
+    semesterOffsetDays: smallint('semester_offset_days'),
+    /** Tanggal pembuatan untuk biaya tahunan dan sekali bayar. */
+    runOn: date('run_on'),
+    installments: smallint('installments'),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('fin_auto_billing_rule_fee_uq').on(t.schoolId, t.feeTypeId),
+    check('fin_auto_billing_rule_run_day_ck', sql`${t.runDay} is null or ${t.runDay} between 1 and 28`),
+    check('fin_auto_billing_rule_due_day_ck', sql`${t.dueDay} is null or ${t.dueDay} between 1 and 28`),
+    check('fin_auto_billing_rule_due_days_ck', sql`${t.dueDays} is null or ${t.dueDays} between 0 and 120`),
+    check(
+      'fin_auto_billing_rule_offset_ck',
+      sql`${t.semesterOffsetDays} is null or ${t.semesterOffsetDays} between -60 and 180`,
+    ),
+    check(
+      'fin_auto_billing_rule_installments_ck',
+      sql`${t.installments} is null or ${t.installments} between 2 and 12`,
+    ),
+  ],
+);
+
+/**
+ * Log setiap upaya penagihan otomatis atau manual ("Jalankan sekarang"). Disimpan 24 bulan terakhir (pembersihan
+ * belum dijadwalkan). Hanya satu run otomatis `ok` per aturan, tahun ajaran, dan periode.
+ */
+export const finAutoBillingRun = pgTable(
+  'fin_auto_billing_run',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    ruleId: uuid('rule_id')
+      .notNull()
+      .references(() => finAutoBillingRule.id, { onDelete: 'cascade' }),
+    academicYearId: uuid('academic_year_id').references(() => academicYear.id),
+    /** TTTT-BB (bulanan), S1/S2 (semester), atau nama tahun ajaran (tahunan dan sekali bayar). */
+    period: text('period').notNull(),
+    scheduledFor: date('scheduled_for').notNull(),
+    startedAt: timestamp('started_at', { withTimezone: true }).notNull().defaultNow(),
+    finishedAt: timestamp('finished_at', { withTimezone: true }),
+    status: text('status', { enum: ['ok', 'partial', 'failed', 'skipped'] }).notNull(),
+    createdCount: integer('created_count').notNull().default(0),
+    skippedCount: integer('skipped_count').notNull().default(0),
+    missingPlanCount: integer('missing_plan_count').notNull().default(0),
+    freeCount: integer('free_count').notNull().default(0),
+    error: text('error'),
+    trigger: text('trigger', { enum: ['auto', 'manual'] }).notNull(),
+  },
+  (t) => [
+    index('fin_auto_billing_run_rule_idx').on(t.ruleId, t.startedAt),
+    index('fin_auto_billing_run_school_idx').on(t.schoolId, t.startedAt),
+    uniqueIndex('fin_auto_billing_run_ok_uq')
+      .on(t.ruleId, t.academicYearId, t.period)
+      .where(sql`${t.trigger} = 'auto' and ${t.status} = 'ok'`),
+  ],
+);
+
 /** Kategori ekskul yang dikelola sekolah, lengkap dengan ikon dan warna. */
 export const extracurricularCategory = pgTable(
   'extracurricular_category',
@@ -2707,4 +2897,59 @@ export const schoolDomain = pgTable(
     index('school_domain_school_idx').on(t.schoolId),
     check('school_domain_hostname_lower_ck', sql`${t.hostname} = lower(${t.hostname})`),
   ],
+);
+
+/* ---------- Reset kata sandi dibantu admin sekolah ---------- */
+
+/**
+ * Laporan "lupa kata sandi" dari publik (wali/guru/siswa yang tidak bisa menerima email atau OTP). Isian pelapor
+ * disimpan apa adanya kecuali NIK (hanya bentuk tersamar). `matchedUserId` hanya petunjuk untuk admin.
+ */
+export const passwordResetRequest = pgTable(
+  'password_reset_request',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    identifierGiven: text('identifier_given'),
+    claimedName: text('claimed_name').notNull(),
+    claimedInfo: text('claimed_info'),
+    contactPhone: text('contact_phone').notNull(),
+    status: text('status', { enum: ['new', 'in_progress', 'done', 'rejected'] })
+      .notNull()
+      .default('new'),
+    matchedUserId: text('matched_user_id').references(() => user.id, { onDelete: 'set null' }),
+    handledBy: text('handled_by'),
+    handledAt: timestamp('handled_at', { withTimezone: true }),
+    note: text('note'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    index('password_reset_request_school_idx').on(t.schoolId, t.status, t.createdAt),
+    index('password_reset_request_phone_idx').on(t.contactPhone, t.createdAt),
+  ],
+);
+
+/** Tautan reset sekali pakai buatan admin. Hanya hash token yang disimpan. */
+export const passwordResetLink = pgTable(
+  'password_reset_link',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    requestId: uuid('request_id').references(() => passwordResetRequest.id, { onDelete: 'set null' }),
+    userId: text('user_id')
+      .notNull()
+      .references(() => user.id, { onDelete: 'cascade' }),
+    tokenHash: text('token_hash').notNull().unique(),
+    createdBy: text('created_by').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    usedAt: timestamp('used_at', { withTimezone: true }),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    channelSent: text('channel_sent', { enum: ['email', 'whatsapp'] }),
+    createdAt: createdAt(),
+  },
+  (t) => [index('password_reset_link_school_idx').on(t.schoolId, t.userId)],
 );

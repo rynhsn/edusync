@@ -10,6 +10,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -23,6 +24,7 @@ import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatIdDate, insertAtCursor, placeholderToken } from './format';
 import { LetterPaper, PaperSheet } from './letter-paper';
+import { OUTGOING_ORDER, type OutgoingField, validateOutgoing } from './letter-validation';
 import { PlaceholderChips, TextArea } from './placeholder-chips';
 import {
   useHeader,
@@ -87,6 +89,12 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
   const [error, setError] = useState<string | null>(null);
   const [zoom, setZoom] = useZoom(90);
   const bodyRef = useRef<HTMLTextAreaElement>(null);
+  const validation = useFormValidation<OutgoingField>({
+    errors: validateOutgoing({ subject, party, letterDate, body }),
+    order: OUTGOING_ORDER,
+    idPrefix: 'lc',
+  });
+  const tv = useTranslations('formValidation');
 
   useEffect(() => {
     const id = setTimeout(() => setDebounced(q.trim()), 300);
@@ -188,8 +196,6 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
     onError: (e) => setError(te(errorKey(e))),
   });
 
-  const canSave = subject.trim() !== '' && party.trim() !== '' && body.trim() !== '';
-
   return (
     <PageBody className="lt-scope">
       <PageHeader
@@ -202,9 +208,11 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
         <Card className="gap-4 px-4">
           <form
             className="grid gap-4"
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
               setError(null);
+              if (!validation.attempt()) return;
               save.mutate();
             }}
           >
@@ -296,45 +304,61 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
               <p className="text-muted-foreground text-xs">{t('studentHint')}</p>
             </div>
 
-            <div className="grid content-start gap-1.5">
-              <Label htmlFor="subject">{t('subject')}</Label>
+            <div className="grid content-start gap-2">
+              <Label htmlFor={validation.idOf('subject')}>{t('subject')}</Label>
               <Input
-                id="subject"
-                required
+                {...validation.fieldProps('subject')}
+                className={TOUCH_INPUT}
+                aria-required="true"
+                autoComplete="off"
                 maxLength={200}
                 value={subject}
                 onChange={(e) => setSubject(e.target.value)}
               />
+              <FieldError id={validation.idOf('subject')} issue={validation.issue('subject')} />
             </div>
-            <div className="grid content-start gap-1.5">
-              <Label htmlFor="party">{t('recipient')}</Label>
+            <div className="grid content-start gap-2">
+              <Label htmlFor={validation.idOf('party')}>{t('recipient')}</Label>
               <Input
-                id="party"
-                required
+                {...validation.fieldProps('party')}
+                className={TOUCH_INPUT}
+                aria-required="true"
+                autoComplete="off"
                 maxLength={200}
                 value={party}
                 onChange={(e) => setParty(e.target.value)}
                 placeholder={t('recipientHint')}
               />
+              <FieldError id={validation.idOf('party')} issue={validation.issue('party')} />
             </div>
-            <div className="grid content-start gap-1.5">
-              <Label htmlFor="date">{t('letterDate')}</Label>
-              <DatePicker id="date" value={letterDate} onChange={setLetterDate} />
+            <div className="grid content-start gap-2">
+              <Label htmlFor={validation.idOf('letterDate')}>{t('letterDate')}</Label>
+              <DatePicker
+                {...validation.fieldProps('letterDate')}
+                className={TOUCH_INPUT}
+                value={letterDate}
+                onChange={(v) => {
+                  validation.touch('letterDate');
+                  setLetterDate(v);
+                }}
+              />
+              <FieldError id={validation.idOf('letterDate')} issue={validation.issue('letterDate')} />
             </div>
 
-            <div className="grid content-start gap-1.5">
-              <Label htmlFor="body">{t('body')}</Label>
+            <div className="grid content-start gap-2">
+              <Label htmlFor={validation.idOf('body')}>{t('body')}</Label>
               <PlaceholderChips names={LETTER_PLACEHOLDERS} onPick={insertPlaceholder} />
               <TextArea
-                id="body"
+                {...validation.fieldProps('body')}
                 ref={bodyRef}
-                required
+                aria-required="true"
                 rows={14}
                 maxLength={20000}
                 className="font-serif text-[0.95rem] leading-relaxed"
                 value={body}
                 onChange={(e) => setBody(e.target.value)}
               />
+              <FieldError id={validation.idOf('body')} issue={validation.issue('body')} />
             </div>
 
             {error && (
@@ -342,16 +366,22 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            {validation.summary && (
+              <p aria-live="polite" className="text-destructive text-sm">
+                {tv('summary')}
+              </p>
+            )}
             <div className="flex flex-wrap justify-end gap-2">
               <Button
                 type="button"
                 variant="ghost"
+                className="h-10 md:h-8"
                 nativeButton={false}
                 render={<Link href={initial ? `/letters/${initial.id}` : '/letters'} />}
               >
                 {t('cancel')}
               </Button>
-              <Button type="submit" disabled={!canSave || save.isPending}>
+              <Button type="submit" className="h-10 md:h-8" disabled={save.isPending}>
                 <Save className="size-4" /> {t('saveDraft')}
               </Button>
             </div>

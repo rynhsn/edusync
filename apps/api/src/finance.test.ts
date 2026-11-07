@@ -1237,8 +1237,12 @@ describe('metode pembayaran', () => {
     expect(code(blocked)).toBe('invalid_method');
     const list = await call('GET', '/v1/finance/payments?method=qris', adminCookie);
     expect(list.json().items).toMatchObject([{ id: paymentId, method: 'qris', methodLabel: 'QRIS Bank' }]);
-    const day = new Date().toISOString().slice(0, 10);
-    const report = await call('GET', `/v1/finance/reports/daily?from=${day}&to=${day}`, adminCookie);
+    // Laporan memakai tanggal zona waktu sekolah (WIB), bukan UTC: rentang kemarin sampai besok agar tidak
+    // bergantung jam jalan tes (antara 00.00 dan 07.00 WIB tanggal UTC masih hari sebelumnya).
+    const dayMs = 86_400_000;
+    const from = new Date(Date.now() - dayMs).toISOString().slice(0, 10);
+    const to = new Date(Date.now() + dayMs).toISOString().slice(0, 10);
+    const report = await call('GET', `/v1/finance/reports/daily?from=${from}&to=${to}`, adminCookie);
     expect(report.json().byMethod).toContainEqual({
       method: 'qris',
       methodLabel: 'QRIS Bank',

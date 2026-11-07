@@ -1,10 +1,12 @@
+import { isValidUsername, normalizeUsername } from '@edusync/contracts';
 import { account, type Db, session, user, verification } from '@edusync/db';
 import { enqueue, QUEUES } from '@edusync/jobs';
 import { betterAuth } from 'better-auth';
 import { drizzleAdapter } from 'better-auth/adapters/drizzle';
-import { APIError } from 'better-auth/api';
+import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { emailOTP } from 'better-auth/plugins/email-otp';
 import { oneTimeToken } from 'better-auth/plugins/one-time-token';
+import { resolveLoginEmail, usernameTaken } from './account-lookup';
 import type { Env } from './env';
 import { createDynamicOriginChecker, createOriginMatcher, type HostResolver } from './origins';
 import { normalizePhone } from './routes/guardians';
@@ -12,6 +14,44 @@ import { normalizePhone } from './routes/guardians';
 /** Foto profil disimpan sebagai gambar kecil (sudah dikecilkan di peramban) langsung di baris pengguna. */
 const PHOTO_PATTERN = /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
 const PHOTO_MAX_CHARS = 120_000;
+
+/** Email pengganti saat isian masuk tidak cocok dengan akun mana pun: Better Auth tetap menghitung hash lalu menolak. */
+const NO_ACCOUNT_EMAIL = 'tidak-ada@identitas.invalid';
+
+/** Jalur OTP bawaan Better Auth untuk lupa kata sandi dinonaktifkan; pemulihan memakai /v1/auth/recovery/*. */
+const RETIRED_RESET_PATHS = new Set([
+  '/email-otp/request-password-reset',
+  '/forget-password/email-otp',
+  '/email-otp/reset-password',
+]);
+const OTP_PATHS_WITH_TYPE = new Set([
+  '/email-otp/send-verification-otp',
+  '/email-otp/check-verification-otp',
+]);
+
+/**
+ * Merapikan dan memeriksa nama pengguna pada data pengguna yang akan disimpan. Kosong menghapus nama pengguna.
+ * `selfId` melewatkan akun sendiri pada pemeriksaan keunikan.
+ */
+async function prepareUsername(db: Db, next: Record<string, unknown>, selfId: string | undefined) {
+  if (!('username' in next)) return;
+  const raw = typeof next.username === 'string' ? normalizeUsername(next.username) : '';
+  if (raw === '') {
+    next.username = null;
+    return;
+  }
+  if (!isValidUsername(raw)) {
+    throw APIError.from('BAD_REQUEST', {
+      code: 'INVALID_USERNAME',
+      message:
+        'Nama pengguna harus 3 sampai 30 karakter: huruf kecil, angka, titik, garis bawah, atau strip.',
+    });
+  }
+  if (await usernameTaken(db, raw, selfId)) {
+    throw APIError.from('BAD_REQUEST', { code: 'USERNAME_TAKEN', message: 'Nama pengguna sudah dipakai.' });
+  }
+  next.username = raw;
+}
 
 const schemeOf = (env: Env) => (new URL(env.AUTH_URL).protocol === 'https:' ? 'https:' : 'http:');
 
@@ -81,12 +121,50 @@ export function createAuth(env: Env, db: Db, hosts: HostResolver, outboxDb: Db) 
       }),
     ],
     database: drizzleAdapter(db, { provider: 'pg', schema: { user, session, account, verification } }),
-    user: { additionalFields: { phone: { type: 'string', required: false, input: true } } },
+    user: {
+      additionalFields: {
+        phone: { type: 'string', required: false, input: true },
+        username: { type: 'string', required: false, input: true },
+      },
+    },
+    hooks: {
+      before: createAuthMiddleware(async (ctx) => {
+        const body = (ctx.body ?? {}) as Record<string, unknown>;
+        // Masuk dengan email, nama pengguna, atau NIK: isian dikembalikan ke email akun di sini, di server, sehingga
+        // email tidak pernah dikirim ke klien. Yang tidak cocok (atau NIK dipakai beberapa akun) diberi email
+        // pengganti: Better Auth tetap menghitung hash dan menolak dengan jawaban yang sama seperti kata sandi salah.
+        if (ctx.path === '/sign-in/email') {
+          const given = typeof body.email === 'string' ? body.email.trim() : '';
+          if (given.includes('@')) return { context: { body: { ...body, email: given } } };
+          const email = given ? await resolveLoginEmail(outboxDb, given) : null;
+          return { context: { body: { ...body, email: email ?? NO_ACCOUNT_EMAIL } } };
+        }
+        if (
+          RETIRED_RESET_PATHS.has(ctx.path ?? '') ||
+          (OTP_PATHS_WITH_TYPE.has(ctx.path ?? '') && body.type === 'forget-password')
+        ) {
+          throw APIError.from('NOT_FOUND', {
+            code: 'RESET_PATH_RETIRED',
+            message: 'Gunakan /v1/auth/recovery untuk memulihkan kata sandi.',
+          });
+        }
+      }),
+    },
     databaseHooks: {
       user: {
-        update: {
+        create: {
           before: async (data) => {
             const next: Record<string, unknown> = { ...data };
+            await prepareUsername(db, next, undefined);
+            return { data: next };
+          },
+        },
+        update: {
+          before: async (data, context) => {
+            const next: Record<string, unknown> = { ...data };
+            const selfId = (context as { context?: { session?: { user?: { id?: string } } } } | null)?.context
+              ?.session?.user?.id;
+            await prepareUsername(db, next, selfId);
             if (typeof next.name === 'string') {
               const name = next.name.trim().replace(/\s+/g, ' ');
               if (name.length < 2 || name.length > 120) {

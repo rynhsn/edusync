@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -36,6 +37,7 @@ import {
   type PortalKind,
   portalRequest,
 } from '@/lib/portal-api';
+import { PORTAL_INVITE_ORDER, type PortalInviteField, validatePortalInvite } from './portal-admin-validation';
 
 interface Target {
   kind: PortalKind;
@@ -68,6 +70,11 @@ export function PortalAdminView() {
   const [target, setTarget] = useState<Target | null>(null);
   const [email, setEmail] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<PortalInviteField>({
+    errors: validatePortalInvite(email),
+    order: PORTAL_INVITE_ORDER,
+    idPrefix: 'pa',
+  });
   const [created, setCreated] = useState<{ link: string; name: string; expiresAt: string } | null>(null);
   const [copied, setCopied] = useState(false);
 
@@ -374,6 +381,7 @@ export function PortalAdminView() {
         description={t('createBody')}
         submitLabel={t('create')}
         error={error}
+        validation={validation}
         onOpenChange={(o) => !o && setTarget(null)}
         onSubmit={async () => {
           if (!target) return;
@@ -383,12 +391,16 @@ export function PortalAdminView() {
         <div className="grid content-start gap-1.5">
           <Label htmlFor="pa-email">{t('emailLabel')}</Label>
           <Input
-            id="pa-email"
+            {...validation.fieldProps('email')}
+            className={TOUCH_INPUT}
             type="email"
+            inputMode="email"
+            maxLength={254}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             autoComplete="off"
           />
+          <FieldError id={validation.idOf('email')} issue={validation.issue('email')} />
           <p className="text-muted-foreground text-xs">{t('emailHint')}</p>
         </div>
       </FormDialog>

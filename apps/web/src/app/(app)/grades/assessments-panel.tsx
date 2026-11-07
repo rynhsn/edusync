@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { RowMenu } from '@/components/row-menu';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -26,11 +27,13 @@ import {
 } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { todayIso } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 import { COMPONENT_TONES } from './grade-ui';
+import { ASSESSMENT_ORDER, type AssessmentField, validateAssessment } from './grade-validation';
 import { ScoreSheet } from './score-sheet';
 
 interface Props {
@@ -64,6 +67,11 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
   const [deleting, setDeleting] = useState<{ id: string; title: string } | null>(null);
   const [form, setForm] = useState<Form>(emptyForm());
   const [formError, setFormError] = useState<string | null>(null);
+  const validation = useFormValidation<AssessmentField>({
+    errors: validateAssessment(form),
+    order: ASSESSMENT_ORDER,
+    idPrefix: 'assessment',
+  });
 
   const list = useQuery({
     queryKey: ['assessments', school.schoolId, semesterId, classId, subjectId],
@@ -85,13 +93,6 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
   };
 
   const maxNumber = Number(form.maxScore.trim().replace(',', '.'));
-  const formValid =
-    !!form.componentId &&
-    form.title.trim().length > 0 &&
-    !!form.date &&
-    form.maxScore.trim() !== '' &&
-    Number.isFinite(maxNumber) &&
-    maxNumber > 0;
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['assessments', school.schoolId] });
@@ -138,6 +139,7 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
   function openDialog(id: string, init: Form) {
     setForm(init);
     setFormError(null);
+    validation.reset();
     setEditing(id);
   }
 
@@ -359,15 +361,19 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
         title={editing ? t('editAssessment') : t('newAssessment')}
         submitLabel={t('save')}
         error={formError}
-        disabled={!formValid || submit.isPending}
+        validation={validation}
         onSubmit={() => submit.mutateAsync()}
       >
         <div className="grid content-start gap-2">
-          <Label>{t('component')}</Label>
+          <Label htmlFor={validation.idOf('componentId')}>{t('component')}</Label>
           <SelectField
-            aria-label={t('component')}
+            {...withoutBlur(validation.fieldProps('componentId'))}
+            className={TOUCH_SELECT}
             value={form.componentId}
-            onChange={(e) => setForm((f) => ({ ...f, componentId: e.target.value }))}
+            onChange={(e) => {
+              setForm((f) => ({ ...f, componentId: e.target.value }));
+              validation.touch('componentId');
+            }}
           >
             {components.data?.map((c) => (
               <option key={c.id} value={c.id}>
@@ -375,33 +381,47 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
               </option>
             ))}
           </SelectField>
+          <FieldError id={validation.idOf('componentId')} issue={validation.issue('componentId')} />
         </div>
         <div className="grid content-start gap-2">
-          <Label htmlFor="assessment-title">{t('assessmentTitle')}</Label>
+          <Label htmlFor={validation.idOf('title')}>{t('assessmentTitle')}</Label>
           <Input
-            id="assessment-title"
+            {...validation.fieldProps('title')}
+            className={TOUCH_INPUT}
+            aria-required="true"
+            autoComplete="off"
             maxLength={120}
             value={form.title}
             onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
           />
+          <FieldError id={validation.idOf('title')} issue={validation.issue('title')} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid content-start gap-2">
-            <Label>{t('date')}</Label>
+            <Label htmlFor={validation.idOf('date')}>{t('date')}</Label>
             <DatePicker
-              aria-label={t('date')}
+              {...withoutBlur(validation.fieldProps('date'))}
+              className={TOUCH_INPUT}
               value={form.date}
-              onChange={(v) => v && setForm((f) => ({ ...f, date: v }))}
+              onChange={(v) => {
+                if (v) setForm((f) => ({ ...f, date: v }));
+                validation.touch('date');
+              }}
             />
+            <FieldError id={validation.idOf('date')} issue={validation.issue('date')} />
           </div>
           <div className="grid content-start gap-2">
-            <Label htmlFor="assessment-max">{t('maxScore')}</Label>
+            <Label htmlFor={validation.idOf('maxScore')}>{t('maxScore')}</Label>
             <Input
-              id="assessment-max"
-              inputMode="decimal"
+              {...validation.fieldProps('maxScore')}
+              className={TOUCH_INPUT}
+              aria-required="true"
+              inputMode="numeric"
+              autoComplete="off"
               value={form.maxScore}
               onChange={(e) => setForm((f) => ({ ...f, maxScore: e.target.value }))}
             />
+            <FieldError id={validation.idOf('maxScore')} issue={validation.issue('maxScore')} />
           </div>
         </div>
       </FormDialog>

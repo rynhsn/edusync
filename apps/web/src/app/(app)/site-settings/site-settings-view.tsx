@@ -7,6 +7,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -17,20 +18,14 @@ import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import type { Locale } from '@/i18n/config';
-import {
-  ACCENT_PRESETS,
-  DEFAULT_ACCENT,
-  isoDay,
-  normalizeHex,
-  readableOn,
-  safeHttpUrl,
-} from '@/lib/announcements';
+import { ACCENT_PRESETS, DEFAULT_ACCENT, isoDay, normalizeHex, readableOn } from '@/lib/announcements';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { useSite } from '@/lib/site';
 import { cn } from '@/lib/utils';
 import { SitePreview } from './site-preview';
+import { SITE_PROFILE_ORDER, type SiteProfileField, validateSiteProfile } from './site-settings-validation';
 
 interface Form {
   tagline: string;
@@ -120,6 +115,19 @@ export function SiteSettingsView() {
   const saved = profile.data ? fromProfile(profile.data) : null;
   const form = draft ?? saved;
   const dirty = !!draft && !!saved && JSON.stringify(draft) !== JSON.stringify(saved);
+  const tv = useTranslations('formValidation');
+  const validation = useFormValidation<SiteProfileField>({
+    errors: form
+      ? validateSiteProfile({
+          email: form.email,
+          emailActive: form.identitySource === 'custom',
+          mapUrl: form.mapUrl,
+          accent: form.accent,
+        })
+      : {},
+    order: SITE_PROFILE_ORDER,
+    idPrefix: 'site',
+  });
 
   const save = useMutation({
     mutationFn: async (f: Form) =>
@@ -146,9 +154,7 @@ export function SiteSettingsView() {
 
   const set = <K extends keyof Form>(key: K, value: Form[K]) => form && setDraft({ ...form, [key]: value });
 
-  const accentOk = !form?.accent.trim() || normalizeHex(form.accent) !== null;
-  const mapOk = !form?.mapUrl.trim() || safeHttpUrl(form.mapUrl) !== null;
-  const canSave = !!form && dirty && accentOk && mapOk && !save.isPending;
+  const canSave = !!form && dirty && !save.isPending;
   const publicUrl = site.ready ? site.urlFor(school.schoolSlug, '/site') : null;
   const currentAccent = normalizeHex(form?.accent) ?? DEFAULT_ACCENT;
   const fromSchool = form?.identitySource === 'school';
@@ -223,8 +229,10 @@ export function SiteSettingsView() {
       {form && (
         <form
           className="grid items-start gap-6 lg:grid-cols-[1fr_24rem]"
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
+            if (!validation.attempt()) return;
             if (canSave) save.mutate(form);
           }}
         >
@@ -323,7 +331,7 @@ export function SiteSettingsView() {
                   </fieldset>
                   <div className="flex flex-wrap items-center gap-3">
                     <div className="grid content-start gap-1.5">
-                      <Label htmlFor="site-accent-hex" className="text-xs">
+                      <Label htmlFor="site-accent" className="text-xs">
                         {t('accentCustom')}
                       </Label>
                       <div className="flex items-center gap-2">
@@ -335,12 +343,12 @@ export function SiteSettingsView() {
                           className="border-input size-8 shrink-0 cursor-pointer rounded-md border bg-transparent p-0.5"
                         />
                         <Input
-                          id="site-accent-hex"
-                          className="w-32 font-mono uppercase"
+                          {...validation.fieldProps('accent')}
+                          className={cn(TOUCH_INPUT, 'w-32 font-mono uppercase')}
+                          autoComplete="off"
                           maxLength={7}
                           value={form.accent}
                           placeholder={DEFAULT_ACCENT}
-                          aria-invalid={!accentOk}
                           onChange={(e) => set('accent', e.target.value)}
                         />
                         {form.accent && (
@@ -358,9 +366,11 @@ export function SiteSettingsView() {
                       {t('previewApply')}
                     </span>
                   </div>
-                  <p className={cn('text-xs', accentOk ? 'text-muted-foreground' : 'text-destructive')}>
-                    {accentOk ? t('accentContrast') : t('accentInvalid')}
-                  </p>
+                  {validation.issue('accent') ? (
+                    <FieldError id={validation.idOf('accent')} issue={validation.issue('accent')} />
+                  ) : (
+                    <p className="text-muted-foreground text-xs">{t('accentContrast')}</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -476,13 +486,16 @@ export function SiteSettingsView() {
                 <div className="grid content-start gap-2">
                   <Label htmlFor="site-email">{t('email')}</Label>
                   <Input
-                    id="site-email"
+                    {...validation.fieldProps('email')}
+                    className={TOUCH_INPUT}
                     type="email"
+                    inputMode="email"
                     maxLength={254}
                     value={shown.email}
                     readOnly={fromSchool}
                     onChange={(e) => set('email', e.target.value)}
                   />
+                  <FieldError id={validation.idOf('email')} issue={validation.issue('email')} />
                 </div>
                 <div className="grid content-start gap-2 sm:col-span-2">
                   <Label htmlFor="site-whatsapp">{t('whatsapp')}</Label>
@@ -499,22 +512,23 @@ export function SiteSettingsView() {
                   </p>
                 </div>
                 <div className="grid content-start gap-2 sm:col-span-2">
-                  <Label htmlFor="site-map">{t('mapUrl')}</Label>
+                  <Label htmlFor="site-mapUrl">{t('mapUrl')}</Label>
                   <Input
-                    id="site-map"
+                    {...validation.fieldProps('mapUrl')}
+                    className={TOUCH_INPUT}
                     type="url"
+                    inputMode="url"
                     maxLength={500}
                     value={form.mapUrl}
-                    aria-invalid={!mapOk}
-                    aria-describedby="site-map-hint"
                     onChange={(e) => set('mapUrl', e.target.value)}
                   />
-                  <p
-                    id="site-map-hint"
-                    className={cn('text-xs', mapOk ? 'text-muted-foreground' : 'text-destructive')}
-                  >
-                    {mapOk ? t('mapHint') : t('mapInvalid')}
-                  </p>
+                  {validation.issue('mapUrl') ? (
+                    <FieldError id={validation.idOf('mapUrl')} issue={validation.issue('mapUrl')} />
+                  ) : (
+                    <p id="site-map-hint" className="text-muted-foreground text-xs">
+                      {t('mapHint')}
+                    </p>
+                  )}
                 </div>
               </CardContent>
             </Card>
@@ -534,6 +548,11 @@ export function SiteSettingsView() {
               {error && (
                 <span role="alert" className="text-destructive text-sm">
                   {error}
+                </span>
+              )}
+              {validation.summary && (
+                <span aria-live="polite" className="text-destructive text-sm">
+                  {tv('summary')}
                 </span>
               )}
               <Button type="button" variant="ghost" disabled={!dirty} onClick={() => setDraft(null)}>

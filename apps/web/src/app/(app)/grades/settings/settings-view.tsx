@@ -9,6 +9,7 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { RowMenu } from '@/components/row-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -22,6 +23,14 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { COMPONENT_TONES, predicateTone } from '../grade-ui';
+import {
+  COMPONENT_ORDER,
+  type ComponentField,
+  THRESHOLD_ORDER,
+  type ThresholdField,
+  validateComponent,
+  validateThresholds,
+} from '../grade-validation';
 
 const KEYS = ['kkm', 'predicateA', 'predicateB', 'predicateC'] as const;
 type Key = (typeof KEYS)[number];
@@ -31,6 +40,7 @@ const num = (s: string) => (s.trim() === '' ? Number.NaN : Number(s.trim().repla
 /** Kartu KKM dan batas predikat: A > B > C, semuanya 0..100. */
 function ThresholdsCard() {
   const t = useTranslations('grades');
+  const tv = useTranslations('formValidation');
   const te = useTranslations();
   const { school } = useSchool();
   const queryClient = useQueryClient();
@@ -65,9 +75,13 @@ function ThresholdsCard() {
     b: num(values.predicateB),
     c: num(values.predicateC),
   };
-  const inRange = [n.kkm, n.a, n.b, n.c].every((v) => Number.isFinite(v) && v >= 0 && v <= 100);
-  const ordered = n.a > n.b && n.b > n.c;
-  const valid = inRange && ordered;
+  const errors = validateThresholds(values);
+  const valid = Object.keys(errors).length === 0;
+  const validation = useFormValidation<ThresholdField>({
+    errors,
+    order: THRESHOLD_ORDER,
+    idPrefix: 'grade',
+  });
 
   const save = useMutation({
     mutationFn: async () =>
@@ -80,6 +94,7 @@ function ThresholdsCard() {
     onSuccess: () => {
       toast.success(t('settingsSaved'));
       setDirty(false);
+      validation.reset();
       queryClient.invalidateQueries({ queryKey: key });
       queryClient.invalidateQueries({ queryKey: ['grading-recap', school.schoolId] });
     },
@@ -106,55 +121,62 @@ function ThresholdsCard() {
 
   return (
     <Card className="gap-4 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
-      <div className="flex items-start gap-3">
-        <IconTile icon={Target} tone={MODULE_TONE.academic} />
-        <div>
-          <h2 className="font-heading text-lg font-semibold">{t('thresholdsTitle')}</h2>
-          <p className="text-muted-foreground text-sm">{t('thresholdsHint')}</p>
+      <form
+        noValidate
+        className="grid gap-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (validation.attempt()) save.mutate();
+        }}
+      >
+        <div className="flex items-start gap-3">
+          <IconTile icon={Target} tone={MODULE_TONE.academic} />
+          <div>
+            <h2 className="font-heading text-lg font-semibold">{t('thresholdsTitle')}</h2>
+            <p className="text-muted-foreground text-sm">{t('thresholdsHint')}</p>
+          </div>
         </div>
-      </div>
-      {bands && (
-        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-          {bands.map((b) => (
-            <div key={b.p} className={cn('rounded-xl px-3 py-2', TONES[predicateTone(b.p)].soft)}>
-              <p className="font-heading text-lg leading-none font-semibold">{b.p}</p>
-              <p className="mt-1 text-xs tabular-nums opacity-80">{b.range}</p>
+        {bands && (
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+            {bands.map((b) => (
+              <div key={b.p} className={cn('rounded-xl px-3 py-2', TONES[predicateTone(b.p)].soft)}>
+                <p className="font-heading text-lg leading-none font-semibold">{b.p}</p>
+                <p className="mt-1 text-xs tabular-nums opacity-80">{b.range}</p>
+              </div>
+            ))}
+          </div>
+        )}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {KEYS.map((k) => (
+            <div key={k} className="grid content-start gap-2">
+              <Label htmlFor={`grade-${k}`}>{t(`field_${k}`)}</Label>
+              <Input
+                {...validation.fieldProps(k)}
+                className={TOUCH_INPUT}
+                aria-required="true"
+                inputMode="numeric"
+                autoComplete="off"
+                value={values[k]}
+                onChange={(e) => {
+                  setValues((v) => ({ ...v, [k]: e.target.value }));
+                  setDirty(true);
+                }}
+              />
+              <FieldError id={validation.idOf(k)} issue={validation.issue(k)} />
             </div>
           ))}
         </div>
-      )}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {KEYS.map((k) => (
-          <div key={k} className="grid content-start gap-2">
-            <Label htmlFor={`grade-${k}`}>{t(`field_${k}`)}</Label>
-            <Input
-              id={`grade-${k}`}
-              inputMode="decimal"
-              value={values[k]}
-              aria-invalid={values[k] !== '' && !valid}
-              onChange={(e) => {
-                setValues((v) => ({ ...v, [k]: e.target.value }));
-                setDirty(true);
-              }}
-            />
-          </div>
-        ))}
-      </div>
-      {dirty && !inRange && (
-        <Alert variant="destructive">
-          <AlertDescription>{t('rangeError')}</AlertDescription>
-        </Alert>
-      )}
-      {dirty && inRange && !ordered && (
-        <Alert variant="destructive">
-          <AlertDescription>{t('orderError')}</AlertDescription>
-        </Alert>
-      )}
-      <div>
-        <Button disabled={!dirty || !valid || save.isPending} onClick={() => save.mutate()}>
-          {t('save')}
-        </Button>
-      </div>
+        <div className="flex flex-wrap items-center gap-3">
+          <Button type="submit" className="h-10 md:h-8" disabled={!dirty || save.isPending}>
+            {t('save')}
+          </Button>
+          {validation.summary && (
+            <p aria-live="polite" className="text-destructive text-sm">
+              {tv('summary')}
+            </p>
+          )}
+        </div>
+      </form>
     </Card>
   );
 }
@@ -193,13 +215,11 @@ function ComponentsCard() {
 
   const weight = num(form.weight);
   const sort = form.sort.trim() === '' ? 0 : num(form.sort);
-  const formValid =
-    form.name.trim().length > 0 &&
-    Number.isInteger(weight) &&
-    weight >= 1 &&
-    weight <= 100 &&
-    Number.isInteger(sort) &&
-    sort >= 0;
+  const componentV = useFormValidation<ComponentField>({
+    errors: validateComponent(form),
+    order: COMPONENT_ORDER,
+    idPrefix: 'component',
+  });
 
   const submit = useMutation({
     mutationFn: async () => {
@@ -243,6 +263,7 @@ function ComponentsCard() {
   function openDialog(id: string, init: Form) {
     setForm(init);
     setFormError(null);
+    componentV.reset();
     setEditing(id);
   }
 
@@ -381,36 +402,47 @@ function ComponentsCard() {
         title={editing ? t('editComponent') : t('addComponent')}
         submitLabel={t('save')}
         error={formError}
-        disabled={!formValid || submit.isPending}
+        validation={componentV}
         onSubmit={() => submit.mutateAsync()}
       >
         <div className="grid content-start gap-2">
-          <Label htmlFor="component-name">{t('componentName')}</Label>
+          <Label htmlFor={componentV.idOf('name')}>{t('componentName')}</Label>
           <Input
-            id="component-name"
+            {...componentV.fieldProps('name')}
+            className={TOUCH_INPUT}
+            aria-required="true"
+            autoComplete="off"
             maxLength={60}
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
           />
+          <FieldError id={componentV.idOf('name')} issue={componentV.issue('name')} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid content-start gap-2">
-            <Label htmlFor="component-weight">{t('weightPercent')}</Label>
+            <Label htmlFor={componentV.idOf('weight')}>{t('weightPercent')}</Label>
             <Input
-              id="component-weight"
+              {...componentV.fieldProps('weight')}
+              className={TOUCH_INPUT}
+              aria-required="true"
               inputMode="numeric"
+              autoComplete="off"
               value={form.weight}
               onChange={(e) => setForm((f) => ({ ...f, weight: e.target.value }))}
             />
+            <FieldError id={componentV.idOf('weight')} issue={componentV.issue('weight')} />
           </div>
           <div className="grid content-start gap-2">
-            <Label htmlFor="component-sort">{t('sort')}</Label>
+            <Label htmlFor={componentV.idOf('sort')}>{t('sort')}</Label>
             <Input
-              id="component-sort"
+              {...componentV.fieldProps('sort')}
+              className={TOUCH_INPUT}
               inputMode="numeric"
+              autoComplete="off"
               value={form.sort}
               onChange={(e) => setForm((f) => ({ ...f, sort: e.target.value }))}
             />
+            <FieldError id={componentV.idOf('sort')} issue={componentV.issue('sort')} />
           </div>
         </div>
       </FormDialog>

@@ -9,6 +9,7 @@ import { ActionMenu } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ import { EmptyPanel, TONES } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { EXAM_TYPE_ORDER, type ExamTypeField, validateExamType } from '../exam-validation';
 
 interface ExamType {
   id: string;
@@ -49,6 +51,11 @@ export function TypesView() {
   const [open, setOpen] = useState(false);
   const [deleting, setDeleting] = useState<ExamType | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<ExamTypeField>({
+    errors: validateExamType(draft),
+    order: EXAM_TYPE_ORDER,
+    idPrefix: 'et',
+  });
 
   const types = useQuery({
     queryKey: key,
@@ -117,31 +124,37 @@ export function TypesView() {
         title={draft.id ? t('editType') : t('addType')}
         submitLabel={t('save')}
         error={error}
-        disabled={!draft.name.trim() || !draft.shortName.trim()}
+        validation={validation}
         onSubmit={() => save.mutateAsync(draft)}
       >
         <div className="grid gap-4">
           <div className="grid content-start gap-2">
-            <Label htmlFor="et-name">{t('typeName')}</Label>
+            <Label htmlFor={validation.idOf('name')}>{t('typeName')}</Label>
             <Input
-              id="et-name"
-              required
+              {...validation.fieldProps('name')}
+              className={TOUCH_INPUT}
+              aria-required="true"
+              autoComplete="off"
               maxLength={100}
               placeholder="Asesmen Sekolah Akhir Semester"
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
+            <FieldError id={validation.idOf('name')} issue={validation.issue('name')} />
           </div>
           <div className="grid content-start gap-2">
-            <Label htmlFor="et-short">{t('typeShort')}</Label>
+            <Label htmlFor={validation.idOf('shortName')}>{t('typeShort')}</Label>
             <Input
-              id="et-short"
-              required
+              {...validation.fieldProps('shortName')}
+              className={TOUCH_INPUT}
+              aria-required="true"
+              autoComplete="off"
               maxLength={20}
               placeholder="ASAS"
               value={draft.shortName}
               onChange={(e) => setDraft({ ...draft, shortName: e.target.value })}
             />
+            <FieldError id={validation.idOf('shortName')} issue={validation.issue('shortName')} />
             <p className="text-muted-foreground text-xs">{t('typeShortHint')}</p>
           </div>
           <div className="flex items-center gap-2">

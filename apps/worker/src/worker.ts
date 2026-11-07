@@ -1,14 +1,15 @@
 import {
   createRenewalInvoices,
   PaymentProviderResolver,
+  runAutoBilling,
   SmtpResolver,
   sweepSubscriptions,
 } from '@edusync/billing';
-import { createDb } from '@edusync/db';
+import { createDb, loadPlatformMessaging } from '@edusync/db';
 import { QUEUES, relayOutbox, setupJobs } from '@edusync/jobs';
 import { PgBoss } from 'pg-boss';
 import type { Env } from './env';
-import { emailSendHandler } from './handlers';
+import { emailSendHandler, whatsappOtpHandler } from './handlers';
 import { createMailer, smtpBase } from './mailer';
 import { startMessaging } from './messaging';
 
@@ -24,6 +25,32 @@ export async function startWorker(env: Env) {
   // SMTP mengikuti pengaturan di konsol platform (menimpa variabel lingkungan) tanpa restart.
   const mailer = createMailer(new SmtpResolver(platform.db, env.AUTH_SECRET, smtpBase(env)));
   await boss.work(QUEUES.emailSend, { batchSize: 1, pollingIntervalSeconds: 1 }, emailSendHandler(mailer));
+  // Kode WhatsApp mengikuti penyedia pesan di konsol platform (env menimpa), dibaca tiap pesan.
+  await boss.work(
+    QUEUES.whatsappOtp,
+    { batchSize: 1, pollingIntervalSeconds: 1 },
+    whatsappOtpHandler(
+      async () => env.MESSAGING_PROVIDER ?? (await loadPlatformMessaging(platform.db)).provider,
+    ),
+  );
+
+  // Penagihan otomatis tagihan sekolah: cron harian 01:15 WIB, ditambah satu sapuan saat worker menyala (catch-up
+  // bila worker sempat mati). Idempoten: periode yang sudah ditagih dilewati, periode lampau tidak pernah diisi mundur.
+  const runSchoolAutoBilling = async () => {
+    const result = await runAutoBilling(platform.db, { webUrl: env.WEB_URL, log: console });
+    if (result.ran.length > 0 || result.errors.length > 0) {
+      console.log(
+        `[worker] penagihan otomatis: ${result.rules} aturan, ${result.ran.length} run, ${result.errors.length} galat`,
+      );
+    }
+  };
+  await boss.work(
+    QUEUES.financeAutoBilling,
+    { batchSize: 1, pollingIntervalSeconds: 30 },
+    runSchoolAutoBilling,
+  );
+  await boss.schedule(QUEUES.financeAutoBilling, '15 1 * * *', {}, { tz: 'Asia/Jakarta' });
+  void runSchoolAutoBilling().catch((error) => console.error('[worker] penagihan otomatis gagal', error));
 
   let busy = false;
   const timer = setInterval(async () => {

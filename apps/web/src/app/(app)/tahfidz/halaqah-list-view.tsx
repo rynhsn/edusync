@@ -9,6 +9,13 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import {
+  FieldError,
+  type FormValidation,
+  TOUCH_INPUT,
+  TOUCH_SELECT,
+  useFormValidation,
+} from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +29,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { fmtPercent, GeoPattern, ProgressRing, STALE_DAYS, TahfidzBanner } from './shared';
+import { HALAQAH_ORDER, type HalaqahField, validateHalaqah } from './tahfidz-validation';
 
 interface Draft {
   name: string;
@@ -36,10 +44,13 @@ function HalaqahFields({
   idPrefix,
   draft,
   onChange,
+  v,
 }: {
   idPrefix: string;
   draft: Draft;
   onChange: (d: Draft) => void;
+  /** Validasi galat-merah; id isian = `${idPrefix}-${field}`. */
+  v: FormValidation<HalaqahField>;
 }) {
   const t = useTranslations('tahfidz');
   const { school, can } = useSchool();
@@ -54,17 +65,21 @@ function HalaqahFields({
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{t('halaqahName')}</Label>
         <Input
-          id={`${idPrefix}-name`}
-          required
-          maxLength={120}
+          {...v.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
+          maxLength={100}
           value={draft.name}
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
+        <FieldError id={v.idOf('name')} issue={v.issue('name')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-mentor`}>{t('mentor')}</Label>
         <SelectField
           id={`${idPrefix}-mentor`}
+          className={TOUCH_SELECT}
           value={draft.mentorTeacherId}
           onChange={(e) => onChange({ ...draft, mentorTeacherId: e.target.value })}
         >
@@ -79,14 +94,17 @@ function HalaqahFields({
         </SelectField>
       </div>
       <div className="grid content-start gap-2">
-        <Label htmlFor={`${idPrefix}-note`}>{t('scheduleNote')}</Label>
+        <Label htmlFor={`${idPrefix}-scheduleNote`}>{t('scheduleNote')}</Label>
         <Input
-          id={`${idPrefix}-note`}
+          {...v.fieldProps('scheduleNote')}
+          className={TOUCH_INPUT}
+          autoComplete="off"
           maxLength={200}
           placeholder={t('scheduleNotePlaceholder')}
           value={draft.scheduleNote}
           onChange={(e) => onChange({ ...draft, scheduleNote: e.target.value })}
         />
+        <FieldError id={v.idOf('scheduleNote')} issue={v.issue('scheduleNote')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-active`}>{t('status')}</Label>
@@ -240,6 +258,11 @@ export function HalaqahListView() {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
+  const validation = useFormValidation<HalaqahField>({
+    errors: validateHalaqah(editing ?? draft),
+    order: HALAQAH_ORDER,
+    idPrefix: editing ? 'edit' : 'new',
+  });
 
   const years = useQuery({
     queryKey: ['academic-years', school.schoolId],
@@ -317,13 +340,14 @@ export function HalaqahListView() {
                   title={t('newHalaqah')}
                   submitLabel={tm('add')}
                   error={error}
+                  validation={validation}
                   onOpenChange={() => {
                     setDraft(EMPTY);
                     setError(null);
                   }}
                   onSubmit={() => create.mutateAsync()}
                 >
-                  <HalaqahFields idPrefix="new" draft={draft} onChange={setDraft} />
+                  <HalaqahFields idPrefix="new" draft={draft} onChange={setDraft} v={validation} />
                 </FormDialog>
               )}
             </>
@@ -372,6 +396,7 @@ export function HalaqahListView() {
               manage={manage}
               onEdit={() => {
                 setError(null);
+                validation.reset();
                 setEditing({
                   id: h.id,
                   name: h.name,
@@ -392,10 +417,16 @@ export function HalaqahListView() {
           title={t('editHalaqah')}
           submitLabel={tm('save')}
           error={error}
+          validation={validation}
           onOpenChange={(o) => !o && setEditing(null)}
           onSubmit={() => save.mutateAsync(editing)}
         >
-          <HalaqahFields idPrefix="edit" draft={editing} onChange={(d) => setEditing({ ...editing, ...d })} />
+          <HalaqahFields
+            idPrefix="edit"
+            draft={editing}
+            onChange={(d) => setEditing({ ...editing, ...d })}
+            v={validation}
+          />
         </FormDialog>
       )}
       <ConfirmDialog

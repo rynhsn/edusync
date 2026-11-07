@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
@@ -18,6 +19,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { parseScore, todayIso } from './lib';
+import { CERTIFICATE_ORDER, type CertificateField, validateCertificate } from './pkl-validation';
 import { type PklPlacement, PREDICATE_STYLE, pklKey } from './shared';
 
 interface Period {
@@ -240,6 +242,11 @@ function CertificateDialog({
   const [date, setDate] = useState(todayIso());
   const [error, setError] = useState<string | null>(null);
   const key = `${LS_KEY}.${school.schoolId}`;
+  const validation = useFormValidation<CertificateField>({
+    errors: validateCertificate({ place, date, principal }),
+    order: CERTIFICATE_ORDER,
+    idPrefix: 'ct',
+  });
 
   function load() {
     setDate(todayIso());
@@ -264,7 +271,8 @@ function CertificateDialog({
       description={t('certificateDescription')}
       submitLabel={t('certificateDownload')}
       error={error}
-      disabled={!period || !date}
+      disabled={!period}
+      validation={validation}
       onOpenChange={(o) => o && load()}
       onSubmit={async () => {
         if (!period) return;
@@ -299,20 +307,37 @@ function CertificateDialog({
     >
       <div className="grid content-start gap-2">
         <Label htmlFor="ct-place">{t('certificatePlace')}</Label>
-        <Input id="ct-place" maxLength={80} value={place} onChange={(e) => setPlace(e.target.value)} />
+        <Input
+          {...validation.fieldProps('place')}
+          className={TOUCH_INPUT}
+          autoComplete="off"
+          maxLength={80}
+          value={place}
+          onChange={(e) => setPlace(e.target.value)}
+        />
+        <FieldError id={validation.idOf('place')} issue={validation.issue('place')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor="ct-date">{t('certificateDate')}</Label>
-        <DatePicker id="ct-date" value={date} onChange={setDate} />
+        <DatePicker
+          {...validation.fieldProps('date')}
+          className={TOUCH_INPUT}
+          value={date}
+          onChange={setDate}
+        />
+        <FieldError id={validation.idOf('date')} issue={validation.issue('date')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor="ct-principal">{t('certificatePrincipal')}</Label>
         <Input
-          id="ct-principal"
+          {...validation.fieldProps('principal')}
+          className={TOUCH_INPUT}
+          autoComplete="off"
           maxLength={120}
           value={principal}
           onChange={(e) => setPrincipal(e.target.value)}
         />
+        <FieldError id={validation.idOf('principal')} issue={validation.issue('principal')} />
       </div>
       <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
         <Download className="size-3.5" aria-hidden /> {t('certificateNote')}

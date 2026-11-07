@@ -29,7 +29,14 @@ import { SelectField } from '@/components/ui/select-field';
 import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, TONES, Toolbar, UserAvatar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
-import { CLASS_ORDER, type ClassField, validateClass } from '@/lib/form-validation';
+import {
+  CLASS_ORDER,
+  type ClassField,
+  SUBJECT_ORDER,
+  type SubjectField,
+  validateClass,
+  validateSubject,
+} from '@/lib/form-validation';
 import { cn } from '@/lib/utils';
 
 /** Guru pengampu mata pelajaran di satu kelas. */
@@ -182,6 +189,13 @@ export function ClassesView() {
   const [assignFor, setAssignFor] = useState<{ id: string; name: string } | null>(null);
   const [programDraft, setProgramDraft] = useState({ code: '', name: '' });
   const [programError, setProgramError] = useState<string | null>(null);
+  // Kode dan nama jurusan memakai aturan yang sama dengan mata pelajaran (kode 20, nama 80; zod programBody).
+  const programValidation = useFormValidation<SubjectField>({
+    errors: validateSubject(programDraft),
+    order: SUBJECT_ORDER,
+    idPrefix: 'program',
+  });
+  const tv = useTranslations('formValidation');
 
   const years = useQuery({
     queryKey: ['academic-years', school.schoolId],
@@ -262,6 +276,7 @@ export function ClassesView() {
     onSuccess: () => {
       setProgramError(null);
       setProgramDraft({ code: '', name: '' });
+      programValidation.reset();
       toast.success(tm('created'));
       refreshPrograms();
     },
@@ -444,35 +459,54 @@ export function ClassesView() {
                 </ul>
                 {manage && (
                   <form
-                    className="grid gap-3 sm:grid-cols-[7rem_1fr_auto] sm:items-end"
+                    className="grid gap-3 sm:grid-cols-[7rem_1fr_auto] sm:items-start"
+                    noValidate
                     onSubmit={(e) => {
                       e.preventDefault();
+                      if (!programValidation.attempt()) return;
                       createProgram.mutate();
                     }}
                   >
-                    <div className="grid content-start gap-1.5">
-                      <Label htmlFor="program-code">{tm('code')}</Label>
+                    <div className="grid content-start gap-2">
+                      <Label htmlFor={programValidation.idOf('code')}>{tm('code')}</Label>
                       <Input
-                        id="program-code"
-                        required
+                        {...programValidation.fieldProps('code')}
+                        className={TOUCH_INPUT}
+                        aria-required="true"
+                        autoComplete="off"
                         maxLength={20}
                         value={programDraft.code}
                         onChange={(e) => setProgramDraft({ ...programDraft, code: e.target.value })}
                       />
+                      <FieldError
+                        id={programValidation.idOf('code')}
+                        issue={programValidation.issue('code')}
+                      />
                     </div>
-                    <div className="grid content-start gap-1.5">
-                      <Label htmlFor="program-name">{tm('name')}</Label>
+                    <div className="grid content-start gap-2">
+                      <Label htmlFor={programValidation.idOf('name')}>{tm('name')}</Label>
                       <Input
-                        id="program-name"
-                        required
+                        {...programValidation.fieldProps('name')}
+                        className={TOUCH_INPUT}
+                        aria-required="true"
+                        autoComplete="off"
                         maxLength={80}
                         value={programDraft.name}
                         onChange={(e) => setProgramDraft({ ...programDraft, name: e.target.value })}
                       />
+                      <FieldError
+                        id={programValidation.idOf('name')}
+                        issue={programValidation.issue('name')}
+                      />
                     </div>
-                    <Button type="submit" disabled={createProgram.isPending}>
+                    <Button type="submit" className="h-10 sm:mt-6 md:h-8" disabled={createProgram.isPending}>
                       <Plus className="size-4" /> {tm('add')}
                     </Button>
+                    {programValidation.summary && (
+                      <p aria-live="polite" className="text-destructive text-sm sm:col-span-3">
+                        {tv('summary')}
+                      </p>
+                    )}
                     {programError && (
                       <Alert variant="destructive" className="sm:col-span-3">
                         <AlertDescription>{programError}</AlertDescription>

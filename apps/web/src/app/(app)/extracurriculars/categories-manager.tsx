@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -25,6 +26,7 @@ import { IconTile, TONES, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { CATEGORY_ORDER, type CategoryField, validateCategory } from './extracurricular-validation';
 import {
   CATEGORY_ICON_KEYS,
   CATEGORY_ICONS,
@@ -63,6 +65,7 @@ export function CategoriesManager() {
   const t = useTranslations('extracurricular.categories');
   const tc = useTranslations('common');
   const tm = useTranslations('masterData');
+  const tv = useTranslations('formValidation');
   const te = useTranslations();
   const { school } = useSchool();
   const queryClient = useQueryClient();
@@ -72,6 +75,11 @@ export function CategoriesManager() {
   const [draft, setDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<{ id: string; label: string } | null>(null);
+  const validation = useFormValidation<CategoryField>({
+    errors: validateCategory({ label: draft?.label ?? '' }),
+    order: CATEGORY_ORDER,
+    idPrefix: 'cat',
+  });
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['extracurricular-categories', school.schoolId] });
@@ -126,6 +134,7 @@ export function CategoriesManager() {
           setOpen(o);
           setDraft(null);
           setError(null);
+          validation.reset();
         }}
       >
         <DialogTrigger
@@ -166,6 +175,7 @@ export function CategoriesManager() {
                       aria-label={`${t('edit')}: ${c.label}`}
                       onClick={() => {
                         setError(null);
+                        validation.reset();
                         setDraft({
                           id: c.id,
                           key: c.key,
@@ -195,8 +205,10 @@ export function CategoriesManager() {
           {draft ? (
             <form
               className="bg-muted/40 grid gap-4 rounded-xl border p-4"
+              noValidate
               onSubmit={(e) => {
                 e.preventDefault();
+                if (!validation.attempt()) return;
                 save.mutate(draft);
               }}
             >
@@ -204,12 +216,15 @@ export function CategoriesManager() {
               <div className="grid content-start gap-2">
                 <Label htmlFor="cat-label">{t('name')}</Label>
                 <Input
-                  id="cat-label"
-                  required
+                  {...validation.fieldProps('label')}
+                  className={TOUCH_INPUT}
+                  aria-required="true"
+                  autoComplete="off"
                   maxLength={50}
                   value={draft.label}
                   onChange={(e) => setDraft({ ...draft, label: e.target.value })}
                 />
+                <FieldError id={validation.idOf('label')} issue={validation.issue('label')} />
               </div>
               <fieldset className="grid content-start gap-2">
                 <legend className="text-sm font-medium">{t('icon')}</legend>
@@ -274,11 +289,16 @@ export function CategoriesManager() {
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
               )}
+              {validation.summary && (
+                <p aria-live="polite" className="text-destructive text-sm">
+                  {tv('summary')}
+                </p>
+              )}
               <div className="flex justify-end gap-2">
-                <Button type="button" variant="ghost" onClick={() => setDraft(null)}>
+                <Button type="button" variant="ghost" className="h-10 md:h-8" onClick={() => setDraft(null)}>
                   {tc('cancel')}
                 </Button>
-                <Button type="submit" disabled={save.isPending || !draft.label.trim()}>
+                <Button type="submit" className="h-10 md:h-8" disabled={save.isPending}>
                   {tm('save')}
                 </Button>
               </div>
@@ -289,6 +309,7 @@ export function CategoriesManager() {
               className="justify-self-start"
               onClick={() => {
                 setError(null);
+                validation.reset();
                 setDraft(EMPTY);
               }}
             >

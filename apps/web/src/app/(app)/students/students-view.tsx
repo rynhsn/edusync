@@ -146,6 +146,7 @@ function StudentFields({
 }) {
   const t = useTranslations('students');
   const tm = useTranslations('masterData');
+  const tc = useTranslations('common');
   const f = (k: keyof Draft) => `${idPrefix}-${k}`;
   const thisYear = new Date().getFullYear();
   return (
@@ -313,6 +314,7 @@ function StudentFields({
         <FieldError id={f('email')} issue={v.issue('email')} />
       </div>
       <p className="text-muted-foreground -mt-2 text-xs sm:col-span-2">{t('contactHint')}</p>
+      <p className="text-muted-foreground -mt-2 text-xs sm:col-span-2">{tc('loginIdentityHint')}</p>
       <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={f('address')}>{t('address')}</Label>
         <Textarea

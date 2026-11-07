@@ -22,6 +22,13 @@ import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import { FORM_GRID } from '@/components/form-field';
+import {
+  FieldError,
+  type FormValidation,
+  TOUCH_INPUT,
+  TOUCH_SELECT,
+  useFormValidation,
+} from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { RowMenu } from '@/components/row-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -45,6 +52,11 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { CategoriesManager } from './categories-manager';
+import {
+  EXTRACURRICULAR_ORDER,
+  type ExtracurricularField,
+  validateExtracurricular,
+} from './extracurricular-validation';
 import { categoryMeta, hhmm, WEEKDAYS } from './shared';
 import { useExtracurricularCategories } from './use-categories';
 
@@ -83,10 +95,13 @@ function ExtracurricularFields({
   idPrefix,
   draft,
   onChange,
+  v,
 }: {
   idPrefix: string;
   draft: Draft;
   onChange: (d: Draft) => void;
+  /** Validasi galat-merah; id isian = `${idPrefix}-${field}`. */
+  v: FormValidation<ExtracurricularField>;
 }) {
   const t = useTranslations('extracurricular');
   const tm = useTranslations('masterData');
@@ -104,12 +119,15 @@ function ExtracurricularFields({
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
         <Input
-          id={`${idPrefix}-name`}
-          required
-          maxLength={120}
+          {...v.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
+          maxLength={100}
           value={draft.name}
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
+        <FieldError id={v.idOf('name')} issue={v.issue('name')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-category`}>{t('categoryLabel')}</Label>
@@ -130,11 +148,14 @@ function ExtracurricularFields({
       <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${idPrefix}-description`}>{t('description')}</Label>
         <Input
-          id={`${idPrefix}-description`}
+          {...v.fieldProps('description')}
+          className={TOUCH_INPUT}
+          autoComplete="off"
           maxLength={500}
           value={draft.description}
           onChange={(e) => onChange({ ...draft, description: e.target.value })}
         />
+        <FieldError id={v.idOf('description')} issue={v.issue('description')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-coach-type`}>{t('coachType')}</Label>
@@ -150,9 +171,10 @@ function ExtracurricularFields({
       </div>
       {draft.coachType === 'teacher' && (
         <div className="grid content-start gap-2">
-          <Label htmlFor={`${idPrefix}-coach-teacher`}>{t('coach')}</Label>
+          <Label htmlFor={`${idPrefix}-coachTeacherId`}>{t('coach')}</Label>
           <SelectField
-            id={`${idPrefix}-coach-teacher`}
+            {...v.fieldProps('coachTeacherId')}
+            className={TOUCH_SELECT}
             value={draft.coachTeacherId}
             onChange={(e) => onChange({ ...draft, coachTeacherId: e.target.value })}
           >
@@ -165,18 +187,22 @@ function ExtracurricularFields({
                 </option>
               ))}
           </SelectField>
+          <FieldError id={v.idOf('coachTeacherId')} issue={v.issue('coachTeacherId')} />
         </div>
       )}
       {draft.coachType === 'external' && (
         <div className="grid content-start gap-2">
-          <Label htmlFor={`${idPrefix}-coach-external`}>{t('externalName')}</Label>
+          <Label htmlFor={`${idPrefix}-externalCoach`}>{t('externalName')}</Label>
           <Input
-            id={`${idPrefix}-coach-external`}
-            required
-            maxLength={120}
+            {...v.fieldProps('externalCoach')}
+            className={TOUCH_INPUT}
+            aria-required="true"
+            autoComplete="off"
+            maxLength={100}
             value={draft.externalCoach}
             onChange={(e) => onChange({ ...draft, externalCoach: e.target.value })}
           />
+          <FieldError id={v.idOf('externalCoach')} issue={v.issue('externalCoach')} />
         </div>
       )}
       <div className="grid content-start gap-2 sm:col-span-2">
@@ -203,21 +229,26 @@ function ExtracurricularFields({
         />
       </div>
       <div className="grid content-start gap-2">
-        <Label htmlFor={`${idPrefix}-ends`}>{t('endsAt')}</Label>
+        <Label htmlFor={`${idPrefix}-endsAt`}>{t('endsAt')}</Label>
         <TimeField
-          id={`${idPrefix}-ends`}
+          {...v.fieldProps('endsAt')}
+          className={TOUCH_INPUT}
           value={draft.endsAt}
-          onChange={(v) => onChange({ ...draft, endsAt: v })}
+          onChange={(val) => onChange({ ...draft, endsAt: val })}
         />
+        <FieldError id={v.idOf('endsAt')} issue={v.issue('endsAt')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-location`}>{t('location')}</Label>
         <Input
-          id={`${idPrefix}-location`}
-          maxLength={120}
+          {...v.fieldProps('location')}
+          className={TOUCH_INPUT}
+          autoComplete="off"
+          maxLength={100}
           value={draft.location}
           onChange={(e) => onChange({ ...draft, location: e.target.value })}
         />
+        <FieldError id={v.idOf('location')} issue={v.issue('location')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-active`}>{t('status')}</Label>
@@ -268,6 +299,11 @@ export function ExtracurricularsView() {
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
+  const validation = useFormValidation<ExtracurricularField>({
+    errors: validateExtracurricular(editing ?? draft),
+    order: EXTRACURRICULAR_ORDER,
+    idPrefix: editing ? 'edit' : 'new',
+  });
 
   const list = useQuery({
     queryKey: ['extracurriculars', school.schoolId],
@@ -325,6 +361,28 @@ export function ExtracurricularsView() {
     return `${t(`weekdays.${String(r.weekday) as '1'}`)}${time}`;
   };
 
+  const addButton = (
+    <FormDialog
+      size="wide"
+      trigger={
+        <Button>
+          <Plus className="size-4" /> {t('addTitle')}
+        </Button>
+      }
+      title={t('addTitle')}
+      submitLabel={tm('add')}
+      error={error}
+      validation={validation}
+      onOpenChange={() => {
+        setDraft(EMPTY);
+        setError(null);
+      }}
+      onSubmit={() => create.mutateAsync()}
+    >
+      <ExtracurricularFields idPrefix="new" draft={draft} onChange={setDraft} v={validation} />
+    </FormDialog>
+  );
+
   return (
     <PageBody>
       <PageHeader
@@ -332,29 +390,7 @@ export function ExtracurricularsView() {
         tone={MODULE_TONE.academic}
         title={t('title')}
         description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
-        actions={
-          manage && (
-            <FormDialog
-              size="wide"
-              trigger={
-                <Button>
-                  <Plus className="size-4" /> {t('addTitle')}
-                </Button>
-              }
-              title={t('addTitle')}
-              submitLabel={tm('add')}
-              disabled={draft.coachType === 'teacher' && !draft.coachTeacherId}
-              error={error}
-              onOpenChange={() => {
-                setDraft(EMPTY);
-                setError(null);
-              }}
-              onSubmit={() => create.mutateAsync()}
-            >
-              <ExtracurricularFields idPrefix="new" draft={draft} onChange={setDraft} />
-            </FormDialog>
-          )
-        }
+        actions={manage && addButton}
       />
 
       {all.length > 0 && (
@@ -425,30 +461,7 @@ export function ExtracurricularsView() {
           body={all.length === 0 ? t('empty') : t('emptyFiltered')}
           first={all.length === 0 ? te('emptyState.pages.extracurriculars') : undefined}
           canAct={manage || all.length > 0}
-          action={
-            manage &&
-            all.length === 0 && (
-              <FormDialog
-                size="wide"
-                trigger={
-                  <Button>
-                    <Plus className="size-4" /> {t('addTitle')}
-                  </Button>
-                }
-                title={t('addTitle')}
-                submitLabel={tm('add')}
-                disabled={draft.coachType === 'teacher' && !draft.coachTeacherId}
-                error={error}
-                onOpenChange={() => {
-                  setDraft(EMPTY);
-                  setError(null);
-                }}
-                onSubmit={() => create.mutateAsync()}
-              >
-                <ExtracurricularFields idPrefix="empty" draft={draft} onChange={setDraft} />
-              </FormDialog>
-            )
-          }
+          action={manage && all.length === 0 && addButton}
         />
       )}
 
@@ -492,6 +505,7 @@ export function ExtracurricularsView() {
                             icon: Pencil,
                             onSelect: () => {
                               setError(null);
+                              validation.reset();
                               setEditing({
                                 id: r.id,
                                 name: r.name,
@@ -581,8 +595,8 @@ export function ExtracurricularsView() {
         open={!!editing}
         title={t('editTitle')}
         submitLabel={tm('save')}
-        disabled={editing?.coachType === 'teacher' && !editing.coachTeacherId}
         error={error}
+        validation={validation}
         onOpenChange={(open) => !open && setEditing(null)}
         onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
       >
@@ -591,6 +605,7 @@ export function ExtracurricularsView() {
             idPrefix="edit"
             draft={editing}
             onChange={(d) => setEditing({ id: editing.id, ...d })}
+            v={validation}
           />
         )}
       </FormDialog>

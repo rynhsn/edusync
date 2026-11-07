@@ -27,6 +27,7 @@ import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { FORM_GRID } from '@/components/form-field';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -38,9 +39,18 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { TimeField } from '@/components/ui/time-field';
 import { EmptyPanel, IconTile, MODULE_TONE, type Tone, ToneBadge, UserAvatar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { todayIso } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
+import {
+  DEVICE_ORDER,
+  type DeviceField,
+  POLICY_ORDER,
+  type PolicyField,
+  validateDevice,
+  validatePolicy,
+} from './attendance-settings-validation';
 
 type Tab = 'policy' | 'devices' | 'roster';
 const TABS: Tab[] = ['policy', 'devices', 'roster'];
@@ -88,6 +98,7 @@ function SettingCard({
 
 function PolicyPanel() {
   const t = useTranslations('gate');
+  const tv = useTranslations('formValidation');
   const te = useTranslations();
   const { school, header } = useCtx();
   const queryClient = useQueryClient();
@@ -96,8 +107,22 @@ function PolicyPanel() {
     queryFn: async () => unwrap(await api.GET('/v1/attendance/policy', { params: header })),
   });
   const [draft, setDraft] = useState<NonNullable<typeof policy.data> | null>(null);
+  // Jeda ulang disimpan sebagai teks supaya isian kosong atau huruf bisa ditandai merah, bukan diam-diam menjadi 0.
+  const [debounceText, setDebounceText] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const value = draft ?? policy.data;
+  const debounceShown = debounceText ?? String(value?.debounceSeconds ?? '');
+  const validation = useFormValidation<PolicyField>({
+    errors: value
+      ? validatePolicy({
+          lateAfter: value.lateAfter,
+          departureFrom: value.departureFrom,
+          debounceSeconds: debounceShown,
+        })
+      : {},
+    order: POLICY_ORDER,
+    idPrefix: 'policy',
+  });
 
   const save = useMutation({
     mutationFn: async () => {
@@ -108,7 +133,7 @@ function PolicyPanel() {
           body: {
             lateAfter: value.lateAfter,
             departureFrom: value.departureFrom,
-            debounceSeconds: value.debounceSeconds,
+            debounceSeconds: Number(debounceShown),
           },
         }),
       );
@@ -116,6 +141,8 @@ function PolicyPanel() {
     onSuccess: () => {
       setError(null);
       setDraft(null);
+      setDebounceText(null);
+      validation.reset();
       toast.success(t('policySaved'));
       queryClient.invalidateQueries({ queryKey: ['attendance-policy', school.schoolId] });
     },
@@ -133,10 +160,11 @@ function PolicyPanel() {
 
   return (
     <form
+      noValidate
       className="grid gap-4"
       onSubmit={(e) => {
         e.preventDefault();
-        save.mutate();
+        if (validation.attempt()) save.mutate();
       }}
     >
       <div className="grid gap-4 lg:grid-cols-2">
@@ -148,17 +176,31 @@ function PolicyPanel() {
         >
           <div className={FORM_GRID}>
             <div className="grid content-start gap-2">
-              <Label htmlFor="late-after">{t('lateAfter')}</Label>
-              <TimeField id="late-after" value={value.lateAfter} onChange={(v) => set({ lateAfter: v })} />
+              <Label htmlFor={validation.idOf('lateAfter')}>{t('lateAfter')}</Label>
+              <TimeField
+                {...withoutBlur(validation.fieldProps('lateAfter'))}
+                className={TOUCH_INPUT}
+                value={value.lateAfter}
+                onChange={(v) => {
+                  set({ lateAfter: v });
+                  validation.touch('lateAfter');
+                }}
+              />
+              <FieldError id={validation.idOf('lateAfter')} issue={validation.issue('lateAfter')} />
               <p className="text-muted-foreground text-xs">{t('lateAfterHint')}</p>
             </div>
             <div className="grid content-start gap-2">
-              <Label htmlFor="departure-from">{t('departureFrom')}</Label>
+              <Label htmlFor={validation.idOf('departureFrom')}>{t('departureFrom')}</Label>
               <TimeField
-                id="departure-from"
+                {...withoutBlur(validation.fieldProps('departureFrom'))}
+                className={TOUCH_INPUT}
                 value={value.departureFrom}
-                onChange={(v) => set({ departureFrom: v })}
+                onChange={(v) => {
+                  set({ departureFrom: v });
+                  validation.touch('departureFrom');
+                }}
               />
+              <FieldError id={validation.idOf('departureFrom')} issue={validation.issue('departureFrom')} />
               <p className="text-muted-foreground text-xs">{t('departureFromHint')}</p>
             </div>
           </div>
@@ -167,15 +209,21 @@ function PolicyPanel() {
 
         <SettingCard icon={Timer} tone="amber" title={t('debounceTitle')} body={t('debounceBody')}>
           <div className="grid content-start gap-2 sm:max-w-56">
-            <Label htmlFor="debounce">{t('debounce')}</Label>
+            <Label htmlFor={validation.idOf('debounceSeconds')}>{t('debounce')}</Label>
             <Input
-              id="debounce"
-              type="number"
-              min={0}
-              max={600}
-              value={value.debounceSeconds}
-              onChange={(e) => set({ debounceSeconds: Number(e.target.value) })}
+              {...validation.fieldProps('debounceSeconds')}
+              className={TOUCH_INPUT}
+              inputMode="numeric"
+              autoComplete="off"
+              aria-required="true"
+              value={debounceShown}
+              onChange={(e) => {
+                setDebounceText(e.target.value);
+                // Menandai kebijakan berubah (tombol simpan aktif); nilai sebenarnya dibaca dari teks.
+                set({});
+              }}
             />
+            <FieldError id={validation.idOf('debounceSeconds')} issue={validation.issue('debounceSeconds')} />
             <p className="text-muted-foreground text-xs">{t('debounceHint')}</p>
           </div>
         </SettingCard>
@@ -193,10 +241,15 @@ function PolicyPanel() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
-      <div>
-        <Button type="submit" disabled={!draft || save.isPending}>
+      <div className="flex flex-wrap items-center gap-3">
+        <Button type="submit" className="h-10 md:h-8" disabled={!draft || save.isPending}>
           {t('save')}
         </Button>
+        {validation.summary && (
+          <p aria-live="polite" className="text-destructive text-sm">
+            {tv('summary')}
+          </p>
+        )}
       </div>
     </form>
   );
@@ -262,6 +315,11 @@ function DevicesPanel() {
   const [extra, setExtra] = useState<string[]>([]);
   const [scope, setScope] = useState<{ id: string; name: string; ids: string[] } | null>(null);
   const [scopeError, setScopeError] = useState<string | null>(null);
+  const deviceV = useFormValidation<DeviceField>({
+    errors: validateDevice({ name }),
+    order: DEVICE_ORDER,
+    idPrefix: 'device',
+  });
 
   const list = useQuery({
     queryKey: ['attendance-devices', school.schoolId],
@@ -346,6 +404,7 @@ function DevicesPanel() {
           title={t('addDevice')}
           submitLabel={t('create')}
           error={error}
+          validation={deviceV}
           onOpenChange={() => {
             setName('');
             setExtra([]);
@@ -354,16 +413,18 @@ function DevicesPanel() {
           onSubmit={() => create.mutateAsync()}
         >
           <div className="grid content-start gap-2">
-            <Label htmlFor="device-name">{t('deviceName')}</Label>
+            <Label htmlFor={deviceV.idOf('name')}>{t('deviceName')}</Label>
             <Input
-              id="device-name"
-              required
-              minLength={2}
+              {...deviceV.fieldProps('name')}
+              className={TOUCH_INPUT}
+              aria-required="true"
+              autoComplete="off"
               maxLength={80}
               placeholder={t('deviceNamePlaceholder')}
               value={name}
               onChange={(e) => setName(e.target.value)}
             />
+            <FieldError id={deviceV.idOf('name')} issue={deviceV.issue('name')} />
           </div>
           {(units.data?.length ?? 0) > 0 && (
             <UnitPicker units={units.data ?? []} value={extra} onChange={setExtra} />

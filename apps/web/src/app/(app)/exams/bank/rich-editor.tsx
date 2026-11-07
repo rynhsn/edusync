@@ -24,12 +24,18 @@ export function RichEditor({
   value,
   onChange,
   rows = 4,
+  fieldProps,
+  error,
 }: {
   id: string;
   label: string;
   value: string;
   onChange: (v: string) => void;
   rows?: number;
+  /** Atribut validasi (aria-invalid, aria-describedby, onBlur) untuk kolom teks; `id` di sini diabaikan. */
+  fieldProps?: { 'aria-invalid'?: boolean; 'aria-describedby'?: string | undefined; onBlur?: () => void };
+  /** Pesan galat merah di bawah kolom teks (dan di atas pratinjau). */
+  error?: React.ReactNode;
 }) {
   const t = useTranslations('exams');
   const te = useTranslations();
@@ -103,9 +109,13 @@ export function RichEditor({
         ref={area}
         rows={rows}
         maxLength={10_000}
+        aria-invalid={fieldProps?.['aria-invalid']}
+        aria-describedby={fieldProps?.['aria-describedby']}
+        onBlur={fieldProps?.onBlur}
         value={value}
         onChange={(e) => onChange(e.target.value)}
       />
+      {error}
       {value.trim() && (
         <div className="bg-muted/40 rounded-lg border p-3 text-sm">
           <p className="text-muted-foreground mb-1 text-xs">{t('preview')}</p>

@@ -1,13 +1,15 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Mail, MailPlus, Pencil, Search, UserCheck, Users, UsersRound, UserX } from 'lucide-react';
+import { KeyRound, Mail, MailPlus, Pencil, Search, UserCheck, Users, UsersRound, UserX } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useMemo, useState } from 'react';
 import { toast } from 'sonner';
 import { ActionMenu, ENTER, roleTone, stagger } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -28,6 +30,15 @@ import {
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { type CreatedResetLink, ResetLinkDialog } from '../password-help/reset-link-dialog';
+import {
+  EDIT_ROLES_ORDER,
+  type EditRolesField,
+  INVITE_ORDER,
+  type InviteField,
+  validateEditRoles,
+  validateInvite,
+} from './members-validation';
 
 interface RoleOption {
   key: string;
@@ -42,17 +53,27 @@ function RolePicker({
   value,
   onChange,
   canGrant,
+  id,
+  describedBy,
 }: {
   idPrefix: string;
   roles: RoleOption[];
   value: string[];
   onChange: (next: string[]) => void;
   canGrant: (role: RoleOption) => boolean;
+  /** Id kelompok pilihan, supaya bisa difokuskan saat validasi gagal. */
+  id?: string;
+  describedBy?: string | undefined;
 }) {
   const tr = useTranslations('roles');
   const label = (r: RoleOption) => (tr.has(r.key as never) ? tr(r.key as never) : r.name);
   return (
-    <div className="flex flex-wrap gap-x-4 gap-y-2">
+    <div
+      id={id}
+      tabIndex={id ? -1 : undefined}
+      aria-describedby={describedBy}
+      className="flex flex-wrap gap-x-4 gap-y-2 outline-none"
+    >
       {roles.map((r) => {
         const checked = value.includes(r.key);
         const id = `${idPrefix}-${r.key}`;
@@ -81,6 +102,16 @@ export function MembersView() {
   const header = { header: schoolHeader(school.schoolId) };
   const membersKey = ['members', school.schoolId];
   const manage = can('member:manage');
+  const canReset = can('account:reset');
+  const tp = useTranslations('passwordHelp');
+  const [resetFor, setResetFor] = useState<{ userId: string; name: string } | null>(null);
+  const [resetLink, setResetLink] = useState<CreatedResetLink | null>(null);
+  const createReset = useMutation({
+    mutationFn: async (targetUserId: string) =>
+      unwrap(await api.POST('/v1/password-help/links', { params: header, body: { userId: targetUserId } })),
+    onSuccess: (link) => setResetLink(link),
+    onError: (e) => toast.error(te(errorKey(e))),
+  });
 
   const [email, setEmail] = useState('');
   const [newRoles, setNewRoles] = useState<string[]>([]);
@@ -89,6 +120,16 @@ export function MembersView() {
   const [q, setQ] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'disabled'>('all');
   const [roleFilter, setRoleFilter] = useState('');
+  const inviteValidation = useFormValidation<InviteField>({
+    errors: validateInvite({ email, roleCount: newRoles.length }),
+    order: INVITE_ORDER,
+    idPrefix: 'member',
+  });
+  const editValidation = useFormValidation<EditRolesField>({
+    errors: validateEditRoles(editing?.roles.length ?? 1),
+    order: EDIT_ROLES_ORDER,
+    idPrefix: 'member-edit',
+  });
 
   const roles = useQuery({
     queryKey: ['roles', school.schoolId],
@@ -213,7 +254,7 @@ export function MembersView() {
               description={t('addHint')}
               submitLabel={t('add')}
               error={formError}
-              disabled={newRoles.length === 0}
+              validation={inviteValidation}
               onOpenChange={() => {
                 setEmail('');
                 setNewRoles([]);
@@ -224,13 +265,17 @@ export function MembersView() {
               <div className="grid content-start gap-2">
                 <Label htmlFor="member-email">{t('email')}</Label>
                 <Input
-                  id="member-email"
+                  {...inviteValidation.fieldProps('email')}
+                  className={TOUCH_INPUT}
                   type="email"
-                  required
+                  inputMode="email"
+                  aria-required="true"
                   autoComplete="off"
+                  maxLength={254}
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
+                <FieldError id={inviteValidation.idOf('email')} issue={inviteValidation.issue('email')} />
               </div>
               <fieldset className="grid content-start gap-2">
                 <legend className="mb-1 text-sm font-medium">{t('roles')}</legend>
@@ -240,7 +285,10 @@ export function MembersView() {
                   value={newRoles}
                   onChange={setNewRoles}
                   canGrant={canGrant}
+                  id={inviteValidation.idOf('roles')}
+                  describedBy={inviteValidation.issue('roles') ? 'member-roles-error' : undefined}
                 />
+                <FieldError id={inviteValidation.idOf('roles')} issue={inviteValidation.issue('roles')} />
               </fieldset>
             </FormDialog>
           )
@@ -432,20 +480,34 @@ export function MembersView() {
                         {active ? t('active') : t('disabled')}
                       </ToneBadge>
                     </div>
-                    {manage && (
+                    {(manage || canReset) && (
                       <div className="absolute top-3 right-3 md:static">
                         <ActionMenu
                           label={t('actionsFor', { name: m.name })}
                           items={[
-                            {
-                              label: t('edit'),
-                              icon: Pencil,
-                              onSelect: () => {
-                                setFormError(null);
-                                setEditing({ id: m.id, name: m.name, roles: m.roles });
-                              },
-                            },
-                            ...(self
+                            ...(canReset && !self && active && !m.roles.includes('school_admin')
+                              ? [
+                                  {
+                                    label: tp('resetAccount'),
+                                    icon: KeyRound,
+                                    onSelect: () => setResetFor({ userId: m.userId, name: m.name }),
+                                  },
+                                ]
+                              : []),
+                            ...(manage
+                              ? [
+                                  {
+                                    label: t('edit'),
+                                    icon: Pencil,
+                                    onSelect: () => {
+                                      setFormError(null);
+                                      editValidation.reset();
+                                      setEditing({ id: m.id, name: m.name, roles: m.roles });
+                                    },
+                                  },
+                                ]
+                              : []),
+                            ...(self || !manage
                               ? []
                               : [
                                   {
@@ -530,22 +592,40 @@ export function MembersView() {
         title={`${t('edit')} · ${editing?.name ?? ''}`}
         submitLabel={t('save')}
         error={formError}
-        disabled={!editing || editing.roles.length === 0}
+        validation={editValidation}
         onOpenChange={(open) => !open && setEditing(null)}
         onSubmit={() => (editing ? saveRoles.mutateAsync(editing) : Promise.resolve())}
       >
         {editing && roles.data && (
-          <RolePicker
-            idPrefix="edit"
-            roles={roles.data}
-            value={editing.roles}
-            onChange={(next) => setEditing({ ...editing, roles: next })}
-            canGrant={(r) =>
-              canGrant(r) || members.data?.find((m) => m.id === editing.id)?.roles.includes(r.key) === true
-            }
-          />
+          <div className="grid content-start gap-2">
+            <RolePicker
+              idPrefix="edit"
+              roles={roles.data}
+              value={editing.roles}
+              onChange={(next) => setEditing({ ...editing, roles: next })}
+              canGrant={(r) =>
+                canGrant(r) || members.data?.find((m) => m.id === editing.id)?.roles.includes(r.key) === true
+              }
+              id={editValidation.idOf('roles')}
+              describedBy={editValidation.issue('roles') ? 'member-edit-roles-error' : undefined}
+            />
+            <FieldError id={editValidation.idOf('roles')} issue={editValidation.issue('roles')} />
+          </div>
         )}
       </FormDialog>
+
+      <ConfirmDialog
+        open={!!resetFor}
+        onOpenChange={(open) => !open && setResetFor(null)}
+        title={tp('resetAccountTitle', { name: resetFor?.name ?? '' })}
+        description={tp('resetAccountBody')}
+        confirmLabel={tp('createLink')}
+        pending={createReset.isPending}
+        onConfirm={async () => {
+          if (resetFor) await createReset.mutateAsync(resetFor.userId);
+        }}
+      />
+      <ResetLinkDialog link={resetLink} onClose={() => setResetLink(null)} />
     </PageBody>
   );
 }

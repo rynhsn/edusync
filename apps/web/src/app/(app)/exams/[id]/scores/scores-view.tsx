@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { RichText } from '@/components/rich-text';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -21,7 +22,9 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import type { FieldIssue } from '@/lib/form-validation';
 import { cn } from '@/lib/utils';
+import { SEND_ORDER, type SendField, validateEssayScore, validateSend } from '../../exam-validation';
 
 interface Question {
   id: string;
@@ -73,6 +76,7 @@ export function ScoresView({ id }: { id: string }) {
   const tc = useTranslations('examCbtAdmin');
   const locale = useLocale();
   const te = useTranslations();
+  const tv = useTranslations('formValidation');
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
@@ -86,6 +90,9 @@ export function ScoresView({ id }: { id: string }) {
   const [sendDate, setSendDate] = useState('');
   const [allowPending, setAllowPending] = useState(false);
   const [reading, setReading] = useState<{ s: Student; qid: string; n: number } | null>(null);
+  // Sel skor yang sudah ditinggalkan (blur) dan apakah simpan sudah dicoba: galat sel baru tampil setelah itu.
+  const [touchedCells, setTouchedCells] = useState<Set<string>>(() => new Set());
+  const [attempted, setAttempted] = useState(false);
 
   const exam = useQuery({
     queryKey: ['exam', school.schoolId, id],
@@ -115,17 +122,25 @@ export function ScoresView({ id }: { id: string }) {
       cells: Object.fromEntries(questions.map((q) => [q.id, cellOf(s, q)])),
     };
 
-  const rows = students.map((s) => {
+  const rows = students.map((s, r) => {
     const e = view(s);
     const touched = s.entered || !!edits[s.studentId];
     const total = round2(questions.reduce((n, q) => n + scoreOf(q, e.cells[q.id] ?? ''), 0));
-    const tooHigh = questions.some((q) => q.type === 'essay' && scoreOf(q, e.cells[q.id] ?? '') > q.points);
+    // Galat per sel skor esai, kuncinya "baris-kolom" seperti data-cell. Siswa tidak hadir tidak diperiksa.
+    const cellIssues: Record<string, FieldIssue> = {};
+    if (!e.absent) {
+      questions.forEach((q, c) => {
+        if (q.type !== 'essay') return;
+        const issue = validateEssayScore(e.cells[q.id] ?? '', q.points);
+        if (issue) cellIssues[`${r}-${c}`] = issue;
+      });
+    }
     return {
       s,
       e,
       touched,
       total,
-      tooHigh,
+      cellIssues,
       percent: touched && !e.absent && maxTotal > 0 ? round2((total / maxTotal) * 100) : null,
       essayPending:
         touched &&
@@ -133,7 +148,8 @@ export function ScoresView({ id }: { id: string }) {
         questions.some((q) => q.type === 'essay' && (e.cells[q.id] ?? '').trim() === ''),
     };
   });
-  const invalid = rows.some((r) => r.tooHigh);
+  const firstBadCell = rows.flatMap((r) => Object.keys(r.cellIssues))[0];
+  const invalid = firstBadCell !== undefined;
   const present = rows.filter((r) => r.percent !== null);
   const percents = present.map((r) => r.percent as number);
   const stats = {
@@ -180,6 +196,8 @@ export function ScoresView({ id }: { id: string }) {
     onSuccess: (data) => {
       setError(null);
       setEdits({});
+      setAttempted(false);
+      setTouchedCells(new Set());
       queryClient.setQueryData(sheetKey, data);
       toast.success(t('saved'));
     },
@@ -208,6 +226,19 @@ export function ScoresView({ id }: { id: string }) {
       el.select();
     }
   }
+  /** Coba simpan: bila ada sel yang salah, tampilkan semuanya dan pindah ke yang pertama. */
+  function trySave() {
+    setAttempted(true);
+    if (firstBadCell === undefined) {
+      save.mutate();
+      return;
+    }
+    const [r, c] = firstBadCell.split('-').map(Number) as [number, number];
+    focusCell(r, c);
+    const el = grid.current?.querySelector<HTMLInputElement>(`[data-cell="${firstBadCell}"]`);
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    el?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center', inline: 'center' });
+  }
   function onKey(e: React.KeyboardEvent<HTMLInputElement>, r: number, c: number) {
     const move = (dr: number, dc: number) => {
       e.preventDefault();
@@ -230,6 +261,11 @@ export function ScoresView({ id }: { id: string }) {
   const ex = exam.data;
   const componentList = components.data ?? [];
   const canSend = author && !dirty && students.some((s) => s.entered);
+  const sendValidation = useFormValidation<SendField>({
+    errors: validateSend({ componentId, pendingEssays, allowPending }),
+    order: SEND_ORDER,
+    idPrefix: 'send',
+  });
 
   return (
     <PageBody>
@@ -368,9 +404,14 @@ export function ScoresView({ id }: { id: string }) {
                       const mcq = q.type === 'mcq';
                       const right = mcq && v !== '' && v === q.key?.toUpperCase();
                       const wrong = mcq && v !== '' && !right;
-                      const over = !mcq && scoreOf(q, v) > q.points;
+                      const cellKey = `${r}-${c}`;
+                      const cellIssue = row.cellIssues[cellKey];
+                      const shownIssue =
+                        cellIssue && (attempted || touchedCells.has(cellKey)) ? cellIssue : undefined;
+                      const over = shownIssue !== undefined;
+                      const errId = `score-${cellKey}`;
                       return (
-                        <td key={q.id} className="border-b px-1.5 py-1.5 text-center">
+                        <td key={q.id} className="border-b px-1.5 py-1.5 text-center align-top">
                           <div className="flex items-center justify-center gap-0.5">
                             <input
                               data-cell={`${r}-${c}`}
@@ -382,9 +423,14 @@ export function ScoresView({ id }: { id: string }) {
                               value={v}
                               aria-label={t(mcq ? 'cellMcq' : 'cellEssay', { name: row.s.name, n: c + 1 })}
                               aria-invalid={over}
-                              title={over ? t('scoreTooHigh', { max: q.points }) : undefined}
+                              aria-describedby={over ? `${errId}-error` : undefined}
                               onKeyDown={(e) => onKey(e, r, c)}
                               onFocus={(e) => e.currentTarget.select()}
+                              onBlur={() =>
+                                setTouchedCells((prev) =>
+                                  prev.has(cellKey) ? prev : new Set(prev).add(cellKey),
+                                )
+                              }
                               onChange={(e) => {
                                 const raw = e.target.value;
                                 const next = mcq ? raw.toUpperCase().slice(-1) : raw.replace(/[^0-9.,]/g, '');
@@ -393,7 +439,7 @@ export function ScoresView({ id }: { id: string }) {
                                 patch(row.s, (ed) => ({ ...ed, cells: { ...ed.cells, [q.id]: next } }));
                               }}
                               className={cn(
-                                'border-input h-8 w-12 rounded-md border bg-transparent text-center tabular-nums outline-none',
+                                'border-input h-10 w-12 rounded-md border bg-transparent text-center tabular-nums outline-none md:h-8',
                                 'focus-visible:ring-ring/50 focus-visible:ring-2 disabled:cursor-not-allowed',
                                 right &&
                                   'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
@@ -415,6 +461,7 @@ export function ScoresView({ id }: { id: string }) {
                               </Button>
                             )}
                           </div>
+                          <FieldError id={errId} issue={shownIssue} className="mt-1" />
                         </td>
                       );
                     })}
@@ -464,21 +511,30 @@ export function ScoresView({ id }: { id: string }) {
                   {error}
                 </span>
               )}
+              {attempted && invalid && (
+                <span aria-live="polite" className="text-destructive text-sm">
+                  {tv('summary')}
+                </span>
+              )}
               <Button
                 type="button"
                 variant="ghost"
+                className="h-10 md:h-8"
                 disabled={!dirty}
                 onClick={() => {
                   setEdits({});
                   setError(null);
+                  setAttempted(false);
+                  setTouchedCells(new Set());
                 }}
               >
                 <Undo2 className="size-4" aria-hidden /> {t('discard')}
               </Button>
               <Button
                 type="button"
-                disabled={!dirty || invalid || save.isPending}
-                onClick={() => save.mutate()}
+                className="h-10 md:h-8"
+                disabled={!dirty || save.isPending}
+                onClick={trySave}
               >
                 <Save className="size-4" aria-hidden /> {t('save')}
               </Button>
@@ -519,15 +575,16 @@ export function ScoresView({ id }: { id: string }) {
         title={t('sendTitle')}
         description={t('sendBody')}
         submitLabel={t('sendSubmit')}
-        disabled={!componentId || (pendingEssays > 0 && !allowPending)}
+        validation={sendValidation}
         error={send.error ? te(errorKey(send.error)) : null}
         onSubmit={() => send.mutateAsync()}
       >
         <div className="grid gap-4">
           <div className="grid content-start gap-2">
-            <Label htmlFor="send-component">{t('component')}</Label>
+            <Label htmlFor={sendValidation.idOf('componentId')}>{t('component')}</Label>
             <SelectField
-              id="send-component"
+              {...sendValidation.fieldProps('componentId')}
+              className={TOUCH_SELECT}
               value={componentId}
               onChange={(e) => setComponentId(e.target.value)}
             >
@@ -537,6 +594,7 @@ export function ScoresView({ id }: { id: string }) {
                 </option>
               ))}
             </SelectField>
+            <FieldError id={sendValidation.idOf('componentId')} issue={sendValidation.issue('componentId')} />
             {componentList.length === 0 && (
               <p className="text-muted-foreground text-xs">{t('noComponents')}</p>
             )}
@@ -544,14 +602,27 @@ export function ScoresView({ id }: { id: string }) {
           {pendingEssays > 0 && (
             <div className="grid content-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-500/40 dark:bg-amber-500/10">
               <p>{t('pendingWarn', { n: pendingEssays })}</p>
-              <label className="flex items-center gap-2" htmlFor="send-pending">
+              <label className="flex items-center gap-2" htmlFor={sendValidation.idOf('allowPending')}>
                 <Checkbox
-                  id="send-pending"
+                  id={sendValidation.idOf('allowPending')}
+                  aria-invalid={sendValidation.issue('allowPending') !== undefined}
+                  aria-describedby={
+                    sendValidation.issue('allowPending')
+                      ? `${sendValidation.idOf('allowPending')}-error`
+                      : undefined
+                  }
                   checked={allowPending}
-                  onCheckedChange={(v) => setAllowPending(v === true)}
+                  onCheckedChange={(v) => {
+                    sendValidation.touch('allowPending');
+                    setAllowPending(v === true);
+                  }}
                 />
                 {t('pendingConfirm')}
               </label>
+              <FieldError
+                id={sendValidation.idOf('allowPending')}
+                issue={sendValidation.issue('allowPending')}
+              />
             </div>
           )}
           <div className="grid content-start gap-2">

@@ -12,6 +12,7 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -26,6 +27,7 @@ import { cn } from '@/lib/utils';
 import { formatIdDate, formatIdDateTime } from '../format';
 import { IncomingDialog } from '../incoming-dialog';
 import { LetterPaper, PaperSheet, type PaperSigner } from '../letter-paper';
+import { type RevokeField, validateRevoke } from '../letter-validation';
 import { hashBlob, makeQrDataUrl, renderLetterPdf, saveLetterPdf } from '../pdf/download';
 import { TextArea } from '../placeholder-chips';
 import { Seal, type SealTone } from '../seal';
@@ -66,6 +68,11 @@ export function LetterDetail({ id }: { id: string }) {
   const [editingIncoming, setEditingIncoming] = useState(false);
   const [revoking, setRevoking] = useState(false);
   const [reason, setReason] = useState('');
+  const revokeValidation = useFormValidation<RevokeField>({
+    errors: validateRevoke(reason),
+    order: ['reason'],
+    idPrefix: 'revoke',
+  });
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -600,21 +607,23 @@ export function LetterDetail({ id }: { id: string }) {
         description={t('revokeBody')}
         submitLabel={t('revoke')}
         error={error}
-        disabled={reason.trim().length < 3}
+        validation={revokeValidation}
         onSubmit={async () => {
           setError(null);
           await revoke.mutateAsync();
         }}
       >
-        <div className="grid content-start gap-1.5">
-          <Label htmlFor="revoke-reason">{t('revokeReason')}</Label>
+        <div className="grid content-start gap-2">
+          <Label htmlFor={revokeValidation.idOf('reason')}>{t('revokeReason')}</Label>
           <TextArea
-            id="revoke-reason"
+            {...revokeValidation.fieldProps('reason')}
+            aria-required="true"
             rows={3}
             maxLength={500}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
+          <FieldError id={revokeValidation.idOf('reason')} issue={revokeValidation.issue('reason')} />
         </div>
       </FormDialog>
 

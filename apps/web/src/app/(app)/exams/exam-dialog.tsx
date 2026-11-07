@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
@@ -15,6 +16,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { TimeField } from '@/components/ui/time-field';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { EXAM_ORDER, type ExamField, validateExam } from './exam-validation';
 
 export interface ExamLike {
   id: string;
@@ -72,6 +74,11 @@ export function ExamDialog({
   const header = { header: schoolHeader(school.schoolId) };
   const [draft, setDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<ExamField>({
+    errors: draft ? validateExam(draft) : {},
+    order: EXAM_ORDER,
+    idPrefix: 'ex',
+  });
 
   const types = useQuery({
     queryKey: ['exam-types', school.schoolId],
@@ -186,19 +193,6 @@ export function ExamDialog({
   const set = (patch: Partial<Draft>) => draft && setDraft(suggest({ ...draft, ...patch }));
 
   const cbt = draft?.mode === 'cbt' || draft?.mode === 'both';
-  // CBT yang sudah "Siap" harus punya jadwal lengkap, kalau tidak siswa tidak bisa memulainya.
-  const scheduleMissing =
-    !!draft &&
-    cbt &&
-    draft.status === 'ready' &&
-    !(draft.examDate && draft.startTime && draft.durationMinutes);
-  const valid =
-    !!draft &&
-    !!draft.title.trim() &&
-    !!draft.semesterId &&
-    !!draft.subjectId &&
-    draft.classIds.length > 0 &&
-    !scheduleMissing;
 
   return (
     <FormDialog
@@ -208,7 +202,7 @@ export function ExamDialog({
       submitLabel={t('save')}
       size="wide"
       error={error}
-      disabled={!valid}
+      validation={validation}
       onSubmit={() => save.mutateAsync(draft as Draft)}
     >
       {draft && (
@@ -217,6 +211,7 @@ export function ExamDialog({
             <Label htmlFor="ex-type">{t('type')}</Label>
             <SelectField
               id="ex-type"
+              className={TOUCH_SELECT}
               value={draft.examTypeId}
               onChange={(e) => set({ examTypeId: e.target.value })}
             >
@@ -237,9 +232,10 @@ export function ExamDialog({
             )}
           </div>
           <div className="grid content-start gap-2">
-            <Label htmlFor="ex-subject">{t('subject')}</Label>
+            <Label htmlFor={validation.idOf('subjectId')}>{t('subject')}</Label>
             <SelectField
-              id="ex-subject"
+              {...validation.fieldProps('subjectId')}
+              className={TOUCH_SELECT}
               value={draft.subjectId}
               onChange={(e) => set({ subjectId: e.target.value })}
               disabled={!!draft.id}
@@ -250,22 +246,27 @@ export function ExamDialog({
                 </option>
               ))}
             </SelectField>
+            <FieldError id={validation.idOf('subjectId')} issue={validation.issue('subjectId')} />
             {draft.id && <p className="text-muted-foreground text-xs">{t('subjectLocked')}</p>}
           </div>
           <div className="grid content-start gap-2 sm:col-span-2">
-            <Label htmlFor="ex-title">{t('examTitle')}</Label>
+            <Label htmlFor={validation.idOf('title')}>{t('examTitle')}</Label>
             <Input
-              id="ex-title"
-              required
+              {...validation.fieldProps('title')}
+              className={TOUCH_INPUT}
+              aria-required="true"
+              autoComplete="off"
               maxLength={200}
               value={draft.title}
               onChange={(e) => setDraft({ ...draft, title: e.target.value, titleEdited: true })}
             />
+            <FieldError id={validation.idOf('title')} issue={validation.issue('title')} />
           </div>
           <div className="grid content-start gap-2">
-            <Label htmlFor="ex-semester">{t('semester')}</Label>
+            <Label htmlFor={validation.idOf('semesterId')}>{t('semester')}</Label>
             <SelectField
-              id="ex-semester"
+              {...validation.fieldProps('semesterId')}
+              className={TOUCH_SELECT}
               value={draft.semesterId}
               onChange={(e) => setDraft({ ...draft, semesterId: e.target.value, classIds: [] })}
             >
@@ -275,11 +276,13 @@ export function ExamDialog({
                 </option>
               ))}
             </SelectField>
+            <FieldError id={validation.idOf('semesterId')} issue={validation.issue('semesterId')} />
           </div>
           <div className="grid content-start gap-2">
             <Label htmlFor="ex-mode">{t('mode')}</Label>
             <SelectField
               id="ex-mode"
+              className={TOUCH_SELECT}
               value={draft.mode}
               onChange={(e) => set({ mode: e.target.value as Draft['mode'] })}
             >
@@ -290,7 +293,14 @@ export function ExamDialog({
               ))}
             </SelectField>
           </div>
-          <fieldset className="m-0 grid min-w-0 gap-2 border-0 p-0 sm:col-span-2">
+          <fieldset
+            id={validation.idOf('classIds')}
+            tabIndex={-1}
+            aria-describedby={
+              validation.issue('classIds') ? `${validation.idOf('classIds')}-error` : undefined
+            }
+            className="m-0 grid min-w-0 content-start gap-2 border-0 p-0 outline-none sm:col-span-2"
+          >
             <legend className="mb-1 text-sm leading-none font-medium">{t('classes')}</legend>
             {classList.length === 0 ? (
               <p className="text-muted-foreground text-xs">{t('noClasses')}</p>
@@ -300,46 +310,67 @@ export function ExamDialog({
                   // biome-ignore lint/a11y/noLabelWithoutControl: kontrolnya Checkbox Base UI di dalam label.
                   <label
                     key={c.id}
-                    className="flex cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm"
+                    className="flex min-h-10 cursor-pointer items-center gap-2 rounded-lg border px-2.5 py-1.5 text-sm"
                   >
                     <Checkbox
                       checked={draft.classIds.includes(c.id)}
-                      onCheckedChange={(v) =>
+                      onCheckedChange={(v) => {
+                        validation.touch('classIds');
                         set({
                           classIds:
                             v === true ? [...draft.classIds, c.id] : draft.classIds.filter((x) => x !== c.id),
-                        })
-                      }
+                        });
+                      }}
                     />
                     <span className="truncate">{c.name}</span>
                   </label>
                 ))}
               </div>
             )}
+            <FieldError id={validation.idOf('classIds')} issue={validation.issue('classIds')} />
           </fieldset>
           <div className="grid content-start gap-2">
-            <Label htmlFor="ex-date">{t('date')}</Label>
+            <Label htmlFor={validation.idOf('examDate')}>{t('date')}</Label>
             <DatePicker
-              id="ex-date"
+              {...validation.fieldProps('examDate')}
+              className={TOUCH_INPUT}
               clearable
               value={draft.examDate}
-              onChange={(v) => set({ examDate: v })}
+              onChange={(v) => {
+                validation.touch('examDate');
+                set({ examDate: v });
+              }}
             />
+            <FieldError id={validation.idOf('examDate')} issue={validation.issue('examDate')} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div className="grid content-start gap-2">
-              <Label htmlFor="ex-start">{t('startTime')}</Label>
-              <TimeField id="ex-start" value={draft.startTime} onChange={(v) => set({ startTime: v })} />
+              <Label htmlFor={validation.idOf('startTime')}>{t('startTime')}</Label>
+              <TimeField
+                {...validation.fieldProps('startTime')}
+                className={TOUCH_INPUT}
+                value={draft.startTime}
+                onChange={(v) => {
+                  validation.touch('startTime');
+                  set({ startTime: v });
+                }}
+              />
+              <FieldError id={validation.idOf('startTime')} issue={validation.issue('startTime')} />
             </div>
             <div className="grid content-start gap-2">
-              <Label htmlFor="ex-duration">{t('duration')}</Label>
+              <Label htmlFor={validation.idOf('durationMinutes')}>{t('duration')}</Label>
               <Input
-                id="ex-duration"
-                type="number"
-                min={5}
-                max={600}
+                {...validation.fieldProps('durationMinutes')}
+                className={TOUCH_INPUT}
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={3}
                 value={draft.durationMinutes}
                 onChange={(e) => set({ durationMinutes: e.target.value })}
+              />
+              <FieldError
+                id={validation.idOf('durationMinutes')}
+                issue={validation.issue('durationMinutes')}
               />
             </div>
           </div>
@@ -347,6 +378,7 @@ export function ExamDialog({
             <Label htmlFor="ex-status">{t('status')}</Label>
             <SelectField
               id="ex-status"
+              className={TOUCH_SELECT}
               value={draft.status}
               onChange={(e) => set({ status: e.target.value as Draft['status'] })}
             >
@@ -357,11 +389,6 @@ export function ExamDialog({
           {cbt && (
             <div className="grid content-start gap-2 sm:col-span-2">
               <p className="text-muted-foreground text-xs">{tc('cbtHint')}</p>
-              {scheduleMissing && (
-                <p role="alert" className="text-destructive text-xs">
-                  {tc('scheduleMissing')}
-                </p>
-              )}
               <div className="flex flex-wrap gap-x-6 gap-y-2">
                 {(['shuffleQuestions', 'shuffleOptions'] as const).map((f) => (
                   <div key={f} className="flex items-center gap-2">

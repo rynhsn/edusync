@@ -11,6 +11,13 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import {
+  FieldError,
+  type FormValidation,
+  TOUCH_INPUT,
+  TOUCH_SELECT,
+  useFormValidation,
+} from '@/components/form-field-error';
 import { LevelField } from '@/components/level-field';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -23,12 +30,18 @@ import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { todayIso as todayJakarta } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 import '@/app/apply/apply.css';
 import { DocumentTypesCard } from './document-types-card';
+import {
+  ADMISSION_PERIOD_ORDER,
+  type AdmissionPeriodField,
+  validateAdmissionPeriod,
+} from './period-validation';
 
 interface Draft {
   name: string;
@@ -60,13 +73,14 @@ function windowProgress(opensOn: string, closesOn: string, today: string) {
 }
 
 function PeriodFields({
-  idPrefix,
   draft,
   onChange,
+  v,
 }: {
-  idPrefix: string;
   draft: Draft;
   onChange: (d: Draft) => void;
+  /** Validasi galat-merah; id isian = `${idPrefix}-${field}` dari hook-nya. */
+  v: FormValidation<AdmissionPeriodField>;
 }) {
   const t = useTranslations('admissions');
   const tm = useTranslations('masterData');
@@ -79,33 +93,46 @@ function PeriodFields({
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="grid content-start gap-2 sm:col-span-2">
-        <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
+        <Label htmlFor={v.idOf('name')}>{tm('name')}</Label>
         <Input
-          id={`${idPrefix}-name`}
-          required
+          {...v.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
           maxLength={120}
           placeholder={t('periodNamePlaceholder')}
           value={draft.name}
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
+        <FieldError id={v.idOf('name')} issue={v.issue('name')} />
       </div>
       <div className="grid content-start gap-2">
-        <Label htmlFor={`${idPrefix}-level`}>{t('level')}</Label>
+        <Label htmlFor={v.idOf('level')}>{t('level')}</Label>
         <LevelField
-          id={`${idPrefix}-level`}
+          {...withoutBlur(v.fieldProps('level'))}
           required
+          nativeRequired={false}
+          touch
           maxLength={30}
           placeholder="7"
           value={draft.level}
-          onChange={(level) => onChange({ ...draft, level })}
+          onChange={(level) => {
+            onChange({ ...draft, level });
+            v.touch('level');
+          }}
         />
+        <FieldError id={v.idOf('level')} issue={v.issue('level')} />
       </div>
       <div className="grid content-start gap-2">
-        <Label htmlFor={`${idPrefix}-year`}>{t('academicYear')}</Label>
+        <Label htmlFor={v.idOf('academicYearId')}>{t('academicYear')}</Label>
         <SelectField
-          id={`${idPrefix}-year`}
+          {...withoutBlur(v.fieldProps('academicYearId'))}
+          className={TOUCH_SELECT}
           value={draft.academicYearId}
-          onChange={(e) => onChange({ ...draft, academicYearId: e.target.value })}
+          onChange={(e) => {
+            onChange({ ...draft, academicYearId: e.target.value });
+            v.touch('academicYearId');
+          }}
         >
           <option value="">{t('chooseYear')}</option>
           {years.data?.map((y) => (
@@ -114,37 +141,52 @@ function PeriodFields({
             </option>
           ))}
         </SelectField>
+        <FieldError id={v.idOf('academicYearId')} issue={v.issue('academicYearId')} />
       </div>
       <div className="grid content-start gap-2">
-        <Label htmlFor={`${idPrefix}-opens`}>{t('opensOn')}</Label>
+        <Label htmlFor={v.idOf('opensOn')}>{t('opensOn')}</Label>
         <DatePicker
-          id={`${idPrefix}-opens`}
+          {...withoutBlur(v.fieldProps('opensOn'))}
+          className={TOUCH_INPUT}
           value={draft.opensOn}
-          onChange={(v) => onChange({ ...draft, opensOn: v })}
+          onChange={(date) => {
+            onChange({ ...draft, opensOn: date });
+            v.touch('opensOn');
+          }}
         />
+        <FieldError id={v.idOf('opensOn')} issue={v.issue('opensOn')} />
       </div>
       <div className="grid content-start gap-2">
-        <Label htmlFor={`${idPrefix}-closes`}>{t('closesOn')}</Label>
+        <Label htmlFor={v.idOf('closesOn')}>{t('closesOn')}</Label>
         <DatePicker
-          id={`${idPrefix}-closes`}
+          {...withoutBlur(v.fieldProps('closesOn'))}
+          className={TOUCH_INPUT}
           value={draft.closesOn}
-          onChange={(v) => onChange({ ...draft, closesOn: v })}
+          onChange={(date) => {
+            onChange({ ...draft, closesOn: date });
+            v.touch('closesOn');
+          }}
         />
+        <FieldError id={v.idOf('closesOn')} issue={v.issue('closesOn')} />
       </div>
       <div className="grid content-start gap-2">
-        <Label htmlFor={`${idPrefix}-quota`}>{t('quota')}</Label>
+        <Label htmlFor={v.idOf('quota')}>{t('quota')}</Label>
         <Input
-          id={`${idPrefix}-quota`}
+          {...v.fieldProps('quota')}
+          className={TOUCH_INPUT}
           inputMode="numeric"
+          autoComplete="off"
           placeholder={t('quotaPlaceholder')}
           value={draft.quota}
           onChange={(e) => onChange({ ...draft, quota: e.target.value.replace(/\D/g, '') })}
         />
+        <FieldError id={v.idOf('quota')} issue={v.issue('quota')} />
       </div>
       <div className="grid content-start gap-2">
-        <Label htmlFor={`${idPrefix}-active`}>{t('colStatus')}</Label>
+        <Label htmlFor={`${v.idOf('name')}-status`}>{t('colStatus')}</Label>
         <SelectField
-          id={`${idPrefix}-active`}
+          id={`${v.idOf('name')}-status`}
+          className={TOUCH_SELECT}
           value={draft.active ? 'active' : 'inactive'}
           onChange={(e) => onChange({ ...draft, active: e.target.value === 'active' })}
         >
@@ -166,9 +208,6 @@ const toBody = (d: Draft) => ({
   active: d.active,
 });
 
-const complete = (d: Draft) =>
-  !!(d.name.trim() && d.level.trim() && d.academicYearId && d.opensOn && d.closesOn);
-
 export function PeriodsView() {
   const t = useTranslations('admissions');
   const te = useTranslations();
@@ -186,6 +225,12 @@ export function PeriodsView() {
   const [qr, setQr] = useState('');
   const [copied, setCopied] = useState(false);
   const [today, setToday] = useState('');
+  // Satu hook untuk dialog tambah dan ubah (hanya satu yang terbuka); awalan id dibedakan.
+  const validation = useFormValidation<AdmissionPeriodField>({
+    errors: validateAdmissionPeriod(editing ?? draft),
+    order: ADMISSION_PERIOD_ORDER,
+    idPrefix: editing ? 'period-edit' : 'period-new',
+  });
 
   const link = origin ? `${origin}/apply` : '';
   useEffect(() => {
@@ -274,7 +319,7 @@ export function PeriodsView() {
                 }
                 title={t('addPeriod')}
                 submitLabel={t('add')}
-                disabled={!complete(draft)}
+                validation={validation}
                 error={error}
                 onOpenChange={() => {
                   setDraft(EMPTY);
@@ -282,7 +327,7 @@ export function PeriodsView() {
                 }}
                 onSubmit={() => create.mutateAsync()}
               >
-                <PeriodFields idPrefix="new" draft={draft} onChange={setDraft} />
+                <PeriodFields draft={draft} onChange={setDraft} v={validation} />
               </FormDialog>
             )}
             <BackLink href="/admissions" />
@@ -458,6 +503,7 @@ export function PeriodsView() {
                     aria-label={t('editPeriod', { name: p.name })}
                     onClick={() => {
                       setError(null);
+                      validation.reset();
                       setEditing({
                         id: p.id,
                         name: p.name,
@@ -494,12 +540,12 @@ export function PeriodsView() {
           open
           title={t('editPeriodTitle')}
           submitLabel={t('save')}
-          disabled={!complete(editing)}
+          validation={validation}
           error={error}
           onOpenChange={(o) => !o && setEditing(null)}
           onSubmit={() => save.mutateAsync(editing)}
         >
-          <PeriodFields idPrefix="edit" draft={editing} onChange={(d) => setEditing({ ...editing, ...d })} />
+          <PeriodFields draft={editing} onChange={(d) => setEditing({ ...editing, ...d })} v={validation} />
         </FormDialog>
       )}
 

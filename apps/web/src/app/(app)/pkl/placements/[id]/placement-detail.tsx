@@ -24,6 +24,7 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { PageBody } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,7 @@ import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { JournalPanel } from '../../journal-panel';
 import { LinkPanel } from '../../link-panel';
+import { PLACEMENT_EDIT_ORDER, type PlacementEditField, validatePlacementEdit } from '../../pkl-validation';
 import { ScoresPanel } from '../../scores-panel';
 import {
   PersonAvatar,
@@ -302,6 +304,11 @@ function EditDialog({
   const [teacherId, setTeacherId] = useState(p.supervisorTeacherId ?? '');
   const [indName, setIndName] = useState(p.industrySupervisorName ?? '');
   const [indPhone, setIndPhone] = useState(p.industrySupervisorPhone ?? '');
+  const validation = useFormValidation<PlacementEditField>({
+    errors: validatePlacementEdit({ partnerId, indName, indPhone }),
+    order: PLACEMENT_EDIT_ORDER,
+    idPrefix: 'ed',
+  });
   const teachers = useQuery({
     queryKey: ['teachers', school.schoolId],
     enabled: open && can('teacher:read'),
@@ -329,6 +336,7 @@ function EditDialog({
       title={t('editPlacement')}
       submitLabel={t('save')}
       error={error}
+      validation={validation}
       onSubmit={async () => {
         try {
           unwrap(
@@ -352,8 +360,13 @@ function EditDialog({
     >
       <div className="grid gap-4">
         <div className="grid content-start gap-2">
-          <Label htmlFor="ed-partner">{t('partner')}</Label>
-          <SelectField id="ed-partner" value={partnerId} onChange={(e) => setPartnerId(e.target.value)}>
+          <Label htmlFor="ed-partnerId">{t('partner')}</Label>
+          <SelectField
+            {...validation.fieldProps('partnerId')}
+            className={TOUCH_SELECT}
+            value={partnerId}
+            onChange={(e) => setPartnerId(e.target.value)}
+          >
             {(partners.data ?? [])
               .filter((x) => x.active || x.id === p.partnerId)
               .map((x) => (
@@ -362,11 +375,13 @@ function EditDialog({
                 </option>
               ))}
           </SelectField>
+          <FieldError id={validation.idOf('partnerId')} issue={validation.issue('partnerId')} />
         </div>
         <div className="grid content-start gap-2">
           <Label htmlFor="ed-teacher">{t('supervisor')}</Label>
           <SelectField
             id="ed-teacher"
+            className={TOUCH_SELECT}
             value={teacherId}
             disabled={!can('teacher:read')}
             onChange={(e) => setTeacherId(e.target.value)}
@@ -381,22 +396,29 @@ function EditDialog({
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid content-start gap-2">
-            <Label htmlFor="ed-ind-name">{t('industrySupervisorName')}</Label>
+            <Label htmlFor="ed-indName">{t('industrySupervisorName')}</Label>
             <Input
-              id="ed-ind-name"
+              {...validation.fieldProps('indName')}
+              className={TOUCH_INPUT}
+              autoComplete="off"
               maxLength={120}
               value={indName}
               onChange={(e) => setIndName(e.target.value)}
             />
+            <FieldError id={validation.idOf('indName')} issue={validation.issue('indName')} />
           </div>
           <div className="grid content-start gap-2">
-            <Label htmlFor="ed-ind-phone">{t('industrySupervisorPhone')}</Label>
+            <Label htmlFor="ed-indPhone">{t('industrySupervisorPhone')}</Label>
             <Input
-              id="ed-ind-phone"
+              {...validation.fieldProps('indPhone')}
+              className={TOUCH_INPUT}
+              inputMode="tel"
+              autoComplete="off"
               maxLength={30}
               value={indPhone}
               onChange={(e) => setIndPhone(e.target.value)}
             />
+            <FieldError id={validation.idOf('indPhone')} issue={validation.issue('indPhone')} />
           </div>
         </div>
       </div>

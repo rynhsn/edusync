@@ -4,6 +4,7 @@ export * from './errors';
 export * from './lifecycle';
 export * from './notices';
 export * from './provider';
+export * from './school-auto-billing';
 export * from './service';
 export * from './settings';
 export * from './smtp-settings';

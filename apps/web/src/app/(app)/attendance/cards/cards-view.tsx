@@ -12,6 +12,7 @@ import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { FORM_GRID } from '@/components/form-field';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button, buttonVariants } from '@/components/ui/button';
@@ -21,8 +22,10 @@ import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, MODULE_TONE, PersonCell, StatCard, StatGrid, Toolbar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { CARD_ORDER, type CardField, validateCard } from './card-validation';
 import { QuickRegister } from './quick-register';
 
 /** Halaman Kartu RFID: daftar kartu, daftar cepat per kelas, impor Excel, dan hapus. */
@@ -40,6 +43,11 @@ export function CardsView() {
   const [search, setSearch] = useState('');
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
   const allowed = can('attendance:configure');
+  const validation = useFormValidation<CardField>({
+    errors: validateCard({ studentId, code }),
+    order: CARD_ORDER,
+    idPrefix: 'card',
+  });
 
   const students = useQuery({
     queryKey: ['students', school.schoolId, 'pick', search],
@@ -152,7 +160,7 @@ export function CardsView() {
             setCode('');
             setError(null);
           }}
-          disabled={!studentId || code.trim().length < 4}
+          validation={validation}
           onSubmit={() => create.mutateAsync()}
         >
           <div className={FORM_GRID}>
@@ -160,14 +168,23 @@ export function CardsView() {
               <Label htmlFor="card-search">{t('searchStudent')}</Label>
               <Input
                 id="card-search"
+                className={TOUCH_INPUT}
                 value={search}
                 placeholder={t('searchStudentPlaceholder')}
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
             <div className="grid content-start gap-2 sm:col-span-2">
-              <Label htmlFor="card-student">{t('student')}</Label>
-              <SelectField id="card-student" value={studentId} onChange={(e) => setStudentId(e.target.value)}>
+              <Label htmlFor={validation.idOf('studentId')}>{t('student')}</Label>
+              <SelectField
+                {...withoutBlur(validation.fieldProps('studentId'))}
+                className={TOUCH_SELECT}
+                value={studentId}
+                onChange={(e) => {
+                  setStudentId(e.target.value);
+                  validation.touch('studentId');
+                }}
+              >
                 <option value="">{t('chooseStudent')}</option>
                 {(students.data?.items ?? []).map((s) => (
                   <option key={s.id} value={s.id}>
@@ -176,16 +193,21 @@ export function CardsView() {
                   </option>
                 ))}
               </SelectField>
+              <FieldError id={validation.idOf('studentId')} issue={validation.issue('studentId')} />
             </div>
             <div className="grid content-start gap-2 sm:col-span-2">
-              <Label htmlFor="card-code">{t('cardCode')}</Label>
+              <Label htmlFor={validation.idOf('code')}>{t('cardCode')}</Label>
               <Input
-                id="card-code"
+                {...validation.fieldProps('code')}
+                className={TOUCH_INPUT}
+                aria-required="true"
+                autoComplete="off"
                 value={code}
                 maxLength={64}
                 placeholder={t('cardCodePlaceholder')}
                 onChange={(e) => setCode(e.target.value)}
               />
+              <FieldError id={validation.idOf('code')} issue={validation.issue('code')} />
             </div>
           </div>
         </FormDialog>

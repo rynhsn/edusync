@@ -16,7 +16,7 @@ export function LoginForm() {
   const t = useTranslations('auth');
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [error, setError] = useState<'invalid' | 'unreachable' | null>(null);
+  const [error, setError] = useState<'invalid' | 'unreachable' | 'tooMany' | null>(null);
   const [pending, setPending] = useState(false);
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -25,12 +25,19 @@ export function LoginForm() {
     setPending(true);
     setError(null);
     try {
+      // Isian bisa email, nama pengguna, atau NIK; server yang menentukan akunnya (lihat apps/api/src/auth.ts).
       const { error } = await authClient.signIn.email({
-        email: String(form.get('email')),
+        email: String(form.get('identifier')).trim(),
         password: String(form.get('password')),
       });
       if (error) {
-        setError(error.status === 401 || error.status === 400 ? 'invalid' : 'unreachable');
+        setError(
+          error.status === 429
+            ? 'tooMany'
+            : error.status === 401 || error.status === 400
+              ? 'invalid'
+              : 'unreachable',
+        );
         return;
       }
       // Buang data akun lama agar shell memuat ulang untuk pengguna yang baru masuk.
@@ -56,8 +63,18 @@ export function LoginForm() {
           </Alert>
         )}
         <div className="grid content-start gap-2">
-          <Label htmlFor="email">{t('email')}</Label>
-          <Input id="email" name="email" type="email" autoComplete="username" required className="h-10" />
+          <Label htmlFor="identifier">{t('identifier')}</Label>
+          <Input
+            id="identifier"
+            name="identifier"
+            type="text"
+            inputMode="email"
+            autoComplete="username"
+            autoCapitalize="none"
+            spellCheck={false}
+            required
+            className="h-10"
+          />
         </div>
         <div className="grid content-start gap-2">
           <div className="flex items-center justify-between">

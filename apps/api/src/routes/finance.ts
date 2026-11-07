@@ -9,14 +9,14 @@ import {
   eq,
   FIN_FEE_KINDS,
   FIN_FEE_SCOPES,
-  finDiscountRule,
+  FinanceGenerateError,
   finFeePlan,
   finFeeTarget,
   finFeeType,
   finInvoice,
   finPayment,
   finPaymentItem,
-  finStudentDiscount,
+  generateInvoices,
   gte,
   inArray,
   isNull,
@@ -34,21 +34,15 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { todayInSchool } from '../attendance-lib';
 import {
-  discountFor,
   FILTER_PERIOD_PATTERN,
   type InstallmentPart,
   type InvoiceView,
   installmentParts,
   invoiceRows,
-  isInstallmentPeriodOf,
   listPaymentMethods,
-  PERIOD_PATTERN,
   paidFor,
-  periodLabel,
   requireActiveMethod,
   SEMESTER_PERIOD_PATTERN,
-  type SemesterPeriod,
-  semesterLabel,
 } from '../finance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
@@ -737,256 +731,40 @@ export async function financeRoutes(instance: FastifyInstance) {
       const ctx = request.ctx as TenantContext;
       const b = request.body;
       return tenant(request, async (tx) => {
-        const year = await requireYear(tx, b.academicYearId);
-        const fee = await requireFeeType(tx, b.feeTypeId);
-        if (fee.kind === 'monthly') {
-          if (!b.period || !PERIOD_PATTERN.test(b.period)) {
-            throw new HttpError(
-              400,
-              'period_required',
-              'Biaya bulanan wajib punya periode berformat TTTT-BB.',
-            );
-          }
-        } else if (fee.kind === 'semester') {
-          if (!b.period) {
-            throw new HttpError(
-              400,
-              'period_required',
-              'Biaya semester wajib punya periode S1 (ganjil) atau S2 (genap).',
-            );
-          }
-          if (!SEMESTER_PERIOD_PATTERN.test(b.period)) {
-            throw new HttpError(
-              400,
-              'period_invalid',
-              'Periode biaya semester hanya S1 (ganjil) atau S2 (genap).',
-            );
-          }
-        } else if (b.period !== null) {
-          throw new HttpError(
-            400,
-            'period_required',
-            'Periode hanya untuk biaya bulanan dan semester; isi null untuk jenis ini.',
-          );
-        }
-        const semesterPeriod = fee.kind === 'semester' ? (b.period as SemesterPeriod) : null;
-        if (!fee.active) throw new HttpError(409, 'inactive', 'Jenis biaya ini tidak aktif.');
         const installments = b.installments ?? null;
-        if (installments !== null && (fee.kind === 'monthly' || installments < 2 || installments > 12)) {
-          throw new HttpError(
-            400,
-            'installments_invalid',
-            'Cicilan hanya untuk biaya non-bulanan dan harus 2 sampai 12 kali.',
-          );
-        }
-        if (b.classId) {
-          const [cls] = await tx.select().from(classRoom).where(eq(classRoom.id, b.classId));
-          if (!cls || cls.academicYearId !== year.id) {
-            throw invalidRef('Kelas tidak ditemukan pada tahun ajaran itu.');
-          }
-        }
-
-        const plans = await tx
-          .select()
-          .from(finFeePlan)
-          .where(and(eq(finFeePlan.academicYearId, year.id), eq(finFeePlan.feeTypeId, fee.id)));
-        const byLevel = new Map(
-          plans.filter((p) => p.level !== null).map((p) => [p.level as string, p.amount]),
-        );
-        const allLevels = plans.find((p) => p.level === null)?.amount;
-
-        const roster = await tx
-          .select({
-            id: student.id,
-            name: student.name,
-            nis: student.nis,
-            classId: enrollment.classId,
-            className: classRoom.name,
-            level: classRoom.level,
-          })
-          .from(enrollment)
-          .innerJoin(student, eq(student.id, enrollment.studentId))
-          .innerJoin(classRoom, eq(classRoom.id, enrollment.classId))
-          .where(
-            and(
-              eq(enrollment.academicYearId, year.id),
-              isNull(student.deletedAt),
-              eq(student.status, 'active'),
-              b.classId ? eq(enrollment.classId, b.classId) : undefined,
-            ),
-          )
-          .orderBy(asc(student.name), asc(student.id));
-
-        // Cakupan jenis biaya: hanya siswa yang termasuk sasaran yang ditagih.
-        let outOfScope = 0;
-        if (fee.scope !== 'all') {
-          const targets = await tx.select().from(finFeeTarget).where(eq(finFeeTarget.feeTypeId, fee.id));
-          const classTargets = new Set(targets.map((t) => t.classId).filter((v): v is string => v !== null));
-          const studentTargets = new Set(
-            targets.map((t) => t.studentId).filter((v): v is string => v !== null),
-          );
-          const inScope = roster.filter((s) =>
-            fee.scope === 'class' ? classTargets.has(s.classId) : studentTargets.has(s.id),
-          );
-          outOfScope = roster.length - inScope.length;
-          roster.splice(0, roster.length, ...inScope);
-        }
-
-        const existing = await tx
-          .select({ studentId: finInvoice.studentId, period: finInvoice.period })
-          .from(finInvoice)
-          .where(and(eq(finInvoice.academicYearId, year.id), eq(finInvoice.feeTypeId, fee.id)));
-        // Mode cicilan: siswa dengan tagihan apa pun (utuh atau cicilan) dilewati. Mode biasa: periode yang sama,
-        // atau sudah dicicil (periode C..) agar tidak tertagih dua kali.
-        // Biaya semester: cicilan berperiode `S1C01`.. dan hanya semester yang sama yang dihitung.
-        const have = new Set(
-          existing
-            .filter((e) =>
-              semesterPeriod !== null
-                ? e.period === semesterPeriod || isInstallmentPeriodOf(e.period, semesterPeriod)
-                : installments !== null ||
-                  (e.period ?? null) === b.period ||
-                  isInstallmentPeriodOf(e.period, null),
-            )
-            .map((e) => e.studentId),
-        );
-
-        // Keringanan aktif yang terpasang pada tahun ajaran ini dan berlaku untuk jenis biaya ini.
-        const assigned = await tx
-          .select({
-            studentId: finStudentDiscount.studentId,
-            name: finDiscountRule.name,
-            kind: finDiscountRule.kind,
-            value: finDiscountRule.value,
-          })
-          .from(finStudentDiscount)
-          .innerJoin(finDiscountRule, eq(finDiscountRule.id, finStudentDiscount.ruleId))
-          .where(
-            and(
-              eq(finStudentDiscount.academicYearId, year.id),
-              eq(finDiscountRule.active, true),
-              sql`(${finDiscountRule.feeTypeId} is null or ${finDiscountRule.feeTypeId} = ${fee.id})`,
-            ),
-          )
-          .orderBy(asc(finDiscountRule.name));
-        const rulesByStudent = new Map<string, typeof assigned>();
-        for (const a of assigned) {
-          const list = rulesByStudent.get(a.studentId) ?? [];
-          list.push(a);
-          rulesByStudent.set(a.studentId, list);
-        }
-
-        const semesterName = semesterPeriod ? semesterLabel(semesterPeriod) : null;
-        const title = semesterName
-          ? `${fee.name} ${semesterName} ${year.name}`
-          : b.period
-            ? `${fee.name} ${periodLabel(b.period)}`
-            : `${fee.name} ${year.name}`;
-        const missingPlan: {
-          studentId: string;
-          name: string;
-          nis: string | null;
-          className: string;
-          level: string;
-        }[] = [];
-        const toCreate: (typeof finInvoice.$inferInsert)[] = [];
-        let skipped = 0;
-        let free = 0;
-        for (const s of roster) {
-          if (have.has(s.id)) {
-            skipped++;
-            continue;
-          }
-          const amount = byLevel.get(s.level) ?? allLevels;
-          if (amount === undefined) {
-            missingPlan.push({
-              studentId: s.id,
-              name: s.name,
-              nis: s.nis,
-              className: s.className,
-              level: s.level,
-            });
-            continue;
-          }
-          if (amount === 0) {
-            free++;
-            continue;
-          }
-          const rules = rulesByStudent.get(s.id) ?? [];
-          const discount = discountFor(amount, rules);
-          const discountReason =
-            rules.length > 0 && discount > 0
-              ? rules
-                  .map((r) => r.name)
-                  .join(', ')
-                  .slice(0, 300)
-              : null;
-          const base = {
+        let result: Awaited<ReturnType<typeof generateInvoices>>;
+        try {
+          result = await generateInvoices(tx, {
             schoolId: ctx.schoolId,
-            studentId: s.id,
-            academicYearId: year.id,
-            feeTypeId: fee.id,
-          };
-          if (installments === null) {
-            toCreate.push({
-              ...base,
-              period: b.period,
-              title,
-              amount,
-              discount,
-              discountReason,
-              dueDate: b.dueDate,
-              createdBy: ctx.userId,
-            });
-          } else {
-            for (const part of installmentParts({
-              base: semesterName ? `${fee.name} ${semesterName}` : fee.name,
-              suffix: year.name,
-              ...(semesterPeriod ? { periodPrefix: semesterPeriod } : {}),
-              amount,
-              discount,
-              installments,
-              firstDueDate: b.dueDate,
-            })) {
-              toCreate.push({
-                ...base,
-                period: part.period,
-                title: part.title,
-                amount: part.amount,
-                discount: part.discount,
-                discountReason: part.discount > 0 ? discountReason : null,
-                dueDate: part.dueDate,
-                createdBy: ctx.userId,
-              });
-            }
+            actorId: ctx.userId,
+            academicYearId: b.academicYearId,
+            feeTypeId: b.feeTypeId,
+            period: b.period,
+            classIds: b.classId ? [b.classId] : null,
+            dueDate: b.dueDate,
+            installments,
+          });
+        } catch (error) {
+          if (error instanceof FinanceGenerateError) {
+            throw new HttpError(error.status, error.code, error.message);
           }
+          throw error;
         }
-
-        let created = 0;
-        for (let i = 0; i < toCreate.length; i += 500) {
-          const inserted = await tx
-            .insert(finInvoice)
-            .values(toCreate.slice(i, i + 500))
-            .onConflictDoNothing()
-            .returning({ id: finInvoice.id });
-          created += inserted.length;
-        }
-        skipped += toCreate.length - created;
-        const discounted = toCreate.filter((r) => (r.discount ?? 0) > 0).length;
-        await audit(tx, ctx, 'finance.invoice_generate', 'fin_invoice', fee.id, {
+        const { scope, ...summary } = result;
+        await audit(tx, ctx, 'finance.invoice_generate', 'fin_invoice', b.feeTypeId, {
           installments,
-          free,
-          discounted,
-          academicYearId: year.id,
+          free: summary.free,
+          discounted: summary.discounted,
+          academicYearId: b.academicYearId,
           period: b.period,
           classId: b.classId,
-          created,
-          skipped,
-          missingPlan: missingPlan.length,
-          scope: fee.scope,
-          outOfScope,
+          created: summary.created,
+          skipped: summary.skipped,
+          missingPlan: summary.missingPlan.length,
+          scope,
+          outOfScope: summary.outOfScope,
         });
-        return { created, skipped, free, discounted, outOfScope, missingPlan };
+        return summary;
       });
     },
   );

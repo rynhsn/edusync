@@ -113,6 +113,19 @@ export const SERVICE_DOCS: DocArticle[] = [
             href: '/finance',
           },
           {
+            heading: 'Tagihan otomatis (tanpa menekan tombol tiap bulan)',
+            body: 'Di Pengaturan keuangan ada kartu Tagihan otomatis. Untuk tiap jenis biaya aktif, atur tanggal pembuatan dan jatuh tempo; penjadwal harian (sekitar pukul 01.15 WIB) membuat tagihannya sendiri. Hasilnya sama dengan Buat tagihan massal: tagihan yang sudah ada (termasuk yang dibuat manual) tidak pernah dibuat dua kali.',
+            steps: [
+              'Buka Pengaturan keuangan, geser ke kartu Tagihan otomatis, klik Atur tagihan otomatis.',
+              'Pilih jenis biaya. Bulanan: isi tanggal pembuatan (1-28), tagihan bulan itu dibuat pada tanggal tersebut. Semester: pilih saat semester mulai atau selisih hari. Tahunan dan sekali bayar: pilih tanggal pembuatan di dalam tahun ajaran aktif.',
+              'Pilih jatuh tempo: tanggal tetap (bila lebih kecil dari tanggal pembuatan, jatuh di bulan berikutnya) atau sekian hari setelah dibuat. Pratinjau menampilkan tiga jadwal berikutnya.',
+              'Klik Jalankan sekarang untuk membuat tagihan seketika; riwayatnya tampil di bawah kartu.',
+            ],
+            warning:
+              'Bila worker sempat mati beberapa hari, tagihan periode yang sedang berjalan tetap dibuat saat worker hidup lagi, tetapi bulan atau semester yang sudah lewat tidak pernah diisi mundur. Tarif yang belum diatur membuat status Sebagian; atur tarifnya, sisa tagihan dibuat pada percobaan berikutnya. Untuk menghentikan, matikan aturannya atau hapus (tagihan yang sudah dibuat tidak berubah). Sekolah yang ditangguhkan atau jenis biaya nonaktif dilewati.',
+            href: '/finance/settings',
+          },
+          {
             heading: 'Melihat tunggakan dan menerapkan denda',
             body: 'Menu Laporan keuangan punya tab Tunggakan (per siswa dan per kelas, pada tanggal yang Anda pilih), Kas harian (penerimaan per metode, jenis biaya, dan hari; rentang paling lama 366 hari), dan Denda. Tunggakan dan Kas harian dapat diekspor ke Excel atau PDF.',
             steps: [
@@ -265,6 +278,19 @@ export const SERVICE_DOCS: DocArticle[] = [
             ],
             warning: 'A voided receipt cannot be used again. Only the Treasurer or School admin can do this.',
             href: '/finance',
+          },
+          {
+            heading: 'Automatic billing (no monthly button press)',
+            body: 'Finance settings has an Automatic billing card. For each active fee type, set the creation date and due date; the daily scheduler (around 01:15 Western Indonesia Time) creates the invoices itself. The result is identical to Generate invoices in bulk: existing invoices (including manually created ones) are never created twice.',
+            steps: [
+              'Open Finance settings, scroll to the Automatic billing card, and click Set up automatic billing.',
+              'Choose the fee type. Monthly: enter the creation day (1-28); that month invoices are created on that day. Semester: choose when the semester starts or a days offset. Yearly and one-time: choose a creation date inside the active academic year.',
+              'Choose the due date: a fixed day (if earlier than the creation day it falls in the next month) or a number of days after creation. The preview shows the next three runs.',
+              'Click Run now to create invoices immediately; the history is listed below the card.',
+            ],
+            warning:
+              'If the worker was down for some days, the current period is still created when it returns, but past months or semesters are never backfilled. Missing rates give a Partial status; set the rates and the remaining invoices are created on the next attempt. To stop, turn the rule off or delete it (invoices already created stay). A suspended school or an inactive fee type is skipped.',
+            href: '/finance/settings',
           },
           {
             heading: 'Checking arrears and applying late fees',
@@ -421,6 +447,19 @@ export const SERVICE_DOCS: DocArticle[] = [
             warning:
               'Kwitansi nu dibatalkeun teu tiasa dipake deui. Ngan Bendahara atawa Admin sakola nu tiasa ngalakukeunana.',
             href: '/finance',
+          },
+          {
+            heading: 'Tagihan otomatis (teu kudu mencét tombol unggal bulan)',
+            body: 'Di Pangaturan kauangan aya kartu Tagihan otomatis. Pikeun unggal jenis biaya aktif, atur tanggal nyieun tagihan sarta titimangsana; penjadwal harian (kira-kira 01.15 WIB) nyieun tagihanna sorangan. Hasilna sarua jeung Jieun tagihan massal: tagihan anu geus aya (kaasup anu dijieun manual) teu pernah dijieun dua kali.',
+            steps: [
+              'Buka Pangaturan kauangan, geser ka kartu Tagihan otomatis, klik Atur tagihan otomatis.',
+              'Pilih jenis biaya. Bulanan: eusian tanggal nyieun (1-28), tagihan bulan éta dijieun dina tanggal éta. Semester: pilih waktu semester dimimitian atawa bédana poé. Taunan jeung sakali bayar: pilih tanggal nyieun dina taun ajaran aktif.',
+              'Pilih titimangsa: tanggal tetep (upami leuwih leutik tibatan tanggal nyieun, titimangsana di bulan hareup) atawa sakian poé sanggeus dijieun. Pratayang nembongkeun tilu jadwal satuluyna.',
+              'Klik Jalankeun ayeuna pikeun nyieun tagihan sakaligus; riwayatna aya di handapeun kartu.',
+            ],
+            warning:
+              'Upami worker paéh sababaraha poé, tagihan periode anu keur jalan tetep dijieun mun worker hurung deui, tapi bulan atawa semester anu geus kaliwat teu pernah diisi mundur. Tarif anu acan diatur nyieun status Sabagian; atur tarifna, tagihan sésana dijieun dina percobaan satuluyna. Pikeun ngareureuhkeun, pareuman aturanna atawa hapus (tagihan anu geus dijieun teu robah). Sakola ditangguhkeun atawa jenis biaya nonaktif ngalongkepan prosésna.',
+            href: '/finance/settings',
           },
           {
             heading: 'Ningali tunggakan jeung nerapkeun denda',

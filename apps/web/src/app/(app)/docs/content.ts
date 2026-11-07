@@ -6,6 +6,7 @@ import { EXAM_DOCS } from './content-exams';
 import { ONBOARDING_DOCS } from './content-onboarding';
 import { ROLE_DOCS } from './content-roles';
 import { SERVICE_DOCS } from './content-services';
+import { SUPPORT_DOCS } from './content-support';
 
 /** Dokumentasi panel sekolah, satu artikel per modul, berurutan seperti menu samping. */
 export const SCHOOL_DOCS: DocArticle[] = [
@@ -16,4 +17,5 @@ export const SCHOOL_DOCS: DocArticle[] = [
   ...EXAM_DOCS,
   ...SERVICE_DOCS,
   ...ROLE_DOCS,
+  ...SUPPORT_DOCS,
 ];

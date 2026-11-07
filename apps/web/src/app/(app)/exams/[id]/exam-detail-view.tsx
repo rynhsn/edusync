@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { RichText } from '@/components/rich-text';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -37,6 +38,7 @@ import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { ExamDialog } from '../exam-dialog';
+import { type PickField, validatePicked, validatePoints } from '../exam-validation';
 
 interface ExamQuestion {
   id: string;
@@ -54,6 +56,55 @@ function endTime(start: string, minutes: number) {
   const [h = 0, m = 0] = start.split(':').map(Number);
   const total = (h * 60 + m + minutes) % (24 * 60);
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
+/**
+ * Poin satu soal, disimpan saat isian ditinggalkan. Isian yang salah tidak dibuang diam-diam: pesan merah tampil di
+ * bawahnya dan tidak ada yang disimpan sampai benar (bilangan bulat 1..1000, sama dengan API).
+ */
+function PointsField({
+  id,
+  label,
+  points,
+  onSave,
+}: {
+  id: string;
+  label: string;
+  points: number;
+  onSave: (n: number) => void;
+}) {
+  const [value, setValue] = useState(String(points));
+  const [touched, setTouched] = useState(false);
+  const issue = validatePoints(value);
+  const shown = touched ? issue : undefined;
+  return (
+    <div className="ml-2 grid content-start gap-1 text-xs">
+      <div className="flex items-center gap-1.5">
+        <Label htmlFor={id} className="text-muted-foreground text-xs font-normal">
+          {label}
+        </Label>
+        <Input
+          id={id}
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={4}
+          value={value}
+          aria-invalid={shown !== undefined}
+          aria-describedby={shown ? `${id}-error` : undefined}
+          className="h-10 w-20 md:h-8"
+          onChange={(e) => setValue(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') e.currentTarget.blur();
+          }}
+          onBlur={() => {
+            setTouched(true);
+            if (!issue && Number(value) !== points) onSave(Number(value));
+          }}
+        />
+      </div>
+      <FieldError id={id} issue={shown} />
+    </div>
+  );
 }
 
 /** Susun ujian: soal-soal dari bank, urutan, poin, dan jalan pintas ke lembar cetak. */
@@ -292,26 +343,13 @@ export function ExamDetailView({ id }: { id: string }) {
                 </span>
                 <ToneBadge tone={q.type === 'mcq' ? 'sky' : 'amber'}>{t(`type_${q.type}`)}</ToneBadge>
                 {author ? (
-                  <div className="ml-2 flex items-center gap-1.5 text-xs">
-                    <Label htmlFor={`pts-${q.id}`} className="text-muted-foreground text-xs font-normal">
-                      {t('points')}
-                    </Label>
-                    <Input
-                      id={`pts-${q.id}`}
-                      key={`${q.id}-${q.points}`}
-                      type="number"
-                      min={1}
-                      max={1000}
-                      defaultValue={q.points}
-                      className="h-8 w-20"
-                      onBlur={(e) => {
-                        const n = Number(e.target.value);
-                        if (Number.isInteger(n) && n >= 1 && n <= 1000 && n !== q.points) {
-                          setPoints.mutate({ qid: q.id, points: n });
-                        } else e.target.value = String(q.points);
-                      }}
-                    />
-                  </div>
+                  <PointsField
+                    key={`${q.id}-${q.points}`}
+                    id={`pts-${q.id}`}
+                    label={t('points')}
+                    points={q.points}
+                    onSave={(n) => setPoints.mutate({ qid: q.id, points: n })}
+                  />
                 ) : (
                   <span className="text-muted-foreground text-xs">{t('pointsShort', { n: q.points })}</span>
                 )}
@@ -437,6 +475,11 @@ function BankDialog({
       ),
   });
   const items = bank.data?.items ?? [];
+  const validation = useFormValidation<PickField>({
+    errors: validatePicked(picked.length),
+    order: ['picked'],
+    idPrefix: 'bk',
+  });
 
   const add = useMutation({
     mutationFn: async () =>
@@ -470,63 +513,74 @@ function BankDialog({
       submitLabel={t('addPicked', { n: picked.length })}
       size="wide"
       error={error}
-      disabled={picked.length === 0}
+      validation={validation}
       onSubmit={() => add.mutateAsync()}
     >
       <div className="grid gap-3">
         <div className="relative">
-          <Search aria-hidden className="text-muted-foreground absolute top-2.5 left-2.5 size-4" />
+          <Search aria-hidden className="text-muted-foreground absolute top-3 left-2.5 size-4 md:top-2.5" />
           <Input
             aria-label={t('searchBank')}
-            className="pl-8"
+            className="h-10 pl-8 md:h-8"
             placeholder={t('searchBank')}
             value={q}
             onChange={(e) => setQ(e.target.value)}
           />
         </div>
-        {bank.isPending ? (
-          <Skeleton className="h-40 rounded-xl" />
-        ) : items.length === 0 ? (
-          <p className="text-muted-foreground py-6 text-center text-sm">{t('bankEmpty')}</p>
-        ) : (
-          <ul className="grid max-h-[50vh] gap-2 overflow-y-auto pr-1">
-            {items.map((x) => {
-              const already = added.has(x.id);
-              return (
-                <li key={x.id}>
-                  {/* biome-ignore lint/a11y/noLabelWithoutControl: kontrolnya Checkbox Base UI di dalam label. */}
-                  <label
-                    className={cn(
-                      'flex items-start gap-3 rounded-xl border p-3',
-                      already ? 'opacity-60' : 'hover:bg-muted/40 cursor-pointer',
-                    )}
-                  >
-                    <Checkbox
-                      className="mt-1"
-                      disabled={already}
-                      checked={already || picked.includes(x.id)}
-                      onCheckedChange={(v) =>
-                        setPicked(v === true ? [...picked, x.id] : picked.filter((p) => p !== x.id))
-                      }
-                    />
-                    <span className="grid min-w-0 flex-1 gap-1">
-                      <span className="flex flex-wrap items-center gap-2">
-                        <ToneBadge tone={x.type === 'mcq' ? 'sky' : 'amber'}>{t(`type_${x.type}`)}</ToneBadge>
-                        <span className="text-muted-foreground text-xs">
-                          {t('pointsShort', { n: x.points })}
+        <div
+          id={validation.idOf('picked')}
+          tabIndex={-1}
+          aria-describedby={validation.issue('picked') ? `${validation.idOf('picked')}-error` : undefined}
+          className="outline-none"
+        >
+          {bank.isPending ? (
+            <Skeleton className="h-40 rounded-xl" />
+          ) : items.length === 0 ? (
+            <p className="text-muted-foreground py-6 text-center text-sm">{t('bankEmpty')}</p>
+          ) : (
+            <ul className="grid max-h-[50vh] gap-2 overflow-y-auto pr-1">
+              {items.map((x) => {
+                const already = added.has(x.id);
+                return (
+                  <li key={x.id}>
+                    {/* biome-ignore lint/a11y/noLabelWithoutControl: kontrolnya Checkbox Base UI di dalam label. */}
+                    <label
+                      className={cn(
+                        'flex items-start gap-3 rounded-xl border p-3',
+                        already ? 'opacity-60' : 'hover:bg-muted/40 cursor-pointer',
+                      )}
+                    >
+                      <Checkbox
+                        className="mt-1"
+                        disabled={already}
+                        checked={already || picked.includes(x.id)}
+                        onCheckedChange={(v) => {
+                          validation.touch('picked');
+                          setPicked(v === true ? [...picked, x.id] : picked.filter((p) => p !== x.id));
+                        }}
+                      />
+                      <span className="grid min-w-0 flex-1 gap-1">
+                        <span className="flex flex-wrap items-center gap-2">
+                          <ToneBadge tone={x.type === 'mcq' ? 'sky' : 'amber'}>
+                            {t(`type_${x.type}`)}
+                          </ToneBadge>
+                          <span className="text-muted-foreground text-xs">
+                            {t('pointsShort', { n: x.points })}
+                          </span>
+                          {already && (
+                            <span className="text-muted-foreground text-xs">{t('alreadyAdded')}</span>
+                          )}
                         </span>
-                        {already && (
-                          <span className="text-muted-foreground text-xs">{t('alreadyAdded')}</span>
-                        )}
+                        <RichText text={x.body} className="line-clamp-3 text-sm" />
                       </span>
-                      <RichText text={x.body} className="line-clamp-3 text-sm" />
-                    </span>
-                  </label>
-                </li>
-              );
-            })}
-          </ul>
-        )}
+                    </label>
+                  </li>
+                );
+              })}
+            </ul>
+          )}
+        </div>
+        <FieldError id={validation.idOf('picked')} issue={validation.issue('picked')} />
         {(bank.data?.total ?? 0) > items.length && (
           <p className="text-muted-foreground text-center text-xs">
             {t('bankShowing', { shown: items.length, total: bank.data?.total ?? 0 })}

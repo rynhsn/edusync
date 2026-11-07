@@ -1,5 +1,6 @@
 import { fromNodeHeaders } from 'better-auth/node';
 import type { FastifyInstance } from 'fastify';
+import { Throttle } from '../throttle';
 
 /** Teruskan /api/auth/* ke Better Auth (login, logout, sesi). Skemanya didokumentasikan oleh Better Auth. */
 export async function registerAuthRoutes(app: FastifyInstance, isTrustedOrigin: (origin: string) => boolean) {
@@ -16,6 +17,26 @@ export async function registerAuthRoutes(app: FastifyInstance, isTrustedOrigin: 
           .code(403)
           .send({ error: { code: 'forbidden', message: 'Asal permintaan tidak dipercaya.' } });
       }
+      // Masuk dibatasi per IP dan per isian (email/nama pengguna/NIK; hanya hash-nya yang dipakai sebagai kunci).
+      const signIn = request.method === 'POST' && request.url.split('?')[0] === '/api/auth/sign-in/email';
+      let failKey: string | null = null;
+      if (signIn) {
+        const limits = app.authLimits;
+        const given = String((request.body as { email?: unknown } | undefined)?.email ?? '')
+          .trim()
+          .toLowerCase();
+        failKey = Throttle.key('signin-id', given);
+        const wait = Math.max(
+          app.throttle.hit(Throttle.key('signin-ip', request.ip), limits.signInIpPerMinute, 60_000),
+          app.throttle.blockedFor(failKey, limits.signInFailuresPer15Min),
+        );
+        if (wait > 0) {
+          return reply
+            .code(429)
+            .header('retry-after', String(wait))
+            .send({ code: 'RATE_LIMITED', message: 'Terlalu banyak percobaan masuk. Coba lagi nanti.' });
+        }
+      }
       const url = new URL(request.url, `${request.protocol}://${request.headers.host}`);
       const body = request.body === undefined ? undefined : JSON.stringify(request.body);
       const response = await app.auth.handler(
@@ -25,6 +46,11 @@ export async function registerAuthRoutes(app: FastifyInstance, isTrustedOrigin: 
           ...(body === undefined ? {} : { body }),
         }),
       );
+      if (failKey) {
+        // Hanya kegagalan yang dihitung; masuk berhasil mengosongkan hitungan isian itu.
+        if (response.status === 200) app.throttle.reset(failKey);
+        else app.throttle.record(failKey, 15 * 60_000);
+      }
       reply.status(response.status);
       response.headers.forEach((value, key) => {
         if (key.toLowerCase() !== 'set-cookie') reply.header(key, value);

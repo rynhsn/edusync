@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { SESSION_ORDER, type SessionField, validateSession } from '../extracurricular-validation';
 import { ATT_STATUSES, type AttStatus, todayIso } from '../shared';
 
 const ACTIVE_STYLE: Record<AttStatus, string> = {
@@ -184,6 +186,11 @@ export function SessionsPanel({ id, canWrite }: { id: string; canWrite: boolean 
   const [open, setOpen] = useState<string | null>(null);
   const [draft, setDraft] = useState({ date: todayIso(), topic: '' });
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<SessionField>({
+    errors: validateSession(draft),
+    order: SESSION_ORDER,
+    idPrefix: 'ek-session',
+  });
 
   const sessions = useQuery({
     queryKey: key,
@@ -234,8 +241,8 @@ export function SessionsPanel({ id, canWrite }: { id: string; canWrite: boolean 
             }
             title={t('newSession')}
             submitLabel={t('newSession')}
-            disabled={!draft.date}
             error={error}
+            validation={validation}
             onOpenChange={() => {
               setDraft({ date: todayIso(), topic: '' });
               setError(null);
@@ -245,20 +252,25 @@ export function SessionsPanel({ id, canWrite }: { id: string; canWrite: boolean 
             <div className="grid content-start gap-2">
               <Label htmlFor="ek-session-date">{t('sessionDate')}</Label>
               <DatePicker
-                id="ek-session-date"
+                {...validation.fieldProps('date')}
+                className={TOUCH_INPUT}
                 value={draft.date}
                 onChange={(v) => setDraft((d) => ({ ...d, date: v }))}
               />
+              <FieldError id={validation.idOf('date')} issue={validation.issue('date')} />
             </div>
             <div className="grid content-start gap-2">
               <Label htmlFor="ek-session-topic">{t('topic')}</Label>
               <Input
-                id="ek-session-topic"
+                {...validation.fieldProps('topic')}
+                className={TOUCH_INPUT}
+                autoComplete="off"
                 maxLength={200}
                 placeholder={t('topicHint')}
                 value={draft.topic}
                 onChange={(e) => setDraft((d) => ({ ...d, topic: e.target.value }))}
               />
+              <FieldError id={validation.idOf('topic')} issue={validation.issue('topic')} />
             </div>
           </FormDialog>
         </div>

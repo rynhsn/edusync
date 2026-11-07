@@ -9,6 +9,7 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -20,6 +21,7 @@ import { EmptyPanel, IconTile, type Tone, ToneBadge } from '@/components/ui-kit'
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import type { paths } from '@/lib/api-types';
 import { errorKey } from '@/lib/errors';
+import { DOMAIN_ORDER, type DomainField, validateDomain } from './domains-validation';
 
 const MAX_DOMAINS = 3;
 
@@ -200,6 +202,11 @@ export function DomainsView() {
   });
   const [hostname, setHostname] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<DomainField>({
+    errors: validateDomain(hostname),
+    order: DOMAIN_ORDER,
+    idPrefix: 'domain',
+  });
   const [checks, setChecks] = useState<Record<string, DnsCheck[]>>({});
 
   const add = useMutation({
@@ -277,8 +284,9 @@ export function DomainsView() {
           }
           title={t('addTitle')}
           submitLabel={t('addButton')}
-          disabled={hostname.trim().length === 0 || add.isPending}
+          disabled={add.isPending}
           error={error}
+          validation={validation}
           onOpenChange={() => {
             setHostname('');
             setError(null);
@@ -288,8 +296,11 @@ export function DomainsView() {
           <div className="grid content-start gap-1.5">
             <Label htmlFor="domain-hostname">{t('hostnameLabel')}</Label>
             <Input
-              id="domain-hostname"
+              {...validation.fieldProps('hostname')}
+              className={TOUCH_INPUT}
+              aria-required="true"
               value={hostname}
+              maxLength={253}
               inputMode="url"
               autoComplete="off"
               autoCapitalize="none"
@@ -297,6 +308,7 @@ export function DomainsView() {
               placeholder={t('hostnamePlaceholder')}
               onChange={(e) => setHostname(e.target.value)}
             />
+            <FieldError id={validation.idOf('hostname')} issue={validation.issue('hostname')} />
             <p className="text-muted-foreground text-xs">{t('hostnameHint')}</p>
           </div>
         </FormDialog>

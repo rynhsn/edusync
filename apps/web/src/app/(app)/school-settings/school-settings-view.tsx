@@ -24,6 +24,7 @@ import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
 import { FORM_GRID } from '@/components/form-field';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,17 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { IdentityPanel } from './identity-panel';
+import {
+  GENERAL_ORDER,
+  type GeneralField,
+  LEVEL_CREATE_ORDER,
+  LEVEL_EDIT_ORDER,
+  type LevelCreateField,
+  type LevelEditField,
+  validateGeneral,
+  validateLevelCreate,
+  validateLevelEdit,
+} from './school-settings-validation';
 
 const DAYS = [1, 2, 3, 4, 5, 6, 7] as const;
 const SEMESTER_TONES: Tone[] = ['teal', 'sky', 'violet', 'amber'];
@@ -145,6 +157,19 @@ function GeneralSettings() {
   const [error, setError] = useState<string | null>(null);
   const value: Draft | undefined = draft ?? settings.data;
   const clock = useClock(value?.timezone ?? 'Asia/Jakarta', locale);
+  const tv = useTranslations('formValidation');
+  const validation = useFormValidation<GeneralField>({
+    errors: value
+      ? validateGeneral({
+          workingDayCount: value.workingDays.length,
+          semesterNames: value.semesterNames,
+          lessonStart: value.lessonDefaultStart,
+          lessonMinutes: value.lessonDefaultMinutes,
+        })
+      : {},
+    order: GENERAL_ORDER,
+    idPrefix: 'ss',
+  });
 
   const save = useMutation({
     mutationFn: async () => {
@@ -182,14 +207,7 @@ function GeneralSettings() {
 
   const set = (patch: Partial<Draft>) => setDraft({ ...value, ...patch });
   const names = value.semesterNames;
-  const lowered = names.map((n) => n.trim().toLowerCase());
-  const semesterError =
-    names.some((n) => n.trim() === '') || new Set(lowered).size !== lowered.length
-      ? t('semesterInvalid')
-      : null;
-  const daysError = value.workingDays.length === 0 ? t('daysInvalid') : null;
   const minutesValid = value.lessonDefaultMinutes >= 10 && value.lessonDefaultMinutes <= 180;
-  const invalid = !!semesterError || !!daysError || !minutesValid || !value.lessonDefaultStart;
   const zones: { value: string; label: string }[] = TIMEZONE_OPTIONS.map((o) => ({
     value: o.value,
     label: `${o.abbr} · ${o.value} (${offsetLabel(o.value, locale)})`,
@@ -208,9 +226,11 @@ function GeneralSettings() {
   return (
     <form
       className="grid gap-4"
+      noValidate
       onSubmit={(e) => {
         e.preventDefault();
-        if (!invalid) save.mutate();
+        if (!validation.attempt()) return;
+        save.mutate();
       }}
     >
       <fieldset disabled={!canManage || save.isPending} className="grid min-w-0 gap-4 lg:grid-cols-2">
@@ -243,7 +263,14 @@ function GeneralSettings() {
           body={t('daysBody')}
         >
           {/* biome-ignore lint/a11y/useSemanticElements: tata letak grid; fieldset tidak cocok di dalam kartu. */}
-          <div role="group" aria-label={t('daysTitle')} className="grid grid-cols-7 gap-1.5">
+          <div
+            id={validation.idOf('workingDays')}
+            tabIndex={-1}
+            role="group"
+            aria-label={t('daysTitle')}
+            aria-describedby={validation.issue('workingDays') ? 'ss-workingDays-error' : undefined}
+            className="grid grid-cols-7 gap-1.5 outline-none"
+          >
             {DAYS.map((d) => {
               const on = value.workingDays.includes(d);
               return (
@@ -274,9 +301,11 @@ function GeneralSettings() {
               );
             })}
           </div>
-          <p className={cn('text-xs', daysError ? 'text-destructive' : 'text-muted-foreground')}>
-            {daysError ?? t('daysCount', { n: value.workingDays.length })}
-          </p>
+          {validation.issue('workingDays') ? (
+            <FieldError id={validation.idOf('workingDays')} issue={validation.issue('workingDays')} />
+          ) : (
+            <p className="text-muted-foreground text-xs">{t('daysCount', { n: value.workingDays.length })}</p>
+          )}
         </SettingCard>
 
         <SettingCard
@@ -298,7 +327,12 @@ function GeneralSettings() {
               />
             ))}
           </div>
-          <ul className="grid content-start gap-2">
+          <ul
+            id={validation.idOf('semesters')}
+            tabIndex={-1}
+            aria-describedby={validation.issue('semesters') ? 'ss-semesters-error' : undefined}
+            className="grid content-start gap-2 outline-none"
+          >
             {names.map((n, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: nama diedit langsung, posisi menjadi identitas baris.
               <li key={i} className="flex items-center gap-1.5">
@@ -313,6 +347,8 @@ function GeneralSettings() {
                 </span>
                 <Input
                   aria-label={t('semesterName', { n: i + 1 })}
+                  className={TOUCH_INPUT}
+                  aria-invalid={validation.issue('semesters') !== undefined && n.trim() === ''}
                   value={n}
                   maxLength={40}
                   onChange={(e) =>
@@ -363,34 +399,40 @@ function GeneralSettings() {
               <Plus />
               {t('addSemester')}
             </Button>
-            <p className={cn('text-xs', semesterError ? 'text-destructive' : 'text-muted-foreground')}>
-              {semesterError ?? t('semesterHint', { max: MAX_SEMESTERS })}
-            </p>
+            {validation.issue('semesters') ? (
+              <FieldError id={validation.idOf('semesters')} issue={validation.issue('semesters')} />
+            ) : (
+              <p className="text-muted-foreground text-xs">{t('semesterHint', { max: MAX_SEMESTERS })}</p>
+            )}
           </div>
         </SettingCard>
 
         <SettingCard index={3} icon={Clock3} tone="amber" title={t('lessonTitle')} body={t('lessonBody')}>
           <div className={FORM_GRID}>
             <div className="grid content-start gap-2">
-              <Label htmlFor="lesson-start">{t('lessonStart')}</Label>
+              <Label htmlFor="ss-lessonStart">{t('lessonStart')}</Label>
               <TimeField
-                id="lesson-start"
+                {...validation.fieldProps('lessonStart')}
+                className={TOUCH_INPUT}
                 value={value.lessonDefaultStart}
                 onChange={(v) => set({ lessonDefaultStart: v })}
               />
+              <FieldError id={validation.idOf('lessonStart')} issue={validation.issue('lessonStart')} />
             </div>
             <div className="grid content-start gap-2">
-              <Label htmlFor="lesson-minutes">{t('lessonMinutes')}</Label>
+              <Label htmlFor="ss-lessonMinutes">{t('lessonMinutes')}</Label>
               <Input
-                id="lesson-minutes"
+                {...validation.fieldProps('lessonMinutes')}
+                className={TOUCH_INPUT}
                 type="number"
-                min={10}
-                max={180}
-                required
-                value={value.lessonDefaultMinutes}
-                aria-invalid={!minutesValid}
-                onChange={(e) => set({ lessonDefaultMinutes: Number(e.target.value) })}
+                inputMode="numeric"
+                aria-required="true"
+                value={Number.isNaN(value.lessonDefaultMinutes) ? '' : value.lessonDefaultMinutes}
+                onChange={(e) =>
+                  set({ lessonDefaultMinutes: e.target.value === '' ? Number.NaN : Number(e.target.value) })
+                }
               />
+              <FieldError id={validation.idOf('lessonMinutes')} issue={validation.issue('lessonMinutes')} />
             </div>
           </div>
           {value.lessonDefaultStart && minutesValid && (
@@ -416,9 +458,14 @@ function GeneralSettings() {
           <AlertDescription>{error}</AlertDescription>
         </Alert>
       )}
+      {validation.summary && (
+        <p aria-live="polite" className="text-destructive text-sm">
+          {tv('summary')}
+        </p>
+      )}
       {canManage ? (
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" disabled={!draft || invalid || save.isPending}>
+          <Button type="submit" className="h-10 md:h-8" disabled={!draft || save.isPending}>
             {t('save')}
           </Button>
           {draft && (
@@ -467,6 +514,16 @@ function LevelsPanel() {
   const [deleting, setDeleting] = useState<Level | null>(null);
   const [stage, setStage] = useState<(typeof STAGES)[number]>('smp');
   const [error, setError] = useState<string | null>(null);
+  const createValidation = useFormValidation<LevelCreateField>({
+    errors: validateLevelCreate(createForm),
+    order: LEVEL_CREATE_ORDER,
+    idPrefix: 'level',
+  });
+  const editValidation = useFormValidation<LevelEditField>({
+    errors: validateLevelEdit(editForm),
+    order: LEVEL_EDIT_ORDER,
+    idPrefix: 'edit-level',
+  });
 
   const create = useMutation({
     mutationFn: async () =>
@@ -540,6 +597,7 @@ function LevelsPanel() {
             description={t('addLevelBody')}
             submitLabel={t('add')}
             error={error}
+            validation={createValidation}
             onOpenChange={(o) => {
               setError(null);
               if (!o) setCreateForm({ code: '', label: '', sort: '' });
@@ -556,36 +614,43 @@ function LevelsPanel() {
               <div className="grid content-start gap-2">
                 <Label htmlFor="level-code">{t('levelCode')}</Label>
                 <Input
-                  id="level-code"
-                  required
+                  {...createValidation.fieldProps('code')}
+                  className={TOUCH_INPUT}
+                  aria-required="true"
+                  autoComplete="off"
                   maxLength={20}
                   placeholder="7"
                   value={createForm.code}
                   onChange={(e) => setCreateForm({ ...createForm, code: e.target.value })}
                 />
+                <FieldError id={createValidation.idOf('code')} issue={createValidation.issue('code')} />
                 <p className="text-muted-foreground text-xs">{t('levelCodeHint')}</p>
               </div>
               <div className="grid content-start gap-2">
                 <Label htmlFor="level-label">{t('levelLabel')}</Label>
                 <Input
-                  id="level-label"
-                  required
+                  {...createValidation.fieldProps('label')}
+                  className={TOUCH_INPUT}
+                  aria-required="true"
+                  autoComplete="off"
                   maxLength={60}
                   placeholder="Kelas 7"
                   value={createForm.label}
                   onChange={(e) => setCreateForm({ ...createForm, label: e.target.value })}
                 />
+                <FieldError id={createValidation.idOf('label')} issue={createValidation.issue('label')} />
               </div>
               <div className="grid content-start gap-2">
                 <Label htmlFor="level-sort">{t('levelSort')}</Label>
                 <Input
-                  id="level-sort"
+                  {...createValidation.fieldProps('sort')}
+                  className={TOUCH_INPUT}
                   type="number"
-                  min={0}
-                  max={10000}
+                  inputMode="numeric"
                   value={createForm.sort}
                   onChange={(e) => setCreateForm({ ...createForm, sort: e.target.value })}
                 />
+                <FieldError id={createValidation.idOf('sort')} issue={createValidation.issue('sort')} />
                 <p className="text-muted-foreground text-xs">{t('levelSortHint')}</p>
               </div>
             </div>
@@ -653,6 +718,7 @@ function LevelsPanel() {
                       icon: Pencil,
                       onSelect: () => {
                         setError(null);
+                        editValidation.reset();
                         setEditing(l);
                         setEditForm({ label: l.label, sort: String(l.sort) });
                       },
@@ -676,6 +742,7 @@ function LevelsPanel() {
         title={t('editLevel', { code: editing?.code ?? '' })}
         submitLabel={t('save')}
         error={error}
+        validation={editValidation}
         onOpenChange={(o) => {
           if (!o) setEditing(null);
         }}
@@ -685,24 +752,28 @@ function LevelsPanel() {
           <div className="grid content-start gap-2">
             <Label htmlFor="edit-level-label">{t('levelLabel')}</Label>
             <Input
-              id="edit-level-label"
-              required
+              {...editValidation.fieldProps('label')}
+              className={TOUCH_INPUT}
+              aria-required="true"
+              autoComplete="off"
               maxLength={60}
               value={editForm.label}
               onChange={(e) => setEditForm({ ...editForm, label: e.target.value })}
             />
+            <FieldError id={editValidation.idOf('label')} issue={editValidation.issue('label')} />
           </div>
           <div className="grid content-start gap-2">
             <Label htmlFor="edit-level-sort">{t('levelSort')}</Label>
             <Input
-              id="edit-level-sort"
+              {...editValidation.fieldProps('sort')}
+              className={TOUCH_INPUT}
               type="number"
-              min={0}
-              max={10000}
-              required
+              inputMode="numeric"
+              aria-required="true"
               value={editForm.sort}
               onChange={(e) => setEditForm({ ...editForm, sort: e.target.value })}
             />
+            <FieldError id={editValidation.idOf('sort')} issue={editValidation.issue('sort')} />
           </div>
         </div>
       </FormDialog>

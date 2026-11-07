@@ -6,6 +6,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { getSchoolTimezone } from '@/lib/school-time';
+import { CORRECTION_ORDER, type CorrectionField, validateCorrection } from './correction-validation';
 import {
   buildCorrection,
   type CorrectionForm,
@@ -46,6 +48,11 @@ export function CorrectionDialog({
   const [form, setForm] = useState<CorrectionForm>(before);
   const [error, setError] = useState<string | null>(null);
   const set = (patch: Partial<CorrectionForm>) => setForm((f) => ({ ...f, ...patch }));
+  const validation = useFormValidation<CorrectionField>({
+    errors: validateCorrection(form),
+    order: CORRECTION_ORDER,
+    idPrefix: 'corr',
+  });
 
   async function submit() {
     setError(null);
@@ -86,18 +93,22 @@ export function CorrectionDialog({
       description={t('correction.description', { date })}
       submitLabel={t('correction.save')}
       error={error}
+      validation={validation}
       onSubmit={submit}
     >
       <div className="grid grid-cols-2 gap-3">
-        <div className="grid content-start gap-1.5">
-          <Label htmlFor="corr-in">{t('correction.checkIn')}</Label>
+        <div className="grid content-start gap-2">
+          <Label htmlFor={validation.idOf('checkIn')}>{t('correction.checkIn')}</Label>
           <Input
-            id="corr-in"
+            {...validation.fieldProps('checkIn')}
+            className={TOUCH_INPUT}
             inputMode="numeric"
+            autoComplete="off"
             placeholder={t('timePlaceholder')}
             value={form.checkIn}
             onChange={(e) => set({ checkIn: e.target.value })}
           />
+          <FieldError id={validation.idOf('checkIn')} issue={validation.issue('checkIn')} />
           <Button
             type="button"
             variant="ghost"
@@ -108,15 +119,18 @@ export function CorrectionDialog({
             {t('correction.clearIn')}
           </Button>
         </div>
-        <div className="grid content-start gap-1.5">
-          <Label htmlFor="corr-out">{t('correction.checkOut')}</Label>
+        <div className="grid content-start gap-2">
+          <Label htmlFor={validation.idOf('checkOut')}>{t('correction.checkOut')}</Label>
           <Input
-            id="corr-out"
+            {...validation.fieldProps('checkOut')}
+            className={TOUCH_INPUT}
             inputMode="numeric"
+            autoComplete="off"
             placeholder={t('timePlaceholder')}
             value={form.checkOut}
             onChange={(e) => set({ checkOut: e.target.value })}
           />
+          <FieldError id={validation.idOf('checkOut')} issue={validation.issue('checkOut')} />
           <Button
             type="button"
             variant="ghost"
@@ -132,6 +146,7 @@ export function CorrectionDialog({
         <Label htmlFor="corr-status">{t('correction.status')}</Label>
         <SelectField
           id="corr-status"
+          className={TOUCH_SELECT}
           value={form.status}
           onChange={(e) => set({ status: e.target.value as DailyStatus | '' })}
         >

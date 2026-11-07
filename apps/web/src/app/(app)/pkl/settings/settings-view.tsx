@@ -10,6 +10,7 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -25,6 +26,14 @@ import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { periodProgress, todayIso, weightTotal } from '../lib';
+import {
+  ASPECT_ORDER,
+  type AspectField,
+  PERIOD_ORDER,
+  type PeriodField,
+  validateAspect,
+  validatePeriod,
+} from '../pkl-validation';
 import { pklKey, usePklPeriods } from '../shared';
 import { ThresholdsCard } from './thresholds-card';
 
@@ -73,6 +82,16 @@ export function SettingsView() {
   const [aOpen, setAOpen] = useState(false);
   const [aDraft, setADraft] = useState<AspectDraft>({ id: null, name: '', weight: '' });
   const [error, setError] = useState<string | null>(null);
+  const pValidation = useFormValidation<PeriodField>({
+    errors: validatePeriod(pDraft),
+    order: PERIOD_ORDER,
+    idPrefix: 'pp',
+  });
+  const aValidation = useFormValidation<AspectField>({
+    errors: validateAspect(aDraft),
+    order: ASPECT_ORDER,
+    idPrefix: 'as',
+  });
 
   const yearOf = (id: string) => years.data?.find((y) => y.id === id)?.name ?? '';
 
@@ -142,8 +161,6 @@ export function SettingsView() {
   const aspectList = aspects.data ?? [];
   const total = weightTotal(aspectList);
   const today = todayIso();
-  const weightValid =
-    /^\d{1,3}$/.test(aDraft.weight) && Number(aDraft.weight) >= 1 && Number(aDraft.weight) <= 100;
 
   return (
     <PageBody>
@@ -167,6 +184,7 @@ export function SettingsView() {
                 const y = years.data?.find((x) => x.isActive) ?? years.data?.[0];
                 setPDraft({ id: null, academicYearId: y?.id ?? '', name: '', startsOn: '', endsOn: '' });
                 setError(null);
+                pValidation.reset();
                 setPOpen(true);
               }}
             >
@@ -181,23 +199,27 @@ export function SettingsView() {
           title={pDraft.id ? t('editPeriod') : t('addPeriod')}
           submitLabel={t('save')}
           error={error}
-          disabled={!pDraft.name.trim() || !pDraft.academicYearId || !pDraft.startsOn || !pDraft.endsOn}
+          validation={pValidation}
           onSubmit={() => savePeriod.mutateAsync(pDraft)}
         >
           <div className="grid content-start gap-2">
             <Label htmlFor="pp-name">{t('periodName')}</Label>
             <Input
-              id="pp-name"
-              required
+              {...pValidation.fieldProps('name')}
+              className={TOUCH_INPUT}
+              aria-required="true"
+              autoComplete="off"
               maxLength={120}
               value={pDraft.name}
               onChange={(e) => setPDraft({ ...pDraft, name: e.target.value })}
             />
+            <FieldError id={pValidation.idOf('name')} issue={pValidation.issue('name')} />
           </div>
           <div className="grid content-start gap-2">
-            <Label htmlFor="pp-year">{t('academicYear')}</Label>
+            <Label htmlFor="pp-academicYearId">{t('academicYear')}</Label>
             <SelectField
-              id="pp-year"
+              {...pValidation.fieldProps('academicYearId')}
+              className={TOUCH_SELECT}
               value={pDraft.academicYearId}
               onChange={(e) => setPDraft({ ...pDraft, academicYearId: e.target.value })}
             >
@@ -207,23 +229,28 @@ export function SettingsView() {
                 </option>
               ))}
             </SelectField>
+            <FieldError id={pValidation.idOf('academicYearId')} issue={pValidation.issue('academicYearId')} />
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
             <div className="grid content-start gap-2">
-              <Label htmlFor="pp-start">{t('startsOn')}</Label>
+              <Label htmlFor="pp-startsOn">{t('startsOn')}</Label>
               <DatePicker
-                id="pp-start"
+                {...pValidation.fieldProps('startsOn')}
+                className={TOUCH_INPUT}
                 value={pDraft.startsOn}
                 onChange={(v) => setPDraft({ ...pDraft, startsOn: v })}
               />
+              <FieldError id={pValidation.idOf('startsOn')} issue={pValidation.issue('startsOn')} />
             </div>
             <div className="grid content-start gap-2">
-              <Label htmlFor="pp-end">{t('endsOn')}</Label>
+              <Label htmlFor="pp-endsOn">{t('endsOn')}</Label>
               <DatePicker
-                id="pp-end"
+                {...pValidation.fieldProps('endsOn')}
+                className={TOUCH_INPUT}
                 value={pDraft.endsOn}
                 onChange={(v) => setPDraft({ ...pDraft, endsOn: v })}
               />
+              <FieldError id={pValidation.idOf('endsOn')} issue={pValidation.issue('endsOn')} />
             </div>
           </div>
         </FormDialog>
@@ -297,6 +324,7 @@ export function SettingsView() {
                               endsOn: p.endsOn,
                             });
                             setError(null);
+                            pValidation.reset();
                             setPOpen(true);
                           }}
                         >
@@ -352,6 +380,7 @@ export function SettingsView() {
                 onClick={() => {
                   setADraft({ id: null, name: '', weight: '' });
                   setError(null);
+                  aValidation.reset();
                   setAOpen(true);
                 }}
               >
@@ -367,28 +396,35 @@ export function SettingsView() {
           title={aDraft.id ? t('editAspect') : t('addAspect')}
           submitLabel={t('save')}
           error={error}
-          disabled={!aDraft.name.trim() || !weightValid}
+          validation={aValidation}
           onSubmit={() => saveAspect.mutateAsync(aDraft)}
         >
           <div className="grid content-start gap-2">
             <Label htmlFor="as-name">{t('aspect')}</Label>
             <Input
-              id="as-name"
-              required
+              {...aValidation.fieldProps('name')}
+              className={TOUCH_INPUT}
+              aria-required="true"
+              autoComplete="off"
               maxLength={120}
               value={aDraft.name}
               onChange={(e) => setADraft({ ...aDraft, name: e.target.value })}
             />
+            <FieldError id={aValidation.idOf('name')} issue={aValidation.issue('name')} />
           </div>
           <div className="grid content-start gap-2">
             <Label htmlFor="as-weight">{t('weight')} (1-100)</Label>
             <Input
-              id="as-weight"
+              {...aValidation.fieldProps('weight')}
+              className={TOUCH_INPUT}
+              aria-required="true"
               inputMode="numeric"
+              autoComplete="off"
               maxLength={3}
               value={aDraft.weight}
               onChange={(e) => setADraft({ ...aDraft, weight: e.target.value })}
             />
+            <FieldError id={aValidation.idOf('weight')} issue={aValidation.issue('weight')} />
           </div>
         </FormDialog>
 
@@ -439,6 +475,7 @@ export function SettingsView() {
                               onClick={() => {
                                 setADraft({ id: a.id, name: a.name, weight: String(a.weight) });
                                 setError(null);
+                                aValidation.reset();
                                 setAOpen(true);
                               }}
                             >

@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import {
@@ -24,6 +25,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { KINDS, type Kind, QUALITIES, QUALITY_STYLE, type Quality, todayIso } from './shared';
+import { ENTRY_ORDER, type EntryField, validateEntry } from './tahfidz-validation';
 
 export interface StudentOption {
   id: string;
@@ -58,6 +60,7 @@ export function EntryForm({
   idPrefix = 'entry',
 }: Props) {
   const t = useTranslations('tahfidz');
+  const tv = useTranslations('formValidation');
   const te = useTranslations();
   const { school } = useSchool();
   const queryClient = useQueryClient();
@@ -103,6 +106,11 @@ export function EntryForm({
 
   const valid = validRange(surahFrom, ayahFrom, surahTo, ayahTo);
   const count = valid ? rangeAyahCount(surahFrom, ayahFrom, surahTo, ayahTo) : 0;
+  const validation = useFormValidation<EntryField>({
+    errors: validateEntry({ studentId, date, rangeValid: valid, note }),
+    order: ENTRY_ORDER,
+    idPrefix,
+  });
 
   const save = useMutation({
     mutationFn: async () =>
@@ -144,16 +152,19 @@ export function EntryForm({
   return (
     <form
       className="grid gap-4"
+      noValidate
       onSubmit={(e) => {
         e.preventDefault();
-        if (studentId && valid) save.mutate();
+        if (!validation.attempt()) return;
+        save.mutate();
       }}
     >
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="grid content-start gap-2">
-          <Label htmlFor={`${idPrefix}-student`}>{t('student')}</Label>
+          <Label htmlFor={`${idPrefix}-studentId`}>{t('student')}</Label>
           <SelectField
-            id={`${idPrefix}-student`}
+            {...validation.fieldProps('studentId')}
+            className={TOUCH_SELECT}
             disabled={lockStudent}
             value={studentId}
             onChange={(e) => setStudentId(e.target.value)}
@@ -165,10 +176,17 @@ export function EntryForm({
               </option>
             ))}
           </SelectField>
+          <FieldError id={validation.idOf('studentId')} issue={validation.issue('studentId')} />
         </div>
         <div className="grid content-start gap-2">
           <Label htmlFor={`${idPrefix}-date`}>{t('date')}</Label>
-          <DatePicker id={`${idPrefix}-date`} value={date} onChange={setDate} />
+          <DatePicker
+            {...validation.fieldProps('date')}
+            className={TOUCH_INPUT}
+            value={date}
+            onChange={setDate}
+          />
+          <FieldError id={validation.idOf('date')} issue={validation.issue('date')} />
         </div>
       </div>
 
@@ -248,9 +266,10 @@ export function EntryForm({
           </SelectField>
         </div>
         <div className="grid content-start gap-2">
-          <Label htmlFor={`${idPrefix}-ayah-to`}>{t('ayahTo')}</Label>
+          <Label htmlFor={`${idPrefix}-ayahTo`}>{t('ayahTo')}</Label>
           <Input
-            id={`${idPrefix}-ayah-to`}
+            {...validation.fieldProps('ayahTo')}
+            className={TOUCH_INPUT}
             type="number"
             inputMode="numeric"
             min={1}
@@ -292,12 +311,15 @@ export function EntryForm({
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-note`}>{t('note')}</Label>
         <Input
-          id={`${idPrefix}-note`}
+          {...validation.fieldProps('note')}
+          className={TOUCH_INPUT}
+          autoComplete="off"
           maxLength={300}
           value={note}
           placeholder={t('notePlaceholder')}
           onChange={(e) => setNote(e.target.value)}
         />
+        <FieldError id={validation.idOf('note')} issue={validation.issue('note')} />
       </div>
 
       {error && (
@@ -305,8 +327,13 @@ export function EntryForm({
           {error}
         </p>
       )}
+      {validation.summary && (
+        <p aria-live="polite" className="text-destructive text-sm">
+          {tv('summary')}
+        </p>
+      )}
       <div className="flex justify-end">
-        <Button type="submit" disabled={!studentId || !valid || save.isPending}>
+        <Button type="submit" className="h-10 md:h-8" disabled={save.isPending}>
           <Check className="size-4" /> {t('saveEntry')}
         </Button>
       </div>

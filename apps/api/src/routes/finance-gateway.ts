@@ -61,7 +61,6 @@ const API_BASE: Record<Mode, string> = {
   production: 'https://api.midtrans.com',
 };
 const SERVER_PREFIX: Record<Mode, string> = { sandbox: 'SB-Mid-server-', production: 'Mid-server-' };
-const CLIENT_PREFIX: Record<Mode, string> = { sandbox: 'SB-Mid-client-', production: 'Mid-client-' };
 
 const settingSchema = z.object({
   enabled: z.boolean(),
@@ -174,9 +173,10 @@ export async function financeGatewayRoutes(instance: FastifyInstance, options: {
         summary: 'Ubah pengaturan Midtrans sekolah',
         description:
           'Izin: `finance:manage`; modul `finance`. `serverKey` kosong/dihilangkan berarti mempertahankan kunci tersimpan; ' +
-          'kunci disimpan terenkripsi. Awalan kunci harus cocok dengan `mode` (sandbox: `SB-Mid-server-` dan ' +
-          '`SB-Mid-client-`; production: `Mid-server-` dan `Mid-client-`). Galat: 400 `invalid_key` (awalan tidak cocok ' +
-          'atau kunci tersimpan tidak cocok dengan mode baru), 400 `key_required` (diaktifkan tanpa kunci server).',
+          'kunci disimpan terenkripsi. Awalan kunci server harus cocok dengan `mode` (sandbox: `SB-Mid-server-`; ' +
+          'production: `Mid-server-`); kunci klien tidak diperiksa awalannya karena formatnya bisa berbeda antar akun. ' +
+          'Galat: 400 `invalid_key` (awalan kunci server tidak cocok atau kunci tersimpan tidak cocok dengan mode baru), ' +
+          '400 `key_required` (diaktifkan tanpa kunci server).',
         headers: schoolHeader,
         body: z.object({
           enabled: z.boolean(),
@@ -198,13 +198,6 @@ export async function financeGatewayRoutes(instance: FastifyInstance, options: {
           400,
           'invalid_key',
           `Kunci server untuk mode ${b.mode} harus diawali ${SERVER_PREFIX[b.mode]}.`,
-        );
-      }
-      if (clientKey && !clientKey.startsWith(CLIENT_PREFIX[b.mode])) {
-        throw new HttpError(
-          400,
-          'invalid_key',
-          `Kunci klien untuk mode ${b.mode} harus diawali ${CLIENT_PREFIX[b.mode]}.`,
         );
       }
       return tenant(request, async (tx) => {

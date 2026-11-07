@@ -3,6 +3,7 @@
 import { Eye, PencilLine } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -28,6 +29,7 @@ import {
 } from '@/lib/announcements';
 import { cn } from '@/lib/utils';
 import { AnnouncementPreview } from './announcement-preview';
+import { ANNOUNCEMENT_ORDER, type AnnouncementField, validateAnnouncement } from './announcement-validation';
 
 export const MAX_BODY = 5000;
 
@@ -103,21 +105,33 @@ export function AnnouncementEditor({
   const [tab, setTab] = useState<'edit' | 'preview'>('edit');
   const [pending, setPending] = useState(false);
   const set = <K extends keyof Draft>(key: K, value: Draft[K]) => onChange({ ...draft, [key]: value });
-  const needsDate = draft.category === 'agenda' && !draft.eventDate;
+  const tv = useTranslations('formValidation');
+  const validation = useFormValidation<AnnouncementField>({
+    errors: validateAnnouncement(draft),
+    order: ANNOUNCEMENT_ORDER,
+    idPrefix: 'ann',
+  });
 
   return (
     <Dialog
       open={open}
       onOpenChange={(o) => {
         if (!pending) onOpenChange(o);
-        if (!o) setTab('edit');
+        if (!o) {
+          setTab('edit');
+          validation.reset();
+        }
       }}
     >
       <DialogContent className="max-h-[92dvh] overflow-y-auto sm:max-w-5xl">
         <form
           className="grid gap-4"
+          noValidate
           onSubmit={async (e) => {
             e.preventDefault();
+            // Di ponsel isian ada di tab "Isi"; pindah dulu agar isian salah pertama bisa difokuskan.
+            setTab('edit');
+            if (!validation.attempt()) return;
             setPending(true);
             try {
               await onSubmit();
@@ -162,18 +176,22 @@ export function AnnouncementEditor({
               <div className="grid content-start gap-2">
                 <Label htmlFor="ann-title">{t('fieldTitle')}</Label>
                 <Input
-                  id="ann-title"
-                  required
+                  {...validation.fieldProps('title')}
+                  className={TOUCH_INPUT}
+                  aria-required="true"
+                  autoComplete="off"
                   maxLength={150}
                   value={draft.title}
                   onChange={(e) => set('title', e.target.value)}
                 />
+                <FieldError id={validation.idOf('title')} issue={validation.issue('title')} />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid content-start gap-2">
                   <Label htmlFor="ann-category">{t('categoryLabel')}</Label>
                   <SelectField
                     id="ann-category"
+                    className={TOUCH_SELECT}
                     value={draft.category}
                     onChange={(e) => set('category', e.target.value as AnnouncementCategory)}
                   >
@@ -188,6 +206,7 @@ export function AnnouncementEditor({
                   <Label htmlFor="ann-audience">{t('audienceLabel')}</Label>
                   <SelectField
                     id="ann-audience"
+                    className={TOUCH_SELECT}
                     value={draft.audience}
                     onChange={(e) => set('audience', e.target.value as AnnouncementAudience)}
                   >
@@ -203,11 +222,20 @@ export function AnnouncementEditor({
 
               {draft.category === 'agenda' && (
                 <div className="grid content-start gap-2">
-                  <Label htmlFor="ann-event">{t('fieldEventDate')}</Label>
-                  <DatePicker id="ann-event" value={draft.eventDate} onChange={(v) => set('eventDate', v)} />
-                  <p className={cn('text-xs', needsDate ? 'text-destructive' : 'text-muted-foreground')}>
-                    {needsDate ? t('agendaNeedsDate') : t('fieldEventDateHint')}
-                  </p>
+                  <Label htmlFor="ann-eventDate">{t('fieldEventDate')}</Label>
+                  <DatePicker
+                    {...validation.fieldProps('eventDate')}
+                    className={TOUCH_INPUT}
+                    value={draft.eventDate}
+                    onChange={(v) => set('eventDate', v)}
+                  />
+                  {validation.issue('eventDate') ? (
+                    <p id="ann-eventDate-error" aria-live="polite" className="text-destructive text-xs">
+                      {t('agendaNeedsDate')}
+                    </p>
+                  ) : (
+                    <p className="text-muted-foreground text-xs">{t('fieldEventDateHint')}</p>
+                  )}
                 </div>
               )}
 
@@ -224,13 +252,16 @@ export function AnnouncementEditor({
                   </span>
                 </div>
                 <Textarea
-                  id="ann-body"
-                  required
+                  {...validation.fieldProps('body')}
+                  aria-required="true"
                   rows={8}
                   value={draft.body}
-                  aria-describedby="ann-body-hint"
+                  aria-describedby={
+                    validation.issue('body') ? 'ann-body-error ann-body-hint' : 'ann-body-hint'
+                  }
                   onChange={(e) => set('body', e.target.value)}
                 />
+                <FieldError id={validation.idOf('body')} issue={validation.issue('body')} />
                 <p id="ann-body-hint" className="text-muted-foreground text-xs">
                   {t('bodyHint')}
                 </p>
@@ -298,11 +329,16 @@ export function AnnouncementEditor({
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
+          {validation.summary && (
+            <p aria-live="polite" className="text-destructive text-sm">
+              {tv('summary')}
+            </p>
+          )}
           <DialogFooter>
-            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+            <Button type="button" variant="ghost" className="h-10 md:h-8" onClick={() => onOpenChange(false)}>
               {tc('cancel')}
             </Button>
-            <Button type="submit" disabled={pending || !isDraftValid(draft)}>
+            <Button type="submit" className="h-10 md:h-8" disabled={pending}>
               {submitLabel}
             </Button>
           </DialogFooter>

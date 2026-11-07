@@ -1,7 +1,9 @@
 import type { DocArticle } from '@/lib/docs-types';
+import { PLATFORM_SUPPORT_DOCS } from './content-support';
 
 /** Panduan konsol platform untuk staf operasional EduSync, disusun menurut pekerjaan. Isi: id, en, su. */
 export const PLATFORM_DOCS: DocArticle[] = [
+  ...PLATFORM_SUPPORT_DOCS,
   {
     slug: 'first-setup',
     icon: 'rocket',

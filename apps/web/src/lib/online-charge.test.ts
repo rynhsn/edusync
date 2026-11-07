@@ -51,7 +51,7 @@ describe('canSaveGateway', () => {
 describe('keyPrefixes', () => {
   it('mengikuti mode', () => {
     expect(keyPrefixes('sandbox').server).toBe('SB-Mid-server-');
-    expect(keyPrefixes('production').client).toBe('Mid-client-');
+    expect(keyPrefixes('production').server).toBe('Mid-server-');
   });
 });
 

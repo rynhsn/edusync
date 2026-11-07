@@ -18,6 +18,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { ConfirmDelete, ListSkeleton, REVEAL, RowMenu } from '@/components/master-kit';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Button } from '@/components/ui/button';
@@ -41,6 +42,7 @@ import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { useSchoolSettings } from '@/lib/school-settings';
 import { cn } from '@/lib/utils';
+import { EVENT_ORDER, type EventField, validateEvent } from './calendar-validation';
 
 const TYPES = ['holiday', 'break', 'exam', 'activity'] as const;
 type EventType = (typeof TYPES)[number];
@@ -107,6 +109,11 @@ export function CalendarView() {
   const { settings } = useSchoolSettings();
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<EventField>({
+    errors: validateEvent(draft),
+    order: EVENT_ORDER,
+    idPrefix: 'ev',
+  });
 
   const years = useQuery({
     queryKey: ['academic-years', school.schoolId],
@@ -219,7 +226,7 @@ export function CalendarView() {
       title={t('addTitle')}
       submitLabel={t('add')}
       error={error}
-      disabled={!draft.title.trim() || !draft.startsOn}
+      validation={validation}
       onOpenChange={() => {
         setDraft(EMPTY);
         setError(null);
@@ -231,6 +238,7 @@ export function CalendarView() {
           <Label htmlFor="ev-type">{t('type')}</Label>
           <SelectField
             id="ev-type"
+            className={TOUCH_SELECT}
             value={draft.type}
             onChange={(e) => {
               const type = e.target.value as EventType;
@@ -254,6 +262,7 @@ export function CalendarView() {
             <Label htmlFor="ev-scope">{t('scope')}</Label>
             <SelectField
               id="ev-scope"
+              className={TOUCH_SELECT}
               value={draft.classId}
               onChange={(e) => setDraft({ ...draft, classId: e.target.value })}
             >
@@ -271,29 +280,36 @@ export function CalendarView() {
         <div className="grid content-start gap-2 sm:col-span-2">
           <Label htmlFor="ev-title">{t('eventTitle')}</Label>
           <Input
-            id="ev-title"
-            required
+            {...validation.fieldProps('title')}
+            className={TOUCH_INPUT}
+            aria-required="true"
+            autoComplete="off"
             maxLength={120}
             value={draft.title}
             onChange={(e) => setDraft({ ...draft, title: e.target.value })}
           />
+          <FieldError id={validation.idOf('title')} issue={validation.issue('title')} />
         </div>
         <div className="grid content-start gap-2">
-          <Label htmlFor="ev-start">{t('starts')}</Label>
+          <Label htmlFor="ev-startsOn">{t('starts')}</Label>
           <DatePicker
-            id="ev-start"
+            {...validation.fieldProps('startsOn')}
+            className={TOUCH_INPUT}
             value={draft.startsOn}
             onChange={(v) => setDraft({ ...draft, startsOn: v })}
           />
+          <FieldError id={validation.idOf('startsOn')} issue={validation.issue('startsOn')} />
         </div>
         <div className="grid content-start gap-2">
-          <Label htmlFor="ev-end">{t('ends')}</Label>
+          <Label htmlFor="ev-endsOn">{t('ends')}</Label>
           <DatePicker
-            id="ev-end"
+            {...validation.fieldProps('endsOn')}
+            className={TOUCH_INPUT}
             clearable
             value={draft.endsOn}
             onChange={(v) => setDraft({ ...draft, endsOn: v })}
           />
+          <FieldError id={validation.idOf('endsOn')} issue={validation.issue('endsOn')} />
         </div>
       </div>
     </FormDialog>

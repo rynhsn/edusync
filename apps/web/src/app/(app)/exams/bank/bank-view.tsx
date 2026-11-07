@@ -10,6 +10,7 @@ import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { RichText } from '@/components/rich-text';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -24,6 +25,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useSchoolLevels } from '@/lib/school-settings';
 import { cn } from '@/lib/utils';
+import { optionField, QUESTION_ORDER, type QuestionField, validateQuestion } from '../exam-validation';
 import { ImportDialog } from './import-dialog';
 import { RichEditor } from './rich-editor';
 
@@ -102,6 +104,11 @@ export function BankView() {
   const tImport = useTranslations('questionImport');
   const [deleting, setDeleting] = useState<Question | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<QuestionField>({
+    errors: draft ? validateQuestion(draft) : {},
+    order: QUESTION_ORDER,
+    idPrefix: 'q',
+  });
 
   const subjects = useQuery({
     queryKey: ['exam-subjects', school.schoolId],
@@ -179,9 +186,6 @@ export function BankView() {
   }
 
   const set = (patch: Partial<Draft>) => draft && setDraft({ ...draft, ...patch });
-  const optionsFilled = draft?.type !== 'mcq' || draft.options.every((o) => o.trim());
-  const canSubmit =
-    !!draft && !!draft.subjectId && !!draft.body.trim() && optionsFilled && Number(draft.points) >= 1;
 
   return (
     <PageBody>
@@ -364,16 +368,17 @@ export function BankView() {
         submitLabel={t('save')}
         size="wide"
         error={error}
-        disabled={!canSubmit}
+        validation={validation}
         onSubmit={() => save.mutateAsync(draft as Draft)}
       >
         {draft && (
           <div className="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid content-start gap-2 sm:col-span-2">
-                <Label htmlFor="q-subject">{t('subject')}</Label>
+                <Label htmlFor={validation.idOf('subjectId')}>{t('subject')}</Label>
                 <SelectField
-                  id="q-subject"
+                  {...validation.fieldProps('subjectId')}
+                  className={TOUCH_SELECT}
                   value={draft.subjectId}
                   onChange={(e) => set({ subjectId: e.target.value })}
                 >
@@ -383,11 +388,13 @@ export function BankView() {
                     </option>
                   ))}
                 </SelectField>
+                <FieldError id={validation.idOf('subjectId')} issue={validation.issue('subjectId')} />
               </div>
               <div className="grid content-start gap-2">
                 <Label htmlFor="q-level">{t('level')}</Label>
                 <SelectField
                   id="q-level"
+                  className={TOUCH_SELECT}
                   value={draft.level}
                   onChange={(e) => set({ level: e.target.value })}
                 >
@@ -400,15 +407,18 @@ export function BankView() {
                 </SelectField>
               </div>
               <div className="grid content-start gap-2">
-                <Label htmlFor="q-points">{t('points')}</Label>
+                <Label htmlFor={validation.idOf('points')}>{t('points')}</Label>
                 <Input
-                  id="q-points"
-                  type="number"
-                  min={1}
-                  max={1000}
+                  {...validation.fieldProps('points')}
+                  className={TOUCH_INPUT}
+                  aria-required="true"
+                  inputMode="numeric"
+                  autoComplete="off"
+                  maxLength={4}
                   value={draft.points}
                   onChange={(e) => set({ points: e.target.value })}
                 />
+                <FieldError id={validation.idOf('points')} issue={validation.issue('points')} />
               </div>
             </div>
 
@@ -431,10 +441,12 @@ export function BankView() {
             </div>
 
             <RichEditor
-              id="q-body"
+              id={validation.idOf('body')}
               label={t('questionText')}
               value={draft.body}
               onChange={(v) => set({ body: v })}
+              fieldProps={validation.fieldProps('body')}
+              error={<FieldError id={validation.idOf('body')} issue={validation.issue('body')} />}
             />
 
             {draft.type === 'mcq' ? (
@@ -442,40 +454,51 @@ export function BankView() {
                 <legend className="mb-1 text-sm leading-none font-medium">{t('options')}</legend>
                 {draft.options.map((text, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: posisi opsi adalah kuncinya (A, B, C, ...).
-                  <div key={i} className="flex items-center gap-2">
-                    <input
-                      type="radio"
-                      name="q-correct"
-                      aria-label={t('markCorrect', { key: KEYS[i] as string })}
-                      checked={draft.correct === i}
-                      onChange={() => set({ correct: i })}
-                      className="size-4 shrink-0"
+                  <div key={i} className="grid content-start gap-1">
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="radio"
+                        name="q-correct"
+                        aria-label={t('markCorrect', { key: KEYS[i] as string })}
+                        checked={draft.correct === i}
+                        onChange={() => set({ correct: i })}
+                        className="size-4 shrink-0"
+                      />
+                      <span className="w-5 shrink-0 text-sm font-semibold">{KEYS[i]}.</span>
+                      <Input
+                        {...validation.fieldProps(optionField(i))}
+                        className={TOUCH_INPUT}
+                        aria-required="true"
+                        autoComplete="off"
+                        aria-label={t('optionN', { key: KEYS[i] as string })}
+                        maxLength={2000}
+                        value={text}
+                        onChange={(e) =>
+                          set({ options: draft.options.map((o, j) => (j === i ? e.target.value : o)) })
+                        }
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        aria-label={t('removeOption', { key: KEYS[i] as string })}
+                        disabled={draft.options.length <= 2}
+                        onClick={() =>
+                          set({
+                            options: draft.options.filter((_, j) => j !== i),
+                            correct:
+                              draft.correct === i ? 0 : draft.correct > i ? draft.correct - 1 : draft.correct,
+                          })
+                        }
+                      >
+                        <X />
+                      </Button>
+                    </div>
+                    <FieldError
+                      id={validation.idOf(optionField(i))}
+                      issue={validation.issue(optionField(i))}
+                      className="pl-14"
                     />
-                    <span className="w-5 shrink-0 text-sm font-semibold">{KEYS[i]}.</span>
-                    <Input
-                      aria-label={t('optionN', { key: KEYS[i] as string })}
-                      maxLength={2000}
-                      value={text}
-                      onChange={(e) =>
-                        set({ options: draft.options.map((o, j) => (j === i ? e.target.value : o)) })
-                      }
-                    />
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label={t('removeOption', { key: KEYS[i] as string })}
-                      disabled={draft.options.length <= 2}
-                      onClick={() =>
-                        set({
-                          options: draft.options.filter((_, j) => j !== i),
-                          correct:
-                            draft.correct === i ? 0 : draft.correct > i ? draft.correct - 1 : draft.correct,
-                        })
-                      }
-                    >
-                      <X />
-                    </Button>
                   </div>
                 ))}
                 <div className="flex flex-wrap items-center justify-between gap-2">
@@ -493,27 +516,29 @@ export function BankView() {
               </fieldset>
             ) : (
               <div className="grid content-start gap-2">
-                <Label htmlFor="q-answer">{t('essayKey')}</Label>
+                <Label htmlFor={validation.idOf('answer')}>{t('essayKey')}</Label>
                 <Textarea
-                  id="q-answer"
+                  {...validation.fieldProps('answer')}
                   rows={3}
                   maxLength={5000}
                   value={draft.answer}
                   onChange={(e) => set({ answer: e.target.value })}
                 />
+                <FieldError id={validation.idOf('answer')} issue={validation.issue('answer')} />
                 <p className="text-muted-foreground text-xs">{t('essayKeyHint')}</p>
               </div>
             )}
 
             <div className="grid content-start gap-2">
-              <Label htmlFor="q-explain">{t('explanation')}</Label>
+              <Label htmlFor={validation.idOf('explanation')}>{t('explanation')}</Label>
               <Textarea
-                id="q-explain"
+                {...validation.fieldProps('explanation')}
                 rows={2}
                 maxLength={5000}
                 value={draft.explanation}
                 onChange={(e) => set({ explanation: e.target.value })}
               />
+              <FieldError id={validation.idOf('explanation')} issue={validation.issue('explanation')} />
             </div>
           </div>
         )}

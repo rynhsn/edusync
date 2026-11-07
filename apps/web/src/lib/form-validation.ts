@@ -13,12 +13,26 @@ export type IssueCode =
   | 'phone'
   | 'email'
   | 'dateInvalid'
-  | 'dateFuture';
+  | 'dateFuture'
+  | 'choose'
+  | 'intInvalid'
+  | 'range'
+  | 'urlInvalid'
+  | 'timeOrder'
+  | 'dateOrder'
+  | 'hostInvalid'
+  | 'custom';
 
 export interface FieldIssue {
   code: IssueCode;
-  /** Batas panjang, untuk kode `tooLong`. */
+  /** Batas panjang, untuk kode `tooLong`; batas atas untuk `range`. */
   max?: number;
+  /** Batas bawah, untuk kode `range`. */
+  min?: number;
+  /** Untuk kode `custom`: kunci pesan lengkap (mis. `examForm.pickClasses`) di berkas pesan next-intl. */
+  key?: string;
+  /** Nilai ICU untuk pesan `custom`. */
+  values?: Record<string, string | number>;
 }
 
 export type FieldErrors<K extends string> = Partial<Record<K, FieldIssue>>;
@@ -35,7 +49,7 @@ export function normalizePhone(input: string): string | null | undefined {
 }
 
 // Pola yang sama dengan z.email() bawaan zod 4.
-const EMAIL =
+export const EMAIL =
   /^(?!\.)(?!.*\.\.)([A-Za-z0-9_'+\-.]*)[A-Za-z0-9_+-]@([A-Za-z0-9][A-Za-z0-9-]*\.)+[A-Za-z]{2,}$/;
 
 /** Tanggal hari ini (zona waktu perangkat) dalam bentuk TTTT-BB-HH. */

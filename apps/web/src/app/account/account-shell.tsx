@@ -6,6 +6,7 @@ import {
   LayoutDashboard,
   LifeBuoy,
   type LucideIcon,
+  MessagesSquare,
   Receipt,
   School,
   Sparkles,
@@ -19,6 +20,8 @@ import { AppHeader, MobileNavDrawer } from '@/components/app-header';
 import { ContextSwitcher } from '@/components/context-switcher';
 import { Logo } from '@/components/logo';
 import { ShellAside, SidebarToggle } from '@/components/sidebar-toggle';
+import { useOwnerSupportUnread } from '@/components/support/support-api';
+import { CountBadge } from '@/components/support/support-kit';
 import { type SearchPage, TopbarSearch } from '@/components/topbar-search';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
@@ -27,10 +30,11 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, UserAvatar } from '@/components/ui-kit';
 import { UserMenu } from '@/components/user-menu';
 import { authClient } from '@/lib/auth-client';
+import { rememberPage } from '@/lib/support';
 import { cn } from '@/lib/utils';
 import { AccountProvider, useAccount, useAccountQuery } from './account-context';
 
-type NavKey = 'overview' | 'units' | 'subscription' | 'billing' | 'members' | 'help' | 'docs';
+type NavKey = 'overview' | 'units' | 'subscription' | 'billing' | 'members' | 'support' | 'help' | 'docs';
 type GroupKey = 'groupMain' | 'groupHelp';
 
 interface NavItem {
@@ -55,6 +59,7 @@ export const ACCOUNT_NAV_GROUPS: { key: GroupKey; items: NavItem[] }[] = [
   {
     key: 'groupHelp',
     items: [
+      { href: '/account/support', key: 'support', icon: MessagesSquare },
       { href: '/account/help', key: 'help', icon: LifeBuoy },
       { href: '/account/docs', key: 'docs', icon: BookOpen },
     ],
@@ -88,6 +93,11 @@ function FoundationPicker() {
 function SideNav() {
   const t = useTranslations('account.nav');
   const path = usePathname();
+  // Lencana merah menu Laporan: balasan tim platform yang belum dibuka (polling ~60 detik).
+  const supportUnread = useOwnerSupportUnread();
+  useEffect(() => {
+    rememberPage(path);
+  }, [path]);
   return (
     <nav aria-label={t('label')} className="flex flex-col gap-0.5 px-4 pb-4">
       {ACCOUNT_NAV_GROUPS.map((group) => (
@@ -114,6 +124,9 @@ function SideNav() {
                 )}
                 <Icon className={cn('size-4', active && 'text-primary')} aria-hidden />
                 <span className="flex-1">{t(key)}</span>
+                {key === 'support' && (
+                  <CountBadge count={supportUnread} label={t('supportBadge', { count: supportUnread })} />
+                )}
               </Link>
             );
           })}

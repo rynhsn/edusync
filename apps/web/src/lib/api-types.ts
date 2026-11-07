@@ -135,6 +135,386 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/auth/recovery/lookup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Cari akun untuk pemulihan kata sandi dan tampilkan pilihan saluran
+         * @description Publik. Isian (email, nama pengguna, atau NIK) dicocokkan ke TEPAT SATU akun. Bila cocok, jawabannya memuat saluran yang tersedia: `email` (alamat disamarkan, mis. ri***@gmail.com) dan `whatsapp` (petunjuk nomor, mis. 6281****789; hanya bila akun punya nomor dan penyedia pesan platform aktif). Bila tidak cocok atau ambigu (NIK dipakai beberapa akun), jawabannya sama bentuknya dengan `channels` kosong. Batas: 10 per jam per IP dan 5 per jam per isian (429 `rate_limited`). Menampilkan petunjuk saluran berarti akun itu ada; ini kompromi yang disetujui.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Email, nama pengguna, atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
+                        identifier: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            channels: {
+                                /** @enum {string} */
+                                channel: "email" | "whatsapp";
+                                hint: string;
+                            }[];
+                            message: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/recovery/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kirim kode pemulihan 6 digit lewat saluran pilihan
+         * @description Publik. Mengirim kode 6 digit (berlaku 10 menit, disimpan sebagai hash, satu kode aktif per akun dan saluran, maksimum 5 kali salah) lewat `email` atau `whatsapp`. Jawabannya selalu `sent: true` bila isian tidak cocok atau salurannya tidak tersedia (tidak ada yang dikirim). Pengiriman ulang ke saluran yang sama ditolak 429 `cooldown` selama 60 detik. Batas: 10 per jam per IP dan 5 per jam per isian (429 `rate_limited`). Penyedia pesan `log` hanya mencatat kode di log/outbox worker (pengembangan).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Email, nama pengguna, atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
+                        identifier: string;
+                        /** @enum {string} */
+                        channel: "email" | "whatsapp";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            sent: true;
+                            resendInSeconds: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/recovery/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Periksa kode pemulihan tanpa menghabiskannya
+         * @description Publik. Kode benar menjawab `valid: true` dan tetap bisa dipakai di langkah reset. Kode salah, kedaluwarsa, hangus (5 kali salah), atau isian tak dikenal semuanya dijawab 400 `invalid_code`. Setiap pemeriksaan dihitung sebagai satu percobaan sampai kodenya terbukti benar. Batas: 30 per jam per IP.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Email, nama pengguna, atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
+                        identifier: string;
+                        /** @enum {string} */
+                        channel: "email" | "whatsapp";
+                        code: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            valid: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/auth/recovery/reset": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Atur kata sandi baru dengan kode pemulihan
+         * @description Publik. Kode benar dihabiskan (sekali pakai), kata sandi (12-128 karakter) diganti, dan SEMUA sesi akun itu dikeluarkan. Kode salah, kedaluwarsa, hangus, atau isian tak dikenal dijawab 400 `invalid_code`. Batas: 30 per jam per IP.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Email, nama pengguna, atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
+                        identifier: string;
+                        /** @enum {string} */
+                        channel: "email" | "whatsapp";
+                        code: string;
+                        password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/username-check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Cek ketersediaan nama pengguna
+         * @description Untuk pengguna yang sudah masuk. `valid` false bila bentuknya tidak sah (3-30 karakter huruf kecil, angka, titik, garis bawah, strip; bukan 16 digit). `available` false bila dipakai akun lain; nama pengguna sendiri dianggap tersedia. Nama disimpan lewat pembaruan profil (`updateUser`).
+         */
+        get: {
+            parameters: {
+                query: {
+                    username: string;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            valid: boolean;
+                            available: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/me": {
         parameters: {
             query?: never;
@@ -6444,6 +6824,1943 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/platform/support/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar laporan dari sekolah dan pemilik
+         * @description Staf platform (baca). Urut aktivitas terbaru (balasan publik; catatan internal tidak menggeser urutan). Filter: `status`, `category`, `priority`, `schoolId`, `assignee` (id staf, `me`, `none`), `unread`, dan `q` (judul atau kode). `counts` menghitung semua laporan per status tanpa memedulikan filter.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                    category?: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                    priority?: "low" | "normal" | "high" | "urgent";
+                    schoolId?: string;
+                    /** @description id staf, `me`, atau `none` (belum ditugaskan) */
+                    assignee?: string;
+                    /** @description Hanya yang ada aktivitas pelapor belum dibuka */
+                    unread?: "true";
+                    /** @description Cari pada judul atau kode laporan */
+                    q?: string;
+                    limit?: number;
+                    offset?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            tickets: {
+                                /** Format: uuid */
+                                id: string;
+                                ticketNo: string;
+                                subject: string;
+                                /** @enum {string} */
+                                origin: "school" | "owner";
+                                schoolName: string | null;
+                                foundationName: string | null;
+                                creatorName: string;
+                                /** @enum {string} */
+                                category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                                /** @enum {string} */
+                                priority: "low" | "normal" | "high" | "urgent";
+                                /** @enum {string} */
+                                status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                                assignedStaffId: string | null;
+                                assignedStaffName: string | null;
+                                /** Format: date-time */
+                                lastMessageAt: string;
+                                /** @enum {string} */
+                                lastMessageBySide: "school" | "platform";
+                                /** @description Ada aktivitas pelapor yang belum dibuka staf */
+                                unread: boolean;
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                            counts: {
+                                open: number;
+                                in_progress: number;
+                                waiting_reporter: number;
+                                resolved: number;
+                                closed: number;
+                            };
+                            /** @description Jumlah laporan yang cocok dengan filter (sebelum limit) */
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/platform/support/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Jumlah laporan dengan aktivitas pelapor yang belum dibuka
+         * @description Staf platform (baca). Dipakai lencana menu Laporan di konsol; web memanggilnya berkala.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            count: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/platform/support/tickets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Percakapan lengkap satu laporan
+         * @description Staf platform (baca). Termasuk catatan internal dan konteks otomatis (sekolah, paket, peran, halaman, peramban). Membuka laporan menandai aktivitas pelapor sebagai terbaca untuk semua staf. 404 bila tidak ada.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            origin: "school" | "owner";
+                            schoolName: string | null;
+                            foundationName: string | null;
+                            creatorName: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            assignedStaffId: string | null;
+                            assignedStaffName: string | null;
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada aktivitas pelapor yang belum dibuka staf */
+                            unread: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            creatorEmail: string;
+                            /** Format: uuid */
+                            schoolId: string | null;
+                            /** Format: uuid */
+                            foundationId: string | null;
+                            context: {
+                                [key: string]: unknown;
+                            };
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            closedAt: string | null;
+                            messages: {
+                                /** Format: uuid */
+                                id: string;
+                                authorName: string;
+                                /** @enum {string} */
+                                authorSide: "school" | "platform";
+                                body: string;
+                                internal: boolean;
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Ubah status, prioritas, kategori, atau petugas laporan
+         * @description Staf platform (admin). Semua bidang opsional; `assignedStaffId: null` melepas penugasan (petugas harus staf platform, 400 `invalid_assignee`). Mengubah status ke `resolved` atau `closed` memberi tahu pembuat laporan lewat menu dan email. Setiap perubahan dicatat di audit (`support.update`).
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status?: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                        /** @enum {string} */
+                        priority?: "low" | "normal" | "high" | "urgent";
+                        /** @enum {string} */
+                        category?: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                        assignedStaffId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            origin: "school" | "owner";
+                            schoolName: string | null;
+                            foundationName: string | null;
+                            creatorName: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            assignedStaffId: string | null;
+                            assignedStaffName: string | null;
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada aktivitas pelapor yang belum dibuka staf */
+                            unread: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            creatorEmail: string;
+                            /** Format: uuid */
+                            schoolId: string | null;
+                            /** Format: uuid */
+                            foundationId: string | null;
+                            context: {
+                                [key: string]: unknown;
+                            };
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            closedAt: string | null;
+                            messages: {
+                                /** Format: uuid */
+                                id: string;
+                                authorName: string;
+                                /** @enum {string} */
+                                authorSide: "school" | "platform";
+                                body: string;
+                                internal: boolean;
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/platform/support/tickets/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Balas laporan atau tambah catatan internal
+         * @description Staf platform (admin). `internal: false` (bawaan) adalah balasan publik: pelapor diberi tahu lewat menu dan email (pembuat laporan dan anggota sekolah lain yang berhak, maksimal 5 penerima), dan laporan berstatus terbuka menjadi diproses. Laporan ditutup tidak bisa dibalas publik (409 `ticket_closed`). `internal: true` adalah catatan khusus staf: tidak tampil ke sekolah dan tidak mengirim email atau lencana.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        body: string;
+                        /** @default false */
+                        internal?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            origin: "school" | "owner";
+                            schoolName: string | null;
+                            foundationName: string | null;
+                            creatorName: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            assignedStaffId: string | null;
+                            assignedStaffName: string | null;
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada aktivitas pelapor yang belum dibuka staf */
+                            unread: boolean;
+                            /** Format: date-time */
+                            createdAt: string;
+                            creatorEmail: string;
+                            /** Format: uuid */
+                            schoolId: string | null;
+                            /** Format: uuid */
+                            foundationId: string | null;
+                            context: {
+                                [key: string]: unknown;
+                            };
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            closedAt: string | null;
+                            messages: {
+                                /** Format: uuid */
+                                id: string;
+                                authorName: string;
+                                /** @enum {string} */
+                                authorSide: "school" | "platform";
+                                body: string;
+                                internal: boolean;
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/support/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar laporan ke tim platform
+         * @description Izin: `school:manage`. Laporan milik sekolah/yayasan sendiri, urut aktivitas terbaru. Filter `status` opsional.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                    limit?: number;
+                    offset?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            tickets: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @description Kode manusiawi, mis. TKT-000123 */
+                                ticketNo: string;
+                                subject: string;
+                                /** @enum {string} */
+                                category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                                /** @enum {string} */
+                                priority: "low" | "normal" | "high" | "urgent";
+                                /** @enum {string} */
+                                status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                                /** Format: date-time */
+                                lastMessageAt: string;
+                                /** @enum {string} */
+                                lastMessageBySide: "school" | "platform";
+                                /** @description Ada balasan tim platform yang belum dibuka */
+                                unread: boolean;
+                                creatorName: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat laporan ke tim platform
+         * @description Izin: `school:manage`. Admin sekolah melaporkan masalah ke tim Edusync. Informasi sekolah (nama, paket, peran), halaman, dan peramban dikirim otomatis sebagai konteks. Admin platform diberi tahu lewat email dan menu konsol. Maksimal 10 laporan per pengguna per jam (429 `rate_limited`). Tanpa lampiran pada versi ini.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        subject: string;
+                        /** @enum {string} */
+                        category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                        /**
+                         * @default normal
+                         * @enum {string}
+                         */
+                        priority?: "low" | "normal" | "high" | "urgent";
+                        body: string;
+                        /** @description Jalur halaman tempat pelapor berada (dikirim otomatis oleh web) */
+                        page?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Kode manusiawi, mis. TKT-000123 */
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada balasan tim platform yang belum dibuka */
+                            unread: boolean;
+                            creatorName: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            closedAt: string | null;
+                            /** @description false bila laporan sudah ditutup (buat laporan baru) */
+                            canReply: boolean;
+                            messages: {
+                                /** Format: uuid */
+                                id: string;
+                                authorName: string;
+                                /** @enum {string} */
+                                authorSide: "school" | "platform";
+                                body: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** @description Ditulis oleh pengguna yang sedang masuk */
+                                mine: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/support/tickets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Percakapan satu laporan
+         * @description Izin: `school:manage`. Percakapan tanpa catatan internal staf. Membuka laporan menandai balasan platform sebagai terbaca. 404 bila bukan milik sekolah/yayasan ini.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Kode manusiawi, mis. TKT-000123 */
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada balasan tim platform yang belum dibuka */
+                            unread: boolean;
+                            creatorName: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            closedAt: string | null;
+                            /** @description false bila laporan sudah ditutup (buat laporan baru) */
+                            canReply: boolean;
+                            messages: {
+                                /** Format: uuid */
+                                id: string;
+                                authorName: string;
+                                /** @enum {string} */
+                                authorSide: "school" | "platform";
+                                body: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** @description Ditulis oleh pengguna yang sedang masuk */
+                                mine: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/support/tickets/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Balas laporan
+         * @description Izin: `school:manage`. Membalas laporan. Balasan pada laporan berstatus selesai membukanya kembali; laporan yang sudah ditutup tidak bisa dibalas (409 `ticket_closed`, buat laporan baru). Tim platform diberi tahu lewat menu dan email.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        body: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Kode manusiawi, mis. TKT-000123 */
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada balasan tim platform yang belum dibuka */
+                            unread: boolean;
+                            creatorName: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            closedAt: string | null;
+                            /** @description false bila laporan sudah ditutup (buat laporan baru) */
+                            canReply: boolean;
+                            messages: {
+                                /** Format: uuid */
+                                id: string;
+                                authorName: string;
+                                /** @enum {string} */
+                                authorSide: "school" | "platform";
+                                body: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** @description Ditulis oleh pengguna yang sedang masuk */
+                                mine: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/support/tickets/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tutup laporan
+         * @description Izin: `school:manage`. Pelapor menutup atau mengonfirmasi laporan sudah selesai. Laporan yang ditutup tidak bisa dibalas lagi.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Kode manusiawi, mis. TKT-000123 */
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada balasan tim platform yang belum dibuka */
+                            unread: boolean;
+                            creatorName: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/support/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Jumlah laporan dengan balasan platform yang belum dibuka
+         * @description Izin: `school:manage`. Dipakai lencana menu Laporan; web memanggilnya berkala.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            count: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/support/tickets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar laporan ke tim platform
+         * @description Pemilik yayasan. Laporan milik sekolah/yayasan sendiri, urut aktivitas terbaru. Filter `status` opsional.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                    limit?: number;
+                    offset?: number;
+                };
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            tickets: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @description Kode manusiawi, mis. TKT-000123 */
+                                ticketNo: string;
+                                subject: string;
+                                /** @enum {string} */
+                                category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                                /** @enum {string} */
+                                priority: "low" | "normal" | "high" | "urgent";
+                                /** @enum {string} */
+                                status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                                /** Format: date-time */
+                                lastMessageAt: string;
+                                /** @enum {string} */
+                                lastMessageBySide: "school" | "platform";
+                                /** @description Ada balasan tim platform yang belum dibuka */
+                                unread: boolean;
+                                creatorName: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat laporan dari portal pemilik
+         * @description Pemilik yayasan melaporkan masalah ke tim Edusync atas nama yayasannya (opsional merujuk satu unit). 404 `not_found` bila yayasan/unit bukan miliknya. Maksimal 10 laporan per pengguna per jam.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        subject: string;
+                        /** @enum {string} */
+                        category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                        /**
+                         * @default normal
+                         * @enum {string}
+                         */
+                        priority?: "low" | "normal" | "high" | "urgent";
+                        body: string;
+                        /** @description Jalur halaman tempat pelapor berada (dikirim otomatis oleh web) */
+                        page?: string;
+                        /** Format: uuid */
+                        foundationId: string;
+                        /**
+                         * Format: uuid
+                         * @description Unit yang berkaitan (opsional, harus milik yayasan itu)
+                         */
+                        schoolId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Kode manusiawi, mis. TKT-000123 */
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada balasan tim platform yang belum dibuka */
+                            unread: boolean;
+                            creatorName: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            closedAt: string | null;
+                            /** @description false bila laporan sudah ditutup (buat laporan baru) */
+                            canReply: boolean;
+                            messages: {
+                                /** Format: uuid */
+                                id: string;
+                                authorName: string;
+                                /** @enum {string} */
+                                authorSide: "school" | "platform";
+                                body: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** @description Ditulis oleh pengguna yang sedang masuk */
+                                mine: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/support/tickets/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Percakapan satu laporan
+         * @description Pemilik yayasan. Percakapan tanpa catatan internal staf. Membuka laporan menandai balasan platform sebagai terbaca. 404 bila bukan milik sekolah/yayasan ini.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Kode manusiawi, mis. TKT-000123 */
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada balasan tim platform yang belum dibuka */
+                            unread: boolean;
+                            creatorName: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            closedAt: string | null;
+                            /** @description false bila laporan sudah ditutup (buat laporan baru) */
+                            canReply: boolean;
+                            messages: {
+                                /** Format: uuid */
+                                id: string;
+                                authorName: string;
+                                /** @enum {string} */
+                                authorSide: "school" | "platform";
+                                body: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** @description Ditulis oleh pengguna yang sedang masuk */
+                                mine: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/support/tickets/{id}/messages": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Balas laporan
+         * @description Pemilik yayasan. Membalas laporan. Balasan pada laporan berstatus selesai membukanya kembali; laporan yang sudah ditutup tidak bisa dibalas (409 `ticket_closed`, buat laporan baru). Tim platform diberi tahu lewat menu dan email.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        body: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Kode manusiawi, mis. TKT-000123 */
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada balasan tim platform yang belum dibuka */
+                            unread: boolean;
+                            creatorName: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                            /** Format: date-time */
+                            resolvedAt: string | null;
+                            /** Format: date-time */
+                            closedAt: string | null;
+                            /** @description false bila laporan sudah ditutup (buat laporan baru) */
+                            canReply: boolean;
+                            messages: {
+                                /** Format: uuid */
+                                id: string;
+                                authorName: string;
+                                /** @enum {string} */
+                                authorSide: "school" | "platform";
+                                body: string;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** @description Ditulis oleh pengguna yang sedang masuk */
+                                mine: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/support/tickets/{id}/close": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tutup laporan
+         * @description Pemilik yayasan. Pelapor menutup atau mengonfirmasi laporan sudah selesai. Laporan yang ditutup tidak bisa dibalas lagi.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Kode manusiawi, mis. TKT-000123 */
+                            ticketNo: string;
+                            subject: string;
+                            /** @enum {string} */
+                            category: "account" | "billing" | "bug" | "feature" | "data" | "other";
+                            /** @enum {string} */
+                            priority: "low" | "normal" | "high" | "urgent";
+                            /** @enum {string} */
+                            status: "open" | "in_progress" | "waiting_reporter" | "resolved" | "closed";
+                            /** Format: date-time */
+                            lastMessageAt: string;
+                            /** @enum {string} */
+                            lastMessageBySide: "school" | "platform";
+                            /** @description Ada balasan tim platform yang belum dibuka */
+                            unread: boolean;
+                            creatorName: string;
+                            /** Format: date-time */
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/account/support/unread-count": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Jumlah laporan dengan balasan platform yang belum dibuka
+         * @description Pemilik yayasan. Dipakai lencana menu Laporan; web memanggilnya berkala.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            count: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/account": {
         parameters: {
             query?: never;
@@ -7309,7 +9626,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
                     };
                 };
             };
@@ -7845,7 +10162,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "report_card:read" | "report_card:manage" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
                     };
                 };
             };
@@ -28839,6 +31156,830 @@ export interface paths {
         };
         trace?: never;
     };
+    "/v1/finance/auto-billing/rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar aturan tagihan otomatis
+         * @description Izin: `finance:read`; modul `finance`. Satu aturan per jenis biaya. Tiap aturan membawa `nextRunDate` (hari ini bila ada periode yang tertunda/catch-up), tiga jadwal berikutnya (`nextRuns`), `blockedReason` bila tidak bisa jalan (sekolah ditangguhkan, modul mati, jenis biaya nonaktif, tidak ada tahun ajaran aktif, dll.), dan ringkasan run terakhir (`lastRun`). Tanggal dihitung menurut zona waktu sekolah.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** @description Tanggal pembuatan tagihan tiap bulan (1-28). Wajib untuk biaya bulanan, null untuk lainnya */
+                                runDay: number | null;
+                                /**
+                                 * @description `fixed_day`: jatuh tempo pada `dueDay` bulan pembuatan (bila `dueDay` lebih kecil dari tanggal pembuatan, bulan berikutnya). `days_after`: `dueDays` hari setelah tanggal pembuatan
+                                 * @enum {string}
+                                 */
+                                dueMode: "fixed_day" | "days_after";
+                                /** @description Wajib untuk `fixed_day` */
+                                dueDay: number | null;
+                                /** @description Wajib untuk `days_after` */
+                                dueDays: number | null;
+                                /** @description Pembatas kelas (opsional); kosong atau null = semua siswa dalam cakupan jenis biaya */
+                                classIds: string[] | null;
+                                /**
+                                 * @description Biaya semester: `start` = saat semester mulai, `custom` = selisih hari. Null untuk jenis lain
+                                 * @enum {string|null}
+                                 */
+                                semesterRun: "start" | "custom" | null;
+                                /** @description Selisih hari dari tanggal mulai semester (boleh negatif); wajib untuk `custom` */
+                                semesterOffsetDays: number | null;
+                                /**
+                                 * Format: date
+                                 * @description Tanggal pembuatan untuk biaya tahunan dan sekali bayar; harus di dalam tahun ajaran aktif
+                                 */
+                                runOn: string | null;
+                                /** @description Cicilan 2-12, hanya untuk biaya non-bulanan */
+                                installments: number | null;
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                feeTypeId: string;
+                                feeTypeName: string;
+                                /** @enum {string} */
+                                feeKind: "monthly" | "semester" | "one_time" | "yearly";
+                                feeActive: boolean;
+                                enabled: boolean;
+                                /**
+                                 * Format: date
+                                 * @description Tanggal run berikutnya (hari ini bila ada periode yang tertunda); null bila nonaktif atau terblokir
+                                 */
+                                nextRunDate: string | null;
+                                nextRuns: {
+                                    period: string;
+                                    /**
+                                     * Format: date
+                                     * @description Tanggal pembuatan menurut aturan
+                                     */
+                                    runDate: string;
+                                    /** Format: date */
+                                    dueDate: string;
+                                    /** @description Tanggal pembuatan sudah lewat tetapi periodenya belum ditagih (akan dibuat segera) */
+                                    catchUp: boolean;
+                                }[];
+                                /** @description Kode alasan aturan tidak bisa jalan: `school_suspended`, `module_disabled`, `fee_inactive`, `no_year`, `outside_year`, `no_semester`, `run_on_outside_year`, `invalid_rule` */
+                                blockedReason: string | null;
+                                blockedText: string | null;
+                                lastRun: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    /** Format: uuid */
+                                    ruleId: string;
+                                    feeTypeName: string | null;
+                                    period: string;
+                                    /** Format: date */
+                                    scheduledFor: string;
+                                    /** Format: date-time */
+                                    startedAt: string;
+                                    /** Format: date-time */
+                                    finishedAt: string | null;
+                                    /** @enum {string} */
+                                    status: "ok" | "partial" | "failed" | "skipped";
+                                    createdCount: number;
+                                    skippedCount: number;
+                                    missingPlanCount: number;
+                                    freeCount: number;
+                                    error: string | null;
+                                    /** @enum {string} */
+                                    trigger: "auto" | "manual";
+                                } | null;
+                                /** Format: date-time */
+                                updatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Atur aturan tagihan otomatis (upsert)
+         * @description Izin: `finance:manage`; modul `finance`. Membuat atau mengganti aturan untuk satu jenis biaya (satu aturan per jenis biaya). Bulanan: `runDay` wajib (tagihan bulan M dibuat pada tanggal itu di bulan M; periode TTTT-BB). Semester: `semesterRun` `start`/`custom` (+ `semesterOffsetDays`) dari tanggal mulai semester pada tabel semester (S1 = semester pertama menurut tanggal, S2 = kedua). Tahunan dan sekali bayar: `runOn` di dalam tahun ajaran aktif. Jatuh tempo: `fixed_day` (`dueDay`; lebih kecil dari tanggal pembuatan = bulan berikutnya) atau `days_after` (`dueDays`). `installments` hanya untuk jenis non-bulanan. Pembuatan tagihan memakai logika yang sama dengan "Buat tagihan massal" sehingga idempoten terhadap tagihan manual. Galat: 400 `invalid_rule` (kolom tidak sah/tidak lengkap), 400 `invalid_reference`, 409 `inactive` (jenis biaya nonaktif; aturan aktif tidak bisa dibuat).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Tanggal pembuatan tagihan tiap bulan (1-28). Wajib untuk biaya bulanan, null untuk lainnya */
+                        runDay: number | null;
+                        /**
+                         * @description `fixed_day`: jatuh tempo pada `dueDay` bulan pembuatan (bila `dueDay` lebih kecil dari tanggal pembuatan, bulan berikutnya). `days_after`: `dueDays` hari setelah tanggal pembuatan
+                         * @enum {string}
+                         */
+                        dueMode: "fixed_day" | "days_after";
+                        /** @description Wajib untuk `fixed_day` */
+                        dueDay: number | null;
+                        /** @description Wajib untuk `days_after` */
+                        dueDays: number | null;
+                        /** @description Pembatas kelas (opsional); kosong atau null = semua siswa dalam cakupan jenis biaya */
+                        classIds: string[] | null;
+                        /**
+                         * @description Biaya semester: `start` = saat semester mulai, `custom` = selisih hari. Null untuk jenis lain
+                         * @enum {string|null}
+                         */
+                        semesterRun: "start" | "custom" | null;
+                        /** @description Selisih hari dari tanggal mulai semester (boleh negatif); wajib untuk `custom` */
+                        semesterOffsetDays: number | null;
+                        /**
+                         * Format: date
+                         * @description Tanggal pembuatan untuk biaya tahunan dan sekali bayar; harus di dalam tahun ajaran aktif
+                         */
+                        runOn: string | null;
+                        /** @description Cicilan 2-12, hanya untuk biaya non-bulanan */
+                        installments: number | null;
+                        /** Format: uuid */
+                        feeTypeId: string;
+                        /** @default true */
+                        enabled?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Tanggal pembuatan tagihan tiap bulan (1-28). Wajib untuk biaya bulanan, null untuk lainnya */
+                            runDay: number | null;
+                            /**
+                             * @description `fixed_day`: jatuh tempo pada `dueDay` bulan pembuatan (bila `dueDay` lebih kecil dari tanggal pembuatan, bulan berikutnya). `days_after`: `dueDays` hari setelah tanggal pembuatan
+                             * @enum {string}
+                             */
+                            dueMode: "fixed_day" | "days_after";
+                            /** @description Wajib untuk `fixed_day` */
+                            dueDay: number | null;
+                            /** @description Wajib untuk `days_after` */
+                            dueDays: number | null;
+                            /** @description Pembatas kelas (opsional); kosong atau null = semua siswa dalam cakupan jenis biaya */
+                            classIds: string[] | null;
+                            /**
+                             * @description Biaya semester: `start` = saat semester mulai, `custom` = selisih hari. Null untuk jenis lain
+                             * @enum {string|null}
+                             */
+                            semesterRun: "start" | "custom" | null;
+                            /** @description Selisih hari dari tanggal mulai semester (boleh negatif); wajib untuk `custom` */
+                            semesterOffsetDays: number | null;
+                            /**
+                             * Format: date
+                             * @description Tanggal pembuatan untuk biaya tahunan dan sekali bayar; harus di dalam tahun ajaran aktif
+                             */
+                            runOn: string | null;
+                            /** @description Cicilan 2-12, hanya untuk biaya non-bulanan */
+                            installments: number | null;
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            feeTypeId: string;
+                            feeTypeName: string;
+                            /** @enum {string} */
+                            feeKind: "monthly" | "semester" | "one_time" | "yearly";
+                            feeActive: boolean;
+                            enabled: boolean;
+                            /**
+                             * Format: date
+                             * @description Tanggal run berikutnya (hari ini bila ada periode yang tertunda); null bila nonaktif atau terblokir
+                             */
+                            nextRunDate: string | null;
+                            nextRuns: {
+                                period: string;
+                                /**
+                                 * Format: date
+                                 * @description Tanggal pembuatan menurut aturan
+                                 */
+                                runDate: string;
+                                /** Format: date */
+                                dueDate: string;
+                                /** @description Tanggal pembuatan sudah lewat tetapi periodenya belum ditagih (akan dibuat segera) */
+                                catchUp: boolean;
+                            }[];
+                            /** @description Kode alasan aturan tidak bisa jalan: `school_suspended`, `module_disabled`, `fee_inactive`, `no_year`, `outside_year`, `no_semester`, `run_on_outside_year`, `invalid_rule` */
+                            blockedReason: string | null;
+                            blockedText: string | null;
+                            lastRun: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                ruleId: string;
+                                feeTypeName: string | null;
+                                period: string;
+                                /** Format: date */
+                                scheduledFor: string;
+                                /** Format: date-time */
+                                startedAt: string;
+                                /** Format: date-time */
+                                finishedAt: string | null;
+                                /** @enum {string} */
+                                status: "ok" | "partial" | "failed" | "skipped";
+                                createdCount: number;
+                                skippedCount: number;
+                                missingPlanCount: number;
+                                freeCount: number;
+                                error: string | null;
+                                /** @enum {string} */
+                                trigger: "auto" | "manual";
+                            } | null;
+                            /** Format: date-time */
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/auto-billing/rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Hapus aturan tagihan otomatis
+         * @description Izin: `finance:manage`; modul `finance`. Menghapus aturan beserta log run-nya. Tagihan yang sudah dibuat tidak berubah. Untuk menghentikan sementara, ubah `enabled` menjadi false lewat PUT. 404 `not_found` bila tak ada.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/auto-billing/rules/{id}/run-now": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Jalankan aturan sekarang
+         * @description Izin: `finance:manage`; modul `finance`. Menjalankan aturan di luar jadwal dengan kode yang sama dengan penjadwal (`trigger` = `manual`), tanpa menunggu tanggal jalan. `period` opsional (TTTT-BB, `S1`/`S2`, atau nama tahun ajaran sesuai jenis biaya); kosong = periode berjalan. Idempoten: tagihan yang sudah ada dilewati. Mengembalikan ringkasan run. Galat: 404 `not_found`, 400 `period_invalid`, 409 `no_year`/`no_semester`/`run_on_outside_year` (jadwal tak bisa dihitung), 409 `fee_inactive`, 409 `school_suspended`, 409 `inactive`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        period?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            ruleId: string;
+                            feeTypeName: string | null;
+                            period: string;
+                            /** Format: date */
+                            scheduledFor: string;
+                            /** Format: date-time */
+                            startedAt: string;
+                            /** Format: date-time */
+                            finishedAt: string | null;
+                            /** @enum {string} */
+                            status: "ok" | "partial" | "failed" | "skipped";
+                            createdCount: number;
+                            skippedCount: number;
+                            missingPlanCount: number;
+                            freeCount: number;
+                            error: string | null;
+                            /** @enum {string} */
+                            trigger: "auto" | "manual";
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/auto-billing/runs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Log penagihan otomatis
+         * @description Izin: `finance:read`; modul `finance`. Riwayat run (otomatis dan manual), terbaru lebih dulu. Filter opsional `ruleId`, `status`. `limit` maks 100 (bawaan 25), `offset` bawaan 0. Run yang hasilnya sama dengan upaya sebelumnya hanya memperbarui waktu selesai agar log tidak membengkak. Log disimpan 24 bulan terakhir.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    ruleId?: string;
+                    status?: "ok" | "partial" | "failed" | "skipped";
+                    limit?: number;
+                    offset?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                ruleId: string;
+                                feeTypeName: string | null;
+                                period: string;
+                                /** Format: date */
+                                scheduledFor: string;
+                                /** Format: date-time */
+                                startedAt: string;
+                                /** Format: date-time */
+                                finishedAt: string | null;
+                                /** @enum {string} */
+                                status: "ok" | "partial" | "failed" | "skipped";
+                                createdCount: number;
+                                skippedCount: number;
+                                missingPlanCount: number;
+                                freeCount: number;
+                                error: string | null;
+                                /** @enum {string} */
+                                trigger: "auto" | "manual";
+                            }[];
+                            total: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/finance/auto-billing/preview": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Pratinjau aturan tagihan otomatis
+         * @description Izin: `finance:read`; modul `finance`. Tanpa menyimpan apa pun. Mengembalikan tiga jadwal berikutnya (tanggal pembuatan dan jatuh tempo) serta perkiraan untuk periode terdekat: jumlah tagihan yang akan dibuat (`wouldCreate`), yang sudah ada (`alreadyBilled`), gratis, dan siswa tanpa tarif (`missingPlan`). `error` berisi kode bila perkiraan tak bisa dihitung (mis. `inactive`, `no_year`, `no_semester`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        feeTypeId: string;
+                        ruleDraft: {
+                            /** @description Tanggal pembuatan tagihan tiap bulan (1-28). Wajib untuk biaya bulanan, null untuk lainnya */
+                            runDay: number | null;
+                            /**
+                             * @description `fixed_day`: jatuh tempo pada `dueDay` bulan pembuatan (bila `dueDay` lebih kecil dari tanggal pembuatan, bulan berikutnya). `days_after`: `dueDays` hari setelah tanggal pembuatan
+                             * @enum {string}
+                             */
+                            dueMode: "fixed_day" | "days_after";
+                            /** @description Wajib untuk `fixed_day` */
+                            dueDay: number | null;
+                            /** @description Wajib untuk `days_after` */
+                            dueDays: number | null;
+                            /** @description Pembatas kelas (opsional); kosong atau null = semua siswa dalam cakupan jenis biaya */
+                            classIds: string[] | null;
+                            /**
+                             * @description Biaya semester: `start` = saat semester mulai, `custom` = selisih hari. Null untuk jenis lain
+                             * @enum {string|null}
+                             */
+                            semesterRun: "start" | "custom" | null;
+                            /** @description Selisih hari dari tanggal mulai semester (boleh negatif); wajib untuk `custom` */
+                            semesterOffsetDays: number | null;
+                            /**
+                             * Format: date
+                             * @description Tanggal pembuatan untuk biaya tahunan dan sekali bayar; harus di dalam tahun ajaran aktif
+                             */
+                            runOn: string | null;
+                            /** @description Cicilan 2-12, hanya untuk biaya non-bulanan */
+                            installments: number | null;
+                        };
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            nextRuns: {
+                                period: string;
+                                /**
+                                 * Format: date
+                                 * @description Tanggal pembuatan menurut aturan
+                                 */
+                                runDate: string;
+                                /** Format: date */
+                                dueDate: string;
+                                /** @description Tanggal pembuatan sudah lewat tetapi periodenya belum ditagih (akan dibuat segera) */
+                                catchUp: boolean;
+                            }[];
+                            forPeriod: string | null;
+                            wouldCreate: number | null;
+                            alreadyBilled: number | null;
+                            free: number | null;
+                            missingPlan: number | null;
+                            error: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/finance/gateway": {
         parameters: {
             query?: never;
@@ -28915,7 +32056,7 @@ export interface paths {
         };
         /**
          * Ubah pengaturan Midtrans sekolah
-         * @description Izin: `finance:manage`; modul `finance`. `serverKey` kosong/dihilangkan berarti mempertahankan kunci tersimpan; kunci disimpan terenkripsi. Awalan kunci harus cocok dengan `mode` (sandbox: `SB-Mid-server-` dan `SB-Mid-client-`; production: `Mid-server-` dan `Mid-client-`). Galat: 400 `invalid_key` (awalan tidak cocok atau kunci tersimpan tidak cocok dengan mode baru), 400 `key_required` (diaktifkan tanpa kunci server).
+         * @description Izin: `finance:manage`; modul `finance`. `serverKey` kosong/dihilangkan berarti mempertahankan kunci tersimpan; kunci disimpan terenkripsi. Awalan kunci server harus cocok dengan `mode` (sandbox: `SB-Mid-server-`; production: `Mid-server-`); kunci klien tidak diperiksa awalannya karena formatnya bisa berbeda antar akun. Galat: 400 `invalid_key` (awalan kunci server tidak cocok atau kunci tersimpan tidak cocok dengan mode baru), 400 `key_required` (diaktifkan tanpa kunci server).
          */
         put: {
             parameters: {
@@ -50274,6 +53415,892 @@ export interface paths {
                                 code: string;
                                 message: string;
                             };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/password-help": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Lapor lupa kata sandi ke admin sekolah
+         * @description Publik, tanpa login. Untuk orang yang tidak dapat menerima email maupun OTP WhatsApp. Sekolah ditentukan dari `slug` atau dari host. Selalu menjawab 202 yang sama, baik akun cocok, tidak cocok, sekolah tidak dikenal, laporan ganda, maupun jebakan bot (honeypot `website` terisi), sehingga keberadaan akun tidak bisa ditebak. Satu laporan terbuka per nomor per sekolah per 24 jam; nomor yang melapor terlalu sering diabaikan diam-diam. Batas 5 laporan per jam per IP (429). NIK pada `identifier` hanya disimpan tersamar.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        slug?: string;
+                        claimedName: string;
+                        claimedInfo?: string;
+                        contactPhone: string;
+                        identifier?: string;
+                        /** @description Jebakan bot: harus kosong */
+                        website?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                202: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/password-help/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar laporan lupa kata sandi
+         * @description Izin: `account:reset`. Terbaru dulu, paling banyak 200. `matched` adalah petunjuk pencocokan otomatis (email dan nomor tersamar, peran, login terakhir); admin wajib memastikan identitas pelapor sendiri.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    status?: "new" | "in_progress" | "done" | "rejected";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                status: "new" | "in_progress" | "done" | "rejected";
+                                claimedName: string;
+                                claimedInfo: string | null;
+                                contactPhone: string;
+                                identifierGiven: string | null;
+                                note: string | null;
+                                /** Format: date-time */
+                                createdAt: string;
+                                /** Format: date-time */
+                                handledAt: string | null;
+                                matched: {
+                                    userId: string;
+                                    name: string;
+                                    emailMasked: string;
+                                    phoneMasked: string | null;
+                                    roles: string[];
+                                    /** Format: date-time */
+                                    lastLoginAt: string | null;
+                                    resettable: boolean;
+                                    blockedCode: string | null;
+                                } | null;
+                                links: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    /** @enum {string} */
+                                    state: "active" | "used" | "revoked" | "expired";
+                                    /** Format: date-time */
+                                    expiresAt: string;
+                                    /** @enum {string|null} */
+                                    channelSent: "email" | "whatsapp" | null;
+                                    /** Format: date-time */
+                                    createdAt: string;
+                                }[];
+                            }[];
+                            counts: {
+                                new: number;
+                                in_progress: number;
+                                done: number;
+                                rejected: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/password-help/requests/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Ubah status atau catatan laporan
+         * @description Izin: `account:reset`. Status `rejected` menolak laporan (tautan aktif untuk laporan itu ikut dicabut). Catatan paling banyak 500 karakter. Ditulis ke audit. 404 `not_found`.
+         */
+        patch: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        status?: "new" | "in_progress" | "done" | "rejected";
+                        note?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @enum {string} */
+                            status: "new" | "in_progress" | "done" | "rejected";
+                            note: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        trace?: never;
+    };
+    "/v1/password-help/requests/{id}/link": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buat tautan reset dari sebuah laporan
+         * @description Izin: `account:reset`. Akun sasaran: `userId` (anggota sekolah ini) atau akun yang dicocokkan otomatis. Tautan berlaku 24 jam, sekali pakai, terikat ke akun itu; tautan lama yang belum dipakai untuk akun yang sama dicabut. Tautan hanya ditampilkan sekali. Tidak boleh untuk akun yang punya keanggotaan di sekolah lain (409 `multi_school_account`), staf platform, pemilik yayasan, admin sekolah atau peran pengelola (403 `protected_account`), akun sendiri (409 `self_reset`), anggota nonaktif (409 `member_disabled`), atau laporan tanpa akun cocok (409 `no_match`). Ditulis ke audit tanpa token.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        userId?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Tautan reset lengkap; hanya ditampilkan sekali saat dibuat */
+                            url: string;
+                            /** @description Token mentah; dibutuhkan lagi untuk mengirim tautan lewat /send */
+                            token: string;
+                            /** Format: date-time */
+                            expiresAt: string;
+                            user: {
+                                userId: string;
+                                name: string;
+                                emailMasked: string;
+                                phoneMasked: string | null;
+                            };
+                            /** @description Nomor kontak pelapor (bila dari laporan) atau nomor akun */
+                            contactPhone: string | null;
+                            /** @description Tautan wa.me berisi pesan siap kirim, atau null bila tak ada nomor */
+                            whatsappUrl: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/password-help/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buat tautan reset langsung untuk sebuah akun
+         * @description Izin: `account:reset`. Seperti tautan dari laporan tetapi tanpa laporan (mis. dari daftar anggota). Aturan pengaman dan masa berlaku sama. 404 `not_found` bila bukan anggota sekolah ini.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        userId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** @description Tautan reset lengkap; hanya ditampilkan sekali saat dibuat */
+                            url: string;
+                            /** @description Token mentah; dibutuhkan lagi untuk mengirim tautan lewat /send */
+                            token: string;
+                            /** Format: date-time */
+                            expiresAt: string;
+                            user: {
+                                userId: string;
+                                name: string;
+                                emailMasked: string;
+                                phoneMasked: string | null;
+                            };
+                            /** @description Nomor kontak pelapor (bila dari laporan) atau nomor akun */
+                            contactPhone: string | null;
+                            /** @description Tautan wa.me berisi pesan siap kirim, atau null bila tak ada nomor */
+                            whatsappUrl: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/password-help/links/{id}/send": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Kirim tautan reset lewat email atau siapkan WhatsApp
+         * @description Izin: `account:reset`. Server tidak menyimpan token, jadi `token` dari saat tautan dibuat harus dikirim ulang dan harus cocok. `email` memasukkan email ke antrean pengiriman ke alamat akun. `whatsapp` mengembalikan tautan `wa.me` berisi pesan siap kirim untuk dibuka admin sendiri (tidak bergantung pada penyedia WhatsApp). 410 `reset_link_invalid` bila tautan sudah dipakai, dicabut, atau kedaluwarsa; 400 `validation` bila token tidak cocok. Ditulis ke audit tanpa token.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        channel: "email" | "whatsapp";
+                        token: string;
+                        phone?: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            channel: "email" | "whatsapp";
+                            sentTo: string | null;
+                            whatsappUrl: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/password-help/links/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Cabut tautan reset
+         * @description Izin: `account:reset`. Tautan yang belum dipakai langsung tidak berlaku. 404 `not_found` bila tak ada atau sudah dipakai/dicabut. Ditulis ke audit.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/public/reset-links/{token}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Periksa tautan reset kata sandi
+         * @description Publik, hanya untuk pemegang token. Mengembalikan nama sekolah dan nama akun tersamar. 410 `reset_link_invalid` bila token salah, sudah dipakai, dicabut, kedaluwarsa, atau sekolah ditangguhkan.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            schoolName: string;
+                            accountName: string;
+                            /** Format: date-time */
+                            expiresAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                410: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Atur kata sandi baru lewat tautan reset
+         * @description Publik, hanya untuk pemegang token; sekali pakai. Kata sandi 12-128 karakter. Mengganti kata sandi akun dengan mekanisme hash Better Auth, menandai tautan terpakai, dan mengeluarkan SEMUA sesi akun. Ditulis ke audit tanpa token. 410 `reset_link_invalid` bila token tidak berlaku.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    token: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        password: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
                         };
                     };
                 };

@@ -50,6 +50,7 @@ export const PERMISSIONS = [
   'announcement:read',
   'announcement:manage',
   'audit:read',
+  'account:reset',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -173,6 +174,7 @@ export const SYSTEM_ROLES = {
       'announcement:read',
       'announcement:manage',
       'school:manage',
+      'account:reset',
     ],
   },
   teacher: {

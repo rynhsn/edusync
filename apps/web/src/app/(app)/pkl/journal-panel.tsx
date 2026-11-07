@@ -7,6 +7,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -20,6 +21,7 @@ import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { Textarea } from '../report-cards/textarea';
 import { monthGrid, shiftMonth, todayIso } from './lib';
+import { JOURNAL_ORDER, type JournalField, validateJournal } from './pkl-validation';
 import { type PklPlacement, pklKey } from './shared';
 
 interface Period {
@@ -52,6 +54,12 @@ export function JournalPanel({ placement, period }: { placement: PklPlacement; p
   const [activity, setActivity] = useState('');
   const [present, setPresent] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<JournalField>({
+    errors: validateJournal({ date, activity }),
+    order: JOURNAL_ORDER,
+    idPrefix: 'jn',
+  });
+  const tv = useTranslations('formValidation');
 
   const journals = useQuery({
     queryKey: pklKey(school.schoolId, 'journals', placement.id),
@@ -193,9 +201,11 @@ export function JournalPanel({ placement, period }: { placement: PklPlacement; p
         {writable && (
           <form
             className="bg-card grid gap-3 rounded-xl border p-4"
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
-              if (date && activity.trim()) add.mutate();
+              if (!validation.attempt()) return;
+              add.mutate();
             }}
           >
             <h2 className="font-heading flex items-center gap-2 text-sm font-semibold">
@@ -205,7 +215,13 @@ export function JournalPanel({ placement, period }: { placement: PklPlacement; p
             <div className="grid gap-3 sm:grid-cols-[14rem_1fr]">
               <div className="grid content-start gap-2">
                 <Label htmlFor="jn-date">{t('date')}</Label>
-                <DatePicker id="jn-date" value={date} onChange={setDate} />
+                <DatePicker
+                  {...validation.fieldProps('date')}
+                  className={TOUCH_INPUT}
+                  value={date}
+                  onChange={setDate}
+                />
+                <FieldError id={validation.idOf('date')} issue={validation.issue('date')} />
                 <div className="flex items-center gap-2 pt-1">
                   <Checkbox
                     id="jn-present"
@@ -218,13 +234,15 @@ export function JournalPanel({ placement, period }: { placement: PklPlacement; p
               <div className="grid content-start gap-2">
                 <Label htmlFor="jn-activity">{t('activity')}</Label>
                 <Textarea
-                  id="jn-activity"
+                  {...validation.fieldProps('activity')}
+                  aria-required="true"
                   rows={4}
                   maxLength={2000}
                   value={activity}
                   placeholder={t('activityPlaceholder')}
                   onChange={(e) => setActivity(e.target.value)}
                 />
+                <FieldError id={validation.idOf('activity')} issue={validation.issue('activity')} />
               </div>
             </div>
             {byDate.has(date) && (
@@ -235,8 +253,13 @@ export function JournalPanel({ placement, period }: { placement: PklPlacement; p
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            {validation.summary && (
+              <p aria-live="polite" className="text-destructive text-sm">
+                {tv('summary')}
+              </p>
+            )}
             <div>
-              <Button type="submit" disabled={!date || !activity.trim() || add.isPending}>
+              <Button type="submit" className="h-10 md:h-8" disabled={add.isPending}>
                 {t('saveJournal')}
               </Button>
             </div>

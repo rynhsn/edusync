@@ -1,10 +1,12 @@
 'use client';
 
+import { isValidUsername, normalizeUsername, USERNAME_MAX } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Camera, KeyRound, Laptop, LogOut, Mail, Smartphone, Trash2, UserCog } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
+import { CurrentPasswordInput } from '@/components/current-password-input';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -22,6 +24,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToneBadge, UserAvatar } from '@/components/ui-kit';
+import { api } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import { describeDevice } from '@/lib/device';
 import { resizeToSquare } from '@/lib/image';
@@ -277,6 +280,10 @@ export function ProfilePage() {
 
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [username, setUsername] = useState('');
+  const [usernameState, setUsernameState] = useState<'idle' | 'checking' | 'ok' | 'taken' | 'invalid'>(
+    'idle',
+  );
   const [nameError, setNameError] = useState<string | null>(null);
   const [savingName, setSavingName] = useState(false);
   const [emailOpen, setEmailOpen] = useState(false);
@@ -286,8 +293,26 @@ export function ProfilePage() {
     if (user) {
       setName(user.name);
       setPhone(user.phone ?? '');
+      setUsername(user.username ?? '');
     }
   }, [user]);
+
+  // Ketersediaan nama pengguna diperiksa ke server setelah berhenti mengetik sebentar.
+  useEffect(() => {
+    const value = normalizeUsername(username);
+    if (!user || value === '' || value === (user.username ?? '')) return setUsernameState('idle');
+    if (!isValidUsername(value)) return setUsernameState('invalid');
+    setUsernameState('checking');
+    let stale = false;
+    const timer = setTimeout(async () => {
+      const res = await api.GET('/v1/account/username-check', { params: { query: { username: value } } });
+      if (!stale) setUsernameState(res.data ? (res.data.available ? 'ok' : 'taken') : 'idle');
+    }, 350);
+    return () => {
+      stale = true;
+      clearTimeout(timer);
+    };
+  }, [username, user]);
 
   const [pw, setPw] = useState({ current: '', next: '', confirm: '' });
   const [pwError, setPwError] = useState<string | null>(null);
@@ -298,10 +323,24 @@ export function ProfilePage() {
     event.preventDefault();
     setNameError(null);
     setSavingName(true);
-    const res = await authClient.updateUser({ name: name.trim(), phone: phone.trim() });
+    const nextUsername = normalizeUsername(username);
+    const res = await authClient.updateUser({
+      name: name.trim(),
+      phone: phone.trim(),
+      ...(nextUsername !== (user?.username ?? '') ? { username: nextUsername } : {}),
+    });
     setSavingName(false);
     if (res.error) {
-      return setNameError(res.error.code === 'INVALID_PHONE' ? t('phoneInvalid') : te('unknown'));
+      const code = res.error.code;
+      return setNameError(
+        code === 'INVALID_PHONE'
+          ? t('phoneInvalid')
+          : code === 'USERNAME_TAKEN'
+            ? t('usernameTaken')
+            : code === 'INVALID_USERNAME'
+              ? t('usernameInvalid')
+              : te('unknown'),
+      );
     }
     queryClient.invalidateQueries({ queryKey: ['me'] });
     toast.success(t('nameSaved'));
@@ -419,6 +458,34 @@ export function ProfilePage() {
                   <p className="text-muted-foreground text-xs">{t('phoneHint')}</p>
                 </div>
                 <div className="grid content-start gap-2">
+                  <Label htmlFor="profile-username">{t('username')}</Label>
+                  <Input
+                    id="profile-username"
+                    autoComplete="off"
+                    autoCapitalize="none"
+                    spellCheck={false}
+                    maxLength={USERNAME_MAX}
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    aria-invalid={usernameState === 'invalid' || usernameState === 'taken'}
+                  />
+                  {usernameState === 'idle' && (
+                    <p className="text-muted-foreground text-xs">{t('usernameHint')}</p>
+                  )}
+                  {usernameState === 'checking' && (
+                    <p className="text-muted-foreground text-xs">{t('usernameChecking')}</p>
+                  )}
+                  {usernameState === 'ok' && (
+                    <p className="text-xs text-emerald-600">{t('usernameAvailable')}</p>
+                  )}
+                  {usernameState === 'taken' && (
+                    <p className="text-destructive text-xs">{t('usernameTaken')}</p>
+                  )}
+                  {usernameState === 'invalid' && (
+                    <p className="text-destructive text-xs">{t('usernameInvalid')}</p>
+                  )}
+                </div>
+                <div className="grid content-start gap-2">
                   <Label>{t('email')}</Label>
                   <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
                     <span className="min-w-0 truncate text-sm">{user.email}</span>
@@ -438,7 +505,11 @@ export function ProfilePage() {
                   disabled={
                     savingName ||
                     name.trim().length < 2 ||
-                    (name.trim() === user.name && phone.trim() === (user.phone ?? ''))
+                    usernameState === 'invalid' ||
+                    usernameState === 'taken' ||
+                    (name.trim() === user.name &&
+                      phone.trim() === (user.phone ?? '') &&
+                      normalizeUsername(username) === (user.username ?? ''))
                   }
                 >
                   {savingName ? t('working') : t('saveName')}
@@ -457,12 +528,11 @@ export function ProfilePage() {
             <CardContent>
               <form onSubmit={savePassword} className="grid gap-4">
                 <div className="grid content-start gap-2">
-                  <Label htmlFor="pw-current">{t('currentPassword')}</Label>
-                  <PasswordInput
-                    id="pw-current"
-                    autoComplete="current-password"
+                  <Label htmlFor="pw-verify-old">{t('currentPassword')}</Label>
+                  <CurrentPasswordInput
+                    id="pw-verify-old"
                     value={pw.current}
-                    onChange={(e) => setPw({ ...pw, current: e.target.value })}
+                    onValueChange={(current) => setPw((prev) => ({ ...prev, current }))}
                   />
                 </div>
                 <div className="grid content-start gap-2">

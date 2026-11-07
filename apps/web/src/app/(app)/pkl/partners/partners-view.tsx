@@ -9,6 +9,7 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -19,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { PARTNER_ORDER, type PartnerField, validatePartner } from '../pkl-validation';
 import { pklKey, usePklPartners } from '../shared';
 
 interface Draft {
@@ -54,6 +56,11 @@ export function PartnersView() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<PartnerField>({
+    errors: validatePartner(draft),
+    order: PARTNER_ORDER,
+    idPrefix: 'pt',
+  });
   const refresh = () => queryClient.invalidateQueries({ queryKey: pklKey(school.schoolId) });
 
   const save = useMutation({
@@ -94,6 +101,7 @@ export function PartnersView() {
   function openNew() {
     setDraft(EMPTY);
     setError(null);
+    validation.reset();
     setOpen(true);
   }
 
@@ -123,66 +131,86 @@ export function PartnersView() {
         submitLabel={t('save')}
         size="wide"
         error={error}
-        disabled={!draft.name.trim()}
+        validation={validation}
         onSubmit={() => save.mutateAsync(draft)}
       >
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid content-start gap-2 sm:col-span-2">
             <Label htmlFor="pt-name">{t('partnerName')}</Label>
             <Input
-              id="pt-name"
-              required
+              {...validation.fieldProps('name')}
+              className={TOUCH_INPUT}
+              aria-required="true"
+              autoComplete="off"
               maxLength={160}
               value={draft.name}
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
+            <FieldError id={validation.idOf('name')} issue={validation.issue('name')} />
           </div>
           <div className="grid content-start gap-2">
             <Label htmlFor="pt-field">{t('partnerField')}</Label>
             <Input
-              id="pt-field"
+              {...validation.fieldProps('field')}
+              className={TOUCH_INPUT}
+              autoComplete="off"
               maxLength={120}
               value={draft.field}
               onChange={(e) => setDraft({ ...draft, field: e.target.value })}
             />
+            <FieldError id={validation.idOf('field')} issue={validation.issue('field')} />
           </div>
           <div className="grid content-start gap-2">
-            <Label htmlFor="pt-contact">{t('partnerContact')}</Label>
+            <Label htmlFor="pt-contactName">{t('partnerContact')}</Label>
             <Input
-              id="pt-contact"
+              {...validation.fieldProps('contactName')}
+              className={TOUCH_INPUT}
+              autoComplete="off"
               maxLength={120}
               value={draft.contactName}
               onChange={(e) => setDraft({ ...draft, contactName: e.target.value })}
             />
+            <FieldError id={validation.idOf('contactName')} issue={validation.issue('contactName')} />
           </div>
           <div className="grid content-start gap-2">
             <Label htmlFor="pt-phone">{t('partnerPhone')}</Label>
             <Input
-              id="pt-phone"
+              {...validation.fieldProps('phone')}
+              className={TOUCH_INPUT}
               type="tel"
+              inputMode="tel"
+              autoComplete="off"
               maxLength={30}
               value={draft.phone}
               onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
             />
+            <FieldError id={validation.idOf('phone')} issue={validation.issue('phone')} />
           </div>
           <div className="grid content-start gap-2">
             <Label htmlFor="pt-email">{t('partnerEmail')}</Label>
             <Input
-              id="pt-email"
+              {...validation.fieldProps('email')}
+              className={TOUCH_INPUT}
               type="email"
+              inputMode="email"
+              autoComplete="off"
               maxLength={254}
               value={draft.email}
               onChange={(e) => setDraft({ ...draft, email: e.target.value })}
             />
+            <FieldError id={validation.idOf('email')} issue={validation.issue('email')} />
           </div>
           <div className="grid content-start gap-2 sm:col-span-2">
             <Label htmlFor="pt-address">{t('partnerAddress')}</Label>
             <Input
-              id="pt-address"
+              {...validation.fieldProps('address')}
+              className={TOUCH_INPUT}
+              autoComplete="off"
               maxLength={300}
               value={draft.address}
               onChange={(e) => setDraft({ ...draft, address: e.target.value })}
             />
+            <FieldError id={validation.idOf('address')} issue={validation.issue('address')} />
           </div>
           <div className="flex items-center gap-2 sm:col-span-2">
             <Checkbox
@@ -297,6 +325,7 @@ export function PartnersView() {
                           active: p.active,
                         });
                         setError(null);
+                        validation.reset();
                         setOpen(true);
                       }}
                     >

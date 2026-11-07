@@ -4,6 +4,14 @@ const schema = z
   .object({
     NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
     API_PORT: z.coerce.number().int().positive().default(4000),
+    /**
+     * Alamat proxy yang dipercaya untuk membaca IP klien dari x-forwarded-for (daftar CIDR/nama dipisah koma,
+     * mis. `loopback,uniquelocal` atau `10.0.0.0/8`). Rantai nyata: Caddy menimpa header itu dengan IP klien, Next
+     * (rewrite) meneruskannya apa adanya (bila tidak ada, mengisinya dengan IP penyambungnya), lalu API menerimanya
+     * dari Next lewat jaringan lokal. Bawaan: alamat lokal/privat. `off` = jangan percaya header (API dibuka
+     * langsung ke internet). Catatan: Fastify versi ini menolak hitungan hop, jadi dipakai daftar alamat.
+     */
+    TRUST_PROXY: z.string().trim().default('loopback,linklocal,uniquelocal'),
     DATABASE_URL: z.string().min(1),
     DATABASE_PLATFORM_URL: z.string().min(1),
     AUTH_SECRET: z.string().min(32, 'minimal 32 karakter'),

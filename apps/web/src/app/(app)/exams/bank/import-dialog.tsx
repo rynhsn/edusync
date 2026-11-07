@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { RichText } from '@/components/rich-text';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -18,6 +19,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { buildTemplate, type ParsedImport, parseImportFile } from '@/lib/question-import';
 import { cn } from '@/lib/utils';
+import { IMPORT_ORDER, type ImportField, validateImport } from '../exam-validation';
 
 const MAX_ROWS = 500;
 const ACCEPT = '.xlsx,.docx,.txt';
@@ -149,8 +151,20 @@ export function ImportDialog({
 
   const tooMany = !!parsed && parsed.rows.length > MAX_ROWS;
   const hasProblems = (report?.invalid ?? 0) > 0;
-  const canSubmit =
-    !!report && !check.isPending && !tooMany && toSend.length > 0 && (!hasProblems || skipInvalid);
+  const validation = useFormValidation<ImportField>({
+    errors: validateImport({
+      subjectId,
+      hasFile: !!parsed,
+      rows: parsed?.rows.length ?? 0,
+      maxRows: MAX_ROWS,
+      checking: check.isPending || !report,
+      invalid: report?.invalid ?? 0,
+      skipInvalid,
+      toSend: toSend.length,
+    }),
+    order: IMPORT_ORDER,
+    idPrefix: 'imp',
+  });
   const rowWarnings = (line: number) => (parsed?.warnings ?? []).filter((w) => w.line === line);
   const general = (parsed?.warnings ?? []).filter((w) => w.line === 0);
 
@@ -163,7 +177,7 @@ export function ImportDialog({
       submitLabel={t('submit', { n: toSend.length })}
       size="wide"
       error={error}
-      disabled={!canSubmit}
+      validation={validation}
       onSubmit={async () => {
         setError(null);
         await save.mutateAsync();
@@ -172,18 +186,29 @@ export function ImportDialog({
       <div className="grid gap-4">
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid content-start gap-2">
-            <Label htmlFor="imp-subject">{t('subject')}</Label>
-            <SelectField id="imp-subject" value={subjectId} onChange={(e) => setSubjectId(e.target.value)}>
+            <Label htmlFor={validation.idOf('subjectId')}>{t('subject')}</Label>
+            <SelectField
+              {...validation.fieldProps('subjectId')}
+              className={TOUCH_SELECT}
+              value={subjectId}
+              onChange={(e) => setSubjectId(e.target.value)}
+            >
               {subjects.map((s) => (
                 <option key={s.id} value={s.id}>
                   {s.name}
                 </option>
               ))}
             </SelectField>
+            <FieldError id={validation.idOf('subjectId')} issue={validation.issue('subjectId')} />
           </div>
           <div className="grid content-start gap-2">
             <Label htmlFor="imp-level">{t('level')}</Label>
-            <SelectField id="imp-level" value={level} onChange={(e) => setLevel(e.target.value)}>
+            <SelectField
+              id="imp-level"
+              className={TOUCH_SELECT}
+              value={level}
+              onChange={(e) => setLevel(e.target.value)}
+            >
               <option value="">{t('allLevels')}</option>
               {levels.map((l) => (
                 <option key={l.id} value={l.code}>
@@ -226,7 +251,14 @@ export function ImportDialog({
             }}
           />
           <div className="flex flex-wrap justify-center gap-2">
-            <Button type="button" variant="outline" size="sm" onClick={() => fileInput.current?.click()}>
+            <Button
+              {...validation.fieldProps('file')}
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-10 md:h-8"
+              onClick={() => fileInput.current?.click()}
+            >
               <FileUp /> {t('pickFile')}
             </Button>
             <Button type="button" variant="ghost" size="sm" onClick={() => void downloadTemplate()}>
@@ -234,6 +266,7 @@ export function ImportDialog({
             </Button>
           </div>
         </div>
+        <FieldError id={validation.idOf('file')} issue={validation.issue('file')} />
 
         <details className="bg-muted/40 rounded-lg border px-3 py-2 text-sm">
           <summary className="cursor-pointer font-medium">{t('wordHelp')}</summary>
@@ -325,13 +358,25 @@ export function ImportDialog({
               <p className="text-muted-foreground text-xs">{t('duplicatesNote', { n: report.duplicates })}</p>
             )}
             {hasProblems && (
-              <div className="flex items-center gap-2">
-                <Checkbox
-                  id="imp-skip"
-                  checked={skipInvalid}
-                  onCheckedChange={(v) => setSkipInvalid(v === true)}
-                />
-                <Label htmlFor="imp-skip">{t('skipInvalid', { n: report?.invalid ?? 0 })}</Label>
+              <div className="grid content-start gap-2">
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id={validation.idOf('skipInvalid')}
+                    aria-invalid={validation.issue('skipInvalid') !== undefined}
+                    aria-describedby={
+                      validation.issue('skipInvalid') ? `${validation.idOf('skipInvalid')}-error` : undefined
+                    }
+                    checked={skipInvalid}
+                    onCheckedChange={(v) => {
+                      validation.touch('skipInvalid');
+                      setSkipInvalid(v === true);
+                    }}
+                  />
+                  <Label htmlFor={validation.idOf('skipInvalid')}>
+                    {t('skipInvalid', { n: report?.invalid ?? 0 })}
+                  </Label>
+                </div>
+                <FieldError id={validation.idOf('skipInvalid')} issue={validation.issue('skipInvalid')} />
               </div>
             )}
           </div>

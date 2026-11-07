@@ -16,6 +16,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -38,6 +39,14 @@ import { errorKey } from '@/lib/errors';
 import { useSchoolSettings } from '@/lib/school-settings';
 import { todayWeekdayNumber } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
+import {
+  GENERATE_ORDER,
+  type GenerateField,
+  PERIOD_ORDER,
+  type PeriodField,
+  validateGenerate,
+  validatePeriod,
+} from './schedule-validation';
 
 type Weekday = 1 | 2 | 3 | 4 | 5 | 6 | 7;
 const TONE = MODULE_TONE.academic;
@@ -85,6 +94,17 @@ function PeriodsDialog({
   }, [settings.lessonDefaultStart, settings.lessonDefaultMinutes]);
   const [add, setAdd] = useState({ number: '', startsAt: '', endsAt: '' });
   const [error, setError] = useState<string | null>(null);
+  const tv = useTranslations('formValidation');
+  const genValidation = useFormValidation<GenerateField>({
+    errors: validateGenerate(gen),
+    order: GENERATE_ORDER,
+    idPrefix: 'gen',
+  });
+  const addValidation = useFormValidation<PeriodField>({
+    errors: validatePeriod(add),
+    order: PERIOD_ORDER,
+    idPrefix: 'pd',
+  });
 
   const generate = useMutation({
     mutationFn: async () =>
@@ -164,106 +184,147 @@ function PeriodsDialog({
         ) : (
           <form
             className="grid gap-3 rounded-lg border p-4 sm:grid-cols-3"
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
+              if (!genValidation.attempt()) return;
               generate.mutate();
             }}
           >
             <p className="text-muted-foreground text-sm sm:col-span-3">{t('generateHint')}</p>
             <div className="grid content-start gap-1.5">
-              <Label htmlFor="gen-start">{t('firstStart')}</Label>
+              <Label htmlFor="gen-firstStart">{t('firstStart')}</Label>
               <TimeField
-                id="gen-start"
+                {...genValidation.fieldProps('firstStart')}
+                className={TOUCH_INPUT}
                 value={gen.firstStart}
                 onChange={(v) => setGen({ ...gen, firstStart: v })}
               />
+              <FieldError id={genValidation.idOf('firstStart')} issue={genValidation.issue('firstStart')} />
             </div>
             <div className="grid content-start gap-1.5">
               <Label htmlFor="gen-count">{t('count')}</Label>
               <Input
-                id="gen-count"
+                {...genValidation.fieldProps('count')}
+                className={TOUCH_INPUT}
                 type="number"
-                min={1}
-                max={14}
-                required
+                inputMode="numeric"
+                aria-required="true"
                 value={gen.count}
                 onChange={(e) => setGen({ ...gen, count: e.target.value })}
               />
+              <FieldError id={genValidation.idOf('count')} issue={genValidation.issue('count')} />
             </div>
             <div className="grid content-start gap-1.5">
-              <Label htmlFor="gen-min">{t('minutes')}</Label>
+              <Label htmlFor="gen-minutes">{t('minutes')}</Label>
               <Input
-                id="gen-min"
+                {...genValidation.fieldProps('minutes')}
+                className={TOUCH_INPUT}
                 type="number"
-                min={10}
-                max={120}
-                required
+                inputMode="numeric"
+                aria-required="true"
                 value={gen.minutes}
                 onChange={(e) => setGen({ ...gen, minutes: e.target.value })}
               />
+              <FieldError id={genValidation.idOf('minutes')} issue={genValidation.issue('minutes')} />
             </div>
             <div className="grid content-start gap-1.5">
-              <Label htmlFor="gen-break">{t('breakAfter')}</Label>
+              <Label htmlFor="gen-breakAfter">{t('breakAfter')}</Label>
               <Input
-                id="gen-break"
+                {...genValidation.fieldProps('breakAfter')}
+                className={TOUCH_INPUT}
                 type="number"
-                min={1}
-                max={13}
+                inputMode="numeric"
                 placeholder={t('noBreak')}
                 value={gen.breakAfter}
                 onChange={(e) => setGen({ ...gen, breakAfter: e.target.value })}
               />
+              <FieldError id={genValidation.idOf('breakAfter')} issue={genValidation.issue('breakAfter')} />
             </div>
             <div className="grid content-start gap-1.5">
-              <Label htmlFor="gen-breakmin">{t('breakMinutes')}</Label>
+              <Label htmlFor="gen-breakMinutes">{t('breakMinutes')}</Label>
               <Input
-                id="gen-breakmin"
+                {...genValidation.fieldProps('breakMinutes')}
+                className={TOUCH_INPUT}
                 type="number"
-                min={5}
-                max={90}
+                inputMode="numeric"
                 value={gen.breakMinutes}
                 onChange={(e) => setGen({ ...gen, breakMinutes: e.target.value })}
               />
+              <FieldError
+                id={genValidation.idOf('breakMinutes')}
+                issue={genValidation.issue('breakMinutes')}
+              />
             </div>
             <div className="flex items-end">
-              <Button type="submit" disabled={generate.isPending}>
+              <Button type="submit" className="h-10 md:h-8" disabled={generate.isPending}>
                 {t('generate')}
               </Button>
             </div>
+            {genValidation.summary && (
+              <p aria-live="polite" className="text-destructive text-sm sm:col-span-3">
+                {tv('summary')}
+              </p>
+            )}
           </form>
         )}
 
         <form
-          className="grid gap-3 sm:grid-cols-[5rem_1fr_1fr_auto] sm:items-end"
+          className="grid gap-3 sm:grid-cols-[5rem_1fr_1fr_auto] sm:items-start"
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
+            if (!addValidation.attempt()) return;
             create.mutate();
           }}
         >
           <div className="grid content-start gap-1.5">
             <Label htmlFor="pd-number">{t('number')}</Label>
             <Input
-              id="pd-number"
+              {...addValidation.fieldProps('number')}
+              className={TOUCH_INPUT}
               type="number"
-              min={1}
-              max={20}
-              required
+              inputMode="numeric"
+              aria-required="true"
               placeholder={nextNumber}
               value={add.number}
               onChange={(e) => setAdd({ ...add, number: e.target.value })}
             />
+            <FieldError id={addValidation.idOf('number')} issue={addValidation.issue('number')} />
           </div>
           <div className="grid content-start gap-1.5">
-            <Label htmlFor="pd-start">{t('starts')}</Label>
-            <TimeField id="pd-start" value={add.startsAt} onChange={(v) => setAdd({ ...add, startsAt: v })} />
+            <Label htmlFor="pd-startsAt">{t('starts')}</Label>
+            <TimeField
+              {...addValidation.fieldProps('startsAt')}
+              className={TOUCH_INPUT}
+              value={add.startsAt}
+              onChange={(v) => setAdd({ ...add, startsAt: v })}
+            />
+            <FieldError id={addValidation.idOf('startsAt')} issue={addValidation.issue('startsAt')} />
           </div>
           <div className="grid content-start gap-1.5">
-            <Label htmlFor="pd-end">{t('ends')}</Label>
-            <TimeField id="pd-end" value={add.endsAt} onChange={(v) => setAdd({ ...add, endsAt: v })} />
+            <Label htmlFor="pd-endsAt">{t('ends')}</Label>
+            <TimeField
+              {...addValidation.fieldProps('endsAt')}
+              className={TOUCH_INPUT}
+              value={add.endsAt}
+              onChange={(v) => setAdd({ ...add, endsAt: v })}
+            />
+            <FieldError id={addValidation.idOf('endsAt')} issue={addValidation.issue('endsAt')} />
           </div>
-          <Button type="submit" variant="outline" disabled={create.isPending || !add.startsAt || !add.endsAt}>
+          <Button
+            type="submit"
+            variant="outline"
+            className="h-10 sm:mt-[1.625rem] md:h-8"
+            disabled={create.isPending}
+          >
             <Plus className="size-4" /> {t('addPeriod')}
           </Button>
+          {addValidation.summary && (
+            <p aria-live="polite" className="text-destructive text-sm sm:col-span-4">
+              {tv('summary')}
+            </p>
+          )}
         </form>
         {error && (
           <Alert variant="destructive">
@@ -298,6 +359,9 @@ export function ScheduleView() {
     label: string;
     subjectId: string;
   } | null>(null);
+  // Sel yang sudah dicoba disimpan tanpa memilih mapel; pesan merah tampil untuk sel itu saja.
+  const [cellTried, setCellTried] = useState<string | null>(null);
+  const cellMissing = !!cell && !cell.subjectId && cellTried === `${cell.weekday}-${cell.periodId}`;
 
   const periods = useQuery({
     queryKey: ['lesson-periods', school.schoolId],
@@ -709,6 +773,9 @@ export function ScheduleView() {
               <Label htmlFor="cell-subject">{t('pickSubject')}</Label>
               <SelectField
                 id="cell-subject"
+                aria-invalid={cellMissing}
+                aria-describedby={cellMissing ? 'cell-subject-error' : undefined}
+                className={TOUCH_SELECT}
                 value={cell?.subjectId ?? ''}
                 onChange={(e) => cell && setCell({ ...cell, subjectId: e.target.value })}
               >
@@ -719,6 +786,7 @@ export function ScheduleView() {
                   </option>
                 ))}
               </SelectField>
+              <FieldError id="cell-subject" issue={cellMissing ? { code: 'choose' } : undefined} />
             </div>
           )}
           {cellError && (
@@ -738,15 +806,20 @@ export function ScheduleView() {
               </Button>
             )}
             <Button
-              disabled={!cell?.subjectId || setCellMutation.isPending}
-              onClick={() =>
-                cell &&
+              disabled={setCellMutation.isPending}
+              onClick={() => {
+                if (!cell) return;
+                if (!cell.subjectId) {
+                  setCellTried(`${cell.weekday}-${cell.periodId}`);
+                  document.getElementById('cell-subject')?.focus();
+                  return;
+                }
                 setCellMutation.mutate({
                   weekday: cell.weekday,
                   periodId: cell.periodId,
                   subjectId: cell.subjectId,
-                })
-              }
+                });
+              }}
             >
               {t('save')}
             </Button>

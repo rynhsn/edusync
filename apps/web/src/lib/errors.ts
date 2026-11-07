@@ -128,6 +128,14 @@ const KNOWN = [
   'invalid_key',
   'key_required',
   'svg_unsafe',
+  'protected_account',
+  'multi_school_account',
+  'member_disabled',
+  'self_reset',
+  'no_match',
+  'reset_link_invalid',
+  'ticket_closed',
+  'invalid_assignee',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

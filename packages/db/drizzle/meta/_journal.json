@@ -547,6 +547,34 @@
       "when": 1795450200000,
       "tag": "0077_fin_bank_account",
       "breakpoints": true
+    },
+    {
+      "idx": 78,
+      "version": "7",
+      "when": 1795500200000,
+      "tag": "0078_login_identifier_recovery",
+      "breakpoints": true
+    },
+    {
+      "idx": 79,
+      "version": "7",
+      "when": 1795510200000,
+      "tag": "0079_password_reset_help",
+      "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1795520200000,
+      "tag": "0080_support_tickets",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1795530200000,
+      "tag": "0081_fin_auto_billing",
+      "breakpoints": true
     }
   ]
 }

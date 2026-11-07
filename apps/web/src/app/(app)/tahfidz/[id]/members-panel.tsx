@@ -9,6 +9,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -19,6 +20,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { initialsOf } from '../shared';
+import { ADD_MEMBERS_ORDER, type AddMembersField, validateAddMembers } from '../tahfidz-validation';
 
 /** Dialog: pilih kelas lalu centang siswa. Siswa yang sudah ada di halaqah lain pada tahun ajaran ini ditandai. */
 function AddMembers({
@@ -39,6 +41,11 @@ function AddMembers({
   const [q, setQ] = useState('');
   const [picked, setPicked] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<AddMembersField>({
+    errors: validateAddMembers({ classId, picked: picked.length }),
+    order: ADD_MEMBERS_ORDER,
+    idPrefix: 'th-add',
+  });
 
   const classes = useQuery({
     queryKey: ['classes', school.schoolId, yearId],
@@ -109,8 +116,8 @@ function AddMembers({
       title={t('addMembers')}
       description={t('addMembersHint')}
       submitLabel={t('addSelected')}
-      disabled={picked.length === 0}
       error={error}
+      validation={validation}
       onOpenChange={() => {
         setClassId('');
         setQ('');
@@ -120,8 +127,13 @@ function AddMembers({
       onSubmit={() => add.mutateAsync()}
     >
       <div className="grid content-start gap-2">
-        <Label htmlFor="th-add-class">{t('class')}</Label>
-        <SelectField id="th-add-class" value={classId} onChange={(e) => setClassId(e.target.value)}>
+        <Label htmlFor="th-add-classId">{t('class')}</Label>
+        <SelectField
+          {...validation.fieldProps('classId')}
+          className={TOUCH_SELECT}
+          value={classId}
+          onChange={(e) => setClassId(e.target.value)}
+        >
           <option value="">{t('chooseClass')}</option>
           {classes.data?.map((c) => (
             <option key={c.id} value={c.id}>
@@ -129,6 +141,7 @@ function AddMembers({
             </option>
           ))}
         </SelectField>
+        <FieldError id={validation.idOf('classId')} issue={validation.issue('classId')} />
       </div>
       {classId && (
         <>
@@ -136,7 +149,7 @@ function AddMembers({
             <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
             <Input
               aria-label={t('searchStudent')}
-              className="pl-8"
+              className={`${TOUCH_INPUT} pl-8`}
               placeholder={t('searchStudent')}
               value={q}
               onChange={(e) => setQ(e.target.value)}
@@ -146,7 +159,12 @@ function AddMembers({
           {students.data && list.length === 0 && (
             <p className="text-muted-foreground text-sm">{t('noStudents')}</p>
           )}
-          <ul className="grid max-h-72 gap-1 overflow-y-auto">
+          <ul
+            id={validation.idOf('picked')}
+            tabIndex={-1}
+            aria-describedby={validation.issue('picked') ? `${validation.idOf('picked')}-error` : undefined}
+            className="grid max-h-72 gap-1 overflow-y-auto outline-none"
+          >
             {list.map((s) => {
               const already = memberIds.has(s.id);
               const elsewhere = otherMembers.data?.get(s.id);
@@ -174,6 +192,7 @@ function AddMembers({
               );
             })}
           </ul>
+          <FieldError id={validation.idOf('picked')} issue={validation.issue('picked')} />
         </>
       )}
       {picked.length > 0 && (

@@ -43,6 +43,7 @@ function previewOf(pattern: string, code: string): string | null {
 export function NumberingCard() {
   const t = useTranslations('letters.numbering');
   const te = useTranslations();
+  const tv = useTranslations('formValidation');
   const { school, can } = useSchool();
   const manage = can('letter:manage');
   const header = useHeader();
@@ -55,6 +56,7 @@ export function NumberingCard() {
   });
   const [draft, setDraft] = useState<Draft>({ schoolCode: '', numberPattern: '', agendaPattern: '' });
   const [error, setError] = useState<string | null>(null);
+  const [attempted, setAttempted] = useState(false);
 
   useEffect(() => {
     if (current.data) {
@@ -144,15 +146,32 @@ export function NumberingCard() {
       ) : (
         <form
           className="grid gap-5"
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
-            if (valid) save.mutate();
+            setAttempted(true);
+            if (valid) {
+              save.mutate();
+              return;
+            }
+            // Fokus ke isian salah pertama dan gulirkan ke terlihat (hormati prefers-reduced-motion).
+            const firstId = !codeValid
+              ? 'letter-code'
+              : !numberCheck.ok
+                ? 'letter-numberPattern'
+                : 'letter-agendaPattern';
+            const el = document.getElementById(firstId);
+            const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            el?.focus({ preventScroll: true });
+            el?.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'center' });
           }}
         >
           <div className="grid content-start gap-2 sm:max-w-xs">
             <Label htmlFor="letter-code">{t('code')}</Label>
             <Input
               id="letter-code"
+              className="h-10 md:h-8"
+              autoComplete="off"
               disabled={!manage}
               maxLength={MAX_SCHOOL_CODE_LENGTH}
               value={draft.schoolCode}
@@ -175,7 +194,8 @@ export function NumberingCard() {
                 </Label>
                 <Input
                   id={`letter-${r.field}`}
-                  className="font-mono"
+                  className="h-10 font-mono md:h-8"
+                  autoComplete="off"
                   disabled={!manage}
                   maxLength={100}
                   value={draft[r.field]}
@@ -239,8 +259,13 @@ export function NumberingCard() {
             </Alert>
           )}
           {manage && (
-            <div className="flex justify-end">
-              <Button type="submit" disabled={!valid || !dirty || save.isPending}>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {attempted && !valid && (
+                <p aria-live="polite" className="text-destructive text-sm">
+                  {tv('summary')}
+                </p>
+              )}
+              <Button type="submit" className="h-10 md:h-8" disabled={!dirty || save.isPending}>
                 {t('save')}
               </Button>
             </div>

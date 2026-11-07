@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,6 +19,7 @@ import { ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { DOC_TYPE_ORDER, type DocTypeField, validateDocType } from './period-validation';
 
 interface Draft {
   id: string | null;
@@ -60,6 +62,11 @@ export function DocumentTypesCard() {
   const [error, setError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<{ id: string; label: string } | null>(null);
   const rows = list.data ?? [];
+  const validation = useFormValidation<DocTypeField>({
+    errors: validateDocType({ label: draft?.label ?? '' }),
+    order: DOC_TYPE_ORDER,
+    idPrefix: 'doc-type',
+  });
 
   const save = useMutation({
     mutationFn: async (d: Draft) => {
@@ -182,7 +189,7 @@ export function DocumentTypesCard() {
         open={draft !== null}
         title={draft?.id ? t('edit') : t('add')}
         submitLabel={t('save')}
-        disabled={!draft?.label.trim()}
+        validation={validation}
         error={error}
         onOpenChange={(o) => {
           if (!o) setDraft(null);
@@ -192,14 +199,17 @@ export function DocumentTypesCard() {
         {draft && (
           <div className="grid gap-4">
             <div className="grid content-start gap-2">
-              <Label htmlFor="doc-type-label">{t('name')}</Label>
+              <Label htmlFor={validation.idOf('label')}>{t('name')}</Label>
               <Input
-                id="doc-type-label"
-                required
+                {...validation.fieldProps('label')}
+                className={TOUCH_INPUT}
+                aria-required="true"
+                autoComplete="off"
                 maxLength={60}
                 value={draft.label}
                 onChange={(e) => setDraft({ ...draft, label: e.target.value })}
               />
+              <FieldError id={validation.idOf('label')} issue={validation.issue('label')} />
             </div>
             <div className="flex items-center gap-2">
               <Checkbox

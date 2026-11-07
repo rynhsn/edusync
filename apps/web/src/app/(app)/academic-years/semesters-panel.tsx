@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,8 +14,10 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
+import { PERIOD_ORDER, type PeriodField, validatePeriod } from './academic-year-validation';
 
 interface Draft {
   name: string;
@@ -26,6 +29,7 @@ const EMPTY: Draft = { name: '', startsOn: '', endsOn: '' };
 /** Semester satu tahun ajaran: lihat, buat otomatis (Ganjil dan Genap) atau manual, ubah, aktifkan, hapus. */
 export function SemestersPanel({ yearId }: { yearId: string }) {
   const t = useTranslations('semesters');
+  const tv = useTranslations('formValidation');
   const te = useTranslations();
   const locale = useLocale() as Locale;
   const { school, can } = useSchool();
@@ -37,6 +41,17 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
+  // Dua formulir sebaris (tambah dan ubah) memakai pasangan galat-merah masing-masing.
+  const addV = useFormValidation<PeriodField>({
+    errors: validatePeriod(draft),
+    order: PERIOD_ORDER,
+    idPrefix: `sem-${yearId}`,
+  });
+  const editV = useFormValidation<PeriodField>({
+    errors: editing ? validatePeriod(editing) : {},
+    order: PERIOD_ORDER,
+    idPrefix: `sem-edit-${yearId}`,
+  });
 
   const list = useQuery({
     queryKey: key,
@@ -75,6 +90,7 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
     onSuccess: () => {
       setError(null);
       setDraft(EMPTY);
+      addV.reset();
       toast.success(t('created'));
       refresh();
     },
@@ -90,6 +106,7 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
       ),
     onSuccess: () => {
       setEditing(null);
+      editV.reset();
       toast.success(t('saved'));
       refresh();
     },
@@ -122,31 +139,76 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
           return (
             <li key={s.id} className="grid content-start gap-2">
               {open && editing ? (
-                <div className="grid content-start gap-2 sm:grid-cols-3">
-                  <Input
-                    aria-label={t('name')}
-                    value={editing.name}
-                    onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                  />
-                  <DatePicker
-                    aria-label={t('starts')}
-                    value={editing.startsOn}
-                    onChange={(v) => setEditing({ ...editing, startsOn: v })}
-                  />
-                  <DatePicker
-                    aria-label={t('ends')}
-                    value={editing.endsOn}
-                    onChange={(v) => setEditing({ ...editing, endsOn: v })}
-                  />
-                  <div className="flex gap-2 sm:col-span-3">
-                    <Button size="sm" disabled={save.isPending} onClick={() => save.mutate(editing)}>
+                <form
+                  noValidate
+                  className="grid content-start gap-2 sm:grid-cols-3"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (editV.attempt()) save.mutate(editing);
+                  }}
+                >
+                  <div className="grid content-start gap-2">
+                    <Input
+                      {...editV.fieldProps('name')}
+                      className={TOUCH_INPUT}
+                      aria-label={t('name')}
+                      aria-required="true"
+                      autoComplete="off"
+                      maxLength={40}
+                      value={editing.name}
+                      onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                    />
+                    <FieldError id={editV.idOf('name')} issue={editV.issue('name')} />
+                  </div>
+                  <div className="grid content-start gap-2">
+                    <DatePicker
+                      {...withoutBlur(editV.fieldProps('startsOn'))}
+                      className={TOUCH_INPUT}
+                      aria-label={t('starts')}
+                      value={editing.startsOn}
+                      onChange={(v) => {
+                        setEditing({ ...editing, startsOn: v });
+                        editV.touch('startsOn');
+                      }}
+                    />
+                    <FieldError id={editV.idOf('startsOn')} issue={editV.issue('startsOn')} />
+                  </div>
+                  <div className="grid content-start gap-2">
+                    <DatePicker
+                      {...withoutBlur(editV.fieldProps('endsOn'))}
+                      className={TOUCH_INPUT}
+                      aria-label={t('ends')}
+                      value={editing.endsOn}
+                      onChange={(v) => {
+                        setEditing({ ...editing, endsOn: v });
+                        editV.touch('endsOn');
+                      }}
+                    />
+                    <FieldError id={editV.idOf('endsOn')} issue={editV.issue('endsOn')} />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 sm:col-span-3">
+                    <Button type="submit" className="h-10 md:h-8" size="sm" disabled={save.isPending}>
                       {t('save')}
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
+                    <Button
+                      type="button"
+                      className="h-10 md:h-8"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setEditing(null);
+                        editV.reset();
+                      }}
+                    >
                       {t('cancel')}
                     </Button>
+                    {editV.summary && (
+                      <p aria-live="polite" className="text-destructive text-sm">
+                        {tv('summary')}
+                      </p>
+                    )}
                   </div>
-                </div>
+                </form>
               ) : (
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <span className="flex flex-wrap items-center gap-2">
@@ -171,9 +233,10 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() =>
-                          setEditing({ id: s.id, name: s.name, startsOn: s.startsOn, endsOn: s.endsOn })
-                        }
+                        onClick={() => {
+                          editV.reset();
+                          setEditing({ id: s.id, name: s.name, startsOn: s.startsOn, endsOn: s.endsOn });
+                        }}
                       >
                         {t('edit')}
                       </Button>
@@ -211,46 +274,67 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
             </div>
           )}
           <form
-            className="grid content-start gap-2 border-t pt-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
+            noValidate
+            className="grid content-start gap-2 border-t pt-3 sm:grid-cols-3"
             onSubmit={(e) => {
               e.preventDefault();
-              create.mutate();
+              if (addV.attempt()) create.mutate();
             }}
           >
-            <div className="grid content-start gap-1">
-              <Label htmlFor={`sem-name-${yearId}`}>{t('name')}</Label>
+            <div className="grid content-start gap-2">
+              <Label htmlFor={addV.idOf('name')}>{t('name')}</Label>
               <Input
-                id={`sem-name-${yearId}`}
-                required
+                {...addV.fieldProps('name')}
+                className={TOUCH_INPUT}
+                aria-required="true"
+                autoComplete="off"
                 maxLength={40}
                 value={draft.name}
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
               />
+              <FieldError id={addV.idOf('name')} issue={addV.issue('name')} />
             </div>
-            <div className="grid content-start gap-1">
-              <Label htmlFor={`sem-start-${yearId}`}>{t('starts')}</Label>
+            <div className="grid content-start gap-2">
+              <Label htmlFor={addV.idOf('startsOn')}>{t('starts')}</Label>
               <DatePicker
-                id={`sem-start-${yearId}`}
+                {...withoutBlur(addV.fieldProps('startsOn'))}
+                className={TOUCH_INPUT}
                 value={draft.startsOn}
-                onChange={(v) => setDraft({ ...draft, startsOn: v })}
+                onChange={(v) => {
+                  setDraft({ ...draft, startsOn: v });
+                  addV.touch('startsOn');
+                }}
               />
+              <FieldError id={addV.idOf('startsOn')} issue={addV.issue('startsOn')} />
             </div>
-            <div className="grid content-start gap-1">
-              <Label htmlFor={`sem-end-${yearId}`}>{t('ends')}</Label>
+            <div className="grid content-start gap-2">
+              <Label htmlFor={addV.idOf('endsOn')}>{t('ends')}</Label>
               <DatePicker
-                id={`sem-end-${yearId}`}
+                {...withoutBlur(addV.fieldProps('endsOn'))}
+                className={TOUCH_INPUT}
                 value={draft.endsOn}
-                onChange={(v) => setDraft({ ...draft, endsOn: v })}
+                onChange={(v) => {
+                  setDraft({ ...draft, endsOn: v });
+                  addV.touch('endsOn');
+                }}
               />
+              <FieldError id={addV.idOf('endsOn')} issue={addV.issue('endsOn')} />
             </div>
-            <Button type="submit" size="sm" disabled={create.isPending || !draft.startsOn || !draft.endsOn}>
-              {t('add')}
-            </Button>
             {error && (
-              <Alert variant="destructive" className="sm:col-span-4">
+              <Alert variant="destructive" className="sm:col-span-3">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
+            <div className="flex flex-wrap items-center gap-2 sm:col-span-3">
+              <Button type="submit" size="sm" className="h-10 md:h-8" disabled={create.isPending}>
+                {t('add')}
+              </Button>
+              {addV.summary && (
+                <p aria-live="polite" className="text-destructive text-sm">
+                  {tv('summary')}
+                </p>
+              )}
+            </div>
           </form>
         </>
       )}

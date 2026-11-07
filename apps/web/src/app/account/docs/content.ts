@@ -1,9 +1,11 @@
 import type { DocArticle } from '@/lib/docs-types';
+import { ACCOUNT_SUPPORT_DOCS } from './content-support';
 
 export type { DocArticle, DocIcon, DocLocale, DocSection, DocText, DocTone } from '@/lib/docs-types';
 
 /** Panduan Portal Akun untuk pengelola lembaga: langganan, tagihan, unit, keamanan, dan cara membuka sekolah. Isi: id, en, su. */
 export const DOC_ARTICLES: DocArticle[] = [
+  ...ACCOUNT_SUPPORT_DOCS,
   {
     slug: 'first-steps',
     icon: 'rocket',

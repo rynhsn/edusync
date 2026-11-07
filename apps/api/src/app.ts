@@ -19,6 +19,7 @@ import { type DomainDns, systemDns } from './domain-dns';
 import type { Env } from './env';
 import { createHostResolver, type HostResolver } from './origins';
 import { paymentConfig } from './payment-config';
+import { trustProxyFor } from './proxy-trust';
 import { academicStructureRoutes } from './routes/academic-structure';
 import { academicYearRoutes } from './routes/academic-years';
 import { accountRoutes } from './routes/account';
@@ -39,6 +40,7 @@ import { examRoutes } from './routes/exams';
 import { extracurricularRoutes } from './routes/extracurricular';
 import { extracurricularCategoryRoutes } from './routes/extracurricular-categories';
 import { financeRoutes } from './routes/finance';
+import { financeAutoBillingRoutes } from './routes/finance-auto-billing';
 import { financeBankAccountRoutes } from './routes/finance-bank-accounts';
 import { financeDiscountRoutes } from './routes/finance-discounts';
 import { financeGatewayRoutes } from './routes/finance-gateway';
@@ -57,6 +59,7 @@ import { liveRoutes } from './routes/live';
 import { meRoutes } from './routes/me';
 import { memberRoutes } from './routes/members';
 import { messagingRoutes } from './routes/messaging';
+import { passwordHelpRoutes } from './routes/password-help';
 import { peopleRoutes } from './routes/people';
 import { pklRoutes } from './routes/pkl';
 import { pklPublicRoutes } from './routes/pkl-public';
@@ -69,9 +72,11 @@ import { platformReferenceRoutes } from './routes/platform-reference';
 import { platformSiteRoutes } from './routes/platform-site';
 import { platformSmtpRoutes } from './routes/platform-smtp';
 import { platformStaffRoutes } from './routes/platform-staff';
+import { platformSupportRoutes } from './routes/platform-support';
 import { platformUserRoutes } from './routes/platform-users';
 import { portalRoutes } from './routes/portal';
 import { portalPublicRoutes } from './routes/portal-public';
+import { recoveryRoutes } from './routes/recovery';
 import { reportCardRoutes } from './routes/report-card';
 import { roleRoutes } from './routes/roles';
 import { scheduleRoutes } from './routes/schedule';
@@ -80,15 +85,19 @@ import { schoolIdentityRoutes } from './routes/school-identity';
 import { schoolSettingsRoutes } from './routes/school-settings';
 import { semesterRoutes } from './routes/semesters';
 import { studentImportRoutes } from './routes/student-import';
+import { supportRoutes } from './routes/support';
 import { tahfidzRoutes } from './routes/tahfidz';
 import { teacherImportRoutes } from './routes/teacher-import';
 import { tlsAskRoutes } from './routes/tls-ask';
+import { type AuthLimits, authLimits, Throttle } from './throttle';
 
 export { paymentConfig };
 
 export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   const app = Fastify({
     logger: env.NODE_ENV === 'test' ? false : { level: 'info' },
+    // request.ip = IP klien di balik Caddy/Next (lihat TRUST_PROXY_HOPS di env.ts); dipakai pembatas laju.
+    trustProxy: trustProxyFor(env),
   }).withTypeProvider<ZodTypeProvider>();
 
   app.setValidatorCompiler(validatorCompiler);
@@ -103,6 +112,8 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   const hosts = createHostResolver((host) => lookupVerifiedHost(tenantDb.db, host));
   const isTrustedOrigin = dynamicOriginCheckerFor(env, hosts);
   app.decorate('hosts', hosts);
+  app.decorate('throttle', new Throttle());
+  app.decorate('authLimits', authLimits(env.NODE_ENV));
   app.decorate('auth', createAuth(env, tenantDb.db, hosts, platformDb.db));
   app.decorate('payments', new PaymentProviderResolver(platformDb.db, env.AUTH_SECRET, paymentConfig(env)));
   app.addHook('onClose', async () => {
@@ -159,6 +170,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
         },
         { name: 'Billing', description: 'Katalog, pendaftaran, dan pembayaran' },
         { name: 'Platform', description: 'Konsol staf Edusync' },
+        { name: 'Support', description: 'Laporan (tiket bantuan) dari sekolah dan pemilik ke tim platform' },
       ],
     },
     transform: jsonSchemaTransform,
@@ -225,6 +237,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   );
 
   await registerAuthRoutes(app, originMatcherFor(env));
+  await app.register(recoveryRoutes, { env });
   await app.register(meRoutes);
   await app.register(academicYearRoutes);
   await app.register(billingRoutes, { env });
@@ -236,6 +249,8 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(platformSmtpRoutes, { env });
   await app.register(platformSiteRoutes);
   await app.register(platformStaffRoutes, { env });
+  await app.register(platformSupportRoutes, { env });
+  await app.register(supportRoutes, { env });
   await app.register(accountRoutes);
   await app.register(memberRoutes);
   await app.register(roleRoutes);
@@ -259,6 +274,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(financeLateFeeRoutes);
   await app.register(financePaymentMethodRoutes);
   await app.register(financeBankAccountRoutes);
+  await app.register(financeAutoBillingRoutes);
   await app.register(financeGatewayRoutes, { env });
   await app.register(admissionRoutes);
   await app.register(admissionDocumentTypeRoutes);
@@ -288,6 +304,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(invitationRoutes, { env });
   await app.register(portalRoutes, { env });
   await app.register(portalPublicRoutes, { env });
+  await app.register(passwordHelpRoutes, { env });
 
   return app;
 }
@@ -299,6 +316,9 @@ declare module 'fastify' {
     auth: Auth;
     /** Penyelesai host domain sendiri terverifikasi (cache 60 detik). */
     hosts: HostResolver;
+    /** Pembatas laju alur masuk dan pemulihan akun (memori proses). */
+    throttle: Throttle;
+    authLimits: AuthLimits;
     /** Penyedia pembayaran yang berlaku (pengaturan di database menimpa variabel lingkungan). */
     payments: PaymentProviderResolver;
   }

@@ -10,6 +10,8 @@ export const authClient = createAuthClient({
   // `phone` adalah kolom tambahan pengguna (lihat apps/api/src/auth.ts).
   plugins: [
     emailOTPClient(),
-    inferAdditionalFields({ user: { phone: { type: 'string', required: false } } }),
+    inferAdditionalFields({
+      user: { phone: { type: 'string', required: false }, username: { type: 'string', required: false } },
+    }),
   ],
 });

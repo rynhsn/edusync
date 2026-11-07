@@ -5,6 +5,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -14,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { GUARDIAN_ORDER, type GuardianField, validateGuardian } from './guardian-validation';
 
 const RELATIONS = ['father', 'mother', 'guardian', 'other'] as const;
 type Relation = (typeof RELATIONS)[number];
@@ -30,6 +32,8 @@ const EMPTY: Draft = { name: '', phone: '', email: '', relation: 'father', isPri
 /** Wali seorang siswa: lihat, tambah baru, tautkan yang sudah ada (kakak-adik), ubah, jadikan utama, dan lepas. */
 export function GuardiansPanel({ studentId }: { studentId: string }) {
   const t = useTranslations('guardians');
+  const tv = useTranslations('formValidation');
+  const tc = useTranslations('common');
   const te = useTranslations();
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
@@ -43,6 +47,17 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
   const [editing, setEditing] = useState<{ id: string; name: string; phone: string; email: string } | null>(
     null,
   );
+  // Formulir tambah dan ubah-sebaris memakai pasangan galat-merah masing-masing.
+  const addV = useFormValidation<GuardianField>({
+    errors: validateGuardian(draft),
+    order: GUARDIAN_ORDER,
+    idPrefix: `g-${studentId}`,
+  });
+  const editV = useFormValidation<GuardianField>({
+    errors: editing ? validateGuardian(editing) : {},
+    order: GUARDIAN_ORDER,
+    idPrefix: `g-edit-${studentId}`,
+  });
 
   const list = useQuery({
     queryKey: key,
@@ -71,6 +86,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
     onSuccess: () => {
       setError(null);
       setDraft(EMPTY);
+      addV.reset();
       setSearch('');
       toast.success(t('added'));
       refresh();
@@ -111,6 +127,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
       ),
     onSuccess: () => {
       setEditing(null);
+      editV.reset();
       toast.success(t('saved'));
       refresh();
     },
@@ -128,32 +145,75 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
           return (
             <li key={g.guardianId} className="grid content-start gap-2 text-sm">
               {open && editing ? (
-                <div className="grid content-start gap-2 sm:grid-cols-3">
-                  <Input
-                    aria-label={t('name')}
-                    value={editing.name}
-                    onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                  />
-                  <Input
-                    aria-label={t('phone')}
-                    value={editing.phone}
-                    onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
-                  />
-                  <Input
-                    aria-label={t('email')}
-                    type="email"
-                    value={editing.email}
-                    onChange={(e) => setEditing({ ...editing, email: e.target.value })}
-                  />
-                  <div className="flex gap-2 sm:col-span-3">
-                    <Button size="sm" disabled={save.isPending} onClick={() => save.mutate(editing)}>
+                <form
+                  noValidate
+                  className="grid content-start gap-2 sm:grid-cols-3"
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    if (editV.attempt()) save.mutate(editing);
+                  }}
+                >
+                  <div className="grid content-start gap-2">
+                    <Input
+                      {...editV.fieldProps('name')}
+                      className={TOUCH_INPUT}
+                      aria-label={t('name')}
+                      aria-required="true"
+                      autoComplete="off"
+                      maxLength={120}
+                      value={editing.name}
+                      onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                    />
+                    <FieldError id={editV.idOf('name')} issue={editV.issue('name')} />
+                  </div>
+                  <div className="grid content-start gap-2">
+                    <Input
+                      {...editV.fieldProps('phone')}
+                      className={TOUCH_INPUT}
+                      aria-label={t('phone')}
+                      inputMode="tel"
+                      autoComplete="off"
+                      maxLength={30}
+                      value={editing.phone}
+                      onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
+                    />
+                    <FieldError id={editV.idOf('phone')} issue={editV.issue('phone')} />
+                  </div>
+                  <div className="grid content-start gap-2">
+                    <Input
+                      {...editV.fieldProps('email')}
+                      className={TOUCH_INPUT}
+                      aria-label={t('email')}
+                      type="email"
+                      autoComplete="off"
+                      value={editing.email}
+                      onChange={(e) => setEditing({ ...editing, email: e.target.value })}
+                    />
+                    <FieldError id={editV.idOf('email')} issue={editV.issue('email')} />
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2 sm:col-span-3">
+                    <Button type="submit" size="sm" className="h-10 md:h-8" disabled={save.isPending}>
                       {t('save')}
                     </Button>
-                    <Button size="sm" variant="ghost" onClick={() => setEditing(null)}>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="h-10 md:h-8"
+                      onClick={() => {
+                        setEditing(null);
+                        editV.reset();
+                      }}
+                    >
                       {t('cancel')}
                     </Button>
+                    {editV.summary && (
+                      <p aria-live="polite" className="text-destructive text-sm">
+                        {tv('summary')}
+                      </p>
+                    )}
                   </div>
-                </div>
+                </form>
               ) : (
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
@@ -182,14 +242,15 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={() =>
+                        onClick={() => {
+                          editV.reset();
                           setEditing({
                             id: g.guardianId,
                             name: g.name,
                             phone: g.phone ?? '',
                             email: g.email ?? '',
-                          })
-                        }
+                          });
+                        }}
                       >
                         {t('edit')}
                       </Button>
@@ -213,27 +274,32 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
       {manage && (
         <>
           <form
+            noValidate
             className="grid gap-3 border-t pt-4 sm:grid-cols-2"
             onSubmit={(e) => {
               e.preventDefault();
-              add.mutate(draft);
+              if (addV.attempt()) add.mutate(draft);
             }}
           >
             <p className="text-sm font-medium sm:col-span-2">{t('addTitle')}</p>
-            <div className="grid content-start gap-1.5">
-              <Label htmlFor={`g-name-${studentId}`}>{t('name')}</Label>
+            <div className="grid content-start gap-2">
+              <Label htmlFor={addV.idOf('name')}>{t('name')}</Label>
               <Input
-                id={`g-name-${studentId}`}
-                required
+                {...addV.fieldProps('name')}
+                className={TOUCH_INPUT}
+                aria-required="true"
+                autoComplete="off"
                 maxLength={120}
                 value={draft.name}
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
               />
+              <FieldError id={addV.idOf('name')} issue={addV.issue('name')} />
             </div>
-            <div className="grid content-start gap-1.5">
+            <div className="grid content-start gap-2">
               <Label htmlFor={`g-rel-${studentId}`}>{t('relation')}</Label>
               <SelectField
                 id={`g-rel-${studentId}`}
+                className={TOUCH_SELECT}
                 value={draft.relation}
                 onChange={(e) => setDraft({ ...draft, relation: e.target.value as Relation })}
               >
@@ -244,26 +310,33 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                 ))}
               </SelectField>
             </div>
-            <div className="grid content-start gap-1.5">
-              <Label htmlFor={`g-phone-${studentId}`}>{t('phone')}</Label>
+            <div className="grid content-start gap-2">
+              <Label htmlFor={addV.idOf('phone')}>{t('phone')}</Label>
               <Input
-                id={`g-phone-${studentId}`}
+                {...addV.fieldProps('phone')}
+                className={TOUCH_INPUT}
                 inputMode="tel"
+                autoComplete="off"
                 maxLength={30}
                 value={draft.phone}
                 onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
               />
+              <FieldError id={addV.idOf('phone')} issue={addV.issue('phone')} />
             </div>
-            <div className="grid content-start gap-1.5">
-              <Label htmlFor={`g-email-${studentId}`}>{t('email')}</Label>
+            <div className="grid content-start gap-2">
+              <Label htmlFor={addV.idOf('email')}>{t('email')}</Label>
               <Input
-                id={`g-email-${studentId}`}
+                {...addV.fieldProps('email')}
+                className={TOUCH_INPUT}
                 type="email"
+                autoComplete="off"
                 value={draft.email}
                 onChange={(e) => setDraft({ ...draft, email: e.target.value })}
               />
+              <FieldError id={addV.idOf('email')} issue={addV.issue('email')} />
             </div>
             <p className="text-muted-foreground -mt-1.5 text-xs sm:col-span-2">{t('phoneHint')}</p>
+            <p className="text-muted-foreground -mt-1.5 text-xs sm:col-span-2">{tc('loginIdentityHint')}</p>
             <label
               htmlFor={`g-primary-${studentId}`}
               className="flex items-center gap-2 text-sm sm:col-span-2"
@@ -280,10 +353,15 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
             )}
-            <div className="sm:col-span-2">
-              <Button type="submit" size="sm" disabled={add.isPending}>
+            <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
+              <Button type="submit" size="sm" className="h-10 md:h-8" disabled={add.isPending}>
                 {t('add')}
               </Button>
+              {addV.summary && (
+                <p aria-live="polite" className="text-destructive text-sm">
+                  {tv('summary')}
+                </p>
+              )}
             </div>
           </form>
 

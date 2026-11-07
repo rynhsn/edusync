@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -16,23 +17,12 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { toBase64 } from '@/lib/file-base64';
 import { cn } from '@/lib/utils';
+import { IDENTITY_FIELDS, type IdentityField, validateIdentity } from './school-settings-validation';
 
 const MAX_LOGO_BYTES = 512 * 1024;
 
-const FIELDS = [
-  'officialName',
-  'street',
-  'village',
-  'district',
-  'city',
-  'province',
-  'postalCode',
-  'phone',
-  'fax',
-  'email',
-  'website',
-] as const;
-type Field = (typeof FIELDS)[number];
+const FIELDS = IDENTITY_FIELDS;
+type Field = IdentityField;
 type Draft = Record<Field, string>;
 
 const WIDE: Field[] = ['officialName', 'street', 'website'];
@@ -57,6 +47,12 @@ export function IdentityPanel() {
     ? (Object.fromEntries(FIELDS.map((f) => [f, identity.data[f] ?? ''])) as Draft)
     : null;
   const value = draft ?? saved;
+  const validation = useFormValidation<Field>({
+    errors: validateIdentity(value ?? (Object.fromEntries(FIELDS.map((f) => [f, ''])) as Draft)),
+    order: FIELDS,
+    idPrefix: 'identity',
+  });
+  const tv = useTranslations('formValidation');
   const refresh = (data: unknown) => {
     queryClient.setQueryData(['school-identity', school.schoolId], data);
   };
@@ -190,8 +186,10 @@ export function IdentityPanel() {
 
       <form
         className="grid gap-4"
+        noValidate
         onSubmit={(e) => {
           e.preventDefault();
+          if (!validation.attempt()) return;
           if (dirty) save.mutate(value);
         }}
       >
@@ -200,13 +198,17 @@ export function IdentityPanel() {
             <div key={f} className={cn('grid content-start gap-2', WIDE.includes(f) && 'sm:col-span-2')}>
               <Label htmlFor={`identity-${f}`}>{t(`fields.${f}`)}</Label>
               <Input
-                id={`identity-${f}`}
+                {...validation.fieldProps(f)}
+                className={TOUCH_INPUT}
                 type={f === 'email' ? 'email' : f === 'website' ? 'url' : 'text'}
+                inputMode={f === 'email' ? 'email' : f === 'website' ? 'url' : undefined}
+                autoComplete="off"
                 maxLength={f === 'street' ? 300 : f === 'postalCode' ? 10 : 200}
                 placeholder={f === 'officialName' ? school.schoolName : undefined}
                 value={value[f]}
                 onChange={(e) => set(f, e.target.value)}
               />
+              <FieldError id={validation.idOf(f)} issue={validation.issue(f)} />
               {f === 'officialName' && (
                 <p className="text-muted-foreground text-xs">{t('officialNameHint')}</p>
               )}
@@ -218,9 +220,14 @@ export function IdentityPanel() {
             <AlertDescription>{error}</AlertDescription>
           </Alert>
         )}
+        {validation.summary && (
+          <p aria-live="polite" className="text-destructive text-sm">
+            {tv('summary')}
+          </p>
+        )}
         {canManage && (
           <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" disabled={!dirty || save.isPending}>
+            <Button type="submit" className="h-10 md:h-8" disabled={!dirty || save.isPending}>
               {t('save')}
             </Button>
             {draft && (

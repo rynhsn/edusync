@@ -58,6 +58,11 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { TEACHER_ORDER, type TeacherField, validateTeacher } from '@/lib/form-validation';
 import { buildExport, saveBlob } from '@/lib/sheet';
+import {
+  TEACHER_ACCOUNT_ORDER,
+  type TeacherAccountField,
+  validateTeacherAccount,
+} from './teacher-account-validation';
 
 interface Draft {
   name: string;
@@ -154,6 +159,11 @@ export function TeachersView() {
   const [pick, setPick] = useState('');
   const [inviteEmail, setInviteEmail] = useState('');
   const [accountError, setAccountError] = useState<string | null>(null);
+  const accountValidation = useFormValidation<TeacherAccountField>({
+    errors: account?.memberId ? {} : validateTeacherAccount(mode, pick, inviteEmail),
+    order: TEACHER_ACCOUNT_ORDER,
+    idPrefix: 'acc',
+  });
 
   const list = useQuery({
     queryKey: ['teachers', school.schoolId, q],
@@ -490,7 +500,7 @@ export function TeachersView() {
         open={!!account}
         title={t('accountTitle', { name: account?.name ?? '' })}
         submitLabel={account?.memberId ? t('unlink') : mode === 'link' ? t('link') : t('sendInvite')}
-        disabled={!account?.memberId && (mode === 'link' ? !pick : !inviteEmail.trim())}
+        validation={accountValidation}
         error={accountError}
         onOpenChange={(open) => !open && setAccount(null)}
         onSubmit={() => {
@@ -498,7 +508,7 @@ export function TeachersView() {
           if (account.memberId) return linkAccount.mutateAsync({ id: account.id, memberId: null });
           return mode === 'link'
             ? linkAccount.mutateAsync({ id: account.id, memberId: pick })
-            : inviteTeacher.mutateAsync({ id: account.id, email: inviteEmail });
+            : inviteTeacher.mutateAsync({ id: account.id, email: inviteEmail.trim() });
         }}
       >
         {account?.memberId ? (
@@ -538,8 +548,13 @@ export function TeachersView() {
                   <p className="text-muted-foreground text-sm">{t('noFreeMembers')}</p>
                 ) : (
                   <div className="grid content-start gap-2">
-                    <Label htmlFor="acc-member">{t('pickMember')}</Label>
-                    <SelectField id="acc-member" value={pick} onChange={(e) => setPick(e.target.value)}>
+                    <Label htmlFor={accountValidation.idOf('pick')}>{t('pickMember')}</Label>
+                    <SelectField
+                      {...accountValidation.fieldProps('pick')}
+                      className={TOUCH_SELECT}
+                      value={pick}
+                      onChange={(e) => setPick(e.target.value)}
+                    >
                       <option value="">{t('pickPlaceholder')}</option>
                       {freeMembers.map((m) => (
                         <option key={m.id} value={m.id}>
@@ -547,18 +562,24 @@ export function TeachersView() {
                         </option>
                       ))}
                     </SelectField>
+                    <FieldError id={accountValidation.idOf('pick')} issue={accountValidation.issue('pick')} />
                   </div>
                 )
               ) : (
                 <div className="grid content-start gap-2">
-                  <Label htmlFor="acc-email">{t('inviteEmail')}</Label>
+                  <Label htmlFor={accountValidation.idOf('email')}>{t('inviteEmail')}</Label>
                   <Input
-                    id="acc-email"
+                    {...accountValidation.fieldProps('email')}
+                    className={TOUCH_INPUT}
                     type="email"
+                    inputMode="email"
+                    autoComplete="off"
+                    aria-required="true"
                     maxLength={254}
                     value={inviteEmail}
                     onChange={(e) => setInviteEmail(e.target.value)}
                   />
+                  <FieldError id={accountValidation.idOf('email')} issue={accountValidation.issue('email')} />
                   <p className="text-muted-foreground text-xs">{t('inviteHint')}</p>
                   {invitedFor(account.id) && (
                     <p className="text-xs text-amber-600">

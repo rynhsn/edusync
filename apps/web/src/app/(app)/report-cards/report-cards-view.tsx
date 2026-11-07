@@ -21,6 +21,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { RowMenu } from '@/components/row-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -54,6 +55,7 @@ import { slugify } from './pdf/format';
 import type { ReportCardDoc } from './pdf/types';
 import { useSignLabels } from './pdf/use-sign-labels';
 import { ReportCardPreview } from './preview';
+import { validateHomeroomNote } from './report-card-validation';
 import { Textarea } from './textarea';
 
 const NOTE_MAX = 500;
@@ -194,6 +196,11 @@ function NoteDialog({
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
   const loaded = doc.data;
+  const validation = useFormValidation<'note'>({
+    errors: validateHomeroomNote(note),
+    order: ['note'],
+    idPrefix: 'rc',
+  });
 
   // Isi awal diambil dari rapor yang sudah ada; ulang setiap kali dialog dibuka untuk siswa lain.
   useEffect(() => {
@@ -226,22 +233,24 @@ function NoteDialog({
       description={target?.name}
       submitLabel={t('save')}
       error={error}
-      disabled={!loaded || save.isPending || note.length > NOTE_MAX}
+      validation={validation}
+      disabled={!loaded || save.isPending}
       onOpenChange={(o) => {
         if (!o) onClose();
       }}
       onSubmit={() => save.mutateAsync()}
     >
       <div className="grid content-start gap-2">
-        <Label htmlFor="rc-note">{t('homeroomNote')}</Label>
+        <Label htmlFor={validation.idOf('note')}>{t('homeroomNote')}</Label>
         <Textarea
-          id="rc-note"
+          {...validation.fieldProps('note')}
           rows={6}
           maxLength={NOTE_MAX}
           disabled={!loaded}
           value={note}
           onChange={(e) => setNote(e.target.value)}
         />
+        <FieldError id={validation.idOf('note')} issue={validation.issue('note')} />
         <p className="text-muted-foreground text-right text-xs tabular-nums">
           {note.length}/{NOTE_MAX}
         </p>

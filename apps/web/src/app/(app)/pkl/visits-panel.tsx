@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { Button } from '@/components/ui/button';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Label } from '@/components/ui/label';
@@ -19,6 +20,7 @@ import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { Textarea } from '../report-cards/textarea';
 import { todayIso } from './lib';
+import { VISIT_ORDER, type VisitField, validateVisit } from './pkl-validation';
 import { type PklPlacement, pklKey } from './shared';
 
 /** Kunjungan monitoring guru ke tempat PKL: daftar dan tambah. */
@@ -35,6 +37,11 @@ export function VisitsPanel({ placement }: { placement: PklPlacement }) {
   const [teacherId, setTeacherId] = useState('');
   const [notes, setNotes] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<VisitField>({
+    errors: validateVisit({ date, notes }),
+    order: VISIT_ORDER,
+    idPrefix: 'vs',
+  });
 
   const visits = useQuery({
     queryKey: pklKey(school.schoolId, 'visits', placement.id),
@@ -79,7 +86,7 @@ export function VisitsPanel({ placement }: { placement: PklPlacement }) {
             description={t('visitDescription')}
             submitLabel={t('save')}
             error={error}
-            disabled={!date || !notes.trim()}
+            validation={validation}
             onOpenChange={(o) => {
               if (o) {
                 setDate(todayIso());
@@ -106,12 +113,23 @@ export function VisitsPanel({ placement }: { placement: PklPlacement }) {
           >
             <div className="grid content-start gap-2">
               <Label htmlFor="vs-date">{t('date')}</Label>
-              <DatePicker id="vs-date" value={date} onChange={setDate} />
+              <DatePicker
+                {...validation.fieldProps('date')}
+                className={TOUCH_INPUT}
+                value={date}
+                onChange={setDate}
+              />
+              <FieldError id={validation.idOf('date')} issue={validation.issue('date')} />
             </div>
             {can('teacher:read') && (
               <div className="grid content-start gap-2">
                 <Label htmlFor="vs-teacher">{t('visitTeacher')}</Label>
-                <SelectField id="vs-teacher" value={teacherId} onChange={(e) => setTeacherId(e.target.value)}>
+                <SelectField
+                  id="vs-teacher"
+                  className={TOUCH_SELECT}
+                  value={teacherId}
+                  onChange={(e) => setTeacherId(e.target.value)}
+                >
                   <option value="">{t('visitTeacherMe')}</option>
                   {(teachers.data ?? []).map((x) => (
                     <option key={x.id} value={x.id}>
@@ -124,12 +142,14 @@ export function VisitsPanel({ placement }: { placement: PklPlacement }) {
             <div className="grid content-start gap-2">
               <Label htmlFor="vs-notes">{t('visitNotes')}</Label>
               <Textarea
-                id="vs-notes"
+                {...validation.fieldProps('notes')}
+                aria-required="true"
                 rows={4}
                 maxLength={2000}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
               />
+              <FieldError id={validation.idOf('notes')} issue={validation.issue('notes')} />
             </div>
           </FormDialog>
         )}

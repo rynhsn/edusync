@@ -26,6 +26,7 @@ import { useSchoolLevels } from '@/lib/school-settings';
 import { scopeBody, scopeError, summarizeTargets } from '../fee-scope';
 import { digitsOnly, KIND_HINT_KEY, KIND_KEY, KINDS, type Kind, useFinanceYear, YearSelect } from '../shared';
 import { ListSkeleton, Money, RowMenu, SectionCard } from '../ui';
+import { AutoBillingCard } from './auto-billing-card';
 import { BankAccountsCard } from './bank-accounts-card';
 import { DiscountsCard } from './discounts-card';
 import { FeeScopePicker, type ScopeValue } from './fee-scope-picker';
@@ -565,6 +566,11 @@ export function FinanceSettingsView() {
 
           <DiscountsCard
             feeTypes={feeList.map((f) => ({ id: f.id, name: f.name }))}
+            classes={(classes.data ?? []).map((c) => ({ id: c.id, name: c.name }))}
+          />
+
+          <AutoBillingCard
+            feeTypes={feeList.map((f) => ({ id: f.id, name: f.name, kind: f.kind, active: f.active }))}
             classes={(classes.data ?? []).map((c) => ({ id: c.id, name: c.name }))}
           />
 

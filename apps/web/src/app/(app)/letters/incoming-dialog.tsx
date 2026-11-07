@@ -7,11 +7,13 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { INCOMING_ORDER, type IncomingField, validateIncoming } from './letter-validation';
 import { TextArea } from './placeholder-chips';
 import { useHeader } from './shared';
 
@@ -54,6 +56,11 @@ export function IncomingDialog({
   const [body, setBody] = useState('');
   const [note, setNote] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<IncomingField>({
+    errors: validateIncoming({ number, letterDate, subject, party, body, note }),
+    order: INCOMING_ORDER,
+    idPrefix: 'in',
+  });
 
   // Isian dikosongkan (atau diisi dari surat yang diubah) setiap dialog dibuka.
   useEffect(() => {
@@ -105,7 +112,7 @@ export function IncomingDialog({
       submitLabel={t('save')}
       size="wide"
       error={error}
-      disabled={!subject.trim() || !party.trim()}
+      validation={validation}
       onSubmit={async () => {
         setError(null);
         await save.mutateAsync();
@@ -113,61 +120,81 @@ export function IncomingDialog({
     >
       <div className="grid gap-4 sm:grid-cols-2">
         {!initial && (
-          <div className="grid content-start gap-1.5">
-            <Label htmlFor="in-number">{t('incomingNumber')}</Label>
+          <div className="grid content-start gap-2">
+            <Label htmlFor={validation.idOf('number')}>{t('incomingNumber')}</Label>
             <Input
-              id="in-number"
+              {...validation.fieldProps('number')}
+              className={TOUCH_INPUT}
+              autoComplete="off"
               maxLength={100}
               value={number}
               onChange={(e) => setNumber(e.target.value)}
               placeholder={t('incomingNumberHint')}
             />
+            <FieldError id={validation.idOf('number')} issue={validation.issue('number')} />
           </div>
         )}
-        <div className="grid content-start gap-1.5">
-          <Label htmlFor="in-date">{t('receivedDate')}</Label>
-          <DatePicker id="in-date" value={letterDate} onChange={setLetterDate} />
+        <div className="grid content-start gap-2">
+          <Label htmlFor={validation.idOf('letterDate')}>{t('receivedDate')}</Label>
+          <DatePicker
+            {...validation.fieldProps('letterDate')}
+            className={TOUCH_INPUT}
+            value={letterDate}
+            onChange={(v) => {
+              validation.touch('letterDate');
+              setLetterDate(v);
+            }}
+          />
+          <FieldError id={validation.idOf('letterDate')} issue={validation.issue('letterDate')} />
         </div>
-        <div className="grid content-start gap-1.5 sm:col-span-2">
-          <Label htmlFor="in-subject">{t('subject')}</Label>
+        <div className="grid content-start gap-2 sm:col-span-2">
+          <Label htmlFor={validation.idOf('subject')}>{t('subject')}</Label>
           <Input
-            id="in-subject"
-            required
+            {...validation.fieldProps('subject')}
+            className={TOUCH_INPUT}
+            aria-required="true"
+            autoComplete="off"
             maxLength={200}
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
           />
+          <FieldError id={validation.idOf('subject')} issue={validation.issue('subject')} />
         </div>
-        <div className="grid content-start gap-1.5 sm:col-span-2">
-          <Label htmlFor="in-party">{t('sender')}</Label>
+        <div className="grid content-start gap-2 sm:col-span-2">
+          <Label htmlFor={validation.idOf('party')}>{t('sender')}</Label>
           <Input
-            id="in-party"
-            required
+            {...validation.fieldProps('party')}
+            className={TOUCH_INPUT}
+            aria-required="true"
+            autoComplete="off"
             maxLength={200}
             value={party}
             onChange={(e) => setParty(e.target.value)}
           />
+          <FieldError id={validation.idOf('party')} issue={validation.issue('party')} />
         </div>
-        <div className="grid content-start gap-1.5 sm:col-span-2">
-          <Label htmlFor="in-body">{t('incomingBody')}</Label>
+        <div className="grid content-start gap-2 sm:col-span-2">
+          <Label htmlFor={validation.idOf('body')}>{t('incomingBody')}</Label>
           <TextArea
-            id="in-body"
+            {...validation.fieldProps('body')}
             rows={4}
             maxLength={20000}
             value={body}
             onChange={(e) => setBody(e.target.value)}
           />
+          <FieldError id={validation.idOf('body')} issue={validation.issue('body')} />
         </div>
-        <div className="grid content-start gap-1.5 sm:col-span-2">
-          <Label htmlFor="in-note">{t('disposition')}</Label>
+        <div className="grid content-start gap-2 sm:col-span-2">
+          <Label htmlFor={validation.idOf('note')}>{t('disposition')}</Label>
           <TextArea
-            id="in-note"
+            {...validation.fieldProps('note')}
             rows={3}
             maxLength={2000}
             value={note}
             onChange={(e) => setNote(e.target.value)}
             placeholder={t('dispositionHint')}
           />
+          <FieldError id={validation.idOf('note')} issue={validation.issue('note')} />
         </div>
       </div>
     </FormDialog>

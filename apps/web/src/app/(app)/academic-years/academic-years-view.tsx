@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { ListSkeleton, REVEAL } from '@/components/master-kit';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -19,9 +20,11 @@ import { Label } from '@/components/ui/label';
 import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, TONES, ToneBadge } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
+import { PERIOD_ORDER, type PeriodField, validatePeriod } from './academic-year-validation';
 import { SemestersPanel } from './semesters-panel';
 
 interface Draft {
@@ -45,6 +48,11 @@ export function AcademicYearsView() {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [formError, setFormError] = useState<string | null>(null);
   const [semestersFor, setSemestersFor] = useState<{ id: string; name: string } | null>(null);
+  const validation = useFormValidation<PeriodField>({
+    errors: validatePeriod(draft),
+    order: PERIOD_ORDER,
+    idPrefix: 'ay',
+  });
 
   const show = (iso: string) => formatCalendarDate(locale, iso);
 
@@ -109,7 +117,7 @@ export function AcademicYearsView() {
       description={t('createDescription')}
       submitLabel={t('save')}
       error={formError}
-      disabled={!draft.name.trim() || !draft.startsOn || !draft.endsOn}
+      validation={validation}
       onOpenChange={() => {
         setDraft(EMPTY);
         setFormError(null);
@@ -118,32 +126,45 @@ export function AcademicYearsView() {
     >
       <div className="grid gap-4">
         <div className="grid content-start gap-2">
-          <Label htmlFor="ay-name">{t('name')}</Label>
+          <Label htmlFor={validation.idOf('name')}>{t('name')}</Label>
           <Input
-            id="ay-name"
+            {...validation.fieldProps('name')}
+            className={TOUCH_INPUT}
             placeholder="2026/2027"
-            required
+            aria-required="true"
+            autoComplete="off"
             maxLength={40}
             value={draft.name}
             onChange={(e) => setDraft({ ...draft, name: e.target.value })}
           />
+          <FieldError id={validation.idOf('name')} issue={validation.issue('name')} />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid content-start gap-2">
-            <Label htmlFor="ay-starts">{t('startsOn')}</Label>
+            <Label htmlFor={validation.idOf('startsOn')}>{t('startsOn')}</Label>
             <DatePicker
-              id="ay-starts"
+              {...withoutBlur(validation.fieldProps('startsOn'))}
+              className={TOUCH_INPUT}
               value={draft.startsOn}
-              onChange={(v) => setDraft({ ...draft, startsOn: v })}
+              onChange={(v) => {
+                setDraft({ ...draft, startsOn: v });
+                validation.touch('startsOn');
+              }}
             />
+            <FieldError id={validation.idOf('startsOn')} issue={validation.issue('startsOn')} />
           </div>
           <div className="grid content-start gap-2">
-            <Label htmlFor="ay-ends">{t('endsOn')}</Label>
+            <Label htmlFor={validation.idOf('endsOn')}>{t('endsOn')}</Label>
             <DatePicker
-              id="ay-ends"
+              {...withoutBlur(validation.fieldProps('endsOn'))}
+              className={TOUCH_INPUT}
               value={draft.endsOn}
-              onChange={(v) => setDraft({ ...draft, endsOn: v })}
+              onChange={(v) => {
+                setDraft({ ...draft, endsOn: v });
+                validation.touch('endsOn');
+              }}
             />
+            <FieldError id={validation.idOf('endsOn')} issue={validation.issue('endsOn')} />
           </div>
         </div>
       </div>

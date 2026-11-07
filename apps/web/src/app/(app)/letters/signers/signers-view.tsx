@@ -10,6 +10,7 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
@@ -24,6 +25,7 @@ import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { dataUrlKb } from '../format';
+import { SIGNER_ORDER, type SignerField, validateSigner } from '../letter-validation';
 import { Seal } from '../seal';
 import { useHeader, useLetterhead, useMySigner, useSigners } from '../shared';
 import { fileToSignatureDataUrl } from './signature-image';
@@ -55,6 +57,16 @@ export function SignersView() {
 
   const [form, setForm] = useState<SignerForm | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const validation = useFormValidation<SignerField>({
+    errors: form
+      ? validateSigner(
+          { memberId: form.memberId, name: form.name, title: form.title, nip: form.nip },
+          !form.id,
+        )
+      : {},
+    order: SIGNER_ORDER,
+    idPrefix: 'sg',
+  });
 
   const members = useQuery({
     queryKey: ['letters', school.schoolId, 'members'],
@@ -229,7 +241,7 @@ export function SignersView() {
           description={t('signerFormDescription')}
           submitLabel={t('save')}
           error={error}
-          disabled={!form || !form.name.trim() || !form.title.trim() || (!form.id && !form.memberId)}
+          validation={validation}
           onSubmit={async () => {
             if (!form) return;
             setError(null);
@@ -239,10 +251,11 @@ export function SignersView() {
           {form && (
             <div className="grid gap-4">
               {!form.id && (
-                <div className="grid content-start gap-1.5">
-                  <Label htmlFor="sg-member">{t('member')}</Label>
+                <div className="grid content-start gap-2">
+                  <Label htmlFor={validation.idOf('memberId')}>{t('member')}</Label>
                   <SelectField
-                    id="sg-member"
+                    {...validation.fieldProps('memberId')}
+                    className={TOUCH_SELECT}
                     value={form.memberId}
                     placeholder={t('memberPick')}
                     onChange={(e) => {
@@ -257,38 +270,48 @@ export function SignersView() {
                       </option>
                     ))}
                   </SelectField>
+                  <FieldError id={validation.idOf('memberId')} issue={validation.issue('memberId')} />
                   {members.isError && <p className="text-destructive text-xs">{t('memberNoAccess')}</p>}
                 </div>
               )}
-              <div className="grid content-start gap-1.5">
-                <Label htmlFor="sg-name">{t('signerName')}</Label>
+              <div className="grid content-start gap-2">
+                <Label htmlFor={validation.idOf('name')}>{t('signerName')}</Label>
                 <Input
-                  id="sg-name"
-                  required
+                  {...validation.fieldProps('name')}
+                  className={TOUCH_INPUT}
+                  aria-required="true"
+                  autoComplete="off"
                   maxLength={120}
                   value={form.name}
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
+                <FieldError id={validation.idOf('name')} issue={validation.issue('name')} />
               </div>
-              <div className="grid content-start gap-1.5">
-                <Label htmlFor="sg-title">{t('signerTitle')}</Label>
+              <div className="grid content-start gap-2">
+                <Label htmlFor={validation.idOf('title')}>{t('signerTitle')}</Label>
                 <Input
-                  id="sg-title"
-                  required
+                  {...validation.fieldProps('title')}
+                  className={TOUCH_INPUT}
+                  aria-required="true"
+                  autoComplete="off"
                   maxLength={120}
                   value={form.title}
                   onChange={(e) => setForm({ ...form, title: e.target.value })}
                   placeholder={t('signerTitleHint')}
                 />
+                <FieldError id={validation.idOf('title')} issue={validation.issue('title')} />
               </div>
-              <div className="grid content-start gap-1.5">
-                <Label htmlFor="sg-nip">NIP</Label>
+              <div className="grid content-start gap-2">
+                <Label htmlFor={validation.idOf('nip')}>NIP</Label>
                 <Input
-                  id="sg-nip"
+                  {...validation.fieldProps('nip')}
+                  className={TOUCH_INPUT}
+                  autoComplete="off"
                   maxLength={40}
                   value={form.nip}
                   onChange={(e) => setForm({ ...form, nip: e.target.value })}
                 />
+                <FieldError id={validation.idOf('nip')} issue={validation.issue('nip')} />
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox

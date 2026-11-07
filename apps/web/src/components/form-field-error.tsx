@@ -26,8 +26,19 @@ export function FieldError({
   className?: string;
 }) {
   const t = useTranslations('formValidation');
+  const root = useTranslations() as unknown as (
+    key: string,
+    values?: Record<string, string | number>,
+  ) => string;
   if (!issue) return null;
-  const text = typeof issue === 'string' ? issue : t(issue.code, { max: issue.max ?? 0 });
+  const text =
+    typeof issue === 'string'
+      ? issue
+      : issue.code === 'custom'
+        ? issue.key
+          ? root(issue.key, issue.values)
+          : t('required')
+        : t(issue.code, { max: issue.max ?? 0, min: issue.min ?? 0 });
   return (
     <p id={`${id}-error`} aria-live="polite" className={cn('text-destructive text-xs', className)}>
       {text}

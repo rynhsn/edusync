@@ -20,6 +20,7 @@ export {
 export * from './billing-settings';
 export * from './catalog';
 export * from './client';
+export * from './finance-generate';
 export * from './messaging';
 export * from './roles';
 export * from './schema';

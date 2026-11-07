@@ -20,6 +20,12 @@ import { ActionMenu, ENTER, roleTone, stagger } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import {
+  FieldError,
+  type FormValidation,
+  TOUCH_INPUT,
+  useFormValidation,
+} from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -31,6 +37,7 @@ import { EmptyPanel, IconTile, MODULE_TONE, StatCard, StatGrid, TONES, ToneBadge
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
+import { ROLE_ORDER, type RoleField, validateRole } from './roles-validation';
 
 interface Draft {
   name: string;
@@ -75,12 +82,15 @@ function RoleForm({
   original,
   nameLocked,
   onChange,
+  v,
 }: {
   idPrefix: string;
   draft: Draft;
   original: string[];
   nameLocked: boolean;
   onChange: (next: Draft) => void;
+  /** Validasi galat-merah; id isian = `${idPrefix}-${field}`. */
+  v: FormValidation<RoleField>;
 }) {
   const t = useTranslations('rolesPage');
   const { can } = useSchool();
@@ -91,16 +101,25 @@ function RoleForm({
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{t('name')}</Label>
         <Input
-          id={`${idPrefix}-name`}
+          {...v.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
           value={draft.name}
           disabled={nameLocked}
           maxLength={40}
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
+        <FieldError id={v.idOf('name')} issue={v.issue('name')} />
       </div>
       <fieldset className="grid content-start gap-2">
         <legend className="mb-1 text-sm font-medium">{t('permissions')}</legend>
-        <div className="grid gap-2.5 sm:grid-cols-2">
+        <div
+          id={v.idOf('permissions')}
+          tabIndex={-1}
+          aria-describedby={v.issue('permissions') ? `${v.idOf('permissions')}-error` : undefined}
+          className="grid gap-2.5 outline-none sm:grid-cols-2"
+        >
           {allGroups().map((g) => (
             <div key={g.resource} className="rounded-xl border p-3">
               <p className="font-heading mb-2 text-sm font-semibold">{labels.resource(g.resource)}</p>
@@ -139,6 +158,7 @@ function RoleForm({
             </div>
           ))}
         </div>
+        <FieldError id={v.idOf('permissions')} issue={v.issue('permissions')} />
       </fieldset>
     </div>
   );
@@ -164,6 +184,15 @@ export function RolesView() {
   >(null);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const validation = useFormValidation<RoleField>({
+    errors: validateRole(
+      editing
+        ? { name: editing.name, permissionCount: editing.permissions.length, nameLocked: editing.system }
+        : { name: creating.name, permissionCount: creating.permissions.length, nameLocked: false },
+    ),
+    order: ROLE_ORDER,
+    idPrefix: editing ? 'edit' : 'new',
+  });
 
   const roles = useQuery({
     queryKey: key,
@@ -245,7 +274,7 @@ export function RolesView() {
               title={t('createTitle')}
               submitLabel={t('create')}
               error={error}
-              disabled={creating.name.trim().length < 2 || creating.permissions.length === 0}
+              validation={validation}
               onOpenChange={() => {
                 setCreating({ name: '', permissions: [] });
                 setError(null);
@@ -258,6 +287,7 @@ export function RolesView() {
                 original={[]}
                 nameLocked={false}
                 onChange={setCreating}
+                v={validation}
               />
             </FormDialog>
           )
@@ -359,6 +389,7 @@ export function RolesView() {
                         icon: Pencil,
                         onSelect: () => {
                           setError(null);
+                          validation.reset();
                           setEditing({
                             id: r.id,
                             name: r.name,
@@ -453,7 +484,7 @@ export function RolesView() {
         title={t('edit')}
         submitLabel={t('save')}
         error={error}
-        disabled={!editing || editing.permissions.length === 0 || editing.name.trim().length < 2}
+        validation={validation}
         onOpenChange={(open) => !open && setEditing(null)}
         onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
       >
@@ -464,6 +495,7 @@ export function RolesView() {
             original={editing.original}
             nameLocked={editing.system}
             onChange={(next) => setEditing({ ...editing, ...next })}
+            v={validation}
           />
         )}
       </FormDialog>
