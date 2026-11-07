@@ -10,7 +10,7 @@ if [ $# -ne 2 ] || [ ! -f "$2" ]; then
   exit 1
 fi
 FILE=$(mktemp)
-trap 'rm -f "$FILE"' EXIT
+trap 'sudo rm -f "$FILE"' EXIT
 cp "$2" "$FILE"
 sudo chown edusync "$FILE"
 sudo -u edusync -H bash -c "cd $APP_DIR && set -a && . ./.env && set +a && pnpm --filter @edusync/api staff:import \"\$0\" \"\$1\"" "$1" "$FILE"
