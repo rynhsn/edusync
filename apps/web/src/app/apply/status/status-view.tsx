@@ -111,7 +111,7 @@ export function StatusView() {
           if (!pending) check.mutate();
         }}
       >
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="regNumber">{t('regNumber')}</Label>
           <Input
             id="regNumber"
@@ -124,7 +124,7 @@ export function StatusView() {
             onChange={(e) => setRegNumber(e.target.value)}
           />
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="trackingCode">{t('trackingCode')}</Label>
           <Input
             id="trackingCode"

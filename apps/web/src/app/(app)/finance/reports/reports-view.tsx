@@ -444,7 +444,7 @@ export function ReportsView() {
                     </Table>
                   </div>
 
-                  <ul className="grid gap-2 md:hidden">
+                  <ul className="grid content-start gap-2 md:hidden">
                     {arrearsRows.map((r) => (
                       <li key={r.studentId} className="bg-card grid gap-3 rounded-xl border p-3">
                         <PersonCell name={r.name} sub={[r.nis, r.className].filter(Boolean).join(' · ')} />

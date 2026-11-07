@@ -412,7 +412,7 @@ export function AdmissionsView() {
       )}
 
       {list.isPending ? (
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           {Array.from({ length: 6 }, (_, i) => (
             // biome-ignore lint/suspicious/noArrayIndexKey: kerangka pemuatan statis
             <Skeleton key={i} className="h-12 w-full" />

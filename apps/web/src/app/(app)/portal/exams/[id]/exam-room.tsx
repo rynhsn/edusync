@@ -417,7 +417,7 @@ export function ExamRoom({ id }: { id: string }) {
 
           {q.type === 'mcq' ? (
             // biome-ignore lint/a11y/useSemanticElements: baris pilihan besar yang bisa disentuh.
-            <div role="radiogroup" aria-labelledby="q-heading" className="grid gap-2">
+            <div role="radiogroup" aria-labelledby="q-heading" className="grid content-start gap-2">
               {q.options.map((o, i) => {
                 const selected = value?.toUpperCase() === o.key.toUpperCase();
                 return (
@@ -458,7 +458,7 @@ export function ExamRoom({ id }: { id: string }) {
               )}
             </div>
           ) : (
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Textarea
                 aria-labelledby="q-heading"
                 rows={8}
@@ -531,7 +531,7 @@ export function ExamRoom({ id }: { id: string }) {
             <DialogTitle>{t('confirmTitle')}</DialogTitle>
             <DialogDescription>{t('confirmBody')}</DialogDescription>
           </DialogHeader>
-          <ul className="grid gap-1 text-sm">
+          <ul className="grid content-start gap-1 text-sm">
             <li className={unanswered > 0 ? 'text-destructive font-medium' : 'text-muted-foreground'}>
               {t('unanswered', { n: unanswered })}
             </li>

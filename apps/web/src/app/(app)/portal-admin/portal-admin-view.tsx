@@ -205,7 +205,7 @@ export function PortalAdminView() {
             </Button>
           </div>
         ) : (
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="pa-search">{t('searchLabel')}</Label>
             <div className="relative max-w-md">
               <Search
@@ -243,7 +243,7 @@ export function PortalAdminView() {
         )}
 
         {student && (
-          <ul className="grid gap-2">
+          <ul className="grid content-start gap-2">
             {targets.map((tg) => (
               <li
                 key={`${tg.kind}-${tg.id}`}
@@ -380,7 +380,7 @@ export function PortalAdminView() {
           await create.mutateAsync({ target, email });
         }}
       >
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="pa-email">{t('emailLabel')}</Label>
           <Input
             id="pa-email"
@@ -399,7 +399,7 @@ export function PortalAdminView() {
             <DialogTitle className="font-heading text-lg">{t('linkTitle')}</DialogTitle>
             <DialogDescription>{t('linkBody', { name: created?.name ?? '' })}</DialogDescription>
           </DialogHeader>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="pa-link">{t('linkLabel')}</Label>
             <div className="flex gap-2">
               <Input

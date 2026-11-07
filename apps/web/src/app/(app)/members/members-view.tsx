@@ -221,7 +221,7 @@ export function MembersView() {
               }}
               onSubmit={() => add.mutateAsync()}
             >
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="member-email">{t('email')}</Label>
                 <Input
                   id="member-email"
@@ -232,7 +232,7 @@ export function MembersView() {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-              <fieldset className="grid gap-2">
+              <fieldset className="grid content-start gap-2">
                 <legend className="mb-1 text-sm font-medium">{t('roles')}</legend>
                 <RolePicker
                   idPrefix="new"

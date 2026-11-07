@@ -131,7 +131,7 @@ export function ScoresPanel({ placement, period }: { placement: PklPlacement; pe
                     <TableCell className="font-medium">{a.name}</TableCell>
                     <TableCell className="text-right tabular-nums">{a.weight}</TableCell>
                     <TableCell>
-                      <div className="grid gap-1.5">
+                      <div className="grid content-start gap-1.5">
                         <Input
                           inputMode="numeric"
                           maxLength={3}
@@ -297,15 +297,15 @@ function CertificateDialog({
         }
       }}
     >
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="ct-place">{t('certificatePlace')}</Label>
         <Input id="ct-place" maxLength={80} value={place} onChange={(e) => setPlace(e.target.value)} />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="ct-date">{t('certificateDate')}</Label>
         <DatePicker id="ct-date" value={date} onChange={setDate} />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="ct-principal">{t('certificatePrincipal')}</Label>
         <Input
           id="ct-principal"

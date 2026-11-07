@@ -10,7 +10,6 @@ import {
   CalendarDays,
   CalendarRange,
   ChevronRight,
-  ChevronsUpDown,
   ClipboardCheck,
   ClipboardList,
   ClipboardSignature,
@@ -51,26 +50,20 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AppHeader, MobileNavDrawer } from '@/components/app-header';
+import { ContextSwitcher } from '@/components/context-switcher';
 import { Logo } from '@/components/logo';
-import { Badge } from '@/components/ui/badge';
+import { ShellAside, SidebarToggle } from '@/components/sidebar-toggle';
+import { type SearchPage, TopbarSearch } from '@/components/topbar-search';
 import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuGroup,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
 import { Skeleton } from '@/components/ui/skeleton';
 import { UserMenu, useSignOut } from '@/components/user-menu';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
 import { isPortalOnly, isPortalPath } from '@/lib/portal-access';
 import { setSchoolTimezone } from '@/lib/school-time';
-import { goToSchool, useSite } from '@/lib/site';
+import { useSite } from '@/lib/site';
 import { cn } from '@/lib/utils';
 
 interface Membership {
@@ -463,6 +456,21 @@ export const NAV_GROUPS = [
 
 type NavItem = (typeof NAV_GROUPS)[number]['items'][number];
 
+/**
+ * Menu yang boleh dilihat pengguna (izin dan modul sekolah), kelompok kosong dibuang. Dipakai bersama oleh
+ * menu samping dan pencarian, sehingga pengguna tidak pernah melihat halaman yang tidak bisa dibukanya.
+ */
+export function visibleNavGroups(permissions: ReadonlySet<string>, modules: readonly string[]) {
+  const allowed = (n: NavItem) =>
+    (n.permission === null ||
+      permissions.has(n.permission) ||
+      ('orPermission' in n && permissions.has(n.orPermission))) &&
+    (!('module' in n) || modules.includes(n.module));
+  return NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter(allowed) as NavItem[] })).filter(
+    (g) => g.items.length > 0,
+  );
+}
+
 /** Menu samping bertingkat: menu induk yang bisa dilipat, submenu di dalamnya, pengaturan di bagian bawah. */
 function SidebarNav({
   permissions,
@@ -476,15 +484,7 @@ function SidebarNav({
   const t = useTranslations('nav');
   const [openGroups, setOpenGroups] = useState<string[]>([]);
 
-  const allowed = (n: NavItem) =>
-    (n.permission === null ||
-      permissions.has(n.permission) ||
-      ('orPermission' in n && permissions.has(n.orPermission))) &&
-    (!('module' in n) || modules.includes(n.module));
-
-  const groups = NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter(allowed) as NavItem[] })).filter(
-    (g) => g.items.length > 0,
-  );
+  const groups = visibleNavGroups(permissions, modules);
 
   const matches = (href: string) =>
     pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
@@ -571,6 +571,35 @@ function SidebarNav({
   );
 }
 
+/** Pencarian topbar panel sekolah: halaman menu (disaring izin/modul yang sama dengan sidebar), dokumentasi, siswa, guru. */
+function SchoolSearch({ school }: { school: Membership }) {
+  const t = useTranslations('nav');
+  const pages = useMemo<SearchPage[]>(
+    () =>
+      visibleNavGroups(new Set(school.permissions), school.modules).flatMap((g) =>
+        g.items.map((n) => ({
+          href: n.href,
+          label: t(n.labelKey),
+          group: g.key ? t(g.key) : undefined,
+          icon: n.icon,
+        })),
+      ),
+    [school, t],
+  );
+  return (
+    <TopbarSearch
+      pages={pages}
+      loadDocs={() => import('@/app/(app)/docs/content').then((m) => m.SCHOOL_DOCS)}
+      docsBase="/docs"
+      people={{
+        schoolId: school.schoolId,
+        students: school.permissions.includes('student:read'),
+        teachers: school.permissions.includes('teacher:read'),
+      }}
+    />
+  );
+}
+
 function Centered({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">{children}</div>
@@ -604,7 +633,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   }, [unauthenticated, router]);
 
   useEffect(() => {
-    if (onMainHost) router.replace('/');
+    if (onMainHost) router.replace('/enter');
   }, [onMainHost, router]);
 
   // Wali/siswa (hanya izin portal) tidak punya halaman staf: apa pun alamatnya, arahkan ke portal.
@@ -707,32 +736,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           <Logo />
         </span>
 
-        <DropdownMenu>
-          <DropdownMenuTrigger
-            render={<Button variant="outline" className="bg-card h-auto justify-between py-2 md:w-full" />}
-          >
-            <span className="truncate text-left">
-              <span className="block truncate text-sm font-medium">{school.schoolName}</span>
-              <span className="text-muted-foreground block truncate text-xs">{roles}</span>
-            </span>
-            <ChevronsUpDown className="size-4 shrink-0 opacity-60" />
-          </DropdownMenuTrigger>
-          <DropdownMenuContent className="min-w-60">
-            <DropdownMenuGroup>
-              <DropdownMenuLabel>{t('switchSchool')}</DropdownMenuLabel>
-              {memberships.map((m) => (
-                <DropdownMenuItem
-                  key={m.schoolId}
-                  // Pindah sekolah = pindah alamat. Sekolah yang sedang dibuka tidak perlu berpindah.
-                  onClick={() => m.schoolSlug !== slug && goToSchool(site, m.schoolSlug)}
-                >
-                  <span className="flex-1 truncate">{m.schoolName}</span>
-                  {m.schoolId === school.schoolId && <Badge variant="secondary">{t('active')}</Badge>}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuGroup>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <ContextSwitcher alwaysShow subtitle={roles} />
       </div>
 
       <SidebarNav permissions={permissions} modules={school.modules} pathname={pathname} />
@@ -742,13 +746,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <SchoolContext.Provider value={value}>
       <div className="flex flex-1 flex-col md:flex-row">
-        <aside className="bg-sidebar text-sidebar-foreground hidden md:sticky md:top-0 md:block md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r">
-          {sidebar}
-        </aside>
+        <ShellAside>{sidebar}</ShellAside>
 
         <div className="flex min-w-0 flex-1 flex-col">
           <AppHeader
             mobileNav={<MobileNavDrawer>{sidebar}</MobileNavDrawer>}
+            sidebarToggle={<SidebarToggle />}
+            search={<SchoolSearch school={school} />}
             leading={
               <span className="md:hidden">
                 <Logo />

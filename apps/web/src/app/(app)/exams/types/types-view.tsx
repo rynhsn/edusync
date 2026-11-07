@@ -121,7 +121,7 @@ export function TypesView() {
         onSubmit={() => save.mutateAsync(draft)}
       >
         <div className="grid gap-4">
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="et-name">{t('typeName')}</Label>
             <Input
               id="et-name"
@@ -132,7 +132,7 @@ export function TypesView() {
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="et-short">{t('typeShort')}</Label>
             <Input
               id="et-short"
@@ -192,7 +192,7 @@ export function TypesView() {
           }
         />
       ) : (
-        <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid content-start gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((x) => (
             <li
               key={x.id}

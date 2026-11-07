@@ -61,7 +61,7 @@ export function GuideView() {
                   {count}/{STEPS.length}
                 </span>
               </div>
-              <ul className="grid gap-2">
+              <ul className="grid content-start gap-2">
                 {STEPS.map((n) => {
                   const id = `${s.key}-${n}`;
                   return (

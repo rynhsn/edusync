@@ -107,7 +107,7 @@ export function GradesTab({ studentId }: { studentId: string }) {
             })}
           </ul>
           {data.recentScores.length > 0 && (
-            <section className="grid gap-2" aria-labelledby="portal-recent">
+            <section className="grid content-start gap-2" aria-labelledby="portal-recent">
               <h3 id="portal-recent" className="font-heading font-semibold">
                 {t('recentScores')}
               </h3>

@@ -111,7 +111,7 @@ export function ExamPaperView({ id }: { id: string }) {
       ) : (
         <>
           {/* biome-ignore lint/a11y/useSemanticElements: dua tombol pilihan, bukan isian formulir. */}
-          <div role="group" aria-label={t('examMode')} className="grid gap-2 sm:grid-cols-2">
+          <div role="group" aria-label={t('examMode')} className="grid content-start gap-2 sm:grid-cols-2">
             {([false, true] as const).map((c) => (
               <button
                 key={String(c)}

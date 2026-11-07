@@ -91,7 +91,7 @@ export function SitePreview({
               </div>
             )}
             {hasContact && (
-              <ul className="grid gap-2 pt-1">
+              <ul className="grid content-start gap-2 pt-1">
                 {profile.address.trim() && (
                   <PreviewRow icon={<MapPin className="size-3.5" aria-hidden />} text={profile.address} />
                 )}

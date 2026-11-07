@@ -13319,7 +13319,7 @@ export interface paths {
                                         h: number;
                                         rotation?: number;
                                         /** @enum {string} */
-                                        field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                        field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
                                         prefix?: string;
                                         maxWidth?: number;
                                         /** @default 9 */
@@ -13378,7 +13378,7 @@ export interface paths {
                                         h: number;
                                         rotation?: number;
                                         /** @enum {string} */
-                                        field: "nis" | "rfidCode" | "participantNo";
+                                        field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                         /** @default #000000 */
                                         color: string;
                                     } | {
@@ -13391,7 +13391,7 @@ export interface paths {
                                         h: number;
                                         rotation?: number;
                                         /** @enum {string} */
-                                        field: "nis" | "rfidCode" | "participantNo";
+                                        field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                         /**
                                          * @default code128
                                          * @enum {string}
@@ -13470,7 +13470,7 @@ export interface paths {
                                         h: number;
                                         rotation?: number;
                                         /** @enum {string} */
-                                        field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                        field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
                                         prefix?: string;
                                         maxWidth?: number;
                                         /** @default 9 */
@@ -13529,7 +13529,7 @@ export interface paths {
                                         h: number;
                                         rotation?: number;
                                         /** @enum {string} */
-                                        field: "nis" | "rfidCode" | "participantNo";
+                                        field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                         /** @default #000000 */
                                         color: string;
                                     } | {
@@ -13542,7 +13542,7 @@ export interface paths {
                                         h: number;
                                         rotation?: number;
                                         /** @enum {string} */
-                                        field: "nis" | "rfidCode" | "participantNo";
+                                        field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                         /**
                                          * @default code128
                                          * @enum {string}
@@ -13697,7 +13697,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -13756,7 +13756,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /** @default #000000 */
                                     color: string;
                                 } | {
@@ -13769,7 +13769,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /**
                                      * @default code128
                                      * @enum {string}
@@ -13904,7 +13904,7 @@ export interface paths {
                                 h: number;
                                 rotation?: number;
                                 /** @enum {string} */
-                                field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
                                 prefix?: string;
                                 maxWidth?: number;
                                 /** @default 9 */
@@ -13963,7 +13963,7 @@ export interface paths {
                                 h: number;
                                 rotation?: number;
                                 /** @enum {string} */
-                                field: "nis" | "rfidCode" | "participantNo";
+                                field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                 /** @default #000000 */
                                 color?: string;
                             } | {
@@ -13976,7 +13976,7 @@ export interface paths {
                                 h: number;
                                 rotation?: number;
                                 /** @enum {string} */
-                                field: "nis" | "rfidCode" | "participantNo";
+                                field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                 /**
                                  * @default code128
                                  * @enum {string}
@@ -14077,7 +14077,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -14136,7 +14136,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /** @default #000000 */
                                     color: string;
                                 } | {
@@ -14149,7 +14149,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /**
                                      * @default code128
                                      * @enum {string}
@@ -14336,7 +14336,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -14395,7 +14395,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /** @default #000000 */
                                     color: string;
                                 } | {
@@ -14408,7 +14408,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /**
                                      * @default code128
                                      * @enum {string}
@@ -14558,7 +14558,7 @@ export interface paths {
                                 h: number;
                                 rotation?: number;
                                 /** @enum {string} */
-                                field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
                                 prefix?: string;
                                 maxWidth?: number;
                                 /** @default 9 */
@@ -14617,7 +14617,7 @@ export interface paths {
                                 h: number;
                                 rotation?: number;
                                 /** @enum {string} */
-                                field: "nis" | "rfidCode" | "participantNo";
+                                field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                 /** @default #000000 */
                                 color?: string;
                             } | {
@@ -14630,7 +14630,7 @@ export interface paths {
                                 h: number;
                                 rotation?: number;
                                 /** @enum {string} */
-                                field: "nis" | "rfidCode" | "participantNo";
+                                field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                 /**
                                  * @default code128
                                  * @enum {string}
@@ -14729,7 +14729,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -14788,7 +14788,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /** @default #000000 */
                                     color: string;
                                 } | {
@@ -14801,7 +14801,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /**
                                      * @default code128
                                      * @enum {string}
@@ -15078,7 +15078,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -15137,7 +15137,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /** @default #000000 */
                                     color: string;
                                 } | {
@@ -15150,7 +15150,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /**
                                      * @default code128
                                      * @enum {string}
@@ -15338,7 +15338,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
+                                    field: "name" | "nis" | "nisn" | "className" | "academicYear" | "birthPlaceDate" | "gender" | "rfidCode" | "qrCode" | "schoolName" | "address" | "examTitle" | "typeName" | "participantNo" | "room" | "date" | "time" | "subjectList";
                                     prefix?: string;
                                     maxWidth?: number;
                                     /** @default 9 */
@@ -15397,7 +15397,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /** @default #000000 */
                                     color: string;
                                 } | {
@@ -15410,7 +15410,7 @@ export interface paths {
                                     h: number;
                                     rotation?: number;
                                     /** @enum {string} */
-                                    field: "nis" | "rfidCode" | "participantNo";
+                                    field: "nis" | "rfidCode" | "qrCode" | "participantNo";
                                     /**
                                      * @default code128
                                      * @enum {string}
@@ -15871,7 +15871,7 @@ export interface paths {
         };
         /**
          * Data cetak kartu siswa
-         * @description Izin: `student:read`. Wajib `classId` (siswa aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). Hanya baca; PDF dirender di klien.
+         * @description Izin: `student:read`. Wajib `classId` (siswa aktif kelas itu) dan/atau `studentIds` (uuid dipisah koma, maks. 300). Tanpa `classId`, kelas diambil dari tahun ajaran aktif. Setiap baris memuat nilai kolom terikat (nama, NIS, kelas, kode RFID aktif pertama, tahun ajaran, nama sekolah) dan jalur foto. Dibatasi 300 baris (`truncated: true` bila lebih). `qrCode` = isi QR absensi cadangan (`ES1.<kode acak>`, satu per siswa); kode yang belum ada dibuat otomatis secara idempoten (satu-satunya efek tulis endpoint ini, dicatat di audit `attendance.qr.create`). PDF dirender di klien.
          */
         get: {
             parameters: {
@@ -15911,6 +15911,8 @@ export interface paths {
                                 address: string;
                                 /** @description Kode kartu RFID aktif pertama; kosong bila belum ada */
                                 rfidCode: string;
+                                /** @description Isi QR absensi cadangan yang dicetak (`ES1.<kode acak>`); dibuat otomatis bila belum ada */
+                                qrCode: string;
                                 /** @description Jalur foto (butuh login & x-school-id), null bila belum ada */
                                 photoUrl: string | null;
                                 schoolName: string;
@@ -16632,6 +16634,347 @@ export interface paths {
                 };
             };
         };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/gate/scan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Catat datang atau pulang dengan memindai QR kartu siswa
+         * @description Izin: `attendance:manage`; modul `attendance`. Cadangan bila kiosk RFID tidak bisa dipakai: guru memindai QR di kartu siswa dengan kamera. `payload` adalah teks hasil pindai (`ES1.<20 karakter>`); selain format itu 400 `invalid_qr`, kode yang tidak terdaftar atau sudah diganti 404 `unknown_qr`. Aturan akses sama dengan `/v1/gate/manual`: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan; selain itu 403 `forbidden_class`. Inti pencatatan SAMA dengan `/v1/gate/manual` (status terlambat dari kebijakan `lateAfter`, penjaga hari libur, pemberitahuan wali, aturan status izin/sakit/alpa) tetapi `tap_event` bersumber `qr` dengan `recordedBy` pencatat. `direction` dipilih eksplisit oleh guru (`in` datang, `out` pulang). `at` (ISO 8601 dengan zona) adalah jam pindai asli untuk kiriman ulang dari antrean offline: tidak boleh di masa depan dan maksimal 48 jam ke belakang (400 `invalid_time`); tanpa `at` dipakai jam server. `clientId` (kunci idempoten per pindaian, maks. 64 karakter): kiriman ulang dengan `clientId` yang sama mengembalikan hasil sebelumnya dengan `replayed: true` tanpa mencatat dua kali. Catatan datang/pulang yang sudah ada tidak ditimpa (`already_in`, `already_out`) kecuali `overwrite: true`; siswa berstatus izin/sakit/alpa dilewati (`skipped_status`) kecuali `overwrite`. Pulang tanpa catatan datang tetap dicatat dengan `warning` `no_check_in`. Hari libur/jeda sekolah: 409 `school_closed` kecuali `force: true`. Siswa tidak aktif: 409 `student_inactive`. Dibatasi 240 permintaan per menit per sesi (429). Satu entri audit dicatat per pindaian.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        payload: string;
+                        /** @enum {string} */
+                        direction: "in" | "out";
+                        /** Format: date-time */
+                        at?: string;
+                        clientId?: string;
+                        /** @default false */
+                        overwrite?: boolean;
+                        /** @default false */
+                        force?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            result: "in" | "out" | "already_in" | "already_out" | "skipped_status" | "invalid_time";
+                            /** @description true bila `clientId` sudah pernah diproses; hasil sebelumnya dikembalikan tanpa mencatat ulang */
+                            replayed: boolean;
+                            student: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                className: string | null;
+                                nis: string | null;
+                            };
+                            date: string;
+                            /** @description Jam yang tercatat (ISO 8601) */
+                            at: string | null;
+                            /** @enum {string|null} */
+                            status: "present" | "late" | "excused" | "sick" | "absent" | null;
+                            late: boolean;
+                            /** @enum {string|null} */
+                            warning: "no_check_in" | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                429: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/attendance/students/{studentId}/qr/rotate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buat ulang QR absensi siswa
+         * @description Izin: `attendance:configure`; modul `attendance`. Untuk kartu yang hilang atau QR yang bocor: kode lama dihapus (QR yang sudah dicetak langsung tidak berlaku, pindaiannya 404 `unknown_qr`) dan kode baru dibuat. Kembalikan `qr` (isi QR `ES1.<kode>`) untuk dicetak ulang. QR dibuat otomatis saat pertama dibutuhkan (`GET /v1/cards/students`), jadi endpoint ini hanya untuk mengganti. Siswa tidak ada: 404. Satu entri audit dicatat (tanpa kode).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            studentId: string;
+                            qr: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/attendance/students/{studentId}/qr": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * QR absensi siswa
+         * @description Izin: `attendance:configure`; modul `attendance`. Mengembalikan isi QR (`ES1.<kode>`) siswa; dibuat bila belum ada (idempoten). Siswa tidak ada: 404.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            studentId: string;
+                            qr: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;

@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { EmptyArt } from '@/app/(app)/portal/ui-bits';
+import { NewPasswordFields } from '@/components/new-password-fields';
 import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -27,7 +28,6 @@ import { goToSchool, useSite } from '@/lib/site';
 /** Terima undangan portal: buat akun dengan kata sandi, masuk, lalu menuju portal sekolah. Tanpa kerangka sekolah. */
 export function PortalInviteView({ token }: { token: string }) {
   const t = useTranslations('portalInvite');
-  const tre = useTranslations('register');
   const ta = useTranslations('auth');
   const te = useTranslations();
   const tc = useTranslations('common');
@@ -91,7 +91,7 @@ export function PortalInviteView({ token }: { token: string }) {
       const slug = accepted?.schoolSlug ?? inv.schoolSlug;
       if (site.ready && site.kind === 'school' && site.slug === slug) router.replace('/portal');
       else if (site.ready) await goToSchool(site, slug, '/portal');
-      else router.replace('/');
+      else router.replace('/enter');
     } catch (e) {
       setError(e instanceof ApiError && !e.code ? e.message : te(errorKey(e)));
     } finally {
@@ -129,7 +129,7 @@ export function PortalInviteView({ token }: { token: string }) {
         )}
         <p className="font-medium">{inv.accountExists ? t('existingTitle') : t('createTitle')}</p>
         {!inv.accountExists && (
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="pi-name">{t('name')}</Label>
             <Input
               id="pi-name"
@@ -141,7 +141,7 @@ export function PortalInviteView({ token }: { token: string }) {
             />
           </div>
         )}
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="pi-email">{ta('email')}</Label>
           <Input
             id="pi-email"
@@ -155,37 +155,27 @@ export function PortalInviteView({ token }: { token: string }) {
           />
           {!fixedEmail && <p className="text-muted-foreground text-xs">{t('emailHint')}</p>}
         </div>
-        <div className="grid gap-2">
-          <Label htmlFor="pi-password">{ta('password')}</Label>
-          <PasswordInput
-            id="pi-password"
-            required
-            autoComplete={inv.accountExists ? 'current-password' : 'new-password'}
-            className="h-11"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            aria-invalid={!inv.accountExists && check.tooShort}
-          />
-          {!inv.accountExists && (
-            <p className={check.tooShort ? 'text-destructive text-xs' : 'text-muted-foreground text-xs'}>
-              {tre('passwordHint')}
-            </p>
-          )}
-        </div>
-        {!inv.accountExists && (
-          <div className="grid gap-2">
-            <Label htmlFor="pi-confirm">{tre('passwordConfirm')}</Label>
+        {inv.accountExists ? (
+          <div className="grid content-start gap-2">
+            <Label htmlFor="pi-password">{ta('password')}</Label>
             <PasswordInput
-              id="pi-confirm"
+              id="pi-password"
               required
-              autoComplete="new-password"
+              autoComplete="current-password"
               className="h-11"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
-              aria-invalid={check.mismatch}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
             />
-            {check.mismatch && <p className="text-destructive text-xs">{tre('passwordMismatch')}</p>}
           </div>
+        ) : (
+          <NewPasswordFields
+            idPrefix="pi"
+            password={password}
+            confirm={confirm}
+            onPasswordChange={setPassword}
+            onConfirmChange={setConfirm}
+            inputClassName="h-11"
+          />
         )}
         <Button
           type="submit"

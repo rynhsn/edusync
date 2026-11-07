@@ -116,13 +116,13 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
   return (
     <div className="grid gap-3">
       {list.data?.length === 0 && <p className="text-muted-foreground text-sm">{t('empty')}</p>}
-      <ul className="grid gap-2 text-sm">
+      <ul className="grid content-start gap-2 text-sm">
         {list.data?.map((s) => {
           const open = editing?.id === s.id;
           return (
-            <li key={s.id} className="grid gap-2">
+            <li key={s.id} className="grid content-start gap-2">
               {open && editing ? (
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid content-start gap-2 sm:grid-cols-3">
                   <Input
                     aria-label={t('name')}
                     value={editing.name}
@@ -211,13 +211,13 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
             </div>
           )}
           <form
-            className="grid gap-2 border-t pt-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
+            className="grid content-start gap-2 border-t pt-3 sm:grid-cols-[1fr_1fr_1fr_auto] sm:items-end"
             onSubmit={(e) => {
               e.preventDefault();
               create.mutate();
             }}
           >
-            <div className="grid gap-1">
+            <div className="grid content-start gap-1">
               <Label htmlFor={`sem-name-${yearId}`}>{t('name')}</Label>
               <Input
                 id={`sem-name-${yearId}`}
@@ -227,7 +227,7 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
               />
             </div>
-            <div className="grid gap-1">
+            <div className="grid content-start gap-1">
               <Label htmlFor={`sem-start-${yearId}`}>{t('starts')}</Label>
               <DatePicker
                 id={`sem-start-${yearId}`}
@@ -235,7 +235,7 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
                 onChange={(v) => setDraft({ ...draft, startsOn: v })}
               />
             </div>
-            <div className="grid gap-1">
+            <div className="grid content-start gap-1">
               <Label htmlFor={`sem-end-${yearId}`}>{t('ends')}</Label>
               <DatePicker
                 id={`sem-end-${yearId}`}

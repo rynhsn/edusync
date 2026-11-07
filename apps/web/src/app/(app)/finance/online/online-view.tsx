@@ -129,7 +129,7 @@ export function OnlineChargesView() {
               </TableBody>
             </Table>
           </div>
-          <ul className="grid gap-2 md:hidden">
+          <ul className="grid content-start gap-2 md:hidden">
             {items.map((c) => (
               <li key={c.orderId} className="bg-background grid gap-1.5 rounded-xl border p-3">
                 <div className="flex items-start justify-between gap-2">

@@ -125,7 +125,7 @@ function ThresholdsCard() {
       )}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {KEYS.map((k) => (
-          <div key={k} className="grid gap-2">
+          <div key={k} className="grid content-start gap-2">
             <Label htmlFor={`grade-${k}`}>{t(`field_${k}`)}</Label>
             <Input
               id={`grade-${k}`}
@@ -281,7 +281,7 @@ function ComponentsCard() {
       )}
       {items.length > 0 && (
         <>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <div
               role="img"
               aria-label={`${t('totalWeight')}: ${total}%`}
@@ -384,7 +384,7 @@ function ComponentsCard() {
         disabled={!formValid || submit.isPending}
         onSubmit={() => submit.mutateAsync()}
       >
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="component-name">{t('componentName')}</Label>
           <Input
             id="component-name"
@@ -394,7 +394,7 @@ function ComponentsCard() {
           />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="component-weight">{t('weightPercent')}</Label>
             <Input
               id="component-weight"
@@ -403,7 +403,7 @@ function ComponentsCard() {
               onChange={(e) => setForm((f) => ({ ...f, weight: e.target.value }))}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="component-sort">{t('sort')}</Label>
             <Input
               id="component-sort"

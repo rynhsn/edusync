@@ -156,7 +156,7 @@ export function CardsView() {
           onSubmit={() => create.mutateAsync()}
         >
           <div className={FORM_GRID}>
-            <div className="grid gap-2 sm:col-span-2">
+            <div className="grid content-start gap-2 sm:col-span-2">
               <Label htmlFor="card-search">{t('searchStudent')}</Label>
               <Input
                 id="card-search"
@@ -165,7 +165,7 @@ export function CardsView() {
                 onChange={(e) => setSearch(e.target.value)}
               />
             </div>
-            <div className="grid gap-2 sm:col-span-2">
+            <div className="grid content-start gap-2 sm:col-span-2">
               <Label htmlFor="card-student">{t('student')}</Label>
               <SelectField id="card-student" value={studentId} onChange={(e) => setStudentId(e.target.value)}>
                 <option value="">{t('chooseStudent')}</option>
@@ -177,7 +177,7 @@ export function CardsView() {
                 ))}
               </SelectField>
             </div>
-            <div className="grid gap-2 sm:col-span-2">
+            <div className="grid content-start gap-2 sm:col-span-2">
               <Label htmlFor="card-code">{t('cardCode')}</Label>
               <Input
                 id="card-code"

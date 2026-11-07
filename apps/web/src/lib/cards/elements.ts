@@ -241,6 +241,7 @@ export function sampleCardData(kind: CardKind): CardData {
     birthPlaceDate: 'Bandung, 5 Oktober 2010',
     gender: 'L',
     rfidCode: '04A1B2C3',
+    qrCode: 'ES1.7K3M9Q2XH4VBN8T5WRDA',
     schoolName: 'SMP Contoh Nusantara',
     address: 'Jl. Merdeka No. 10, Bandung',
   };
@@ -265,6 +266,11 @@ export function elementText(el: CardElement, data: CardData): string {
   if (el.type === 'text') return el.text;
   if (el.type === 'field') return `${el.prefix ?? ''}${resolveFieldValue(el.field, data)}`;
   return '';
+}
+
+/** Apakah tata letak memuat QR/kode batang absensi (kolom `qrCode`); templat lama belum punya. */
+export function hasAttendanceQr(layout: Pick<CardLayout, 'elements'>): boolean {
+  return layout.elements.some((el) => (el.type === 'qr' || el.type === 'barcode') && el.field === 'qrCode');
 }
 
 /** Isi QR / kode batang untuk elemen; kosong bila kolomnya kosong. */

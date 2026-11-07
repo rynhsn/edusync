@@ -115,7 +115,7 @@ export function PaymentMethodsCard() {
 
   const fields = (
     <div className="grid gap-4">
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="pm-label">{t('pmLabel')}</Label>
         <Input
           id="pm-label"
@@ -171,7 +171,7 @@ export function PaymentMethodsCard() {
         </Alert>
       )}
       {items.length > 0 && (
-        <ul className="grid gap-2">
+        <ul className="grid content-start gap-2">
           {items.map((m, i) => (
             <li
               key={m.id}

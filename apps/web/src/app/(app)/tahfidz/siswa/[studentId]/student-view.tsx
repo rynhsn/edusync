@@ -215,7 +215,7 @@ export function StudentProgressView({ studentId }: { studentId: string }) {
                   const done = semester.done[`${k}Ayahs`];
                   if (target === 0) return null;
                   return (
-                    <div key={k} className="grid gap-1.5">
+                    <div key={k} className="grid content-start gap-1.5">
                       <div className="flex items-center justify-between text-sm">
                         <span className="text-muted-foreground">{t(`kindName.${k}`)}</span>
                         <span className="tabular-nums">{t('targetProgress', { done, target })}</span>
@@ -262,7 +262,7 @@ export function StudentProgressView({ studentId }: { studentId: string }) {
         {coverage.perSurah.length === 0 ? (
           <p className="text-muted-foreground py-6 text-center text-sm">{t('noSurahsYet')}</p>
         ) : (
-          <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <ul className="grid content-start gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {[...surahCoverage.values()].map((c) => {
               const s = SURAHS[c.surah - 1];
               if (!s) return null;

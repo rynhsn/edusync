@@ -103,7 +103,7 @@ export function StatusView({ id }: { id: string }) {
             {data.schools.length > 0 && (
               <div className="text-sm">
                 <p className="text-muted-foreground mb-1">{t('paidHint')}</p>
-                <ul className="grid gap-1">
+                <ul className="grid content-start gap-1">
                   {data.schools.map((s) => (
                     <li key={s.id} className="font-medium">
                       {s.name}{' '}
@@ -115,7 +115,7 @@ export function StatusView({ id }: { id: string }) {
                 </ul>
               </div>
             )}
-            <Button nativeButton={false} render={<Link href="/" />}>
+            <Button nativeButton={false} render={<Link href="/enter" />}>
               {t('goDashboard')}
             </Button>
           </>

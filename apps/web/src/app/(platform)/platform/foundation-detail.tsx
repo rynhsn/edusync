@@ -188,7 +188,7 @@ export function FoundationDetail({
                   {detail.data.modules.length === 0 ? (
                     <p className="text-muted-foreground text-sm">{t('noModules')}</p>
                   ) : (
-                    <div className="grid gap-2">
+                    <div className="grid content-start gap-2">
                       {foundation.schools.map((s) => {
                         const mods = (detail.data?.modules ?? []).filter((m) => m.schoolId === s.id);
                         if (mods.length === 0) return null;

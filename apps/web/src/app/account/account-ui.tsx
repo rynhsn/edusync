@@ -48,7 +48,7 @@ export function PeriodBar({ sub, className }: { sub: Sub; className?: string }) 
   const late = daysLeft < 0;
   const soon = !late && daysLeft <= 7;
   return (
-    <div className={cn('grid gap-1.5', className)}>
+    <div className={cn('grid content-start gap-1.5', className)}>
       <div
         role="progressbar"
         aria-valuemin={0}

@@ -150,7 +150,7 @@ export function YearView() {
       />
 
       <div className="flex flex-wrap items-end gap-4">
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="year-year">{t('year')}</Label>
           <SelectField id="year-year" value={year.id} onChange={(e) => setYearChoice(e.target.value)}>
             {years.data?.map((y) => (

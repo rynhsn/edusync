@@ -281,7 +281,7 @@ export function TemplatesView() {
           {form && (
             <div className="grid gap-4">
               <div className="grid gap-4 sm:grid-cols-[1fr_11rem]">
-                <div className="grid gap-1.5">
+                <div className="grid content-start gap-1.5">
                   <Label htmlFor="tp-name">{t('templateName')}</Label>
                   <Input
                     id="tp-name"
@@ -291,7 +291,7 @@ export function TemplatesView() {
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
                   />
                 </div>
-                <div className="grid gap-1.5">
+                <div className="grid content-start gap-1.5">
                   <Label htmlFor="tp-kind">{t('templateKind')}</Label>
                   <SelectField
                     id="tp-kind"
@@ -303,7 +303,7 @@ export function TemplatesView() {
                   </SelectField>
                 </div>
               </div>
-              <div className="grid gap-1.5">
+              <div className="grid content-start gap-1.5">
                 <Label htmlFor="tp-body">{t('body')}</Label>
                 <PlaceholderChips names={LETTER_PLACEHOLDERS} onPick={insert} />
                 <TextArea
@@ -330,7 +330,7 @@ export function TemplatesView() {
                 />
                 <Label htmlFor="tp-active">{t('templateActive')}</Label>
               </div>
-              <div className="grid gap-1.5">
+              <div className="grid content-start gap-1.5">
                 <p className="text-sm font-medium">{t('samplePreview')}</p>
                 <div className="mx-auto w-full max-w-sm">
                   <PaperSheet zoom={100}>

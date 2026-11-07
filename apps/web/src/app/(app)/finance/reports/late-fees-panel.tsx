@@ -185,7 +185,7 @@ export function LateFeesPanel() {
                 </Table>
               </div>
 
-              <ul className="grid gap-2 md:hidden">
+              <ul className="grid content-start gap-2 md:hidden">
                 {items.map((i) => (
                   <li key={i.invoiceId} className="bg-card grid gap-3 rounded-xl border p-3">
                     <div className="flex items-start justify-between gap-2">
@@ -246,7 +246,7 @@ export function LateFeesPanel() {
             <DialogTitle className="font-heading text-lg">{t('lateFeeResultTitle')}</DialogTitle>
           </DialogHeader>
           {result && (
-            <ul className="grid gap-1 text-sm">
+            <ul className="grid content-start gap-1 text-sm">
               <li className="font-medium text-emerald-700 dark:text-emerald-300">
                 {t('lateFeeResultCreated', { count: result.created, total: formatRupiah(result.total) })}
               </li>

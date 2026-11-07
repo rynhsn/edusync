@@ -96,7 +96,7 @@ function AddMembers({ id, memberIds }: { id: string; memberIds: Set<string> }) {
       }}
       onSubmit={() => add.mutateAsync()}
     >
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="ek-add-class">{t('class')}</Label>
         <SelectField id="ek-add-class" value={classId} onChange={(e) => setClassId(e.target.value)}>
           <option value="">{t('chooseClass')}</option>

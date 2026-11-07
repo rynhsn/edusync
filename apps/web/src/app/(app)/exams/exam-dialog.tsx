@@ -355,7 +355,7 @@ export function ExamDialog({
             </SelectField>
           </div>
           {cbt && (
-            <div className="grid gap-2 sm:col-span-2">
+            <div className="grid content-start gap-2 sm:col-span-2">
               <p className="text-muted-foreground text-xs">{tc('cbtHint')}</p>
               {scheduleMissing && (
                 <p role="alert" className="text-destructive text-xs">

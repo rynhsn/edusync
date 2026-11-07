@@ -67,7 +67,12 @@ export function useSite(): Site {
  * ditukar menjadi token sekali pakai (berlaku satu menit) yang dipakai halaman tujuan untuk membuat
  * sesinya sendiri.
  */
-export async function goToSchool(site: Extract<Site, { ready: true }>, slug: string, next = '/dashboard') {
+export async function goToSchool(
+  site: Extract<Site, { ready: true }>,
+  /** null = alamat utama (konsol platform dan portal pemilik lembaga). */
+  slug: string | null,
+  next = '/dashboard',
+) {
   const res = await fetch('/api/auth/one-time-token/generate', { credentials: 'include' });
   if (!res.ok) throw new Error('Tidak dapat membuat token pindah alamat');
   const { token } = (await res.json()) as { token: string };

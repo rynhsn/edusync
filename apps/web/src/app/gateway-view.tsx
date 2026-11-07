@@ -17,7 +17,7 @@ import { goToSchool, useSite } from '@/lib/site';
  * - Alamat sekolah → dashboard sekolah itu.
  * - Alamat utama: staf platform → konsol; anggota sekolah → dipindahkan ke alamat sekolahnya.
  */
-export function GatewayView({ landing }: { landing: ReactNode }) {
+export function GatewayView({ landing, enter = false }: { landing: ReactNode; enter?: boolean }) {
   const t = useTranslations('nav');
   const tc = useTranslations('common');
   const router = useRouter();
@@ -28,7 +28,13 @@ export function GatewayView({ landing }: { landing: ReactNode }) {
 
   const me = useQuery({
     queryKey: ['me'],
+    // Di alamat utama tanpa /enter yang tampil hanya profil perusahaan: tidak perlu tahu siapa yang masuk.
+    enabled: site.ready && (enter || site.kind !== 'main'),
     queryFn: async () => {
+      // Pengunjung yang belum masuk tidak perlu memanggil /v1/me (jawabannya 401 dan tercatat merah di konsol):
+      // cek sesi dulu, yang menjawab 200 kosong bila belum masuk.
+      const session = await authClient.getSession();
+      if (!session.data) return null;
       const res = await api.GET('/v1/me');
       return res.response.status === 401 ? null : unwrap(res);
     },
@@ -36,7 +42,7 @@ export function GatewayView({ landing }: { landing: ReactNode }) {
 
   const staff = useQuery({
     queryKey: ['platform-me'],
-    enabled: !!me.data && site.ready && site.kind === 'main',
+    enabled: enter && !!me.data && site.ready && site.kind === 'main',
     queryFn: async () => {
       const res = await api.GET('/v1/platform/me');
       return res.response.ok ? unwrap(res) : null;
@@ -45,14 +51,14 @@ export function GatewayView({ landing }: { landing: ReactNode }) {
 
   const owner = useQuery({
     queryKey: ['account'],
-    enabled: !!me.data && site.ready && site.kind === 'main',
+    enabled: enter && !!me.data && site.ready && site.kind === 'main',
     queryFn: async () => unwrap(await api.GET('/v1/account')),
   });
 
   // Pendaftar yang menutup halaman bayar harus bisa melanjutkan, bukan buntu di "belum terdaftar".
   const latest = useQuery({
     queryKey: ['registration-latest'],
-    enabled: !!me.data && site.ready && site.kind === 'main',
+    enabled: enter && !!me.data && site.ready && site.kind === 'main',
     queryFn: async () => {
       const res = await api.GET('/v1/registrations/latest');
       return res.response.ok ? unwrap(res) : null;
@@ -62,11 +68,10 @@ export function GatewayView({ landing }: { landing: ReactNode }) {
   useEffect(() => {
     if (site.ready && site.custom) return void router.replace('/site');
     if (!site.ready || me.isPending || me.isError) return;
-    if (me.data === null) {
-      // Alamat utama menampilkan profil perusahaan; alamat sekolah langsung ke login.
-      if (site.kind === 'main') return;
-      return void router.replace('/login');
-    }
+    // Alamat utama menampilkan profil perusahaan, juga untuk yang sudah masuk (tanpa pengalihan otomatis);
+    // pengalihan ke konsol, portal, atau sekolah hanya lewat /enter (tujuan setelah masuk dan tombol "Buka aplikasi").
+    if (site.kind === 'main' && !enter) return;
+    if (me.data === null) return void router.replace('/login');
     if (site.kind === 'school') {
       // Wali/siswa mendarat di portal, staf di dasbor.
       const here = me.data.memberships.find((m) => m.schoolSlug === site.slug);
@@ -93,6 +98,7 @@ export function GatewayView({ landing }: { landing: ReactNode }) {
     owner.isPending,
     owner.data,
     router,
+    enter,
   ]);
 
   async function signOut() {
@@ -114,6 +120,8 @@ export function GatewayView({ landing }: { landing: ReactNode }) {
   const reg = latest.data;
   const regExpired = !!reg && (reg.status === 'expired' || new Date(reg.expiresAt) < new Date());
 
+  if (site.ready && !site.custom && site.kind === 'main' && !enter) return landing;
+
   if (me.isError || moveFailed) {
     return (
       <div className="flex flex-1 flex-col items-center justify-center gap-3 p-8 text-center">
@@ -131,7 +139,7 @@ export function GatewayView({ landing }: { landing: ReactNode }) {
     );
   }
 
-  if (site.ready && !site.custom && site.kind === 'main' && me.data === null) return landing;
+  if (site.ready && !site.custom && site.kind === 'main' && me.data === null) return null;
 
   if (noSchool && reg && reg.status !== 'paid') {
     return (

@@ -9,15 +9,17 @@ import {
   Receipt,
   School,
   Sparkles,
-  UserCog,
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { AppHeader, MobileNavDrawer } from '@/components/app-header';
+import { ContextSwitcher } from '@/components/context-switcher';
 import { Logo } from '@/components/logo';
+import { ShellAside, SidebarToggle } from '@/components/sidebar-toggle';
+import { type SearchPage, TopbarSearch } from '@/components/topbar-search';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
@@ -28,8 +30,8 @@ import { authClient } from '@/lib/auth-client';
 import { cn } from '@/lib/utils';
 import { AccountProvider, useAccount, useAccountQuery } from './account-context';
 
-type NavKey = 'overview' | 'units' | 'subscription' | 'billing' | 'members' | 'help' | 'docs' | 'profile';
-type GroupKey = 'groupMain' | 'groupHelp' | 'groupMe';
+type NavKey = 'overview' | 'units' | 'subscription' | 'billing' | 'members' | 'help' | 'docs';
+type GroupKey = 'groupMain' | 'groupHelp';
 
 interface NavItem {
   href: string;
@@ -39,7 +41,7 @@ interface NavItem {
 }
 
 /** Menu dikelompokkan seperti konsol platform dan panel sekolah: pengelolaan, bantuan, lalu akun pribadi. */
-const GROUPS: { key: GroupKey; items: NavItem[] }[] = [
+export const ACCOUNT_NAV_GROUPS: { key: GroupKey; items: NavItem[] }[] = [
   {
     key: 'groupMain',
     items: [
@@ -57,7 +59,6 @@ const GROUPS: { key: GroupKey; items: NavItem[] }[] = [
       { href: '/account/docs', key: 'docs', icon: BookOpen },
     ],
   },
-  { key: 'groupMe', items: [{ href: '/account/profile', key: 'profile', icon: UserCog }] },
 ];
 
 function FoundationPicker() {
@@ -65,7 +66,7 @@ function FoundationPicker() {
   const t = useTranslations('account.nav');
   if (foundations.length < 2) return null;
   return (
-    <div className="grid gap-1.5 px-4 pb-3">
+    <div className="grid content-start gap-1.5 px-4 pb-3">
       <Label htmlFor="foundation-picker" className="text-xs">
         {t('foundation')}
       </Label>
@@ -89,7 +90,7 @@ function SideNav() {
   const path = usePathname();
   return (
     <nav aria-label={t('label')} className="flex flex-col gap-0.5 px-4 pb-4">
-      {GROUPS.map((group) => (
+      {ACCOUNT_NAV_GROUPS.map((group) => (
         <div key={group.key} className="mt-4 grid gap-0.5 first:mt-0">
           <p className="text-muted-foreground px-3 pt-1 pb-1 text-[11px] font-semibold tracking-wider uppercase">
             {t(group.key)}
@@ -119,6 +120,25 @@ function SideNav() {
         </div>
       ))}
     </nav>
+  );
+}
+
+/** Pencarian topbar portal pemilik: halaman menu dan dokumentasi portal. */
+function AccountSearch() {
+  const t = useTranslations('account.nav');
+  const pages = useMemo<SearchPage[]>(
+    () =>
+      ACCOUNT_NAV_GROUPS.flatMap((g) =>
+        g.items.map((item) => ({ href: item.href, label: t(item.key), group: t(g.key), icon: item.icon })),
+      ),
+    [t],
+  );
+  return (
+    <TopbarSearch
+      pages={pages}
+      loadDocs={() => import('./docs/content').then((m) => m.DOC_ARTICLES)}
+      docsBase="/account/docs"
+    />
   );
 }
 
@@ -199,8 +219,9 @@ export function AccountShell({ children }: { children: React.ReactNode }) {
 
   const sidebar = (
     <>
-      <div className="flex flex-col items-start gap-3 p-4">
+      <div className="flex flex-col items-stretch gap-3 p-4">
         {logoLink}
+        <ContextSwitcher />
         <FoundationBadge />
       </div>
       <FoundationPicker />
@@ -211,13 +232,13 @@ export function AccountShell({ children }: { children: React.ReactNode }) {
   return (
     <AccountProvider foundations={foundations}>
       <div className="flex flex-1 flex-col md:flex-row">
-        <aside className="bg-sidebar text-sidebar-foreground hidden md:sticky md:top-0 md:block md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r">
-          {sidebar}
-        </aside>
+        <ShellAside>{sidebar}</ShellAside>
 
         <div className="flex min-w-0 flex-1 flex-col">
           <AppHeader
             mobileNav={<MobileNavDrawer>{sidebar}</MobileNavDrawer>}
+            sidebarToggle={<SidebarToggle />}
+            search={<AccountSearch />}
             leading={<span className="md:hidden">{logoLink}</span>}
           >
             {controls}

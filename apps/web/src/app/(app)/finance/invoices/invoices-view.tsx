@@ -449,7 +449,7 @@ export function InvoicesView() {
                     onSubmit={() => generate.mutateAsync()}
                   >
                     <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="grid gap-2">
+                      <div className="grid content-start gap-2">
                         <Label htmlFor="gen-fee">{t('feeType')}</Label>
                         <SelectField
                           id="gen-fee"
@@ -474,7 +474,7 @@ export function InvoicesView() {
                             ))}
                         </SelectField>
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid content-start gap-2">
                         <Label htmlFor="gen-class">{t('class')}</Label>
                         <SelectField
                           id="gen-class"
@@ -490,7 +490,7 @@ export function InvoicesView() {
                         </SelectField>
                       </div>
                       {genFee && (
-                        <div className="grid gap-2 sm:col-span-2">
+                        <div className="grid content-start gap-2 sm:col-span-2">
                           <p className="text-muted-foreground text-xs">
                             {genFee.scope === 'all'
                               ? t('genScopeAll')
@@ -507,7 +507,7 @@ export function InvoicesView() {
                         </div>
                       )}
                       {genMonthly && (
-                        <div className="grid gap-2">
+                        <div className="grid content-start gap-2">
                           <Label htmlFor="gen-period-month">{t('period')}</Label>
                           <PeriodPicker
                             idPrefix="gen-period"
@@ -516,7 +516,7 @@ export function InvoicesView() {
                           />
                         </div>
                       )}
-                      <div className="grid gap-2">
+                      <div className="grid content-start gap-2">
                         <Label htmlFor="gen-due">{t('dueDate')}</Label>
                         <DatePicker
                           id="gen-due"
@@ -526,8 +526,8 @@ export function InvoicesView() {
                       </div>
                       {genFee && !genMonthly && (
                         <div className="bg-muted/40 grid gap-3 rounded-xl border p-3 sm:col-span-2">
-                          <div className="grid gap-2 sm:grid-cols-2">
-                            <div className="grid gap-2">
+                          <div className="grid content-start gap-2 sm:grid-cols-2">
+                            <div className="grid content-start gap-2">
                               <Label htmlFor="gen-installments">{t('installments')}</Label>
                               <SelectField
                                 id="gen-installments"
@@ -545,7 +545,7 @@ export function InvoicesView() {
                             <p className="text-muted-foreground self-end text-xs">{t('installmentsHint')}</p>
                           </div>
                           {genCount >= 2 && (
-                            <div className="grid gap-2">
+                            <div className="grid content-start gap-2">
                               <p className="flex items-center gap-1.5 text-sm font-medium">
                                 <CalendarClock className="text-primary size-4" aria-hidden="true" />
                                 {genAmount > 0
@@ -906,7 +906,7 @@ export function InvoicesView() {
       >
         {editing && (
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="inv-discount">{t('discount')}</Label>
               <Input
                 id="inv-discount"
@@ -915,7 +915,7 @@ export function InvoicesView() {
                 onChange={(e) => setEditing({ ...editing, discount: digitsOnly(e.target.value) })}
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="inv-due">{t('dueDate')}</Label>
               <DatePicker
                 id="inv-due"
@@ -923,7 +923,7 @@ export function InvoicesView() {
                 onChange={(v) => setEditing({ ...editing, dueDate: v })}
               />
             </div>
-            <div className="grid gap-2 sm:col-span-2">
+            <div className="grid content-start gap-2 sm:col-span-2">
               <Label htmlFor="inv-reason">{t('discountReason')}</Label>
               <Input
                 id="inv-reason"
@@ -946,7 +946,7 @@ export function InvoicesView() {
         onOpenChange={(o) => !o && setVoiding(null)}
         onSubmit={() => voidInvoice.mutateAsync()}
       >
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="inv-void-reason">{t('reason')}</Label>
           <Input
             id="inv-void-reason"
@@ -971,7 +971,7 @@ export function InvoicesView() {
         {splitting && (
           <div className="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="split-count">{t('installmentCount')}</Label>
                 <SelectField
                   id="split-count"
@@ -985,7 +985,7 @@ export function InvoicesView() {
                   ))}
                 </SelectField>
               </div>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="split-due">{t('firstDueDate')}</Label>
                 <DatePicker
                   id="split-due"
@@ -1009,7 +1009,7 @@ export function InvoicesView() {
             <DialogTitle className="font-heading text-lg">{t('generateResult')}</DialogTitle>
           </DialogHeader>
           {genResult && (
-            <ul className="grid gap-1 text-sm">
+            <ul className="grid content-start gap-1 text-sm">
               <li className="flex items-center gap-2 font-medium text-emerald-700 dark:text-emerald-300">
                 <CircleCheck className="size-4" aria-hidden="true" />
                 {t('resultCreated', { count: genResult.created })}
@@ -1032,7 +1032,7 @@ export function InvoicesView() {
             </ul>
           )}
           {genResult && missingStudents(genResult.missingPlan).length > 0 && (
-            <div className="grid gap-2 text-sm">
+            <div className="grid content-start gap-2 text-sm">
               <p className="text-muted-foreground">{t('missingPlanStudents')}</p>
               <ul className="grid list-disc gap-0.5 pl-5">
                 {missingStudents(genResult.missingPlan)

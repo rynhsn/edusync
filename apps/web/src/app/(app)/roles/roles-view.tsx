@@ -88,7 +88,7 @@ function RoleForm({
 
   return (
     <div className="grid gap-4">
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{t('name')}</Label>
         <Input
           id={`${idPrefix}-name`}
@@ -98,7 +98,7 @@ function RoleForm({
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
       </div>
-      <fieldset className="grid gap-2">
+      <fieldset className="grid content-start gap-2">
         <legend className="mb-1 text-sm font-medium">{t('permissions')}</legend>
         <div className="grid gap-2.5 sm:grid-cols-2">
           {allGroups().map((g) => (
@@ -396,7 +396,7 @@ export function RolesView() {
                 </p>
               </div>
 
-              <ul className="grid gap-2">
+              <ul className="grid content-start gap-2">
                 {visible.map((g) => (
                   <li key={g.resource} className="flex flex-wrap items-center gap-x-3 gap-y-1">
                     <span className="w-36 shrink-0 truncate text-sm font-medium">

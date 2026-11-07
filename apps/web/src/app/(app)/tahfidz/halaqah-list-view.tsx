@@ -51,7 +51,7 @@ function HalaqahFields({
   });
   return (
     <div className="grid gap-4">
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{t('halaqahName')}</Label>
         <Input
           id={`${idPrefix}-name`}
@@ -61,7 +61,7 @@ function HalaqahFields({
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-mentor`}>{t('mentor')}</Label>
         <SelectField
           id={`${idPrefix}-mentor`}
@@ -78,7 +78,7 @@ function HalaqahFields({
             ))}
         </SelectField>
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-note`}>{t('scheduleNote')}</Label>
         <Input
           id={`${idPrefix}-note`}
@@ -88,7 +88,7 @@ function HalaqahFields({
           onChange={(e) => onChange({ ...draft, scheduleNote: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-active`}>{t('status')}</Label>
         <SelectField
           id={`${idPrefix}-active`}

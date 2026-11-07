@@ -150,7 +150,7 @@ export function EntryForm({
       }}
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor={`${idPrefix}-student`}>{t('student')}</Label>
           <SelectField
             id={`${idPrefix}-student`}
@@ -166,13 +166,13 @@ export function EntryForm({
             ))}
           </SelectField>
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor={`${idPrefix}-date`}>{t('date')}</Label>
           <DatePicker id={`${idPrefix}-date`} value={date} onChange={setDate} />
         </div>
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label id={`${idPrefix}-kind-label`}>{t('kind')}</Label>
         {/* biome-ignore lint/a11y/useSemanticElements: kelompok tombol toggle, bukan isian formulir */}
         <div
@@ -203,7 +203,7 @@ export function EntryForm({
       </div>
 
       <div className="grid gap-4 sm:grid-cols-[1fr_7rem]">
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor={`${idPrefix}-surah-from`}>{t('surahFrom')}</Label>
           <SelectField
             id={`${idPrefix}-surah-from`}
@@ -221,7 +221,7 @@ export function EntryForm({
             {surahOptions}
           </SelectField>
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor={`${idPrefix}-ayah-from`}>{t('ayahFrom')}</Label>
           <Input
             id={`${idPrefix}-ayah-from`}
@@ -233,7 +233,7 @@ export function EntryForm({
             onChange={(e) => setAyahFrom(clampAyah(surahFrom, Number(e.target.value)))}
           />
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor={`${idPrefix}-surah-to`}>{t('surahTo')}</Label>
           <SelectField
             id={`${idPrefix}-surah-to`}
@@ -247,7 +247,7 @@ export function EntryForm({
             {surahOptions}
           </SelectField>
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor={`${idPrefix}-ayah-to`}>{t('ayahTo')}</Label>
           <Input
             id={`${idPrefix}-ayah-to`}
@@ -267,7 +267,7 @@ export function EntryForm({
         {valid ? t('rangeCount', { count }) : t('rangeInvalid')}
       </p>
 
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label id={`${idPrefix}-quality-label`}>{t('quality')}</Label>
         {/* biome-ignore lint/a11y/useSemanticElements: kelompok tombol toggle, bukan isian formulir */}
         <div role="group" aria-labelledby={`${idPrefix}-quality-label`} className="grid grid-cols-3 gap-2">
@@ -289,7 +289,7 @@ export function EntryForm({
         </div>
       </div>
 
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-note`}>{t('note')}</Label>
         <Input
           id={`${idPrefix}-note`}

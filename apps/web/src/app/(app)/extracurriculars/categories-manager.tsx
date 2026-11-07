@@ -143,7 +143,7 @@ export function CategoriesManager() {
 
           {categories.isPending && <Skeleton className="h-40 w-full rounded-xl" aria-busy />}
           {categories.data && (
-            <ul className="grid gap-2">
+            <ul className="grid content-start gap-2">
               {categories.data.map((c) => {
                 const meta = categoryMeta(categories.data, c.key);
                 return (
@@ -201,7 +201,7 @@ export function CategoriesManager() {
               }}
             >
               <p className="font-heading text-sm font-semibold">{draft.id ? t('edit') : t('add')}</p>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="cat-label">{t('name')}</Label>
                 <Input
                   id="cat-label"
@@ -211,7 +211,7 @@ export function CategoriesManager() {
                   onChange={(e) => setDraft({ ...draft, label: e.target.value })}
                 />
               </div>
-              <fieldset className="grid gap-2">
+              <fieldset className="grid content-start gap-2">
                 <legend className="text-sm font-medium">{t('icon')}</legend>
                 <div className="flex flex-wrap gap-2">
                   {CATEGORY_ICON_KEYS.map((k) => {
@@ -237,7 +237,7 @@ export function CategoriesManager() {
                   })}
                 </div>
               </fieldset>
-              <fieldset className="grid gap-2">
+              <fieldset className="grid content-start gap-2">
                 <legend className="text-sm font-medium">{t('tone')}</legend>
                 <div className="flex flex-wrap gap-2">
                   {CATEGORY_TONE_KEYS.map((k) => {

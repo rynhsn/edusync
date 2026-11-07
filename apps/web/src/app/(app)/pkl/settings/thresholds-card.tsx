@@ -103,7 +103,7 @@ export function ThresholdsCard() {
           >
             <div className="grid gap-4 sm:grid-cols-3">
               {KEYS.map((k) => (
-                <div key={k} className="grid gap-2">
+                <div key={k} className="grid content-start gap-2">
                   <Label htmlFor={`pkl-th-${k}`} className="flex items-center gap-2">
                     <span
                       aria-hidden

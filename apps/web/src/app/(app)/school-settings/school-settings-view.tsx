@@ -215,7 +215,7 @@ function GeneralSettings() {
     >
       <fieldset disabled={!canManage || save.isPending} className="grid min-w-0 gap-4 lg:grid-cols-2">
         <SettingCard index={0} icon={Globe2} tone="sky" title={t('timezoneTitle')} body={t('timezoneBody')}>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="tz">{t('timezone')}</Label>
             <SelectField id="tz" value={value.timezone} onChange={(e) => set({ timezone: e.target.value })}>
               {zones.map((z) => (
@@ -298,7 +298,7 @@ function GeneralSettings() {
               />
             ))}
           </div>
-          <ul className="grid gap-2">
+          <ul className="grid content-start gap-2">
             {names.map((n, i) => (
               // biome-ignore lint/suspicious/noArrayIndexKey: nama diedit langsung, posisi menjadi identitas baris.
               <li key={i} className="flex items-center gap-1.5">
@@ -625,7 +625,7 @@ function LevelsPanel() {
           }
         />
       ) : (
-        <ul className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        <ul className="grid content-start gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {list.map((l, i) => (
             <li
               key={l.id}

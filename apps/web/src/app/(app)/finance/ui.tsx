@@ -179,7 +179,7 @@ export function BarRow({
 }) {
   const pct = max > 0 ? Math.max(value > 0 ? 3 : 0, Math.round((value / max) * 100)) : 0;
   return (
-    <li className="grid gap-1">
+    <li className="grid content-start gap-1">
       <div className="flex items-baseline justify-between gap-3 text-sm">
         <span className="min-w-0 truncate font-medium">
           {label}

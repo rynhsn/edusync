@@ -311,7 +311,7 @@ export function BankView() {
               </div>
               <RichText text={x.body} className="text-sm" />
               {x.type === 'mcq' ? (
-                <ul className="grid gap-1.5 text-sm sm:grid-cols-2">
+                <ul className="grid content-start gap-1.5 text-sm sm:grid-cols-2">
                   {x.options.map((o) => {
                     const right = o.key.toUpperCase() === x.answer?.toUpperCase();
                     return (
@@ -492,7 +492,7 @@ export function BankView() {
                 </div>
               </fieldset>
             ) : (
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="q-answer">{t('essayKey')}</Label>
                 <Textarea
                   id="q-answer"
@@ -505,7 +505,7 @@ export function BankView() {
               </div>
             )}
 
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="q-explain">{t('explanation')}</Label>
               <Textarea
                 id="q-explain"

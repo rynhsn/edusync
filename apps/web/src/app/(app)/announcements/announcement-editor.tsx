@@ -159,7 +159,7 @@ export function AnnouncementEditor({
 
           <div className="grid items-start gap-6 lg:grid-cols-[1.1fr_1fr]">
             <div className={cn('grid gap-4', tab === 'preview' && 'hidden lg:grid')}>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="ann-title">{t('fieldTitle')}</Label>
                 <Input
                   id="ann-title"
@@ -170,7 +170,7 @@ export function AnnouncementEditor({
                 />
               </div>
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="ann-category">{t('categoryLabel')}</Label>
                   <SelectField
                     id="ann-category"
@@ -184,7 +184,7 @@ export function AnnouncementEditor({
                     ))}
                   </SelectField>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="ann-audience">{t('audienceLabel')}</Label>
                   <SelectField
                     id="ann-audience"
@@ -202,7 +202,7 @@ export function AnnouncementEditor({
               <p className="text-muted-foreground -mt-2 text-xs">{t(`audienceHint.${draft.audience}`)}</p>
 
               {draft.category === 'agenda' && (
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="ann-event">{t('fieldEventDate')}</Label>
                   <DatePicker id="ann-event" value={draft.eventDate} onChange={(v) => set('eventDate', v)} />
                   <p className={cn('text-xs', needsDate ? 'text-destructive' : 'text-muted-foreground')}>
@@ -211,7 +211,7 @@ export function AnnouncementEditor({
                 </div>
               )}
 
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <div className="flex items-baseline justify-between gap-2">
                   <Label htmlFor="ann-body">{t('fieldBody')}</Label>
                   <span
@@ -236,7 +236,7 @@ export function AnnouncementEditor({
                 </p>
               </div>
 
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="ann-expires">{t('fieldExpires')}</Label>
                 <DatePicker
                   id="ann-expires"

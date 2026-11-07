@@ -95,7 +95,7 @@ export function ReceiptDialog({
                   </>
                 )}
               </dl>
-              <ul className="grid gap-1.5 border-t border-dashed pt-3 text-sm">
+              <ul className="grid content-start gap-1.5 border-t border-dashed pt-3 text-sm">
                 {receipt.items.map((i) => (
                   <li key={i.invoiceId} className="flex items-baseline justify-between gap-3">
                     <span className="min-w-0">{i.title}</span>

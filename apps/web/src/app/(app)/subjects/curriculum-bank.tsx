@@ -152,7 +152,7 @@ export function CurriculumBank() {
             </div>
           )}
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="bank-curriculum">{t('curriculum')}</Label>
               <SelectField
                 id="bank-curriculum"
@@ -170,7 +170,7 @@ export function CurriculumBank() {
                 ))}
               </SelectField>
             </div>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="bank-level">{t('level')}</Label>
               <SelectField
                 id="bank-level"
@@ -196,7 +196,7 @@ export function CurriculumBank() {
               {t('selectAll')}
             </Button>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid content-start gap-2 sm:grid-cols-2">
             {level.subjects.map((s) => (
               <label key={s.code} htmlFor={`bank-${s.code}`} className="flex items-center gap-2 text-sm">
                 <Checkbox

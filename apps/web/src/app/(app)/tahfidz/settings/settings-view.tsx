@@ -41,7 +41,7 @@ function ItemFields({
   const t = useTranslations('tahfidz');
   return (
     <div className="grid gap-4">
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{t('itemName')}</Label>
         <Input
           id={`${idPrefix}-name`}
@@ -51,7 +51,7 @@ function ItemFields({
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-kind`}>{t('itemKind')}</Label>
         <SelectField
           id={`${idPrefix}-kind`}
@@ -188,7 +188,7 @@ function ItemsSection() {
         </Card>
       )}
       {list.length > 0 && (
-        <ul className="grid gap-2">
+        <ul className="grid content-start gap-2">
           {list.map((i, index) => (
             <li key={i.id}>
               <Card className={cn('flex-row flex-wrap items-center gap-3 p-3', !i.active && 'opacity-60')}>
@@ -388,7 +388,7 @@ function TargetsSection() {
         <p className="text-muted-foreground text-sm">{t('targetsHint')}</p>
       </div>
       <div className="flex flex-wrap items-end gap-3">
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="tg-semester">{t('semester')}</Label>
           <SelectField
             id="tg-semester"
@@ -404,7 +404,7 @@ function TargetsSection() {
             ))}
           </SelectField>
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="tg-halaqah">{t('halaqahFilter')}</Label>
           <SelectField
             id="tg-halaqah"
@@ -434,7 +434,7 @@ function TargetsSection() {
       {rows.length > 0 && (
         <Card className="overflow-hidden p-0">
           <div className="bg-chart-5/10 flex flex-wrap items-end gap-3 border-b p-3">
-            <div className="grid gap-1">
+            <div className="grid content-start gap-1">
               <span className="text-sm font-medium">{t('fillAll')}</span>
               <span className="text-muted-foreground text-xs">{t('fillAllHint')}</span>
             </div>

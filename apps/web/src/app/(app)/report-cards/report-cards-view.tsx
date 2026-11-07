@@ -232,7 +232,7 @@ function NoteDialog({
       }}
       onSubmit={() => save.mutateAsync()}
     >
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="rc-note">{t('homeroomNote')}</Label>
         <Textarea
           id="rc-note"

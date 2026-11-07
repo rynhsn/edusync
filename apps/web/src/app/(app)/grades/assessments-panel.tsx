@@ -203,7 +203,7 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
         <EmptyPanel icon={Layers} tone="amber" title={t('noComponentsTitle')} body={t('noComponentsHint')} />
       )}
       {list.isPending && (
-        <div className="grid gap-2" aria-busy>
+        <div className="grid content-start gap-2" aria-busy>
           {['a', 'b', 'c', 'd', 'e', 'f'].slice(0, 4).map((k) => (
             <Skeleton key={k} className="h-16 rounded-2xl" />
           ))}
@@ -362,7 +362,7 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
         disabled={!formValid || submit.isPending}
         onSubmit={() => submit.mutateAsync()}
       >
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label>{t('component')}</Label>
           <SelectField
             aria-label={t('component')}
@@ -376,7 +376,7 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
             ))}
           </SelectField>
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="assessment-title">{t('assessmentTitle')}</Label>
           <Input
             id="assessment-title"
@@ -386,7 +386,7 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
           />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label>{t('date')}</Label>
             <DatePicker
               aria-label={t('date')}
@@ -394,7 +394,7 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
               onChange={(v) => v && setForm((f) => ({ ...f, date: v }))}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="assessment-max">{t('maxScore')}</Label>
             <Input
               id="assessment-max"

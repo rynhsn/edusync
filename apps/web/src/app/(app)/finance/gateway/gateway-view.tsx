@@ -150,7 +150,7 @@ export function GatewayView() {
               </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="gw-mode">{t('gwMode')}</Label>
                   <SelectField
                     id="gw-mode"
@@ -164,7 +164,7 @@ export function GatewayView() {
                     {form.mode === 'sandbox' ? t('gwModeSandboxHint') : t('gwModeProductionHint')}
                   </p>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="gw-merchant">{t('gwMerchantId')}</Label>
                   <Input
                     id="gw-merchant"
@@ -174,7 +174,7 @@ export function GatewayView() {
                     onChange={(e) => setForm({ ...form, merchantId: e.target.value })}
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="gw-client">{t('gwClientKey')}</Label>
                   <Input
                     id="gw-client"
@@ -185,7 +185,7 @@ export function GatewayView() {
                     onChange={(e) => setForm({ ...form, clientKey: e.target.value })}
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="gw-server">{t('gwServerKey')}</Label>
                   <PasswordInput
                     id="gw-server"

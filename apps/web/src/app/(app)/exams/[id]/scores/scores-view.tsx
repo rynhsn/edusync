@@ -524,7 +524,7 @@ export function ScoresView({ id }: { id: string }) {
         onSubmit={() => send.mutateAsync()}
       >
         <div className="grid gap-4">
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="send-component">{t('component')}</Label>
             <SelectField
               id="send-component"
@@ -542,7 +542,7 @@ export function ScoresView({ id }: { id: string }) {
             )}
           </div>
           {pendingEssays > 0 && (
-            <div className="grid gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-500/40 dark:bg-amber-500/10">
+            <div className="grid content-start gap-2 rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm dark:border-amber-500/40 dark:bg-amber-500/10">
               <p>{t('pendingWarn', { n: pendingEssays })}</p>
               <label className="flex items-center gap-2" htmlFor="send-pending">
                 <Checkbox
@@ -554,7 +554,7 @@ export function ScoresView({ id }: { id: string }) {
               </label>
             </div>
           )}
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="send-date">{t('date')}</Label>
             <DatePicker id="send-date" value={sendDate} onChange={setSendDate} clearable />
             <p className="text-muted-foreground text-xs">{t('dateHint')}</p>

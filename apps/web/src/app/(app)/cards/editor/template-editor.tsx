@@ -503,7 +503,7 @@ function Workspace({
       <div className="grid items-start gap-4 xl:grid-cols-[220px_minmax(0,1fr)_280px]">
         {/* Kiri: tambah elemen + lapisan */}
         <Card className="gap-4 px-4">
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <h2 className="font-heading text-sm font-semibold">{t('editor.addElement')}</h2>
             <div className="grid grid-cols-2 gap-2">
               {ADD_TOOLS.map(({ type, icon: Icon }) => (
@@ -519,7 +519,7 @@ function Workspace({
               ))}
             </div>
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <h2 className="font-heading text-sm font-semibold">{t('editor.layers')}</h2>
             {doc.layout.elements.length === 0 ? (
               <p className="text-muted-foreground text-xs">{t('editor.noLayers')}</p>

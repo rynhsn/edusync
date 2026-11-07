@@ -137,7 +137,7 @@ export function SchoolMapView() {
               {activity.length === 0 ? (
                 <p className="text-muted-foreground text-sm">{t('activityEmpty')}</p>
               ) : (
-                <ul className="grid gap-1.5" aria-live="polite">
+                <ul className="grid content-start gap-1.5" aria-live="polite">
                   {activity.map((e) => {
                     const who = (showNames && e.studentName) || t('anonymous');
                     const Icon = e.kind === 'arrival' ? LogIn : LogOut;
@@ -185,7 +185,7 @@ export function SchoolMapView() {
                       : t('deskEmpty')}
                 </p>
               ) : (
-                <ul className="grid gap-2">
+                <ul className="grid content-start gap-2">
                   {mine.map((l) => {
                     const done = l.total > 0 && l.filled >= l.total;
                     return (

@@ -122,7 +122,7 @@ function TemplateCard({
         {t(`eventHint.${tpl.eventKey}` as 'eventHint.arrival')}
       </p>
 
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`tpl-${tpl.eventKey}`}>{t('templateBody')}</Label>
         <textarea
           id={`tpl-${tpl.eventKey}`}
@@ -152,7 +152,7 @@ function TemplateCard({
         </div>
       </div>
 
-      <div className="grid gap-1">
+      <div className="grid content-start gap-1">
         <p className="text-muted-foreground text-xs font-medium">{t('preview')}</p>
         <p className="bg-muted/50 rounded-lg border p-3 text-sm whitespace-pre-wrap">
           {preview(body, school.schoolName)}
@@ -247,7 +247,7 @@ function GeneralSettings() {
         <p className="text-muted-foreground -mt-3 text-xs">{t('enabledHint')}</p>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="msg-window-start">{t('windowStart')}</Label>
             <TimeField
               id="msg-window-start"
@@ -256,7 +256,7 @@ function GeneralSettings() {
               onChange={(v) => set({ windowStart: v })}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="msg-window-end">{t('windowEnd')}</Label>
             <TimeField
               id="msg-window-end"
@@ -269,7 +269,7 @@ function GeneralSettings() {
         <p className="text-muted-foreground -mt-3 text-xs">{t('windowHint')}</p>
 
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="msg-delay-min">{t('delayMin')}</Label>
             <Input
               id="msg-delay-min"
@@ -281,7 +281,7 @@ function GeneralSettings() {
               onChange={(e) => set({ delayMinSeconds: Number(e.target.value) })}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="msg-delay-max">{t('delayMax')}</Label>
             <Input
               id="msg-delay-max"
@@ -301,7 +301,7 @@ function GeneralSettings() {
           </Alert>
         )}
 
-        <div className="grid gap-2 sm:w-1/2">
+        <div className="grid content-start gap-2 sm:w-1/2">
           <Label htmlFor="msg-absent-at">{t('absentAt')}</Label>
           <TimeField
             id="msg-absent-at"
@@ -351,7 +351,7 @@ export function SettingsPanel() {
   return (
     <div className="grid gap-6">
       <GeneralSettings />
-      <div className="grid gap-1">
+      <div className="grid content-start gap-1">
         <h2 className="font-heading text-lg font-semibold">{t('templatesTitle')}</h2>
         <p className="text-muted-foreground max-w-2xl text-sm">{t('templatesHint')}</p>
       </div>

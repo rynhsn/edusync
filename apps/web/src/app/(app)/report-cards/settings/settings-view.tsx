@@ -149,7 +149,12 @@ export function ReportCardSettingsView() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {TEXT_KEYS.map((k) => (
-                <div key={k} className={k === 'address' ? 'grid gap-2 sm:col-span-2' : 'grid gap-2'}>
+                <div
+                  key={k}
+                  className={
+                    k === 'address' ? 'grid content-start gap-2 sm:col-span-2' : 'grid content-start gap-2'
+                  }
+                >
                   <Label htmlFor={`rc-${k}`}>{t(`field_${k}`)}</Label>
                   <Input
                     id={`rc-${k}`}
@@ -172,7 +177,7 @@ export function ReportCardSettingsView() {
             </div>
             <div className="grid gap-4 sm:grid-cols-2">
               {DESC_KEYS.map((k) => (
-                <div key={k} className="grid gap-2">
+                <div key={k} className="grid content-start gap-2">
                   <Label htmlFor={`rc-${k}`} className="gap-2">
                     <ToneBadge
                       tone={predicateTone(k.slice(-1))}

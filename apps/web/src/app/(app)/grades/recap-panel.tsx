@@ -240,7 +240,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
           </div>
 
           {/* Layar sempit: satu kartu per siswa. */}
-          <ul className="grid gap-2 md:hidden">
+          <ul className="grid content-start gap-2 md:hidden">
             {data.students.map((s, i) => (
               <li
                 key={s.studentId}

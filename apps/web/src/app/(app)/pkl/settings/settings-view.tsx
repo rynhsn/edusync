@@ -184,7 +184,7 @@ export function SettingsView() {
           disabled={!pDraft.name.trim() || !pDraft.academicYearId || !pDraft.startsOn || !pDraft.endsOn}
           onSubmit={() => savePeriod.mutateAsync(pDraft)}
         >
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="pp-name">{t('periodName')}</Label>
             <Input
               id="pp-name"
@@ -194,7 +194,7 @@ export function SettingsView() {
               onChange={(e) => setPDraft({ ...pDraft, name: e.target.value })}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="pp-year">{t('academicYear')}</Label>
             <SelectField
               id="pp-year"
@@ -209,7 +209,7 @@ export function SettingsView() {
             </SelectField>
           </div>
           <div className="grid gap-4 sm:grid-cols-2">
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="pp-start">{t('startsOn')}</Label>
               <DatePicker
                 id="pp-start"
@@ -217,7 +217,7 @@ export function SettingsView() {
                 onChange={(v) => setPDraft({ ...pDraft, startsOn: v })}
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="pp-end">{t('endsOn')}</Label>
               <DatePicker
                 id="pp-end"
@@ -370,7 +370,7 @@ export function SettingsView() {
           disabled={!aDraft.name.trim() || !weightValid}
           onSubmit={() => saveAspect.mutateAsync(aDraft)}
         >
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="as-name">{t('aspect')}</Label>
             <Input
               id="as-name"
@@ -380,7 +380,7 @@ export function SettingsView() {
               onChange={(e) => setADraft({ ...aDraft, name: e.target.value })}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="as-weight">{t('weight')} (1-100)</Label>
             <Input
               id="as-weight"

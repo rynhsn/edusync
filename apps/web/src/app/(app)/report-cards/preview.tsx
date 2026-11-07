@@ -33,7 +33,7 @@ export function ReportCardPreview({ doc }: { doc: ReportCardDoc }) {
         </ToneBadge>
       </div>
 
-      <section className="grid gap-2">
+      <section className="grid content-start gap-2">
         <h3 className="font-medium">{t('subjectsTitle')}</h3>
         <div className="overflow-x-auto rounded-lg border">
           <Table>
@@ -67,12 +67,12 @@ export function ReportCardPreview({ doc }: { doc: ReportCardDoc }) {
         </div>
       </section>
 
-      <section className="grid gap-2">
+      <section className="grid content-start gap-2">
         <h3 className="font-medium">{t('extracurriculars')}</h3>
         {doc.extracurriculars.length === 0 ? (
           <p className="text-muted-foreground">{t('noExtracurriculars')}</p>
         ) : (
-          <ul className="grid gap-1">
+          <ul className="grid content-start gap-1">
             {doc.extracurriculars.map((x) => (
               <li key={x.name}>
                 <span className="font-medium">{x.name}</span>
@@ -84,7 +84,7 @@ export function ReportCardPreview({ doc }: { doc: ReportCardDoc }) {
         )}
       </section>
 
-      <section className="grid gap-2">
+      <section className="grid content-start gap-2">
         <h3 className="font-medium">{t('attendance')}</h3>
         <div className="grid grid-cols-3 gap-3">
           {(['sick', 'excused', 'absent'] as const).map((k) => (
@@ -102,7 +102,7 @@ export function ReportCardPreview({ doc }: { doc: ReportCardDoc }) {
         </div>
       </section>
 
-      <section className="grid gap-2">
+      <section className="grid content-start gap-2">
         <h3 className="font-medium">{t('homeroomNote')}</h3>
         <p className={doc.homeroomNote ? 'whitespace-pre-wrap' : 'text-muted-foreground'}>
           {doc.homeroomNote ?? t('noteEmpty')}

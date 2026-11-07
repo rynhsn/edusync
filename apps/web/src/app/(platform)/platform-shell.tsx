@@ -20,9 +20,12 @@ import {
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { createContext, useContext, useEffect } from 'react';
+import { createContext, useContext, useEffect, useMemo } from 'react';
 import { AppHeader, MobileNavDrawer } from '@/components/app-header';
+import { ContextSwitcher } from '@/components/context-switcher';
 import { Logo } from '@/components/logo';
+import { ShellAside, SidebarToggle } from '@/components/sidebar-toggle';
+import { type SearchPage, TopbarSearch } from '@/components/topbar-search';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToneBadge } from '@/components/ui-kit';
@@ -42,7 +45,7 @@ export function useStaff() {
 }
 
 /** Menu konsol bertingkat: Operasi, Katalog, Sistem, lalu Bantuan. */
-const GROUPS = [
+export const PLATFORM_NAV_GROUPS = [
   {
     key: 'groupOps',
     items: [
@@ -77,6 +80,25 @@ const GROUPS = [
     ],
   },
 ] as const;
+
+/** Pencarian topbar konsol platform: halaman menu dan dokumentasi konsol. */
+function PlatformSearch() {
+  const t = useTranslations('platform');
+  const pages = useMemo<SearchPage[]>(
+    () =>
+      PLATFORM_NAV_GROUPS.flatMap((g) =>
+        g.items.map((item) => ({ href: item.href, label: t(item.key), group: t(g.key), icon: item.icon })),
+      ),
+    [t],
+  );
+  return (
+    <TopbarSearch
+      pages={pages}
+      loadDocs={() => import('./platform/docs/content').then((m) => m.PLATFORM_DOCS)}
+      docsBase="/platform/docs"
+    />
+  );
+}
 
 export function PlatformShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations('platform');
@@ -134,14 +156,15 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
 
   const sidebar = (
     <>
-      <div className="flex flex-col items-start gap-3 p-4">
+      <div className="flex flex-col items-stretch gap-3 p-4">
         <Logo />
-        <span className="bg-amber text-amber-foreground inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium">
+        <ContextSwitcher subtitle={me.data.role === 'admin' ? t('roleAdmin') : t('roleReadOnly')} />
+        <span className="bg-amber text-amber-foreground inline-flex w-fit items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium">
           <ShieldCheck className="size-3" aria-hidden /> {t('title')}
         </span>
       </div>
       <nav className="flex flex-col gap-0.5 px-4 pb-4" aria-label={t('title')}>
-        {GROUPS.map((group) => (
+        {PLATFORM_NAV_GROUPS.map((group) => (
           <div key={group.key} className="mt-4 grid gap-0.5 first:mt-0">
             <p className="text-muted-foreground px-3 pt-1 pb-1 text-[11px] font-semibold tracking-wider uppercase">
               {t(group.key)}
@@ -183,13 +206,13 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
   return (
     <StaffContext.Provider value={{ role: me.data.role }}>
       <div className="flex flex-1 flex-col md:flex-row">
-        <aside className="bg-sidebar text-sidebar-foreground hidden md:sticky md:top-0 md:block md:h-dvh md:w-64 md:shrink-0 md:overflow-y-auto md:border-r">
-          {sidebar}
-        </aside>
+        <ShellAside>{sidebar}</ShellAside>
 
         <div className="flex min-w-0 flex-1 flex-col">
           <AppHeader
             mobileNav={<MobileNavDrawer>{sidebar}</MobileNavDrawer>}
+            sidebarToggle={<SidebarToggle />}
+            search={<PlatformSearch />}
             leading={
               <>
                 <span className="md:hidden">

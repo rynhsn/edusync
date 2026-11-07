@@ -78,7 +78,7 @@ function PeriodFields({
   });
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
         <Input
           id={`${idPrefix}-name`}
@@ -89,7 +89,7 @@ function PeriodFields({
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-level`}>{t('level')}</Label>
         <LevelField
           id={`${idPrefix}-level`}
@@ -100,7 +100,7 @@ function PeriodFields({
           onChange={(level) => onChange({ ...draft, level })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-year`}>{t('academicYear')}</Label>
         <SelectField
           id={`${idPrefix}-year`}
@@ -115,7 +115,7 @@ function PeriodFields({
           ))}
         </SelectField>
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-opens`}>{t('opensOn')}</Label>
         <DatePicker
           id={`${idPrefix}-opens`}
@@ -123,7 +123,7 @@ function PeriodFields({
           onChange={(v) => onChange({ ...draft, opensOn: v })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-closes`}>{t('closesOn')}</Label>
         <DatePicker
           id={`${idPrefix}-closes`}
@@ -131,7 +131,7 @@ function PeriodFields({
           onChange={(v) => onChange({ ...draft, closesOn: v })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-quota`}>{t('quota')}</Label>
         <Input
           id={`${idPrefix}-quota`}
@@ -141,7 +141,7 @@ function PeriodFields({
           onChange={(e) => onChange({ ...draft, quota: e.target.value.replace(/\D/g, '') })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-active`}>{t('colStatus')}</Label>
         <SelectField
           id={`${idPrefix}-active`}

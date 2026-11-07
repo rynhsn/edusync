@@ -189,7 +189,7 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
             }}
           >
             <div className="grid gap-4 sm:grid-cols-2">
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="pl-period">{t('period')}</Label>
                 <SelectField
                   id="pl-period"
@@ -206,7 +206,7 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
                   ))}
                 </SelectField>
               </div>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="pl-partner">{t('partner')}</Label>
                 <SelectField
                   id="pl-partner"
@@ -221,7 +221,7 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
                   ))}
                 </SelectField>
               </div>
-              <div className="grid gap-2 sm:col-span-2">
+              <div className="grid content-start gap-2 sm:col-span-2">
                 <Label htmlFor="pl-teacher">{t('supervisor')}</Label>
                 <SelectField
                   id="pl-teacher"
@@ -239,7 +239,7 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
                     ))}
                 </SelectField>
               </div>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="pl-ind-name">{t('industrySupervisorName')}</Label>
                 <Input
                   id="pl-ind-name"
@@ -248,7 +248,7 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
                   onChange={(e) => setIndName(e.target.value)}
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="pl-ind-phone">{t('industrySupervisorPhone')}</Label>
                 <Input
                   id="pl-ind-phone"
@@ -260,14 +260,14 @@ export function PlaceDialog({ defaultPeriodId }: { defaultPeriodId: string }) {
               </div>
             </div>
 
-            <fieldset className="grid gap-2 rounded-xl border p-3">
+            <fieldset className="grid content-start gap-2 rounded-xl border p-3">
               <legend className="px-1 text-sm font-medium">
                 {t('chooseStudents')}{' '}
                 <span className="text-muted-foreground font-normal">
                   ({t('pickedCount', { count: picked.size })})
                 </span>
               </legend>
-              <div className="grid gap-2 sm:grid-cols-2">
+              <div className="grid content-start gap-2 sm:grid-cols-2">
                 <SelectField
                   aria-label={t('classFilter')}
                   value={classId}

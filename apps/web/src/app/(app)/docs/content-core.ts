@@ -1464,10 +1464,29 @@ export const CORE_DOCS: DocArticle[] = [
             body: 'Pada tanggal libur atau jeda sekolah, halaman memberi tahu dan tombol pencatatan terkunci. Pilih Tetap catat bila memang ada siswa yang masuk.',
           },
           {
+            heading: 'Memindai QR di kartu siswa (cadangan kiosk)',
+            body: 'Selain daftar kelas, halaman ini punya tab Pindai QR: guru mengarahkan kamera ponsel ke QR di kartu siswa, dan datang atau pulang langsung tercatat. Ini hanya cadangan saat kiosk RFID tidak bisa dipakai (listrik padam, pembaca rusak); kiosk RFID tetap cara utama. QR berisi kode acak yang unik per siswa (bukan NIS), dicetak otomatis di kartu siswa bawaan. Aturan akses, perhitungan terlambat, penjaga hari libur, dan pemberitahuan ke wali sama persis dengan pencatatan manual; catatannya bertanda sumber QR dan nama pencatat.',
+            steps: [
+              'Buka Absen datang & pulang lalu pilih tab Pindai QR.',
+              'Pilih Datang atau Pulang dengan tombol besar. Pilihan diingat di perangkat itu.',
+              'Ketuk Nyalakan kamera dan izinkan akses kamera bila diminta.',
+              'Arahkan kamera ke QR kartu. Hasilnya tampil besar (nama, kelas, jam, dan Terlambat bila ya) disertai bunyi bip dan getar; kamera tetap menyala untuk kartu berikutnya.',
+              'Bila kamera bermasalah, pindai QR dengan aplikasi kamera bawaan ponsel lalu tempel teksnya (diawali ES1.) di kolom Tempel kode.',
+            ],
+            tip: 'QR yang sama tidak diproses ulang dalam 4 detik, dan QR lain yang bukan kartu siswa (misalnya kode toko) diabaikan. Daftar 20 pindaian terakhir tampil di bawah hasil. Kolom Ketik, tempel, atau pindai kode otomatis aktif: pemindai kode batang USB (yang bekerja seperti papan ketik) cukup diarahkan ke kartu dan kode diproses saat menerima Enter. Kode batang lewat kamera hanya didukung di Chrome atau Edge; QR terbaca di semua peramban.',
+            warning:
+              'Kamera di peramban hanya bekerja lewat HTTPS. Bila Edusync dibuka lewat alamat http:// biasa, kamera ditolak peramban dan hanya kolom Tempel kode yang bisa dipakai. Bila izin kamera ditolak, izinkan lagi di pengaturan situs pada peramban.',
+            href: '/attendance/manual',
+          },
+          {
             heading: 'Bila jaringan putus',
             body: 'Jika permintaan gagal karena tidak ada jaringan, catatan disimpan di perangkat ini beserta jam aslinya dan muncul spanduk Belum terkirim. Catatan dikirim otomatis saat jaringan kembali; Anda juga bisa menekan Kirim sekarang. Jam yang tercatat tetap jam saat Anda mengetuk, bukan jam saat terkirim.',
             warning:
               'Catatan yang belum terkirim hanya ada di perangkat itu. Jangan menghapus data situs peramban atau berganti perangkat sebelum spanduk hilang. Catatan yang ditolak server saat dikirim ulang akan dibuang dan Anda diberi tahu.',
+          },
+          {
+            heading: 'Pindai QR saat jaringan putus, dan kartu hilang',
+            body: 'Pindaian yang gagal terkirim karena jaringan disimpan di perangkat dengan jam pindai aslinya dan muncul pada spanduk Belum terkirim; dikirim otomatis saat jaringan kembali dan tidak pernah tercatat dua kali. Pindaian yang lebih dari 48 jam tidak bisa dikirim dan dibuang. Bila kartu hilang atau QR-nya bocor, admin membuka Siswa lalu kartu siswa itu dan memilih Buat ulang QR absensi: QR lama langsung tidak berlaku dan kartu baru perlu dicetak ulang.',
           },
         ],
         faq: [
@@ -1529,10 +1548,29 @@ export const CORE_DOCS: DocArticle[] = [
             body: 'On a holiday or school break the page tells you and the record buttons are locked. Choose Record anyway if students really did come.',
           },
           {
+            heading: 'Scanning the QR on the student card (kiosk backup)',
+            body: 'Besides the class list, this page has a Scan QR tab: the teacher points a phone camera at the QR on the student card and the arrival or departure is recorded right away. This is only a backup for when the RFID kiosk cannot be used (power cut, broken reader); the RFID kiosk remains the main way. The QR holds a random code unique per student (not the NIS) and is printed automatically on the built-in student card. Access rules, late calculation, the holiday guard and guardian notifications are exactly the same as manual recording; the record is marked with the QR source and the recorder name.',
+            steps: [
+              'Open Manual arrival & departure and choose the Scan QR tab.',
+              'Choose Arrival or Departure with the big buttons. The choice is remembered on that device.',
+              'Tap Start camera and allow camera access if asked.',
+              'Point the camera at the card QR. The result shows large (name, class, time, and Late if so) with a beep and vibration; the camera stays on for the next card.',
+              'If the camera does not work, scan the QR with the phone built-in camera app and paste the text (starting with ES1.) into the Paste code field.',
+            ],
+            tip: 'The same QR is not processed again within 4 seconds, and other QR codes that are not student cards (for example a shop code) are ignored. The last 20 scans are listed under the result. The Type, paste, or scan code field is active automatically: a USB barcode scanner (which acts like a keyboard) only needs to be pointed at the card and the code is processed when it receives Enter. Barcodes through the camera are only supported in Chrome or Edge; QR is read in every browser.',
+            warning:
+              'The browser camera only works over HTTPS. If Edusync is opened over a plain http:// address the browser refuses the camera and only the Paste code field can be used. If camera permission is denied, allow it again in the site settings of the browser.',
+            href: '/attendance/manual',
+          },
+          {
             heading: 'When the network is down',
             body: 'If a request fails because there is no network, the record is kept on this device with its original time and a Not sent yet banner appears. Records are sent automatically when the network is back; you can also press Send now. The recorded time stays the time you tapped, not the time it was sent.',
             warning:
               'Records that are not sent yet exist only on that device. Do not clear the browser site data or switch devices until the banner is gone. Records the server rejects when they are resent are dropped and you are told.',
+          },
+          {
+            heading: 'Scanning when the network is down, and lost cards',
+            body: 'A scan that fails to send because of the network is kept on the device with its original scan time and appears in the Not sent yet banner; it is sent automatically when the network is back and is never recorded twice. A scan older than 48 hours cannot be sent and is dropped. If a card is lost or its QR leaked, an admin opens Students, then that student card, and chooses Regenerate attendance QR: the old QR stops working immediately and a new card must be printed.',
           },
         ],
         faq: [
@@ -1594,10 +1632,29 @@ export const CORE_DOCS: DocArticle[] = [
             body: 'Dina tanggal libur atawa jeda sakola, kaca méré nyaho jeung tombol nyatet dikonci. Pilih Tetep catet lamun memang aya murid nu asup.',
           },
           {
+            heading: 'Mindai QR dina kartu murid (cadangan kiosk)',
+            body: 'Salian ti daptar kelas, kaca ieu boga tab Pindai QR: guru ngarahkeun kaméra ponsel kana QR dina kartu murid, tuluy datang atawa mulih langsung kacatet. Ieu ngan cadangan lamun kiosk RFID teu bisa dipaké (listrik pareum, pembaca rusak); kiosk RFID tetep cara utama. QR eusina kode acak unik per murid (lain NIS), dicitak otomatis dina kartu murid bawaan. Aturan aksés, itungan telat, panjaga poé libur, jeung béwara ka wali sarua jeung nyatet manual; catetanana ditandaan sumber QR jeung ngaran nu nyatet.',
+            steps: [
+              'Buka Absén datang & mulih tuluy pilih tab Pindai QR.',
+              'Pilih Datang atawa Mulih nganggo tombol badag. Pilihanana diinget dina parangkat éta.',
+              'Teke Hurungkeun kaméra tuluy idinan aksés kaméra lamun dipénta.',
+              'Arahkeun kaméra kana QR kartu. Hasilna muncul badag (ngaran, kelas, jam, jeung Telat lamun enya) kalayan bip jeung geter; kaméra tetep hurung pikeun kartu saterusna.',
+              'Lamun kaméra bermasalah, pindai QR nganggo aplikasi kaméra bawaan ponsel tuluy témpélkeun téksna (dimimitian ku ES1.) dina kolom Témpélkeun kode.',
+            ],
+            tip: 'QR nu sarua teu diprosés deui dina 4 detik, jeung QR séjén nu lain kartu murid (contona kode toko) diabaikeun. Daptar 20 pindaian panungtungan aya handapeun hasil. Kolom Ketik, témpélkeun, atawa pindai kode otomatis aktip: pamindai kode batang USB (anu jalanna kawas kibor) cukup diarahkeun ka kartu jeung kode diprosés lamun narima Enter. Kode batang ngaliwatan kaméra ngan dirojong dina Chrome atawa Edge; QR kabaca dina sakabéh panyungsi.',
+            warning:
+              'Kaméra dina panyungsi ngan jalan ngaliwatan HTTPS. Lamun Edusync dibuka nganggo alamat http:// biasa, kaméra ditolak panyungsi jeung ngan kolom Témpélkeun kode nu bisa dipaké. Lamun idin kaméra ditolak, idinan deui dina setélan situs panyungsi.',
+            href: '/attendance/manual',
+          },
+          {
             heading: 'Lamun jaringan potong',
             body: 'Lamun pamenta gagal sabab euweuh jaringan, catetan disimpen dina parangkat ieu jeung jam aslina sarta spanduk Acan kakirim némbongan. Catetan dikirim otomatis sanggeus jaringan balik; Anjeun ogé bisa mencét Kirim ayeuna. Jam nu kacatet tetep jam waktu Anjeun ngetuk, lain jam waktu dikirim.',
             warning:
               'Catetan nu acan kakirim ngan aya dina parangkat éta. Entong mupus data situs panyungsi atawa ganti parangkat saméméh spanduk leungit. Catetan nu ditolak server waktu dikirim deui bakal dibuang jeung Anjeun dibéré nyaho.',
+          },
+          {
+            heading: 'Mindai nalika jaringan potong, jeung kartu leungit',
+            body: 'Pindaian nu gagal dikirim sabab jaringan disimpen dina parangkat jeung jam pindai aslina tuluy muncul dina spanduk Can dikirim; dikirim otomatis lamun jaringan balik jeung teu pernah kacatet dua kali. Pindaian leuwih ti 48 jam teu bisa dikirim tuluy dibuang. Lamun kartu leungit atawa QR-na bocor, admin muka Murid tuluy kartu murid éta jeung milih Jieun deui QR absén: QR heubeul langsung teu kapaké jeung kartu anyar kudu dicitak deui.',
           },
         ],
         faq: [

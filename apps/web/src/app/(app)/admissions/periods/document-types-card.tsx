@@ -127,7 +127,7 @@ export function DocumentTypesCard() {
         </Alert>
       )}
       {list.data && (
-        <ul className="grid gap-2 sm:grid-cols-2">
+        <ul className="grid content-start gap-2 sm:grid-cols-2">
           {rows.map((r) => (
             <li
               key={r.id}
@@ -191,7 +191,7 @@ export function DocumentTypesCard() {
       >
         {draft && (
           <div className="grid gap-4">
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="doc-type-label">{t('name')}</Label>
               <Input
                 id="doc-type-label"

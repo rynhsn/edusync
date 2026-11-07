@@ -143,7 +143,7 @@ export function AttendanceTab({ studentId }: { studentId: string }) {
                 </span>
               ))}
             </div>
-            <div className="grid gap-1">
+            <div className="grid content-start gap-1">
               {buildMonthGrid(month, q.data.days).map((week, wi) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: pekan tetap
                 <div key={wi} className="grid grid-cols-7 gap-1">

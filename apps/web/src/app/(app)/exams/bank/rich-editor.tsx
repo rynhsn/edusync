@@ -68,7 +68,7 @@ export function RichEditor({
   });
 
   return (
-    <div className="grid gap-2">
+    <div className="grid content-start gap-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Label htmlFor={id}>{label}</Label>
         <div className="flex gap-1.5">

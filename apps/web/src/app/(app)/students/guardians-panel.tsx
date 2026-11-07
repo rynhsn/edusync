@@ -126,9 +126,9 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
         {list.data?.map((g) => {
           const open = editing?.id === g.guardianId;
           return (
-            <li key={g.guardianId} className="grid gap-2 text-sm">
+            <li key={g.guardianId} className="grid content-start gap-2 text-sm">
               {open && editing ? (
-                <div className="grid gap-2 sm:grid-cols-3">
+                <div className="grid content-start gap-2 sm:grid-cols-3">
                   <Input
                     aria-label={t('name')}
                     value={editing.name}
@@ -220,7 +220,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
             }}
           >
             <p className="text-sm font-medium sm:col-span-2">{t('addTitle')}</p>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor={`g-name-${studentId}`}>{t('name')}</Label>
               <Input
                 id={`g-name-${studentId}`}
@@ -230,7 +230,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                 onChange={(e) => setDraft({ ...draft, name: e.target.value })}
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor={`g-rel-${studentId}`}>{t('relation')}</Label>
               <SelectField
                 id={`g-rel-${studentId}`}
@@ -244,7 +244,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                 ))}
               </SelectField>
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor={`g-phone-${studentId}`}>{t('phone')}</Label>
               <Input
                 id={`g-phone-${studentId}`}
@@ -254,7 +254,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                 onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor={`g-email-${studentId}`}>{t('email')}</Label>
               <Input
                 id={`g-email-${studentId}`}
@@ -287,7 +287,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
             </div>
           </form>
 
-          <div className="grid gap-2 border-t pt-4">
+          <div className="grid content-start gap-2 border-t pt-4">
             <p className="text-sm font-medium">{t('link')}</p>
             <p className="text-muted-foreground text-xs">{t('linkHint')}</p>
             <Input
@@ -298,7 +298,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
               onChange={(e) => setSearch(e.target.value)}
             />
             {found.data?.length === 0 && <p className="text-muted-foreground text-xs">{t('noMatch')}</p>}
-            <ul className="grid gap-1.5 text-sm">
+            <ul className="grid content-start gap-1.5 text-sm">
               {found.data
                 ?.filter((g) => !linkedIds.has(g.id))
                 .map((g) => (

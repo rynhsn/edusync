@@ -350,7 +350,7 @@ export function CashierView() {
             </div>
 
             {applicableFees.data && applicableFees.data.length > 0 && (
-              <div className="grid gap-1.5">
+              <div className="grid content-start gap-1.5">
                 <p className="text-muted-foreground text-xs font-medium">{t('studentFeesTitle')}</p>
                 <div className="flex flex-wrap gap-1.5">
                   {applicableFees.data.map((f) => (
@@ -400,7 +400,7 @@ export function CashierView() {
                     body={t('allPaidHint')}
                   />
                 ) : (
-                  <ul className="grid gap-2">
+                  <ul className="grid content-start gap-2">
                     {open.map((i) => {
                       const on = i.id in amounts;
                       const line = parsed.find((l) => l.id === i.id);
@@ -482,7 +482,7 @@ export function CashierView() {
                 {statement.data.payments.length === 0 ? (
                   <EmptyPanel icon={Wallet} tone="slate" title={t('noPayments')} body={t('noPaymentsHint')} />
                 ) : (
-                  <ul className="grid gap-2">
+                  <ul className="grid content-start gap-2">
                     {statement.data.payments.map((p) => {
                       const Icon = methodIcon(p.method);
                       return (
@@ -568,7 +568,7 @@ export function CashierView() {
                   {t('summaryEmpty')}
                 </p>
               ) : (
-                <ul className="grid gap-1.5 text-sm">
+                <ul className="grid content-start gap-1.5 text-sm">
                   {parsed.map((l) => (
                     <li key={l.id} className="flex items-baseline justify-between gap-3">
                       <span className="min-w-0 truncate">{l.title}</span>
@@ -578,7 +578,7 @@ export function CashierView() {
                 </ul>
               )}
 
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <span id="fin-method-label" className="text-sm font-medium">
                   {t('method')}
                 </span>
@@ -613,11 +613,11 @@ export function CashierView() {
                 </div>
               </div>
 
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="fin-paidAt">{t('paidAt')}</Label>
                 <DatePicker id="fin-paidAt" value={paidAt} onChange={setPaidAt} />
               </div>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="fin-note">{t('note')}</Label>
                 <Input id="fin-note" maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} />
               </div>
@@ -676,7 +676,7 @@ export function CashierView() {
         onOpenChange={(o) => !o && setVoiding(null)}
         onSubmit={() => voidPayment.mutateAsync()}
       >
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="fin-void-reason">{t('reason')}</Label>
           <Input
             id="fin-void-reason"

@@ -87,7 +87,7 @@ export function ReasonDialog({
       disabled={reason.trim().length < 3}
       onSubmit={() => onConfirm(reason.trim())}
     >
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="staff-reason">{t('reasonLabel')}</Label>
         <Input
           id="staff-reason"

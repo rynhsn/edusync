@@ -285,7 +285,7 @@ export function SiteSettingsView() {
                 <CardDescription>{t('sectionIdentityHint')}</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-5">
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="site-tagline">{t('tagline')}</Label>
                   <Input
                     id="site-tagline"
@@ -322,7 +322,7 @@ export function SiteSettingsView() {
                     </div>
                   </fieldset>
                   <div className="flex flex-wrap items-center gap-3">
-                    <div className="grid gap-1.5">
+                    <div className="grid content-start gap-1.5">
                       <Label htmlFor="site-accent-hex" className="text-xs">
                         {t('accentCustom')}
                       </Label>
@@ -372,7 +372,7 @@ export function SiteSettingsView() {
                 <CardDescription>{t('sectionAboutHint')}</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4">
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="site-about">{t('about')}</Label>
                   <Textarea
                     id="site-about"
@@ -384,7 +384,7 @@ export function SiteSettingsView() {
                   />
                 </div>
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid gap-2">
+                  <div className="grid content-start gap-2">
                     <Label htmlFor="site-vision">{t('vision')}</Label>
                     <Textarea
                       id="site-vision"
@@ -394,7 +394,7 @@ export function SiteSettingsView() {
                       onChange={(e) => set('vision', e.target.value)}
                     />
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid content-start gap-2">
                     <Label htmlFor="site-mission">{t('mission')}</Label>
                     <Textarea
                       id="site-mission"
@@ -419,9 +419,13 @@ export function SiteSettingsView() {
                 <CardDescription>{t('sectionContactHint')}</CardDescription>
               </CardHeader>
               <CardContent className="grid gap-4 sm:grid-cols-2">
-                <div className="grid gap-2 sm:col-span-2">
+                <div className="grid content-start gap-2 sm:col-span-2">
                   {/* biome-ignore lint/a11y/useSemanticElements: dua tombol pilihan, bukan isian formulir. */}
-                  <div role="group" aria-label={t('sourceLabel')} className="grid gap-2 sm:grid-cols-2">
+                  <div
+                    role="group"
+                    aria-label={t('sourceLabel')}
+                    className="grid content-start gap-2 sm:grid-cols-2"
+                  >
                     {(['school', 'custom'] as const).map((k) => (
                       <button
                         key={k}
@@ -447,7 +451,7 @@ export function SiteSettingsView() {
                     </p>
                   )}
                 </div>
-                <div className="grid gap-2 sm:col-span-2">
+                <div className="grid content-start gap-2 sm:col-span-2">
                   <Label htmlFor="site-address">{t('address')}</Label>
                   <Textarea
                     id="site-address"
@@ -458,7 +462,7 @@ export function SiteSettingsView() {
                     onChange={(e) => set('address', e.target.value)}
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="site-phone">{t('phone')}</Label>
                   <Input
                     id="site-phone"
@@ -469,7 +473,7 @@ export function SiteSettingsView() {
                     onChange={(e) => set('phone', e.target.value)}
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="site-email">{t('email')}</Label>
                   <Input
                     id="site-email"
@@ -480,7 +484,7 @@ export function SiteSettingsView() {
                     onChange={(e) => set('email', e.target.value)}
                   />
                 </div>
-                <div className="grid gap-2 sm:col-span-2">
+                <div className="grid content-start gap-2 sm:col-span-2">
                   <Label htmlFor="site-whatsapp">{t('whatsapp')}</Label>
                   <Input
                     id="site-whatsapp"
@@ -494,7 +498,7 @@ export function SiteSettingsView() {
                     {t('whatsappHint')}
                   </p>
                 </div>
-                <div className="grid gap-2 sm:col-span-2">
+                <div className="grid content-start gap-2 sm:col-span-2">
                   <Label htmlFor="site-map">{t('mapUrl')}</Label>
                   <Input
                     id="site-map"

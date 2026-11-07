@@ -104,12 +104,12 @@ export function VisitsPanel({ placement }: { placement: PklPlacement }) {
               }
             }}
           >
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="vs-date">{t('date')}</Label>
               <DatePicker id="vs-date" value={date} onChange={setDate} />
             </div>
             {can('teacher:read') && (
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="vs-teacher">{t('visitTeacher')}</Label>
                 <SelectField id="vs-teacher" value={teacherId} onChange={(e) => setTeacherId(e.target.value)}>
                   <option value="">{t('visitTeacherMe')}</option>
@@ -121,7 +121,7 @@ export function VisitsPanel({ placement }: { placement: PklPlacement }) {
                 </SelectField>
               </div>
             )}
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="vs-notes">{t('visitNotes')}</Label>
               <Textarea
                 id="vs-notes"

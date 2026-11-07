@@ -382,7 +382,7 @@ export function LetterDetail({ id }: { id: string }) {
   }
 
   const sideActions = (
-    <div className="grid gap-2">
+    <div className="grid content-start gap-2">
       {canSign && (
         <ConfirmDialog
           title={t('signConfirmTitle')}
@@ -471,7 +471,7 @@ export function LetterDetail({ id }: { id: string }) {
 
       <div className="grid items-start gap-6 xl:grid-cols-[minmax(0,1fr)_20rem]">
         {outgoing ? (
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <div className="flex items-center justify-between gap-2">
               <h2 className="font-heading text-sm font-medium">{t('paper')}</h2>
               <ZoomControl zoom={zoom} onChange={setZoom} />
@@ -533,7 +533,7 @@ export function LetterDetail({ id }: { id: string }) {
                 </p>
               </div>
             </div>
-            <dl className="grid gap-2 text-sm">
+            <dl className="grid content-start gap-2 text-sm">
               <Field label={outgoing ? t('recipient') : t('sender')} value={l.party} />
               {l.studentName && <Field label={t('student')} value={l.studentName} />}
               {l.templateName && <Field label={t('template')} value={l.templateName} />}
@@ -606,7 +606,7 @@ export function LetterDetail({ id }: { id: string }) {
           await revoke.mutateAsync();
         }}
       >
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="revoke-reason">{t('revokeReason')}</Label>
           <TextArea
             id="revoke-reason"

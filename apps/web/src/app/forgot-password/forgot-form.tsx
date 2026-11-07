@@ -162,7 +162,7 @@ export function ForgotForm() {
       {step === 'email' && (
         <form key="email" onSubmit={onEmail} className="grid gap-4">
           {alert}
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="email">{t('email')}</Label>
             <Input id="email" name="email" type="email" autoComplete="username" required className="h-10" />
           </div>
@@ -175,7 +175,7 @@ export function ForgotForm() {
       {step === 'code' && (
         <form key="code" onSubmit={onCode} className="grid gap-4">
           {alert}
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="otp">{t('code')}</Label>
             <Input
               id="otp"
@@ -216,7 +216,7 @@ export function ForgotForm() {
       {step === 'password' && (
         <form key="password" onSubmit={onReset} className="grid gap-4">
           {alert}
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="password">{t('newPassword')}</Label>
             <PasswordInput
               id="password"
@@ -229,7 +229,7 @@ export function ForgotForm() {
             />
             <p className="text-muted-foreground text-xs">{t('passwordHint', { min: MIN_PASSWORD })}</p>
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="confirm">{t('confirmPassword')}</Label>
             <PasswordInput
               id="confirm"

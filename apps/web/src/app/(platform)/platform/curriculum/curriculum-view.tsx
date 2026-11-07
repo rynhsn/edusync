@@ -208,7 +208,7 @@ export function CurriculumView() {
 
   const levelFields = (d: LevelDraft, set: (d: LevelDraft) => void, creating: boolean, idp: string) => (
     <div className="grid gap-4 sm:grid-cols-2">
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idp}-key`}>{t('key')}</Label>
         <Input
           id={`${idp}-key`}
@@ -219,7 +219,7 @@ export function CurriculumView() {
           onChange={(e) => set({ ...d, key: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idp}-sort`}>{t('sort')}</Label>
         <Input
           id={`${idp}-sort`}
@@ -228,7 +228,7 @@ export function CurriculumView() {
           onChange={(e) => set({ ...d, sort: e.target.value })}
         />
       </div>
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${idp}-name`}>{t('name')}</Label>
         <Input
           id={`${idp}-name`}
@@ -253,7 +253,7 @@ export function CurriculumView() {
 
   const curFields = (d: CurDraft, set: (d: CurDraft) => void, creating: boolean, idp: string) => (
     <div className="grid gap-4">
-      <div className="grid gap-2 sm:max-w-xs">
+      <div className="grid content-start gap-2 sm:max-w-xs">
         <Label htmlFor={`${idp}-key`}>{t('key')}</Label>
         <Input
           id={`${idp}-key`}
@@ -264,7 +264,7 @@ export function CurriculumView() {
           onChange={(e) => set({ ...d, key: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idp}-name`}>{t('name')}</Label>
         <Input
           id={`${idp}-name`}
@@ -274,7 +274,7 @@ export function CurriculumView() {
           onChange={(e) => set({ ...d, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idp}-desc`}>{t('description')}</Label>
         <Input
           id={`${idp}-desc`}
@@ -515,7 +515,7 @@ export function CurriculumView() {
                       }}
                       onSubmit={() => importRows.mutateAsync(current.key)}
                     >
-                      <div className="grid gap-2 sm:max-w-xs">
+                      <div className="grid content-start gap-2 sm:max-w-xs">
                         <Label htmlFor="imp-level">{t('level')}</Label>
                         <SelectField
                           id="imp-level"
@@ -529,7 +529,7 @@ export function CurriculumView() {
                           ))}
                         </SelectField>
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid content-start gap-2">
                         <Label htmlFor="imp-file">{t('importFile')}</Label>
                         <Input
                           id="imp-file"
@@ -541,7 +541,7 @@ export function CurriculumView() {
                           }}
                         />
                       </div>
-                      <div className="grid gap-2">
+                      <div className="grid content-start gap-2">
                         <Label htmlFor="imp-text">{t('importPaste')}</Label>
                         <textarea
                           id="imp-text"
@@ -754,7 +754,7 @@ function SubjectFields({
   const t = useTranslations('platformReference');
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idp}-level`}>{t('level')}</Label>
         <SelectField
           id={`${idp}-level`}
@@ -768,7 +768,7 @@ function SubjectFields({
           ))}
         </SelectField>
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idp}-code`}>{t('code')}</Label>
         <Input
           id={`${idp}-code`}
@@ -778,7 +778,7 @@ function SubjectFields({
           onChange={(e) => onChange({ ...draft, code: e.target.value })}
         />
       </div>
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${idp}-name`}>{t('name')}</Label>
         <Input
           id={`${idp}-name`}
@@ -788,7 +788,7 @@ function SubjectFields({
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idp}-sort`}>{t('sort')}</Label>
         <Input
           id={`${idp}-sort`}

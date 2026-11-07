@@ -8,6 +8,7 @@ import {
   duplicateElement,
   elementText,
   ensureIds,
+  hasAttendanceQr,
   moveInOrder,
   removeElement,
   resizeCanvas,
@@ -155,5 +156,27 @@ describe('teks elemen dan data contoh', () => {
 
   it('contoh kartu ujian memuat nomor peserta menurut aturan', () => {
     expect(sampleCardData('exam').participantNo).toBe('ASTS-26-007');
+  });
+});
+
+describe('QR absensi', () => {
+  it('contoh kartu siswa memuat QR bergaya ES1. dan bisa dipakai elemen QR', () => {
+    const data = sampleCardData('student');
+    expect(data.qrCode).toMatch(/^ES1\.[0-9A-HJKMNP-TV-Z]{20}$/);
+    const q = { ...createElement('qr', 'student', canvas), field: 'qrCode' } as CardElement;
+    expect(codeText(q, data)).toBe(data.qrCode);
+    expect(validateLayout({ widthMm: 86, heightMm: 54, elements: [q] })).toEqual([]);
+  });
+
+  it('hasAttendanceQr: templat bawaan punya, templat lama tanpa elemen itu tidak', () => {
+    const layout = defaultStudentCardLayout();
+    expect(hasAttendanceQr(layout)).toBe(true);
+    const old = {
+      ...layout,
+      elements: layout.elements.filter((e) => !(e.type === 'qr' && e.field === 'qrCode')),
+    };
+    expect(hasAttendanceQr(old)).toBe(false);
+    const nisQr = { ...createElement('qr', 'student', canvas), field: 'nis' } as CardElement;
+    expect(hasAttendanceQr({ elements: [nisQr] })).toBe(false);
   });
 });

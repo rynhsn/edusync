@@ -66,7 +66,7 @@ export function SignaturePad({
   };
 
   return (
-    <div className="grid gap-2">
+    <div className="grid content-start gap-2">
       <div ref={wrap} className="lt-pad relative overflow-hidden rounded-xl border">
         <canvas
           ref={canvas}

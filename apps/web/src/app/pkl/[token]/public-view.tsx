@@ -215,11 +215,11 @@ export function PklPublicView({ token }: { token: string }) {
                   <NotebookPen className="size-5 text-orange-600 dark:text-orange-300" aria-hidden />{' '}
                   {t('journalFormTitle')}
                 </h2>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="pj-date">{t('date')}</Label>
                   <DatePicker id="pj-date" value={date} onChange={setDate} />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="pj-activity">{t('activity')}</Label>
                   <Textarea
                     id="pj-activity"
@@ -249,7 +249,7 @@ export function PklPublicView({ token }: { token: string }) {
               </form>
             )}
 
-            <section className="grid gap-2" aria-labelledby="pj-list">
+            <section className="grid content-start gap-2" aria-labelledby="pj-list">
               <h2 id="pj-list" className="font-heading text-lg font-semibold">
                 {t('recentJournals')}
               </h2>
@@ -301,7 +301,7 @@ export function PklPublicView({ token }: { token: string }) {
                   const d = drafts[a.id] ?? { value: '', note: '' };
                   const n = parseScore(d.value);
                   return (
-                    <div key={a.id} className="grid gap-2 rounded-xl border p-3">
+                    <div key={a.id} className="grid content-start gap-2 rounded-xl border p-3">
                       <div className="flex items-center justify-between gap-2">
                         <Label htmlFor={`sc-${a.id}`} className="font-medium">
                           {a.name}

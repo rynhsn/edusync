@@ -242,7 +242,7 @@ export function SessionsPanel({ id, canWrite }: { id: string; canWrite: boolean 
             }}
             onSubmit={() => create.mutateAsync()}
           >
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="ek-session-date">{t('sessionDate')}</Label>
               <DatePicker
                 id="ek-session-date"
@@ -250,7 +250,7 @@ export function SessionsPanel({ id, canWrite }: { id: string; canWrite: boolean 
                 onChange={(v) => setDraft((d) => ({ ...d, date: v }))}
               />
             </div>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="ek-session-topic">{t('topic')}</Label>
               <Input
                 id="ek-session-topic"

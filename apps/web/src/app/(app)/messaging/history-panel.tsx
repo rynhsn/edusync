@@ -74,7 +74,7 @@ export function HistoryPanel() {
   return (
     <div className="grid gap-4">
       <div className="flex flex-wrap items-end gap-4">
-        <div className="grid gap-2 sm:w-48">
+        <div className="grid content-start gap-2 sm:w-48">
           <Label htmlFor="hist-status">{t('filterStatus')}</Label>
           <SelectField
             id="hist-status"
@@ -92,7 +92,7 @@ export function HistoryPanel() {
             ))}
           </SelectField>
         </div>
-        <div className="grid gap-2 sm:w-56">
+        <div className="grid content-start gap-2 sm:w-56">
           <Label htmlFor="hist-event">{t('filterEvent')}</Label>
           <SelectField
             id="hist-event"

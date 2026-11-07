@@ -222,7 +222,7 @@ export function FinanceSettingsView() {
 
   const feeFields = (
     <div className={FORM_GRID}>
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor="fee-name">{tm('name')}</Label>
         <Input
           id="fee-name"
@@ -232,7 +232,7 @@ export function FinanceSettingsView() {
           onChange={(e) => setFee({ ...fee, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="fee-kind">{t('kind')}</Label>
         <SelectField
           id="fee-kind"
@@ -272,7 +272,7 @@ export function FinanceSettingsView() {
 
   const planFields = (
     <div className={FORM_GRID}>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="plan-fee">{t('feeType')}</Label>
         <SelectField
           id="plan-fee"
@@ -288,7 +288,7 @@ export function FinanceSettingsView() {
           ))}
         </SelectField>
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="plan-level">{t('level')}</Label>
         <SelectField
           id="plan-level"
@@ -304,7 +304,7 @@ export function FinanceSettingsView() {
           ))}
         </SelectField>
       </div>
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor="plan-amount">{t('amountRupiah')}</Label>
         <Input
           id="plan-amount"
@@ -541,7 +541,7 @@ export function FinanceSettingsView() {
                     </TableBody>
                   </Table>
                 </div>
-                <ul className="grid gap-2 md:hidden">
+                <ul className="grid content-start gap-2 md:hidden">
                   {planList.map((p) => (
                     <li key={p.id} className="bg-background flex items-center gap-3 rounded-xl border p-3">
                       <div className="min-w-0 flex-1">

@@ -279,7 +279,7 @@ export function QuickRegister() {
             </div>
           )}
 
-          <ul className="grid gap-1 sm:grid-cols-2">
+          <ul className="grid content-start gap-1 sm:grid-cols-2">
             {list.map((s) => {
               const card = cardOf(s.id);
               return (

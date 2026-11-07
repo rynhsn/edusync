@@ -170,7 +170,7 @@ function PeriodsDialog({
             }}
           >
             <p className="text-muted-foreground text-sm sm:col-span-3">{t('generateHint')}</p>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="gen-start">{t('firstStart')}</Label>
               <TimeField
                 id="gen-start"
@@ -178,7 +178,7 @@ function PeriodsDialog({
                 onChange={(v) => setGen({ ...gen, firstStart: v })}
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="gen-count">{t('count')}</Label>
               <Input
                 id="gen-count"
@@ -190,7 +190,7 @@ function PeriodsDialog({
                 onChange={(e) => setGen({ ...gen, count: e.target.value })}
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="gen-min">{t('minutes')}</Label>
               <Input
                 id="gen-min"
@@ -202,7 +202,7 @@ function PeriodsDialog({
                 onChange={(e) => setGen({ ...gen, minutes: e.target.value })}
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="gen-break">{t('breakAfter')}</Label>
               <Input
                 id="gen-break"
@@ -214,7 +214,7 @@ function PeriodsDialog({
                 onChange={(e) => setGen({ ...gen, breakAfter: e.target.value })}
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="gen-breakmin">{t('breakMinutes')}</Label>
               <Input
                 id="gen-breakmin"
@@ -240,7 +240,7 @@ function PeriodsDialog({
             create.mutate();
           }}
         >
-          <div className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <Label htmlFor="pd-number">{t('number')}</Label>
             <Input
               id="pd-number"
@@ -253,11 +253,11 @@ function PeriodsDialog({
               onChange={(e) => setAdd({ ...add, number: e.target.value })}
             />
           </div>
-          <div className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <Label htmlFor="pd-start">{t('starts')}</Label>
             <TimeField id="pd-start" value={add.startsAt} onChange={(v) => setAdd({ ...add, startsAt: v })} />
           </div>
-          <div className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <Label htmlFor="pd-end">{t('ends')}</Label>
             <TimeField id="pd-end" value={add.endsAt} onChange={(v) => setAdd({ ...add, endsAt: v })} />
           </div>
@@ -675,7 +675,7 @@ export function ScheduleView() {
               {dayPick === today && ` · ${t('today')}`} ·{' '}
               {t('lessonsCount', { count: entries.filter((e) => e.weekday === dayPick).length })}
             </p>
-            <ul className="grid gap-2">
+            <ul className="grid content-start gap-2">
               {periodList.map((p) => (
                 <li key={p.id} className="flex items-stretch gap-3">
                   <div className="w-14 shrink-0 pt-1 text-right">
@@ -705,7 +705,7 @@ export function ScheduleView() {
           {assignments.data?.length === 0 ? (
             <p className="text-muted-foreground text-sm">{t('noSubjects')}</p>
           ) : (
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="cell-subject">{t('pickSubject')}</Label>
               <SelectField
                 id="cell-subject"

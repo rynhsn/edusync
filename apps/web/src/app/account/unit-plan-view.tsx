@@ -124,7 +124,7 @@ export function UnitPlanView({ schoolId }: { schoolId: string }) {
             {q && (
               <>
                 {nowLines.length > 0 && (
-                  <div className="grid gap-2">
+                  <div className="grid content-start gap-2">
                     <p className="text-sm font-medium">{t('payNow')}</p>
                     <ul className="divide-y rounded-xl border text-sm">
                       {nowLines.map((l) => (

@@ -47,7 +47,7 @@ export function HelpView() {
         <CardHeader>
           <CardTitle className="font-heading text-lg">{t('faq')}</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-2">
+        <CardContent className="grid content-start gap-2">
           {FAQ.map((f) => (
             <details key={f} className="group bg-muted/30 rounded-xl border px-4 py-3">
               <summary className="flex cursor-pointer list-none items-center justify-between gap-3 text-sm font-medium">
@@ -66,7 +66,7 @@ export function HelpView() {
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="bg-card flex items-start gap-3.5 rounded-2xl border p-4">
           <IconTile icon={Mail} tone="sky" />
-          <div className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <p className="font-heading font-semibold">{t('contact')}</p>
             <p className="text-muted-foreground text-sm">
               {SUPPORT_EMAIL ? t('contactBody') : t('contactFallback')}
@@ -85,7 +85,7 @@ export function HelpView() {
         </div>
         <div className="bg-card flex items-start gap-3.5 rounded-2xl border p-4">
           <IconTile icon={BookOpen} tone="violet" />
-          <div className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <p className="font-heading font-semibold">{ta('nav.docs')}</p>
             <p className="text-muted-foreground text-sm">{t('docsBody')}</p>
             <Button

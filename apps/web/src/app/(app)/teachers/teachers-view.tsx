@@ -16,8 +16,9 @@ import {
   UserX,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { EmptyState } from '@/components/empty-state';
@@ -70,7 +71,7 @@ function TeacherFields({
   const tm = useTranslations('masterData');
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
         <Input
           id={`${idPrefix}-name`}
@@ -80,7 +81,7 @@ function TeacherFields({
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-nip`}>{t('nip')}</Label>
         <Input
           id={`${idPrefix}-nip`}
@@ -89,7 +90,7 @@ function TeacherFields({
           onChange={(e) => onChange({ ...draft, nip: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-status`}>{t('status')}</Label>
         <SelectField
           id={`${idPrefix}-status`}
@@ -115,6 +116,11 @@ export function TeachersView() {
   const manageAccount = manage && can('member:manage');
 
   const [q, setQ] = useState('');
+  // Pencarian topbar membuka halaman ini dengan ?q=<nama>; isi kolom cari mengikuti alamat.
+  const urlQuery = useSearchParams().get('q') ?? '';
+  useEffect(() => {
+    if (urlQuery) setQ(urlQuery.slice(0, 80));
+  }, [urlQuery]);
   const [statusFilter, setStatusFilter] = useState('');
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
@@ -471,7 +477,7 @@ export function TeachersView() {
         }}
       >
         {account?.memberId ? (
-          <div className="grid gap-2 text-sm">
+          <div className="grid content-start gap-2 text-sm">
             <p>
               {t('accountLinked', {
                 account: linkedMember(account.memberId)
@@ -506,7 +512,7 @@ export function TeachersView() {
                 freeMembers.length === 0 ? (
                   <p className="text-muted-foreground text-sm">{t('noFreeMembers')}</p>
                 ) : (
-                  <div className="grid gap-2">
+                  <div className="grid content-start gap-2">
                     <Label htmlFor="acc-member">{t('pickMember')}</Label>
                     <SelectField id="acc-member" value={pick} onChange={(e) => setPick(e.target.value)}>
                       <option value="">{t('pickPlaceholder')}</option>
@@ -519,7 +525,7 @@ export function TeachersView() {
                   </div>
                 )
               ) : (
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="acc-email">{t('inviteEmail')}</Label>
                   <Input
                     id="acc-email"

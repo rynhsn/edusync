@@ -74,7 +74,7 @@ export function SchoolsQuickOpen() {
             <AlertDescription>{t('openError')}</AlertDescription>
           </Alert>
         )}
-        <ul className="grid gap-2">
+        <ul className="grid content-start gap-2">
           {f.schools.map((s) => (
             <li
               key={s.id}

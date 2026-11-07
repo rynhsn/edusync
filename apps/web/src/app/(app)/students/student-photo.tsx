@@ -68,7 +68,7 @@ export function StudentPhotoField({ studentId }: { studentId: string }) {
           <User className="size-8" aria-hidden />
         )}
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <div>
           <p className="text-sm font-medium">{t('photo')}</p>
           <p className="text-muted-foreground text-xs">{t('photoHint')}</p>

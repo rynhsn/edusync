@@ -2,7 +2,7 @@
 
 import type { CardData, CardKind, CardLayout } from '@edusync/contracts';
 import { useQuery } from '@tanstack/react-query';
-import { CircleAlert, Download, Printer } from 'lucide-react';
+import { CircleAlert, Download, Printer, QrCode } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -13,7 +13,7 @@ import { Card } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { api, schoolHeader, unwrap } from '@/lib/api';
-import { sampleCardData } from '@/lib/cards/elements';
+import { hasAttendanceQr, sampleCardData } from '@/lib/cards/elements';
 import { cardsFileName, MAX_CARDS_PER_PDF, percent } from '@/lib/cards/print-model';
 import {
   bestSheetGrid,
@@ -186,6 +186,13 @@ export function PrintPanel({ kind, templates, selectedId, onSelect }: Props) {
           {t(kind === 'student' ? 'descStudent' : 'descExam')}
         </p>
       </div>
+
+      {kind === 'student' && template && !hasAttendanceQr(template.layout) && (
+        <Alert>
+          <QrCode aria-hidden />
+          <AlertDescription>{t('noQrNotice')}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <Field label={t('template')} htmlFor="print-template">

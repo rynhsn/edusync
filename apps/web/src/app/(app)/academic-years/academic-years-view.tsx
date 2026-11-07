@@ -117,7 +117,7 @@ export function AcademicYearsView() {
       onSubmit={() => create.mutateAsync()}
     >
       <div className="grid gap-4">
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="ay-name">{t('name')}</Label>
           <Input
             id="ay-name"
@@ -129,7 +129,7 @@ export function AcademicYearsView() {
           />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="ay-starts">{t('startsOn')}</Label>
             <DatePicker
               id="ay-starts"
@@ -137,7 +137,7 @@ export function AcademicYearsView() {
               onChange={(v) => setDraft({ ...draft, startsOn: v })}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="ay-ends">{t('endsOn')}</Label>
             <DatePicker
               id="ay-ends"

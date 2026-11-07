@@ -227,7 +227,7 @@ export function CalendarView() {
       onSubmit={() => create.mutateAsync()}
     >
       <div className="grid gap-4 sm:grid-cols-2">
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="ev-type">{t('type')}</Label>
           <SelectField
             id="ev-type"
@@ -250,7 +250,7 @@ export function CalendarView() {
           </SelectField>
         </div>
         {classScoped && classList.length > 0 ? (
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="ev-scope">{t('scope')}</Label>
             <SelectField
               id="ev-scope"
@@ -268,7 +268,7 @@ export function CalendarView() {
         ) : (
           <div />
         )}
-        <div className="grid gap-2 sm:col-span-2">
+        <div className="grid content-start gap-2 sm:col-span-2">
           <Label htmlFor="ev-title">{t('eventTitle')}</Label>
           <Input
             id="ev-title"
@@ -278,7 +278,7 @@ export function CalendarView() {
             onChange={(e) => setDraft({ ...draft, title: e.target.value })}
           />
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="ev-start">{t('starts')}</Label>
           <DatePicker
             id="ev-start"
@@ -286,7 +286,7 @@ export function CalendarView() {
             onChange={(v) => setDraft({ ...draft, startsOn: v })}
           />
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="ev-end">{t('ends')}</Label>
           <DatePicker
             id="ev-end"

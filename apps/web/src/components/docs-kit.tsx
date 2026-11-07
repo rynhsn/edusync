@@ -164,6 +164,20 @@ function ArticleCard({
   );
 }
 
+/** Kelompokkan artikel menurut grup, berurutan menurut GROUP_ORDER. */
+function groupArticles(list: DocArticle[]) {
+  const order: (DocGroup | 'other')[] = [];
+  for (const a of list) {
+    const g = a.group ?? 'other';
+    if (!order.includes(g)) order.push(g);
+  }
+  order.sort((x, y) => GROUP_ORDER.indexOf(x) - GROUP_ORDER.indexOf(y));
+  return order.map((g) => ({ key: g, items: list.filter((a) => (a.group ?? 'other') === g) }));
+}
+
+/** Kisi kartu indeks: 1 kolom di ponsel, 2 di layar sedang, 3 di layar lebar. */
+const CARD_GRID = 'grid gap-3 sm:grid-cols-2 xl:grid-cols-3';
+
 export function DocsIndex({ articles, base, labels, hasModule }: Props) {
   const t = useTranslations('docs');
   const locale = useLocale() as DocLocale;
@@ -175,15 +189,7 @@ export function DocsIndex({ articles, base, labels, hasModule }: Props) {
     [articles, locale, query],
   );
   const grouped = !query && articles.some((a) => a.group);
-  const groups = useMemo(() => {
-    const order: (DocGroup | 'other')[] = [];
-    for (const a of found) {
-      const g = a.group ?? 'other';
-      if (!order.includes(g)) order.push(g);
-    }
-    order.sort((x, y) => GROUP_ORDER.indexOf(x) - GROUP_ORDER.indexOf(y));
-    return order.map((g) => ({ key: g, items: found.filter((a) => (a.group ?? 'other') === g) }));
-  }, [found]);
+  const groups = useMemo(() => groupArticles(found), [found]);
 
   return (
     <PageBody>
@@ -217,7 +223,7 @@ export function DocsIndex({ articles, base, labels, hasModule }: Props) {
               >
                 {g.key === 'other' ? t('groups.other') : t(`groups.${g.key}`)}
               </h2>
-              <div className="grid gap-3 sm:grid-cols-2">
+              <div className={CARD_GRID}>
                 {g.items.map((a, i) => (
                   <ArticleCard
                     key={a.slug}
@@ -234,7 +240,7 @@ export function DocsIndex({ articles, base, labels, hasModule }: Props) {
           ))}
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className={CARD_GRID}>
           {found.map((a, i) => (
             <ArticleCard
               key={a.slug}
@@ -272,7 +278,23 @@ function useActiveSection(ids: string[]) {
     for (const el of els) observer.observe(el);
     return () => observer.disconnect();
   }, [key]);
-  return active;
+  return [active, setActive] as const;
+}
+
+/** Lompat ke bagian artikel: halus kecuali pengguna meminta gerak dikurangi; tetap berfungsi tanpa JavaScript lewat href. */
+function jumpTo(event: React.MouseEvent<HTMLAnchorElement>, id: string, onJump: (id: string) => void) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  event.preventDefault();
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  el.scrollIntoView({ behavior: reduce ? 'auto' : 'smooth', block: 'start' });
+  el.focus({ preventScroll: true });
+  try {
+    window.history.replaceState(null, '', `#${id}`);
+  } catch {
+    // Riwayat tidak bisa diubah (mis. iframe terbatas); lompat tetap berjalan.
+  }
+  onJump(id);
 }
 
 function Callout({ kind, children }: { kind: 'tip' | 'warning'; children: React.ReactNode }) {
@@ -307,7 +329,7 @@ export function DocsArticle({ articles, slug, base, labels }: Props & { slug: st
     () => [...(text?.sections ?? []).map((_, i) => `s-${i}`), ...(text?.faq?.length ? ['faq'] : [])],
     [text],
   );
-  const active = useActiveSection(ids);
+  const [active, setActive] = useActiveSection(ids);
 
   if (!article || !text) {
     return (
@@ -334,7 +356,7 @@ export function DocsArticle({ articles, slug, base, labels }: Props & { slug: st
         actions={<BackLink href={base} label={labels.allDocs} />}
       />
       {text.forWho && (
-        <p className="text-muted-foreground -mt-2 flex max-w-3xl items-center gap-2 text-sm">
+        <p className="text-muted-foreground -mt-2 flex max-w-[46rem] items-center gap-2 text-sm">
           <UserRound className="size-4 shrink-0" aria-hidden />
           <span>
             <strong className="text-foreground font-medium">{t('forWho')}:</strong> {text.forWho}
@@ -342,16 +364,54 @@ export function DocsArticle({ articles, slug, base, labels }: Props & { slug: st
         </p>
       )}
 
-      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,1fr)_14rem]">
+      <div className="grid items-start gap-8 xl:grid-cols-[minmax(0,46rem)_15rem] xl:justify-center 2xl:grid-cols-[15rem_minmax(0,46rem)_15rem]">
+        <aside className="sticky top-20 hidden max-h-[calc(100dvh-6rem)] overflow-y-auto 2xl:block">
+          <nav aria-label={labels.allDocs}>
+            <p className="font-heading text-muted-foreground mb-2 flex items-center gap-2 text-xs font-semibold tracking-wide uppercase">
+              <BookOpen className="size-3.5" aria-hidden /> {labels.allDocs}
+            </p>
+            <div className="grid gap-4 pr-1">
+              {groupArticles(articles).map((g) => (
+                <div key={g.key} className="grid gap-0.5">
+                  {articles.some((a) => a.group) && (
+                    <p className="text-muted-foreground px-2 pb-0.5 text-[11px] font-semibold">
+                      {g.key === 'other' ? t('groups.other') : t(`groups.${g.key}`)}
+                    </p>
+                  )}
+                  {g.items.map((a) => (
+                    <Link
+                      key={a.slug}
+                      href={`${base}/${a.slug}`}
+                      aria-current={a.slug === slug ? 'page' : undefined}
+                      className={cn(
+                        'block rounded-lg px-2 py-1.5 text-sm transition-colors',
+                        a.slug === slug
+                          ? 'bg-accent text-foreground font-medium'
+                          : 'text-muted-foreground hover:bg-muted hover:text-foreground',
+                      )}
+                    >
+                      {a.text[locale].title}
+                    </Link>
+                  ))}
+                </div>
+              ))}
+            </div>
+          </nav>
+        </aside>
+
         <div className="grid min-w-0 gap-6">
           <nav aria-label={t('onThisPage')} className="bg-card rounded-2xl border p-4 xl:hidden">
             <p className="font-heading mb-2 flex items-center gap-2 text-sm font-semibold">
               <ListTree className="size-4" aria-hidden /> {t('onThisPage')}
             </p>
-            <ol className="grid gap-1 text-sm">
+            <ol className="grid content-start gap-1 text-sm">
               {toc.map((item) => (
                 <li key={item.id}>
-                  <a href={`#${item.id}`} className="text-primary underline-offset-4 hover:underline">
+                  <a
+                    href={`#${item.id}`}
+                    onClick={(e) => jumpTo(e, item.id, setActive)}
+                    className="text-primary underline-offset-4 hover:underline"
+                  >
                     {item.label}
                   </a>
                 </li>
@@ -359,12 +419,13 @@ export function DocsArticle({ articles, slug, base, labels }: Props & { slug: st
             </ol>
           </nav>
 
-          <article className="grid max-w-3xl gap-5">
+          <article className="grid gap-5">
             {text.sections.map((s, i) => (
               <section
                 key={s.heading}
                 id={`s-${i}`}
-                className="bg-card grid scroll-mt-20 gap-3.5 rounded-2xl border p-5"
+                tabIndex={-1}
+                className="bg-card grid scroll-mt-20 outline-none gap-3.5 rounded-2xl border p-5"
               >
                 <h2 className="font-heading flex items-center gap-2.5 text-lg font-semibold">
                   <span className="bg-primary/10 text-primary grid size-6 shrink-0 place-items-center rounded-full text-xs font-semibold tabular-nums">
@@ -404,11 +465,15 @@ export function DocsArticle({ articles, slug, base, labels }: Props & { slug: st
             ))}
 
             {text.faq && text.faq.length > 0 && (
-              <section id="faq" className="bg-card grid scroll-mt-20 gap-4 rounded-2xl border p-5">
+              <section
+                id="faq"
+                tabIndex={-1}
+                className="bg-card grid scroll-mt-20 outline-none gap-4 rounded-2xl border p-5"
+              >
                 <h2 className="font-heading text-lg font-semibold">{t('faqTitle')}</h2>
                 <dl className="grid gap-4">
                   {text.faq.map((f) => (
-                    <div key={f.q} className="grid gap-1">
+                    <div key={f.q} className="grid content-start gap-1">
                       <dt className="text-sm font-medium">{f.q}</dt>
                       <dd className="text-muted-foreground text-sm leading-relaxed">{f.a}</dd>
                     </div>
@@ -418,7 +483,7 @@ export function DocsArticle({ articles, slug, base, labels }: Props & { slug: st
             )}
           </article>
 
-          <nav aria-label={labels.pager} className="grid max-w-3xl gap-3 sm:grid-cols-2">
+          <nav aria-label={labels.pager} className="grid gap-3 sm:grid-cols-2">
             {prev ? (
               <Link
                 href={`${base}/${prev.slug}`}
@@ -452,6 +517,7 @@ export function DocsArticle({ articles, slug, base, labels }: Props & { slug: st
                 <li key={item.id}>
                   <a
                     href={`#${item.id}`}
+                    onClick={(e) => jumpTo(e, item.id, setActive)}
                     aria-current={active === item.id ? 'true' : undefined}
                     className={cn(
                       '-ml-px block border-l py-1 pl-3 transition-colors',

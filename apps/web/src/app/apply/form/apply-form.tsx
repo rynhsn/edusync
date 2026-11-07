@@ -101,7 +101,7 @@ function Field({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn('grid gap-1.5', className)}>
+    <div className={cn('grid content-start gap-1.5', className)}>
       <Label htmlFor={id} className="text-sm font-medium">
         {label}
         {required && (
@@ -635,7 +635,7 @@ export function ApplyForm() {
                   docs.find((d) => d.kind === k.key)?.fileName ?? t('docs.notUploaded'),
                 ])}
               />
-              <div className="grid gap-1.5">
+              <div className="grid content-start gap-1.5">
                 <div className="flex items-start gap-3 rounded-xl border bg-[var(--ap-teal-soft)]/60 p-4">
                   <Checkbox
                     id="consent"

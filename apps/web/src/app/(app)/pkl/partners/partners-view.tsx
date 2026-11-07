@@ -127,7 +127,7 @@ export function PartnersView() {
         onSubmit={() => save.mutateAsync(draft)}
       >
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2 sm:col-span-2">
+          <div className="grid content-start gap-2 sm:col-span-2">
             <Label htmlFor="pt-name">{t('partnerName')}</Label>
             <Input
               id="pt-name"
@@ -137,7 +137,7 @@ export function PartnersView() {
               onChange={(e) => setDraft({ ...draft, name: e.target.value })}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="pt-field">{t('partnerField')}</Label>
             <Input
               id="pt-field"
@@ -146,7 +146,7 @@ export function PartnersView() {
               onChange={(e) => setDraft({ ...draft, field: e.target.value })}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="pt-contact">{t('partnerContact')}</Label>
             <Input
               id="pt-contact"
@@ -155,7 +155,7 @@ export function PartnersView() {
               onChange={(e) => setDraft({ ...draft, contactName: e.target.value })}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="pt-phone">{t('partnerPhone')}</Label>
             <Input
               id="pt-phone"
@@ -165,7 +165,7 @@ export function PartnersView() {
               onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="pt-email">{t('partnerEmail')}</Label>
             <Input
               id="pt-email"
@@ -175,7 +175,7 @@ export function PartnersView() {
               onChange={(e) => setDraft({ ...draft, email: e.target.value })}
             />
           </div>
-          <div className="grid gap-2 sm:col-span-2">
+          <div className="grid content-start gap-2 sm:col-span-2">
             <Label htmlFor="pt-address">{t('partnerAddress')}</Label>
             <Input
               id="pt-address"

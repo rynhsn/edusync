@@ -15,8 +15,9 @@ import {
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { EmptyState } from '@/components/empty-state';
@@ -138,7 +139,7 @@ function StudentFields({
   const thisYear = new Date().getFullYear();
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={f('name')}>{tm('name')}</Label>
         <Input
           id={f('name')}
@@ -148,7 +149,7 @@ function StudentFields({
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={f('nis')}>{t('nis')}</Label>
         <Input
           id={f('nis')}
@@ -157,7 +158,7 @@ function StudentFields({
           onChange={(e) => onChange({ ...draft, nis: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={f('nisn')}>{t('nisn')}</Label>
         <Input
           id={f('nisn')}
@@ -166,7 +167,7 @@ function StudentFields({
           onChange={(e) => onChange({ ...draft, nisn: e.target.value })}
         />
       </div>
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={f('nik')}>{t('nik')}</Label>
         <Input
           id={f('nik')}
@@ -178,7 +179,7 @@ function StudentFields({
           onChange={(e) => onChange({ ...draft, nik: e.target.value.replace(/\D/g, '') })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={f('gender')}>{t('gender')}</Label>
         <SelectField
           id={f('gender')}
@@ -189,7 +190,7 @@ function StudentFields({
           <option value="P">{t('female')}</option>
         </SelectField>
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={f('birthPlace')}>{t('birthPlace')}</Label>
         <Input
           id={f('birthPlace')}
@@ -198,7 +199,7 @@ function StudentFields({
           onChange={(e) => onChange({ ...draft, birthPlace: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={f('birthDate')}>{t('birthDate')}</Label>
         <DatePicker
           id={f('birthDate')}
@@ -208,7 +209,7 @@ function StudentFields({
           yearRange={{ from: thisYear - 40, to: thisYear }}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={f('religion')}>{t('religion')}</Label>
         <SelectField
           id={f('religion')}
@@ -223,7 +224,7 @@ function StudentFields({
           ))}
         </SelectField>
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={f('status')}>{t('status')}</Label>
         <SelectField
           id={f('status')}
@@ -238,7 +239,7 @@ function StudentFields({
         </SelectField>
       </div>
       {classes.length > 0 && (
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor={f('classId')}>{t('class')}</Label>
           <SelectField
             id={f('classId')}
@@ -255,7 +256,7 @@ function StudentFields({
         </div>
       )}
       <p className="font-heading border-t pt-4 text-sm font-semibold sm:col-span-2">{t('contactTitle')}</p>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={f('phone')}>{t('phone')}</Label>
         <Input
           id={f('phone')}
@@ -265,7 +266,7 @@ function StudentFields({
           onChange={(e) => onChange({ ...draft, phone: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={f('email')}>{t('email')}</Label>
         <Input
           id={f('email')}
@@ -276,7 +277,7 @@ function StudentFields({
         />
       </div>
       <p className="text-muted-foreground -mt-2 text-xs sm:col-span-2">{t('contactHint')}</p>
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={f('address')}>{t('address')}</Label>
         <Textarea
           id={f('address')}
@@ -302,6 +303,13 @@ export function StudentsView() {
   const manage = can('student:manage');
 
   const [q, setQ] = useState('');
+  // Pencarian topbar membuka halaman ini dengan ?q=<nama>; isi kolom cari mengikuti alamat.
+  const urlQuery = useSearchParams().get('q') ?? '';
+  useEffect(() => {
+    if (!urlQuery) return;
+    setQ(urlQuery.slice(0, 80));
+    setPage(0);
+  }, [urlQuery]);
   const [classFilter, setClassFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [page, setPage] = useState(0);
@@ -766,7 +774,7 @@ export function StudentsView() {
               {tc('studentCardsTitle')} · {cardsFor?.name}
             </DialogTitle>
           </DialogHeader>
-          {cardsFor && <StudentCards studentId={cardsFor.id} />}
+          {cardsFor && <StudentCards studentId={cardsFor.id} name={cardsFor.name} />}
         </DialogContent>
       </Dialog>
     </PageBody>

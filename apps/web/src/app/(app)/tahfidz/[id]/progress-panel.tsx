@@ -53,15 +53,15 @@ export function ProgressPanel({ halaqahId }: { halaqahId: string; canWrite: bool
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-end gap-3">
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="th-from">{t('from')}</Label>
           <DatePicker id="th-from" className="w-44" value={from} onChange={(v) => v <= to && setFrom(v)} />
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="th-to">{t('to')}</Label>
           <DatePicker id="th-to" className="w-44" value={to} onChange={(v) => v >= from && setTo(v)} />
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="th-sort">{t('sortLabel')}</Label>
           <SelectField
             id="th-sort"
@@ -135,7 +135,7 @@ export function ProgressPanel({ halaqahId }: { halaqahId: string; canWrite: bool
                   </div>
                   <ChevronRight className="text-muted-foreground size-4 shrink-0 transition-transform group-hover:translate-x-0.5" />
                 </div>
-                <div className="grid gap-1">
+                <div className="grid content-start gap-1">
                   <div className="flex items-center justify-between text-xs">
                     <span className="text-muted-foreground">{t('rangeAyahs')}</span>
                     <span className="tabular-nums">

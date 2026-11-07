@@ -4,6 +4,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { NewPasswordFields } from '@/components/new-password-fields';
 import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -170,48 +171,38 @@ export function InviteView({ token }: { token: string }) {
             }}
           >
             <p className="font-medium">{inv.accountExists ? t('signInTitle') : t('createTitle')}</p>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="invite-email">{ta('email')}</Label>
               <Input id="invite-email" value={inv.email} readOnly className="h-10" autoComplete="username" />
             </div>
             {!inv.accountExists && (
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="invite-name">{t('name')}</Label>
                 <Input id="invite-name" name="name" required autoComplete="name" className="h-10" />
               </div>
             )}
-            <div className="grid gap-2">
-              <Label htmlFor="invite-password">{ta('password')}</Label>
-              <PasswordInput
-                id="invite-password"
-                name="password"
-                required
-                autoComplete={inv.accountExists ? 'current-password' : 'new-password'}
-                className="h-10"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                {...(!inv.accountExists ? { 'aria-invalid': check.tooShort } : {})}
-              />
-              {!inv.accountExists && (
-                <p className={check.tooShort ? 'text-destructive text-xs' : 'text-muted-foreground text-xs'}>
-                  {tre('passwordHint')}
-                </p>
-              )}
-            </div>
-            {!inv.accountExists && (
-              <div className="grid gap-2">
-                <Label htmlFor="invite-confirm">{tre('passwordConfirm')}</Label>
+            {inv.accountExists ? (
+              <div className="grid content-start gap-2">
+                <Label htmlFor="invite-password">{ta('password')}</Label>
                 <PasswordInput
-                  id="invite-confirm"
+                  id="invite-password"
+                  name="password"
                   required
-                  autoComplete="new-password"
+                  autoComplete="current-password"
                   className="h-10"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  aria-invalid={check.mismatch}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
-                {check.mismatch && <p className="text-destructive text-xs">{tre('passwordMismatch')}</p>}
               </div>
+            ) : (
+              <NewPasswordFields
+                idPrefix="invite"
+                password={password}
+                confirm={confirm}
+                onPasswordChange={setPassword}
+                onConfirmChange={setConfirm}
+                inputClassName="h-10"
+              />
             )}
             <Button type="submit" disabled={pending || (!inv.accountExists && !check.ok)} className="h-10">
               {pending ? t('accepting') : inv.accountExists ? t('signInAndAccept') : t('createAndAccept')}

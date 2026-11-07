@@ -70,7 +70,7 @@ function ItemFields({
   const t = useTranslations('platformCatalog');
   return (
     <div className="grid gap-4 sm:grid-cols-2">
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${idPrefix}-name`}>{t('name')}</Label>
         <Input
           id={`${idPrefix}-name`}
@@ -79,7 +79,7 @@ function ItemFields({
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-price`}>{t('price')}</Label>
         <Input
           id={`${idPrefix}-price`}
@@ -88,7 +88,7 @@ function ItemFields({
           onChange={(e) => onChange({ ...draft, priceMonthly: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-sort`}>{t('sort')}</Label>
         <Input
           id={`${idPrefix}-sort`}
@@ -98,7 +98,7 @@ function ItemFields({
         />
       </div>
       {kind === 'tier' && (
-        <div className="grid gap-2 sm:col-span-2">
+        <div className="grid content-start gap-2 sm:col-span-2">
           <Label htmlFor={`${idPrefix}-max`}>{t('maxStudents')}</Label>
           <Input
             id={`${idPrefix}-max`}
@@ -111,10 +111,10 @@ function ItemFields({
         </div>
       )}
       {kind === 'module' && moduleOptions.length > 0 && (
-        <fieldset className="grid gap-2 sm:col-span-2">
+        <fieldset className="grid content-start gap-2 sm:col-span-2">
           <legend className="mb-1 text-sm font-medium">{t('requires')}</legend>
           <p className="text-muted-foreground -mt-1 text-xs">{t('requiresHint')}</p>
-          <div className="grid gap-2 sm:grid-cols-2">
+          <div className="grid content-start gap-2 sm:grid-cols-2">
             {moduleOptions.map((m) => (
               <label
                 key={m.key}
@@ -171,7 +171,7 @@ function PlanFields({
   return (
     <div className="grid gap-4">
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="grid gap-2 sm:col-span-2">
+        <div className="grid content-start gap-2 sm:col-span-2">
           <Label htmlFor={`${prefix}-name`}>{t('name')}</Label>
           <Input
             id={`${prefix}-name`}
@@ -181,7 +181,7 @@ function PlanFields({
             onChange={(e) => onChange({ ...draft, name: e.target.value })}
           />
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor={`${prefix}-sort`}>{t('sort')}</Label>
           <Input
             id={`${prefix}-sort`}
@@ -190,7 +190,7 @@ function PlanFields({
             onChange={(e) => onChange({ ...draft, sort: e.target.value })}
           />
         </div>
-        <div className="grid gap-2 sm:col-span-3">
+        <div className="grid content-start gap-2 sm:col-span-3">
           <Label htmlFor={`${prefix}-desc`}>{t('description')}</Label>
           <Input
             id={`${prefix}-desc`}
@@ -199,7 +199,7 @@ function PlanFields({
             onChange={(e) => onChange({ ...draft, description: e.target.value })}
           />
         </div>
-        <div className="grid gap-2 sm:col-span-3">
+        <div className="grid content-start gap-2 sm:col-span-3">
           <Label htmlFor={`${prefix}-tier`}>{t('tier')}</Label>
           <SelectField
             id={`${prefix}-tier`}
@@ -214,9 +214,9 @@ function PlanFields({
           </SelectField>
         </div>
       </div>
-      <fieldset className="grid gap-2">
+      <fieldset className="grid content-start gap-2">
         <legend className="mb-1 text-sm font-medium">{t('modules')}</legend>
-        <div className="grid gap-2 sm:grid-cols-2">
+        <div className="grid content-start gap-2 sm:grid-cols-2">
           {modules.map((m) => (
             <label key={m.key} htmlFor={`${prefix}-m-${m.key}`} className="flex items-center gap-2 text-sm">
               <Checkbox
@@ -423,7 +423,7 @@ export function CatalogView() {
                 onSubmit={() => addItem.mutateAsync()}
               >
                 <div className="grid gap-4 sm:grid-cols-2">
-                  <div className="grid gap-2">
+                  <div className="grid content-start gap-2">
                     <Label htmlFor="ni-kind">{t('kind')}</Label>
                     <SelectField
                       id="ni-kind"
@@ -434,7 +434,7 @@ export function CatalogView() {
                       <option value="tier">{t('kindTier')}</option>
                     </SelectField>
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid content-start gap-2">
                     <Label htmlFor="ni-key">{t('key')}</Label>
                     <Input
                       id="ni-key"
@@ -469,7 +469,7 @@ export function CatalogView() {
                 }}
                 onSubmit={() => addPlan.mutateAsync()}
               >
-                <div className="grid gap-2 sm:max-w-xs">
+                <div className="grid content-start gap-2 sm:max-w-xs">
                   <Label htmlFor="np-key">{t('key')}</Label>
                   <Input
                     id="np-key"

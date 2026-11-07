@@ -142,7 +142,7 @@ export function OverviewView() {
           <CardHeader>
             <CardTitle className="font-heading text-lg">{t('quickLinks')}</CardTitle>
           </CardHeader>
-          <CardContent className="grid gap-2">
+          <CardContent className="grid content-start gap-2">
             {[
               {
                 href: '/account/docs',

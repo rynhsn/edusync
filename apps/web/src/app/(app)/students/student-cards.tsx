@@ -1,18 +1,19 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Trash2 } from 'lucide-react';
+import { QrCode, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { ConfirmDialog } from '@/components/confirm-dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 
 /** Ringkasan kartu RFID seorang siswa (pakai endpoint kartu absensi); hanya untuk pemegang `attendance:configure`. */
-export function StudentCards({ studentId }: { studentId: string }) {
+export function StudentCards({ studentId, name }: { studentId: string; name: string }) {
   const t = useTranslations('gate');
   const te = useTranslations();
   const { school } = useSchool();
@@ -40,6 +41,19 @@ export function StudentCards({ studentId }: { studentId: string }) {
     },
     onError: (e) => toast.error(te(errorKey(e))),
   });
+  const rotate = useMutation({
+    mutationFn: async () =>
+      unwrap(
+        await api.POST('/v1/attendance/students/{studentId}/qr/rotate', {
+          params: { ...header, path: { studentId } },
+        }),
+      ),
+    onSuccess: () => {
+      toast.success(t('qrRotated'));
+      queryClient.invalidateQueries({ queryKey: ['card-data', school.schoolId] });
+    },
+    onError: (e) => toast.error(te(errorKey(e))),
+  });
   const remove = useMutation({
     mutationFn: async (id: string) =>
       unwrap(await api.DELETE('/v1/attendance/cards/{id}', { params: { ...header, path: { id } } })),
@@ -50,7 +64,7 @@ export function StudentCards({ studentId }: { studentId: string }) {
   return (
     <section className="grid gap-3">
       {list.data?.length === 0 && <p className="text-muted-foreground text-sm">{t('studentCardsEmpty')}</p>}
-      <ul className="grid gap-2">
+      <ul className="grid content-start gap-2">
         {list.data?.map((c) => (
           <li key={c.id} className="flex items-center justify-between gap-2 text-sm">
             <code className="font-mono text-xs break-all">{c.code}</code>
@@ -86,6 +100,22 @@ export function StudentCards({ studentId }: { studentId: string }) {
           </Button>
         </form>
       )}
+      <div className="border-t pt-3">
+        <p className="text-muted-foreground mb-2 text-xs">{t('qrRotateHint')}</p>
+        <ConfirmDialog
+          destructive
+          title={t('qrRotateTitle', { name })}
+          description={t('qrRotateBody')}
+          confirmLabel={t('qrRotateConfirm')}
+          pending={rotate.isPending}
+          onConfirm={() => rotate.mutateAsync()}
+          trigger={
+            <Button variant="outline" size="sm" disabled={rotate.isPending}>
+              <QrCode className="size-4" /> {t('qrRotate')}
+            </Button>
+          }
+        />
+      </div>
     </section>
   );
 }

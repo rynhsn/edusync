@@ -101,7 +101,7 @@ function ExtracurricularFields({
 
   return (
     <div className={FORM_GRID}>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
         <Input
           id={`${idPrefix}-name`}
@@ -111,7 +111,7 @@ function ExtracurricularFields({
           onChange={(e) => onChange({ ...draft, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-category`}>{t('categoryLabel')}</Label>
         <SelectField
           id={`${idPrefix}-category`}
@@ -127,7 +127,7 @@ function ExtracurricularFields({
             ))}
         </SelectField>
       </div>
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${idPrefix}-description`}>{t('description')}</Label>
         <Input
           id={`${idPrefix}-description`}
@@ -136,7 +136,7 @@ function ExtracurricularFields({
           onChange={(e) => onChange({ ...draft, description: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-coach-type`}>{t('coachType')}</Label>
         <SelectField
           id={`${idPrefix}-coach-type`}
@@ -149,7 +149,7 @@ function ExtracurricularFields({
         </SelectField>
       </div>
       {draft.coachType === 'teacher' && (
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor={`${idPrefix}-coach-teacher`}>{t('coach')}</Label>
           <SelectField
             id={`${idPrefix}-coach-teacher`}
@@ -168,7 +168,7 @@ function ExtracurricularFields({
         </div>
       )}
       {draft.coachType === 'external' && (
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor={`${idPrefix}-coach-external`}>{t('externalName')}</Label>
           <Input
             id={`${idPrefix}-coach-external`}
@@ -179,7 +179,7 @@ function ExtracurricularFields({
           />
         </div>
       )}
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${idPrefix}-weekday`}>{t('weekday')}</Label>
         <SelectField
           id={`${idPrefix}-weekday`}
@@ -194,7 +194,7 @@ function ExtracurricularFields({
           ))}
         </SelectField>
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-starts`}>{t('startsAt')}</Label>
         <TimeField
           id={`${idPrefix}-starts`}
@@ -202,7 +202,7 @@ function ExtracurricularFields({
           onChange={(v) => onChange({ ...draft, startsAt: v })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-ends`}>{t('endsAt')}</Label>
         <TimeField
           id={`${idPrefix}-ends`}
@@ -210,7 +210,7 @@ function ExtracurricularFields({
           onChange={(v) => onChange({ ...draft, endsAt: v })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-location`}>{t('location')}</Label>
         <Input
           id={`${idPrefix}-location`}
@@ -219,7 +219,7 @@ function ExtracurricularFields({
           onChange={(e) => onChange({ ...draft, location: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-active`}>{t('status')}</Label>
         <SelectField
           id={`${idPrefix}-active`}
@@ -529,7 +529,7 @@ export function ExtracurricularsView() {
                   <p className="text-muted-foreground line-clamp-2 text-sm">{r.description}</p>
                 )}
 
-                <dl className="grid gap-1.5 text-sm">
+                <dl className="grid content-start gap-1.5 text-sm">
                   <div className="flex items-center gap-2">
                     <dt className="sr-only">{t('schedule')}</dt>
                     <CalendarClock aria-hidden className={cn('size-4 shrink-0', TONES[meta.tone].text)} />

@@ -239,7 +239,7 @@ export function SignersView() {
           {form && (
             <div className="grid gap-4">
               {!form.id && (
-                <div className="grid gap-1.5">
+                <div className="grid content-start gap-1.5">
                   <Label htmlFor="sg-member">{t('member')}</Label>
                   <SelectField
                     id="sg-member"
@@ -260,7 +260,7 @@ export function SignersView() {
                   {members.isError && <p className="text-destructive text-xs">{t('memberNoAccess')}</p>}
                 </div>
               )}
-              <div className="grid gap-1.5">
+              <div className="grid content-start gap-1.5">
                 <Label htmlFor="sg-name">{t('signerName')}</Label>
                 <Input
                   id="sg-name"
@@ -270,7 +270,7 @@ export function SignersView() {
                   onChange={(e) => setForm({ ...form, name: e.target.value })}
                 />
               </div>
-              <div className="grid gap-1.5">
+              <div className="grid content-start gap-1.5">
                 <Label htmlFor="sg-title">{t('signerTitle')}</Label>
                 <Input
                   id="sg-title"
@@ -281,7 +281,7 @@ export function SignersView() {
                   placeholder={t('signerTitleHint')}
                 />
               </div>
-              <div className="grid gap-1.5">
+              <div className="grid content-start gap-1.5">
                 <Label htmlFor="sg-nip">NIP</Label>
                 <Input
                   id="sg-nip"
@@ -461,7 +461,7 @@ function MySignature({
         </div>
 
         <div className="grid content-start gap-3">
-          <div className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <p className="text-muted-foreground text-xs font-medium uppercase">
               {draft ? t('newSignature') : t('currentSignature')}
             </p>

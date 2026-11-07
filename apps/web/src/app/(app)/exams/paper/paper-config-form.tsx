@@ -76,7 +76,7 @@ function TextList({
 }) {
   const t = useTranslations('examPaper');
   return (
-    <div className="grid gap-2">
+    <div className="grid content-start gap-2">
       {items.map((text, i) => (
         // biome-ignore lint/suspicious/noArrayIndexKey: baris diedit langsung, posisinya adalah identitasnya.
         <div key={i} className="flex items-center gap-1.5">
@@ -217,7 +217,7 @@ export function PaperConfigForm({
               disabled={disabled}
               onChange={(v) => setKop({ showLogo: v })}
             />
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label>{t('preLines')}</Label>
               <p className="text-muted-foreground text-xs">{t('preLinesHint')}</p>
               <TextList
@@ -231,7 +231,7 @@ export function PaperConfigForm({
               />
             </div>
             {/* biome-ignore lint/a11y/useSemanticElements: dua tombol pilihan, bukan isian formulir. */}
-            <div role="group" aria-label={t('kopSource')} className="grid gap-2 sm:grid-cols-2">
+            <div role="group" aria-label={t('kopSource')} className="grid content-start gap-2 sm:grid-cols-2">
               {(['identity', 'custom'] as const).map((k) => (
                 <button
                   key={k}
@@ -263,7 +263,7 @@ export function PaperConfigForm({
                 ))}
               </div>
             ) : (
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label>{t('customLines')}</Label>
                 {kop.customLines.map((l, i) => (
                   // biome-ignore lint/suspicious/noArrayIndexKey: baris diedit langsung, posisinya adalah identitasnya.
@@ -348,7 +348,7 @@ export function PaperConfigForm({
           disabled={disabled}
           onChange={(v) => set({ title: { ...value.title, enabled: v } })}
         />
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="pp-title-tpl">{t('titleTemplate')}</Label>
           <Input
             id="pp-title-tpl"
@@ -389,7 +389,7 @@ export function PaperConfigForm({
                 <option value="2">{t('twoColumns')}</option>
               </SelectField>
             </div>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               {info.rows.map((r, i) => (
                 // biome-ignore lint/suspicious/noArrayIndexKey: baris diedit langsung, posisinya adalah identitasnya.
                 <div key={i} className="flex flex-wrap items-center gap-1.5">
@@ -483,7 +483,7 @@ export function PaperConfigForm({
         />
         {ins.enabled && (
           <>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="pp-ins-title">{t('instructionsTitle')}</Label>
               <Input
                 id="pp-ins-title"
@@ -541,7 +541,7 @@ export function PaperConfigForm({
       </Section>
 
       <Section title={t('secFooter')}>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="pp-footer">{t('footer')}</Label>
           <Input
             id="pp-footer"

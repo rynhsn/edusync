@@ -186,7 +186,7 @@ export function DiscountsCard({
 
   const ruleFields = (
     <div className={FORM_GRID}>
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor="rule-name">{t('ruleName')}</Label>
         <Input
           id="rule-name"
@@ -196,7 +196,7 @@ export function DiscountsCard({
           onChange={(e) => setRule({ ...rule, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="rule-kind">{t('ruleKind')}</Label>
         <SelectField
           id="rule-kind"
@@ -207,7 +207,7 @@ export function DiscountsCard({
           <option value="amount">{t('ruleKindAmount')}</option>
         </SelectField>
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="rule-value">
           {rule.kind === 'percent' ? t('ruleValuePercent') : t('ruleValueAmount')}
         </Label>
@@ -235,7 +235,7 @@ export function DiscountsCard({
           <p className="text-muted-foreground text-xs">{formatRupiah(Number(rule.value))}</p>
         )}
       </div>
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor="rule-fee">{t('appliesTo')}</Label>
         <SelectField
           id="rule-fee"
@@ -381,7 +381,7 @@ export function DiscountsCard({
             }}
           >
             <div className={FORM_GRID_3}>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="as-rule">{t('rule')}</Label>
                 <SelectField
                   id="as-rule"
@@ -396,11 +396,11 @@ export function DiscountsCard({
                   ))}
                 </SelectField>
               </div>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="as-year">{t('academicYear')}</Label>
                 <YearSelect years={years} yearId={yearId} onChange={setYear} />
               </div>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="as-scope">{t('scope')}</Label>
                 <SelectField
                   id="as-scope"
@@ -414,7 +414,7 @@ export function DiscountsCard({
             </div>
 
             {scope === 'class' ? (
-              <div className="grid gap-2 sm:max-w-xs">
+              <div className="grid content-start gap-2 sm:max-w-xs">
                 <Label htmlFor="as-class">{t('class')}</Label>
                 <SelectField
                   id="as-class"
@@ -482,7 +482,7 @@ export function DiscountsCard({
                     })}
                   </ul>
                 )}
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <p className="text-sm font-medium">{t('pickedStudents', { count: picked.length })}</p>
                   {picked.length === 0 ? (
                     <p className="text-muted-foreground text-xs">{t('noPickedStudents')}</p>
@@ -507,7 +507,7 @@ export function DiscountsCard({
               </div>
             )}
 
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="as-reason">{t('assignReason')}</Label>
               <Input
                 id="as-reason"
@@ -584,7 +584,7 @@ export function DiscountsCard({
             <DialogTitle className="font-heading text-lg">{t('assignResultTitle')}</DialogTitle>
           </DialogHeader>
           {result && (
-            <ul className="grid gap-1 text-sm">
+            <ul className="grid content-start gap-1 text-sm">
               <li className="font-medium text-emerald-700 dark:text-emerald-300">
                 {t('assignResultAssigned', { count: result.assigned })}
               </li>

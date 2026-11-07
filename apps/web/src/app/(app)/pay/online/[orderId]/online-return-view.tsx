@@ -104,7 +104,7 @@ export function OnlineReturnView({ orderId }: { orderId: string }) {
                   <p className="text-muted-foreground text-sm">{t('failedHint')}</p>
                 </>
               )}
-              <dl className="grid gap-1 border-t pt-3 text-sm">
+              <dl className="grid content-start gap-1 border-t pt-3 text-sm">
                 <div className="flex items-baseline justify-between gap-3">
                   <dt className="text-muted-foreground">{t('amount')}</dt>
                   <dd className="font-heading text-lg font-semibold tabular-nums">

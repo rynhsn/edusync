@@ -116,7 +116,7 @@ function DomainCard({
         {verified ? (
           <p className="text-muted-foreground text-sm">{t('verifiedNote')}</p>
         ) : (
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <p className="font-heading text-sm font-semibold">{t('dnsTitle')}</p>
             <p className="text-muted-foreground text-xs">{t('dnsHint')}</p>
             <div className="overflow-x-auto rounded-xl border">
@@ -147,9 +147,9 @@ function DomainCard({
         )}
 
         {checks && !verified && (
-          <div className="grid gap-2" aria-live="polite">
+          <div className="grid content-start gap-2" aria-live="polite">
             <p className="font-heading text-sm font-semibold">{t('resultTitle')}</p>
-            <ul className="grid gap-2">
+            <ul className="grid content-start gap-2">
               {checks.map((c) => (
                 <li key={c.kind} className="flex items-start gap-2 rounded-xl border p-3 text-sm">
                   {c.ok ? (
@@ -285,7 +285,7 @@ export function DomainsView() {
           }}
           onSubmit={() => add.mutateAsync()}
         >
-          <div className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <Label htmlFor="domain-hostname">{t('hostnameLabel')}</Label>
             <Input
               id="domain-hostname"

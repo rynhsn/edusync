@@ -14,12 +14,18 @@ import { cn } from '@/lib/utils';
  */
 export function AppHeader({
   mobileNav,
+  sidebarToggle,
   leading,
+  search,
   children,
   className,
 }: {
   mobileNav?: React.ReactNode;
+  /** Tombol sembunyikan/tampilkan sidebar (hanya md ke atas); biasanya `<SidebarToggle />`. */
+  sidebarToggle?: React.ReactNode;
   leading?: React.ReactNode;
+  /** Pencarian di kanan, sebelum kontrol pengguna; biasanya `<TopbarSearch />`. */
+  search?: React.ReactNode;
   children?: React.ReactNode;
   className?: string;
 }) {
@@ -32,9 +38,13 @@ export function AppHeader({
     >
       <div className="flex min-w-0 items-center gap-2">
         {mobileNav}
+        {sidebarToggle}
         {leading}
       </div>
-      {children}
+      <div className="flex items-center gap-1">
+        {search}
+        {children}
+      </div>
     </header>
   );
 }

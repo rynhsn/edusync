@@ -45,7 +45,7 @@ interface Props {
 
 function Row({ label, children, htmlFor }: { label: string; children: React.ReactNode; htmlFor?: string }) {
   return (
-    <div className="grid gap-1.5">
+    <div className="grid content-start gap-1.5">
       <Label htmlFor={htmlFor} className="text-xs">
         {label}
       </Label>
@@ -193,11 +193,13 @@ export function PropertiesPanel({
               value={el.field}
               onChange={(e) => onChange({ field: e.target.value as CardField })}
             >
-              {bindable.map((f) => (
-                <option key={f} value={f}>
-                  {fieldLabel(f)}
-                </option>
-              ))}
+              {bindable
+                .filter((f) => f !== 'qrCode')
+                .map((f) => (
+                  <option key={f} value={f}>
+                    {fieldLabel(f)}
+                  </option>
+                ))}
             </SelectField>
           </Row>
           <Row label={t('prefix')} htmlFor={id('prefix')}>
@@ -312,6 +314,11 @@ export function PropertiesPanel({
               ))}
             </SelectField>
           </Row>
+          {el.field === 'qrCode' && (
+            <p className="text-muted-foreground text-xs">
+              {t(el.type === 'barcode' ? 'qrCodeBarcodeHint' : 'qrCodeHint')}
+            </p>
+          )}
           <Row label={t('color')} htmlFor={id('color')}>
             <ColorField
               id={id('color')}

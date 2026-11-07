@@ -208,7 +208,7 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
               save.mutate();
             }}
           >
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="tpl">{t('template')}</Label>
               {templates.isPending ? (
                 <Skeleton className="h-8 w-full" />
@@ -232,7 +232,7 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
               )}
             </div>
 
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="student">{t('student')}</Label>
               {student ? (
                 <div className="bg-secondary/50 flex items-center gap-2 rounded-lg border px-3 py-1.5 text-sm">
@@ -296,7 +296,7 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
               <p className="text-muted-foreground text-xs">{t('studentHint')}</p>
             </div>
 
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="subject">{t('subject')}</Label>
               <Input
                 id="subject"
@@ -306,7 +306,7 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
                 onChange={(e) => setSubject(e.target.value)}
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="party">{t('recipient')}</Label>
               <Input
                 id="party"
@@ -317,12 +317,12 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
                 placeholder={t('recipientHint')}
               />
             </div>
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="date">{t('letterDate')}</Label>
               <DatePicker id="date" value={letterDate} onChange={setLetterDate} />
             </div>
 
-            <div className="grid gap-1.5">
+            <div className="grid content-start gap-1.5">
               <Label htmlFor="body">{t('body')}</Label>
               <PlaceholderChips names={LETTER_PLACEHOLDERS} onPick={insertPlaceholder} />
               <TextArea
@@ -358,7 +358,7 @@ export function Composer({ initial }: { initial?: ComposerInitial }) {
           </form>
         </Card>
 
-        <div className="grid gap-2 xl:sticky xl:top-4">
+        <div className="grid content-start gap-2 xl:sticky xl:top-4">
           <div className="flex items-center justify-between gap-2">
             <h2 className="font-heading text-sm font-medium">{t('preview')}</h2>
             <ZoomControl zoom={zoom} onChange={setZoom} />

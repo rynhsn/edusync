@@ -87,7 +87,7 @@ function TestMessage({ ready }: { ready: boolean }) {
             send.mutate();
           }}
         >
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="test-phone">{t('testPhone')}</Label>
             <Input
               id="test-phone"
@@ -98,7 +98,7 @@ function TestMessage({ ready }: { ready: boolean }) {
               onChange={(e) => setPhone(e.target.value)}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="test-text">{t('testText')}</Label>
             <Input
               id="test-text"

@@ -116,7 +116,7 @@ export function UnitNewView() {
               </Alert>
             )}
             {ready && q && (
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <ul className="divide-y rounded-xl border text-sm">
                   {q.lines.map((l) => (
                     <li key={l.key} className="flex items-center justify-between gap-3 px-3 py-2">

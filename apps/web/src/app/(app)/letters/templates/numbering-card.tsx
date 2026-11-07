@@ -149,7 +149,7 @@ export function NumberingCard() {
             if (valid) save.mutate();
           }}
         >
-          <div className="grid gap-2 sm:max-w-xs">
+          <div className="grid content-start gap-2 sm:max-w-xs">
             <Label htmlFor="letter-code">{t('code')}</Label>
             <Input
               id="letter-code"
@@ -169,7 +169,7 @@ export function NumberingCard() {
             const preview = previewOf(draft[r.field], effectiveCode);
             const Icon = r.icon;
             return (
-              <div key={r.field} className="grid gap-2">
+              <div key={r.field} className="grid content-start gap-2">
                 <Label htmlFor={`letter-${r.field}`} className="flex items-center gap-2">
                   <Icon className="size-4 text-[var(--lt-ink)]" aria-hidden /> {r.label}
                 </Label>

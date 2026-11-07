@@ -28,6 +28,7 @@ import { buttonVariants } from '@/components/ui/button';
 import { getSiteConfig, safeHref, siteAssetUrl, socialLinks, whatsappHref } from '@/lib/site-config';
 import { SITE_ICON_MAP } from '@/lib/site-icons';
 import { cn } from '@/lib/utils';
+import { LoginLink } from './login-link';
 
 const SOCIAL_LABEL = {
   instagram: 'Instagram',
@@ -158,9 +159,7 @@ export async function LandingPage({ fresh = false }: { fresh?: boolean } = {}) {
           <div className="flex items-center gap-1 sm:gap-2">
             <LanguageSwitcher />
             <ThemeToggle />
-            <Link href="/login" className={buttonVariants({ variant: 'outline' })}>
-              {t('login')}
-            </Link>
+            <LoginLink label={t('login')} signedInLabel={t('openApp')} />
             <Link href="/register" className={cn(buttonVariants(), 'hidden sm:inline-flex')}>
               {l.ctaPrimary}
             </Link>
@@ -189,12 +188,12 @@ export async function LandingPage({ fresh = false }: { fresh?: boolean } = {}) {
                   {l.ctaPrimary}
                   <ArrowRight className="size-4" aria-hidden />
                 </Link>
-                <Link
-                  href="/login"
-                  className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'justify-center')}
-                >
-                  {l.ctaSecondary}
-                </Link>
+                <LoginLink
+                  label={l.ctaSecondary}
+                  signedInLabel={t('openApp')}
+                  size="lg"
+                  className="justify-center"
+                />
               </div>
             </div>
 
@@ -442,12 +441,12 @@ export async function LandingPage({ fresh = false }: { fresh?: boolean } = {}) {
                   {l.ctaPrimary}
                   <ArrowRight className="size-4" aria-hidden />
                 </Link>
-                <Link
-                  href="/login"
-                  className={cn(buttonVariants({ variant: 'outline', size: 'lg' }), 'justify-center')}
-                >
-                  {t('login')}
-                </Link>
+                <LoginLink
+                  label={t('login')}
+                  signedInLabel={t('openApp')}
+                  size="lg"
+                  className="justify-center"
+                />
               </div>
             </div>
           </section>

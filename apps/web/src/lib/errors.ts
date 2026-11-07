@@ -53,6 +53,8 @@ const KNOWN = [
   'not_on_duty',
   'not_your_lesson',
   'unknown_card',
+  'unknown_qr',
+  'invalid_qr',
   'invalid_policy',
   'invalid_time',
   'invalid_date',

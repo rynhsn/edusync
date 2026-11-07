@@ -215,7 +215,7 @@ export function JournalPanel({ placement, period }: { placement: PklPlacement; p
                   <Label htmlFor="jn-present">{t('presentToday')}</Label>
                 </div>
               </div>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="jn-activity">{t('activity')}</Label>
                 <Textarea
                   id="jn-activity"
@@ -243,7 +243,7 @@ export function JournalPanel({ placement, period }: { placement: PklPlacement; p
           </form>
         )}
 
-        <section aria-label={t('journalList')} className="grid gap-2">
+        <section aria-label={t('journalList')} className="grid content-start gap-2">
           {journals.isPending ? (
             <Skeleton className="h-24 w-full rounded-xl" />
           ) : list.length === 0 ? (

@@ -5,9 +5,11 @@ import {
   CheckCheck,
   Clock,
   CloudOff,
+  ListChecks,
   LogIn,
   LogOut,
   Pencil,
+  QrCode,
   RefreshCw,
   Search,
   UserCheck,
@@ -68,6 +70,7 @@ import {
   toBatches,
   viewRow,
 } from './manual-logic';
+import { ScanPanel } from './scan-panel';
 
 const POLL_MS = 15_000;
 const RETRY_MS = 30_000;
@@ -102,6 +105,7 @@ export function ManualView() {
 
   const [classId, setClassId] = useState('');
   const [date, setDate] = useState(today);
+  const [view, setView] = useState<'list' | 'scan'>('list');
   const [mode, setMode] = useState<Direction>('in');
   const [timeText, setTimeText] = useState('');
   const [search, setSearch] = useState('');
@@ -501,366 +505,393 @@ export function ManualView() {
         }
       />
 
-      {noActiveYear && <PrerequisiteNotice title={t('noYearTitle')} missing={['semesters']} />}
+      <div
+        role="tablist"
+        aria-label={t('scan.tabsLabel')}
+        className="bg-muted grid w-full max-w-md grid-cols-2 gap-1 rounded-xl p-1"
+      >
+        {(['list', 'scan'] as const).map((v) => (
+          <Button
+            key={v}
+            type="button"
+            role="tab"
+            aria-selected={view === v}
+            variant={view === v ? 'default' : 'ghost'}
+            className="h-11 text-base"
+            onClick={() => setView(v)}
+          >
+            {v === 'list' ? <ListChecks className="size-4" /> : <QrCode className="size-4" />}
+            {v === 'list' ? t('scan.tabList') : t('scan.tabScan')}
+          </Button>
+        ))}
+      </div>
 
-      {queue.length > 0 && (
-        <Alert className="border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
-          <CloudOff aria-hidden />
-          <AlertTitle>{t('queue.banner', { count: queue.length })}</AlertTitle>
-          <AlertDescription>
-            <p>{t('queue.bannerBody')}</p>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <Button size="sm" disabled={syncing} onClick={() => void sync(true)}>
-                <RefreshCw className={cn('size-3.5', syncing && 'animate-spin')} />
-                {syncing ? t('queue.retrying') : t('queue.retry')}
-              </Button>
-              <Button size="sm" variant="ghost" disabled={syncing} onClick={() => setDiscardOpen(true)}>
-                {t('queue.discard')}
-              </Button>
-            </div>
-          </AlertDescription>
-        </Alert>
-      )}
+      {view === 'scan' && <ScanPanel />}
 
-      {classesQ.isPending && (
-        <div className="grid gap-3" aria-busy>
-          <Skeleton className="h-24 rounded-2xl" />
-          <Skeleton className="h-64 rounded-2xl" />
-        </div>
-      )}
-
-      {classesQ.isError && (
-        <Alert variant="destructive">
-          <AlertDescription>
-            {classesQ.error instanceof ApiError ? te(errorKey(classesQ.error)) : t('loadError')}
-          </AlertDescription>
-        </Alert>
-      )}
-
-      {classesQ.isSuccess && classes.length === 0 && (
-        <EmptyPanel
-          icon={Users}
-          tone={MODULE_TONE.attendance}
-          title={t('noClassesTitle')}
-          body={t('noClassesBody')}
-        />
-      )}
-
-      {classes.length > 0 && (
+      {view === 'list' && (
         <>
-          <Toolbar className="grid gap-3 p-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
-            <div className="grid gap-1.5">
-              <Label htmlFor="manual-class">{t('class')}</Label>
-              <SelectField id="manual-class" value={classId} onChange={(e) => setClassId(e.target.value)}>
-                {classes.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {classLabel(c)}
-                  </option>
-                ))}
-              </SelectField>
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="manual-date">{t('date')}</Label>
-              <DatePicker id="manual-date" value={date} onChange={(v) => v && setDate(v)} />
-            </div>
-            <div className="grid gap-1.5">
-              <Label htmlFor="manual-time">{past ? t('timeLabelRequired') : t('timeLabel')}</Label>
-              <Input
-                id="manual-time"
-                inputMode="numeric"
-                autoComplete="off"
-                placeholder={t('timePlaceholder')}
-                value={timeText}
-                aria-invalid={timeInvalid || timeMissing}
-                onChange={(e) => setTimeText(e.target.value)}
-              />
-            </div>
-            <div className="grid gap-1.5">
-              <span className="text-sm font-medium" id="manual-mode-label">
-                {t('modeLabel')}
-              </span>
-              <div
-                role="tablist"
-                aria-labelledby="manual-mode-label"
-                className="bg-muted grid grid-cols-2 gap-1 rounded-lg p-1"
-              >
-                {(['in', 'out'] as const).map((d) => (
-                  <Button
-                    key={d}
-                    type="button"
-                    role="tab"
-                    aria-selected={mode === d}
-                    variant={mode === d ? 'default' : 'ghost'}
-                    className="h-9 min-w-24 px-4"
-                    onClick={() => setMode(d)}
-                  >
-                    {d === 'in' ? <LogIn className="size-4" /> : <LogOut className="size-4" />}
-                    {d === 'in' ? t('modeIn') : t('modeOut')}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          </Toolbar>
+          {noActiveYear && <PrerequisiteNotice title={t('noYearTitle')} missing={['semesters']} />}
 
-          {timeInvalid && (
-            <Alert variant="destructive">
-              <AlertDescription>{t('timeInvalid')}</AlertDescription>
-            </Alert>
-          )}
-          {timeMissing && !timeInvalid && (
-            <Alert variant="destructive">
-              <AlertDescription>{te('errors.time_required')}</AlertDescription>
-            </Alert>
-          )}
-          {future && (
-            <Alert variant="destructive">
-              <AlertDescription>{t('futureDate')}</AlertDescription>
-            </Alert>
-          )}
-          {closed && (
-            <Alert>
-              <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
-                <span>
-                  {t('closed', { title: closed.title })} {forced && t('forceOn')}
-                </span>
-                {!forced && (
-                  <Button size="sm" variant="outline" onClick={() => setForceOpen(true)}>
-                    {t('forceButton')}
+          {queue.length > 0 && (
+            <Alert className="border-amber-300 bg-amber-50 text-amber-950 dark:border-amber-500/40 dark:bg-amber-500/10 dark:text-amber-100">
+              <CloudOff aria-hidden />
+              <AlertTitle>{t('queue.banner', { count: queue.length })}</AlertTitle>
+              <AlertDescription>
+                <p>{t('queue.bannerBody')}</p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <Button size="sm" disabled={syncing} onClick={() => void sync(true)}>
+                    <RefreshCw className={cn('size-3.5', syncing && 'animate-spin')} />
+                    {syncing ? t('queue.retrying') : t('queue.retry')}
                   </Button>
-                )}
+                  <Button size="sm" variant="ghost" disabled={syncing} onClick={() => setDiscardOpen(true)}>
+                    {t('queue.discard')}
+                  </Button>
+                </div>
               </AlertDescription>
             </Alert>
           )}
 
-          {daily.isPending && !future && (
+          {classesQ.isPending && (
             <div className="grid gap-3" aria-busy>
-              <Skeleton className="h-20 rounded-2xl" />
+              <Skeleton className="h-24 rounded-2xl" />
               <Skeleton className="h-64 rounded-2xl" />
             </div>
           )}
 
-          {daily.isError && (
+          {classesQ.isError && (
             <Alert variant="destructive">
-              <AlertDescription>{te(errorKey(daily.error))}</AlertDescription>
+              <AlertDescription>
+                {classesQ.error instanceof ApiError ? te(errorKey(classesQ.error)) : t('loadError')}
+              </AlertDescription>
             </Alert>
           )}
 
-          {daily.data && (
+          {classesQ.isSuccess && classes.length === 0 && (
+            <EmptyPanel
+              icon={Users}
+              tone={MODULE_TONE.attendance}
+              title={t('noClassesTitle')}
+              body={t('noClassesBody')}
+            />
+          )}
+
+          {classes.length > 0 && (
             <>
-              <StatGrid>
-                <StatCard
-                  label={t('stats.checkedIn')}
-                  value={`${counters.checkedIn}/${counters.total}`}
-                  icon={LogIn}
-                  tone="emerald"
-                  hint={counters.late > 0 ? t('lateCount', { count: counters.late }) : undefined}
-                />
-                <StatCard
-                  label={t('stats.checkedOut')}
-                  value={counters.checkedOut}
-                  icon={LogOut}
-                  tone="sky"
-                />
-                <StatCard label={t('stats.away')} value={counters.away} icon={UserX} tone="amber" />
-                <StatCard
-                  label={t('stats.notYet')}
-                  value={counters.notYet}
-                  icon={Clock}
-                  tone={counters.notYet > 0 ? 'rose' : 'slate'}
-                />
-              </StatGrid>
-
-              <section className="grid gap-3">
-                <Toolbar className="gap-2 p-2.5">
-                  <div className="relative min-w-40 flex-1 sm:max-w-60">
-                    <Search
-                      aria-hidden
-                      className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
-                    />
-                    <Input
-                      aria-label={t('search')}
-                      placeholder={t('search')}
-                      className="pl-9"
-                      value={search}
-                      onChange={(e) => setSearch(e.target.value)}
-                    />
-                  </div>
-                  <Button
-                    variant="outline"
-                    disabled={!canAct || candidates.length === 0}
-                    onClick={() => setMarkAllOpen(true)}
-                  >
-                    <CheckCheck className="size-4" />
-                    {mode === 'in' ? t('markAllIn') : t('markAllOut')}
-                  </Button>
-                  <Button
-                    variant={selecting ? 'secondary' : 'outline'}
-                    onClick={() => {
-                      setSelecting((s) => !s);
-                      setSelected(new Set());
-                    }}
-                  >
-                    {selecting ? t('selectDone') : t('select')}
-                  </Button>
-                  <p className="text-muted-foreground ml-auto text-xs tabular-nums" aria-live="polite">
-                    {tg('shown', { shown: shown.length, total: views.length })} · {t('live')}
-                  </p>
-                </Toolbar>
-
-                {selecting && (
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() =>
-                        setSelected(new Set(shown.filter(isMarkable).map((v) => v.row.studentId)))
-                      }
-                    >
-                      {t('selectAllUnmarked')}
-                    </Button>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={selected.size === 0}
-                      onClick={() => setSelected(new Set())}
-                    >
-                      {t('clearSelection')}
-                    </Button>
-                    <span className="text-muted-foreground text-sm tabular-nums">
-                      {t('selectedCount', { count: selected.size })}
-                    </span>
-                  </div>
-                )}
-
-                {shown.length === 0 ? (
-                  <EmptyPanel
-                    icon={Users}
-                    tone={MODULE_TONE.attendance}
-                    title={views.length === 0 ? t('emptyTitle') : t('noMatch')}
-                    {...(views.length === 0 ? { body: t('emptyBody') } : {})}
-                  />
-                ) : (
-                  <ul className="bg-card divide-y overflow-hidden rounded-2xl border">
-                    {shown.map((v, i) => {
-                      const id = v.row.studentId;
-                      const markable = isMarkable(v);
-                      const name = v.row.name;
-                      const sub = [v.row.className, v.row.nis].filter(Boolean).join(' · ');
-                      return (
-                        <li
-                          key={id}
-                          style={stagger(i)}
-                          className={cn(
-                            ENTER,
-                            'flex items-center gap-3 px-3 py-3 transition-colors sm:px-4',
-                            selecting && selected.has(id) && 'bg-primary/5',
-                          )}
-                        >
-                          {selecting && (
-                            <Checkbox
-                              aria-label={t('selectRow', { name })}
-                              checked={selected.has(id)}
-                              disabled={!markable}
-                              onCheckedChange={() => toggle(id)}
-                            />
-                          )}
-                          {selecting ? (
-                            <button
-                              type="button"
-                              disabled={!markable}
-                              onClick={() => toggle(id)}
-                              className="min-w-0 flex-1 text-left disabled:opacity-60"
-                            >
-                              <PersonCell name={name} sub={sub} />
-                            </button>
-                          ) : (
-                            <PersonCell className="flex-1" name={name} sub={sub} />
-                          )}
-
-                          <div className="flex shrink-0 flex-col items-end gap-1">
-                            {v.row.status && (
-                              <ToneBadge tone={toneOfStatus(v.row.status)}>
-                                {tg(`status_${v.row.status}`)}
-                              </ToneBadge>
-                            )}
-                            {v.pending && (
-                              <ToneBadge tone="amber">
-                                {v.pending.queued ? t('pendingBadge') : t('sendingBadge')}
-                              </ToneBadge>
-                            )}
-                            {!v.row.status && !v.pending && !v.inAt && (
-                              <ToneBadge tone="slate">{t('notYetBadge')}</ToneBadge>
-                            )}
-                          </div>
-
-                          {!selecting && (
-                            <div className="flex shrink-0 items-center gap-1.5">
-                              {markable ? (
-                                <Button
-                                  className="h-12 min-w-28 text-base"
-                                  disabled={!canAct}
-                                  aria-label={t(mode === 'in' ? 'tapInFor' : 'tapOutFor', { name })}
-                                  onClick={() => void tap(v)}
-                                >
-                                  {mode === 'in' ? (
-                                    <LogIn className="size-5" />
-                                  ) : (
-                                    <LogOut className="size-5" />
-                                  )}
-                                  {mode === 'in' ? t('tapIn') : t('tapOut')}
-                                </Button>
-                              ) : (
-                                <Button
-                                  variant="secondary"
-                                  className="h-12 min-w-28 text-base tabular-nums"
-                                  disabled={v.pending !== null}
-                                  aria-label={t('editFor', { name })}
-                                  onClick={() => setCorrecting(v.row)}
-                                >
-                                  {v.away ? (
-                                    <Pencil className="size-4" />
-                                  ) : mode === 'in' ? (
-                                    <LogIn className="size-4" />
-                                  ) : (
-                                    <LogOut className="size-4" />
-                                  )}
-                                  {v.away
-                                    ? tg(`status_${v.row.status ?? 'absent'}`)
-                                    : mode === 'in'
-                                      ? t('recordedIn', { time: v.inAt })
-                                      : t('recordedOut', { time: v.outAt })}
-                                </Button>
-                              )}
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="size-10"
-                                aria-label={t('editFor', { name })}
-                                title={t('editFor', { name })}
-                                onClick={() => setCorrecting(v.row)}
-                              >
-                                <Pencil className="size-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
-              </section>
-
-              {selecting && selected.size > 0 && (
-                <div className="bg-card sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-2 rounded-2xl border p-3 shadow-lg">
-                  <span className="text-sm font-medium tabular-nums">
-                    {t('selectedCount', { count: selected.size })}
-                  </span>
-                  <Button className="h-11 px-5 text-base" disabled={!canAct} onClick={applySelected}>
-                    {mode === 'in'
-                      ? t('applyIn', { count: selected.size })
-                      : t('applyOut', { count: selected.size })}
-                  </Button>
+              <Toolbar className="grid gap-3 p-3 sm:grid-cols-2 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)_minmax(0,1fr)_auto]">
+                <div className="grid content-start gap-1.5">
+                  <Label htmlFor="manual-class">{t('class')}</Label>
+                  <SelectField id="manual-class" value={classId} onChange={(e) => setClassId(e.target.value)}>
+                    {classes.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {classLabel(c)}
+                      </option>
+                    ))}
+                  </SelectField>
                 </div>
+                <div className="grid content-start gap-1.5">
+                  <Label htmlFor="manual-date">{t('date')}</Label>
+                  <DatePicker id="manual-date" value={date} onChange={(v) => v && setDate(v)} />
+                </div>
+                <div className="grid content-start gap-1.5">
+                  <Label htmlFor="manual-time">{past ? t('timeLabelRequired') : t('timeLabel')}</Label>
+                  <Input
+                    id="manual-time"
+                    inputMode="numeric"
+                    autoComplete="off"
+                    placeholder={t('timePlaceholder')}
+                    value={timeText}
+                    aria-invalid={timeInvalid || timeMissing}
+                    onChange={(e) => setTimeText(e.target.value)}
+                  />
+                </div>
+                <div className="grid content-start gap-1.5">
+                  <span className="text-sm font-medium" id="manual-mode-label">
+                    {t('modeLabel')}
+                  </span>
+                  <div
+                    role="tablist"
+                    aria-labelledby="manual-mode-label"
+                    className="bg-muted grid grid-cols-2 gap-1 rounded-lg p-1"
+                  >
+                    {(['in', 'out'] as const).map((d) => (
+                      <Button
+                        key={d}
+                        type="button"
+                        role="tab"
+                        aria-selected={mode === d}
+                        variant={mode === d ? 'default' : 'ghost'}
+                        className="h-9 min-w-24 px-4"
+                        onClick={() => setMode(d)}
+                      >
+                        {d === 'in' ? <LogIn className="size-4" /> : <LogOut className="size-4" />}
+                        {d === 'in' ? t('modeIn') : t('modeOut')}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </Toolbar>
+
+              {timeInvalid && (
+                <Alert variant="destructive">
+                  <AlertDescription>{t('timeInvalid')}</AlertDescription>
+                </Alert>
+              )}
+              {timeMissing && !timeInvalid && (
+                <Alert variant="destructive">
+                  <AlertDescription>{te('errors.time_required')}</AlertDescription>
+                </Alert>
+              )}
+              {future && (
+                <Alert variant="destructive">
+                  <AlertDescription>{t('futureDate')}</AlertDescription>
+                </Alert>
+              )}
+              {closed && (
+                <Alert>
+                  <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
+                    <span>
+                      {t('closed', { title: closed.title })} {forced && t('forceOn')}
+                    </span>
+                    {!forced && (
+                      <Button size="sm" variant="outline" onClick={() => setForceOpen(true)}>
+                        {t('forceButton')}
+                      </Button>
+                    )}
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              {daily.isPending && !future && (
+                <div className="grid gap-3" aria-busy>
+                  <Skeleton className="h-20 rounded-2xl" />
+                  <Skeleton className="h-64 rounded-2xl" />
+                </div>
+              )}
+
+              {daily.isError && (
+                <Alert variant="destructive">
+                  <AlertDescription>{te(errorKey(daily.error))}</AlertDescription>
+                </Alert>
+              )}
+
+              {daily.data && (
+                <>
+                  <StatGrid>
+                    <StatCard
+                      label={t('stats.checkedIn')}
+                      value={`${counters.checkedIn}/${counters.total}`}
+                      icon={LogIn}
+                      tone="emerald"
+                      hint={counters.late > 0 ? t('lateCount', { count: counters.late }) : undefined}
+                    />
+                    <StatCard
+                      label={t('stats.checkedOut')}
+                      value={counters.checkedOut}
+                      icon={LogOut}
+                      tone="sky"
+                    />
+                    <StatCard label={t('stats.away')} value={counters.away} icon={UserX} tone="amber" />
+                    <StatCard
+                      label={t('stats.notYet')}
+                      value={counters.notYet}
+                      icon={Clock}
+                      tone={counters.notYet > 0 ? 'rose' : 'slate'}
+                    />
+                  </StatGrid>
+
+                  <section className="grid gap-3">
+                    <Toolbar className="gap-2 p-2.5">
+                      <div className="relative min-w-40 flex-1 sm:max-w-60">
+                        <Search
+                          aria-hidden
+                          className="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                        />
+                        <Input
+                          aria-label={t('search')}
+                          placeholder={t('search')}
+                          className="pl-9"
+                          value={search}
+                          onChange={(e) => setSearch(e.target.value)}
+                        />
+                      </div>
+                      <Button
+                        variant="outline"
+                        disabled={!canAct || candidates.length === 0}
+                        onClick={() => setMarkAllOpen(true)}
+                      >
+                        <CheckCheck className="size-4" />
+                        {mode === 'in' ? t('markAllIn') : t('markAllOut')}
+                      </Button>
+                      <Button
+                        variant={selecting ? 'secondary' : 'outline'}
+                        onClick={() => {
+                          setSelecting((s) => !s);
+                          setSelected(new Set());
+                        }}
+                      >
+                        {selecting ? t('selectDone') : t('select')}
+                      </Button>
+                      <p className="text-muted-foreground ml-auto text-xs tabular-nums" aria-live="polite">
+                        {tg('shown', { shown: shown.length, total: views.length })} · {t('live')}
+                      </p>
+                    </Toolbar>
+
+                    {selecting && (
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() =>
+                            setSelected(new Set(shown.filter(isMarkable).map((v) => v.row.studentId)))
+                          }
+                        >
+                          {t('selectAllUnmarked')}
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={selected.size === 0}
+                          onClick={() => setSelected(new Set())}
+                        >
+                          {t('clearSelection')}
+                        </Button>
+                        <span className="text-muted-foreground text-sm tabular-nums">
+                          {t('selectedCount', { count: selected.size })}
+                        </span>
+                      </div>
+                    )}
+
+                    {shown.length === 0 ? (
+                      <EmptyPanel
+                        icon={Users}
+                        tone={MODULE_TONE.attendance}
+                        title={views.length === 0 ? t('emptyTitle') : t('noMatch')}
+                        {...(views.length === 0 ? { body: t('emptyBody') } : {})}
+                      />
+                    ) : (
+                      <ul className="bg-card divide-y overflow-hidden rounded-2xl border">
+                        {shown.map((v, i) => {
+                          const id = v.row.studentId;
+                          const markable = isMarkable(v);
+                          const name = v.row.name;
+                          const sub = [v.row.className, v.row.nis].filter(Boolean).join(' · ');
+                          return (
+                            <li
+                              key={id}
+                              style={stagger(i)}
+                              className={cn(
+                                ENTER,
+                                'flex items-center gap-3 px-3 py-3 transition-colors sm:px-4',
+                                selecting && selected.has(id) && 'bg-primary/5',
+                              )}
+                            >
+                              {selecting && (
+                                <Checkbox
+                                  aria-label={t('selectRow', { name })}
+                                  checked={selected.has(id)}
+                                  disabled={!markable}
+                                  onCheckedChange={() => toggle(id)}
+                                />
+                              )}
+                              {selecting ? (
+                                <button
+                                  type="button"
+                                  disabled={!markable}
+                                  onClick={() => toggle(id)}
+                                  className="min-w-0 flex-1 text-left disabled:opacity-60"
+                                >
+                                  <PersonCell name={name} sub={sub} />
+                                </button>
+                              ) : (
+                                <PersonCell className="flex-1" name={name} sub={sub} />
+                              )}
+
+                              <div className="flex shrink-0 flex-col items-end gap-1">
+                                {v.row.status && (
+                                  <ToneBadge tone={toneOfStatus(v.row.status)}>
+                                    {tg(`status_${v.row.status}`)}
+                                  </ToneBadge>
+                                )}
+                                {v.pending && (
+                                  <ToneBadge tone="amber">
+                                    {v.pending.queued ? t('pendingBadge') : t('sendingBadge')}
+                                  </ToneBadge>
+                                )}
+                                {!v.row.status && !v.pending && !v.inAt && (
+                                  <ToneBadge tone="slate">{t('notYetBadge')}</ToneBadge>
+                                )}
+                              </div>
+
+                              {!selecting && (
+                                <div className="flex shrink-0 items-center gap-1.5">
+                                  {markable ? (
+                                    <Button
+                                      className="h-12 min-w-28 text-base"
+                                      disabled={!canAct}
+                                      aria-label={t(mode === 'in' ? 'tapInFor' : 'tapOutFor', { name })}
+                                      onClick={() => void tap(v)}
+                                    >
+                                      {mode === 'in' ? (
+                                        <LogIn className="size-5" />
+                                      ) : (
+                                        <LogOut className="size-5" />
+                                      )}
+                                      {mode === 'in' ? t('tapIn') : t('tapOut')}
+                                    </Button>
+                                  ) : (
+                                    <Button
+                                      variant="secondary"
+                                      className="h-12 min-w-28 text-base tabular-nums"
+                                      disabled={v.pending !== null}
+                                      aria-label={t('editFor', { name })}
+                                      onClick={() => setCorrecting(v.row)}
+                                    >
+                                      {v.away ? (
+                                        <Pencil className="size-4" />
+                                      ) : mode === 'in' ? (
+                                        <LogIn className="size-4" />
+                                      ) : (
+                                        <LogOut className="size-4" />
+                                      )}
+                                      {v.away
+                                        ? tg(`status_${v.row.status ?? 'absent'}`)
+                                        : mode === 'in'
+                                          ? t('recordedIn', { time: v.inAt })
+                                          : t('recordedOut', { time: v.outAt })}
+                                    </Button>
+                                  )}
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="size-10"
+                                    aria-label={t('editFor', { name })}
+                                    title={t('editFor', { name })}
+                                    onClick={() => setCorrecting(v.row)}
+                                  >
+                                    <Pencil className="size-4" />
+                                  </Button>
+                                </div>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ul>
+                    )}
+                  </section>
+
+                  {selecting && selected.size > 0 && (
+                    <div className="bg-card sticky bottom-3 z-10 flex flex-wrap items-center justify-between gap-2 rounded-2xl border p-3 shadow-lg">
+                      <span className="text-sm font-medium tabular-nums">
+                        {t('selectedCount', { count: selected.size })}
+                      </span>
+                      <Button className="h-11 px-5 text-base" disabled={!canAct} onClick={applySelected}>
+                        {mode === 'in'
+                          ? t('applyIn', { count: selected.size })
+                          : t('applyOut', { count: selected.size })}
+                      </Button>
+                    </div>
+                  )}
+                </>
               )}
             </>
           )}

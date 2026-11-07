@@ -393,7 +393,7 @@ export function RegisterForm() {
                     </div>
 
                     {(catalog.data.plans?.length ?? 0) > 0 && (
-                      <div className="grid gap-2">
+                      <div className="grid content-start gap-2">
                         <p className="text-sm font-medium">{t('plansTitle')}</p>
                         <div className="flex flex-wrap gap-2">
                           {catalog.data.plans.map((plan) => {
@@ -532,7 +532,7 @@ export function RegisterForm() {
               )}
             </fieldset>
 
-            <ul className="grid gap-2 text-sm">
+            <ul className="grid content-start gap-2 text-sm">
               {quote?.lines.map((line) => (
                 <li key={line.key} className="flex justify-between gap-3">
                   <span className="text-muted-foreground">{lineLabel(line)}</span>

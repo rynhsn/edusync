@@ -167,7 +167,7 @@ export function InstallmentTimeline({
   const last = addMonthsIso(firstDue, count - 1);
   return (
     <div
-      className="grid gap-1.5"
+      className="grid content-start gap-1.5"
       role="img"
       aria-label={t('splitPreview', {
         first: formatCalendarDate(locale, firstDue),

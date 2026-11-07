@@ -83,7 +83,7 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
           }}
         >
           <div className={FORM_GRID}>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="lf-mode">{t('lateFeeMode')}</Label>
               <SelectField
                 id="lf-mode"
@@ -97,7 +97,7 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
             </div>
 
             {on && (
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="lf-value">{percent ? t('lateFeeValuePercent') : t('lateFeeValueFlat')}</Label>
                 <div className="relative">
                   <Input
@@ -127,7 +127,7 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
 
             {on && (
               <>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="lf-grace">{t('lateFeeGrace')}</Label>
                   <Input
                     id="lf-grace"
@@ -140,7 +140,7 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
                   />
                   <p className="text-muted-foreground text-xs">{t('lateFeeGraceHint')}</p>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="lf-due">{t('lateFeeDueDays')}</Label>
                   <Input
                     id="lf-due"
@@ -154,7 +154,7 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
                   />
                   <p className="text-muted-foreground text-xs">{t('lateFeeDueDaysHint')}</p>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="lf-cap">{t('lateFeeCap')}</Label>
                   <Input
                     id="lf-cap"
@@ -167,7 +167,7 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
                     <p className="text-muted-foreground text-xs">{formatRupiah(Number(draft.capAmount))}</p>
                   )}
                 </div>
-                <div className="grid gap-2 sm:col-span-2">
+                <div className="grid content-start gap-2 sm:col-span-2">
                   <Label htmlFor="lf-fee">{t('lateFeeFeeType')}</Label>
                   <SelectField
                     id="lf-fee"

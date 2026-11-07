@@ -351,7 +351,7 @@ function EditDialog({
       }}
     >
       <div className="grid gap-4">
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="ed-partner">{t('partner')}</Label>
           <SelectField id="ed-partner" value={partnerId} onChange={(e) => setPartnerId(e.target.value)}>
             {(partners.data ?? [])
@@ -363,7 +363,7 @@ function EditDialog({
               ))}
           </SelectField>
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="ed-teacher">{t('supervisor')}</Label>
           <SelectField
             id="ed-teacher"
@@ -380,7 +380,7 @@ function EditDialog({
           </SelectField>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="ed-ind-name">{t('industrySupervisorName')}</Label>
             <Input
               id="ed-ind-name"
@@ -389,7 +389,7 @@ function EditDialog({
               onChange={(e) => setIndName(e.target.value)}
             />
           </div>
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="ed-ind-phone">{t('industrySupervisorPhone')}</Label>
             <Input
               id="ed-ind-phone"

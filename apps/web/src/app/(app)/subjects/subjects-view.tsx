@@ -47,7 +47,7 @@ function SubjectFields({
   const tm = useTranslations('masterData');
   return (
     <div className="grid gap-4 sm:grid-cols-[8rem_1fr]">
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-code`}>{tm('code')}</Label>
         <Input
           id={`${idPrefix}-code`}
@@ -57,7 +57,7 @@ function SubjectFields({
           onChange={(e) => onChange({ ...draft, code: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
         <Input
           id={`${idPrefix}-name`}

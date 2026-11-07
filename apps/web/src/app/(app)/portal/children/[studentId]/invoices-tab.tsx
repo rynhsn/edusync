@@ -223,7 +223,7 @@ export function InvoicesTab({ studentId }: { studentId: string }) {
           </ul>
 
           {data.receipts.length > 0 && (
-            <section className="grid gap-2" aria-labelledby="portal-receipts">
+            <section className="grid content-start gap-2" aria-labelledby="portal-receipts">
               <h3 id="portal-receipts" className="font-heading font-semibold">
                 {t('receipts')}
               </h3>

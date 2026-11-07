@@ -89,7 +89,7 @@ export function CorrectionDialog({
       onSubmit={submit}
     >
       <div className="grid grid-cols-2 gap-3">
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="corr-in">{t('correction.checkIn')}</Label>
           <Input
             id="corr-in"
@@ -108,7 +108,7 @@ export function CorrectionDialog({
             {t('correction.clearIn')}
           </Button>
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="corr-out">{t('correction.checkOut')}</Label>
           <Input
             id="corr-out"
@@ -128,7 +128,7 @@ export function CorrectionDialog({
           </Button>
         </div>
       </div>
-      <div className="grid gap-1.5">
+      <div className="grid content-start gap-1.5">
         <Label htmlFor="corr-status">{t('correction.status')}</Label>
         <SelectField
           id="corr-status"
@@ -143,7 +143,7 @@ export function CorrectionDialog({
           ))}
         </SelectField>
       </div>
-      <div className="grid gap-1.5">
+      <div className="grid content-start gap-1.5">
         <Label htmlFor="corr-note">{t('correction.note')}</Label>
         <Textarea
           id="corr-note"

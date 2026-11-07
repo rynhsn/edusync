@@ -35,7 +35,7 @@ export function LoginForm() {
       }
       // Buang data akun lama agar shell memuat ulang untuk pengguna yang baru masuk.
       queryClient.clear();
-      router.replace('/');
+      router.replace('/enter');
     } catch {
       setError('unreachable');
     } finally {
@@ -55,11 +55,11 @@ export function LoginForm() {
             <AlertDescription>{t(error)}</AlertDescription>
           </Alert>
         )}
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="email">{t('email')}</Label>
           <Input id="email" name="email" type="email" autoComplete="username" required className="h-10" />
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">{t('password')}</Label>
             <Link

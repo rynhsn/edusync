@@ -296,7 +296,7 @@ export function StaffView() {
         disabled={!email.includes('@')}
         onSubmit={() => invite.mutateAsync({ email: email.trim(), role: inviteRole })}
       >
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="staff-email">{t('emailLabel')}</Label>
           <Input
             id="staff-email"
@@ -310,7 +310,7 @@ export function StaffView() {
             onChange={(e) => setEmail(e.target.value)}
           />
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <Label htmlFor="staff-role">{t('roleLabel')}</Label>
           <SelectField
             id="staff-role"
@@ -333,7 +333,7 @@ export function StaffView() {
             <DialogDescription>{t('linkHelp')}</DialogDescription>
           </DialogHeader>
           {issued && (
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="staff-link">{issued.email}</Label>
               <Input id="staff-link" readOnly value={issued.inviteUrl} onFocus={(e) => e.target.select()} />
             </div>

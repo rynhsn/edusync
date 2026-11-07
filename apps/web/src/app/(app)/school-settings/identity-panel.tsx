@@ -147,7 +147,7 @@ export function IdentityPanel() {
             <ImagePlus aria-hidden className="text-muted-foreground size-7" />
           )}
         </div>
-        <div className="grid gap-2">
+        <div className="grid content-start gap-2">
           <p className="text-muted-foreground max-w-sm text-xs">{t('logoHint')}</p>
           {canManage && (
             <div className="flex flex-wrap gap-2">

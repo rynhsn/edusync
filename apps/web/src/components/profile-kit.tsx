@@ -87,7 +87,7 @@ function SessionsCard({ currentToken }: { currentToken: string | undefined }) {
       <CardContent className="grid gap-3">
         {list.isPending && <Skeleton className="h-16 w-full rounded-xl" />}
         {list.isError && <p className="text-destructive text-sm">{t('sessionsError')}</p>}
-        <ul className="grid gap-2">
+        <ul className="grid content-start gap-2">
           {sessions.map((s) => {
             const device = describeDevice(s.userAgent);
             const mobile = device?.os === 'Android' || device?.os === 'iOS';
@@ -205,7 +205,7 @@ function ChangeEmailDialog({
         </DialogHeader>
         {step === 'email' ? (
           <form key="email" onSubmit={sendCode} className="grid gap-4">
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="new-email">{t('newEmail')}</Label>
               <Input
                 id="new-email"
@@ -233,7 +233,7 @@ function ChangeEmailDialog({
           </form>
         ) : (
           <form key="code" onSubmit={confirm} className="grid gap-4">
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="email-code">{t('code')}</Label>
               <Input
                 id="email-code"
@@ -357,7 +357,7 @@ export function ProfilePage() {
               <form onSubmit={saveName} className="grid gap-4">
                 <div className="flex items-center gap-4">
                   <UserAvatar name={user.name} image={user.image} size="lg" className="size-16 text-xl" />
-                  <div className="grid gap-1.5">
+                  <div className="grid content-start gap-1.5">
                     <p className="text-sm font-medium">{t('photo')}</p>
                     <div className="flex flex-wrap gap-2">
                       <input
@@ -396,7 +396,7 @@ export function ProfilePage() {
                     <p className="text-muted-foreground text-xs">{t('photoHint')}</p>
                   </div>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="profile-name">{t('name')}</Label>
                   <Input
                     id="profile-name"
@@ -407,7 +407,7 @@ export function ProfilePage() {
                     required
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="profile-phone">{t('phone')}</Label>
                   <Input
                     id="profile-phone"
@@ -418,7 +418,7 @@ export function ProfilePage() {
                   />
                   <p className="text-muted-foreground text-xs">{t('phoneHint')}</p>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label>{t('email')}</Label>
                   <div className="flex items-center justify-between gap-3 rounded-lg border px-3 py-2">
                     <span className="min-w-0 truncate text-sm">{user.email}</span>
@@ -456,7 +456,7 @@ export function ProfilePage() {
             </CardHeader>
             <CardContent>
               <form onSubmit={savePassword} className="grid gap-4">
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="pw-current">{t('currentPassword')}</Label>
                   <PasswordInput
                     id="pw-current"
@@ -465,7 +465,7 @@ export function ProfilePage() {
                     onChange={(e) => setPw({ ...pw, current: e.target.value })}
                   />
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="pw-next">{t('newPassword')}</Label>
                   <PasswordInput
                     id="pw-next"
@@ -478,7 +478,7 @@ export function ProfilePage() {
                     <p className="text-destructive text-xs">{t('tooShort', { min: MIN_PASSWORD })}</p>
                   )}
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="pw-confirm">{t('confirmPassword')}</Label>
                   <PasswordInput
                     id="pw-confirm"

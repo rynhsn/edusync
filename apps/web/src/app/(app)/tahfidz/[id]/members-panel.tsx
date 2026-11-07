@@ -119,7 +119,7 @@ function AddMembers({
       }}
       onSubmit={() => add.mutateAsync()}
     >
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor="th-add-class">{t('class')}</Label>
         <SelectField id="th-add-class" value={classId} onChange={(e) => setClassId(e.target.value)}>
           <option value="">{t('chooseClass')}</option>
@@ -238,7 +238,7 @@ export function MembersPanel({
         </Card>
       )}
       {members.data && members.data.length > 0 && (
-        <ul className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        <ul className="grid content-start gap-2 sm:grid-cols-2 lg:grid-cols-3">
           {members.data.map((m) => (
             <li key={m.studentId}>
               <Card className="flex-row items-center gap-3 p-3">

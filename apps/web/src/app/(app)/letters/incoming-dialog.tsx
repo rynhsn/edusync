@@ -113,7 +113,7 @@ export function IncomingDialog({
     >
       <div className="grid gap-4 sm:grid-cols-2">
         {!initial && (
-          <div className="grid gap-1.5">
+          <div className="grid content-start gap-1.5">
             <Label htmlFor="in-number">{t('incomingNumber')}</Label>
             <Input
               id="in-number"
@@ -124,11 +124,11 @@ export function IncomingDialog({
             />
           </div>
         )}
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="in-date">{t('receivedDate')}</Label>
           <DatePicker id="in-date" value={letterDate} onChange={setLetterDate} />
         </div>
-        <div className="grid gap-1.5 sm:col-span-2">
+        <div className="grid content-start gap-1.5 sm:col-span-2">
           <Label htmlFor="in-subject">{t('subject')}</Label>
           <Input
             id="in-subject"
@@ -138,7 +138,7 @@ export function IncomingDialog({
             onChange={(e) => setSubject(e.target.value)}
           />
         </div>
-        <div className="grid gap-1.5 sm:col-span-2">
+        <div className="grid content-start gap-1.5 sm:col-span-2">
           <Label htmlFor="in-party">{t('sender')}</Label>
           <Input
             id="in-party"
@@ -148,7 +148,7 @@ export function IncomingDialog({
             onChange={(e) => setParty(e.target.value)}
           />
         </div>
-        <div className="grid gap-1.5 sm:col-span-2">
+        <div className="grid content-start gap-1.5 sm:col-span-2">
           <Label htmlFor="in-body">{t('incomingBody')}</Label>
           <TextArea
             id="in-body"
@@ -158,7 +158,7 @@ export function IncomingDialog({
             onChange={(e) => setBody(e.target.value)}
           />
         </div>
-        <div className="grid gap-1.5 sm:col-span-2">
+        <div className="grid content-start gap-1.5 sm:col-span-2">
           <Label htmlFor="in-note">{t('disposition')}</Label>
           <TextArea
             id="in-note"

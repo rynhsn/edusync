@@ -100,7 +100,7 @@ export function PaymentsView() {
               save.mutate();
             }}
           >
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="pay-provider">{t('provider')}</Label>
               <SelectField
                 id="pay-provider"
@@ -116,7 +116,7 @@ export function PaymentsView() {
 
             {provider === 'midtrans' && (
               <>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="pay-mode">{t('mode')}</Label>
                   <SelectField
                     id="pay-mode"
@@ -134,7 +134,7 @@ export function PaymentsView() {
                   )}
                 </div>
 
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="pay-key">{t('serverKey')}</Label>
                   <PasswordInput
                     id="pay-key"
@@ -153,7 +153,7 @@ export function PaymentsView() {
                   </p>
                 </div>
 
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="pay-webhook">{t('webhook')}</Label>
                   <div className="flex gap-2">
                     <Input

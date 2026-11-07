@@ -377,7 +377,7 @@ function PlacementCard({ p }: { p: PklPlacement }) {
         </div>
         <ScoreBadge score={p.finalScore} predicate={p.predicate} className="ml-auto" />
       </div>
-      <div className="grid gap-1 text-xs">
+      <div className="grid content-start gap-1 text-xs">
         <p className="flex items-center gap-1.5">
           <Building2 className="size-3.5 shrink-0 text-orange-600 dark:text-orange-300" aria-hidden />
           <span className="truncate font-medium">{p.partnerName}</span>
@@ -426,7 +426,7 @@ function Kanban({ items, statusFilter }: { items: PklPlacement[]; statusFilter: 
                 {list.length}
               </span>
             </h2>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               {list.length === 0 ? (
                 <p className="text-muted-foreground px-1 py-4 text-center text-xs">{t('columnEmpty')}</p>
               ) : (

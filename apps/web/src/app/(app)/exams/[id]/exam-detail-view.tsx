@@ -352,7 +352,7 @@ export function ExamDetailView({ id }: { id: string }) {
               </div>
               <RichText text={q.body} className="text-sm" />
               {q.type === 'mcq' && (
-                <ul className="grid gap-1.5 text-sm sm:grid-cols-2">
+                <ul className="grid content-start gap-1.5 text-sm sm:grid-cols-2">
                   {q.options.map((o) => {
                     const right = o.key.toUpperCase() === q.answer?.toUpperCase();
                     return (

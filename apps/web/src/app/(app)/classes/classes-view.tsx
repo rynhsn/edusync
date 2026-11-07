@@ -89,7 +89,7 @@ function Assignments({ classId }: { classId: string }) {
       {assignments.data?.length === 0 && (
         <p className="text-muted-foreground text-sm">{t('noAssignments')}</p>
       )}
-      <ul className="grid gap-1.5 text-sm">
+      <ul className="grid content-start gap-1.5 text-sm">
         {assignments.data?.map((a) => (
           <li key={a.subjectId} className="flex flex-wrap items-center justify-between gap-2">
             <span>
@@ -110,7 +110,7 @@ function Assignments({ classId }: { classId: string }) {
       </ul>
       {manage && subjects.data && teachers.data && (
         <div className="flex flex-wrap items-end gap-2">
-          <div className="grid gap-1">
+          <div className="grid content-start gap-1">
             <Label htmlFor={`as-${classId}`}>{t('subject')}</Label>
             <SelectField
               id={`as-${classId}`}
@@ -125,7 +125,7 @@ function Assignments({ classId }: { classId: string }) {
               ))}
             </SelectField>
           </div>
-          <div className="grid gap-1">
+          <div className="grid content-start gap-1">
             <Label htmlFor={`at-${classId}`}>{t('teacher')}</Label>
             <SelectField
               id={`at-${classId}`}
@@ -275,7 +275,7 @@ export function ClassesView() {
   /** Isian kelas yang sama untuk dialog tambah dan ubah. */
   const fields = (prefix: string, value: typeof emptyDraft, set: (next: typeof emptyDraft) => void) => (
     <div className="grid gap-4 sm:grid-cols-2">
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${prefix}-name`}>{tm('name')}</Label>
         <Input
           id={`${prefix}-name`}
@@ -285,7 +285,7 @@ export function ClassesView() {
           onChange={(e) => set({ ...value, name: e.target.value })}
         />
       </div>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${prefix}-level`}>{t('level')}</Label>
         <LevelField
           id={`${prefix}-level`}
@@ -295,7 +295,7 @@ export function ClassesView() {
           onChange={(level) => set({ ...value, level })}
         />
       </div>
-      <div className="grid gap-2 sm:col-span-2">
+      <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${prefix}-program`}>{t('program')}</Label>
         <SelectField
           id={`${prefix}-program`}
@@ -311,7 +311,7 @@ export function ClassesView() {
         </SelectField>
       </div>
       {teachers.data && (
-        <div className="grid gap-2 sm:col-span-2">
+        <div className="grid content-start gap-2 sm:col-span-2">
           <Label htmlFor={`${prefix}-homeroom`}>{t('homeroomTeacher')}</Label>
           <SelectField
             id={`${prefix}-homeroom`}
@@ -430,7 +430,7 @@ export function ClassesView() {
                       createProgram.mutate();
                     }}
                   >
-                    <div className="grid gap-1.5">
+                    <div className="grid content-start gap-1.5">
                       <Label htmlFor="program-code">{tm('code')}</Label>
                       <Input
                         id="program-code"
@@ -440,7 +440,7 @@ export function ClassesView() {
                         onChange={(e) => setProgramDraft({ ...programDraft, code: e.target.value })}
                       />
                     </div>
-                    <div className="grid gap-1.5">
+                    <div className="grid content-start gap-1.5">
                       <Label htmlFor="program-name">{tm('name')}</Label>
                       <Input
                         id="program-name"

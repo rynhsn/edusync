@@ -218,9 +218,9 @@ export function OnboardingCard({
         </div>
 
         {expanded && (
-          <div id={listId} className="grid gap-2">
+          <div id={listId} className="grid content-start gap-2">
             {description && <p className="text-muted-foreground text-xs">{description}</p>}
-            <ol className="grid gap-1">
+            <ol className="grid content-start gap-1">
               {steps.map((s) => {
                 const isNext = s.id === next?.id;
                 return (

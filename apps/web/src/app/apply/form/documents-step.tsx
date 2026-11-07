@@ -91,7 +91,7 @@ function Slot({
   }
 
   return (
-    <div className="grid gap-1.5">
+    <div className="grid content-start gap-1.5">
       <p className="text-sm font-medium">
         {label}{' '}
         <span className={required ? 'text-destructive text-xs' : 'text-muted-foreground text-xs'}>
@@ -222,7 +222,7 @@ export function DocumentsStep({
       </p>
       <div className="grid gap-5 sm:grid-cols-2">
         {types.map((k) => (
-          <div key={k.key} className="grid gap-1.5">
+          <div key={k.key} className="grid content-start gap-1.5">
             <Slot
               kind={k.key}
               label={k.label}

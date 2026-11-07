@@ -56,7 +56,7 @@ export function TahfidzTab({ studentId }: { studentId: string }) {
             </div>
           </div>
           {d.halaqah && <p className="text-muted-foreground text-sm">{t('halaqah', { name: d.halaqah })}</p>}
-          <ol className="grid gap-2">
+          <ol className="grid content-start gap-2">
             {d.recentEntries.map((r) => (
               <li
                 key={`${r.date}-${r.kind}-${r.surahFrom}-${r.ayahFrom}`}

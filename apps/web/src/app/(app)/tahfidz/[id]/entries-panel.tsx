@@ -97,7 +97,7 @@ export function EntriesPanel({
             </div>
           </Card>
         )}
-        <ul className="grid gap-2">
+        <ul className="grid content-start gap-2">
           {rows.map((r) => (
             <li key={r.id}>
               <Card className="flex-row items-center gap-3 p-3">

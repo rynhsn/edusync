@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { NewPasswordFields } from '@/components/new-password-fields';
 import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -187,7 +188,7 @@ export function PlatformInviteView({ token }: { token: string }) {
             }}
           >
             <p className="font-medium">{signup ? t('createTitle') : t('signInTitle')}</p>
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="staff-invite-email">{ta('email')}</Label>
               <Input
                 id="staff-invite-email"
@@ -198,42 +199,32 @@ export function PlatformInviteView({ token }: { token: string }) {
               />
             </div>
             {signup && (
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="staff-invite-name">{t('name')}</Label>
                 <Input id="staff-invite-name" name="name" required autoComplete="name" className="h-10" />
               </div>
             )}
-            <div className="grid gap-2">
-              <Label htmlFor="staff-invite-password">{ta('password')}</Label>
-              <PasswordInput
-                id="staff-invite-password"
-                name="password"
-                required
-                autoComplete={signup ? 'new-password' : 'current-password'}
-                className="h-10"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                {...(signup ? { 'aria-invalid': check.tooShort } : {})}
+            {signup ? (
+              <NewPasswordFields
+                idPrefix="staff-invite"
+                password={password}
+                confirm={confirm}
+                onPasswordChange={setPassword}
+                onConfirmChange={setConfirm}
+                inputClassName="h-10"
               />
-              {signup && (
-                <p className={check.tooShort ? 'text-destructive text-xs' : 'text-muted-foreground text-xs'}>
-                  {tre('passwordHint')}
-                </p>
-              )}
-            </div>
-            {signup && (
-              <div className="grid gap-2">
-                <Label htmlFor="staff-invite-confirm">{tre('passwordConfirm')}</Label>
+            ) : (
+              <div className="grid content-start gap-2">
+                <Label htmlFor="staff-invite-password">{ta('password')}</Label>
                 <PasswordInput
-                  id="staff-invite-confirm"
+                  id="staff-invite-password"
+                  name="password"
                   required
-                  autoComplete="new-password"
+                  autoComplete="current-password"
                   className="h-10"
-                  value={confirm}
-                  onChange={(e) => setConfirm(e.target.value)}
-                  aria-invalid={check.mismatch}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
-                {check.mismatch && <p className="text-destructive text-xs">{tre('passwordMismatch')}</p>}
               </div>
             )}
             <Button type="submit" disabled={pending || (signup && !check.ok)} className="h-10">

@@ -66,7 +66,7 @@ function useScope() {
 function ScopeSelect({ scope }: { scope: ReturnType<typeof useScope> }) {
   const t = useTranslations('tahfidz');
   return (
-    <div className="grid gap-1.5">
+    <div className="grid content-start gap-1.5">
       <Label htmlFor="ib-scope">{t('group')}</Label>
       <SelectField
         id="ib-scope"
@@ -190,7 +190,7 @@ function SheetTab() {
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-end gap-3">
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="ib-date">{t('date')}</Label>
           <DatePicker id="ib-date" className="w-52" value={date} onChange={(v) => v <= today && setDate(v)} />
         </div>
@@ -377,11 +377,11 @@ function ReportTab() {
   return (
     <div className="grid gap-5">
       <div className="flex flex-wrap items-end gap-3">
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="ibr-from">{t('from')}</Label>
           <DatePicker id="ibr-from" className="w-48" value={from} onChange={(v) => v <= to && setFrom(v)} />
         </div>
-        <div className="grid gap-1.5">
+        <div className="grid content-start gap-1.5">
           <Label htmlFor="ibr-to">{t('to')}</Label>
           <DatePicker id="ibr-to" className="w-48" value={to} onChange={(v) => v >= from && setTo(v)} />
         </div>
@@ -414,7 +414,7 @@ function ReportTab() {
             </div>
             <ul className="grid gap-3">
               {perItem.map((i) => (
-                <li key={i.id} className="grid gap-1.5">
+                <li key={i.id} className="grid content-start gap-1.5">
                   <div className="flex items-center justify-between gap-2 text-sm">
                     <span className="truncate">{i.name}</span>
                     <span className="font-medium tabular-nums">{fmtPercent(i.percent)}%</span>
@@ -428,7 +428,7 @@ function ReportTab() {
             <h2 className="font-heading font-semibold">{t('perStudent')}</h2>
             <ul className="grid max-h-[28rem] gap-2.5 overflow-y-auto pr-1">
               {students.map((s) => (
-                <li key={s.studentId} className="grid gap-1">
+                <li key={s.studentId} className="grid content-start gap-1">
                   <div className="flex items-center justify-between gap-2 text-sm">
                     <span className="truncate">{s.name}</span>
                     <span className="text-muted-foreground text-xs tabular-nums">

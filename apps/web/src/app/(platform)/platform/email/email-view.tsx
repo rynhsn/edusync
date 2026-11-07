@@ -132,7 +132,7 @@ export function EmailView() {
             }}
           >
             {canEdit && (
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label>{t('presets')}</Label>
                 <div className="flex flex-wrap gap-2">
                   <Button type="button" variant="outline" size="sm" onClick={() => fill('mailpit')}>
@@ -147,7 +147,7 @@ export function EmailView() {
             )}
 
             <div className="grid gap-4 sm:grid-cols-[1fr_8rem]">
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="smtp-host">{t('host')}</Label>
                 <Input
                   id="smtp-host"
@@ -157,7 +157,7 @@ export function EmailView() {
                   onChange={(e) => setHost(e.target.value)}
                 />
               </div>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="smtp-port">{t('port')}</Label>
                 <Input
                   id="smtp-port"
@@ -182,7 +182,7 @@ export function EmailView() {
               </Label>
             </div>
 
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="smtp-user">{t('user')}</Label>
               <Input
                 id="smtp-user"
@@ -195,7 +195,7 @@ export function EmailView() {
             </div>
 
             {user.trim() && (
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="smtp-password">{t('password')}</Label>
                 <PasswordInput
                   id="smtp-password"
@@ -211,7 +211,7 @@ export function EmailView() {
               </div>
             )}
 
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="smtp-from">{t('from')}</Label>
               <Input
                 id="smtp-from"
@@ -253,7 +253,7 @@ export function EmailView() {
                 test.mutate();
               }}
             >
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="smtp-test-to">{t('testTo')}</Label>
                 <Input
                   id="smtp-test-to"

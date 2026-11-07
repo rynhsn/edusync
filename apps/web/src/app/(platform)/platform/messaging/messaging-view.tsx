@@ -174,7 +174,7 @@ export function PlatformMessagingView() {
             </Label>
             <p className="text-muted-foreground -mt-3 text-xs">{t('enabledHint')}</p>
 
-            <div className="grid gap-2">
+            <div className="grid content-start gap-2">
               <Label htmlFor="msg-provider">{t('provider')}</Label>
               <SelectField
                 id="msg-provider"
@@ -195,7 +195,7 @@ export function PlatformMessagingView() {
               </p>
             </div>
 
-            <div className="grid gap-2 sm:w-1/2">
+            <div className="grid content-start gap-2 sm:w-1/2">
               <Label htmlFor="msg-max-queued">{t('maxQueued')}</Label>
               <Input
                 id="msg-max-queued"
@@ -214,7 +214,7 @@ export function PlatformMessagingView() {
             <fieldset className="grid gap-4 rounded-lg border p-4">
               <legend className="px-1 text-sm font-medium">{t('retryTitle')}</legend>
               <p className="text-muted-foreground -mt-1 text-xs">{t('retryHint')}</p>
-              <div className="grid gap-2">
+              <div className="grid content-start gap-2">
                 <Label htmlFor="msg-backoff">{t('backoff')}</Label>
                 <Input
                   id="msg-backoff"
@@ -234,7 +234,7 @@ export function PlatformMessagingView() {
                 </p>
               </div>
               <div className="grid gap-4 sm:grid-cols-3">
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="msg-attempts">{t('maxAttempts')}</Label>
                   <Input
                     id="msg-attempts"
@@ -250,7 +250,7 @@ export function PlatformMessagingView() {
                   />
                   <p className="text-muted-foreground text-xs">{t('maxAttemptsHint')}</p>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="msg-expiry">{t('expiryHours')}</Label>
                   <Input
                     id="msg-expiry"
@@ -266,7 +266,7 @@ export function PlatformMessagingView() {
                   />
                   <p className="text-muted-foreground text-xs">{t('expiryHoursHint')}</p>
                 </div>
-                <div className="grid gap-2">
+                <div className="grid content-start gap-2">
                   <Label htmlFor="msg-stale">{t('staleTapHours')}</Label>
                   <Input
                     id="msg-stale"

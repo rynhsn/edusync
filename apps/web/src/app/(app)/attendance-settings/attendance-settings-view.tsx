@@ -219,12 +219,12 @@ function UnitPicker({
 }) {
   const t = useTranslations('gate');
   return (
-    <fieldset className="grid gap-2">
+    <fieldset className="grid content-start gap-2">
       <legend className="flex w-full items-center gap-2 text-sm font-medium">
         <Layers className="size-4" aria-hidden /> {t('scopeTitle')}
       </legend>
       <p className="text-muted-foreground text-xs">{t('scopeHint')}</p>
-      <div className="grid gap-2">
+      <div className="grid content-start gap-2">
         {units.map((u) => {
           const on = value.includes(u.id);
           return (
@@ -353,7 +353,7 @@ function DevicesPanel() {
           }}
           onSubmit={() => create.mutateAsync()}
         >
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="device-name">{t('deviceName')}</Label>
             <Input
               id="device-name"
@@ -374,7 +374,7 @@ function DevicesPanel() {
       {shownKey && (
         <Alert className="border-amber-500/40 bg-amber-50 dark:bg-amber-500/10">
           <KeyRound className="size-4" />
-          <AlertDescription className="grid gap-2">
+          <AlertDescription className="grid content-start gap-2">
             <span className="font-medium">{t('keyOnce', { name: shownKey.name })}</span>
             <span className="flex flex-wrap items-center gap-2">
               <code className="bg-muted rounded px-2 py-1 font-mono text-xs break-all">{shownKey.key}</code>
@@ -571,7 +571,7 @@ function RosterPanel() {
 
   return (
     <SettingCard icon={CalendarClock} tone="violet" title={t('tab.roster')} body={t('rosterHint')}>
-      <div className="grid gap-2 sm:w-56">
+      <div className="grid content-start gap-2 sm:w-56">
         <Label htmlFor="roster-date">{t('date')}</Label>
         <DatePicker
           id="roster-date"
@@ -584,7 +584,7 @@ function RosterPanel() {
           }}
         />
       </div>
-      <fieldset className="grid gap-2">
+      <fieldset className="grid content-start gap-2">
         <legend className="mb-1 flex w-full items-center justify-between gap-2 text-sm font-medium">
           {t('dutyTeachers')}
           <ToneBadge tone="violet" dot={false}>
@@ -595,7 +595,7 @@ function RosterPanel() {
         {teachers.data && active.length === 0 && (
           <p className="text-muted-foreground text-sm">{t('noTeachers')}</p>
         )}
-        <div className="grid gap-2 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid content-start gap-2 sm:grid-cols-2 xl:grid-cols-3">
           {active.map((x) => {
             const on = current.includes(x.id);
             return (

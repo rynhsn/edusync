@@ -41,7 +41,7 @@ export function NoteField({
 }) {
   const t = useTranslations('admissions');
   return (
-    <div className="grid gap-2">
+    <div className="grid content-start gap-2">
       <Label htmlFor={id}>{t('note')}</Label>
       <textarea
         id={id}
@@ -296,7 +296,7 @@ export function ApplicationDetail({ id, onClose }: { id: string | null; onClose:
               {a.documents.length === 0 ? (
                 <p className="text-muted-foreground text-sm">{t('noDocuments')}</p>
               ) : (
-                <ul className="grid gap-2">
+                <ul className="grid content-start gap-2">
                   {a.documents.map((d) => (
                     <li key={d.id} className="rounded-xl border">
                       <div className="flex items-center gap-3 p-2.5">
@@ -442,7 +442,7 @@ export function ApplicationDetail({ id, onClose }: { id: string | null; onClose:
           error={formError}
           onSubmit={() => enroll.mutateAsync()}
         >
-          <div className="grid gap-2">
+          <div className="grid content-start gap-2">
             <Label htmlFor="enroll-class">{t('class')}</Label>
             <SelectField id="enroll-class" value={classId} onChange={(e) => setClassId(e.target.value)}>
               <option value="">{t('noClass')}</option>
