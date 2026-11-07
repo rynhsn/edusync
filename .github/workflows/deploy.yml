@@ -23,7 +23,8 @@ jobs:
           HOST: ${{ secrets.DEPLOY_HOST }}
         run: |
           mkdir -p ~/.ssh
-          printf '%s\n' "$KEY" > ~/.ssh/id_deploy
+          # Kunci yang disalin dari Windows berakhiran CR di tiap baris; OpenSSH di Linux menolaknya.
+          printf '%s\n' "$KEY" | tr -d '\r' > ~/.ssh/id_deploy
           chmod 600 ~/.ssh/id_deploy
           ssh-keyscan -H "$HOST" >> ~/.ssh/known_hosts
       - name: Jalankan deploy di server
