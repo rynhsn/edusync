@@ -1,4 +1,3 @@
-import { isValidUsername, normalizeUsername } from '@edusync/contracts';
 import { account, type Db, session, user, verification } from '@edusync/db';
 import { enqueue, QUEUES } from '@edusync/jobs';
 import { betterAuth } from 'better-auth';
@@ -6,7 +5,7 @@ import { drizzleAdapter } from 'better-auth/adapters/drizzle';
 import { APIError, createAuthMiddleware } from 'better-auth/api';
 import { emailOTP } from 'better-auth/plugins/email-otp';
 import { oneTimeToken } from 'better-auth/plugins/one-time-token';
-import { resolveLoginEmail, usernameTaken } from './account-lookup';
+import { resolveLoginEmail } from './account-lookup';
 import type { Env } from './env';
 import { createDynamicOriginChecker, createOriginMatcher, type HostResolver } from './origins';
 import { normalizePhone } from './routes/guardians';
@@ -28,30 +27,6 @@ const OTP_PATHS_WITH_TYPE = new Set([
   '/email-otp/send-verification-otp',
   '/email-otp/check-verification-otp',
 ]);
-
-/**
- * Merapikan dan memeriksa nama pengguna pada data pengguna yang akan disimpan. Kosong menghapus nama pengguna.
- * `selfId` melewatkan akun sendiri pada pemeriksaan keunikan.
- */
-async function prepareUsername(db: Db, next: Record<string, unknown>, selfId: string | undefined) {
-  if (!('username' in next)) return;
-  const raw = typeof next.username === 'string' ? normalizeUsername(next.username) : '';
-  if (raw === '') {
-    next.username = null;
-    return;
-  }
-  if (!isValidUsername(raw)) {
-    throw APIError.from('BAD_REQUEST', {
-      code: 'INVALID_USERNAME',
-      message:
-        'Nama pengguna harus 3 sampai 30 karakter: huruf kecil, angka, titik, garis bawah, atau strip.',
-    });
-  }
-  if (await usernameTaken(db, raw, selfId)) {
-    throw APIError.from('BAD_REQUEST', { code: 'USERNAME_TAKEN', message: 'Nama pengguna sudah dipakai.' });
-  }
-  next.username = raw;
-}
 
 const schemeOf = (env: Env) => (new URL(env.AUTH_URL).protocol === 'https:' ? 'https:' : 'http:');
 
@@ -121,16 +96,11 @@ export function createAuth(env: Env, db: Db, hosts: HostResolver, outboxDb: Db) 
       }),
     ],
     database: drizzleAdapter(db, { provider: 'pg', schema: { user, session, account, verification } }),
-    user: {
-      additionalFields: {
-        phone: { type: 'string', required: false, input: true },
-        username: { type: 'string', required: false, input: true },
-      },
-    },
+    user: { additionalFields: { phone: { type: 'string', required: false, input: true } } },
     hooks: {
       before: createAuthMiddleware(async (ctx) => {
         const body = (ctx.body ?? {}) as Record<string, unknown>;
-        // Masuk dengan email, nama pengguna, atau NIK: isian dikembalikan ke email akun di sini, di server, sehingga
+        // Masuk dengan email atau NIK: NIK dikembalikan ke email akun di sini, di server, sehingga
         // email tidak pernah dikirim ke klien. Yang tidak cocok (atau NIK dipakai beberapa akun) diberi email
         // pengganti: Better Auth tetap menghitung hash dan menolak dengan jawaban yang sama seperti kata sandi salah.
         if (ctx.path === '/sign-in/email') {
@@ -152,19 +122,9 @@ export function createAuth(env: Env, db: Db, hosts: HostResolver, outboxDb: Db) 
     },
     databaseHooks: {
       user: {
-        create: {
+        update: {
           before: async (data) => {
             const next: Record<string, unknown> = { ...data };
-            await prepareUsername(db, next, undefined);
-            return { data: next };
-          },
-        },
-        update: {
-          before: async (data, context) => {
-            const next: Record<string, unknown> = { ...data };
-            const selfId = (context as { context?: { session?: { user?: { id?: string } } } } | null)?.context
-              ?.session?.user?.id;
-            await prepareUsername(db, next, selfId);
             if (typeof next.name === 'string') {
               const name = next.name.trim().replace(/\s+/g, ' ');
               if (name.length < 2 || name.length > 120) {

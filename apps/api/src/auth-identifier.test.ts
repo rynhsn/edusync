@@ -23,7 +23,6 @@ let foundationId = '';
 let schoolId = '';
 const userIds: string[] = [];
 const emailOf = (label: string) => `${label}-${run}@example.test`;
-const usernameA = `uji.${run}`;
 
 async function makeUser(label: string) {
   const res = await app.auth.api.signUpEmail({ body: { name: label, email: emailOf(label), password } });
@@ -71,8 +70,7 @@ beforeAll(async () => {
     .returning();
   schoolId = s?.id as string;
 
-  const a = await makeUser('akun-a');
-  await app.platformDb.update(user).set({ username: usernameA }).where(eq(user.id, a));
+  await makeUser('akun-a');
   await studentAccount('siswa-solo', nikSolo);
   await studentAccount('siswa-kembar-1', nikShared);
   await studentAccount('siswa-kembar-2', nikShared);
@@ -92,15 +90,9 @@ afterAll(async () => {
   await app.close();
 });
 
-describe('masuk dengan email, nama pengguna, atau NIK', () => {
+describe('masuk dengan email atau NIK', () => {
   it('email (huruf besar diabaikan)', async () => {
     expect((await signIn(emailOf('akun-a').toUpperCase())).statusCode).toBe(200);
-  });
-
-  it('nama pengguna (huruf besar diabaikan)', async () => {
-    const res = await signIn(usernameA.toUpperCase());
-    expect(res.statusCode).toBe(200);
-    expect(res.json().user.email).toBe(emailOf('akun-a'));
   });
 
   it('NIK yang tepat dimiliki satu akun siswa', async () => {
@@ -115,10 +107,10 @@ describe('masuk dengan email, nama pengguna, atau NIK', () => {
     expect(session.json().user.email).toBe(emailOf('siswa-solo'));
   });
 
-  it('semua kegagalan dijawab sama: kata sandi salah, tak dikenal, NIK ambigu, NIK tanpa akun', async () => {
+  it('semua kegagalan dijawab sama: kata sandi salah, tak dikenal, NIK ambigu, NIK tanpa akun, bukan email/NIK', async () => {
     const failures = await Promise.all([
       signIn(emailOf('akun-a'), 'salah-salah-salah-1'),
-      signIn(usernameA, 'salah-salah-salah-1'),
+      signIn(nikSolo, 'salah-salah-salah-1'),
       signIn(`tidak.ada.${run}`),
       signIn(emailOf('tidak-ada')),
       signIn(nikShared),
@@ -138,13 +130,12 @@ describe('masuk dengan email, nama pengguna, atau NIK', () => {
 
   it('isian kosong atau tanpa kata sandi tidak menghasilkan sesi', async () => {
     expect((await signIn('')).statusCode).toBe(401);
-    expect((await signIn(usernameA, '')).statusCode).not.toBe(200);
+    expect((await signIn(emailOf('akun-a'), '')).statusCode).not.toBe(200);
   });
 
   it('percobaan gagal berulang pada satu isian dibatasi (429) walau kata sandi akhirnya benar', async () => {
-    const target = `batas.${run}`;
-    const id = await makeUser('akun-batas');
-    await app.platformDb.update(user).set({ username: target }).where(eq(user.id, id));
+    await makeUser('akun-batas');
+    const target = emailOf('akun-batas');
     for (let i = 0; i < app.authLimits.signInFailuresPer15Min; i++) {
       expect((await signIn(target, 'salah-salah-salah-1')).statusCode).toBe(401);
     }
@@ -152,13 +143,12 @@ describe('masuk dengan email, nama pengguna, atau NIK', () => {
     expect(blocked.statusCode).toBe(429);
     expect(blocked.headers['retry-after']).toBeDefined();
     // Isian lain tidak terpengaruh.
-    expect((await signIn(usernameA)).statusCode).toBe(200);
+    expect((await signIn(emailOf('akun-a'))).statusCode).toBe(200);
   });
 
   it('masuk berhasil mengosongkan hitungan gagal isian itu', async () => {
-    const target = `kosong.${run}`;
-    const id = await makeUser('akun-kosong');
-    await app.platformDb.update(user).set({ username: target }).where(eq(user.id, id));
+    await makeUser('akun-kosong');
+    const target = emailOf('akun-kosong');
     for (let i = 0; i < app.authLimits.signInFailuresPer15Min - 1; i++)
       await signIn(target, 'salah-salah-salah-1');
     expect((await signIn(target)).statusCode).toBe(200);
@@ -168,63 +158,18 @@ describe('masuk dengan email, nama pengguna, atau NIK', () => {
   });
 });
 
-describe('nama pengguna di profil', () => {
-  let cookie = '';
-  beforeAll(async () => {
-    cookie = cookieOf(await signIn(emailOf('akun-a')));
-  });
-
-  it('disimpan huruf kecil, dan bentuk tidak sah ditolak', async () => {
-    const ok = await post('/api/auth/update-user', { username: `  Baru.${run}  ` }, cookie);
-    expect(ok.statusCode).toBe(200);
-    const [row] = await app.platformDb
-      .select({ username: user.username })
-      .from(user)
-      .where(eq(user.email, emailOf('akun-a')));
-    expect(row?.username).toBe(`baru.${run}`);
-
-    for (const bad of ['ab', 'a b c', 'x'.repeat(31), digits(16), 'tidak@boleh']) {
-      const res = await post('/api/auth/update-user', { username: bad }, cookie);
-      expect(res.statusCode, bad).toBe(400);
-      expect(res.json().code).toBe('INVALID_USERNAME');
-    }
-  });
-
-  it('nama pengguna akun lain ditolak, milik sendiri boleh disimpan ulang, kosong menghapus', async () => {
-    const other = `lain.${run}`;
-    const id = await makeUser('akun-lain');
-    await app.platformDb.update(user).set({ username: other }).where(eq(user.id, id));
-    const taken = await post('/api/auth/update-user', { username: other.toUpperCase() }, cookie);
-    expect(taken.statusCode).toBe(400);
-    expect(taken.json().code).toBe('USERNAME_TAKEN');
-
-    expect((await post('/api/auth/update-user', { username: `baru.${run}` }, cookie)).statusCode).toBe(200);
-    expect((await post('/api/auth/update-user', { username: '' }, cookie)).statusCode).toBe(200);
-    const [row] = await app.platformDb
-      .select({ username: user.username })
-      .from(user)
-      .where(eq(user.email, emailOf('akun-a')));
-    expect(row?.username).toBeNull();
-  });
-
-  it('pemeriksaan ketersediaan: sah, tidak sah, dipakai orang lain, dan milik sendiri', async () => {
-    const check = async (username: string) => {
-      const res = await app.inject({
-        method: 'GET',
-        url: `/v1/account/username-check?username=${encodeURIComponent(username)}`,
-        headers: { cookie, origin },
-      });
-      return res.json() as { valid: boolean; available: boolean };
-    };
-    expect(await check(`bebas.${run}`)).toEqual({ valid: true, available: true });
-    expect(await check('x')).toEqual({ valid: false, available: false });
-    expect(await check(`LAIN.${run}`)).toEqual({ valid: true, available: false });
-    await app.platformDb
-      .update(user)
-      .set({ username: `sendiri.${run}` })
-      .where(eq(user.email, emailOf('akun-a')));
-    expect(await check(`sendiri.${run}`)).toEqual({ valid: true, available: true });
-    const anon = await app.inject({ method: 'GET', url: '/v1/account/username-check?username=abc' });
-    expect(anon.statusCode).toBe(401);
+describe('nama pengguna sudah dicabut', () => {
+  it('kolom tidak ada, endpoint cek tidak ada, dan update-user tidak menyimpannya', async () => {
+    const cols = await app.platformDb.execute(
+      sql`select 1 from information_schema.columns where table_name = 'user' and column_name = 'username'`,
+    );
+    expect(cols.rows).toHaveLength(0);
+    const cookie = cookieOf(await signIn(emailOf('akun-a')));
+    const check = await app.inject({
+      method: 'GET',
+      url: '/v1/account/username-check?username=abc',
+      headers: { cookie, origin },
+    });
+    expect(check.statusCode).toBe(404);
   });
 });

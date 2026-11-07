@@ -1,10 +1,7 @@
 /**
- * Identitas masuk (email, nama pengguna, NIK) dan pemulihan kata sandi. Fungsi murni yang dipakai bersama
- * oleh API dan web.
+ * Identitas masuk (email atau NIK) dan pemulihan kata sandi. Fungsi murni yang dipakai bersama oleh API dan web.
  */
 
-export const USERNAME_MIN = 3;
-export const USERNAME_MAX = 30;
 export const OTP_LENGTH = 6;
 /** Kode pemulihan berlaku 10 menit. */
 export const OTP_TTL_SECONDS = 600;
@@ -15,42 +12,23 @@ export const OTP_RESEND_SECONDS = 60;
 
 export type RecoveryChannel = 'email' | 'whatsapp';
 
-export type IdentifierKind = 'email' | 'nik' | 'username' | 'invalid';
+export type IdentifierKind = 'email' | 'nik' | 'invalid';
 
 export interface ClassifiedIdentifier {
   kind: IdentifierKind;
-  /** Nilai yang sudah dirapikan (email dan nama pengguna huruf kecil, NIK 16 digit). */
+  /** Nilai yang sudah dirapikan (email huruf kecil, NIK 16 digit). */
   value: string;
 }
 
-const USERNAME_PATTERN = /^[a-z0-9._-]+$/;
 const NIK_PATTERN = /^\d{16}$/;
 
-/** Nama pengguna disimpan huruf kecil tanpa spasi di tepi. */
-export function normalizeUsername(raw: string): string {
-  return raw.trim().toLowerCase();
-}
-
-/** 3-30 karakter [a-z0-9._-], dan bukan 16 digit (itu NIK) atau email (tanpa @ otomatis). */
-export function isValidUsername(username: string): boolean {
-  return (
-    username.length >= USERNAME_MIN &&
-    username.length <= USERNAME_MAX &&
-    USERNAME_PATTERN.test(username) &&
-    !NIK_PATTERN.test(username)
-  );
-}
-
 /**
- * Menentukan jenis isian "email, nama pengguna, atau NIK":
- * mengandung "@" = email; tepat 16 digit = NIK; selainnya nama pengguna bila bentuknya sah.
+ * Menentukan jenis isian "email atau NIK": mengandung "@" = email; tepat 16 digit = NIK; selainnya tidak sah.
  */
 export function classifyIdentifier(raw: string): ClassifiedIdentifier {
   const trimmed = raw.trim();
   if (trimmed.includes('@')) return { kind: 'email', value: trimmed.toLowerCase() };
   if (NIK_PATTERN.test(trimmed)) return { kind: 'nik', value: trimmed };
-  const username = normalizeUsername(trimmed);
-  if (isValidUsername(username)) return { kind: 'username', value: username };
   return { kind: 'invalid', value: trimmed };
 }
 

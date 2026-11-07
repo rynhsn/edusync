@@ -1,17 +1,10 @@
-import {
-  classifyIdentifier,
-  isValidUsername,
-  normalizeUsername,
-  OTP_LENGTH,
-  OTP_RESEND_SECONDS,
-} from '@edusync/contracts';
+import { classifyIdentifier, OTP_LENGTH, OTP_RESEND_SECONDS } from '@edusync/contracts';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { resolveUser, usernameTaken } from '../account-lookup';
+import { resolveUser } from '../account-lookup';
 import type { Env } from '../env';
 import { errorSchema, HttpError } from '../http-error';
-import { requireUser } from '../identity/guards';
 import { channelsFor, checkOtp, issueOtp, setPasswordAndRevoke } from '../recovery-lib';
 import { Throttle } from '../throttle';
 
@@ -23,14 +16,14 @@ const identifier = z
   .trim()
   .min(1)
   .max(254)
-  .describe('Email, nama pengguna, atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai.');
+  .describe('Email atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai.');
 const channel = z.enum(['email', 'whatsapp']);
 const code = z.string().regex(new RegExp(`^\\d{${OTP_LENGTH}}$`));
 
 const NEUTRAL = 'Jika data ditemukan, pilihan pengiriman akan tampil.';
 
 /**
- * Pemulihan kata sandi dengan pilihan saluran (email atau WhatsApp) dan pemeriksaan nama pengguna.
+ * Pemulihan kata sandi dengan pilihan saluran (email atau WhatsApp).
  * Semua jawaban untuk isian yang tidak dikenal sama dengan yang ambigu, supaya tidak ada akun yang bisa dipastikan
  * ada selain lewat petunjuk saluran yang memang ditampilkan kepada pemilik isian yang benar (kompromi yang disetujui).
  */
@@ -69,7 +62,7 @@ export async function recoveryRoutes(instance: FastifyInstance, options: { env: 
         tags: tag,
         summary: 'Cari akun untuk pemulihan kata sandi dan tampilkan pilihan saluran',
         description:
-          'Publik. Isian (email, nama pengguna, atau NIK) dicocokkan ke TEPAT SATU akun. Bila cocok, jawabannya memuat ' +
+          'Publik. Isian (email atau NIK) dicocokkan ke TEPAT SATU akun. Bila cocok, jawabannya memuat ' +
           'saluran yang tersedia: `email` (alamat disamarkan, mis. ri***@gmail.com) dan `whatsapp` (petunjuk nomor, ' +
           'mis. 6281****789; hanya bila akun punya nomor dan penyedia pesan platform aktif). Bila tidak cocok atau ' +
           'ambigu (NIK dipakai beberapa akun), jawabannya sama bentuknya dengan `channels` kosong. Batas: 10 per jam ' +
@@ -200,29 +193,6 @@ export async function recoveryRoutes(instance: FastifyInstance, options: { env: 
       if (!found || !ok) throw new HttpError(400, 'invalid_code', 'Kode salah atau sudah kedaluwarsa.');
       await setPasswordAndRevoke(request.server.auth, db, found.id, password);
       return { ok: true as const };
-    },
-  );
-
-  app.get(
-    '/v1/account/username-check',
-    {
-      onRequest: [requireUser],
-      schema: {
-        tags: tag,
-        summary: 'Cek ketersediaan nama pengguna',
-        description:
-          'Untuk pengguna yang sudah masuk. `valid` false bila bentuknya tidak sah (3-30 karakter huruf kecil, angka, ' +
-          'titik, garis bawah, strip; bukan 16 digit). `available` false bila dipakai akun lain; nama pengguna ' +
-          'sendiri dianggap tersedia. Nama disimpan lewat pembaruan profil (`updateUser`).',
-        querystring: z.object({ username: z.string().max(60) }),
-        response: { 200: z.object({ valid: z.boolean(), available: z.boolean() }), 401: errorSchema },
-      },
-    },
-    async (request) => {
-      const username = normalizeUsername(request.query.username);
-      if (!isValidUsername(username)) return { valid: false, available: false };
-      const taken = await usernameTaken(request.server.platformDb, username, request.userId as string);
-      return { valid: true, available: !taken };
     },
   );
 }

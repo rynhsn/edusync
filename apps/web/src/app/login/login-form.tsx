@@ -25,7 +25,7 @@ export function LoginForm() {
     setPending(true);
     setError(null);
     try {
-      // Isian bisa email, nama pengguna, atau NIK; server yang menentukan akunnya (lihat apps/api/src/auth.ts).
+      // Isian bisa email atau NIK; server yang menentukan akunnya (lihat apps/api/src/auth.ts).
       const { error } = await authClient.signIn.email({
         email: String(form.get('identifier')).trim(),
         password: String(form.get('password')),

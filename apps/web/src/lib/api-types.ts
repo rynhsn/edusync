@@ -146,7 +146,7 @@ export interface paths {
         put?: never;
         /**
          * Cari akun untuk pemulihan kata sandi dan tampilkan pilihan saluran
-         * @description Publik. Isian (email, nama pengguna, atau NIK) dicocokkan ke TEPAT SATU akun. Bila cocok, jawabannya memuat saluran yang tersedia: `email` (alamat disamarkan, mis. ri***@gmail.com) dan `whatsapp` (petunjuk nomor, mis. 6281****789; hanya bila akun punya nomor dan penyedia pesan platform aktif). Bila tidak cocok atau ambigu (NIK dipakai beberapa akun), jawabannya sama bentuknya dengan `channels` kosong. Batas: 10 per jam per IP dan 5 per jam per isian (429 `rate_limited`). Menampilkan petunjuk saluran berarti akun itu ada; ini kompromi yang disetujui.
+         * @description Publik. Isian (email atau NIK) dicocokkan ke TEPAT SATU akun. Bila cocok, jawabannya memuat saluran yang tersedia: `email` (alamat disamarkan, mis. ri***@gmail.com) dan `whatsapp` (petunjuk nomor, mis. 6281****789; hanya bila akun punya nomor dan penyedia pesan platform aktif). Bila tidak cocok atau ambigu (NIK dipakai beberapa akun), jawabannya sama bentuknya dengan `channels` kosong. Batas: 10 per jam per IP dan 5 per jam per isian (429 `rate_limited`). Menampilkan petunjuk saluran berarti akun itu ada; ini kompromi yang disetujui.
          */
         post: {
             parameters: {
@@ -158,7 +158,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @description Email, nama pengguna, atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
+                        /** @description Email atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
                         identifier: string;
                     };
                 };
@@ -239,7 +239,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @description Email, nama pengguna, atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
+                        /** @description Email atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
                         identifier: string;
                         /** @enum {string} */
                         channel: "email" | "whatsapp";
@@ -319,7 +319,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @description Email, nama pengguna, atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
+                        /** @description Email atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
                         identifier: string;
                         /** @enum {string} */
                         channel: "email" | "whatsapp";
@@ -399,7 +399,7 @@ export interface paths {
             requestBody: {
                 content: {
                     "application/json": {
-                        /** @description Email, nama pengguna, atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
+                        /** @description Email atau NIK 16 digit. NIK yang dipakai beberapa akun tidak bisa dipakai. */
                         identifier: string;
                         /** @enum {string} */
                         channel: "email" | "whatsapp";
@@ -451,64 +451,6 @@ export interface paths {
                 };
             };
         };
-        delete?: never;
-        options?: never;
-        head?: never;
-        patch?: never;
-        trace?: never;
-    };
-    "/v1/account/username-check": {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        /**
-         * Cek ketersediaan nama pengguna
-         * @description Untuk pengguna yang sudah masuk. `valid` false bila bentuknya tidak sah (3-30 karakter huruf kecil, angka, titik, garis bawah, strip; bukan 16 digit). `available` false bila dipakai akun lain; nama pengguna sendiri dianggap tersedia. Nama disimpan lewat pembaruan profil (`updateUser`).
-         */
-        get: {
-            parameters: {
-                query: {
-                    username: string;
-                };
-                header?: never;
-                path?: never;
-                cookie?: never;
-            };
-            requestBody?: never;
-            responses: {
-                /** @description Default Response */
-                200: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            valid: boolean;
-                            available: boolean;
-                        };
-                    };
-                };
-                /** @description Default Response */
-                401: {
-                    headers: {
-                        [name: string]: unknown;
-                    };
-                    content: {
-                        "application/json": {
-                            error: {
-                                code: string;
-                                message: string;
-                            };
-                        };
-                    };
-                };
-            };
-        };
-        put?: never;
-        post?: never;
         delete?: never;
         options?: never;
         head?: never;

@@ -97,8 +97,6 @@ export const user = pgTable('user', {
   image: text('image'),
   /** Digit berawalan 62; opsional, belum dipakai untuk masuk. */
   phone: text('phone'),
-  /** Nama pengguna untuk masuk: huruf kecil, 3-30 karakter [a-z0-9._-], unik, bukan email/NIK. */
-  username: text('username').unique('user_username_uq'),
   createdAt: createdAt(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

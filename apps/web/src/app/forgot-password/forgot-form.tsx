@@ -23,7 +23,7 @@ interface ChannelOption {
 }
 
 /**
- * Lupa kata sandi dalam beberapa langkah: isian akun (email, nama pengguna, atau NIK), pilihan saluran (email atau
+ * Lupa kata sandi dalam beberapa langkah: isian akun (email atau NIK), pilihan saluran (email atau
  * WhatsApp, dengan petunjuk yang disamarkan), kode 6 digit (diperiksa lebih dulu), lalu formulir kata sandi baru.
  * Dipakai sama oleh platform dan sekolah. Isian yang tidak cocok dengan akun mana pun mendapat layar netral.
  */

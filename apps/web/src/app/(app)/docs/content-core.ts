@@ -1931,7 +1931,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Memulihkan kata sandi yang lupa',
-            body: 'Pengguna yang lupa kata sandi bisa memulihkannya sendiri dengan kode 6 digit yang dikirim ke email atau WhatsApp. Kode berlaku 10 menit, hanya sekali pakai, dan hangus setelah 5 kali salah. Pengguna bisa mengisi email, nama pengguna, atau NIK (lihat artikel Masuk dan pemulihan akun).',
+            body: 'Pengguna yang lupa kata sandi bisa memulihkannya sendiri dengan kode 6 digit yang dikirim ke email atau WhatsApp. Kode berlaku 10 menit, hanya sekali pakai, dan hangus setelah 5 kali salah. Pengguna bisa mengisi email atau NIK (lihat artikel Masuk dan pemulihan akun).',
             steps: [
               'Di halaman masuk, klik tautan Lupa kata sandi.',
               'Isi email, lalu klik kirim kode.',
@@ -2022,7 +2022,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Recovering a forgotten password',
-            body: 'Users who forgot their password can recover it themselves with a 6-digit code sent by email or WhatsApp. The code is valid for 10 minutes, can be used once, and expires after 5 wrong attempts. Users can enter an email, username, or NIK (see the article Signing in and account recovery).',
+            body: 'Users who forgot their password can recover it themselves with a 6-digit code sent by email or WhatsApp. The code is valid for 10 minutes, can be used once, and expires after 5 wrong attempts. Users can enter an email or NIK (see the article Signing in and account recovery).',
             steps: [
               'On the sign-in page, click the Forgot password link.',
               'Enter the email, then click send code.',
@@ -2114,7 +2114,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mulihkeun kecap sandi nu poho',
-            body: 'Pamaké nu poho kecap sandi bisa mulihkeunana sorangan ku kode 6 angka nu dikirim ka surélék atawa WhatsApp. Kode lumaku 10 menit, ngan bisa dipaké sakali, sarta hangus sanggeus 5 kali lepat. Pamaké bisa ngeusian surélék, ngaran pamaké, atawa NIK (tingali artikel Asup jeung mulihkeun akun).',
+            body: 'Pamaké nu poho kecap sandi bisa mulihkeunana sorangan ku kode 6 angka nu dikirim ka surélék atawa WhatsApp. Kode lumaku 10 menit, ngan bisa dipaké sakali, sarta hangus sanggeus 5 kali lepat. Pamaké bisa ngeusian surélék atawa NIK (tingali artikel Asup jeung mulihkeun akun).',
             steps: [
               'Dina kaca lebet, klik tumbu Poho kecap sandi.',
               'Eusian surélék, tuluy klik kirim kode.',
@@ -2369,35 +2369,25 @@ export const CORE_DOCS: DocArticle[] = [
       id: {
         title: 'Masuk dan pemulihan akun',
         summary:
-          'Masuk dengan email, nama pengguna, atau NIK, dan pulihkan akun lewat email atau WhatsApp bila lupa kata sandi.',
+          'Masuk dengan email atau NIK, dan pulihkan akun lewat email atau WhatsApp bila lupa kata sandi.',
         forWho: 'Semua pengguna: staf, guru, wali murid, dan siswa.',
         sections: [
           {
-            heading: 'Masuk dengan email, nama pengguna, atau NIK',
-            body: 'Halaman masuk hanya punya satu isian: Email, nama pengguna, atau NIK. Isi salah satunya, lalu kata sandi. Bila ada yang salah, pesan yang tampil selalu sama (Identitas atau kata sandi salah) supaya orang lain tidak bisa menebak akun.',
+            heading: 'Masuk dengan email atau NIK',
+            body: 'Halaman masuk hanya punya satu isian: Email atau NIK. Isi salah satunya, lalu kata sandi. Bila ada yang salah, pesan yang tampil selalu sama (Identitas atau kata sandi salah) supaya orang lain tidak bisa menebak akun.',
             steps: [
               'Buka halaman masuk.',
-              'Isi email, nama pengguna, atau NIK (16 digit) pada isian pertama.',
+              'Isi email atau NIK (16 digit) pada isian pertama.',
               'Isi kata sandi, lalu klik Masuk.',
             ],
-            tip: 'NIK bisa dipakai hanya bila NIK itu terhubung ke tepat satu akun. Bila beberapa akun memakai NIK yang sama, masuklah dengan email atau nama pengguna.',
-          },
-          {
-            heading: 'Membuat atau mengubah nama pengguna',
-            body: 'Nama pengguna adalah nama singkat pilihan Anda untuk masuk, misalnya budi.santoso. Isinya 3 sampai 30 karakter: huruf kecil, angka, titik, garis bawah, atau strip. Tidak boleh berupa alamat email atau 16 angka.',
-            steps: [
-              'Buka Profil saya.',
-              'Isi Nama pengguna. Tulisan di bawah isian langsung memberi tahu apakah namanya tersedia.',
-              'Klik Simpan profil.',
-            ],
-            href: '/profile',
+            tip: 'NIK bisa dipakai hanya bila NIK itu terhubung ke tepat satu akun. Bila beberapa akun memakai NIK yang sama, masuklah dengan email.',
           },
           {
             heading: 'Lupa kata sandi: pilih email atau WhatsApp',
-            body: 'Anda bisa memulihkan akun sendiri. Setelah mengisi email, nama pengguna, atau NIK, sistem menampilkan pilihan pengiriman kode 6 digit. Email ditampilkan sebagian (misalnya ri***@gmail.com). WhatsApp hanya tampil bila akun punya nomor HP, dengan petunjuk 4 angka pertama dan 3 angka terakhir (misalnya 6281****789).',
+            body: 'Anda bisa memulihkan akun sendiri. Setelah mengisi email atau NIK, sistem menampilkan pilihan pengiriman kode 6 digit. Email ditampilkan sebagian (misalnya ri***@gmail.com). WhatsApp hanya tampil bila akun punya nomor HP, dengan petunjuk 4 angka pertama dan 3 angka terakhir (misalnya 6281****789).',
             steps: [
               'Di halaman masuk, klik Lupa kata sandi?.',
-              'Isi email, nama pengguna, atau NIK, lalu klik Lanjut.',
+              'Isi email atau NIK, lalu klik Lanjut.',
               'Pilih Email atau WhatsApp. Kode 6 digit dikirim ke sana dan berlaku 10 menit.',
               'Masukkan kode, lalu klik Verifikasi kode.',
               'Isi kata sandi baru dua kali, lalu klik Atur ulang kata sandi.',
@@ -2407,7 +2397,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Bila pilihan pengiriman tidak muncul',
-            body: 'Layar akan berkata bahwa pilihan tampil jika data ditemukan. Penyebabnya bisa isian yang salah ketik, atau NIK yang dipakai beberapa akun. Coba dengan email atau nama pengguna. Bila tetap tidak berhasil, hubungi admin sekolah.',
+            body: 'Layar akan berkata bahwa pilihan tampil jika data ditemukan. Penyebabnya bisa isian yang salah ketik, atau NIK yang dipakai beberapa akun. Coba dengan email. Bila tetap tidak berhasil, hubungi admin sekolah.',
             tip: 'Admin sekolah perlu mengisi NIK, nomor HP, dan email siswa atau wali dengan benar; data itu dipakai untuk masuk dan pemulihan akun.',
           },
         ],
@@ -2429,35 +2419,25 @@ export const CORE_DOCS: DocArticle[] = [
       en: {
         title: 'Signing in and account recovery',
         summary:
-          'Sign in with an email, username, or national ID (NIK), and recover the account by email or WhatsApp if you forget the password.',
+          'Sign in with an email or national ID (NIK), and recover the account by email or WhatsApp if you forget the password.',
         forWho: 'All users: staff, teachers, guardians, and students.',
         sections: [
           {
-            heading: 'Sign in with an email, username, or NIK',
-            body: 'The sign-in page has a single field: Email, username, or national ID (NIK). Fill in one of them, then the password. If anything is wrong the message is always the same (Incorrect identity or password) so nobody can guess which accounts exist.',
+            heading: 'Sign in with an email or NIK',
+            body: 'The sign-in page has a single field: Email or national ID (NIK). Fill in one of them, then the password. If anything is wrong the message is always the same (Incorrect identity or password) so nobody can guess which accounts exist.',
             steps: [
               'Open the sign-in page.',
-              'Enter an email, username, or NIK (16 digits) in the first field.',
+              'Enter an email or NIK (16 digits) in the first field.',
               'Enter the password, then click Sign in.',
             ],
-            tip: 'A NIK works only when it is linked to exactly one account. If several accounts share the same NIK, sign in with the email or username instead.',
-          },
-          {
-            heading: 'Creating or changing a username',
-            body: 'A username is a short name of your choice for signing in, for example budi.santoso. It has 3 to 30 characters: lowercase letters, digits, dot, underscore, or hyphen. It cannot be an email address or 16 digits.',
-            steps: [
-              'Open My profile.',
-              'Fill in Username. The note under the field tells you right away whether the name is available.',
-              'Click Save profile.',
-            ],
-            href: '/profile',
+            tip: 'A NIK works only when it is linked to exactly one account. If several accounts share the same NIK, sign in with the email instead.',
           },
           {
             heading: 'Forgot your password: choose email or WhatsApp',
-            body: 'You can recover the account yourself. After you enter an email, username, or NIK, the system shows where the 6-digit code can be sent. The email is partly hidden (for example ri***@gmail.com). WhatsApp appears only when the account has a phone number, with a clue of the first 4 and last 3 digits (for example 6281****789).',
+            body: 'You can recover the account yourself. After you enter an email or NIK, the system shows where the 6-digit code can be sent. The email is partly hidden (for example ri***@gmail.com). WhatsApp appears only when the account has a phone number, with a clue of the first 4 and last 3 digits (for example 6281****789).',
             steps: [
               'On the sign-in page, click Forgot password?.',
-              'Enter an email, username, or NIK, then click Continue.',
+              'Enter an email or NIK, then click Continue.',
               'Choose Email or WhatsApp. The 6-digit code is sent there and is valid for 10 minutes.',
               'Enter the code, then click Verify code.',
               'Enter the new password twice, then click Reset password.',
@@ -2467,7 +2447,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'When no delivery options appear',
-            body: 'The screen says the options appear if the details match an account. This can happen because of a typo, or a NIK shared by several accounts. Try the email or username. If it still fails, contact the school admin.',
+            body: 'The screen says the options appear if the details match an account. This can happen because of a typo, or a NIK shared by several accounts. Try the email. If it still fails, contact the school admin.',
             tip: 'School admins should fill in the NIK, phone number, and email of students or guardians correctly; they are used for signing in and for account recovery.',
           },
         ],
@@ -2489,35 +2469,25 @@ export const CORE_DOCS: DocArticle[] = [
       su: {
         title: 'Asup jeung mulihkeun akun',
         summary:
-          'Asup maké surélék, ngaran pamaké, atawa NIK, tuluy mulihkeun akun ngaliwatan surélék atawa WhatsApp lamun poho kecap sandi.',
+          'Asup maké surélék atawa NIK, tuluy mulihkeun akun ngaliwatan surélék atawa WhatsApp lamun poho kecap sandi.',
         forWho: 'Sakabéh pamaké: staf, guru, wali murid, jeung siswa.',
         sections: [
           {
-            heading: 'Asup maké surélék, ngaran pamaké, atawa NIK',
-            body: 'Kaca asup ngan boga hiji eusian: Surélék, ngaran pamaké, atawa NIK. Eusian salah sahijina, tuluy kecap sandi. Lamun aya nu lepat, pesen nu mucunghul sok sarua (Identitas atawa kecap akses lepat) supaya batur teu bisa nebak akun.',
+            heading: 'Asup maké surélék atawa NIK',
+            body: 'Kaca asup ngan boga hiji eusian: Surélék atawa NIK. Eusian salah sahijina, tuluy kecap sandi. Lamun aya nu lepat, pesen nu mucunghul sok sarua (Identitas atawa kecap akses lepat) supaya batur teu bisa nebak akun.',
             steps: [
               'Buka kaca asup.',
-              'Eusian surélék, ngaran pamaké, atawa NIK (16 angka) dina eusian kahiji.',
+              'Eusian surélék atawa NIK (16 angka) dina eusian kahiji.',
               'Eusian kecap sandi, tuluy klik Lebet.',
             ],
-            tip: 'NIK bisa dipaké ngan lamun NIK éta nyambung ka persis hiji akun. Lamun sababaraha akun maké NIK nu sarua, asup maké surélék atawa ngaran pamaké.',
-          },
-          {
-            heading: 'Nyieun atawa ngarobah ngaran pamaké',
-            body: 'Ngaran pamaké nyaéta ngaran pondok pilihan anjeun pikeun asup, upamana budi.santoso. Eusina 3 nepi ka 30 karakter: aksara leutik, angka, titik, garis handap, atawa strip. Teu meunang awujud alamat surélék atawa 16 angka.',
-            steps: [
-              'Buka Profil kuring.',
-              'Eusian Ngaran pamaké. Tulisan handapeun eusian langsung ngabéjaan naha ngaranna sayogi.',
-              'Klik Simpen profil.',
-            ],
-            href: '/profile',
+            tip: 'NIK bisa dipaké ngan lamun NIK éta nyambung ka persis hiji akun. Lamun sababaraha akun maké NIK nu sarua, asup maké surélék.',
           },
           {
             heading: 'Poho kecap sandi: pilih surélék atawa WhatsApp',
-            body: 'Anjeun bisa mulihkeun akun sorangan. Sanggeus ngeusian surélék, ngaran pamaké, atawa NIK, sistem mintonkeun kamana kode 6 angka bisa dikirim. Surélék dipintonkeun sabagian (upamana ri***@gmail.com). WhatsApp ngan mucunghul lamun akun boga nomer HP, jeung pituduh 4 angka mimiti jeung 3 angka tungtung (upamana 6281****789).',
+            body: 'Anjeun bisa mulihkeun akun sorangan. Sanggeus ngeusian surélék atawa NIK, sistem mintonkeun kamana kode 6 angka bisa dikirim. Surélék dipintonkeun sabagian (upamana ri***@gmail.com). WhatsApp ngan mucunghul lamun akun boga nomer HP, jeung pituduh 4 angka mimiti jeung 3 angka tungtung (upamana 6281****789).',
             steps: [
               'Dina kaca asup, klik Poho kecap sandi?.',
-              'Eusian surélék, ngaran pamaké, atawa NIK, tuluy klik Teraskeun.',
+              'Eusian surélék atawa NIK, tuluy klik Teraskeun.',
               'Pilih Surélék atawa WhatsApp. Kode 6 angka dikirim ka dinya sarta lumaku 10 menit.',
               'Asupkeun kode, tuluy klik Pariksa kode.',
               'Eusian kecap sandi anyar dua kali, tuluy klik Reset kecap sandi.',
@@ -2527,7 +2497,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Lamun pilihan pangiriman teu mucunghul',
-            body: 'Layar bakal nyebutkeun yén pilihan mucunghul lamun data kapanggih. Panyababna bisa salah ngetik, atawa NIK nu dipaké ku sababaraha akun. Cobaan maké surélék atawa ngaran pamaké. Lamun tetep gagal, hubungi admin sakola.',
+            body: 'Layar bakal nyebutkeun yén pilihan mucunghul lamun data kapanggih. Panyababna bisa salah ngetik, atawa NIK nu dipaké ku sababaraha akun. Cobaan maké surélék. Lamun tetep gagal, hubungi admin sakola.',
             tip: 'Admin sakola kudu ngeusian NIK, nomer HP, jeung surélék siswa atawa wali bener-bener; data éta dipaké pikeun asup jeung mulihkeun akun.',
           },
         ],

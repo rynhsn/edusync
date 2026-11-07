@@ -17,7 +17,7 @@ export async function registerAuthRoutes(app: FastifyInstance, isTrustedOrigin: 
           .code(403)
           .send({ error: { code: 'forbidden', message: 'Asal permintaan tidak dipercaya.' } });
       }
-      // Masuk dibatasi per IP dan per isian (email/nama pengguna/NIK; hanya hash-nya yang dipakai sebagai kunci).
+      // Masuk dibatasi per IP dan per isian (email/NIK; hanya hash-nya yang dipakai sebagai kunci).
       const signIn = request.method === 'POST' && request.url.split('?')[0] === '/api/auth/sign-in/email';
       let failKey: string | null = null;
       if (signIn) {

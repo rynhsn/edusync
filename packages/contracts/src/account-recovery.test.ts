@@ -1,11 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import {
-  classifyIdentifier,
-  isValidUsername,
-  maskEmail,
-  maskPhoneClue,
-  normalizeUsername,
-} from './account-recovery';
+import { classifyIdentifier, maskEmail, maskPhoneClue } from './account-recovery';
 
 describe('classifyIdentifier', () => {
   const cases: [string, string, string][] = [
@@ -13,10 +7,9 @@ describe('classifyIdentifier', () => {
     ['  user@x.co ', 'email', 'user@x.co'],
     ['3201234567890001', 'nik', '3201234567890001'],
     ['  3201234567890001 ', 'nik', '3201234567890001'],
-    ['budi.santoso', 'username', 'budi.santoso'],
-    ['Budi_01', 'username', 'budi_01'],
-    ['320123456789000', 'username', '320123456789000'],
-    ['32012345678900012', 'username', '32012345678900012'],
+    ['budi.santoso', 'invalid', 'budi.santoso'],
+    ['320123456789000', 'invalid', '320123456789000'],
+    ['32012345678900012', 'invalid', '32012345678900012'],
     ['ab', 'invalid', 'ab'],
     ['dua kata', 'invalid', 'dua kata'],
     ['', 'invalid', ''],
@@ -26,17 +19,9 @@ describe('classifyIdentifier', () => {
   });
 });
 
-describe('nama pengguna', () => {
-  it('dirapikan menjadi huruf kecil', () => expect(normalizeUsername('  AbC.D ')).toBe('abc.d'));
-  it('menolak yang pendek, panjang, berspasi, mirip NIK, atau berhuruf besar', () => {
-    expect(isValidUsername('abc')).toBe(true);
-    expect(isValidUsername('ab')).toBe(false);
-    expect(isValidUsername('a'.repeat(30))).toBe(true);
-    expect(isValidUsername('a'.repeat(31))).toBe(false);
-    expect(isValidUsername('a b')).toBe(false);
-    expect(isValidUsername('3201234567890001')).toBe(false);
-    expect(isValidUsername('Abc')).toBe(false);
-    expect(isValidUsername('a@b')).toBe(false);
+describe('nama pengguna tidak dikenal', () => {
+  it('isian tanpa @ yang bukan 16 digit selalu tidak sah', () => {
+    expect(classifyIdentifier('abc').kind).toBe('invalid');
   });
 });
 

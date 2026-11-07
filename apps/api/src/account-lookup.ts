@@ -50,7 +50,7 @@ async function usersByNik(db: Db, nik: string): Promise<string[]> {
 }
 
 /**
- * Isian "email, nama pengguna, atau NIK" menjadi satu pengguna, atau null bila tidak ada, ambigu (NIK dipakai
+ * Isian "email atau NIK" menjadi satu pengguna, atau null bila tidak ada, ambigu (NIK dipakai
  * beberapa akun), atau bentuknya tidak sah. Pemanggil tidak boleh membedakan penyebab null kepada pengguna.
  */
 export async function resolveUser(db: Db, raw: string): Promise<ResolvedUser | null> {
@@ -58,10 +58,6 @@ export async function resolveUser(db: Db, raw: string): Promise<ResolvedUser | n
   if (id.kind === 'invalid') return null;
   if (id.kind === 'email') {
     const [row] = await db.select(userCols).from(user).where(sql`lower(${user.email}) = ${id.value}`);
-    return row ?? null;
-  }
-  if (id.kind === 'username') {
-    const [row] = await db.select(userCols).from(user).where(eq(user.username, id.value));
     return row ?? null;
   }
   const ids = await usersByNik(db, id.value);
@@ -97,10 +93,4 @@ export async function phoneFor(db: Db, found: Pick<ResolvedUser, 'id' | 'phone'>
     if (phone) return phone;
   }
   return null;
-}
-
-/** Nama pengguna sudah dipakai akun lain? `exceptUserId` melewatkan akun sendiri. */
-export async function usernameTaken(db: Db, username: string, exceptUserId?: string): Promise<boolean> {
-  const rows = await db.select({ id: user.id }).from(user).where(eq(user.username, username)).limit(2);
-  return rows.some((r) => r.id !== exceptUserId);
 }
