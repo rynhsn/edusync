@@ -1699,6 +1699,173 @@ export const PLATFORM_DOCS: DocArticle[] = [
     },
   },
   {
+    slug: 'staff',
+    icon: 'users',
+    tone: 'violet',
+    group: 'watch',
+    text: {
+      id: {
+        title: 'Pengelola platform: mengundang dan mengatur staf',
+        summary:
+          'Mengundang rekan lewat email agar bisa membuka konsol, mengubah perannya, dan mencabut aksesnya.',
+        forWho:
+          'Admin platform yang menambah atau mengurangi orang yang boleh memakai konsol. Peran Hanya lihat boleh membuka daftar, tetapi tidak bisa mengubahnya.',
+        sections: [
+          {
+            heading: 'Mengundang pengelola baru',
+            body: 'Undangan dikirim ke email orang itu dan berlaku 7 hari. Ia menerimanya dengan akun yang emailnya sama persis; bila belum punya akun, ia membuatnya langsung di halaman undangan. Tanpa undangan, tidak ada yang bisa menjadi staf.',
+            steps: [
+              'Buka Pengelola platform di menu Sistem.',
+              'Tekan Undang pengelola.',
+              'Isi email, lalu pilih peran: Admin boleh mengubah pengaturan dan mengelola staf lain, Hanya lihat hanya boleh membuka halaman.',
+              'Tekan Kirim undangan. Email berisi tautan akan terkirim ke alamat itu.',
+              'Bila email tidak sampai, salin tautan yang tampil sesaat setelah undangan dibuat dan kirimkan sendiri kepada orangnya.',
+            ],
+            tip: 'Tautan hanya tampil sekali, tepat setelah undangan dibuat atau dikirim ulang. Kalau terlewat, gunakan Kirim ulang untuk mendapat tautan baru.',
+            warning:
+              'Kirim tautan hanya kepada orang yang diundang. Siapa pun yang memegang tautan dan masuk dengan email yang sama bisa menerimanya.',
+            href: '/platform/staff',
+          },
+          {
+            heading: 'Undangan tertunda',
+            body: 'Undangan yang belum diterima tampil di bagian Undangan tertunda. Kirim ulang membuat tautan baru dan mematikan yang lama. Cabut membuat tautan tidak berlaku lagi. Undangan yang kedaluwarsa diberi tanda; kirim ulang bila orangnya masih perlu masuk.',
+            href: '/platform/staff',
+          },
+          {
+            heading: 'Mengubah peran atau mencabut akses',
+            body: 'Admin bisa mengubah peran rekan lewat pilihan di tabel, atau menghapusnya dari daftar. Akun orangnya tetap ada; ia hanya tidak bisa membuka konsol lagi. Anda tidak bisa mengubah atau menghapus diri sendiri, dan platform selalu harus punya sedikitnya satu admin.',
+            steps: [
+              'Cari nama orang itu di tabel Pengelola aktif.',
+              'Ganti pilihan peran, atau tekan Hapus lalu konfirmasi.',
+              'Semua perubahan tercatat di menu Audit.',
+            ],
+            href: '/platform/audit',
+          },
+        ],
+        faq: [
+          {
+            q: 'Orang yang diundang melihat pesan email berbeda. Mengapa?',
+            a: 'Undangan hanya bisa diterima dengan akun yang emailnya sama dengan email yang diundang. Minta ia keluar lalu masuk atau mendaftar dengan alamat itu.',
+          },
+          {
+            q: 'Tombol Undang pengelola tidak ada. Mengapa?',
+            a: 'Hanya Admin platform yang bisa mengundang dan mengatur peran. Peran Hanya lihat hanya bisa melihat daftar.',
+          },
+          {
+            q: 'Apakah menghapus pengelola juga menghapus akunnya?',
+            a: 'Tidak. Hanya akses ke konsol yang dicabut. Orangnya tetap bisa memakai akunnya di sekolah.',
+          },
+        ],
+      },
+      en: {
+        title: 'Platform staff: inviting and managing people',
+        summary:
+          'Invite colleagues by email so they can open the console, change their role, and remove their access.',
+        forWho:
+          'Platform admins who add or remove people allowed to use the console. The Read only role can open the list but cannot change it.',
+        sections: [
+          {
+            heading: 'Inviting a new staff member',
+            body: 'The invitation is emailed to the person and is valid for 7 days. They accept it with an account whose email matches exactly; if they have no account yet, they create one right on the invitation page. Without an invitation, nobody can become staff.',
+            steps: [
+              'Open Platform staff in the System menu.',
+              'Press Invite staff.',
+              'Fill in the email and choose a role: Admin can change settings and manage other staff, Read only can only open pages.',
+              'Press Send invitation. An email with the link is sent to that address.',
+              'If the email does not arrive, copy the link shown right after the invitation is created and send it to the person yourself.',
+            ],
+            tip: 'The link is shown only once, right after the invitation is created or resent. If you missed it, use Resend to get a new one.',
+            warning:
+              'Send the link only to the invited person. Anyone holding the link who signs in with the same email can accept it.',
+            href: '/platform/staff',
+          },
+          {
+            heading: 'Pending invitations',
+            body: 'Invitations that are not accepted yet appear under Pending invitations. Resend creates a new link and switches the old one off. Revoke makes the link invalid. Expired invitations are marked; resend if the person still needs access.',
+            href: '/platform/staff',
+          },
+          {
+            heading: 'Changing a role or removing access',
+            body: 'Admins can change a colleague’s role from the selector in the table, or remove them from the list. The person’s account stays; they just cannot open the console any more. You cannot change or remove yourself, and the platform must always keep at least one admin.',
+            steps: [
+              'Find the person in the Active staff table.',
+              'Change the role selector, or press Remove and confirm.',
+              'Every change is recorded in the Audit menu.',
+            ],
+            href: '/platform/audit',
+          },
+        ],
+        faq: [
+          {
+            q: 'The invited person sees a different email message. Why?',
+            a: 'An invitation can only be accepted with an account whose email matches the invited email. Ask them to sign out, then sign in or register with that address.',
+          },
+          {
+            q: 'There is no Invite staff button. Why?',
+            a: 'Only platform Admins can invite people and set roles. The Read only role can only view the list.',
+          },
+          {
+            q: 'Does removing a staff member also delete their account?',
+            a: 'No. Only their console access is removed. They can still use their account at their school.',
+          },
+        ],
+      },
+      su: {
+        title: 'Pangurus platform: ngaleman jeung ngatur staf',
+        summary:
+          'Ngaleman réncang ngaliwatan surélék sangkan bisa muka konsol, ngarobah perannana, jeung nyabut aksésna.',
+        forWho:
+          'Admin platform nu nambahan atawa ngurangan jalma nu meunang maké konsol. Peran Ngan ningali meunang muka daptar, tapi teu bisa ngarobahna.',
+        sections: [
+          {
+            heading: 'Ngaleman pangurus anyar',
+            body: 'Uleman dikirim ka surélék jalma éta jeung berlaku 7 poé. Manéhna narimana maké akun nu surélékna sarua pisan; lamun acan boga akun, manéhna nyieun langsung di kaca uleman. Tanpa uleman, euweuh nu bisa jadi staf.',
+            steps: [
+              'Buka Pangurus platform dina menu Sistem.',
+              'Pencét Uleman pangurus.',
+              'Eusian surélék, tuluy pilih peran: Admin meunang ngarobah setélan jeung ngurus staf séjén, Ngan ningali ngan meunang muka kaca.',
+              'Pencét Kirim uleman. Surélék anu eusina tautan dikirim ka alamat éta.',
+              'Lamun surélék teu nepi, salin tautan nu muncul sakedapan sanggeus uleman dijieun tuluy kirimkeun sorangan ka jalmana.',
+            ],
+            tip: 'Tautan ngan muncul sakali, pas sanggeus uleman dijieun atawa dikirim deui. Lamun kaliwat, paké Kirim deui pikeun nyokot tautan anyar.',
+            warning:
+              'Kirimkeun tautan ngan ka jalma nu diuleman. Saha waé nu nyekel tautan jeung lebet maké surélék nu sarua bisa narimana.',
+            href: '/platform/staff',
+          },
+          {
+            heading: 'Uleman nu ditangtukeun',
+            body: 'Uleman nu acan ditarima muncul di bagian Uleman nu ditangtukeun. Kirim deui nyieun tautan anyar jeung mareuman nu heubeul. Cabut ngajadikeun tautan teu berlaku. Uleman nu kadaluwarsa dititénan; kirim deui lamun jalmana masih perlu lebet.',
+            href: '/platform/staff',
+          },
+          {
+            heading: 'Ngarobah peran atawa nyabut aksés',
+            body: 'Admin bisa ngarobah peran réncang tina pilihan dina tabél, atawa mupus manéhna tina daptar. Akun jalmana tetep aya; manéhna ngan teu bisa muka konsol deui. Anjeun teu bisa ngarobah atawa mupus diri sorangan, jeung platform kudu salawasna boga sahenteuna hiji admin.',
+            steps: [
+              'Teangan ngaran jalmana dina tabél Pangurus aktif.',
+              'Ganti pilihan peran, atawa pencét Pupus tuluy konfirmasi.',
+              'Sakabéh parobahan dicatet dina menu Audit.',
+            ],
+            href: '/platform/audit',
+          },
+        ],
+        faq: [
+          {
+            q: 'Jalma nu diuleman ningali pesen surélék nu béda. Naha?',
+            a: 'Uleman ngan bisa ditarima maké akun nu surélékna sarua jeung surélék nu diuleman. Mintakeun manéhna kaluar tuluy lebet atawa daptar maké alamat éta.',
+          },
+          {
+            q: 'Tombol Uleman pangurus euweuh. Naha?',
+            a: 'Ngan Admin platform nu bisa ngaleman jeung nangtukeun peran. Peran Ngan ningali ngan bisa ningali daptar.',
+          },
+          {
+            q: 'Naha mupus pangurus ogé mupus akunna?',
+            a: 'Henteu. Ngan aksés ka konsol nu dicabut. Manéhna masih bisa maké akunna di sakolana.',
+          },
+        ],
+      },
+    },
+  },
+  {
     slug: 'audit',
     icon: 'history',
     tone: 'violet',

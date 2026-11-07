@@ -14,6 +14,7 @@ import {
   Package,
   Send,
   ShieldCheck,
+  UserCog,
   Users,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -64,6 +65,7 @@ const GROUPS = [
     items: [
       { href: '/platform/messaging', key: 'messaging', icon: Send },
       { href: '/platform/users', key: 'users', icon: Users },
+      { href: '/platform/staff', key: 'staff', icon: UserCog },
       { href: '/platform/audit', key: 'audit', icon: History },
     ],
   },

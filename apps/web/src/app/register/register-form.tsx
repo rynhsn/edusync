@@ -147,6 +147,20 @@ export function RegisterForm() {
     foundationName.trim().length >= 3 &&
     units.every((u) => u.name.trim().length >= 3);
 
+  // Tombol nonaktif tanpa penjelasan membingungkan: sebutkan persis apa yang masih kurang.
+  const missing: string[] = [];
+  if (!signedIn) {
+    if (account.name.trim().length < 2) missing.push(t('missingName'));
+    if (!account.email) missing.push(t('missingEmail'));
+    if (!passwordCheck.ok) missing.push(t('missingPassword'));
+  }
+  if (foundationName.trim().length < 3) missing.push(t('missingFoundation'));
+  units.forEach((u, i) => {
+    if (u.name.trim().length < 3) missing.push(t('missingUnitName', { n: i + 1 }));
+    const duplicate = units.filter((x) => x.slug === u.slug).length > 1;
+    if (slugStatus[`${u.id}-slug`] !== 'available' || duplicate) missing.push(t('missingSlug', { n: i + 1 }));
+  });
+
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setError(null);
@@ -310,9 +324,13 @@ export function RegisterForm() {
                 id="foundationName"
                 value={foundationName}
                 onChange={(e) => setFoundationName(e.target.value)}
+                aria-invalid={foundationName.trim().length > 0 && foundationName.trim().length < 3}
                 required
                 minLength={3}
               />
+              {foundationName.trim().length > 0 && foundationName.trim().length < 3 && (
+                <p className="text-destructive text-xs">{t('nameTooShort')}</p>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -356,9 +374,13 @@ export function RegisterForm() {
                               ...(unit.slugTouched ? {} : { slug: slugify(e.target.value) }),
                             })
                           }
+                          aria-invalid={unit.name.trim().length > 0 && unit.name.trim().length < 3}
                           required
                           minLength={3}
                         />
+                        {unit.name.trim().length > 0 && unit.name.trim().length < 3 && (
+                          <p className="text-destructive text-xs">{t('nameTooShort')}</p>
+                        )}
                       </div>
                       <SlugField
                         id={`${unit.id}-slug`}
@@ -526,6 +548,19 @@ export function RegisterForm() {
               </span>
             </div>
 
+            {!pending && missing.length > 0 && (
+              <div
+                role="status"
+                className="border-destructive/30 bg-destructive/5 grid gap-1 rounded-lg border p-3 text-xs"
+              >
+                <p className="text-destructive font-medium">{t('missingTitle')}</p>
+                <ul className="text-muted-foreground list-disc pl-4">
+                  {missing.map((m) => (
+                    <li key={m}>{m}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
             <Button type="submit" size="lg" className="h-10" disabled={!canSubmit}>
               {pending ? t('submitting') : t('submit')}
             </Button>

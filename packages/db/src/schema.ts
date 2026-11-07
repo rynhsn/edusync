@@ -367,6 +367,31 @@ export const platformStaff = pgTable('platform_staff', {
   createdAt: createdAt(),
 });
 
+/**
+ * Undangan menjadi staf platform. Hanya hash token yang disimpan. Satu undangan tertunda per email
+ * (indeks unik parsial). Tanpa RLS dan tertutup bagi peran aplikasi: hanya pool platform yang boleh menyentuhnya.
+ */
+export const staffInvitation = pgTable(
+  'staff_invitation',
+  {
+    id: id(),
+    email: text('email').notNull(),
+    role: text('role', { enum: ['admin', 'read_only'] }).notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+    invitedBy: text('invited_by').notNull(),
+    expiresAt: timestamp('expires_at', { withTimezone: true }).notNull(),
+    acceptedAt: timestamp('accepted_at', { withTimezone: true }),
+    acceptedBy: text('accepted_by'),
+    revokedAt: timestamp('revoked_at', { withTimezone: true }),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    uniqueIndex('staff_invitation_pending_email_uq')
+      .on(t.email)
+      .where(sql`${t.acceptedAt} is null and ${t.revokedAt} is null`),
+  ],
+);
+
 /** Pemilik yayasan: mengurus langganan dan tagihan di alamat utama. Bukan peran sekolah. */
 export const foundationOwner = pgTable(
   'foundation_owner',

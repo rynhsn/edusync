@@ -505,6 +505,13 @@
       "when": 1795150200000,
       "tag": "0071_site_assets",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1795200200000,
+      "tag": "0072_staff_invitation",
+      "breakpoints": true
     }
   ]
 }

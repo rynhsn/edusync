@@ -262,7 +262,12 @@ describe('katalog route', () => {
     // Akun/yayasan/pendaftaran: kepemilikan yayasan diperiksa di pustaka billing (404 bila bukan pemilik).
     const stray = eps
       .filter((e) => e.kind === 'user')
-      .filter((e) => !/^\/v1\/(account|me$|registrations|invitations\/by-token\/)/.test(e.url))
+      .filter(
+        (e) =>
+          !/^\/v1\/(account|me$|registrations|invitations\/by-token\/|platform\/staff\/invitations\/by-token\/)/.test(
+            e.url,
+          ),
+      )
       .map((e) => `${e.method} ${e.url}`);
     expect(stray).toEqual([]);
   });
@@ -273,7 +278,7 @@ describe('katalog route', () => {
       /^\/docs/,
       /^\/internal\/tls-ask$/,
       /^\/api\/auth/,
-      /^\/v1\/(config|catalog|slugs\/|public\/|kiosk\/|webhooks\/|dev\/|invitations\/by-token\/:token$)/,
+      /^\/v1\/(config|catalog|slugs\/|public\/|kiosk\/|webhooks\/|dev\/|invitations\/by-token\/:token$|platform\/staff\/invitations\/by-token\/:token$)/,
     ];
     const stray = eps
       .filter((e) => e.kind === 'open')
