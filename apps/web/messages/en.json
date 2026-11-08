@@ -18,6 +18,15 @@
     "showPassword": "Show password",
     "hidePassword": "Hide password",
     "loginIdentityHint": "The national ID (NIK), phone number, and email are used to sign in and to recover the account.",
+    "dataComplete": "Data complete",
+    "nikMissing": "NIK not filled in",
+    "contactIncomplete": "Contact incomplete",
+    "completenessHeader": "Data completeness",
+    "nikMissingCount": "{count} without NIK",
+    "filterNikMissing": "Without NIK",
+    "sectionIdentity": "Identity",
+    "sectionContact": "Contact",
+    "sectionAddress": "Address",
     "pickDate": "Pick a date",
     "clearDate": "Clear date",
     "cancel": "Cancel",
@@ -629,6 +638,7 @@
     "account_not_found": "No account with that email yet. Ask them to sign up first.",
     "already_member": "This person is already a member of the school.",
     "account_taken": "That account is already linked to another teacher.",
+    "nik_taken": "That NIK is already used by someone else at this school.",
     "invalid_member": "The account must be an active member of this school.",
     "teacher_linked": "This teacher already has a login account.",
     "last_admin": "The school must keep at least one active school admin.",
@@ -1608,6 +1618,13 @@
     "title": "Teachers",
     "subtitle": "Teachers and teaching staff. Login accounts are managed under Members.",
     "addTitle": "Add a teacher",
+    "nik": "NIK",
+    "education": "Highest education",
+    "educationHint": "E.g. Bachelor of Mathematics Education",
+    "phone": "Phone / WhatsApp",
+    "email": "Email",
+    "address": "Address",
+    "contactHint": "E.g. 0812xxxx; stored as 62812xxxx.",
     "nip": "Staff ID (NIP)",
     "status": "Status",
     "active": "Active",
@@ -1696,7 +1713,13 @@
       "g2Name": "Guardian 2 name",
       "g2Relation": "Guardian 2 relation",
       "g2Phone": "Guardian 2 phone/WhatsApp",
-      "g2Email": "Guardian 2 email"
+      "g2Email": "Guardian 2 email",
+      "g1Nik": "Guardian 1 NIK",
+      "g1Address": "Guardian 1 address",
+      "g1Occupation": "Guardian 1 occupation",
+      "g2Nik": "Guardian 2 NIK",
+      "g2Address": "Guardian 2 address",
+      "g2Occupation": "Guardian 2 occupation"
     }
   },
   "teacherImport": {
@@ -1729,7 +1752,16 @@
     "fields": {
       "name": "Name",
       "nip": "NIP",
-      "status": "Status"
+      "status": "Status",
+      "nik": "NIK",
+      "gender": "Gender",
+      "phone": "Phone/WhatsApp",
+      "email": "Email",
+      "birthPlace": "Place of birth",
+      "birthDate": "Date of birth",
+      "address": "Address",
+      "religion": "Religion",
+      "education": "Education"
     }
   },
   "guardians": {
@@ -1763,7 +1795,11 @@
     "siblings": "guardian of {count} students",
     "noMatch": "No results.",
     "linkAction": "Link",
-    "invalidPhone": "The phone number is not valid."
+    "invalidPhone": "The phone number is not valid.",
+    "nik": "Guardian NIK",
+    "address": "Address",
+    "occupation": "Occupation",
+    "editTitle": "Edit guardian"
   },
   "curriculumBank": {
     "title": "Pick from the curriculum bank",

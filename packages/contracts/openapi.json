@@ -26552,7 +26552,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `teacher:read`. `q` mencari pada nama atau NIP.",
+        "description": "Izin: `teacher:read`. `q` mencari pada nama atau NIP. NIK utuh hanya dikembalikan bagi pemegang `teacher:manage`; yang lain hanya menerima `nikMasked` (empat digit terakhir).",
         "parameters": [
           {
             "schema": {
@@ -26609,6 +26609,63 @@
                         "type": "string",
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "nik": {
+                        "nullable": true,
+                        "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                        "type": "string"
+                      },
+                      "nikMasked": {
+                        "nullable": true,
+                        "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
+                        "type": "string"
+                      },
+                      "phone": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "email": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "gender": {
+                        "nullable": true,
+                        "type": "string",
+                        "enum": [
+                          "L",
+                          "P"
+                        ]
+                      },
+                      "birthPlace": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "birthDate": {
+                        "nullable": true,
+                        "type": "string",
+                        "format": "date",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                      },
+                      "address": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "religion": {
+                        "nullable": true,
+                        "type": "string",
+                        "enum": [
+                          "islam",
+                          "christian",
+                          "catholic",
+                          "hindu",
+                          "buddhist",
+                          "confucian",
+                          "other"
+                        ]
+                      },
+                      "education": {
+                        "nullable": true,
+                        "type": "string"
                       }
                     },
                     "required": [
@@ -26616,7 +26673,17 @@
                       "name",
                       "nip",
                       "status",
-                      "memberId"
+                      "memberId",
+                      "nik",
+                      "nikMasked",
+                      "phone",
+                      "email",
+                      "gender",
+                      "birthPlace",
+                      "birthDate",
+                      "address",
+                      "religion",
+                      "education"
                     ],
                     "additionalProperties": false
                   }
@@ -26695,7 +26762,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `teacher:manage`. NIP (bila diisi) harus unik di sekolah.",
+        "description": "Izin: `teacher:manage`. NIP dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`. NIK 16 digit, telepon dinormalkan ke digit berawalan 62, email, jenis kelamin (L/P), tempat dan tanggal lahir, alamat, agama, dan pendidikan terakhir opsional. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.",
         "requestBody": {
           "required": true,
           "content": {
@@ -26721,6 +26788,81 @@
                       "active",
                       "inactive"
                     ]
+                  },
+                  "nik": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "phone": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "email": {
+                    "default": null,
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 254,
+                        "format": "email",
+                        "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      }
+                    ]
+                  },
+                  "gender": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "enum": [
+                      "L",
+                      "P"
+                    ]
+                  },
+                  "birthPlace": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "birthDate": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "address": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "religion": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "enum": [
+                      "islam",
+                      "christian",
+                      "catholic",
+                      "hindu",
+                      "buddhist",
+                      "confucian",
+                      "other"
+                    ]
+                  },
+                  "education": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 120
                   }
                 },
                 "required": [
@@ -26775,6 +26917,63 @@
                       "type": "string",
                       "format": "uuid",
                       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "nik": {
+                      "nullable": true,
+                      "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nikMasked": {
+                      "nullable": true,
+                      "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
+                      "type": "string"
+                    },
+                    "phone": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "gender": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "L",
+                        "P"
+                      ]
+                    },
+                    "birthPlace": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "birthDate": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    "address": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "religion": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "islam",
+                        "christian",
+                        "catholic",
+                        "hindu",
+                        "buddhist",
+                        "confucian",
+                        "other"
+                      ]
+                    },
+                    "education": {
+                      "nullable": true,
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -26782,7 +26981,17 @@
                     "name",
                     "nip",
                     "status",
-                    "memberId"
+                    "memberId",
+                    "nik",
+                    "nikMasked",
+                    "phone",
+                    "email",
+                    "gender",
+                    "birthPlace",
+                    "birthDate",
+                    "address",
+                    "religion",
+                    "education"
                   ],
                   "additionalProperties": false
                 }
@@ -26920,6 +27129,81 @@
                       "active",
                       "inactive"
                     ]
+                  },
+                  "nik": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "phone": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 30
+                  },
+                  "email": {
+                    "default": null,
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "enum": [
+                          ""
+                        ]
+                      },
+                      {
+                        "type": "string",
+                        "maxLength": 254,
+                        "format": "email",
+                        "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                      }
+                    ]
+                  },
+                  "gender": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "enum": [
+                      "L",
+                      "P"
+                    ]
+                  },
+                  "birthPlace": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 80
+                  },
+                  "birthDate": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "address": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "religion": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "enum": [
+                      "islam",
+                      "christian",
+                      "catholic",
+                      "hindu",
+                      "buddhist",
+                      "confucian",
+                      "other"
+                    ]
+                  },
+                  "education": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 120
                   }
                 },
                 "required": [
@@ -26984,6 +27268,63 @@
                       "type": "string",
                       "format": "uuid",
                       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "nik": {
+                      "nullable": true,
+                      "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nikMasked": {
+                      "nullable": true,
+                      "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
+                      "type": "string"
+                    },
+                    "phone": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "gender": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "L",
+                        "P"
+                      ]
+                    },
+                    "birthPlace": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "birthDate": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    "address": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "religion": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "islam",
+                        "christian",
+                        "catholic",
+                        "hindu",
+                        "buddhist",
+                        "confucian",
+                        "other"
+                      ]
+                    },
+                    "education": {
+                      "nullable": true,
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -26991,7 +27332,17 @@
                     "name",
                     "nip",
                     "status",
-                    "memberId"
+                    "memberId",
+                    "nik",
+                    "nikMasked",
+                    "phone",
+                    "email",
+                    "gender",
+                    "birthPlace",
+                    "birthDate",
+                    "address",
+                    "religion",
+                    "education"
                   ],
                   "additionalProperties": false
                 }
@@ -27394,6 +27745,63 @@
                       "type": "string",
                       "format": "uuid",
                       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "nik": {
+                      "nullable": true,
+                      "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nikMasked": {
+                      "nullable": true,
+                      "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
+                      "type": "string"
+                    },
+                    "phone": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "email": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "gender": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "L",
+                        "P"
+                      ]
+                    },
+                    "birthPlace": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "birthDate": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "date",
+                      "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                    },
+                    "address": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "religion": {
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "islam",
+                        "christian",
+                        "catholic",
+                        "hindu",
+                        "buddhist",
+                        "confucian",
+                        "other"
+                      ]
+                    },
+                    "education": {
+                      "nullable": true,
+                      "type": "string"
                     }
                   },
                   "required": [
@@ -27401,7 +27809,17 @@
                     "name",
                     "nip",
                     "status",
-                    "memberId"
+                    "memberId",
+                    "nik",
+                    "nikMasked",
+                    "phone",
+                    "email",
+                    "gender",
+                    "birthPlace",
+                    "birthDate",
+                    "address",
+                    "religion",
+                    "education"
                   ],
                   "additionalProperties": false
                 }
@@ -27577,7 +27995,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `student:read`. `q` mencari pada nama, NIS, atau NISN. `classId` menyaring menurut kelas pada tahun ajaran aktif. Siswa yang dihapus tidak ditampilkan.",
+        "description": "Izin: `student:read`. `q` mencari pada nama, NIS, atau NISN. `classId` menyaring menurut kelas pada tahun ajaran aktif. `missingNik=true` hanya menampilkan siswa tanpa NIK. Siswa yang dihapus tidak ditampilkan. NIK utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.",
         "parameters": [
           {
             "schema": {
@@ -27611,6 +28029,19 @@
             "in": "query",
             "name": "status",
             "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "in": "query",
+            "name": "missingNik",
+            "required": false,
+            "description": "true: hanya siswa yang NIK-nya belum diisi"
           },
           {
             "schema": {
@@ -27665,6 +28096,12 @@
                           },
                           "nik": {
                             "nullable": true,
+                            "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                            "type": "string"
+                          },
+                          "nikMasked": {
+                            "nullable": true,
+                            "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
                             "type": "string"
                           },
                           "religion": {
@@ -27745,6 +28182,7 @@
                         "required": [
                           "birthPlace",
                           "nik",
+                          "nikMasked",
                           "religion",
                           "address",
                           "phone",
@@ -27766,11 +28204,18 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "missingNikTotal": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "description": "Jumlah siswa (dengan saringan lain yang sama) yang NIK-nya belum diisi"
                     }
                   },
                   "required": [
                     "items",
-                    "total"
+                    "total",
+                    "missingNikTotal"
                   ],
                   "additionalProperties": false
                 }
@@ -27848,7 +28293,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `student:manage`. NIS dan NISN (bila diisi) harus unik di sekolah. Data diri lain (tempat lahir, NIK 16 digit, agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: siswa langsung ditempatkan di kelas itu pada tahun ajaran kelasnya.",
+        "description": "Izin: `student:manage`. NIS, NISN, dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`. Data diri lain (tempat lahir, NIK 16 digit, agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: siswa langsung ditempatkan di kelas itu pada tahun ajaran kelasnya.",
         "requestBody": {
           "required": true,
           "content": {
@@ -27903,9 +28348,10 @@
                     "maxLength": 80
                   },
                   "nik": {
+                    "default": null,
                     "nullable": true,
                     "type": "string",
-                    "pattern": "^(\\d{16})?$"
+                    "maxLength": 40
                   },
                   "religion": {
                     "default": null,
@@ -27993,6 +28439,12 @@
                     },
                     "nik": {
                       "nullable": true,
+                      "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nikMasked": {
+                      "nullable": true,
+                      "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
                       "type": "string"
                     },
                     "religion": {
@@ -28073,6 +28525,7 @@
                   "required": [
                     "birthPlace",
                     "nik",
+                    "nikMasked",
                     "religion",
                     "address",
                     "phone",
@@ -28267,6 +28720,12 @@
                     },
                     "nik": {
                       "nullable": true,
+                      "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nikMasked": {
+                      "nullable": true,
+                      "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
                       "type": "string"
                     },
                     "religion": {
@@ -28347,6 +28806,7 @@
                   "required": [
                     "birthPlace",
                     "nik",
+                    "nikMasked",
                     "religion",
                     "address",
                     "phone",
@@ -28524,9 +28984,10 @@
                     "maxLength": 80
                   },
                   "nik": {
+                    "default": null,
                     "nullable": true,
                     "type": "string",
-                    "pattern": "^(\\d{16})?$"
+                    "maxLength": 40
                   },
                   "religion": {
                     "default": null,
@@ -28617,6 +29078,12 @@
                     },
                     "nik": {
                       "nullable": true,
+                      "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nikMasked": {
+                      "nullable": true,
+                      "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
                       "type": "string"
                     },
                     "religion": {
@@ -28697,6 +29164,7 @@
                   "required": [
                     "birthPlace",
                     "nik",
+                    "nikMasked",
                     "religion",
                     "address",
                     "phone",
@@ -29062,6 +29530,12 @@
                     },
                     "nik": {
                       "nullable": true,
+                      "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nikMasked": {
+                      "nullable": true,
+                      "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
                       "type": "string"
                     },
                     "religion": {
@@ -29142,6 +29616,7 @@
                   "required": [
                     "birthPlace",
                     "nik",
+                    "nikMasked",
                     "religion",
                     "address",
                     "phone",
@@ -114086,7 +114561,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `student:read`.",
+        "description": "Izin: `student:read`. NIK wali utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.",
         "parameters": [
           {
             "schema": {
@@ -114136,6 +114611,24 @@
                         "nullable": true,
                         "type": "string"
                       },
+                      "nik": {
+                        "nullable": true,
+                        "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                        "type": "string"
+                      },
+                      "nikMasked": {
+                        "nullable": true,
+                        "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
+                        "type": "string"
+                      },
+                      "address": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "occupation": {
+                        "nullable": true,
+                        "type": "string"
+                      },
                       "relation": {
                         "type": "string",
                         "enum": [
@@ -114160,6 +114653,10 @@
                       "name",
                       "phone",
                       "email",
+                      "nik",
+                      "nikMasked",
+                      "address",
+                      "occupation",
                       "relation",
                       "isPrimary",
                       "studentCount"
@@ -114273,7 +114770,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `student:manage`. Kirim `guardianId` untuk menautkan wali yang sudah ada, atau `name` (dan opsional telepon dan email) untuk membuat wali baru. Telepon dinormalkan ke digit berawalan 62. Satu siswa hanya punya satu wali utama; menandai wali utama melepas tanda dari yang lain.",
+        "description": "Izin: `student:manage`. Kirim `guardianId` untuk menautkan wali yang sudah ada, atau `name` (dan opsional telepon, email, NIK 16 digit, alamat, pekerjaan) untuk membuat wali baru. Telepon dinormalkan ke digit berawalan 62. NIK wali harus unik di sekolah (409 `nik_taken`). Satu siswa hanya punya satu wali utama; menandai wali utama melepas tanda dari yang lain.",
         "requestBody": {
           "required": true,
           "content": {
@@ -114312,6 +114809,24 @@
                         "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
                       }
                     ]
+                  },
+                  "nik": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "address": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "occupation": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 120
                   },
                   "relation": {
                     "type": "string",
@@ -114383,6 +114898,24 @@
                         "nullable": true,
                         "type": "string"
                       },
+                      "nik": {
+                        "nullable": true,
+                        "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                        "type": "string"
+                      },
+                      "nikMasked": {
+                        "nullable": true,
+                        "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
+                        "type": "string"
+                      },
+                      "address": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "occupation": {
+                        "nullable": true,
+                        "type": "string"
+                      },
                       "relation": {
                         "type": "string",
                         "enum": [
@@ -114407,6 +114940,10 @@
                       "name",
                       "phone",
                       "email",
+                      "nik",
+                      "nikMasked",
+                      "address",
+                      "occupation",
                       "relation",
                       "isPrimary",
                       "studentCount"
@@ -114751,6 +115288,24 @@
                         "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
                       }
                     ]
+                  },
+                  "nik": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "address": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 300
+                  },
+                  "occupation": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 120
                   }
                 },
                 "required": [
@@ -114806,13 +115361,35 @@
                     "email": {
                       "nullable": true,
                       "type": "string"
+                    },
+                    "nik": {
+                      "nullable": true,
+                      "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nikMasked": {
+                      "nullable": true,
+                      "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
+                      "type": "string"
+                    },
+                    "address": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "occupation": {
+                      "nullable": true,
+                      "type": "string"
                     }
                   },
                   "required": [
                     "id",
                     "name",
                     "phone",
-                    "email"
+                    "email",
+                    "nik",
+                    "nikMasked",
+                    "address",
+                    "occupation"
                   ],
                   "additionalProperties": false
                 }
@@ -114884,6 +115461,38 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -115012,6 +115621,24 @@
                         "nullable": true,
                         "type": "string"
                       },
+                      "nik": {
+                        "nullable": true,
+                        "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                        "type": "string"
+                      },
+                      "nikMasked": {
+                        "nullable": true,
+                        "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
+                        "type": "string"
+                      },
+                      "address": {
+                        "nullable": true,
+                        "type": "string"
+                      },
+                      "occupation": {
+                        "nullable": true,
+                        "type": "string"
+                      },
                       "relation": {
                         "type": "string",
                         "enum": [
@@ -115036,6 +115663,10 @@
                       "name",
                       "phone",
                       "email",
+                      "nik",
+                      "nikMasked",
+                      "address",
+                      "occupation",
                       "relation",
                       "isPrimary",
                       "studentCount"
@@ -115389,6 +116020,12 @@
                           },
                           "nik": {
                             "nullable": true,
+                            "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                            "type": "string"
+                          },
+                          "nikMasked": {
+                            "nullable": true,
+                            "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
                             "type": "string"
                           },
                           "gender": {
@@ -115471,6 +116108,24 @@
                                   "nullable": true,
                                   "type": "string"
                                 },
+                                "nik": {
+                                  "nullable": true,
+                                  "description": "NIK utuh; null bila tidak punya izin kelola atau belum diisi",
+                                  "type": "string"
+                                },
+                                "nikMasked": {
+                                  "nullable": true,
+                                  "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
+                                  "type": "string"
+                                },
+                                "address": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "occupation": {
+                                  "nullable": true,
+                                  "type": "string"
+                                },
                                 "isPrimary": {
                                   "type": "boolean"
                                 }
@@ -115480,6 +116135,10 @@
                                 "relation",
                                 "phone",
                                 "email",
+                                "nik",
+                                "nikMasked",
+                                "address",
+                                "occupation",
                                 "isPrimary"
                               ],
                               "additionalProperties": false
@@ -115492,6 +116151,7 @@
                           "nis",
                           "nisn",
                           "nik",
+                          "nikMasked",
                           "gender",
                           "birthPlace",
                           "birthDate",
@@ -115594,7 +116254,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `student:manage`. Maksimal 1000 baris. Dengan `dryRun: true` hanya memeriksa dan melaporkan kesalahan per baris. Tanpa `dryRun`, siswa baru disimpan hanya bila semua baris valid. Kelas (`className`) dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah. Data diri opsional: `nik` (16 digit), `birthPlace`, `religion` (Islam, Kristen, Katolik, Hindu, Buddha, Konghucu, Lainnya, atau padanan Inggris), `address`, `phone`, `email`. Dua wali per baris (`g1*` wali utama, `g2*`): hubungan Ayah/Ibu/Wali/Lainnya (kosong: wali 1 ayah, wali 2 ibu); nama wajib bila ada isian lain pada blok itu. Wali dipakai ulang bila telepon (setelah dinormalkan) sama dengan wali yang sudah ada di sekolah atau yang dibuat lebih awal di file yang sama; selain itu wali baru dibuat.",
+        "description": "Izin: `student:manage`. Maksimal 1000 baris. Dengan `dryRun: true` hanya memeriksa dan melaporkan kesalahan per baris. Tanpa `dryRun`, siswa baru disimpan hanya bila semua baris valid. Kelas (`className`) dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah. Data diri opsional: `nik` (16 digit), `birthPlace`, `religion` (Islam, Kristen, Katolik, Hindu, Buddha, Konghucu, Lainnya, atau padanan Inggris), `address`, `phone`, `email`. Dua wali per baris (`g1*` wali utama, `g2*`): hubungan Ayah/Ibu/Wali/Lainnya (kosong: wali 1 ayah, wali 2 ibu); nama wajib bila ada isian lain pada blok itu. Blok wali juga menerima `g1Nik`/`g2Nik` (16 digit), `g1Address`, `g1Occupation`. NIK siswa harus unik di file dan di sekolah. Wali dipakai ulang bila NIK, atau telepon (setelah dinormalkan), sama dengan wali yang sudah ada di sekolah atau yang dibuat lebih awal di file yang sama; selain itu wali baru dibuat.",
         "requestBody": {
           "required": true,
           "content": {
@@ -115698,6 +116358,21 @@
                           "type": "string",
                           "maxLength": 300
                         },
+                        "g1Nik": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "g1Address": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 600
+                        },
+                        "g1Occupation": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 200
+                        },
                         "g2Name": {
                           "default": "",
                           "type": "string",
@@ -115717,6 +116392,21 @@
                           "default": "",
                           "type": "string",
                           "maxLength": 300
+                        },
+                        "g2Nik": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "g2Address": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 600
+                        },
+                        "g2Occupation": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 200
                         }
                       },
                       "required": [
@@ -115912,7 +116602,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `teacher:manage`. Maksimal 1000 baris. `dryRun: true` hanya memeriksa. Tanpa `dryRun`, guru disimpan hanya bila semua baris valid. NIP harus unik di file dan di sekolah; status kosong berarti aktif.",
+        "description": "Izin: `teacher:manage`. Maksimal 1000 baris. `dryRun: true` hanya memeriksa. Tanpa `dryRun`, guru disimpan hanya bila semua baris valid. NIP dan NIK harus unik di file dan di sekolah; status kosong berarti aktif. Data diri opsional: `nik` (16 digit), `gender` (L/P), `phone` (dinormalkan ke 62), `email`, `birthPlace`, `birthDate` (TTTT-BB-HH), `address`, `religion`, `education`. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.",
         "requestBody": {
           "required": true,
           "content": {
@@ -115949,6 +116639,51 @@
                           "default": "",
                           "type": "string",
                           "maxLength": 30
+                        },
+                        "nik": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "gender": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 30
+                        },
+                        "phone": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "email": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 300
+                        },
+                        "birthPlace": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 200
+                        },
+                        "birthDate": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 30
+                        },
+                        "address": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 600
+                        },
+                        "religion": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "education": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 200
                         }
                       },
                       "required": [

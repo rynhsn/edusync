@@ -20,6 +20,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { CompletenessBadge } from '@/components/completeness-badge';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import {
@@ -335,6 +336,7 @@ export function StudentsView() {
   const tm = useTranslations('masterData');
   const tg = useTranslations('guardians');
   const tc = useTranslations('gate');
+  const tcm = useTranslations('common');
   const te = useTranslations();
   const { school, can, hasModule } = useSchool();
   const queryClient = useQueryClient();
@@ -351,6 +353,7 @@ export function StudentsView() {
   }, [urlQuery]);
   const [classFilter, setClassFilter] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [missingNikOnly, setMissingNikOnly] = useState(false);
   const [page, setPage] = useState(0);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
@@ -391,6 +394,7 @@ export function StudentsView() {
     ...(q.trim() ? { q: q.trim() } : {}),
     ...(classFilter ? { classId: classFilter } : {}),
     ...(statusFilter ? { status: statusFilter as Status } : {}),
+    ...(missingNikOnly ? { missingNik: 'true' as const } : {}),
     limit: PAGE,
     offset: page * PAGE,
   };
@@ -491,7 +495,8 @@ export function StudentsView() {
   const levels = new Map<string, number>();
   for (const c of classList) levels.set(c.level, (levels.get(c.level) ?? 0) + c.studentCount);
   const levelText = [...levels.entries()].map(([lv, n]) => `${lv}: ${n}`).join(' · ');
-  const hasFilters = !!(q.trim() || classFilter || statusFilter);
+  const hasFilters = !!(q.trim() || classFilter || statusFilter || missingNikOnly);
+  const missingNikTotal = statAll.data?.missingNikTotal ?? list.data?.missingNikTotal;
   const activePercent = allCount ? Math.round(((activeCount ?? 0) / allCount) * 100) : 0;
 
   const openEdit = (s: NonNullable<typeof list.data>['items'][number]) => {
@@ -544,7 +549,12 @@ export function StudentsView() {
         icon={GraduationCap}
         tone={MODULE_TONE.master}
         title={t('title')}
-        description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
+        description={[
+          manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`,
+          missingNikTotal ? tcm('nikMissingCount', { count: missingNikTotal }) : '',
+        ]
+          .filter(Boolean)
+          .join(' · ')}
         actions={
           <>
             <Button variant="outline" disabled={exporting} onClick={exportExcel}>
@@ -637,6 +647,17 @@ export function StudentsView() {
             </option>
           ))}
         </SelectField>
+        <Button
+          type="button"
+          variant={missingNikOnly ? 'default' : 'outline'}
+          aria-pressed={missingNikOnly}
+          onClick={() => {
+            setMissingNikOnly(!missingNikOnly);
+            setPage(0);
+          }}
+        >
+          {tcm('filterNikMissing')}
+        </Button>
         {list.data && (
           <span className="text-muted-foreground ml-auto px-1 text-sm tabular-nums">
             {t('total', { count: total })}
@@ -664,6 +685,7 @@ export function StudentsView() {
                   setQ('');
                   setClassFilter('');
                   setStatusFilter('');
+                  setMissingNikOnly(false);
                   setPage(0);
                 }}
               >
@@ -707,6 +729,7 @@ export function StudentsView() {
               header: `${t('nis')} / ${t('nisn')}`,
               cell: (s) => <MonoText>{[s.nis, s.nisn].filter(Boolean).join(' / ') || tm('none')}</MonoText>,
             },
+            { key: 'nik', header: t('nik'), cell: (s) => <MonoText>{s.nikMasked ?? tm('none')}</MonoText> },
             {
               key: 'class',
               header: t('class'),
@@ -723,6 +746,11 @@ export function StudentsView() {
               key: 'status',
               header: t('status'),
               cell: (s) => <ToneBadge tone={STATUS_TONE[s.status]}>{t(STATUS_KEY[s.status])}</ToneBadge>,
+            },
+            {
+              key: 'completeness',
+              header: tcm('completenessHeader'),
+              cell: (s) => <CompletenessBadge person={s} />,
             },
           ]}
           actions={(s) => (

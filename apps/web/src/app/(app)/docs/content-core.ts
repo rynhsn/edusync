@@ -28,6 +28,16 @@ export const CORE_DOCS: DocArticle[] = [
             href: '/students',
           },
           {
+            heading: 'NIK, kelengkapan data, dan saringan Belum punya NIK',
+            body: 'NIK siswa, guru, dan wali bisa dipakai untuk masuk dan memulihkan kata sandi, asalkan akunnya sudah terhubung (siswa dan wali lewat tautan portal, guru lewat akun login guru). NIK terdiri dari 16 digit dan tidak boleh sama dengan orang lain di sekolah yang sama; kalau sama, muncul pesan NIK itu sudah dipakai. NIK lengkap hanya terlihat oleh pengguna yang boleh mengelola data itu; pengguna lain hanya melihat empat digit terakhir.',
+            steps: [
+              'Di halaman Siswa, pakai saringan Belum punya NIK untuk menampilkan siswa yang NIK-nya masih kosong.',
+              'Perhatikan lencana Kelengkapan data pada tiap siswa: Data lengkap atau NIK belum diisi.',
+              'Klik Ubah pada siswa tersebut, isi NIK, lalu simpan.',
+            ],
+            tip: 'Bila NIK yang sama tercatat pada lebih dari satu akun, masuk dengan NIK tidak berfungsi dan orangnya harus memakai email.',
+          },
+          {
             heading: 'Memindahkan siswa ke kelas lain atau mengubah statusnya',
             body: 'Kelas yang tampil adalah kelas pada tahun ajaran aktif. Status siswa ada empat: Aktif, Lulus, Pindah, dan Keluar.',
             steps: [
@@ -43,7 +53,7 @@ export const CORE_DOCS: DocArticle[] = [
             body: 'Satu wali bisa dipakai bersama oleh beberapa anak, misalnya kakak dan adik. Bila data wali diubah, perubahan berlaku untuk semua anaknya.',
             steps: [
               'Klik menu baris siswa, lalu pilih Wali.',
-              'Untuk wali baru, isi nama, hubungan (ayah, ibu, wali, atau lainnya), telepon, dan email, lalu klik Tambah wali.',
+              'Untuk wali baru, isi nama, hubungan (ayah, ibu, wali, atau lainnya), NIK, telepon, email, alamat, dan pekerjaan, lalu klik Tambah wali.',
               'Untuk wali yang sudah ada (misalnya orang tua kakaknya), ketik minimal 2 huruf nama atau telepon pada Tautkan wali yang sudah ada, lalu klik Tautkan.',
               'Centang Jadikan wali utama, atau klik Jadikan utama pada wali yang sudah tertaut. Klik Lepas untuk melepas wali dari siswa itu.',
             ],
@@ -56,7 +66,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Memasukkan dan mengunduh data lewat Excel',
-            body: 'Berkas Excel memuat 20 kolom: data siswa, Kelas, lalu Wali 1 dan Wali 2 (masing-masing nama, hubungan, telepon/WA, dan email). Wali 1 menjadi wali utama. Wali dengan nomor telepon yang sama dipakai bersama, jadi kakak-adik tidak tercatat dobel.',
+            body: 'Berkas Excel memuat kolom data siswa (termasuk NIK, HP, Email, dan Alamat), Kelas, lalu Wali 1 dan Wali 2 (masing-masing nama, hubungan, NIK, telepon/WA, email, alamat, dan pekerjaan). Wali 1 menjadi wali utama. Wali dengan nomor telepon yang sama dipakai bersama, jadi kakak-adik tidak tercatat dobel.',
             steps: [
               'Klik Impor Excel di halaman Siswa, lalu unduh templat.',
               'Isi lembar Siswa mulai baris 2 tanpa mengubah judul kolom. Hanya Nama dan Jenis Kelamin (L atau P) yang wajib.',
@@ -108,6 +118,16 @@ export const CORE_DOCS: DocArticle[] = [
             href: '/students',
           },
           {
+            heading: 'NIK, data completeness, and the No NIK yet filter',
+            body: 'The NIK of a student, teacher, or guardian can be used to sign in and to recover the password, as long as the account is linked (students and guardians through the portal link, teachers through the teacher login account). A NIK is 16 digits and must be unique within the school; a duplicate shows the message NIK already in use. The full NIK is visible only to users who can manage that data; everyone else sees just the last four digits.',
+            steps: [
+              'On the Students page, use the No NIK yet filter to list students whose NIK is still empty.',
+              'Check the Data completeness badge on each student: Complete data or NIK not filled in.',
+              'Click Edit on that student, enter the NIK, then save.',
+            ],
+            tip: 'If the same NIK is recorded on more than one account, signing in with the NIK does not work and that person must use their email.',
+          },
+          {
             heading: 'Moving a student to another class or changing the status',
             body: 'The classes shown are those of the active academic year. A student has one of four statuses: Active, Graduated, Transferred, and Dropped.',
             steps: [
@@ -123,7 +143,7 @@ export const CORE_DOCS: DocArticle[] = [
             body: 'One guardian can be shared by several children, for example siblings. When the guardian details change, the change applies to all of their children.',
             steps: [
               'Click the student row menu, then choose Guardians.',
-              'For a new guardian, fill in the name, relation (father, mother, guardian, or other), phone, and email, then click Add guardian.',
+              'For a new guardian, fill in the name, relation (father, mother, guardian, or other), NIK, phone, email, address, and occupation, then click Add guardian.',
               'For an existing guardian (for example the parent of an older sibling), type at least 2 letters of the name or phone under Link an existing guardian, then click Link.',
               'Tick Make primary guardian, or click Make primary on a linked guardian. Click Remove to detach a guardian from that student.',
             ],
@@ -136,7 +156,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Bringing in and downloading data with Excel',
-            body: 'The Excel file has 20 columns: student details, Class, then Guardian 1 and Guardian 2 (each with name, relation, phone/WhatsApp, and email). Guardian 1 becomes the primary guardian. Guardians with the same phone number are shared, so siblings are not recorded twice.',
+            body: 'The Excel file has columns for the student details (including NIK, HP, Email, and Alamat), Class, then Guardian 1 and Guardian 2 (each with name, relation, NIK, phone/WhatsApp, email, address, and occupation). Guardian 1 becomes the primary guardian. Guardians with the same phone number are shared, so siblings are not recorded twice.',
             steps: [
               'Click Import from Excel on the Students page, then download the template.',
               'Fill in the Siswa sheet from row 2 without changing the column titles. Only Nama (name) and Jenis Kelamin (gender, L or P) are required.',
@@ -187,6 +207,16 @@ export const CORE_DOCS: DocArticle[] = [
             href: '/students',
           },
           {
+            heading: 'NIK, kalengkepan data, jeung saringan Acan boga NIK',
+            body: 'NIK murid, guru, jeung wali bisa dipaké pikeun asup jeung mulihkeun kecap sandi, lamun akunna geus nyambung (murid jeung wali lewat tumbu portal, guru lewat akun asup guru). NIK diwangun ku 16 angka sarta teu meunang sarua jeung nu séjén dina sakola nu sarua; lamun sarua, pesen NIK éta geus dipaké mucunghul. NIK lengkep ngan katingali ku pamaké nu meunang ngatur data éta; pamaké séjén ngan ningali opat angka pamungkas.',
+            steps: [
+              'Dina kaca Murid, paké saringan Acan boga NIK pikeun mintonkeun murid nu NIK-na masih kosong.',
+              'Titénan lencana Kalengkepan data dina unggal murid: Data lengkep atawa NIK acan diisi.',
+              'Klik Robah dina murid éta, eusian NIK, tuluy simpen.',
+            ],
+            tip: 'Lamun NIK nu sarua kacatet dina leuwih ti hiji akun, asup maké NIK teu tiasa jalan sarta jalmana kudu maké surélék.',
+          },
+          {
             heading: 'Mindahkeun murid ka kelas séjén atawa ngarobah statusna',
             body: 'Kelas nu kaciri nyaéta kelas dina taun pangajaran aktip. Status murid aya opat: Aktip, Lulus, Pindah, jeung Kaluar.',
             steps: [
@@ -202,7 +232,7 @@ export const CORE_DOCS: DocArticle[] = [
             body: 'Hiji wali bisa dipaké babarengan ku sababaraha anak, upamana lanceuk jeung adi. Lamun data wali dirobah, parobahan lumaku pikeun sakabéh anakna.',
             steps: [
               'Klik menu baris murid, tuluy pilih Wali.',
-              'Pikeun wali anyar, eusian ngaran, hubungan (bapa, indung, wali, atawa séjén), telepon, jeung surélék, tuluy klik Tambah wali.',
+              'Pikeun wali anyar, eusian ngaran, hubungan (bapa, indung, wali, atawa séjén), NIK, telepon, surélék, alamat, jeung pagawéan, tuluy klik Tambah wali.',
               'Pikeun wali nu geus aya (upamana kolot lanceukna), ketik sahenteuna 2 hurup ngaran atawa telepon dina Tumbu wali nu geus aya, tuluy klik Tumbu.',
               'Centang Jadikeun wali utama, atawa klik Jadikeun utama dina wali nu geus katumbu. Klik Lepas pikeun ngalepas wali tina murid éta.',
             ],
@@ -215,7 +245,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Ngasupkeun jeung ngundeur data lewat Excel',
-            body: 'Berkas Excel ngandung 20 kolom: data murid, Kelas, tuluy Wali 1 jeung Wali 2 (masing-masing ngaran, hubungan, telepon/WA, jeung surélék). Wali 1 jadi wali utama. Wali nu nomer teleponna sarua dipaké babarengan, jadi lanceuk-adi teu kacatet dua kali.',
+            body: 'Berkas Excel ngandung kolom data murid (kaasup NIK, HP, Email, jeung Alamat), Kelas, tuluy Wali 1 jeung Wali 2 (masing-masing ngaran, hubungan, NIK, telepon/WA, surélék, alamat, jeung pagawéan). Wali 1 jadi wali utama. Wali nu nomer teleponna sarua dipaké babarengan, jadi lanceuk-adi teu kacatet dua kali.',
             steps: [
               'Klik Impor Excel dina kaca Murid, tuluy unduh templat.',
               'Eusian lembar Siswa ti baris 2 tanpa ngarobah judul kolom. Ngan Nama jeung Jenis Kelamin (L atawa P) nu wajib.',
@@ -264,19 +294,19 @@ export const CORE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Menambah guru baru',
-            body: 'Data guru terdiri dari nama, NIP, dan status Aktif atau Nonaktif. NIP boleh kosong, tetapi kalau diisi tidak boleh sama dengan guru lain.',
+            body: 'Data guru terdiri dari nama, NIP, dan status Aktif atau Nonaktif. NIP boleh kosong, tetapi kalau diisi tidak boleh sama dengan guru lain. Data diri lain boleh menyusul: NIK (16 digit, tidak boleh sama dengan orang lain di sekolah yang sama), HP/WhatsApp, email, jenis kelamin, tempat dan tanggal lahir, alamat, agama, dan pendidikan terakhir.',
             steps: [
               'Buka menu Guru di kelompok Data induk.',
               'Klik Tambah guru.',
-              'Isi nama, NIP, dan status.',
+              'Isi nama, NIP, dan status, lalu data diri bila ada.',
               'Simpan. Untuk mengubahnya nanti, klik baris guru.',
             ],
-            tip: 'Gunakan kotak pencarian (nama atau NIP) dan saringan status untuk menemukan guru dengan cepat. Daftar juga bisa diekspor ke Excel.',
+            tip: 'Gunakan kotak pencarian (nama atau NIP), saringan status, dan saringan Belum punya NIK untuk menemukan guru dengan cepat. Lencana Kelengkapan data menunjukkan Data lengkap atau NIK belum diisi. NIK lengkap hanya terlihat oleh pengguna yang boleh mengelola data guru; yang lain hanya melihat empat digit terakhir. Daftar juga bisa diekspor ke Excel.',
             href: '/teachers',
           },
           {
             heading: 'Memasukkan banyak guru dari Excel',
-            body: 'Templat hanya berisi tiga kolom: Nama, NIP, dan Status (Aktif atau Nonaktif; kosong dianggap Aktif). Hanya Nama yang wajib, dan satu berkas paling banyak 1000 baris.',
+            body: 'Templat berisi kolom Nama, NIP, dan Status (Aktif atau Nonaktif; kosong dianggap Aktif), ditambah NIK, HP, Email, JK, Tempat Lahir, Tanggal Lahir, Alamat, Agama, dan Pendidikan. Hanya Nama yang wajib, dan satu berkas paling banyak 1000 baris.',
             steps: [
               'Klik Impor Excel di halaman Guru, lalu unduh templat.',
               'Isi mulai baris 2 tanpa mengubah judul kolom, lalu unggah berkas.',
@@ -295,7 +325,7 @@ export const CORE_DOCS: DocArticle[] = [
               'Kalau belum, pilih Undang lewat email, isi Email guru, lalu klik Kirim undangan. Guru menerima tautan yang berlaku 7 hari dengan peran Guru, dan akunnya otomatis terhubung setelah undangan diterima.',
               'Untuk memutus hubungan, buka lagi Akun login lalu klik Lepas tautan. Data guru tetap ada.',
             ],
-            tip: 'Satu akun hanya bisa dihubungkan ke satu guru. Bila nama tidak muncul di pilihan, akun itu mungkin sudah terhubung atau tidak aktif.',
+            tip: 'Satu akun hanya bisa dihubungkan ke satu guru. Bila nama tidak muncul di pilihan, akun itu mungkin sudah terhubung atau tidak aktif. Setelah terhubung, guru juga bisa masuk dan memulihkan kata sandi dengan NIK-nya, asalkan hanya satu akun yang cocok; kode pemulihan lewat WhatsApp dikirim ke HP akun, atau ke HP guru bila akun belum punya.',
           },
           {
             heading: 'Bila guru tidak mengajar lagi',
@@ -332,19 +362,19 @@ export const CORE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Adding a new teacher',
-            body: 'A teacher record has a name, an NIP, and a status of Active or Inactive. The NIP can stay empty, but if filled it must not match another teacher.',
+            body: 'A teacher record has a name, an NIP, and a status of Active or Inactive. The NIP can stay empty, but if filled it must not match another teacher. The other details can be added later: NIK (16 digits, unique within the school), phone/WhatsApp, email, gender, birth place and date, address, religion, and last education.',
             steps: [
               'Open the Teachers menu in the Master data group.',
               'Click Add a teacher.',
-              'Fill in the name, NIP, and status.',
+              'Fill in the name, NIP, and status, then the personal details if you have them.',
               'Save. To change it later, click the teacher row.',
             ],
-            tip: 'Use the search box (name or NIP) and the status filter to find a teacher quickly. The list can also be exported to Excel.',
+            tip: 'Use the search box (name or NIP), the status filter, and the No NIK yet filter to find a teacher quickly. The Data completeness badge shows Complete data or NIK not filled in. The full NIK is visible only to users who can manage teacher records; everyone else sees just the last four digits. The list can also be exported to Excel.',
             href: '/teachers',
           },
           {
             heading: 'Bringing in many teachers from Excel',
-            body: 'The template has just three columns: Nama (name), NIP, and Status (Aktif or Nonaktif; empty counts as Aktif). Only the name is required, and one file holds at most 1000 rows.',
+            body: 'The template has the columns Nama (name), NIP, and Status (Aktif or Nonaktif; empty counts as Aktif), plus NIK, HP, Email, JK, Tempat Lahir, Tanggal Lahir, Alamat, Agama, and Pendidikan. Only the name is required, and one file holds at most 1000 rows.',
             steps: [
               'Click Import from Excel on the Teachers page, then download the template.',
               'Fill it in from row 2 without changing the column titles, then upload the file.',
@@ -363,7 +393,7 @@ export const CORE_DOCS: DocArticle[] = [
               'If not, choose Invite by email, fill in the Teacher email, then click Send invitation. The teacher gets a link valid for 7 days with the Teacher role, and the account connects automatically once the invitation is accepted.',
               'To disconnect, open Login account again and click Unlink. The teacher record stays.',
             ],
-            tip: 'One account can be connected to only one teacher. If a name is missing from the choices, that account may already be connected or inactive.',
+            tip: 'One account can be connected to only one teacher. If a name is missing from the choices, that account may already be connected or inactive. Once connected, the teacher can also sign in and recover the password with their NIK, as long as exactly one account matches; the WhatsApp recovery code goes to the account phone, or to the teacher phone if the account has none.',
           },
           {
             heading: 'When a teacher no longer teaches',
@@ -400,19 +430,19 @@ export const CORE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Nambihan guru anyar',
-            body: 'Data guru diwangun ku ngaran, NIP, jeung status Aktip atawa Nonaktip. NIP meunang kosong, tapi lamun dieusian teu meunang sarua jeung guru séjén.',
+            body: 'Data guru diwangun ku ngaran, NIP, jeung status Aktip atawa Nonaktip. NIP meunang kosong, tapi lamun dieusian teu meunang sarua jeung guru séjén. Data diri séjén meunang nyusul: NIK (16 angka, teu meunang sarua jeung nu séjén dina sakola nu sarua), HP/WhatsApp, surélék, jenis kelamin, tempat jeung tanggal lahir, alamat, agama, jeung atikan pamungkas.',
             steps: [
               'Buka menu Guru dina kelompok Data induk.',
               'Klik Tambih guru.',
-              'Eusian ngaran, NIP, jeung status.',
+              'Eusian ngaran, NIP, jeung status, tuluy data diri lamun aya.',
               'Simpen. Pikeun ngarobahna engké, klik baris guru.',
             ],
-            tip: 'Anggo kotak pamaluruhan (ngaran atawa NIP) jeung saringan status pikeun manggihan guru gancang. Daptar ogé bisa diékspor ka Excel.',
+            tip: 'Anggo kotak pamaluruhan (ngaran atawa NIP), saringan status, jeung saringan Acan boga NIK pikeun manggihan guru gancang. Lencana Kalengkapan data nuduhkeun Data lengkep atawa NIK acan diisi. NIK lengkep ngan katingali ku pamaké nu meunang ngatur data guru; nu séjén ngan ningali opat angka pamungkas. Daptar ogé bisa diékspor ka Excel.',
             href: '/teachers',
           },
           {
             heading: 'Ngasupkeun loba guru tina Excel',
-            body: 'Templat ngan ngandung tilu kolom: Nama, NIP, jeung Status (Aktif atawa Nonaktif; kosong dianggap Aktif). Ngan Nama nu wajib, sarta hiji berkas pangpangna 1000 baris.',
+            body: 'Templat ngandung kolom Nama, NIP, jeung Status (Aktif atawa Nonaktif; kosong dianggap Aktif), ditambah NIK, HP, Email, JK, Tempat Lahir, Tanggal Lahir, Alamat, Agama, jeung Pendidikan. Ngan Nama nu wajib, sarta hiji berkas pangpangna 1000 baris.',
             steps: [
               'Klik Impor Excel dina kaca Guru, tuluy unduh templat.',
               'Eusian ti baris 2 tanpa ngarobah judul kolom, tuluy unggah berkas.',
@@ -431,7 +461,7 @@ export const CORE_DOCS: DocArticle[] = [
               'Lamun acan, pilih Uleman ku surélék, eusian Surélék guru, tuluy klik Kirim uleman. Guru narima tumbu nu lumaku 7 poé kalayan peran Guru, sarta akunna otomatis nyambung sanggeus uleman ditarima.',
               'Pikeun megatkeun sambungan, buka deui Akun asup tuluy klik Pupus tautan. Data guru tetep aya.',
             ],
-            tip: 'Hiji akun ngan bisa disambungkeun ka hiji guru. Lamun ngaran teu aya dina pilihan, akun éta bisa jadi geus nyambung atawa teu aktip.',
+            tip: 'Hiji akun ngan bisa disambungkeun ka hiji guru. Lamun ngaran teu aya dina pilihan, akun éta bisa jadi geus nyambung atawa teu aktip. Sanggeus nyambung, guru ogé bisa asup jeung mulihkeun kecap sandi maké NIK-na, lamun persis hiji akun nu cocog; kode pamulihan WhatsApp dikirim ka HP akun, atawa ka HP guru lamun akun acan boga.',
           },
           {
             heading: 'Lamun guru geus teu ngajar deui',
@@ -2380,11 +2410,11 @@ export const CORE_DOCS: DocArticle[] = [
               'Isi email atau NIK (16 digit) pada isian pertama.',
               'Isi kata sandi, lalu klik Masuk.',
             ],
-            tip: 'NIK bisa dipakai hanya bila NIK itu terhubung ke tepat satu akun. Bila beberapa akun memakai NIK yang sama, masuklah dengan email.',
+            tip: 'NIK siswa, guru, dan wali bisa dipakai bila akunnya sudah terhubung (siswa dan wali lewat tautan portal, guru lewat akun login guru) dan NIK itu cocok dengan tepat satu akun. Bila NIK yang sama cocok dengan lebih dari satu akun, masuk dengan NIK tidak berfungsi; masuklah dengan email.',
           },
           {
             heading: 'Lupa kata sandi: pilih email atau WhatsApp',
-            body: 'Anda bisa memulihkan akun sendiri. Setelah mengisi email atau NIK, sistem menampilkan pilihan pengiriman kode 6 digit. Email ditampilkan sebagian (misalnya ri***@gmail.com). WhatsApp hanya tampil bila akun punya nomor HP, dengan petunjuk 4 angka pertama dan 3 angka terakhir (misalnya 6281****789).',
+            body: 'Anda bisa memulihkan akun sendiri. Setelah mengisi email atau NIK, sistem menampilkan pilihan pengiriman kode 6 digit. Email ditampilkan sebagian (misalnya ri***@gmail.com). WhatsApp hanya tampil bila ada nomor HP, yaitu HP akun atau, bila akun belum punya, HP guru, wali, atau siswa yang terhubung (urutan: akun, guru, wali, siswa), dengan petunjuk 4 angka pertama dan 3 angka terakhir (misalnya 6281****789).',
             steps: [
               'Di halaman masuk, klik Lupa kata sandi?.',
               'Isi email atau NIK, lalu klik Lanjut.',
@@ -2397,8 +2427,8 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Bila pilihan pengiriman tidak muncul',
-            body: 'Layar akan berkata bahwa pilihan tampil jika data ditemukan. Penyebabnya bisa isian yang salah ketik, atau NIK yang dipakai beberapa akun. Coba dengan email. Bila tetap tidak berhasil, hubungi admin sekolah.',
-            tip: 'Admin sekolah perlu mengisi NIK, nomor HP, dan email siswa atau wali dengan benar; data itu dipakai untuk masuk dan pemulihan akun.',
+            body: 'Layar akan berkata bahwa pilihan tampil jika data ditemukan. Penyebabnya bisa isian yang salah ketik, NIK yang belum terhubung ke akun, atau NIK yang cocok dengan lebih dari satu akun. Coba dengan email. Bila tetap tidak berhasil, hubungi admin sekolah.',
+            tip: 'Admin sekolah perlu mengisi NIK, nomor HP, dan email siswa, guru, atau wali dengan benar; data itu dipakai untuk masuk dan pemulihan akun. Saringan Belum punya NIK di daftar Siswa dan Guru membantu melengkapinya.',
           },
         ],
         faq: [
@@ -2408,7 +2438,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             q: 'Mengapa WhatsApp tidak tampil sebagai pilihan?',
-            a: 'Pilihan itu hanya tampil bila akun memiliki nomor HP dan layanan WhatsApp sedang aktif. Isi nomor HP di Profil saya, lalu coba lagi.',
+            a: 'Pilihan itu hanya tampil bila ada nomor HP (milik akun, atau milik guru, wali, atau siswa yang terhubung) dan layanan WhatsApp sedang aktif. Isi nomor HP di Profil saya atau minta admin sekolah melengkapi data Anda, lalu coba lagi.',
           },
           {
             q: 'Apakah NIK saya aman dipakai untuk masuk?',
@@ -2430,11 +2460,11 @@ export const CORE_DOCS: DocArticle[] = [
               'Enter an email or NIK (16 digits) in the first field.',
               'Enter the password, then click Sign in.',
             ],
-            tip: 'A NIK works only when it is linked to exactly one account. If several accounts share the same NIK, sign in with the email instead.',
+            tip: 'The NIK of a student, teacher, or guardian works once the account is linked (students and guardians through the portal link, teachers through the teacher login account) and the NIK matches exactly one account. If the same NIK matches more than one account, signing in with the NIK does not work; use the email instead.',
           },
           {
             heading: 'Forgot your password: choose email or WhatsApp',
-            body: 'You can recover the account yourself. After you enter an email or NIK, the system shows where the 6-digit code can be sent. The email is partly hidden (for example ri***@gmail.com). WhatsApp appears only when the account has a phone number, with a clue of the first 4 and last 3 digits (for example 6281****789).',
+            body: 'You can recover the account yourself. After you enter an email or NIK, the system shows where the 6-digit code can be sent. The email is partly hidden (for example ri***@gmail.com). WhatsApp appears only when a phone number exists: the account phone or, if the account has none, the phone of the linked teacher, guardian, or student (in that order: account, teacher, guardian, student), with a clue of the first 4 and last 3 digits (for example 6281****789).',
             steps: [
               'On the sign-in page, click Forgot password?.',
               'Enter an email or NIK, then click Continue.',
@@ -2447,8 +2477,8 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'When no delivery options appear',
-            body: 'The screen says the options appear if the details match an account. This can happen because of a typo, or a NIK shared by several accounts. Try the email. If it still fails, contact the school admin.',
-            tip: 'School admins should fill in the NIK, phone number, and email of students or guardians correctly; they are used for signing in and for account recovery.',
+            body: 'The screen says the options appear if the details match an account. This can happen because of a typo, a NIK that is not linked to an account, or a NIK that matches more than one account. Try the email. If it still fails, contact the school admin.',
+            tip: 'School admins should fill in the NIK, phone number, and email of students, teachers, or guardians correctly; they are used for signing in and for account recovery. The No NIK yet filter on the Students and Teachers lists helps complete them.',
           },
         ],
         faq: [
@@ -2458,7 +2488,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             q: 'Why is WhatsApp not offered?',
-            a: 'It appears only when the account has a phone number and the WhatsApp service is on. Add your phone number in My profile, then try again.',
+            a: 'It appears only when a phone number exists (on the account, or on the linked teacher, guardian, or student) and the WhatsApp service is on. Add your phone number in My profile or ask the school admin to complete your details, then try again.',
           },
           {
             q: 'Is it safe to use my NIK to sign in?',
@@ -2480,11 +2510,11 @@ export const CORE_DOCS: DocArticle[] = [
               'Eusian surélék atawa NIK (16 angka) dina eusian kahiji.',
               'Eusian kecap sandi, tuluy klik Lebet.',
             ],
-            tip: 'NIK bisa dipaké ngan lamun NIK éta nyambung ka persis hiji akun. Lamun sababaraha akun maké NIK nu sarua, asup maké surélék.',
+            tip: 'NIK murid, guru, jeung wali bisa dipaké lamun akunna geus nyambung (murid jeung wali lewat tumbu portal, guru lewat akun asup guru) sarta NIK éta cocog jeung persis hiji akun. Lamun NIK nu sarua cocog jeung leuwih ti hiji akun, asup maké NIK teu tiasa jalan; asup maké surélék.',
           },
           {
             heading: 'Poho kecap sandi: pilih surélék atawa WhatsApp',
-            body: 'Anjeun bisa mulihkeun akun sorangan. Sanggeus ngeusian surélék atawa NIK, sistem mintonkeun kamana kode 6 angka bisa dikirim. Surélék dipintonkeun sabagian (upamana ri***@gmail.com). WhatsApp ngan mucunghul lamun akun boga nomer HP, jeung pituduh 4 angka mimiti jeung 3 angka tungtung (upamana 6281****789).',
+            body: 'Anjeun bisa mulihkeun akun sorangan. Sanggeus ngeusian surélék atawa NIK, sistem mintonkeun kamana kode 6 angka bisa dikirim. Surélék dipintonkeun sabagian (upamana ri***@gmail.com). WhatsApp ngan mucunghul lamun aya nomer HP, nyaéta HP akun atawa, lamun akun acan boga, HP guru, wali, atawa murid nu nyambung (urutan: akun, guru, wali, murid), jeung pituduh 4 angka mimiti jeung 3 angka tungtung (upamana 6281****789).',
             steps: [
               'Dina kaca asup, klik Poho kecap sandi?.',
               'Eusian surélék atawa NIK, tuluy klik Teraskeun.',
@@ -2497,8 +2527,8 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Lamun pilihan pangiriman teu mucunghul',
-            body: 'Layar bakal nyebutkeun yén pilihan mucunghul lamun data kapanggih. Panyababna bisa salah ngetik, atawa NIK nu dipaké ku sababaraha akun. Cobaan maké surélék. Lamun tetep gagal, hubungi admin sakola.',
-            tip: 'Admin sakola kudu ngeusian NIK, nomer HP, jeung surélék siswa atawa wali bener-bener; data éta dipaké pikeun asup jeung mulihkeun akun.',
+            body: 'Layar bakal nyebutkeun yén pilihan mucunghul lamun data kapanggih. Panyababna bisa salah ngetik, NIK nu acan nyambung ka akun, atawa NIK nu cocog jeung leuwih ti hiji akun. Cobaan maké surélék. Lamun tetep gagal, hubungi admin sakola.',
+            tip: 'Admin sakola kudu ngeusian NIK, nomer HP, jeung surélék murid, guru, atawa wali bener-bener; data éta dipaké pikeun asup jeung mulihkeun akun. Saringan Acan boga NIK dina daptar Murid jeung Guru mantuan ngalengkepanana.',
           },
         ],
         faq: [
@@ -2508,7 +2538,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             q: 'Naha WhatsApp teu mucunghul salaku pilihan?',
-            a: 'Éta ngan mucunghul lamun akun boga nomer HP jeung layanan WhatsApp keur aktif. Eusian nomer HP dina Profil kuring, tuluy cobaan deui.',
+            a: 'Éta ngan mucunghul lamun aya nomer HP (dina akun, atawa dina guru, wali, atawa murid nu nyambung) jeung layanan WhatsApp keur aktif. Eusian nomer HP dina Profil kuring atawa menta admin sakola ngalengkepan data Anjeun, tuluy cobaan deui.',
           },
           {
             q: 'Naha aman maké NIK kuring pikeun asup?',

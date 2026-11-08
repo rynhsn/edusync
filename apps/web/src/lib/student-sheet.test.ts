@@ -92,6 +92,58 @@ describe('parseStudentSheet', () => {
     });
   });
 
+  it('mengenali kolom NIK, alamat, dan pekerjaan wali, serta alias WhatsApp', async () => {
+    const buf = await workbookBuffer((s) => {
+      s.addRow([
+        'Nama',
+        'JK',
+        'WhatsApp',
+        'Wali 1 Nama',
+        'Wali 1 NIK',
+        'Wali 1 Alamat',
+        'Wali 1 Pekerjaan',
+        'Nama Wali 2',
+        'NIK Wali 2',
+        'Pekerjaan Wali 2',
+      ]);
+      s.addRow([
+        'Ani',
+        'P',
+        '0812',
+        'Pak Budi',
+        '3201234567890002',
+        'Jl. Melati 3',
+        'Petani',
+        'Bu Sari',
+        '3201234567890003',
+        'Guru',
+      ]);
+    });
+    const res = await parseStudentSheet(buf);
+    expect(res.fatal).toBeNull();
+    expect(res.rows[0]).toMatchObject({
+      phone: '0812',
+      g1Nik: '3201234567890002',
+      g1Address: 'Jl. Melati 3',
+      g1Occupation: 'Petani',
+      g2Name: 'Bu Sari',
+      g2Nik: '3201234567890003',
+      g2Address: '',
+      g2Occupation: 'Guru',
+    });
+  });
+
+  it('templat memuat kolom wali baru dan menjaga NIK wali sebagai teks', async () => {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load((await buildStudentTemplate().then((b) => b.arrayBuffer())) as ArrayBuffer);
+    const sheet = wb.worksheets[0] as ExcelJS.Worksheet;
+    expect(sheet.getRow(1).values).toEqual(
+      expect.arrayContaining(['Wali 1 NIK', 'Wali 1 Alamat', 'Wali 2 Pekerjaan']),
+    );
+    expect(sheet.getRow(1).getCell(17).value).toBe('Wali 1 NIK');
+    expect(sheet.getRow(1).getCell(24).value).toBe('Wali 2 NIK');
+  });
+
   it('kolom wajib hilang dilaporkan, berkas tanpa data dilaporkan', async () => {
     const noGender = await workbookBuffer((s) => {
       s.addRow(['Nama', 'NIS']);

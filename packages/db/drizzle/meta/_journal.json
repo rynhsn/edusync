@@ -589,6 +589,13 @@
       "when": 1795550200000,
       "tag": "0083_drop_username",
       "breakpoints": true
+    },
+    {
+      "idx": 84,
+      "version": "7",
+      "when": 1795560200000,
+      "tag": "0084_person_profile_fields",
+      "breakpoints": true
     }
   ]
 }

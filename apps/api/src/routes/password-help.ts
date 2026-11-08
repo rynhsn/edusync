@@ -220,8 +220,14 @@ async function matchUser(
         .select({ userId: member.userId })
         .from(teacher)
         .innerJoin(member, eq(member.id, teacher.memberId))
-        .where(and(eq(teacher.schoolId, schoolId), eq(teacher.nip, raw)));
-      return ids([...viaStudent, ...viaTeacher]);
+        .where(and(eq(teacher.schoolId, schoolId), or(eq(teacher.nip, raw), eq(teacher.nik, digits))));
+      const viaGuardian = await db
+        .select({ userId: member.userId })
+        .from(portalLink)
+        .innerJoin(member, eq(member.id, portalLink.memberId))
+        .innerJoin(guardian, eq(guardian.id, portalLink.guardianId))
+        .where(and(eq(portalLink.schoolId, schoolId), eq(guardian.nik, digits)));
+      return ids([...viaStudent, ...viaTeacher, ...viaGuardian]);
     });
   }
 

@@ -2,10 +2,17 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { useState } from 'react';
+import { type ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
-import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
+import { CompletenessBadge } from '@/components/completeness-badge';
+import {
+  FieldError,
+  type FormValidation,
+  TOUCH_INPUT,
+  TOUCH_SELECT,
+  useFormValidation,
+} from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -13,27 +20,148 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
+import { Textarea } from '@/components/ui/textarea';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
-import { GUARDIAN_ORDER, type GuardianField, validateGuardian } from './guardian-validation';
+import {
+  GUARDIAN_ORDER,
+  type GuardianField,
+  type GuardianValues,
+  validateGuardian,
+} from './guardian-validation';
 
 const RELATIONS = ['father', 'mother', 'guardian', 'other'] as const;
 type Relation = (typeof RELATIONS)[number];
 
-interface Draft {
-  name: string;
-  phone: string;
-  email: string;
+interface Draft extends GuardianValues {
   relation: Relation;
   isPrimary: boolean;
 }
-const EMPTY: Draft = { name: '', phone: '', email: '', relation: 'father', isPrimary: false };
+const EMPTY_VALUES: GuardianValues = { name: '', nik: '', phone: '', email: '', occupation: '', address: '' };
+const EMPTY: Draft = { ...EMPTY_VALUES, relation: 'father', isPrimary: false };
+
+type Editing = { id: string; nikMasked: string | null } & GuardianValues;
+
+const clean = (v: GuardianValues) => ({
+  name: v.name,
+  nik: v.nik.trim() || null,
+  phone: v.phone,
+  email: v.email,
+  address: v.address.trim() || null,
+  occupation: v.occupation.trim() || null,
+});
+
+/** Isian wali berkelompok: Identitas, Kontak, Alamat. Dipakai formulir tambah dan ubah. */
+function GuardianFields({
+  values,
+  onChange,
+  v,
+  nikPlaceholder,
+  relation,
+}: {
+  values: GuardianValues;
+  onChange: (next: GuardianValues) => void;
+  v: FormValidation<GuardianField>;
+  /** NIK tersamar untuk petunjuk bila NIK utuh tidak dikirim server. */
+  nikPlaceholder?: string | null;
+  /** Pilihan hubungan (hanya formulir tambah). */
+  relation?: ReactNode;
+}) {
+  const t = useTranslations('guardians');
+  const tc = useTranslations('common');
+  return (
+    <>
+      <p className="font-heading text-sm font-semibold sm:col-span-2">{tc('sectionIdentity')}</p>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={v.idOf('name')}>{t('name')}</Label>
+        <Input
+          {...v.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          autoComplete="off"
+          maxLength={120}
+          value={values.name}
+          onChange={(e) => onChange({ ...values, name: e.target.value })}
+        />
+        <FieldError id={v.idOf('name')} issue={v.issue('name')} />
+      </div>
+      {relation}
+      <div className="grid content-start gap-2">
+        <Label htmlFor={v.idOf('nik')}>{t('nik')}</Label>
+        <Input
+          {...v.fieldProps('nik')}
+          className={TOUCH_INPUT}
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={16}
+          placeholder={nikPlaceholder ?? undefined}
+          value={values.nik}
+          onChange={(e) => onChange({ ...values, nik: e.target.value.replace(/\D/g, '') })}
+        />
+        <FieldError id={v.idOf('nik')} issue={v.issue('nik')} />
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={v.idOf('occupation')}>{t('occupation')}</Label>
+        <Input
+          {...v.fieldProps('occupation')}
+          className={TOUCH_INPUT}
+          autoComplete="off"
+          maxLength={120}
+          value={values.occupation}
+          onChange={(e) => onChange({ ...values, occupation: e.target.value })}
+        />
+        <FieldError id={v.idOf('occupation')} issue={v.issue('occupation')} />
+      </div>
+      <p className="font-heading border-t pt-3 text-sm font-semibold sm:col-span-2">{tc('sectionContact')}</p>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={v.idOf('phone')}>{t('phone')}</Label>
+        <Input
+          {...v.fieldProps('phone')}
+          className={TOUCH_INPUT}
+          inputMode="tel"
+          autoComplete="off"
+          maxLength={30}
+          value={values.phone}
+          onChange={(e) => onChange({ ...values, phone: e.target.value })}
+        />
+        <FieldError id={v.idOf('phone')} issue={v.issue('phone')} />
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={v.idOf('email')}>{t('email')}</Label>
+        <Input
+          {...v.fieldProps('email')}
+          className={TOUCH_INPUT}
+          type="email"
+          inputMode="email"
+          autoComplete="off"
+          maxLength={254}
+          value={values.email}
+          onChange={(e) => onChange({ ...values, email: e.target.value })}
+        />
+        <FieldError id={v.idOf('email')} issue={v.issue('email')} />
+      </div>
+      <p className="text-muted-foreground -mt-1.5 text-xs sm:col-span-2">{t('phoneHint')}</p>
+      <p className="text-muted-foreground -mt-1.5 text-xs sm:col-span-2">{tc('loginIdentityHint')}</p>
+      <p className="font-heading border-t pt-3 text-sm font-semibold sm:col-span-2">{tc('sectionAddress')}</p>
+      <div className="grid content-start gap-2 sm:col-span-2">
+        <Label htmlFor={v.idOf('address')}>{t('address')}</Label>
+        <Textarea
+          {...v.fieldProps('address')}
+          rows={2}
+          maxLength={300}
+          value={values.address}
+          onChange={(e) => onChange({ ...values, address: e.target.value })}
+        />
+        <FieldError id={v.idOf('address')} issue={v.issue('address')} />
+      </div>
+    </>
+  );
+}
 
 /** Wali seorang siswa: lihat, tambah baru, tautkan yang sudah ada (kakak-adik), ubah, jadikan utama, dan lepas. */
 export function GuardiansPanel({ studentId }: { studentId: string }) {
   const t = useTranslations('guardians');
   const tv = useTranslations('formValidation');
-  const tc = useTranslations('common');
   const te = useTranslations();
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
@@ -44,9 +172,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
-  const [editing, setEditing] = useState<{ id: string; name: string; phone: string; email: string } | null>(
-    null,
-  );
+  const [editing, setEditing] = useState<Editing | null>(null);
   // Formulir tambah dan ubah-sebaris memakai pasangan galat-merah masing-masing.
   const addV = useFormValidation<GuardianField>({
     errors: validateGuardian(draft),
@@ -76,7 +202,11 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
   const onError = (e: unknown) => toast.error(te(errorKey(e)));
 
   const add = useMutation({
-    mutationFn: async (body: Partial<Draft> & { guardianId?: string; relation: Relation }) =>
+    mutationFn: async (
+      body:
+        | { guardianId: string; relation: Relation }
+        | ({ relation: Relation; isPrimary: boolean } & ReturnType<typeof clean>),
+    ) =>
       unwrap(
         await api.POST('/v1/students/{id}/guardians', {
           params: { ...header, path: { id: studentId } },
@@ -118,11 +248,11 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
     onError,
   });
   const save = useMutation({
-    mutationFn: async (v: { id: string; name: string; phone: string; email: string }) =>
+    mutationFn: async (v: Editing) =>
       unwrap(
         await api.PUT('/v1/guardians/{id}', {
           params: { ...header, path: { id: v.id } },
-          body: { name: v.name, phone: v.phone, email: v.email },
+          body: clean(v),
         }),
       ),
     onSuccess: () => {
@@ -147,51 +277,19 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
               {open && editing ? (
                 <form
                   noValidate
-                  className="grid content-start gap-2 sm:grid-cols-3"
+                  className="grid content-start gap-3 sm:grid-cols-2"
                   onSubmit={(e) => {
                     e.preventDefault();
                     if (editV.attempt()) save.mutate(editing);
                   }}
                 >
-                  <div className="grid content-start gap-2">
-                    <Input
-                      {...editV.fieldProps('name')}
-                      className={TOUCH_INPUT}
-                      aria-label={t('name')}
-                      aria-required="true"
-                      autoComplete="off"
-                      maxLength={120}
-                      value={editing.name}
-                      onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                    />
-                    <FieldError id={editV.idOf('name')} issue={editV.issue('name')} />
-                  </div>
-                  <div className="grid content-start gap-2">
-                    <Input
-                      {...editV.fieldProps('phone')}
-                      className={TOUCH_INPUT}
-                      aria-label={t('phone')}
-                      inputMode="tel"
-                      autoComplete="off"
-                      maxLength={30}
-                      value={editing.phone}
-                      onChange={(e) => setEditing({ ...editing, phone: e.target.value })}
-                    />
-                    <FieldError id={editV.idOf('phone')} issue={editV.issue('phone')} />
-                  </div>
-                  <div className="grid content-start gap-2">
-                    <Input
-                      {...editV.fieldProps('email')}
-                      className={TOUCH_INPUT}
-                      aria-label={t('email')}
-                      type="email"
-                      autoComplete="off"
-                      value={editing.email}
-                      onChange={(e) => setEditing({ ...editing, email: e.target.value })}
-                    />
-                    <FieldError id={editV.idOf('email')} issue={editV.issue('email')} />
-                  </div>
-                  <div className="flex flex-wrap items-center gap-2 sm:col-span-3">
+                  <GuardianFields
+                    values={editing}
+                    onChange={(next) => setEditing({ ...editing, ...next })}
+                    v={editV}
+                    nikPlaceholder={editing.nik ? null : editing.nikMasked}
+                  />
+                  <div className="flex flex-wrap items-center gap-2 sm:col-span-2">
                     <Button type="submit" size="sm" className="h-10 md:h-8" disabled={save.isPending}>
                       {t('save')}
                     </Button>
@@ -219,9 +317,10 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                   <div>
                     <span className="font-medium">{g.name}</span>{' '}
                     <Badge variant="outline">{t(g.relation)}</Badge>{' '}
-                    {g.isPrimary && <Badge variant="secondary">{t('primary')}</Badge>}
+                    {g.isPrimary && <Badge variant="secondary">{t('primary')}</Badge>}{' '}
+                    <CompletenessBadge person={g} />
                     <p className="text-muted-foreground text-xs">
-                      {[g.phone, g.email].filter(Boolean).join(' · ')}
+                      {[g.nikMasked, g.phone, g.email, g.occupation].filter(Boolean).join(' · ')}
                       {g.studentCount > 1 && ` · ${t('siblings', { count: g.studentCount })}`}
                     </p>
                   </div>
@@ -246,9 +345,14 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                           editV.reset();
                           setEditing({
                             id: g.guardianId,
+                            nikMasked: g.nikMasked,
                             name: g.name,
+                            // NIK utuh hanya ada bagi pengelola; bila null, jangan diisi dari bentuk tersamar.
+                            nik: g.nik ?? '',
                             phone: g.phone ?? '',
                             email: g.email ?? '',
+                            occupation: g.occupation ?? '',
+                            address: g.address ?? '',
                           });
                         }}
                       >
@@ -278,65 +382,33 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
             className="grid gap-3 border-t pt-4 sm:grid-cols-2"
             onSubmit={(e) => {
               e.preventDefault();
-              if (addV.attempt()) add.mutate(draft);
+              if (addV.attempt())
+                add.mutate({ ...clean(draft), relation: draft.relation, isPrimary: draft.isPrimary });
             }}
           >
             <p className="text-sm font-medium sm:col-span-2">{t('addTitle')}</p>
-            <div className="grid content-start gap-2">
-              <Label htmlFor={addV.idOf('name')}>{t('name')}</Label>
-              <Input
-                {...addV.fieldProps('name')}
-                className={TOUCH_INPUT}
-                aria-required="true"
-                autoComplete="off"
-                maxLength={120}
-                value={draft.name}
-                onChange={(e) => setDraft({ ...draft, name: e.target.value })}
-              />
-              <FieldError id={addV.idOf('name')} issue={addV.issue('name')} />
-            </div>
-            <div className="grid content-start gap-2">
-              <Label htmlFor={`g-rel-${studentId}`}>{t('relation')}</Label>
-              <SelectField
-                id={`g-rel-${studentId}`}
-                className={TOUCH_SELECT}
-                value={draft.relation}
-                onChange={(e) => setDraft({ ...draft, relation: e.target.value as Relation })}
-              >
-                {RELATIONS.map((r) => (
-                  <option key={r} value={r}>
-                    {t(r)}
-                  </option>
-                ))}
-              </SelectField>
-            </div>
-            <div className="grid content-start gap-2">
-              <Label htmlFor={addV.idOf('phone')}>{t('phone')}</Label>
-              <Input
-                {...addV.fieldProps('phone')}
-                className={TOUCH_INPUT}
-                inputMode="tel"
-                autoComplete="off"
-                maxLength={30}
-                value={draft.phone}
-                onChange={(e) => setDraft({ ...draft, phone: e.target.value })}
-              />
-              <FieldError id={addV.idOf('phone')} issue={addV.issue('phone')} />
-            </div>
-            <div className="grid content-start gap-2">
-              <Label htmlFor={addV.idOf('email')}>{t('email')}</Label>
-              <Input
-                {...addV.fieldProps('email')}
-                className={TOUCH_INPUT}
-                type="email"
-                autoComplete="off"
-                value={draft.email}
-                onChange={(e) => setDraft({ ...draft, email: e.target.value })}
-              />
-              <FieldError id={addV.idOf('email')} issue={addV.issue('email')} />
-            </div>
-            <p className="text-muted-foreground -mt-1.5 text-xs sm:col-span-2">{t('phoneHint')}</p>
-            <p className="text-muted-foreground -mt-1.5 text-xs sm:col-span-2">{tc('loginIdentityHint')}</p>
+            <GuardianFields
+              values={draft}
+              onChange={(next) => setDraft({ ...draft, ...next })}
+              v={addV}
+              relation={
+                <div className="grid content-start gap-2">
+                  <Label htmlFor={`g-rel-${studentId}`}>{t('relation')}</Label>
+                  <SelectField
+                    id={`g-rel-${studentId}`}
+                    className={TOUCH_SELECT}
+                    value={draft.relation}
+                    onChange={(e) => setDraft({ ...draft, relation: e.target.value as Relation })}
+                  >
+                    {RELATIONS.map((r) => (
+                      <option key={r} value={r}>
+                        {t(r)}
+                      </option>
+                    ))}
+                  </SelectField>
+                </div>
+              }
+            />
             <label
               htmlFor={`g-primary-${studentId}`}
               className="flex items-center gap-2 text-sm sm:col-span-2"

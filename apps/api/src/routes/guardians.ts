@@ -18,6 +18,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
+import { nikConflictAs409, nikField, nikOut, nikView } from '../person-fields';
 import { audit, guarded, idParams, isForeignKeyViolation, ok, schoolHeader } from './helpers';
 
 const RELATIONS = ['father', 'mother', 'guardian', 'other'] as const;
@@ -53,16 +54,33 @@ const emailField = z
   .default('')
   .transform((v) => (v === '' ? null : v.toLowerCase()));
 
+const optionalLine = (max: number) =>
+  z
+    .string()
+    .trim()
+    .max(max)
+    .nullable()
+    .default(null)
+    .transform((v) => (v ? v : null));
+const guardianProfile = {
+  nik: nikField,
+  address: optionalLine(300),
+  occupation: optionalLine(120),
+};
 const guardianBody = z.object({
   name: z.string().trim().min(1).max(120),
   phone: phoneField,
   email: emailField,
+  ...guardianProfile,
 });
 const linkSchema = z.object({
   guardianId: z.uuid(),
   name: z.string(),
   phone: z.string().nullable(),
   email: z.string().nullable(),
+  ...nikOut,
+  address: z.string().nullable(),
+  occupation: z.string().nullable(),
   relation: z.enum(RELATIONS),
   isPrimary: z.boolean(),
   studentCount: z.number().int().describe('Jumlah siswa yang dinaungi wali ini (kakak-adik)'),
@@ -78,13 +96,16 @@ async function requireStudent(tx: Tx, studentId: string) {
   if (!s) throw notFound('Siswa');
 }
 
-async function linksOf(tx: Tx, studentId: string) {
+async function linksOf(tx: Tx, studentId: string, canManage: boolean) {
   const rows = await tx
     .select({
       guardianId: guardian.id,
       name: guardian.name,
       phone: guardian.phone,
       email: guardian.email,
+      nik: guardian.nik,
+      address: guardian.address,
+      occupation: guardian.occupation,
       relation: studentGuardian.relation,
       isPrimary: studentGuardian.isPrimary,
     })
@@ -96,7 +117,11 @@ async function linksOf(tx: Tx, studentId: string) {
     .select({ guardianId: studentGuardian.guardianId, n: count() })
     .from(studentGuardian)
     .groupBy(studentGuardian.guardianId);
-  return rows.map((r) => ({ ...r, studentCount: counts.find((c) => c.guardianId === r.guardianId)?.n ?? 1 }));
+  return rows.map(({ nik, ...r }) => ({
+    ...r,
+    ...nikView(canManage, nik),
+    studentCount: counts.find((c) => c.guardianId === r.guardianId)?.n ?? 1,
+  }));
 }
 
 /** Wali murid dan hubungannya dengan siswa. Memakai izin siswa: data wali adalah bagian dari data siswa. */
@@ -117,7 +142,8 @@ export async function guardianRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['People'],
         summary: 'Wali seorang siswa',
-        description: 'Izin: `student:read`.',
+        description:
+          'Izin: `student:read`. NIK wali utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: z.array(linkSchema), 404: errorSchema, ...guarded },
@@ -126,7 +152,11 @@ export async function guardianRoutes(instance: FastifyInstance) {
     async (request) =>
       tenant(request, async (tx) => {
         await requireStudent(tx, request.params.id);
-        return linksOf(tx, request.params.id);
+        return linksOf(
+          tx,
+          request.params.id,
+          (request.ctx as TenantContext).permissions.has('student:manage'),
+        );
       }),
   );
 
@@ -170,7 +200,8 @@ export async function guardianRoutes(instance: FastifyInstance) {
         summary: 'Tambah wali untuk siswa',
         description:
           'Izin: `student:manage`. Kirim `guardianId` untuk menautkan wali yang sudah ada, atau `name` (dan opsional ' +
-          'telepon dan email) untuk membuat wali baru. Telepon dinormalkan ke digit berawalan 62. Satu siswa hanya ' +
+          'telepon, email, NIK 16 digit, alamat, pekerjaan) untuk membuat wali baru. Telepon dinormalkan ke digit ' +
+          'berawalan 62. NIK wali harus unik di sekolah (409 `nik_taken`). Satu siswa hanya ' +
           'punya satu wali utama; menandai wali utama melepas tanda dari yang lain.',
         headers: schoolHeader,
         params: idParams,
@@ -180,6 +211,7 @@ export async function guardianRoutes(instance: FastifyInstance) {
             name: z.string().trim().min(1).max(120).optional(),
             phone: phoneField,
             email: emailField,
+            ...guardianProfile,
             relation: z.enum(RELATIONS),
             isPrimary: z.boolean().default(false),
           })
@@ -195,48 +227,60 @@ export async function guardianRoutes(instance: FastifyInstance) {
     },
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
-      const { guardianId, name, phone, email, relation, isPrimary } = request.body;
-      const links = await tenant(request, async (tx) => {
-        await requireStudent(tx, request.params.id);
-        let gid = guardianId;
-        if (gid) {
-          const [g] = await tx.select({ id: guardian.id }).from(guardian).where(eq(guardian.id, gid));
-          if (!g) throw notFound('Wali');
-        } else {
-          const [g] = await tx
-            .insert(guardian)
-            .values({ schoolId: ctx.schoolId, name: name as string, phone, email })
-            .returning({ id: guardian.id });
-          gid = g?.id as string;
-        }
-        const existing = await tx
-          .select({ id: studentGuardian.guardianId })
-          .from(studentGuardian)
-          .where(and(eq(studentGuardian.studentId, request.params.id), eq(studentGuardian.guardianId, gid)));
-        if (existing.length > 0) throw new HttpError(409, 'conflict', 'Wali ini sudah tertaut ke siswa.');
-        // Wali pertama siswa otomatis menjadi wali utama.
-        const has = await tx
-          .select({ id: studentGuardian.guardianId })
-          .from(studentGuardian)
-          .where(eq(studentGuardian.studentId, request.params.id))
-          .limit(1);
-        const primary = isPrimary || has.length === 0;
-        if (primary) {
-          await tx
-            .update(studentGuardian)
-            .set({ isPrimary: false })
-            .where(eq(studentGuardian.studentId, request.params.id));
-        }
-        await tx.insert(studentGuardian).values({
-          schoolId: ctx.schoolId,
-          studentId: request.params.id,
-          guardianId: gid,
-          relation,
-          isPrimary: primary,
-        });
-        await audit(tx, ctx, 'guardian.link', 'student', request.params.id, { guardianId: gid, relation });
-        return linksOf(tx, request.params.id);
-      });
+      const { guardianId, name, phone, email, nik, address, occupation, relation, isPrimary } = request.body;
+      const links = await nikConflictAs409(null, () =>
+        tenant(request, async (tx) => {
+          await requireStudent(tx, request.params.id);
+          let gid = guardianId;
+          if (gid) {
+            const [g] = await tx.select({ id: guardian.id }).from(guardian).where(eq(guardian.id, gid));
+            if (!g) throw notFound('Wali');
+          } else {
+            const [g] = await tx
+              .insert(guardian)
+              .values({
+                schoolId: ctx.schoolId,
+                name: name as string,
+                phone,
+                email,
+                nik,
+                address,
+                occupation,
+              })
+              .returning({ id: guardian.id });
+            gid = g?.id as string;
+          }
+          const existing = await tx
+            .select({ id: studentGuardian.guardianId })
+            .from(studentGuardian)
+            .where(
+              and(eq(studentGuardian.studentId, request.params.id), eq(studentGuardian.guardianId, gid)),
+            );
+          if (existing.length > 0) throw new HttpError(409, 'conflict', 'Wali ini sudah tertaut ke siswa.');
+          // Wali pertama siswa otomatis menjadi wali utama.
+          const has = await tx
+            .select({ id: studentGuardian.guardianId })
+            .from(studentGuardian)
+            .where(eq(studentGuardian.studentId, request.params.id))
+            .limit(1);
+          const primary = isPrimary || has.length === 0;
+          if (primary) {
+            await tx
+              .update(studentGuardian)
+              .set({ isPrimary: false })
+              .where(eq(studentGuardian.studentId, request.params.id));
+          }
+          await tx.insert(studentGuardian).values({
+            schoolId: ctx.schoolId,
+            studentId: request.params.id,
+            guardianId: gid,
+            relation,
+            isPrimary: primary,
+          });
+          await audit(tx, ctx, 'guardian.link', 'student', request.params.id, { guardianId: gid, relation });
+          return linksOf(tx, request.params.id, true);
+        }),
+      );
       return reply.code(201).send(links);
     },
   );
@@ -259,24 +303,38 @@ export async function guardianRoutes(instance: FastifyInstance) {
             name: z.string(),
             phone: z.string().nullable(),
             email: z.string().nullable(),
+            ...nikOut,
+            address: z.string().nullable(),
+            occupation: z.string().nullable(),
           }),
           404: errorSchema,
+          409: errorSchema,
           ...guarded,
         },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      return tenant(request, async (tx) => {
-        const [g] = await tx
-          .update(guardian)
-          .set(request.body)
-          .where(eq(guardian.id, request.params.id))
-          .returning();
-        if (!g) throw notFound('Wali');
-        await audit(tx, ctx, 'guardian.update', 'guardian', g.id, { name: g.name });
-        return { id: g.id, name: g.name, phone: g.phone, email: g.email };
-      });
+      return nikConflictAs409(null, () =>
+        tenant(request, async (tx) => {
+          const [g] = await tx
+            .update(guardian)
+            .set(request.body)
+            .where(eq(guardian.id, request.params.id))
+            .returning();
+          if (!g) throw notFound('Wali');
+          await audit(tx, ctx, 'guardian.update', 'guardian', g.id, { name: g.name });
+          return {
+            id: g.id,
+            name: g.name,
+            phone: g.phone,
+            email: g.email,
+            ...nikView(true, g.nik),
+            address: g.address,
+            occupation: g.occupation,
+          };
+        }),
+      );
     },
   );
 
@@ -319,7 +377,7 @@ export async function guardianRoutes(instance: FastifyInstance) {
           guardianId: link.guardianId,
           ...request.body,
         });
-        return linksOf(tx, request.params.id);
+        return linksOf(tx, request.params.id, true);
       });
     },
   );

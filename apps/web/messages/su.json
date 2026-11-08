@@ -18,6 +18,15 @@
     "showPassword": "Témbongkeun kecap akses",
     "hidePassword": "Sumputkeun kecap akses",
     "loginIdentityHint": "NIK, nomer HP, jeung surélék dipaké pikeun asup jeung mulihkeun akun.",
+    "dataComplete": "Data lengkep",
+    "nikMissing": "NIK acan diisi",
+    "contactIncomplete": "Kontak acan lengkep",
+    "completenessHeader": "Kalengkepan data",
+    "nikMissingCount": "{count} acan boga NIK",
+    "filterNikMissing": "Acan boga NIK",
+    "sectionIdentity": "Identitas",
+    "sectionContact": "Kontak",
+    "sectionAddress": "Alamat",
     "pickDate": "Pilih tanggal",
     "clearDate": "Piceun tanggal",
     "cancel": "Batal",
@@ -629,6 +638,7 @@
     "account_not_found": "Acan aya akun nganggo surélék éta. Mugi dipénta ngadaptar heula.",
     "already_member": "Jalmi ieu parantos janten anggota sakola.",
     "account_taken": "Akun éta geus ditautkeun ka guru séjén.",
+    "nik_taken": "NIK éta geus dipaké ku batur di sakola ieu.",
     "invalid_member": "Akun kudu anggota aktip sakola ieu.",
     "teacher_linked": "Guru ieu geus boga akun asup.",
     "last_admin": "Sakola kedah gaduh sahenteuna hiji admin sakola nu aktip.",
@@ -1608,6 +1618,13 @@
     "title": "Guru",
     "subtitle": "Guru jeung pagawé pangajar. Akun lebet diatur di ménu Anggota.",
     "addTitle": "Tambih guru",
+    "nik": "NIK",
+    "education": "Pendidikan panungtung",
+    "educationHint": "Upamana S1 Pendidikan Matematika",
+    "phone": "Telepon / WhatsApp",
+    "email": "Surélék",
+    "address": "Alamat",
+    "contactHint": "Upamana 0812xxxx; disimpen jadi 62812xxxx.",
     "nip": "NIP",
     "status": "Status",
     "active": "Aktip",
@@ -1696,7 +1713,13 @@
       "g2Name": "Ngaran Wali 2",
       "g2Relation": "Hubungan Wali 2",
       "g2Phone": "Telepon/WA Wali 2",
-      "g2Email": "Surélék Wali 2"
+      "g2Email": "Surélék Wali 2",
+      "g1Nik": "NIK Wali 1",
+      "g1Address": "Alamat Wali 1",
+      "g1Occupation": "Pagawéan Wali 1",
+      "g2Nik": "NIK Wali 2",
+      "g2Address": "Alamat Wali 2",
+      "g2Occupation": "Pagawéan Wali 2"
     }
   },
   "teacherImport": {
@@ -1729,7 +1752,16 @@
     "fields": {
       "name": "Ngaran",
       "nip": "NIP",
-      "status": "Status"
+      "status": "Status",
+      "nik": "NIK",
+      "gender": "Jenis kelamin",
+      "phone": "Telepon/WA",
+      "email": "Surélék",
+      "birthPlace": "Tempat lahir",
+      "birthDate": "Tanggal lahir",
+      "address": "Alamat",
+      "religion": "Agama",
+      "education": "Pendidikan"
     }
   },
   "guardians": {
@@ -1763,7 +1795,11 @@
     "siblings": "wali ti {count} murid",
     "noMatch": "Teu aya hasil.",
     "linkAction": "Tumbu",
-    "invalidPhone": "Nomer telepon teu valid."
+    "invalidPhone": "Nomer telepon teu valid.",
+    "nik": "NIK wali",
+    "address": "Alamat",
+    "occupation": "Pagawéan",
+    "editTitle": "Robah data wali"
   },
   "curriculumBank": {
     "title": "Candak tina bank data kurikulum",

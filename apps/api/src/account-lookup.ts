@@ -10,6 +10,7 @@ import {
   portalLink,
   sql,
   student,
+  teacher,
   user,
 } from '@edusync/db';
 
@@ -23,30 +24,50 @@ export interface ResolvedUser {
 const userCols = { id: user.id, name: user.name, email: user.email, phone: user.phone };
 
 /**
- * Pemilik NIK: pengguna yang terhubung ke siswa ber-NIK itu lewat tautan portal (akun siswa). NIK hanya ada di
- * data siswa; wali dan guru tidak punya kolom NIK. Hasilnya dipakai hanya bila tepat satu pengguna berbeda.
+ * Pemilik NIK: pengguna (akun) yang tertaut ke orang ber-NIK itu, dari tiga sumber: siswa (portal_link siswa),
+ * wali (portal_link wali), dan guru (teacher.member_id). Orang yang sekaligus guru dan wali boleh punya NIK sama di
+ * dua tabel; yang dihitung adalah pengguna yang berbeda. Hasilnya dipakai hanya bila tepat satu pengguna berbeda.
  */
 async function usersByNik(db: Db, nik: string): Promise<string[]> {
   const students = await db
     .select({ id: student.id })
     .from(student)
     .where(and(eq(student.nik, nik), isNull(student.deletedAt)));
-  if (students.length === 0) return [];
-  const rows = await db
-    .select({ userId: member.userId })
-    .from(portalLink)
-    .innerJoin(member, eq(member.id, portalLink.memberId))
-    .where(
-      and(
-        eq(portalLink.kind, 'student'),
-        inArray(
-          portalLink.studentId,
-          students.map((s) => s.id),
+  const guardians = await db.select({ id: guardian.id }).from(guardian).where(eq(guardian.nik, nik));
+  const userIds = new Set<string>();
+
+  const portalUsers = async (kind: 'student' | 'guardian', ids: string[]) => {
+    if (ids.length === 0) return;
+    const rows = await db
+      .select({ userId: member.userId })
+      .from(portalLink)
+      .innerJoin(member, eq(member.id, portalLink.memberId))
+      .where(
+        and(
+          eq(portalLink.kind, kind),
+          inArray(kind === 'student' ? portalLink.studentId : portalLink.guardianId, ids),
+          eq(member.status, 'active'),
         ),
-        eq(member.status, 'active'),
-      ),
-    );
-  return [...new Set(rows.map((r) => r.userId))];
+      );
+    for (const r of rows) userIds.add(r.userId);
+  };
+  await portalUsers(
+    'student',
+    students.map((s) => s.id),
+  );
+  await portalUsers(
+    'guardian',
+    guardians.map((g) => g.id),
+  );
+
+  const teachers = await db
+    .select({ userId: member.userId })
+    .from(teacher)
+    .innerJoin(member, eq(member.id, teacher.memberId))
+    .where(and(eq(teacher.nik, nik), eq(member.status, 'active')));
+  for (const t of teachers) userIds.add(t.userId);
+
+  return [...userIds];
 }
 
 /**
@@ -76,7 +97,7 @@ export async function resolveLoginEmail(db: Db, raw: string): Promise<string | n
 
 /**
  * Nomor WhatsApp pengguna: nomor di akunnya, atau nomor orang yang tertaut (wali/siswa lewat portal_link) bila
- * akun belum punya nomor. Guru tidak punya kolom nomor. Hasil sudah dinormalisasi (digit berawalan 62) atau null.
+ * akun belum punya nomor (urutan: akun, guru, wali, siswa). Hasil sudah dinormalisasi (digit berawalan 62) atau null.
  */
 export async function phoneFor(db: Db, found: Pick<ResolvedUser, 'id' | 'phone'>): Promise<string | null> {
   const own = normalizePhone(found.phone);
@@ -88,6 +109,15 @@ export async function phoneFor(db: Db, found: Pick<ResolvedUser, 'id' | 'phone'>
     .leftJoin(guardian, eq(guardian.id, portalLink.guardianId))
     .leftJoin(student, eq(student.id, portalLink.studentId))
     .where(and(eq(member.userId, found.id), eq(member.status, 'active')));
+  const teachers = await db
+    .select({ phone: teacher.phone })
+    .from(teacher)
+    .innerJoin(member, eq(member.id, teacher.memberId))
+    .where(and(eq(member.userId, found.id), eq(member.status, 'active')));
+  for (const t of teachers) {
+    const phone = normalizePhone(t.phone);
+    if (phone) return phone;
+  }
   for (const l of links) {
     const phone = normalizePhone(l.guardianPhone) ?? normalizePhone(l.studentPhone);
     if (phone) return phone;

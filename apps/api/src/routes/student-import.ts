@@ -20,6 +20,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
+import { cleanNik, NIK_MESSAGE, nikOut, nikView } from '../person-fields';
 import { normalizePhone } from './guardians';
 import { audit, guarded, schoolHeader } from './helpers';
 import { RELIGIONS } from './people';
@@ -47,10 +48,16 @@ const rowSchema = z.object({
   g1Relation: text(30),
   g1Phone: text(40),
   g1Email: text(300),
+  g1Nik: text(40),
+  g1Address: text(600),
+  g1Occupation: text(200),
   g2Name: text(200),
   g2Relation: text(30),
   g2Phone: text(40),
   g2Email: text(300),
+  g2Nik: text(40),
+  g2Address: text(600),
+  g2Occupation: text(200),
 });
 
 const errorRow = z.object({ row: z.number().int(), field: z.string().nullable(), message: z.string() });
@@ -103,14 +110,35 @@ const RELATION_LABELS: Record<string, Relation> = {
 
 /** Dua blok wali pada satu baris; wali 1 menjadi wali utama. */
 const GUARDIAN_BLOCKS = [
-  { name: 'g1Name', relation: 'g1Relation', phone: 'g1Phone', email: 'g1Email', fallback: 'father' },
-  { name: 'g2Name', relation: 'g2Relation', phone: 'g2Phone', email: 'g2Email', fallback: 'mother' },
+  {
+    name: 'g1Name',
+    relation: 'g1Relation',
+    phone: 'g1Phone',
+    email: 'g1Email',
+    nik: 'g1Nik',
+    address: 'g1Address',
+    occupation: 'g1Occupation',
+    fallback: 'father',
+  },
+  {
+    name: 'g2Name',
+    relation: 'g2Relation',
+    phone: 'g2Phone',
+    email: 'g2Email',
+    nik: 'g2Nik',
+    address: 'g2Address',
+    occupation: 'g2Occupation',
+    fallback: 'mother',
+  },
 ] as const;
 
 interface PreparedGuardian {
   name: string;
   phone: string | null;
   email: string | null;
+  nik: string | null;
+  address: string | null;
+  occupation: string | null;
   relation: Relation;
   isPrimary: boolean;
   /** Wali yang sudah ada di sekolah (cocok menurut telepon); null bila perlu dibuat. */
@@ -128,7 +156,7 @@ const studentOut = z.object({
   name: z.string(),
   nis: z.string().nullable(),
   nisn: z.string().nullable(),
-  nik: z.string().nullable(),
+  ...nikOut,
   gender: z.enum(['L', 'P']),
   birthPlace: z.string().nullable(),
   birthDate: z.iso.date().nullable(),
@@ -144,6 +172,9 @@ const studentOut = z.object({
       relation: z.enum(['father', 'mother', 'guardian', 'other']),
       phone: z.string().nullable(),
       email: z.string().nullable(),
+      ...nikOut,
+      address: z.string().nullable(),
+      occupation: z.string().nullable(),
       isPrimary: z.boolean(),
     }),
   ),
@@ -183,6 +214,7 @@ export async function studentImportRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       const { q, classId, status } = request.query;
+      const canManage = ctx.permissions.has('student:manage');
       return withTenant(request.server.tenantDb, [ctx.schoolId], async (tx) => {
         const rows = await tx
           .select()
@@ -221,6 +253,9 @@ export async function studentImportRoutes(instance: FastifyInstance) {
                 relation: studentGuardian.relation,
                 phone: guardian.phone,
                 email: guardian.email,
+                nik: guardian.nik,
+                address: guardian.address,
+                occupation: guardian.occupation,
                 isPrimary: studentGuardian.isPrimary,
               })
               .from(studentGuardian)
@@ -243,7 +278,7 @@ export async function studentImportRoutes(instance: FastifyInstance) {
             name: s.name,
             nis: s.nis,
             nisn: s.nisn,
-            nik: s.nik,
+            ...nikView(canManage, s.nik),
             gender: s.gender,
             birthPlace: s.birthPlace,
             birthDate: s.birthDate,
@@ -253,7 +288,10 @@ export async function studentImportRoutes(instance: FastifyInstance) {
             email: s.email,
             status: s.status,
             className: placed.get(s.id)?.className ?? null,
-            guardians: (byStudent.get(s.id) ?? []).map(({ studentId: _s, ...g }) => g),
+            guardians: (byStudent.get(s.id) ?? []).map(({ studentId: _s, nik, ...g }) => ({
+              ...g,
+              ...nikView(canManage, nik),
+            })),
           })),
         };
       });
@@ -276,8 +314,10 @@ export async function studentImportRoutes(instance: FastifyInstance) {
           'Data diri opsional: `nik` (16 digit), `birthPlace`, `religion` (Islam, Kristen, Katolik, Hindu, Buddha, ' +
           'Konghucu, Lainnya, atau padanan Inggris), `address`, `phone`, `email`. Dua wali per baris ' +
           '(`g1*` wali utama, `g2*`): hubungan Ayah/Ibu/Wali/Lainnya (kosong: wali 1 ayah, wali 2 ibu); nama wajib ' +
-          'bila ada isian lain pada blok itu. Wali dipakai ulang bila telepon (setelah dinormalkan) sama dengan wali ' +
-          'yang sudah ada di sekolah atau yang dibuat lebih awal di file yang sama; selain itu wali baru dibuat.',
+          'bila ada isian lain pada blok itu. Blok wali juga menerima `g1Nik`/`g2Nik` (16 digit), `g1Address`, ' +
+          '`g1Occupation`. NIK siswa harus unik di file dan di sekolah. Wali dipakai ulang bila NIK, atau telepon ' +
+          '(setelah dinormalkan), sama dengan wali yang sudah ada di sekolah atau yang dibuat lebih awal di file ' +
+          'yang sama; selain itu wali baru dibuat.',
         headers: schoolHeader,
         body: z.object({
           dryRun: z.boolean(),
@@ -349,6 +389,34 @@ export async function studentImportRoutes(instance: FastifyInstance) {
         for (const g of existing)
           if (g.phone && !guardianByPhone.has(g.phone)) guardianByPhone.set(g.phone, g.id);
 
+        // NIK siswa dan wali yang sudah ada di sekolah.
+        const studentNiks = [...new Set(rows.map((r) => cleanNik(r.nik)).filter((n) => /^\d{16}$/.test(n)))];
+        const takenStudentNik = new Set(
+          studentNiks.length
+            ? (
+                await tx
+                  .select({ nik: student.nik })
+                  .from(student)
+                  .where(and(inArray(student.nik, studentNiks), isNull(student.deletedAt)))
+              ).map((s) => s.nik)
+            : [],
+        );
+        const guardianNiks = [
+          ...new Set(
+            rows.flatMap((r) => [cleanNik(r.g1Nik), cleanNik(r.g2Nik)]).filter((n) => /^\d{16}$/.test(n)),
+          ),
+        ];
+        const guardianByNik = new Map<string, string>();
+        if (guardianNiks.length) {
+          for (const g of await tx
+            .select({ id: guardian.id, nik: guardian.nik })
+            .from(guardian)
+            .where(inArray(guardian.nik, guardianNiks))) {
+            if (g.nik) guardianByNik.set(g.nik, g.id);
+          }
+        }
+        const seenNik = new Map<string, number>();
+
         const errors: z.infer<typeof errorRow>[] = [];
         const seenNis = new Map<string, number>();
         const seenNisn = new Map<string, number>();
@@ -374,7 +442,7 @@ export async function studentImportRoutes(instance: FastifyInstance) {
           const name = r.name.trim().replace(/\s+/g, ' ');
           const nis = r.nis.trim();
           const nisn = r.nisn.trim();
-          const nik = r.nik.trim();
+          const nik = cleanNik(r.nik);
           const gender = GENDERS[r.gender.trim().toLowerCase()];
           const birthPlace = r.birthPlace.trim();
           const birthDate = r.birthDate.trim();
@@ -401,7 +469,12 @@ export async function studentImportRoutes(instance: FastifyInstance) {
               fail('nisn', `NISN ${nisn} ganda dengan baris ${seenNisn.get(nisn)}.`);
             else seenNisn.set(nisn, r.row);
           }
-          if (nik && !/^\d{16}$/.test(nik)) fail('nik', 'NIK harus 16 digit angka.');
+          if (nik && !/^\d{16}$/.test(nik)) fail('nik', NIK_MESSAGE);
+          else if (nik) {
+            if (takenStudentNik.has(nik)) fail('nik', 'NIK itu sudah dipakai siswa lain.');
+            else if (seenNik.has(nik)) fail('nik', `NIK ganda dengan baris ${seenNik.get(nik)}.`);
+            else seenNik.set(nik, r.row);
+          }
           if (birthPlace.length > 80) fail('birthPlace', 'Tempat lahir maksimal 80 karakter.');
           if (birthDate && !validDate(birthDate))
             fail('birthDate', 'Tanggal lahir harus berformat TTTT-BB-HH.');
@@ -427,7 +500,17 @@ export async function studentImportRoutes(instance: FastifyInstance) {
             const gRelationText = r[b.relation].trim();
             const gPhoneText = r[b.phone].trim();
             const gEmail = r[b.email].trim().toLowerCase();
-            if (!gName && !gRelationText && !gPhoneText && !gEmail) continue;
+            const gNik = cleanNik(r[b.nik]);
+            const gAddress = r[b.address].trim();
+            const gOccupation = r[b.occupation].trim();
+            if (!gName && !gRelationText && !gPhoneText && !gEmail && !gNik && !gAddress && !gOccupation)
+              continue;
+            if (gNik && !/^\d{16}$/.test(gNik)) fail(b.nik, `${label(i + 1)}: ${NIK_MESSAGE}`);
+            else if (gNik && guardians.some((g) => g.nik === gNik))
+              fail(b.nik, `${label(i + 1)} memakai NIK yang sama dengan wali lain pada baris ini.`);
+            if (gAddress.length > 300) fail(b.address, `${label(i + 1)}: alamat maksimal 300 karakter.`);
+            if (gOccupation.length > 120)
+              fail(b.occupation, `${label(i + 1)}: pekerjaan maksimal 120 karakter.`);
             if (!gName) fail(b.name, `${label(i + 1)}: nama wajib diisi bila ada isian wali lain.`);
             else if (gName.length > 120) fail(b.name, `${label(i + 1)}: nama maksimal 120 karakter.`);
             const relation = gRelationText ? RELATION_LABELS[gRelationText.toLowerCase()] : b.fallback;
@@ -438,14 +521,21 @@ export async function studentImportRoutes(instance: FastifyInstance) {
               fail(b.email, `${label(i + 1)}: email tidak valid.`);
             if (gPhone && guardians.some((g) => g.phone === gPhone))
               fail(b.phone, `${label(i + 1)} memakai telepon yang sama dengan wali lain pada baris ini.`);
+            const idByNik = (gNik && guardianByNik.get(gNik)) || null;
+            const idByPhone = (gPhone && guardianByPhone.get(gPhone)) || null;
+            if (idByNik && idByPhone && idByNik !== idByPhone)
+              fail(b.nik, `${label(i + 1)}: NIK dan telepon cocok dengan dua wali berbeda yang sudah ada.`);
             if (gName && relation && gPhone !== undefined) {
               guardians.push({
                 name: gName,
                 phone: gPhone,
                 email: gEmail || null,
+                nik: /^\d{16}$/.test(gNik) ? gNik : null,
+                address: gAddress || null,
+                occupation: gOccupation || null,
                 relation,
                 isPrimary: guardians.length === 0,
-                existingId: (gPhone && guardianByPhone.get(gPhone)) || null,
+                existingId: idByNik ?? idByPhone,
               });
             }
           }
@@ -515,10 +605,11 @@ export async function studentImportRoutes(instance: FastifyInstance) {
         const slots = prepared.flatMap((p, i) =>
           p.guardians.map((g) => {
             if (g.existingId) return { studentId: inserted[i]?.id as string, g, index: -1, id: g.existingId };
-            const known = g.phone ? createdIndex.get(g.phone) : undefined;
+            const key = g.nik ?? g.phone;
+            const known = key ? createdIndex.get(key) : undefined;
             if (known !== undefined) return { studentId: inserted[i]?.id as string, g, index: known, id: '' };
             toCreate.push(g);
-            if (g.phone) createdIndex.set(g.phone, toCreate.length - 1);
+            if (key) createdIndex.set(key, toCreate.length - 1);
             return { studentId: inserted[i]?.id as string, g, index: toCreate.length - 1, id: '' };
           }),
         );
@@ -531,6 +622,9 @@ export async function studentImportRoutes(instance: FastifyInstance) {
                   name: g.name,
                   phone: g.phone,
                   email: g.email,
+                  nik: g.nik,
+                  address: g.address,
+                  occupation: g.occupation,
                 })),
               )
               .returning({ id: guardian.id })

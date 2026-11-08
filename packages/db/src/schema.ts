@@ -612,6 +612,9 @@ export const student = pgTable(
   (t) => [
     unique('student_school_nis_uq').on(t.schoolId, t.nis),
     unique('student_school_nisn_uq').on(t.schoolId, t.nisn),
+    uniqueIndex('student_school_nik_uq')
+      .on(t.schoolId, t.nik)
+      .where(sql`${t.nik} is not null and ${t.deletedAt} is null`),
     index('student_school_name_idx').on(t.schoolId, t.name),
   ],
 );
@@ -669,9 +672,29 @@ export const teacher = pgTable(
     status: text('status', { enum: ['active', 'inactive'] })
       .notNull()
       .default('active'),
+    /** NIK 16 digit; dipakai untuk masuk dan pemulihan akun. Unik per sekolah bila terisi. */
+    nik: text('nik'),
+    /** Digit berawalan 62, sama dengan siswa dan wali. */
+    phone: text('phone'),
+    email: text('email'),
+    gender: text('gender', { enum: ['L', 'P'] }),
+    birthPlace: text('birth_place'),
+    birthDate: date('birth_date'),
+    address: text('address'),
+    religion: text('religion', {
+      enum: ['islam', 'christian', 'catholic', 'hindu', 'buddhist', 'confucian', 'other'],
+    }),
+    /** Pendidikan terakhir (bebas, mis. "S1 Pendidikan Matematika"). */
+    education: text('education'),
     createdAt: createdAt(),
   },
-  (t) => [unique('teacher_school_nip_uq').on(t.schoolId, t.nip), unique('teacher_member_uq').on(t.memberId)],
+  (t) => [
+    unique('teacher_school_nip_uq').on(t.schoolId, t.nip),
+    unique('teacher_member_uq').on(t.memberId),
+    uniqueIndex('teacher_school_nik_uq').on(t.schoolId, t.nik).where(sql`${t.nik} is not null`),
+    check('teacher_nik_ck', sql`${t.nik} is null or ${t.nik} ~ '^[0-9]{16}$'`),
+    check('teacher_gender_ck', sql`${t.gender} is null or ${t.gender} in ('L', 'P')`),
+  ],
 );
 
 /** Guru mengampu satu mapel di satu kelas. */
@@ -708,9 +731,18 @@ export const guardian = pgTable(
     /** Nomor telepon/WhatsApp dalam bentuk digit berawalan kode negara (mis. 62812...). */
     phone: text('phone'),
     email: text('email'),
+    /** NIK 16 digit; dipakai untuk masuk dan pemulihan akun. Unik per sekolah bila terisi. */
+    nik: text('nik'),
+    address: text('address'),
+    /** Pekerjaan (bebas). */
+    occupation: text('occupation'),
     createdAt: createdAt(),
   },
-  (t) => [index('guardian_school_name_idx').on(t.schoolId, t.name)],
+  (t) => [
+    index('guardian_school_name_idx').on(t.schoolId, t.name),
+    uniqueIndex('guardian_school_nik_uq').on(t.schoolId, t.nik).where(sql`${t.nik} is not null`),
+    check('guardian_nik_ck', sql`${t.nik} is null or ${t.nik} ~ '^[0-9]{16}$'`),
+  ],
 );
 
 export const studentGuardian = pgTable(

@@ -506,7 +506,7 @@ describe('impor siswa', () => {
     const full = (row: number, over: Record<string, string> = {}) =>
       r(row, {
         nis: `95${row}`,
-        nik: '3201010101010001',
+        nik: `320101010101${String(row).padStart(4, '0')}`,
         birthPlace: 'Bandung',
         religion: 'Kristen',
         address: 'Jl. Merdeka 1',
@@ -545,7 +545,8 @@ describe('impor siswa', () => {
     const kakak = items.find((s) => s.name === 'Kakak Siswa');
     const adik = items.find((s) => s.name === 'Adik Siswa');
     expect(kakak).toMatchObject({
-      nik: '3201010101010001',
+      nik: '3201010101010002',
+      nikMasked: '************0002',
       religion: 'christian',
       phone: '6281234567890',
       email: 'anak@example.test',
@@ -567,7 +568,25 @@ describe('impor siswa', () => {
 
     // Rute statis tidak bentrok dengan /v1/students/:id.
     expect((await call('GET', '/v1/students/export?status=graduated', opCookie)).json().items).toEqual([]);
-    expect((await call('GET', '/v1/students/export', teacherCookie)).statusCode).toBe(200);
+    const asTeacher = await call('GET', '/v1/students/export?q=Kakak', teacherCookie);
+    expect(asTeacher.statusCode).toBe(200);
+    // Guru hanya boleh membaca: NIK tersamar, tidak utuh.
+    expect(asTeacher.json().items[0]).toMatchObject({ nik: null, nikMasked: '************0002' });
+    expect(asTeacher.body).not.toContain('3201010101010002');
+
+    // NIK siswa ganda di file atau yang sudah terpakai ditolak per baris.
+    const dup = await importRows(
+      opCookie,
+      [full(7, { nis: '9507', name: 'Siswa NIK Ganda', nik: '3201010101010002' })],
+      true,
+    );
+    expect(dup.json().errors).toMatchObject([{ row: 7, field: 'nik' }]);
+    const inFile = await importRows(
+      opCookie,
+      [full(8, { nis: '9508', nik: '3201010101019998' }), full(9, { nis: '9509', nik: '3201010101019998' })],
+      true,
+    );
+    expect(inFile.json().errors).toMatchObject([{ row: 9, field: 'nik' }]);
   });
 
   it('galat data diri dan wali dilaporkan per baris', async () => {
@@ -1033,5 +1052,201 @@ describe('kalender akademik', () => {
         .statusCode,
     ).toBe(404);
     await call('PUT', `/v1/academic-years/${yearId}/activate`, opCookie);
+  });
+});
+
+describe('data diri guru dan wali: NIK, kontak, privasi', () => {
+  const nikA = '3201999900000001';
+  const nikB = '3201999900000002';
+
+  it('guru menyimpan NIK (spasi/titik dibuang), kontak, dan data diri; NIK ganda 409 nik_taken', async () => {
+    const res = await call('POST', '/v1/teachers', opCookie, {
+      name: 'Guru Lengkap',
+      nik: '3201 9999.0000 0001',
+      phone: '0812-1111-2222',
+      email: 'Guru.Lengkap@Example.test',
+      gender: 'P',
+      birthPlace: 'Bogor',
+      birthDate: '1990-05-17',
+      address: 'Jl. Pendidikan 5',
+      religion: 'islam',
+      education: 'S1 Pendidikan Matematika',
+    });
+    expect(res.statusCode).toBe(201);
+    expect(res.json()).toMatchObject({
+      nik: nikA,
+      nikMasked: '************0001',
+      phone: '6281211112222',
+      email: 'guru.lengkap@example.test',
+      gender: 'P',
+      birthDate: '1990-05-17',
+      education: 'S1 Pendidikan Matematika',
+    });
+
+    const dup = await call('POST', '/v1/teachers', opCookie, { name: 'Guru Kembar NIK', nik: nikA });
+    expect(dup.statusCode).toBe(409);
+    expect(dup.json().error.code).toBe('nik_taken');
+
+    // NIK yang sama di sekolah lain boleh.
+    const other = await call(
+      'POST',
+      '/v1/teachers',
+      otherCookie,
+      { name: 'Guru Sekolah Lain', nik: nikA },
+      otherSchoolId,
+    );
+    expect(other.statusCode).toBe(201);
+
+    // Format salah.
+    for (const bad of [{ nik: '123' }, { phone: 'abc' }, { email: 'x' }, { gender: 'X' }]) {
+      const r = await call('POST', '/v1/teachers', opCookie, { name: 'Guru Salah', ...bad });
+      expect(r.statusCode, JSON.stringify(bad)).toBe(400);
+    }
+
+    // NIK guru lain ditolak saat mengubah.
+    const second = await call('POST', '/v1/teachers', opCookie, { name: 'Guru Dua', nik: nikB });
+    const clash = await call('PUT', `/v1/teachers/${second.json().id}`, opCookie, {
+      name: 'Guru Dua',
+      nik: nikA,
+    });
+    expect(clash.statusCode).toBe(409);
+    expect(clash.json().error.code).toBe('nik_taken');
+  });
+
+  it('NIK guru utuh hanya untuk teacher:manage; kepala sekolah hanya melihat bentuk tersamar', async () => {
+    const principal = await member_('kepsek-nik', schoolId, ['principal']);
+    const list = await call('GET', '/v1/teachers?q=Guru Lengkap', principal);
+    expect(list.statusCode).toBe(200);
+    expect(list.json()[0]).toMatchObject({ nik: null, nikMasked: '************0001' });
+    expect(list.body).not.toContain(nikA);
+    const full = await call('GET', '/v1/teachers?q=Guru Lengkap', opCookie);
+    expect(full.json()[0]).toMatchObject({ nik: nikA, nikMasked: '************0001' });
+  });
+
+  it('wali menyimpan NIK, alamat, pekerjaan; NIK ganda 409; pembaca hanya melihat tersamar', async () => {
+    const s = await call('POST', '/v1/students', opCookie, { name: 'Siswa Wali NIK', gender: 'L' });
+    const sid = s.json().id;
+    const created = await call('POST', `/v1/students/${sid}/guardians`, opCookie, {
+      name: 'Ayah Lengkap',
+      phone: '0813-0000-1111',
+      nik: '3201 9999 0000 0101',
+      address: 'Jl. Orang Tua 9',
+      occupation: 'Petani',
+      relation: 'father',
+    });
+    expect(created.statusCode).toBe(201);
+    expect(created.json()[0]).toMatchObject({
+      nik: '3201999900000101',
+      nikMasked: '************0101',
+      address: 'Jl. Orang Tua 9',
+      occupation: 'Petani',
+    });
+
+    const s2 = await call('POST', '/v1/students', opCookie, { name: 'Siswa Wali NIK Dua', gender: 'P' });
+    const dup = await call('POST', `/v1/students/${s2.json().id}/guardians`, opCookie, {
+      name: 'Wali Ganda',
+      nik: '3201999900000101',
+      relation: 'mother',
+    });
+    expect(dup.statusCode).toBe(409);
+    expect(dup.json().error.code).toBe('nik_taken');
+
+    const asTeacher = await call('GET', `/v1/students/${sid}/guardians`, teacherCookie);
+    expect(asTeacher.json()[0]).toMatchObject({ nik: null, nikMasked: '************0101' });
+    expect(asTeacher.body).not.toContain('3201999900000101');
+
+    const gid = created.json()[0].guardianId;
+    const put = await call('PUT', `/v1/guardians/${gid}`, opCookie, {
+      name: 'Ayah Lengkap',
+      phone: '',
+      email: '',
+      nik: '3201999900000101',
+      address: null,
+      occupation: 'Wiraswasta',
+    });
+    expect(put.statusCode).toBe(200);
+    expect(put.json()).toMatchObject({ nik: '3201999900000101', occupation: 'Wiraswasta', address: null });
+  });
+
+  it('daftar siswa: NIK utuh bagi pengelola, tersamar bagi pembaca, saringan missingNik', async () => {
+    const withNik = await call('POST', '/v1/students', opCookie, {
+      name: 'Siswa Ber-NIK',
+      gender: 'L',
+      nik: '3201999900000201',
+    });
+    expect(withNik.statusCode).toBe(201);
+    const dup = await call('POST', '/v1/students', opCookie, {
+      name: 'Siswa NIK Kembar',
+      gender: 'L',
+      nik: '3201999900000201',
+    });
+    expect(dup.json().error.code).toBe('nik_taken');
+    const asTeacher = await call('GET', '/v1/students?q=Siswa Ber-NIK', teacherCookie);
+    expect(asTeacher.json().items[0]).toMatchObject({ nik: null, nikMasked: '************0201' });
+    const asOp = await call('GET', '/v1/students?q=Siswa Ber-NIK', opCookie);
+    expect(asOp.json().items[0]).toMatchObject({ nik: '3201999900000201' });
+    const missing = await call('GET', '/v1/students?missingNik=true&limit=100', opCookie);
+    expect(missing.statusCode).toBe(200);
+    expect(missing.json().items.every((s: { nikMasked: string | null }) => s.nikMasked === null)).toBe(true);
+    expect(missing.json().missingNikTotal).toBe(missing.json().total);
+  });
+
+  it('impor guru: NIK, kontak, dan data diri dengan galat per sel', async () => {
+    const r = (row: number, over: Record<string, string> = {}) => ({ row, name: `Impor ${row}`, ...over });
+    const good = await call('POST', '/v1/teachers/import', opCookie, {
+      dryRun: false,
+      rows: [
+        r(2, {
+          nik: '3201999900000301',
+          gender: 'Perempuan',
+          phone: '0812 3333 4444',
+          email: 'IMPOR@example.test',
+          birthPlace: 'Garut',
+          birthDate: '1988-01-02',
+          address: 'Jl. Impor',
+          religion: 'Kristen',
+          education: 'S2',
+        }),
+      ],
+    });
+    expect(good.json()).toMatchObject({ imported: 1, errors: [] });
+    const found = await call('GET', '/v1/teachers?q=Impor 2', opCookie);
+    expect(found.json()[0]).toMatchObject({
+      nik: '3201999900000301',
+      gender: 'P',
+      phone: '6281233334444',
+      email: 'impor@example.test',
+      religion: 'christian',
+    });
+    const bad = await call('POST', '/v1/teachers/import', opCookie, {
+      dryRun: true,
+      rows: [
+        r(2, { nik: '3201999900000301' }),
+        r(3, { nik: '12' }),
+        r(4, { gender: 'Q' }),
+        r(5, { phone: 'abc' }),
+        r(6, { email: 'x' }),
+        r(7, { birthDate: '2020-13-45' }),
+        r(8, { religion: 'Pagan' }),
+        r(9, { nik: '3201999900000302' }),
+        r(10, { nik: '3201999900000302' }),
+      ],
+    });
+    const field = (n: number) =>
+      bad
+        .json()
+        .errors.filter((e: { row: number }) => e.row === n)
+        .map((e: { field: string }) => e.field);
+    expect([2, 3, 4, 5, 6, 7, 8, 9, 10].map(field)).toEqual([
+      ['nik'],
+      ['nik'],
+      ['gender'],
+      ['phone'],
+      ['email'],
+      ['birthDate'],
+      ['religion'],
+      [],
+      ['nik'],
+    ]);
   });
 });

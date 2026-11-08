@@ -19,10 +19,10 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
+import { nikConflictAs409, nikField, nikOut, nikView } from '../person-fields';
 import { normalizePhone } from './guardians';
 import {
   audit,
-  conflictAs409,
   guarded,
   idParams,
   isForeignKeyViolation,
@@ -41,20 +41,6 @@ const optionalId = z
   .nullable()
   .default(null);
 
-const teacherSchema = z.object({
-  id: z.uuid(),
-  name: z.string(),
-  nip: z.string().nullable(),
-  status: z.enum(['active', 'inactive']),
-  memberId: z.uuid().nullable(),
-});
-const teacherBody = z.object({
-  name: personName,
-  nip: optionalId,
-  status: z.enum(['active', 'inactive']).default('active'),
-});
-
-const STUDENT_STATUS = ['active', 'graduated', 'transferred', 'dropped'] as const;
 export const RELIGIONS = [
   'islam',
   'christian',
@@ -66,7 +52,7 @@ export const RELIGIONS = [
 ] as const;
 
 /** Isian opsional: string kosong menjadi null. Dipakai bersama oleh impor Excel. */
-const optionalText = (max: number) =>
+export const optionalText = (max: number) =>
   z
     .string()
     .trim()
@@ -75,39 +61,89 @@ const optionalText = (max: number) =>
     .nullable()
     .default(null);
 
+/** Telepon opsional dinormalkan ke digit berawalan 62. */
+export const phoneBody = z
+  .string()
+  .max(30)
+  .nullable()
+  .default(null)
+  .transform((v, ctx) => {
+    const phone = normalizePhone(v ?? '');
+    if (phone === undefined) {
+      ctx.addIssue({ code: 'custom', message: 'Nomor telepon tidak valid.' });
+      return z.NEVER;
+    }
+    return phone;
+  });
+export const emailBody = z
+  .union([z.literal(''), z.email().max(254)])
+  .nullable()
+  .default(null)
+  .transform((v) => (v ? v.toLowerCase() : null));
+
+const teacherSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  nip: z.string().nullable(),
+  status: z.enum(['active', 'inactive']),
+  memberId: z.uuid().nullable(),
+  ...nikOut,
+  phone: z.string().nullable(),
+  email: z.string().nullable(),
+  gender: z.enum(['L', 'P']).nullable(),
+  birthPlace: z.string().nullable(),
+  birthDate: z.iso.date().nullable(),
+  address: z.string().nullable(),
+  religion: z.enum(RELIGIONS).nullable(),
+  education: z.string().nullable(),
+});
+const teacherBody = z.object({
+  name: personName,
+  nip: optionalId,
+  status: z.enum(['active', 'inactive']).default('active'),
+  nik: nikField,
+  phone: phoneBody,
+  email: emailBody,
+  gender: z.enum(['L', 'P']).nullable().default(null),
+  birthPlace: optionalText(80),
+  birthDate: z.iso.date().nullable().default(null),
+  address: optionalText(300),
+  religion: z.enum(RELIGIONS).nullable().default(null),
+  education: optionalText(120),
+});
+
+function teacherOut(canManage: boolean, t: typeof teacher.$inferSelect) {
+  return {
+    id: t.id,
+    name: t.name,
+    nip: t.nip,
+    status: t.status,
+    memberId: t.memberId,
+    ...nikView(canManage, t.nik),
+    phone: t.phone,
+    email: t.email,
+    gender: t.gender,
+    birthPlace: t.birthPlace,
+    birthDate: t.birthDate,
+    address: t.address,
+    religion: t.religion,
+    education: t.education,
+  };
+}
+
+const STUDENT_STATUS = ['active', 'graduated', 'transferred', 'dropped'] as const;
+
 const studentProfile = {
   birthPlace: optionalText(80),
-  nik: z
-    .string()
-    .trim()
-    .regex(/^(\d{16})?$/, 'NIK harus 16 digit angka.')
-    .transform((v) => (v === '' ? null : v))
-    .nullable()
-    .default(null),
+  nik: nikField,
   religion: z.enum(RELIGIONS).nullable().default(null),
   address: optionalText(300),
-  phone: z
-    .string()
-    .max(30)
-    .nullable()
-    .default(null)
-    .transform((v, ctx) => {
-      const phone = normalizePhone(v ?? '');
-      if (phone === undefined) {
-        ctx.addIssue({ code: 'custom', message: 'Nomor telepon tidak valid.' });
-        return z.NEVER;
-      }
-      return phone;
-    }),
-  email: z
-    .union([z.literal(''), z.email().max(254)])
-    .nullable()
-    .default(null)
-    .transform((v) => (v ? v.toLowerCase() : null)),
+  phone: phoneBody,
+  email: emailBody,
 };
 const studentProfileOut = {
   birthPlace: z.string().nullable(),
-  nik: z.string().nullable(),
+  ...nikOut,
   religion: z.enum(RELIGIONS).nullable(),
   address: z.string().nullable(),
   phone: z.string().nullable(),
@@ -188,7 +224,7 @@ export async function placeStudent(tx: Tx, ctx: TenantContext, studentId: string
     .onConflictDoUpdate({ target: [enrollment.studentId, enrollment.academicYearId], set: { classId } });
 }
 
-async function studentRow(tx: Tx, id: string) {
+async function studentRow(tx: Tx, id: string, canManage: boolean) {
   const [s] = await tx
     .select()
     .from(student)
@@ -203,7 +239,7 @@ async function studentRow(tx: Tx, id: string) {
     gender: s.gender,
     birthDate: s.birthDate,
     birthPlace: s.birthPlace,
-    nik: s.nik,
+    ...nikView(canManage, s.nik),
     religion: s.religion,
     address: s.address,
     phone: s.phone,
@@ -234,7 +270,9 @@ export async function peopleRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['People'],
         summary: 'Daftar guru',
-        description: 'Izin: `teacher:read`. `q` mencari pada nama atau NIP.',
+        description:
+          'Izin: `teacher:read`. `q` mencari pada nama atau NIP. NIK utuh hanya dikembalikan bagi pemegang ' +
+          '`teacher:manage`; yang lain hanya menerima `nikMasked` (empat digit terakhir).',
         headers: schoolHeader,
         querystring: z.object({ q: z.string().trim().max(80).optional() }),
         response: { 200: z.array(teacherSchema), ...guarded },
@@ -242,19 +280,15 @@ export async function peopleRoutes(instance: FastifyInstance) {
     },
     async (request) => {
       const q = request.query.q;
-      return tenant(request, (tx) =>
+      const canManage = (request.ctx as TenantContext).permissions.has('teacher:manage');
+      const rows = await tenant(request, (tx) =>
         tx
-          .select({
-            id: teacher.id,
-            name: teacher.name,
-            nip: teacher.nip,
-            status: teacher.status,
-            memberId: teacher.memberId,
-          })
+          .select()
           .from(teacher)
           .where(q ? or(ilike(teacher.name, `%${q}%`), ilike(teacher.nip, `%${q}%`)) : undefined)
           .orderBy(asc(teacher.name)),
       );
+      return rows.map((r) => teacherOut(canManage, r));
     },
   );
 
@@ -265,7 +299,11 @@ export async function peopleRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['People'],
         summary: 'Tambah guru',
-        description: 'Izin: `teacher:manage`. NIP (bila diisi) harus unik di sekolah.',
+        description:
+          'Izin: `teacher:manage`. NIP dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 ' +
+          '`nik_taken`. NIK 16 digit, telepon dinormalkan ke digit berawalan 62, email, jenis kelamin (L/P), tempat ' +
+          'dan tanggal lahir, alamat, agama, dan pendidikan terakhir opsional. NIK, telepon, dan email dipakai untuk ' +
+          'masuk dan pemulihan akun.',
         headers: schoolHeader,
         body: teacherBody,
         response: { 201: teacherSchema, 409: errorSchema, ...guarded },
@@ -273,7 +311,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
     },
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
-      const row = await conflictAs409('NIP itu sudah dipakai guru lain.', () =>
+      const row = await nikConflictAs409('NIP itu sudah dipakai guru lain.', () =>
         tenant(request, async (tx) => {
           const [r] = await tx
             .insert(teacher)
@@ -283,13 +321,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
           return r!;
         }),
       );
-      return reply.code(201).send({
-        id: row.id,
-        name: row.name,
-        nip: row.nip,
-        status: row.status,
-        memberId: row.memberId,
-      });
+      return reply.code(201).send(teacherOut(true, row));
     },
   );
 
@@ -309,7 +341,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      const row = await conflictAs409('NIP itu sudah dipakai guru lain.', () =>
+      const row = await nikConflictAs409('NIP itu sudah dipakai guru lain.', () =>
         tenant(request, async (tx) => {
           const [r] = await tx
             .update(teacher)
@@ -321,7 +353,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
           return r;
         }),
       );
-      return { id: row.id, name: row.name, nip: row.nip, status: row.status, memberId: row.memberId };
+      return teacherOut(true, row);
     },
   );
 
@@ -375,7 +407,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
           return r;
         }),
       );
-      return { id: row.id, name: row.name, nip: row.nip, status: row.status, memberId: row.memberId };
+      return teacherOut(true, row);
     },
   );
 
@@ -429,20 +461,37 @@ export async function peopleRoutes(instance: FastifyInstance) {
         summary: 'Daftar siswa',
         description:
           'Izin: `student:read`. `q` mencari pada nama, NIS, atau NISN. `classId` menyaring menurut kelas pada tahun ' +
-          'ajaran aktif. Siswa yang dihapus tidak ditampilkan.',
+          'ajaran aktif. `missingNik=true` hanya menampilkan siswa tanpa NIK. Siswa yang dihapus tidak ditampilkan. ' +
+          'NIK utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.',
         headers: schoolHeader,
         querystring: z.object({
           q: z.string().trim().max(80).optional(),
           classId: z.uuid().optional(),
           status: z.enum(STUDENT_STATUS).optional(),
+          missingNik: z
+            .enum(['true', 'false'])
+            .transform((v) => v === 'true')
+            .optional()
+            .describe('true: hanya siswa yang NIK-nya belum diisi'),
           limit: z.coerce.number().int().min(1).max(100).default(50),
           offset: z.coerce.number().int().min(0).default(0),
         }),
-        response: { 200: z.object({ items: z.array(studentSchema), total: z.number().int() }), ...guarded },
+        response: {
+          200: z.object({
+            items: z.array(studentSchema),
+            total: z.number().int(),
+            missingNikTotal: z
+              .number()
+              .int()
+              .describe('Jumlah siswa (dengan saringan lain yang sama) yang NIK-nya belum diisi'),
+          }),
+          ...guarded,
+        },
       },
     },
     async (request) => {
-      const { q, classId, status, limit, offset } = request.query;
+      const { q, classId, status, missingNik, limit, offset } = request.query;
+      const canManage = (request.ctx as TenantContext).permissions.has('student:manage');
       return tenant(request, async (tx) => {
         const classIds = classId
           ? new Set(
@@ -466,7 +515,9 @@ export async function peopleRoutes(instance: FastifyInstance) {
             : undefined,
         );
         const all = await tx.select().from(student).where(where).orderBy(asc(student.name));
-        const filtered = classIds ? all.filter((s) => classIds.has(s.id)) : all;
+        const inClass = classIds ? all.filter((s) => classIds.has(s.id)) : all;
+        const missingNikTotal = inClass.filter((s) => !s.nik).length;
+        const filtered = missingNik ? inClass.filter((s) => !s.nik) : inClass;
         const page = filtered.slice(offset, offset + limit);
         const current = await currentClasses(
           tx,
@@ -474,6 +525,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
         );
         return {
           total: filtered.length,
+          missingNikTotal,
           items: page.map((s) => ({
             id: s.id,
             name: s.name,
@@ -482,7 +534,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
             gender: s.gender,
             birthDate: s.birthDate,
             birthPlace: s.birthPlace,
-            nik: s.nik,
+            ...nikView(canManage, s.nik),
             religion: s.religion,
             address: s.address,
             phone: s.phone,
@@ -504,7 +556,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
         tags: ['People'],
         summary: 'Tambah siswa',
         description:
-          'Izin: `student:manage`. NIS dan NISN (bila diisi) harus unik di sekolah. Data diri lain (tempat lahir, NIK 16 digit, ' +
+          'Izin: `student:manage`. NIS, NISN, dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`. Data diri lain (tempat lahir, NIK 16 digit, ' +
           'agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: siswa langsung ' +
           'ditempatkan di kelas itu pada tahun ajaran kelasnya.',
         headers: schoolHeader,
@@ -515,7 +567,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
       const { classId, ...fields } = request.body;
-      const row = await conflictAs409('NIS atau NISN itu sudah dipakai siswa lain.', () =>
+      const row = await nikConflictAs409('NIS atau NISN itu sudah dipakai siswa lain.', () =>
         tenant(request, async (tx) => {
           const [r] = await tx
             .insert(student)
@@ -523,7 +575,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
             .returning();
           if (classId) await placeStudent(tx, ctx, r!.id, classId);
           await audit(tx, ctx, 'student.create', 'student', r!.id, { name: r!.name, classId });
-          return studentRow(tx, r!.id);
+          return studentRow(tx, r!.id, true);
         }),
       );
       return reply.code(201).send(row);
@@ -543,7 +595,10 @@ export async function peopleRoutes(instance: FastifyInstance) {
         response: { 200: studentSchema, 404: errorSchema, ...guarded },
       },
     },
-    async (request) => tenant(request, (tx) => studentRow(tx, request.params.id)),
+    async (request) =>
+      tenant(request, (tx) =>
+        studentRow(tx, request.params.id, (request.ctx as TenantContext).permissions.has('student:manage')),
+      ),
   );
 
   app.put(
@@ -564,7 +619,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      return conflictAs409('NIS atau NISN itu sudah dipakai siswa lain.', () =>
+      return nikConflictAs409('NIS atau NISN itu sudah dipakai siswa lain.', () =>
         tenant(request, async (tx) => {
           const rows = await tx
             .update(student)
@@ -575,7 +630,7 @@ export async function peopleRoutes(instance: FastifyInstance) {
           await audit(tx, ctx, 'student.update', 'student', request.params.id, {
             status: request.body.status,
           });
-          return studentRow(tx, request.params.id);
+          return studentRow(tx, request.params.id, true);
         }),
       );
     },
@@ -600,12 +655,12 @@ export async function peopleRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
-        await studentRow(tx, request.params.id);
+        await studentRow(tx, request.params.id, true);
         await placeStudent(tx, ctx, request.params.id, request.body.classId);
         await audit(tx, ctx, 'student.place', 'student', request.params.id, {
           classId: request.body.classId,
         });
-        return studentRow(tx, request.params.id);
+        return studentRow(tx, request.params.id, true);
       });
     },
   );

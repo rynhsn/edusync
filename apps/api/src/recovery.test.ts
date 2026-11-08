@@ -8,6 +8,7 @@ import {
   portalLink,
   school,
   sql,
+  teacher,
   user,
 } from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
@@ -103,7 +104,7 @@ beforeAll(async () => {
 afterAll(async () => {
   for (const to of emails) await app.platformDb.delete(outbox).where(sql`${outbox.payload}->>'to' = ${to}`);
   for (const p of phones) await app.platformDb.delete(outbox).where(sql`${outbox.payload}->>'phone' = ${p}`);
-  for (const table of ['portal_link', 'guardian', 'member']) {
+  for (const table of ['portal_link', 'teacher', 'guardian', 'member']) {
     await app.platformDb.execute(sql.raw(`delete from ${table} where school_id = '${schoolId}'`));
   }
   await app.platformDb.delete(school).where(eq(school.id, schoolId));
@@ -150,6 +151,64 @@ describe('pilihan saluran pemulihan', () => {
     expect(channels.find((c) => c.channel === 'whatsapp')?.hint).toBe(
       `${phone.slice(0, 4)}****${phone.slice(-3)}`,
     );
+  });
+
+  it('NIK wali menemukan akunnya dan nomor wali dipakai untuk WhatsApp', async () => {
+    const a = await newAccount();
+    const nik = `99${digits(14)}`;
+    const phone = `6287${digits(9)}`;
+    phones.push(phone);
+    const [g] = await app.platformDb
+      .insert(guardian)
+      .values({ schoolId, name: 'Wali NIK', nik, phone })
+      .returning();
+    const [m] = await app.platformDb.insert(member).values({ userId: a.id, schoolId }).returning();
+    await app.platformDb
+      .insert(portalLink)
+      .values({ schoolId, memberId: m?.id as string, kind: 'guardian', guardianId: g?.id as string });
+    const res = await lookup(nik);
+    const { channels } = res.json() as { channels: { channel: string; hint: string }[] };
+    expect(channels.map((c) => c.channel)).toEqual(['email', 'whatsapp']);
+    expect(channels[1]?.hint).toBe(`${phone.slice(0, 4)}****${phone.slice(-3)}`);
+    expect(res.body).not.toContain(nik);
+  });
+
+  it('NIK guru menemukan akunnya dan nomor guru dipakai untuk WhatsApp', async () => {
+    const a = await newAccount();
+    const nik = `99${digits(14)}`;
+    const phone = `6288${digits(9)}`;
+    phones.push(phone);
+    const [m] = await app.platformDb.insert(member).values({ userId: a.id, schoolId }).returning();
+    await app.platformDb
+      .insert(teacher)
+      .values({ schoolId, name: 'Guru NIK', nik, phone, memberId: m?.id as string });
+    const res = await lookup(nik);
+    const { channels } = res.json() as { channels: { channel: string; hint: string }[] };
+    expect(channels.map((c) => c.channel)).toEqual(['email', 'whatsapp']);
+    expect(channels[1]?.hint).toBe(`${phone.slice(0, 4)}****${phone.slice(-3)}`);
+  });
+
+  it('NIK guru dan wali dari dua akun berbeda dijawab seperti tidak ditemukan', async () => {
+    const a = await newAccount();
+    const b = await newAccount();
+    const nik = `99${digits(14)}`;
+    const [ma] = await app.platformDb.insert(member).values({ userId: a.id, schoolId }).returning();
+    await app.platformDb
+      .insert(teacher)
+      .values({ schoolId, name: 'Guru Kembar', nik, memberId: ma?.id as string });
+    const [g] = await app.platformDb
+      .insert(guardian)
+      .values({ schoolId, name: 'Wali Kembar', nik })
+      .returning();
+    const [mb] = await app.platformDb.insert(member).values({ userId: b.id, schoolId }).returning();
+    await app.platformDb
+      .insert(portalLink)
+      .values({ schoolId, memberId: mb?.id as string, kind: 'guardian', guardianId: g?.id as string });
+    const res = await lookup(nik);
+    expect(res.json()).toEqual({
+      channels: [],
+      message: 'Jika data ditemukan, pilihan pengiriman akan tampil.',
+    });
   });
 
   it('isian tidak dikenal dan NIK ambigu dijawab sama bentuknya dengan daftar saluran kosong', async () => {

@@ -1,4 +1,15 @@
-import { eq, foundation, member, portalLink, school, sql, student, user } from '@edusync/db';
+import {
+  eq,
+  foundation,
+  guardian,
+  member,
+  portalLink,
+  school,
+  sql,
+  student,
+  teacher,
+  user,
+} from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from './app';
 import { loadEnv } from './env';
@@ -17,10 +28,17 @@ const digits = (n: number) => Array.from({ length: n }, () => Math.floor(Math.ra
 const nikSolo = `99${digits(14)}`;
 const nikShared = `99${digits(14)}`;
 const nikOrphan = `99${digits(14)}`;
+const nikGuardian = `99${digits(14)}`;
+const nikTeacher = `99${digits(14)}`;
+const nikGuardianShared = `99${digits(14)}`;
+const nikBoth = `99${digits(14)}`;
+const nikCross = `99${digits(14)}`;
+const nikMulti = `99${digits(14)}`;
 
 let app: Awaited<ReturnType<typeof buildApp>>;
 let foundationId = '';
 let schoolId = '';
+let otherSchoolId = '';
 const userIds: string[] = [];
 const emailOf = (label: string) => `${label}-${run}@example.test`;
 
@@ -31,16 +49,46 @@ async function makeUser(label: string) {
 }
 
 /** Akun siswa: siswa ber-NIK + keanggotaan + tautan portal. */
-async function studentAccount(label: string, nik: string | null) {
+async function studentAccount(label: string, nik: string | null, inSchool = schoolId) {
   const userId = await makeUser(label);
   const [s] = await app.platformDb
     .insert(student)
-    .values({ schoolId, name: `Siswa ${label}`, gender: 'L', nik })
+    .values({ schoolId: inSchool, name: `Siswa ${label}`, gender: 'L', nik })
     .returning();
-  const [m] = await app.platformDb.insert(member).values({ userId, schoolId }).returning();
+  const [m] = await app.platformDb.insert(member).values({ userId, schoolId: inSchool }).returning();
+  await app.platformDb.insert(portalLink).values({
+    schoolId: inSchool,
+    memberId: m?.id as string,
+    kind: 'student',
+    studentId: s?.id as string,
+  });
+  return userId;
+}
+
+/** Akun wali: wali ber-NIK + keanggotaan + tautan portal wali. */
+async function guardianAccount(label: string, nik: string | null, inSchool = schoolId) {
+  const userId = await makeUser(label);
+  const [g] = await app.platformDb
+    .insert(guardian)
+    .values({ schoolId: inSchool, name: `Wali ${label}`, nik })
+    .returning();
+  const [m] = await app.platformDb.insert(member).values({ userId, schoolId: inSchool }).returning();
+  await app.platformDb.insert(portalLink).values({
+    schoolId: inSchool,
+    memberId: m?.id as string,
+    kind: 'guardian',
+    guardianId: g?.id as string,
+  });
+  return userId;
+}
+
+/** Akun guru: guru ber-NIK yang tertaut ke keanggotaan (teacher.member_id). */
+async function teacherAccount(label: string, nik: string | null, inSchool = schoolId) {
+  const userId = await makeUser(label);
+  const [m] = await app.platformDb.insert(member).values({ userId, schoolId: inSchool }).returning();
   await app.platformDb
-    .insert(portalLink)
-    .values({ schoolId, memberId: m?.id as string, kind: 'student', studentId: s?.id as string });
+    .insert(teacher)
+    .values({ schoolId: inSchool, name: `Guru ${label}`, nik, memberId: m?.id as string });
   return userId;
 }
 
@@ -69,11 +117,54 @@ beforeAll(async () => {
     .values({ foundationId, slug: `ident-${run}`, name: 'Sekolah Identitas' })
     .returning();
   schoolId = s?.id as string;
+  const [s2] = await app.platformDb
+    .insert(school)
+    .values({ foundationId, slug: `ident2-${run}`, name: 'Sekolah Identitas Dua' })
+    .returning();
+  otherSchoolId = s2?.id as string;
 
   await makeUser('akun-a');
   await studentAccount('siswa-solo', nikSolo);
+  // NIK siswa unik per sekolah, jadi dua akun ber-NIK sama hanya bisa berada di dua sekolah berbeda.
   await studentAccount('siswa-kembar-1', nikShared);
-  await studentAccount('siswa-kembar-2', nikShared);
+  await studentAccount('siswa-kembar-2', nikShared, otherSchoolId);
+  await guardianAccount('wali-solo', nikGuardian);
+  await teacherAccount('guru-solo', nikTeacher);
+  // NIK wali sama di dua sekolah dengan dua akun berbeda: ambigu.
+  await guardianAccount('wali-kembar-1', nikGuardianShared);
+  await guardianAccount('wali-kembar-2', nikGuardianShared, otherSchoolId);
+  // Satu akun yang sekaligus guru dan wali (NIK sama di dua tabel): tetap satu pengguna.
+  const both = await makeUser('guru-wali');
+  const [bothMember] = await app.platformDb.insert(member).values({ userId: both, schoolId }).returning();
+  await app.platformDb
+    .insert(teacher)
+    .values({ schoolId, name: 'Guru Wali', nik: nikBoth, memberId: bothMember?.id as string });
+  const [bothGuardian] = await app.platformDb
+    .insert(guardian)
+    .values({ schoolId, name: 'Guru Wali', nik: nikBoth })
+    .returning();
+  await app.platformDb.insert(portalLink).values({
+    schoolId,
+    memberId: bothMember?.id as string,
+    kind: 'guardian',
+    guardianId: bothGuardian?.id as string,
+  });
+  // Satu akun dengan keanggotaan di dua sekolah: wali di sekolah A dan guru di sekolah B dengan NIK sama,
+  // tetap satu pengguna sehingga NIK berhasil dipakai masuk.
+  const multi = await guardianAccount('multi-sekolah', nikMulti);
+  const [multiMember] = await app.platformDb
+    .insert(member)
+    .values({ userId: multi, schoolId: otherSchoolId })
+    .returning();
+  await app.platformDb.insert(teacher).values({
+    schoolId: otherSchoolId,
+    name: 'Guru Multi',
+    nik: nikMulti,
+    memberId: multiMember?.id as string,
+  });
+  // NIK sama pada guru (akun X) dan wali (akun Y): dua pengguna berbeda, ambigu.
+  await teacherAccount('silang-guru', nikCross);
+  await guardianAccount('silang-wali', nikCross);
   // NIK ada di data siswa, tetapi siswanya tidak punya akun.
   await app.platformDb
     .insert(student)
@@ -81,10 +172,12 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-  for (const table of ['portal_link', 'student', 'member']) {
-    await app.platformDb.execute(sql.raw(`delete from ${table} where school_id = '${schoolId}'`));
+  for (const sid of [schoolId, otherSchoolId]) {
+    for (const table of ['portal_link', 'teacher', 'guardian', 'student', 'member']) {
+      await app.platformDb.execute(sql.raw(`delete from ${table} where school_id = '${sid}'`));
+    }
+    await app.platformDb.delete(school).where(eq(school.id, sid));
   }
-  await app.platformDb.delete(school).where(eq(school.id, schoolId));
   await app.platformDb.delete(foundation).where(eq(foundation.id, foundationId));
   for (const uid of userIds) await app.platformDb.delete(user).where(eq(user.id, uid));
   await app.close();
@@ -107,8 +200,35 @@ describe('masuk dengan email atau NIK', () => {
     expect(session.json().user.email).toBe(emailOf('siswa-solo'));
   });
 
+  it('NIK wali masuk ke akun wali itu', async () => {
+    const res = await signIn(nikGuardian);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().user.email).toBe(emailOf('wali-solo'));
+  });
+
+  it('NIK guru (teacher.member_id) masuk ke akun guru itu', async () => {
+    const res = await signIn(nikTeacher);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().user.email).toBe(emailOf('guru-solo'));
+  });
+
+  it('NIK yang sama di tabel guru dan wali milik satu akun tetap terselesaikan', async () => {
+    const res = await signIn(nikBoth);
+    expect(res.statusCode).toBe(200);
+    expect(res.json().user.email).toBe(emailOf('guru-wali'));
+  });
+
+  it('NIK yang menunjuk akun sama di dua sekolah berhasil; akun berbeda di dua sekolah gagal seragam', async () => {
+    const same = await signIn(nikMulti);
+    expect(same.statusCode).toBe(200);
+    expect(same.json().user.email).toBe(emailOf('multi-sekolah'));
+    expect((await signIn(nikGuardianShared)).statusCode).toBe(401);
+  });
+
   it('semua kegagalan dijawab sama: kata sandi salah, tak dikenal, NIK ambigu, NIK tanpa akun, bukan email/NIK', async () => {
     const failures = await Promise.all([
+      signIn(nikGuardianShared),
+      signIn(nikCross),
       signIn(emailOf('akun-a'), 'salah-salah-salah-1'),
       signIn(nikSolo, 'salah-salah-salah-1'),
       signIn(`tidak.ada.${run}`),

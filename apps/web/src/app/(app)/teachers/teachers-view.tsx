@@ -21,6 +21,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { CompletenessBadge } from '@/components/completeness-badge';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
 import {
@@ -42,9 +43,11 @@ import {
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
+import { Textarea } from '@/components/ui/textarea';
 import {
   EmptyPanel,
   MODULE_TONE,
@@ -55,6 +58,7 @@ import {
   Toolbar,
 } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { countMissingNik, hasNik } from '@/lib/data-completeness';
 import { errorKey } from '@/lib/errors';
 import { TEACHER_ORDER, type TeacherField, validateTeacher } from '@/lib/form-validation';
 import { buildExport, saveBlob } from '@/lib/sheet';
@@ -64,29 +68,77 @@ import {
   validateTeacherAccount,
 } from './teacher-account-validation';
 
+const RELIGIONS = ['islam', 'christian', 'catholic', 'hindu', 'buddhist', 'confucian', 'other'] as const;
+type Religion = (typeof RELIGIONS)[number];
+
 interface Draft {
   name: string;
   nip: string;
+  nik: string;
+  gender: 'L' | 'P' | '';
+  birthPlace: string;
+  birthDate: string;
+  religion: Religion | '';
+  education: string;
   status: 'active' | 'inactive';
+  phone: string;
+  email: string;
+  address: string;
 }
-const EMPTY: Draft = { name: '', nip: '', status: 'active' };
+const EMPTY: Draft = {
+  name: '',
+  nip: '',
+  nik: '',
+  gender: '',
+  birthPlace: '',
+  birthDate: '',
+  religion: '',
+  education: '',
+  status: 'active',
+  phone: '',
+  email: '',
+  address: '',
+};
+
+/** Badan permintaan API: PUT mengganti semua isian, jadi selalu kirim seluruhnya. */
+const toBody = (d: Draft) => ({
+  name: d.name,
+  nip: d.nip.trim() || null,
+  status: d.status,
+  nik: d.nik.trim() || null,
+  phone: d.phone.trim() || null,
+  email: d.email.trim() || null,
+  gender: d.gender || null,
+  birthPlace: d.birthPlace.trim() || null,
+  birthDate: d.birthDate || null,
+  address: d.address.trim() || null,
+  religion: d.religion || null,
+  education: d.education.trim() || null,
+});
 
 function TeacherFields({
   idPrefix,
   draft,
   onChange,
   v,
+  nikPlaceholder,
 }: {
   idPrefix: string;
   draft: Draft;
   onChange: (d: Draft) => void;
   /** Validasi galat-merah; id isian = `${idPrefix}-${field}`. */
   v: FormValidation<TeacherField>;
+  /** NIK tersamar sebagai petunjuk bila NIK utuh tidak dikirim server. */
+  nikPlaceholder?: string | null;
 }) {
   const t = useTranslations('teachers');
   const tm = useTranslations('masterData');
+  const ts = useTranslations('students');
+  const tc = useTranslations('common');
+  const thisYear = new Date().getFullYear();
   return (
     <div className="grid gap-4 sm:grid-cols-2">
+      <p className="font-heading text-sm font-semibold sm:col-span-2">{tc('sectionIdentity')}</p>
       <div className="grid content-start gap-2 sm:col-span-2">
         <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
         <Input
@@ -113,6 +165,89 @@ function TeacherFields({
         <FieldError id={v.idOf('nip')} issue={v.issue('nip')} />
       </div>
       <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-nik`}>{t('nik')}</Label>
+        <Input
+          {...v.fieldProps('nik')}
+          className={TOUCH_INPUT}
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={16}
+          placeholder={nikPlaceholder ?? undefined}
+          value={draft.nik}
+          onChange={(e) => onChange({ ...draft, nik: e.target.value.replace(/\D/g, '') })}
+        />
+        <FieldError id={v.idOf('nik')} issue={v.issue('nik')} />
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-gender`}>{ts('gender')}</Label>
+        <SelectField
+          id={`${idPrefix}-gender`}
+          className={TOUCH_SELECT}
+          value={draft.gender}
+          onChange={(e) => onChange({ ...draft, gender: e.target.value as Draft['gender'] })}
+        >
+          <option value="">{ts('noReligion')}</option>
+          <option value="L">{ts('male')}</option>
+          <option value="P">{ts('female')}</option>
+        </SelectField>
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-religion`}>{ts('religion')}</Label>
+        <SelectField
+          id={`${idPrefix}-religion`}
+          className={TOUCH_SELECT}
+          value={draft.religion}
+          onChange={(e) => onChange({ ...draft, religion: e.target.value as Religion | '' })}
+        >
+          <option value="">{ts('noReligion')}</option>
+          {RELIGIONS.map((r) => (
+            <option key={r} value={r}>
+              {ts(`religions.${r}`)}
+            </option>
+          ))}
+        </SelectField>
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-birthPlace`}>{ts('birthPlace')}</Label>
+        <Input
+          {...v.fieldProps('birthPlace')}
+          className={TOUCH_INPUT}
+          autoComplete="off"
+          maxLength={80}
+          value={draft.birthPlace}
+          onChange={(e) => onChange({ ...draft, birthPlace: e.target.value })}
+        />
+        <FieldError id={v.idOf('birthPlace')} issue={v.issue('birthPlace')} />
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-birthDate`}>{ts('birthDate')}</Label>
+        <DatePicker
+          {...v.fieldProps('birthDate')}
+          className={TOUCH_INPUT}
+          value={draft.birthDate}
+          onChange={(date) => {
+            onChange({ ...draft, birthDate: date });
+            v.touch('birthDate');
+          }}
+          clearable
+          yearRange={{ from: thisYear - 80, to: thisYear }}
+        />
+        <FieldError id={v.idOf('birthDate')} issue={v.issue('birthDate')} />
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-education`}>{t('education')}</Label>
+        <Input
+          {...v.fieldProps('education')}
+          className={TOUCH_INPUT}
+          autoComplete="off"
+          maxLength={120}
+          placeholder={t('educationHint')}
+          value={draft.education}
+          onChange={(e) => onChange({ ...draft, education: e.target.value })}
+        />
+        <FieldError id={v.idOf('education')} issue={v.issue('education')} />
+      </div>
+      <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-status`}>{t('status')}</Label>
         <SelectField
           id={`${idPrefix}-status`}
@@ -124,6 +259,48 @@ function TeacherFields({
           <option value="inactive">{t('inactive')}</option>
         </SelectField>
       </div>
+      <p className="font-heading border-t pt-4 text-sm font-semibold sm:col-span-2">{tc('sectionContact')}</p>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-phone`}>{t('phone')}</Label>
+        <Input
+          {...v.fieldProps('phone')}
+          className={TOUCH_INPUT}
+          inputMode="tel"
+          autoComplete="off"
+          maxLength={30}
+          value={draft.phone}
+          onChange={(e) => onChange({ ...draft, phone: e.target.value })}
+        />
+        <FieldError id={v.idOf('phone')} issue={v.issue('phone')} />
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-email`}>{t('email')}</Label>
+        <Input
+          {...v.fieldProps('email')}
+          className={TOUCH_INPUT}
+          type="email"
+          inputMode="email"
+          autoComplete="off"
+          maxLength={254}
+          value={draft.email}
+          onChange={(e) => onChange({ ...draft, email: e.target.value })}
+        />
+        <FieldError id={v.idOf('email')} issue={v.issue('email')} />
+      </div>
+      <p className="text-muted-foreground -mt-2 text-xs sm:col-span-2">{t('contactHint')}</p>
+      <p className="text-muted-foreground -mt-2 text-xs sm:col-span-2">{tc('loginIdentityHint')}</p>
+      <p className="font-heading border-t pt-4 text-sm font-semibold sm:col-span-2">{tc('sectionAddress')}</p>
+      <div className="grid content-start gap-2 sm:col-span-2">
+        <Label htmlFor={`${idPrefix}-address`}>{t('address')}</Label>
+        <Textarea
+          {...v.fieldProps('address')}
+          rows={2}
+          maxLength={300}
+          value={draft.address}
+          onChange={(e) => onChange({ ...draft, address: e.target.value })}
+        />
+        <FieldError id={v.idOf('address')} issue={v.issue('address')} />
+      </div>
     </div>
   );
 }
@@ -132,6 +309,7 @@ export function TeachersView() {
   const t = useTranslations('teachers');
   const tm = useTranslations('masterData');
   const te = useTranslations();
+  const tc = useTranslations('common');
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
@@ -145,10 +323,11 @@ export function TeachersView() {
     if (urlQuery) setQ(urlQuery.slice(0, 80));
   }, [urlQuery]);
   const [statusFilter, setStatusFilter] = useState('');
+  const [missingNikOnly, setMissingNikOnly] = useState(false);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
   const [draft, setDraft] = useState<Draft>(EMPTY);
   const [error, setError] = useState<string | null>(null);
-  const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
+  const [editing, setEditing] = useState<({ id: string; nikMasked: string | null } & Draft) | null>(null);
   const validation = useFormValidation<TeacherField>({
     errors: validateTeacher(editing ?? draft),
     order: TEACHER_ORDER,
@@ -175,10 +354,7 @@ export function TeachersView() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['teachers', school.schoolId] });
 
   const create = useMutation({
-    mutationFn: async () =>
-      unwrap(
-        await api.POST('/v1/teachers', { params: header, body: { ...draft, nip: draft.nip.trim() || null } }),
-      ),
+    mutationFn: async () => unwrap(await api.POST('/v1/teachers', { params: header, body: toBody(draft) })),
     onSuccess: () => {
       setError(null);
       setDraft(EMPTY);
@@ -192,7 +368,7 @@ export function TeachersView() {
       unwrap(
         await api.PUT('/v1/teachers/{id}', {
           params: { ...header, path: { id: v.id } },
-          body: { name: v.name, nip: v.nip.trim() || null, status: v.status },
+          body: toBody(v),
         }),
       ),
     onSuccess: () => {
@@ -284,13 +460,32 @@ export function TeachersView() {
     setAccount({ id: r.id, name: r.name, memberId: r.memberId });
   };
   const activePercent = allRows.length ? Math.round((activeCount / allRows.length) * 100) : 0;
-  const rows = (list.data ?? []).filter((r) => !statusFilter || r.status === statusFilter);
-  const hasFilters = !!(q.trim() || statusFilter);
+  const missingNikTotal = countMissingNik(allRows);
+  const rows = (list.data ?? []).filter(
+    (r) => (!statusFilter || r.status === statusFilter) && (!missingNikOnly || !hasNik(r)),
+  );
+  const hasFilters = !!(q.trim() || statusFilter || missingNikOnly);
 
   const openEdit = (r: NonNullable<typeof list.data>[number]) => {
     setError(null);
     validation.reset();
-    setEditing({ id: r.id, name: r.name, nip: r.nip ?? '', status: r.status });
+    setEditing({
+      id: r.id,
+      // NIK utuh hanya dikirim ke pengelola; bila null jangan diisi dari bentuk tersamar.
+      nikMasked: r.nikMasked,
+      name: r.name,
+      nip: r.nip ?? '',
+      nik: r.nik ?? '',
+      gender: r.gender ?? '',
+      birthPlace: r.birthPlace ?? '',
+      birthDate: r.birthDate ?? '',
+      religion: r.religion ?? '',
+      education: r.education ?? '',
+      status: r.status,
+      phone: r.phone ?? '',
+      email: r.email ?? '',
+      address: r.address ?? '',
+    });
   };
 
   const addButton = (
@@ -300,6 +495,7 @@ export function TeachersView() {
           <Plus className="size-4" /> {t('addTitle')}
         </Button>
       }
+      size="wide"
       title={t('addTitle')}
       submitLabel={tm('add')}
       error={error}
@@ -320,7 +516,12 @@ export function TeachersView() {
         icon={Presentation}
         tone={MODULE_TONE.master}
         title={t('title')}
-        description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
+        description={[
+          manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`,
+          all.data && missingNikTotal > 0 ? tc('nikMissingCount', { count: missingNikTotal }) : '',
+        ]
+          .filter(Boolean)
+          .join(' · ')}
         actions={
           <>
             <Button variant="outline" onClick={exportExcel}>
@@ -382,6 +583,14 @@ export function TeachersView() {
           <option value="active">{t('active')}</option>
           <option value="inactive">{t('inactive')}</option>
         </SelectField>
+        <Button
+          type="button"
+          variant={missingNikOnly ? 'default' : 'outline'}
+          aria-pressed={missingNikOnly}
+          onClick={() => setMissingNikOnly(!missingNikOnly)}
+        >
+          {tc('filterNikMissing')}
+        </Button>
         {list.data && (
           <span className="text-muted-foreground ml-auto px-1 text-sm tabular-nums">
             {t('total', { count: rows.length })}
@@ -409,6 +618,7 @@ export function TeachersView() {
                 onClick={() => {
                   setQ('');
                   setStatusFilter('');
+                  setMissingNikOnly(false);
                 }}
               >
                 {t('clearFilters')}
@@ -452,6 +662,12 @@ export function TeachersView() {
               ),
             },
             { key: 'nip', header: t('nip'), cell: (r) => <MonoText>{r.nip ?? tm('none')}</MonoText> },
+            { key: 'nik', header: t('nik'), cell: (r) => <MonoText>{r.nikMasked ?? tm('none')}</MonoText> },
+            {
+              key: 'completeness',
+              header: tc('completenessHeader'),
+              cell: (r) => <CompletenessBadge person={r} />,
+            },
             {
               key: 'status',
               header: t('status'),
@@ -598,6 +814,7 @@ export function TeachersView() {
         title={tm('edit')}
         submitLabel={tm('save')}
         error={error}
+        size="wide"
         validation={validation}
         onOpenChange={(open) => !open && setEditing(null)}
         onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
@@ -606,8 +823,9 @@ export function TeachersView() {
           <TeacherFields
             idPrefix="edit"
             draft={editing}
-            onChange={(d) => setEditing({ id: editing.id, ...d })}
+            onChange={(d) => setEditing({ id: editing.id, nikMasked: editing.nikMasked, ...d })}
             v={validation}
+            nikPlaceholder={editing.nik ? null : editing.nikMasked}
           />
         )}
       </FormDialog>

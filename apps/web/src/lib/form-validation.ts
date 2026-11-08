@@ -165,17 +165,72 @@ export function validateStudent(v: StudentValues, today: string = todayIso()): F
 // ---------------------------------------------------------------------------------------------------------------------
 // Guru, mata pelajaran, kelas
 
+/** NIK opsional: kosong, atau 16 digit angka. */
+export const optionalNik = (value: string): FieldIssue | undefined => {
+  const v = value.trim();
+  return v === '' || /^\d{16}$/.test(v) ? undefined : { code: 'nik' };
+};
+
+/** Tanggal lahir opsional: kosong, tanggal sungguhan, dan tidak di masa depan. */
+const optionalBirthDate = (value: string, today: string): FieldIssue | undefined =>
+  value === ''
+    ? undefined
+    : !isRealDate(value)
+      ? { code: 'dateInvalid' }
+      : value > today
+        ? { code: 'dateFuture' }
+        : undefined;
+
+const optionalPhoneField = (phone: string): FieldIssue | undefined =>
+  phone.length > 30
+    ? { code: 'tooLong', max: 30 }
+    : normalizePhone(phone) === undefined
+      ? { code: 'phone' }
+      : undefined;
+
+const optionalEmailField = (raw: string): FieldIssue | undefined => {
+  const email = raw.trim();
+  if (email === '') return undefined;
+  if (email.length > 254) return { code: 'tooLong', max: 254 };
+  return EMAIL.test(email) ? undefined : { code: 'email' };
+};
+
 export interface TeacherValues {
   name: string;
   nip: string;
+  nik: string;
+  birthPlace: string;
+  birthDate: string;
+  education: string;
+  phone: string;
+  email: string;
+  address: string;
 }
 export type TeacherField = keyof TeacherValues;
-export const TEACHER_ORDER: TeacherField[] = ['name', 'nip'];
+/** Urutan isian di formulir guru (Identitas, Kontak, Alamat). */
+export const TEACHER_ORDER: TeacherField[] = [
+  'name',
+  'nip',
+  'nik',
+  'birthPlace',
+  'birthDate',
+  'education',
+  'phone',
+  'email',
+  'address',
+];
 
-export function validateTeacher(v: TeacherValues): FieldErrors<TeacherField> {
+export function validateTeacher(v: TeacherValues, today: string = todayIso()): FieldErrors<TeacherField> {
   return compact<TeacherField>([
     ['name', needs(v.name, 120)],
     ['nip', optionalId(v.nip)],
+    ['nik', optionalNik(v.nik)],
+    ['birthPlace', longerThan(v.birthPlace, 80)],
+    ['birthDate', optionalBirthDate(v.birthDate, today)],
+    ['education', longerThan(v.education, 120)],
+    ['phone', optionalPhoneField(v.phone)],
+    ['email', optionalEmailField(v.email)],
+    ['address', longerThan(v.address, 300)],
   ]);
 }
 

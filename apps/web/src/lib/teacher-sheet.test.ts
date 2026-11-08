@@ -1,6 +1,6 @@
 import ExcelJS from 'exceljs';
 import { describe, expect, it } from 'vitest';
-import { parseTeacherSheet } from './teacher-sheet';
+import { buildTeacherTemplate, parseTeacherSheet, TEACHER_TEXT_COLUMNS } from './teacher-sheet';
 
 async function buffer(build: (s: ExcelJS.Worksheet) => void) {
   const wb = new ExcelJS.Workbook();
@@ -19,10 +19,54 @@ describe('parseTeacherSheet', () => {
       }),
     );
     expect(res.fatal).toBeNull();
-    expect(res.rows).toEqual([
-      { row: 2, name: 'Pak Dodi', nip: '19800101', status: 'Aktif' },
-      { row: 4, name: 'Bu Eka', nip: '12345', status: '' },
+    expect(res.rows).toMatchObject([
+      { row: 2, name: 'Pak Dodi', nip: '19800101', status: 'Aktif', nik: '', phone: '', email: '' },
+      { row: 4, name: 'Bu Eka', nip: '12345', status: '', gender: '', education: '' },
     ]);
+  });
+
+  it('mengenali kolom data diri dan kontak lewat alias judul', async () => {
+    const res = await parseTeacherSheet(
+      await buffer((s) => {
+        s.addRow([
+          'Nama',
+          'NIK',
+          'JK',
+          'Tmp Lahir',
+          'Tgl Lahir',
+          'Agama',
+          'Pendidikan Terakhir',
+          'WhatsApp',
+          'E-mail',
+          'Alamat',
+        ]);
+        s.addRow([
+          'Bu Fitri',
+          '3201234567890001',
+          'P',
+          'Bogor',
+          new Date(Date.UTC(1985, 4, 4)),
+          'Islam',
+          'S1 Pendidikan',
+          '081234567890',
+          'fitri@contoh.sch.id',
+          'Jl. Mawar 2',
+        ]);
+      }),
+    );
+    expect(res.fatal).toBeNull();
+    expect(res.rows[0]).toMatchObject({
+      name: 'Bu Fitri',
+      nik: '3201234567890001',
+      gender: 'P',
+      birthPlace: 'Bogor',
+      birthDate: '1985-05-04',
+      religion: 'Islam',
+      education: 'S1 Pendidikan',
+      phone: '081234567890',
+      email: 'fitri@contoh.sch.id',
+      address: 'Jl. Mawar 2',
+    });
   });
 
   it('kolom nama wajib', async () => {
@@ -33,5 +77,15 @@ describe('parseTeacherSheet', () => {
       }),
     );
     expect(res).toMatchObject({ fatal: 'missing_columns', missing: ['nama'] });
+  });
+
+  it('templat menjaga NIP/NIK/telepon sebagai teks dan memuat kolom baru', async () => {
+    const wb = new ExcelJS.Workbook();
+    await wb.xlsx.load((await buildTeacherTemplate().then((b) => b.arrayBuffer())) as ArrayBuffer);
+    const sheet = wb.worksheets[0] as ExcelJS.Worksheet;
+    expect(sheet.getRow(1).values).toEqual(
+      expect.arrayContaining(['NIK', 'Jenis Kelamin', 'Telepon/WA', 'Email', 'Pendidikan']),
+    );
+    for (const col of TEACHER_TEXT_COLUMNS) expect(sheet.getColumn(col).numFmt).toBe('@');
   });
 });

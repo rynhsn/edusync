@@ -136,6 +136,7 @@ const KNOWN = [
   'reset_link_invalid',
   'ticket_closed',
   'invalid_assignee',
+  'nik_taken',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

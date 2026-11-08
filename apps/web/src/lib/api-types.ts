@@ -11701,7 +11701,7 @@ export interface paths {
         };
         /**
          * Daftar guru
-         * @description Izin: `teacher:read`. `q` mencari pada nama atau NIP.
+         * @description Izin: `teacher:read`. `q` mencari pada nama atau NIP. NIK utuh hanya dikembalikan bagi pemegang `teacher:manage`; yang lain hanya menerima `nikMasked` (empat digit terakhir).
          */
         get: {
             parameters: {
@@ -11732,6 +11732,21 @@ export interface paths {
                             status: "active" | "inactive";
                             /** Format: uuid */
                             memberId: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
+                            phone: string | null;
+                            email: string | null;
+                            /** @enum {string|null} */
+                            gender: "L" | "P" | null;
+                            birthPlace: string | null;
+                            /** Format: date */
+                            birthDate: string | null;
+                            address: string | null;
+                            /** @enum {string|null} */
+                            religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                            education: string | null;
                         }[];
                     };
                 };
@@ -11768,7 +11783,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah guru
-         * @description Izin: `teacher:manage`. NIP (bila diisi) harus unik di sekolah.
+         * @description Izin: `teacher:manage`. NIP dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`. NIK 16 digit, telepon dinormalkan ke digit berawalan 62, email, jenis kelamin (L/P), tempat dan tanggal lahir, alamat, agama, dan pendidikan terakhir opsional. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.
          */
         post: {
             parameters: {
@@ -11790,6 +11805,30 @@ export interface paths {
                          * @enum {string}
                          */
                         status?: "active" | "inactive";
+                        /** @default null */
+                        nik?: string | null;
+                        /** @default null */
+                        phone?: string | null;
+                        /** @default null */
+                        email?: ("" | string) | null;
+                        /**
+                         * @default null
+                         * @enum {string|null}
+                         */
+                        gender?: "L" | "P" | null;
+                        birthPlace?: string | null;
+                        /**
+                         * Format: date
+                         * @default null
+                         */
+                        birthDate?: string | null;
+                        address?: string | null;
+                        /**
+                         * @default null
+                         * @enum {string|null}
+                         */
+                        religion?: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                        education?: string | null;
                     };
                 };
             };
@@ -11809,6 +11848,21 @@ export interface paths {
                             status: "active" | "inactive";
                             /** Format: uuid */
                             memberId: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
+                            phone: string | null;
+                            email: string | null;
+                            /** @enum {string|null} */
+                            gender: "L" | "P" | null;
+                            birthPlace: string | null;
+                            /** Format: date */
+                            birthDate: string | null;
+                            address: string | null;
+                            /** @enum {string|null} */
+                            religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                            education: string | null;
                         };
                     };
                 };
@@ -11896,6 +11950,30 @@ export interface paths {
                          * @enum {string}
                          */
                         status?: "active" | "inactive";
+                        /** @default null */
+                        nik?: string | null;
+                        /** @default null */
+                        phone?: string | null;
+                        /** @default null */
+                        email?: ("" | string) | null;
+                        /**
+                         * @default null
+                         * @enum {string|null}
+                         */
+                        gender?: "L" | "P" | null;
+                        birthPlace?: string | null;
+                        /**
+                         * Format: date
+                         * @default null
+                         */
+                        birthDate?: string | null;
+                        address?: string | null;
+                        /**
+                         * @default null
+                         * @enum {string|null}
+                         */
+                        religion?: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                        education?: string | null;
                     };
                 };
             };
@@ -11915,6 +11993,21 @@ export interface paths {
                             status: "active" | "inactive";
                             /** Format: uuid */
                             memberId: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
+                            phone: string | null;
+                            email: string | null;
+                            /** @enum {string|null} */
+                            gender: "L" | "P" | null;
+                            birthPlace: string | null;
+                            /** Format: date */
+                            birthDate: string | null;
+                            address: string | null;
+                            /** @enum {string|null} */
+                            religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                            education: string | null;
                         };
                     };
                 };
@@ -12118,6 +12211,21 @@ export interface paths {
                             status: "active" | "inactive";
                             /** Format: uuid */
                             memberId: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
+                            phone: string | null;
+                            email: string | null;
+                            /** @enum {string|null} */
+                            gender: "L" | "P" | null;
+                            birthPlace: string | null;
+                            /** Format: date */
+                            birthDate: string | null;
+                            address: string | null;
+                            /** @enum {string|null} */
+                            religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                            education: string | null;
                         };
                     };
                 };
@@ -12209,7 +12317,7 @@ export interface paths {
         };
         /**
          * Daftar siswa
-         * @description Izin: `student:read`. `q` mencari pada nama, NIS, atau NISN. `classId` menyaring menurut kelas pada tahun ajaran aktif. Siswa yang dihapus tidak ditampilkan.
+         * @description Izin: `student:read`. `q` mencari pada nama, NIS, atau NISN. `classId` menyaring menurut kelas pada tahun ajaran aktif. `missingNik=true` hanya menampilkan siswa tanpa NIK. Siswa yang dihapus tidak ditampilkan. NIK utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.
          */
         get: {
             parameters: {
@@ -12217,6 +12325,8 @@ export interface paths {
                     q?: string;
                     classId?: string;
                     status?: "active" | "graduated" | "transferred" | "dropped";
+                    /** @description true: hanya siswa yang NIK-nya belum diisi */
+                    missingNik?: "true" | "false";
                     limit?: number;
                     offset?: number;
                 };
@@ -12238,7 +12348,10 @@ export interface paths {
                         "application/json": {
                             items: {
                                 birthPlace: string | null;
+                                /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
                                 nik: string | null;
+                                /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                                nikMasked: string | null;
                                 /** @enum {string|null} */
                                 religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
                                 address: string | null;
@@ -12263,6 +12376,8 @@ export interface paths {
                                 className: string | null;
                             }[];
                             total: number;
+                            /** @description Jumlah siswa (dengan saringan lain yang sama) yang NIK-nya belum diisi */
+                            missingNikTotal: number;
                         };
                     };
                 };
@@ -12299,7 +12414,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah siswa
-         * @description Izin: `student:manage`. NIS dan NISN (bila diisi) harus unik di sekolah. Data diri lain (tempat lahir, NIK 16 digit, agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: siswa langsung ditempatkan di kelas itu pada tahun ajaran kelasnya.
+         * @description Izin: `student:manage`. NIS, NISN, dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`. Data diri lain (tempat lahir, NIK 16 digit, agama, alamat, telepon/WA, email) opsional; telepon dinormalkan ke digit berawalan 62. `classId` opsional: siswa langsung ditempatkan di kelas itu pada tahun ajaran kelasnya.
          */
         post: {
             parameters: {
@@ -12330,6 +12445,7 @@ export interface paths {
                          */
                         status?: "active" | "graduated" | "transferred" | "dropped";
                         birthPlace?: string | null;
+                        /** @default null */
                         nik?: string | null;
                         /**
                          * @default null
@@ -12358,7 +12474,10 @@ export interface paths {
                     content: {
                         "application/json": {
                             birthPlace: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
                             nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
                             /** @enum {string|null} */
                             religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
                             address: string | null;
@@ -12481,7 +12600,10 @@ export interface paths {
                     content: {
                         "application/json": {
                             birthPlace: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
                             nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
                             /** @enum {string|null} */
                             religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
                             address: string | null;
@@ -12586,6 +12708,7 @@ export interface paths {
                          */
                         status?: "active" | "graduated" | "transferred" | "dropped";
                         birthPlace?: string | null;
+                        /** @default null */
                         nik?: string | null;
                         /**
                          * @default null
@@ -12609,7 +12732,10 @@ export interface paths {
                     content: {
                         "application/json": {
                             birthPlace: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
                             nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
                             /** @enum {string|null} */
                             religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
                             address: string | null;
@@ -12814,7 +12940,10 @@ export interface paths {
                     content: {
                         "application/json": {
                             birthPlace: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
                             nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
                             /** @enum {string|null} */
                             religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
                             address: string | null;
@@ -50258,7 +50387,7 @@ export interface paths {
         };
         /**
          * Wali seorang siswa
-         * @description Izin: `student:read`.
+         * @description Izin: `student:read`. NIK wali utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.
          */
         get: {
             parameters: {
@@ -50286,6 +50415,12 @@ export interface paths {
                             name: string;
                             phone: string | null;
                             email: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
+                            address: string | null;
+                            occupation: string | null;
                             /** @enum {string} */
                             relation: "father" | "mother" | "guardian" | "other";
                             isPrimary: boolean;
@@ -50341,7 +50476,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah wali untuk siswa
-         * @description Izin: `student:manage`. Kirim `guardianId` untuk menautkan wali yang sudah ada, atau `name` (dan opsional telepon dan email) untuk membuat wali baru. Telepon dinormalkan ke digit berawalan 62. Satu siswa hanya punya satu wali utama; menandai wali utama melepas tanda dari yang lain.
+         * @description Izin: `student:manage`. Kirim `guardianId` untuk menautkan wali yang sudah ada, atau `name` (dan opsional telepon, email, NIK 16 digit, alamat, pekerjaan) untuk membuat wali baru. Telepon dinormalkan ke digit berawalan 62. NIK wali harus unik di sekolah (409 `nik_taken`). Satu siswa hanya punya satu wali utama; menandai wali utama melepas tanda dari yang lain.
          */
         post: {
             parameters: {
@@ -50365,6 +50500,12 @@ export interface paths {
                         phone?: string;
                         /** @default  */
                         email?: "" | string;
+                        /** @default null */
+                        nik?: string | null;
+                        /** @default null */
+                        address?: string | null;
+                        /** @default null */
+                        occupation?: string | null;
                         /** @enum {string} */
                         relation: "father" | "mother" | "guardian" | "other";
                         /** @default false */
@@ -50385,6 +50526,12 @@ export interface paths {
                             name: string;
                             phone: string | null;
                             email: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
+                            address: string | null;
+                            occupation: string | null;
                             /** @enum {string} */
                             relation: "father" | "mother" | "guardian" | "other";
                             isPrimary: boolean;
@@ -50580,6 +50727,12 @@ export interface paths {
                         phone?: string;
                         /** @default  */
                         email?: "" | string;
+                        /** @default null */
+                        nik?: string | null;
+                        /** @default null */
+                        address?: string | null;
+                        /** @default null */
+                        occupation?: string | null;
                     };
                 };
             };
@@ -50596,6 +50749,12 @@ export interface paths {
                             name: string;
                             phone: string | null;
                             email: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
+                            address: string | null;
+                            occupation: string | null;
                         };
                     };
                 };
@@ -50629,6 +50788,20 @@ export interface paths {
                 };
                 /** @description Default Response */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -50697,6 +50870,12 @@ export interface paths {
                             name: string;
                             phone: string | null;
                             email: string | null;
+                            /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nik: string | null;
+                            /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                            nikMasked: string | null;
+                            address: string | null;
+                            occupation: string | null;
                             /** @enum {string} */
                             relation: "father" | "mother" | "guardian" | "other";
                             isPrimary: boolean;
@@ -50870,7 +51049,10 @@ export interface paths {
                                 name: string;
                                 nis: string | null;
                                 nisn: string | null;
+                                /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
                                 nik: string | null;
+                                /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                                nikMasked: string | null;
                                 /** @enum {string} */
                                 gender: "L" | "P";
                                 birthPlace: string | null;
@@ -50890,6 +51072,12 @@ export interface paths {
                                     relation: "father" | "mother" | "guardian" | "other";
                                     phone: string | null;
                                     email: string | null;
+                                    /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                                    nik: string | null;
+                                    /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                                    nikMasked: string | null;
+                                    address: string | null;
+                                    occupation: string | null;
                                     isPrimary: boolean;
                                 }[];
                             }[];
@@ -50946,7 +51134,7 @@ export interface paths {
         put?: never;
         /**
          * Impor siswa (pratinjau atau simpan)
-         * @description Izin: `student:manage`. Maksimal 1000 baris. Dengan `dryRun: true` hanya memeriksa dan melaporkan kesalahan per baris. Tanpa `dryRun`, siswa baru disimpan hanya bila semua baris valid. Kelas (`className`) dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah. Data diri opsional: `nik` (16 digit), `birthPlace`, `religion` (Islam, Kristen, Katolik, Hindu, Buddha, Konghucu, Lainnya, atau padanan Inggris), `address`, `phone`, `email`. Dua wali per baris (`g1*` wali utama, `g2*`): hubungan Ayah/Ibu/Wali/Lainnya (kosong: wali 1 ayah, wali 2 ibu); nama wajib bila ada isian lain pada blok itu. Wali dipakai ulang bila telepon (setelah dinormalkan) sama dengan wali yang sudah ada di sekolah atau yang dibuat lebih awal di file yang sama; selain itu wali baru dibuat.
+         * @description Izin: `student:manage`. Maksimal 1000 baris. Dengan `dryRun: true` hanya memeriksa dan melaporkan kesalahan per baris. Tanpa `dryRun`, siswa baru disimpan hanya bila semua baris valid. Kelas (`className`) dicocokkan dengan nama kelas pada tahun ajaran aktif; NIS dan NISN harus unik di file dan di sekolah. Data diri opsional: `nik` (16 digit), `birthPlace`, `religion` (Islam, Kristen, Katolik, Hindu, Buddha, Konghucu, Lainnya, atau padanan Inggris), `address`, `phone`, `email`. Dua wali per baris (`g1*` wali utama, `g2*`): hubungan Ayah/Ibu/Wali/Lainnya (kosong: wali 1 ayah, wali 2 ibu); nama wajib bila ada isian lain pada blok itu. Blok wali juga menerima `g1Nik`/`g2Nik` (16 digit), `g1Address`, `g1Occupation`. NIK siswa harus unik di file dan di sekolah. Wali dipakai ulang bila NIK, atau telepon (setelah dinormalkan), sama dengan wali yang sudah ada di sekolah atau yang dibuat lebih awal di file yang sama; selain itu wali baru dibuat.
          */
         post: {
             parameters: {
@@ -50998,6 +51186,12 @@ export interface paths {
                             /** @default  */
                             g1Email?: string;
                             /** @default  */
+                            g1Nik?: string;
+                            /** @default  */
+                            g1Address?: string;
+                            /** @default  */
+                            g1Occupation?: string;
+                            /** @default  */
                             g2Name?: string;
                             /** @default  */
                             g2Relation?: string;
@@ -51005,6 +51199,12 @@ export interface paths {
                             g2Phone?: string;
                             /** @default  */
                             g2Email?: string;
+                            /** @default  */
+                            g2Nik?: string;
+                            /** @default  */
+                            g2Address?: string;
+                            /** @default  */
+                            g2Occupation?: string;
                         }[];
                     };
                 };
@@ -51089,7 +51289,7 @@ export interface paths {
         put?: never;
         /**
          * Impor guru (pratinjau atau simpan)
-         * @description Izin: `teacher:manage`. Maksimal 1000 baris. `dryRun: true` hanya memeriksa. Tanpa `dryRun`, guru disimpan hanya bila semua baris valid. NIP harus unik di file dan di sekolah; status kosong berarti aktif.
+         * @description Izin: `teacher:manage`. Maksimal 1000 baris. `dryRun: true` hanya memeriksa. Tanpa `dryRun`, guru disimpan hanya bila semua baris valid. NIP dan NIK harus unik di file dan di sekolah; status kosong berarti aktif. Data diri opsional: `nik` (16 digit), `gender` (L/P), `phone` (dinormalkan ke 62), `email`, `birthPlace`, `birthDate` (TTTT-BB-HH), `address`, `religion`, `education`. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.
          */
         post: {
             parameters: {
@@ -51113,6 +51313,24 @@ export interface paths {
                             nip?: string;
                             /** @default  */
                             status?: string;
+                            /** @default  */
+                            nik?: string;
+                            /** @default  */
+                            gender?: string;
+                            /** @default  */
+                            phone?: string;
+                            /** @default  */
+                            email?: string;
+                            /** @default  */
+                            birthPlace?: string;
+                            /** @default  */
+                            birthDate?: string;
+                            /** @default  */
+                            address?: string;
+                            /** @default  */
+                            religion?: string;
+                            /** @default  */
+                            education?: string;
                         }[];
                     };
                 };

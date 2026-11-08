@@ -41,6 +41,9 @@ export async function exportStudentsExcel(opts: {
       g ? (RELATION_LABEL[g.relation] ?? '') : '',
       g?.phone ?? '',
       g?.email ?? '',
+      g?.nik ?? '',
+      g?.address ?? '',
+      g?.occupation ?? '',
     ];
     return [
       s.name,

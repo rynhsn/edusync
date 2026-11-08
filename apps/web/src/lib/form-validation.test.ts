@@ -145,11 +145,49 @@ describe('todayIso', () => {
 });
 
 describe('validateTeacher', () => {
+  const blankTeacher = {
+    name: 'Budi',
+    nip: '',
+    nik: '',
+    birthPlace: '',
+    birthDate: '',
+    education: '',
+    phone: '',
+    email: '',
+    address: '',
+  };
+
   it('nama wajib, NIP opsional dengan format yang sama dengan API', () => {
-    expect(validateTeacher({ name: 'Budi', nip: '' })).toEqual({});
-    expect(validateTeacher({ name: ' ', nip: '19800101 1' })).toEqual({
+    expect(validateTeacher(blankTeacher, TODAY)).toEqual({});
+    expect(validateTeacher({ ...blankTeacher, name: ' ', nip: '19800101 1' }, TODAY)).toEqual({
       name: { code: 'required' },
       nip: { code: 'idFormat' },
+    });
+  });
+
+  it('NIK, telepon, email, tanggal lahir, dan batas panjang mengikuti aturan siswa', () => {
+    const full = {
+      ...blankTeacher,
+      nik: '3201234567890001',
+      phone: '0812-3456-7890',
+      email: 'budi@contoh.sch.id',
+      birthDate: '1980-01-01',
+      education: 'S1 Pendidikan',
+    };
+    expect(validateTeacher(full, TODAY)).toEqual({});
+    expect(validateTeacher({ ...full, nik: '12345' }, TODAY).nik).toEqual({ code: 'nik' });
+    expect(validateTeacher({ ...full, phone: 'abc' }, TODAY).phone).toEqual({ code: 'phone' });
+    expect(validateTeacher({ ...full, email: 'budi@' }, TODAY).email).toEqual({ code: 'email' });
+    expect(validateTeacher({ ...full, birthDate: '2030-01-01' }, TODAY).birthDate).toEqual({
+      code: 'dateFuture',
+    });
+    expect(validateTeacher({ ...full, education: 'x'.repeat(121) }, TODAY).education).toEqual({
+      code: 'tooLong',
+      max: 120,
+    });
+    expect(validateTeacher({ ...full, address: 'x'.repeat(301) }, TODAY).address).toEqual({
+      code: 'tooLong',
+      max: 300,
     });
   });
 });

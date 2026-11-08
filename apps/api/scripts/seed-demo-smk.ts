@@ -1414,6 +1414,16 @@ const result = await db.transaction(async (tx) => {
         nip,
         memberId: email ? memberIdOf.get(email)! : null,
         status: 'active' as const,
+        // Data diri contoh: NIK jelas palsu (awalan 88888888), semuanya deterministik dan unik.
+        nik: `88888888${pad(i + 1, 8)}`,
+        phone: `62812${pad(i + 1, 8)}`,
+        email: `guru${pad(i + 1, 2)}@guru.example`,
+        gender: t.gender === 1 ? ('L' as const) : ('P' as const),
+        birthPlace: BIRTH_PLACES[i % BIRTH_PLACES.length],
+        birthDate: `${by}-${pad(1 + (i % 12), 2)}-${pad(1 + ((i * 5) % 28), 2)}`,
+        address: `Jl. Pendidik No. ${(i % 60) + 1}, RT 0${(i % 5) + 1}/RW 0${(i % 3) + 1}`,
+        religion: i % 10 === 0 ? ('christian' as const) : ('islam' as const),
+        education: ['S1 Pendidikan', 'S1 Pendidikan', 'S2 Pendidikan', 'D4 Teknik'][i % 4],
       };
     }),
   );
@@ -1447,7 +1457,25 @@ const result = await db.transaction(async (tx) => {
   const guardianRows = await ins(
     tx,
     guardian,
-    guardianList.map((g) => ({ schoolId, name: g.name, phone: g.phone, email: g.email })),
+    guardianList.map((g, i) => ({
+      schoolId,
+      name: g.name,
+      phone: g.phone,
+      email: g.email,
+      // NIK contoh jelas palsu (awalan 99999999), unik menurut urutan; tanpa angka acak agar data lain tidak bergeser.
+      nik: `99999999${pad(i + 1, 8)}`,
+      address: `Jl. Contoh No. ${(i % 90) + 1}, RT 0${(i % 5) + 1}/RW 0${(i % 3) + 1}`,
+      occupation: [
+        'Wiraswasta',
+        'Petani',
+        'Karyawan Swasta',
+        'Pedagang',
+        'Buruh',
+        'PNS',
+        'Guru',
+        'Ibu Rumah Tangga',
+      ][i % 8],
+    })),
   );
   const studentRows = await ins(
     tx,

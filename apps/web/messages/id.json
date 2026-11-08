@@ -18,6 +18,15 @@
     "showPassword": "Tampilkan kata sandi",
     "hidePassword": "Sembunyikan kata sandi",
     "loginIdentityHint": "NIK, nomor HP, dan email dipakai untuk masuk dan pemulihan akun.",
+    "dataComplete": "Data lengkap",
+    "nikMissing": "NIK belum diisi",
+    "contactIncomplete": "Kontak belum lengkap",
+    "completenessHeader": "Kelengkapan data",
+    "nikMissingCount": "{count} belum punya NIK",
+    "filterNikMissing": "Belum punya NIK",
+    "sectionIdentity": "Identitas",
+    "sectionContact": "Kontak",
+    "sectionAddress": "Alamat",
     "pickDate": "Pilih tanggal",
     "clearDate": "Hapus tanggal",
     "cancel": "Batal",
@@ -629,6 +638,7 @@
     "account_not_found": "Belum ada akun dengan email itu. Minta orangnya mendaftar dulu.",
     "already_member": "Orang ini sudah menjadi anggota sekolah.",
     "account_taken": "Akun itu sudah ditautkan ke guru lain.",
+    "nik_taken": "NIK itu sudah dipakai orang lain di sekolah ini.",
     "invalid_member": "Akun harus anggota aktif sekolah ini.",
     "teacher_linked": "Guru ini sudah punya akun login.",
     "last_admin": "Sekolah harus memiliki minimal satu admin sekolah yang aktif.",
@@ -1608,6 +1618,13 @@
     "title": "Guru",
     "subtitle": "Guru dan pegawai pengajar. Akun login dikelola di menu Anggota.",
     "addTitle": "Tambah guru",
+    "nik": "NIK",
+    "education": "Pendidikan terakhir",
+    "educationHint": "Mis. S1 Pendidikan Matematika",
+    "phone": "Telepon / WhatsApp",
+    "email": "Email",
+    "address": "Alamat",
+    "contactHint": "Mis. 0812xxxx; disimpan sebagai 62812xxxx.",
     "nip": "NIP",
     "status": "Status",
     "active": "Aktif",
@@ -1696,7 +1713,13 @@
       "g2Name": "Wali 2 Nama",
       "g2Relation": "Wali 2 Hubungan",
       "g2Phone": "Wali 2 Telepon/WA",
-      "g2Email": "Wali 2 Email"
+      "g2Email": "Wali 2 Email",
+      "g1Nik": "Wali 1 NIK",
+      "g1Address": "Wali 1 Alamat",
+      "g1Occupation": "Wali 1 Pekerjaan",
+      "g2Nik": "Wali 2 NIK",
+      "g2Address": "Wali 2 Alamat",
+      "g2Occupation": "Wali 2 Pekerjaan"
     }
   },
   "teacherImport": {
@@ -1729,7 +1752,16 @@
     "fields": {
       "name": "Nama",
       "nip": "NIP",
-      "status": "Status"
+      "status": "Status",
+      "nik": "NIK",
+      "gender": "Jenis Kelamin",
+      "phone": "Telepon/WA",
+      "email": "Email",
+      "birthPlace": "Tempat Lahir",
+      "birthDate": "Tanggal Lahir",
+      "address": "Alamat",
+      "religion": "Agama",
+      "education": "Pendidikan"
     }
   },
   "guardians": {
@@ -1763,7 +1795,11 @@
     "siblings": "menaungi {count} siswa",
     "noMatch": "Tidak ada hasil.",
     "linkAction": "Tautkan",
-    "invalidPhone": "Nomor telepon tidak valid."
+    "invalidPhone": "Nomor telepon tidak valid.",
+    "nik": "NIK wali",
+    "address": "Alamat",
+    "occupation": "Pekerjaan",
+    "editTitle": "Ubah data wali"
   },
   "curriculumBank": {
     "title": "Ambil dari bank data kurikulum",
