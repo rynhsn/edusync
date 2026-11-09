@@ -26,6 +26,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { semesterLabel } from '@/lib/semester-label';
 import { cn } from '@/lib/utils';
 import { GeoPattern, TahfidzBanner } from '../shared';
 import { IBADAH_ITEM_ORDER, type IbadahItemField, validateIbadahItem } from '../tahfidz-validation';
@@ -423,7 +424,7 @@ function TargetsSection() {
             {semesters.data?.length === 0 && <option value="">{t('chooseSemester')}</option>}
             {semesters.data?.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name}
+                {semesterLabel(s)}
               </option>
             ))}
           </SelectField>

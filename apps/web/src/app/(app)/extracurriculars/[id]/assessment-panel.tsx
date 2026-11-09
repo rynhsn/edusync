@@ -13,6 +13,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { semesterLabel } from '@/lib/semester-label';
 import { PREDICATES, type Predicate } from '../shared';
 
 interface Row {
@@ -97,7 +98,7 @@ export function AssessmentPanel({ id, canWrite }: { id: string; canWrite: boolea
           {semesters.data?.length === 0 && <option value="">{t('chooseSemester')}</option>}
           {semesters.data?.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.name}
+              {semesterLabel(s)}
             </option>
           ))}
         </SelectField>

@@ -48985,7 +48985,7 @@ export interface paths {
         };
         /**
          * Daftar semester
-         * @description Izin: `academic_year:read`. Tanpa `academicYearId`, semua semester ditampilkan.
+         * @description Izin: `academic_year:read`. Tanpa `academicYearId`, semua semester ditampilkan. Setiap semester membawa `academicYearName` supaya label tidak ambigu ketika ada lebih dari satu tahun ajaran.
          */
         get: {
             parameters: {
@@ -49012,6 +49012,7 @@ export interface paths {
                             id: string;
                             /** Format: uuid */
                             academicYearId: string;
+                            academicYearName?: string;
                             name: string;
                             /** Format: date */
                             startsOn: string;
@@ -49107,6 +49108,7 @@ export interface paths {
                             id: string;
                             /** Format: uuid */
                             academicYearId: string;
+                            academicYearName?: string;
                             name: string;
                             /** Format: date */
                             startsOn: string;
@@ -49232,6 +49234,7 @@ export interface paths {
                             id: string;
                             /** Format: uuid */
                             academicYearId: string;
+                            academicYearName?: string;
                             name: string;
                             /** Format: date */
                             startsOn: string;
@@ -49352,6 +49355,7 @@ export interface paths {
                             id: string;
                             /** Format: uuid */
                             academicYearId: string;
+                            academicYearName?: string;
                             name: string;
                             /** Format: date */
                             startsOn: string;
@@ -49564,6 +49568,7 @@ export interface paths {
                             id: string;
                             /** Format: uuid */
                             academicYearId: string;
+                            academicYearName?: string;
                             name: string;
                             /** Format: date */
                             startsOn: string;
@@ -50760,6 +50765,124 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/guardians/directory": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Data wali (daftar berhalaman)
+         * @description Izin: `student:read`. Daftar semua wali sekolah untuk halaman Data wali, urut nama. `q` mencari pada nama, email, nama anak, NIK (angka), dan telepon (0812… cocok dengan 62812…). `missingNik=true` hanya wali tanpa NIK. `portal`: `has` (punya akun portal), `invited` (undangan terbuka belum kedaluwarsa), `none` (belum punya akun dan belum diundang). `studentId` hanya wali siswa itu. Tiap wali memuat anak (maksimal 10, jumlah penuh di `childCount`), status portal, dan email akun portal yang disamarkan. `totals` berlaku untuk seluruh sekolah (tanpa saringan). NIK utuh hanya untuk pemegang `student:manage`; yang lain menerima `nikMasked`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    q?: string;
+                    /** @description true: hanya wali yang NIK-nya belum diisi */
+                    missingNik?: "true" | "false";
+                    portal?: "has" | "none" | "invited";
+                    studentId?: string;
+                    page?: number;
+                    limit?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                                nik: string | null;
+                                /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                                nikMasked: string | null;
+                                phone: string | null;
+                                email: string | null;
+                                occupation: string | null;
+                                address: string | null;
+                                /** @description Jumlah siswa yang dinaungi (semua, bukan hanya yang tampil) */
+                                childCount: number;
+                                children: {
+                                    /** Format: uuid */
+                                    studentId: string;
+                                    name: string;
+                                    className: string | null;
+                                    /** @enum {string} */
+                                    relation: "father" | "mother" | "guardian" | "other";
+                                    isPrimary: boolean;
+                                }[];
+                                /** @enum {string} */
+                                portalStatus: "active" | "invited" | "none";
+                                /** @description Email akun portal, disamarkan; null bila belum ada akun */
+                                portalEmailMasked: string | null;
+                            }[];
+                            /** @description Jumlah wali yang cocok dengan saringan */
+                            total: number;
+                            page: number;
+                            limit: number;
+                            totals: {
+                                total: number;
+                                withoutNik: number;
+                                /** @description Belum punya akun portal dan belum diundang */
+                                withoutPortal: number;
+                                invited: number;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/guardians/{id}": {
         parameters: {
             query?: never;
@@ -50882,7 +51005,94 @@ export interface paths {
             };
         };
         post?: never;
-        delete?: never;
+        /**
+         * Hapus data wali
+         * @description Izin: `student:manage`. Hanya wali yang tidak menaungi siswa mana pun dan tidak punya akun portal; selain itu 409 `guardian_in_use` (lepas dulu dari siswa atau cabut akun portalnya). Undangan portal yang belum dipakai ikut dihapus. Wali yang riwayatnya masih dirujuk (mis. pesan) juga 409 `guardian_in_use`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;

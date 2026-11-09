@@ -21,6 +21,7 @@ import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
+import { semesterLabel } from '@/lib/semester-label';
 import { ExamDialog, type ExamLike } from './exam-dialog';
 
 type ExamRow = ExamLike & {
@@ -133,7 +134,7 @@ export function ExamsView() {
             <option value="">{t('allSemesters')}</option>
             {(semesters.data ?? []).map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name} · {s.startsOn.slice(0, 4)}
+                {semesterLabel(s)}
               </option>
             ))}
           </SelectField>

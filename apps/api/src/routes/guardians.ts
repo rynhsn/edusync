@@ -8,6 +8,8 @@ import {
   isNull,
   ne,
   or,
+  portalInvite,
+  portalLink,
   student,
   studentGuardian,
   type Tx,
@@ -16,6 +18,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { CHILD_CAP, guardianDirectory } from '../guardian-directory';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
 import { nikConflictAs409, nikField, nikOut, nikView } from '../person-fields';
@@ -188,6 +191,142 @@ export async function guardianRoutes(instance: FastifyInstance) {
           .orderBy(asc(guardian.name))
           .limit(20),
       );
+    },
+  );
+
+  app.get(
+    '/v1/guardians/directory',
+    {
+      onRequest: [requirePermission('student:read')],
+      schema: {
+        tags: ['People'],
+        summary: 'Data wali (daftar berhalaman)',
+        description:
+          'Izin: `student:read`. Daftar semua wali sekolah untuk halaman Data wali, urut nama. `q` mencari pada nama, ' +
+          'email, nama anak, NIK (angka), dan telepon (0812… cocok dengan 62812…). `missingNik=true` hanya wali tanpa ' +
+          'NIK. `portal`: `has` (punya akun portal), `invited` (undangan terbuka belum kedaluwarsa), `none` (belum ' +
+          'punya akun dan belum diundang). `studentId` hanya wali siswa itu. Tiap wali memuat anak (maksimal ' +
+          `${CHILD_CAP}, jumlah penuh di \`childCount\`), status portal, dan email akun portal yang disamarkan. ` +
+          '`totals` berlaku untuk seluruh sekolah (tanpa saringan). NIK utuh hanya untuk pemegang `student:manage`; ' +
+          'yang lain menerima `nikMasked`.',
+        headers: schoolHeader,
+        querystring: z.object({
+          q: z.string().trim().max(80).optional(),
+          missingNik: z
+            .enum(['true', 'false'])
+            .transform((v) => v === 'true')
+            .optional()
+            .describe('true: hanya wali yang NIK-nya belum diisi'),
+          portal: z.enum(['has', 'none', 'invited']).optional(),
+          studentId: z.uuid().optional(),
+          page: z.coerce.number().int().min(1).default(1),
+          limit: z.coerce.number().int().min(1).max(100).default(25),
+        }),
+        response: {
+          200: z.object({
+            items: z.array(
+              z.object({
+                id: z.uuid(),
+                name: z.string(),
+                ...nikOut,
+                phone: z.string().nullable(),
+                email: z.string().nullable(),
+                occupation: z.string().nullable(),
+                address: z.string().nullable(),
+                childCount: z
+                  .number()
+                  .int()
+                  .describe('Jumlah siswa yang dinaungi (semua, bukan hanya yang tampil)'),
+                children: z.array(
+                  z.object({
+                    studentId: z.uuid(),
+                    name: z.string(),
+                    className: z.string().nullable(),
+                    relation: z.enum(RELATIONS),
+                    isPrimary: z.boolean(),
+                  }),
+                ),
+                portalStatus: z.enum(['active', 'invited', 'none']),
+                portalEmailMasked: z
+                  .string()
+                  .nullable()
+                  .describe('Email akun portal, disamarkan; null bila belum ada akun'),
+              }),
+            ),
+            total: z.number().int().describe('Jumlah wali yang cocok dengan saringan'),
+            page: z.number().int(),
+            limit: z.number().int(),
+            totals: z.object({
+              total: z.number().int(),
+              withoutNik: z.number().int(),
+              withoutPortal: z.number().int().describe('Belum punya akun portal dan belum diundang'),
+              invited: z.number().int(),
+            }),
+          }),
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const canManage = (request.ctx as TenantContext).permissions.has('student:manage');
+      return tenant(request, (tx) => guardianDirectory(tx, canManage, request.query));
+    },
+  );
+
+  app.delete(
+    '/v1/guardians/:id',
+    {
+      onRequest: [requirePermission('student:manage')],
+      schema: {
+        tags: ['People'],
+        summary: 'Hapus data wali',
+        description:
+          'Izin: `student:manage`. Hanya wali yang tidak menaungi siswa mana pun dan tidak punya akun portal; selain itu ' +
+          '409 `guardian_in_use` (lepas dulu dari siswa atau cabut akun portalnya). Undangan portal yang belum dipakai ' +
+          'ikut dihapus. Wali yang riwayatnya masih dirujuk (mis. pesan) juga 409 `guardian_in_use`.',
+        headers: schoolHeader,
+        params: idParams,
+        response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const inUse = () =>
+        new HttpError(
+          409,
+          'guardian_in_use',
+          'Wali ini masih terhubung dengan siswa atau akun portal, sehingga tidak bisa dihapus.',
+        );
+      await tenant(request, async (tx) => {
+        const [g] = await tx
+          .select({ id: guardian.id, name: guardian.name })
+          .from(guardian)
+          .where(eq(guardian.id, request.params.id));
+        if (!g) throw notFound('Wali');
+        const [kids] = await tx
+          .select({ n: count() })
+          .from(studentGuardian)
+          .where(eq(studentGuardian.guardianId, g.id));
+        if ((kids?.n ?? 0) > 0) throw inUse();
+        const [account] = await tx
+          .select({ id: portalLink.id })
+          .from(portalLink)
+          .where(eq(portalLink.guardianId, g.id))
+          .limit(1);
+        if (account) throw inUse();
+        try {
+          // Savepoint: bila ada rujukan lain, penghapusan undangan ikut dibatalkan.
+          await tx.transaction(async (sp) => {
+            await sp.delete(portalInvite).where(eq(portalInvite.guardianId, g.id));
+            await sp.delete(guardian).where(eq(guardian.id, g.id));
+          });
+        } catch (error) {
+          if (isForeignKeyViolation(error)) throw inUse();
+          throw error;
+        }
+        await audit(tx, ctx, 'guardian.delete', 'guardian', g.id, { name: g.name });
+      });
+      return { ok: true as const };
     },
   );
 

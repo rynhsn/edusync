@@ -57,7 +57,7 @@ export const CORE_DOCS: DocArticle[] = [
               'Untuk wali yang sudah ada (misalnya orang tua kakaknya), ketik minimal 2 huruf nama atau telepon pada Tautkan wali yang sudah ada, lalu klik Tautkan.',
               'Centang Jadikan wali utama, atau klik Jadikan utama pada wali yang sudah tertaut. Klik Lepas untuk melepas wali dari siswa itu.',
             ],
-            tip: 'Untuk kakak-adik, jangan buat wali baru. Tautkan wali yang sudah ada supaya datanya tidak ganda.',
+            tip: 'Untuk kakak-adik, jangan buat wali baru. Tautkan wali yang sudah ada supaya datanya tidak ganda. Semua wali sekolah juga bisa dilihat dan diubah sekaligus di menu Data wali (lihat panduan Data wali).',
           },
           {
             heading: 'Mendaftarkan kartu untuk satu siswa',
@@ -147,7 +147,7 @@ export const CORE_DOCS: DocArticle[] = [
               'For an existing guardian (for example the parent of an older sibling), type at least 2 letters of the name or phone under Link an existing guardian, then click Link.',
               'Tick Make primary guardian, or click Make primary on a linked guardian. Click Remove to detach a guardian from that student.',
             ],
-            tip: 'For siblings, do not create a new guardian. Link the existing one so the details are not duplicated.',
+            tip: 'For siblings, do not create a new guardian. Link the existing one so the details are not duplicated. All guardians at the school can also be viewed and edited in one place in the Guardians menu (see the Guardians guide).',
           },
           {
             heading: 'Registering a card for one student',
@@ -236,7 +236,7 @@ export const CORE_DOCS: DocArticle[] = [
               'Pikeun wali nu geus aya (upamana kolot lanceukna), ketik sahenteuna 2 hurup ngaran atawa telepon dina Tumbu wali nu geus aya, tuluy klik Tumbu.',
               'Centang Jadikeun wali utama, atawa klik Jadikeun utama dina wali nu geus katumbu. Klik Lepas pikeun ngalepas wali tina murid éta.',
             ],
-            tip: 'Pikeun lanceuk-adi, ulah nyieun wali anyar. Tumbu wali nu geus aya sangkan datana teu ganda.',
+            tip: 'Pikeun lanceuk-adi, ulah nyieun wali anyar. Tumbu wali nu geus aya sangkan datana teu ganda. Sakabéh wali sakola ogé bisa katempo jeung dirobah sakaligus dina menu Data wali (tingali pituduh Data wali).',
           },
           {
             heading: 'Ngadaptarkeun kartu pikeun hiji murid',
@@ -274,6 +274,191 @@ export const CORE_DOCS: DocArticle[] = [
           {
             q: 'Kuring teu ningali tombol Tambih murid atawa menu Wali. Naha?',
             a: 'Ngan Admin sakola jeung Operator nu bisa ngarobah data murid. Peran séjén ngan bisa ningali. Menta Admin sakola ngarobah peran Anjeun dina menu Anggota.',
+          },
+        ],
+      },
+    },
+  },
+  {
+    slug: 'guardians',
+    icon: 'users',
+    tone: 'sky',
+    group: 'master',
+    text: {
+      id: {
+        title: 'Data wali',
+        summary:
+          'Lihat semua wali murid dalam satu daftar, lengkapi NIK dan kontaknya, undang ke portal, dan hapus wali yang tidak terpakai.',
+        forWho:
+          'Admin sekolah dan operator TU yang mengurus data wali; guru, bendahara, dan Kepala sekolah hanya bisa melihat.',
+        sections: [
+          {
+            heading: 'Apa isi halaman Data wali',
+            body: 'Menu Data wali di kelompok Data induk memuat semua wali murid sekolah, tidak hanya wali satu siswa. Tiap baris menampilkan nama dan lencana Kelengkapan data, NIK, HP, email, daftar anak beserta kelasnya, dan status akun portal (Aktif, Diundang, atau Belum). Kartu di bagian atas menghitung Total wali, wali yang Belum punya NIK, dan wali yang Belum punya akun portal. NIK lengkap hanya terlihat oleh pengguna yang boleh mengelola data siswa; yang lain hanya melihat empat digit terakhir.',
+            href: '/guardians',
+          },
+          {
+            heading: 'Mencari dan menyaring wali',
+            body: 'Kotak pencarian mengenali nama wali, email, nama anak, NIK (cukup angkanya), dan nomor HP (0812… dan 62812… sama-sama ditemukan). Saringan di sebelahnya: Semua, Belum punya NIK, Belum punya akun portal, dan Sudah punya akun. Klik nama anak untuk membuka halaman Siswa yang sudah dicari dengan nama itu.',
+            steps: [
+              'Buka menu Data wali.',
+              'Ketik kata kunci; hasil muncul setelah Anda berhenti mengetik sebentar.',
+              'Klik saringan Belum punya NIK untuk menemukan wali yang datanya perlu dilengkapi.',
+            ],
+            tip: 'NIK, HP, dan email wali dipakai untuk masuk dan memulihkan kata sandi. Wali yang Belum punya NIK dan tanpa HP atau email tidak bisa memulihkan akunnya sendiri.',
+          },
+          {
+            heading: 'Mengubah data wali',
+            body: 'Klik baris wali atau pilih Ubah di menu baris. Isian dan aturannya sama dengan panel Wali pada tiap siswa; isian yang salah ditandai merah. Perubahan berlaku untuk semua anak wali itu.',
+            steps: [
+              'Pilih Ubah pada wali tersebut.',
+              'Lengkapi NIK (16 digit), telepon, email, alamat, atau pekerjaan.',
+              'Klik Simpan.',
+            ],
+          },
+          {
+            heading: 'Mengundang wali ke portal',
+            body: 'Bila modul Portal wali aktif, pilih Undang ke portal pada wali yang sudah punya anak dan belum punya akun. Email boleh diisi; bila diisi, tautan juga dikirim ke email itu dan akun hanya bisa dibuat dengan email tersebut. Tautan tampil sekali saja dengan tombol Salin dan berlaku 14 hari.',
+            steps: [
+              'Pilih Undang ke portal pada wali tersebut.',
+              'Isi email bila perlu, lalu klik Buat tautan.',
+              'Klik Salin dan kirim tautan itu kepada wali.',
+            ],
+            tip: 'Status Diundang berarti ada undangan yang belum dipakai dan belum kedaluwarsa. Mengundang lagi mencabut undangan lama.',
+          },
+          {
+            heading: 'Menghapus wali',
+            body: 'Hapus hanya tersedia untuk wali yang tidak menaungi siswa mana pun dan tidak punya akun portal. Wali yang masih terhubung ditolak dengan pesan bahwa wali itu masih dipakai.',
+            warning:
+              'Hapus bersifat permanen. Untuk wali yang masih punya anak, lepaskan dulu dari panel Wali pada siswa, atau cabut akun portalnya di menu Akun portal.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Wali yang baru saya tambahkan tidak muncul di daftar.',
+            a: 'Periksa kotak pencarian dan saringan, lalu klik Hapus saringan. Wali ditambahkan lewat tombol Wali pada siswa atau saat impor Excel siswa, dan langsung muncul di sini.',
+          },
+          {
+            q: 'Tombol Undang ke portal tidak ada.',
+            a: 'Tombol hanya tampil bila modul Portal wali aktif, wali punya minimal satu anak, dan wali belum punya akun portal.',
+          },
+        ],
+      },
+      en: {
+        title: 'Guardians',
+        summary:
+          'See every guardian in one list, complete their NIK and contact details, invite them to the portal, and delete unused guardians.',
+        forWho:
+          'School admins and administration staff who look after guardian records; teachers, the treasurer, and the Principal can only view.',
+        sections: [
+          {
+            heading: 'What the Guardians page shows',
+            body: 'The Guardians menu in the Master data group lists every guardian at the school, not just the guardians of one student. Each row shows the name with a Data completeness badge, NIK, phone, email, the children with their classes, and the portal account status (Active, Invited, or None). The cards at the top count Total guardians, guardians with No NIK yet, and guardians with No portal account. The full NIK is visible only to users who can manage student data; everyone else sees just the last four digits.',
+            href: '/guardians',
+          },
+          {
+            heading: 'Searching and filtering guardians',
+            body: 'The search box recognises the guardian name, email, a child name, the NIK (digits are enough), and the phone number (0812… and 62812… both match). The filters next to it are All, No NIK yet, No portal account, and Has an account. Click a child name to open the Students page already searched for that name.',
+            steps: [
+              'Open the Guardians menu.',
+              'Type a keyword; results appear shortly after you stop typing.',
+              'Click the No NIK yet filter to find guardians whose details need completing.',
+            ],
+            tip: 'A guardian NIK, phone, and email are used for signing in and password recovery. A guardian with no NIK and no phone or email cannot recover the account alone.',
+          },
+          {
+            heading: 'Editing a guardian',
+            body: 'Click the guardian row or choose Edit in the row menu. The fields and rules are the same as the Guardians panel on each student; wrong fields are marked in red. Changes apply to all of that guardian children.',
+            steps: [
+              'Choose Edit on the guardian.',
+              'Complete the NIK (16 digits), phone, email, address, or occupation.',
+              'Click Save.',
+            ],
+          },
+          {
+            heading: 'Inviting a guardian to the portal',
+            body: 'When the Parent portal module is on, choose Invite to portal on a guardian who has at least one child and no account yet. An email is optional; if filled, the link is also emailed and the account can only be created with that email. The link is shown once with a Copy button and is valid for 14 days.',
+            steps: [
+              'Choose Invite to portal on the guardian.',
+              'Fill in the email if needed, then click Create link.',
+              'Click Copy and send the link to the guardian.',
+            ],
+            tip: 'The Invited status means an invitation exists that is unused and not expired. Inviting again revokes the old invitation.',
+          },
+          {
+            heading: 'Deleting a guardian',
+            body: 'Delete is only available for a guardian who looks after no student and has no portal account. A guardian who is still linked is refused with a message that the guardian is still in use.',
+            warning:
+              'Deleting is permanent. For a guardian who still has children, first unlink them in the Guardians panel on the student, or revoke the portal account in the Portal accounts menu.',
+          },
+        ],
+        faq: [
+          {
+            q: 'A guardian I just added is not in the list.',
+            a: 'Check the search box and the filters, then click Clear filters. Guardians are added with the Guardian button on a student or through the student Excel import, and show up here right away.',
+          },
+          {
+            q: 'There is no Invite to portal button.',
+            a: 'The button only appears when the Parent portal module is on, the guardian has at least one child, and the guardian has no portal account yet.',
+          },
+        ],
+      },
+      su: {
+        title: 'Data wali',
+        summary:
+          'Tingali sakabéh wali murid dina hiji daptar, lengkepan NIK jeung kontakna, ondang ka portal, jeung pupus wali nu teu kapaké.',
+        forWho:
+          'Admin sakola jeung operator TU nu ngurus data wali; guru, bendahara, jeung Kepala sakola ngan bisa nempo.',
+        sections: [
+          {
+            heading: 'Naon eusi kaca Data wali',
+            body: 'Menu Data wali dina kelompok Data induk ngandung sakabéh wali murid sakola, lain ngan wali hiji murid. Unggal baris nuduhkeun ngaran jeung lencana Kalengkepan data, NIK, HP, surélék, daptar anak jeung kelasna, sarta status akun portal (Aktif, Diondang, atawa Can). Kartu di luhur ngitung Jumlah wali, wali nu Can boga NIK, jeung wali nu Can boga akun portal. NIK lengkep ngan katingali ku pamaké nu meunang ngatur data murid; nu séjén ngan ningali opat angka pamungkas.',
+            href: '/guardians',
+          },
+          {
+            heading: 'Néangan jeung nyaring wali',
+            body: 'Kotak pamaluruhan wanoh kana ngaran wali, surélék, ngaran anak, NIK (cukup angkana), jeung nomer HP (0812… jeung 62812… sarua kapanggih). Saringan di gigireunana: Kabéh, Can boga NIK, Can boga akun portal, jeung Geus boga akun. Klik ngaran anak pikeun muka kaca Murid nu geus dipilarian ku ngaran éta.',
+            steps: [
+              'Buka menu Data wali.',
+              'Ketik kecap konci; hasil mucunghul sanggeus anjeun eureun ngetik sakeudeung.',
+              'Klik saringan Can boga NIK pikeun manggihan wali nu datana perlu dilengkepan.',
+            ],
+            tip: 'NIK, HP, jeung surélék wali dipaké pikeun asup jeung mulihkeun kecap sandi. Wali nu Can boga NIK jeung taya HP atawa surélék teu bisa mulihkeun akunna sorangan.',
+          },
+          {
+            heading: 'Ngarobah data wali',
+            body: 'Klik baris wali atawa pilih Robah dina menu baris. Eusian jeung aturanana sarua jeung panel Wali dina unggal murid; eusian nu lepat ditandaan beureum. Parobahan lumaku pikeun sakabéh anak wali éta.',
+            steps: [
+              'Pilih Robah dina wali éta.',
+              'Lengkepan NIK (16 angka), telepon, surélék, alamat, atawa pagawéan.',
+              'Klik Simpen.',
+            ],
+          },
+          {
+            heading: 'Ngondang wali ka portal',
+            body: 'Lamun modul Portal wali aktip, pilih Ondang ka portal dina wali nu geus boga anak jeung acan boga akun. Surélék meunang diisi; lamun diisi, tumbu ogé dikirim ka surélék éta jeung akun ngan bisa dijieun maké surélék éta. Tumbu mucunghul sakali wungkul kalawan tombol Salin jeung lumaku 14 poé.',
+            steps: [
+              'Pilih Ondang ka portal dina wali éta.',
+              'Eusian surélék lamun perlu, tuluy klik Jieun tumbu.',
+              'Klik Salin tuluy kirim tumbu éta ka wali.',
+            ],
+            tip: 'Status Diondang hartina aya udangan nu acan dipaké jeung acan kadaluwarsa. Ngondang deui nyabut udangan heubeul.',
+          },
+          {
+            heading: 'Mupus wali',
+            body: 'Pupus ngan sayogi pikeun wali nu teu ngaping murid mana waé jeung teu boga akun portal. Wali nu masih nyambung ditolak ku pesen yén wali éta masih dipaké.',
+            warning:
+              'Pupus téh permanén. Pikeun wali nu masih boga anak, leupaskeun heula dina panel Wali dina murid, atawa cabut akun portalna dina menu Akun portal.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Wali nu karek ditambahkeun teu mucunghul dina daptar.',
+            a: 'Pariksa kotak pamaluruhan jeung saringan, tuluy klik Hapus saringan. Wali ditambahkeun ku tombol Wali dina murid atawa waktu impor Excel murid, tuluy langsung mucunghul di dieu.',
+          },
+          {
+            q: 'Tombol Ondang ka portal teu aya.',
+            a: 'Tombol ngan mucunghul lamun modul Portal wali aktip, wali boga sahenteuna hiji anak, jeung wali acan boga akun portal.',
           },
         ],
       },
@@ -2433,7 +2618,7 @@ export const CORE_DOCS: DocArticle[] = [
           {
             heading: 'Bila pilihan pengiriman tidak muncul',
             body: 'Layar akan berkata bahwa pilihan tampil jika data ditemukan. Penyebabnya bisa isian yang salah ketik, NIK yang belum terhubung ke akun, atau NIK yang cocok dengan lebih dari satu akun. Coba dengan email. Bila tetap tidak berhasil, hubungi admin sekolah.',
-            tip: 'Admin sekolah perlu mengisi NIK, nomor HP, dan email siswa, guru, atau wali dengan benar; data itu dipakai untuk masuk dan pemulihan akun. Saringan Belum punya NIK di daftar Siswa dan Guru membantu melengkapinya.',
+            tip: 'Admin sekolah perlu mengisi NIK, nomor HP, dan email siswa, guru, atau wali dengan benar; data itu dipakai untuk masuk dan pemulihan akun. Saringan Belum punya NIK di daftar Siswa, Guru, dan Data wali membantu melengkapinya. Halaman Data wali memperlihatkan wali mana yang NIK, HP, atau emailnya masih kosong sehingga belum bisa masuk atau memulihkan akun.',
           },
         ],
         faq: [
@@ -2488,7 +2673,7 @@ export const CORE_DOCS: DocArticle[] = [
           {
             heading: 'When no delivery options appear',
             body: 'The screen says the options appear if the details match an account. This can happen because of a typo, a NIK that is not linked to an account, or a NIK that matches more than one account. Try the email. If it still fails, contact the school admin.',
-            tip: 'School admins should fill in the NIK, phone number, and email of students, teachers, or guardians correctly; they are used for signing in and for account recovery. The No NIK yet filter on the Students and Teachers lists helps complete them.',
+            tip: 'School admins should fill in the NIK, phone number, and email of students, teachers, or guardians correctly; they are used for signing in and for account recovery. The No NIK yet filter on the Students, Teachers, and Guardians lists helps complete them. The Guardians page shows which guardians still have no NIK, phone, or email, so they cannot sign in or recover the account yet.',
           },
         ],
         faq: [
@@ -2543,7 +2728,7 @@ export const CORE_DOCS: DocArticle[] = [
           {
             heading: 'Lamun pilihan pangiriman teu mucunghul',
             body: 'Layar bakal nyebutkeun yén pilihan mucunghul lamun data kapanggih. Panyababna bisa salah ngetik, NIK nu acan nyambung ka akun, atawa NIK nu cocog jeung leuwih ti hiji akun. Cobaan maké surélék. Lamun tetep gagal, hubungi admin sakola.',
-            tip: 'Admin sakola kudu ngeusian NIK, nomer HP, jeung surélék murid, guru, atawa wali bener-bener; data éta dipaké pikeun asup jeung mulihkeun akun. Saringan Acan boga NIK dina daptar Murid jeung Guru mantuan ngalengkepanana.',
+            tip: 'Admin sakola kudu ngeusian NIK, nomer HP, jeung surélék murid, guru, atawa wali bener-bener; data éta dipaké pikeun asup jeung mulihkeun akun. Saringan Acan boga NIK dina daptar Murid, Guru, jeung Data wali mantuan ngalengkepanana. Kaca Data wali nuduhkeun wali mana nu NIK, HP, atawa surélékna masih kosong, jadi acan bisa asup atawa mulihkeun akun.',
           },
         ],
         faq: [

@@ -1,27 +1,15 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Check,
-  Copy,
-  KeyRound,
-  MailPlus,
-  Search,
-  Trash2,
-  UserCheck,
-  UserRoundPlus,
-  UsersRound,
-} from 'lucide-react';
+import { KeyRound, MailPlus, Search, Trash2, UserCheck, UserRoundPlus, UsersRound } from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { FormDialog } from '@/components/form-dialog';
-import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
+import { type InviteTarget, PortalInviteFlow } from '@/components/portal-invite-flow';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { EmptyPanel, PersonCell, StatCard, StatGrid, ToneBadge } from '@/components/ui-kit';
@@ -29,21 +17,7 @@ import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
-import {
-  PORTAL_PATHS,
-  type PortalAccount,
-  type PortalInviteCreated,
-  type PortalInviteRow,
-  type PortalKind,
-  portalRequest,
-} from '@/lib/portal-api';
-import { PORTAL_INVITE_ORDER, type PortalInviteField, validatePortalInvite } from './portal-admin-validation';
-
-interface Target {
-  kind: PortalKind;
-  id: string;
-  name: string;
-}
+import { PORTAL_PATHS, type PortalAccount, type PortalInviteRow, portalRequest } from '@/lib/portal-api';
 
 function useDebounced(value: string, ms = 300) {
   const [v, setV] = useState(value);
@@ -67,16 +41,7 @@ export function PortalAdminView() {
   const [q, setQ] = useState('');
   const debounced = useDebounced(q.trim());
   const [student, setStudent] = useState<{ id: string; name: string; className: string | null } | null>(null);
-  const [target, setTarget] = useState<Target | null>(null);
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const validation = useFormValidation<PortalInviteField>({
-    errors: validatePortalInvite(email),
-    order: PORTAL_INVITE_ORDER,
-    idPrefix: 'pa',
-  });
-  const [created, setCreated] = useState<{ link: string; name: string; expiresAt: string } | null>(null);
-  const [copied, setCopied] = useState(false);
+  const [target, setTarget] = useState<InviteTarget | null>(null);
 
   const invites = useQuery({
     queryKey: listKey,
@@ -105,29 +70,6 @@ export function PortalAdminView() {
       ),
   });
 
-  const create = useMutation({
-    mutationFn: async (v: { target: Target; email: string }) =>
-      portalRequest<PortalInviteCreated>('POST', PORTAL_PATHS.invites, {
-        schoolId: school.schoolId,
-        body: {
-          kind: v.target.kind,
-          ...(v.target.kind === 'guardian' ? { guardianId: v.target.id } : { studentId: v.target.id }),
-          ...(v.email.trim() ? { email: v.email.trim() } : {}),
-        },
-      }),
-    onSuccess: (res, v) => {
-      setError(null);
-      setCopied(false);
-      setCreated({
-        link: res.link,
-        name: v.target.name,
-        expiresAt: res.expiresAt,
-      });
-      queryClient.invalidateQueries({ queryKey: listKey });
-    },
-    onError: (e) => setError(te(errorKey(e))),
-  });
-
   const revoke = useMutation({
     mutationFn: async (id: string) =>
       portalRequest<void>('DELETE', PORTAL_PATHS.invite(id), { schoolId: school.schoolId }),
@@ -148,18 +90,9 @@ export function PortalAdminView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
-  async function copy(link: string) {
-    try {
-      await navigator.clipboard.writeText(link);
-      setCopied(true);
-    } catch {
-      toast.error(t('copyFailed'));
-    }
-  }
-
   const items = invites.data ?? [];
   const accountItems = accounts.data ?? [];
-  const targets: Target[] = student
+  const targets: InviteTarget[] = student
     ? [
         { kind: 'student', id: student.id, name: student.name },
         ...(guardians.data ?? []).map((g) => ({ kind: 'guardian' as const, id: g.guardianId, name: g.name })),
@@ -264,15 +197,7 @@ export function PortalAdminView() {
                       : `${t('kind.guardian')}${relationOf(tg.id) ? ` · ${t(`relation.${relationOf(tg.id) as 'father'}`)}` : ''}`}
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => {
-                    setEmail('');
-                    setError(null);
-                    setTarget(tg);
-                  }}
-                >
+                <Button size="sm" variant="outline" onClick={() => setTarget(tg)}>
                   <KeyRound className="size-3.5" aria-hidden /> {t('invite')}
                 </Button>
               </li>
@@ -375,60 +300,11 @@ export function PortalAdminView() {
         )}
       </section>
 
-      <FormDialog
-        open={!!target}
-        title={t('createTitle', { name: target?.name ?? '' })}
-        description={t('createBody')}
-        submitLabel={t('create')}
-        error={error}
-        validation={validation}
-        onOpenChange={(o) => !o && setTarget(null)}
-        onSubmit={async () => {
-          if (!target) return;
-          await create.mutateAsync({ target, email });
-        }}
-      >
-        <div className="grid content-start gap-1.5">
-          <Label htmlFor="pa-email">{t('emailLabel')}</Label>
-          <Input
-            {...validation.fieldProps('email')}
-            className={TOUCH_INPUT}
-            type="email"
-            inputMode="email"
-            maxLength={254}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            autoComplete="off"
-          />
-          <FieldError id={validation.idOf('email')} issue={validation.issue('email')} />
-          <p className="text-muted-foreground text-xs">{t('emailHint')}</p>
-        </div>
-      </FormDialog>
-
-      <Dialog open={!!created} onOpenChange={(o) => !o && setCreated(null)}>
-        <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="font-heading text-lg">{t('linkTitle')}</DialogTitle>
-            <DialogDescription>{t('linkBody', { name: created?.name ?? '' })}</DialogDescription>
-          </DialogHeader>
-          <div className="grid content-start gap-2">
-            <Label htmlFor="pa-link">{t('linkLabel')}</Label>
-            <div className="flex gap-2">
-              <Input
-                id="pa-link"
-                readOnly
-                value={created?.link ?? ''}
-                onFocus={(e) => e.currentTarget.select()}
-              />
-              <Button onClick={() => created && copy(created.link)} aria-live="polite">
-                {copied ? <Check className="size-4" aria-hidden /> : <Copy className="size-4" aria-hidden />}
-                {copied ? t('copied') : t('copy')}
-              </Button>
-            </div>
-            <p className="text-muted-foreground text-xs">{t('linkOnce')}</p>
-          </div>
-        </DialogContent>
-      </Dialog>
+      <PortalInviteFlow
+        target={target}
+        onClose={() => setTarget(null)}
+        onCreated={() => queryClient.invalidateQueries({ queryKey: listKey })}
+      />
     </PageBody>
   );
 }

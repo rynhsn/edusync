@@ -10,6 +10,8 @@ import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './hel
 const semesterSchema = z.object({
   id: z.uuid(),
   academicYearId: z.uuid(),
+  /** Nama tahun ajaran (mis. 2026/2027); hanya diisi oleh daftar semester, untuk label yang tidak ambigu. */
+  academicYearName: z.string().optional(),
   name: z.string(),
   startsOn: z.iso.date(),
   endsOn: z.iso.date(),
@@ -79,7 +81,9 @@ export async function semesterRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Daftar semester',
-        description: 'Izin: `academic_year:read`. Tanpa `academicYearId`, semua semester ditampilkan.',
+        description:
+          'Izin: `academic_year:read`. Tanpa `academicYearId`, semua semester ditampilkan. Setiap semester membawa ' +
+          '`academicYearName` supaya label tidak ambigu ketika ada lebih dari satu tahun ajaran.',
         headers: schoolHeader,
         querystring: z.object({ academicYearId: z.uuid().optional() }),
         response: { 200: z.array(semesterSchema), ...guarded },
@@ -89,15 +93,16 @@ export async function semesterRoutes(instance: FastifyInstance) {
       tenant(request, async (tx) =>
         (
           await tx
-            .select()
+            .select({ s: semester, yearName: academicYear.name })
             .from(semester)
+            .innerJoin(academicYear, eq(academicYear.id, semester.academicYearId))
             .where(
               request.query.academicYearId
                 ? eq(semester.academicYearId, request.query.academicYearId)
                 : undefined,
             )
             .orderBy(asc(semester.startsOn))
-        ).map(row),
+        ).map(({ s, yearName }) => ({ ...row(s), academicYearName: yearName })),
       ),
   );
 

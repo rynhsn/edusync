@@ -2,17 +2,12 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { type ReactNode, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { CompletenessBadge } from '@/components/completeness-badge';
-import {
-  FieldError,
-  type FormValidation,
-  TOUCH_INPUT,
-  TOUCH_SELECT,
-  useFormValidation,
-} from '@/components/form-field-error';
+import { TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
+import { EMPTY_GUARDIAN_VALUES, GuardianFields, guardianPayload } from '@/components/guardian-form';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,7 +15,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
-import { Textarea } from '@/components/ui/textarea';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import {
@@ -37,126 +31,10 @@ interface Draft extends GuardianValues {
   relation: Relation;
   isPrimary: boolean;
 }
-const EMPTY_VALUES: GuardianValues = { name: '', nik: '', phone: '', email: '', occupation: '', address: '' };
-const EMPTY: Draft = { ...EMPTY_VALUES, relation: 'father', isPrimary: false };
+const EMPTY: Draft = { ...EMPTY_GUARDIAN_VALUES, relation: 'father', isPrimary: false };
+const clean = guardianPayload;
 
 type Editing = { id: string; nikMasked: string | null } & GuardianValues;
-
-const clean = (v: GuardianValues) => ({
-  name: v.name,
-  nik: v.nik.trim() || null,
-  phone: v.phone,
-  email: v.email,
-  address: v.address.trim() || null,
-  occupation: v.occupation.trim() || null,
-});
-
-/** Isian wali berkelompok: Identitas, Kontak, Alamat. Dipakai formulir tambah dan ubah. */
-function GuardianFields({
-  values,
-  onChange,
-  v,
-  nikPlaceholder,
-  relation,
-}: {
-  values: GuardianValues;
-  onChange: (next: GuardianValues) => void;
-  v: FormValidation<GuardianField>;
-  /** NIK tersamar untuk petunjuk bila NIK utuh tidak dikirim server. */
-  nikPlaceholder?: string | null;
-  /** Pilihan hubungan (hanya formulir tambah). */
-  relation?: ReactNode;
-}) {
-  const t = useTranslations('guardians');
-  const tc = useTranslations('common');
-  return (
-    <>
-      <p className="font-heading text-sm font-semibold sm:col-span-2">{tc('sectionIdentity')}</p>
-      <div className="grid content-start gap-2">
-        <Label htmlFor={v.idOf('name')}>{t('name')}</Label>
-        <Input
-          {...v.fieldProps('name')}
-          className={TOUCH_INPUT}
-          aria-required="true"
-          autoComplete="off"
-          maxLength={120}
-          value={values.name}
-          onChange={(e) => onChange({ ...values, name: e.target.value })}
-        />
-        <FieldError id={v.idOf('name')} issue={v.issue('name')} />
-      </div>
-      {relation}
-      <div className="grid content-start gap-2">
-        <Label htmlFor={v.idOf('nik')}>{t('nik')}</Label>
-        <Input
-          {...v.fieldProps('nik')}
-          className={TOUCH_INPUT}
-          inputMode="numeric"
-          autoComplete="off"
-          maxLength={16}
-          placeholder={nikPlaceholder ?? undefined}
-          value={values.nik}
-          onChange={(e) => onChange({ ...values, nik: e.target.value.replace(/\D/g, '') })}
-        />
-        <FieldError id={v.idOf('nik')} issue={v.issue('nik')} />
-      </div>
-      <div className="grid content-start gap-2">
-        <Label htmlFor={v.idOf('occupation')}>{t('occupation')}</Label>
-        <Input
-          {...v.fieldProps('occupation')}
-          className={TOUCH_INPUT}
-          autoComplete="off"
-          maxLength={120}
-          value={values.occupation}
-          onChange={(e) => onChange({ ...values, occupation: e.target.value })}
-        />
-        <FieldError id={v.idOf('occupation')} issue={v.issue('occupation')} />
-      </div>
-      <p className="font-heading border-t pt-3 text-sm font-semibold sm:col-span-2">{tc('sectionContact')}</p>
-      <div className="grid content-start gap-2">
-        <Label htmlFor={v.idOf('phone')}>{t('phone')}</Label>
-        <Input
-          {...v.fieldProps('phone')}
-          className={TOUCH_INPUT}
-          inputMode="tel"
-          autoComplete="off"
-          maxLength={30}
-          value={values.phone}
-          onChange={(e) => onChange({ ...values, phone: e.target.value })}
-        />
-        <FieldError id={v.idOf('phone')} issue={v.issue('phone')} />
-      </div>
-      <div className="grid content-start gap-2">
-        <Label htmlFor={v.idOf('email')}>{t('email')}</Label>
-        <Input
-          {...v.fieldProps('email')}
-          className={TOUCH_INPUT}
-          type="email"
-          inputMode="email"
-          autoComplete="off"
-          maxLength={254}
-          value={values.email}
-          onChange={(e) => onChange({ ...values, email: e.target.value })}
-        />
-        <FieldError id={v.idOf('email')} issue={v.issue('email')} />
-      </div>
-      <p className="text-muted-foreground -mt-1.5 text-xs sm:col-span-2">{t('phoneHint')}</p>
-      <p className="text-muted-foreground -mt-1.5 text-xs sm:col-span-2">{tc('loginIdentityHint')}</p>
-      <p className="font-heading border-t pt-3 text-sm font-semibold sm:col-span-2">{tc('sectionAddress')}</p>
-      <div className="grid content-start gap-2 sm:col-span-2">
-        <Label htmlFor={v.idOf('address')}>{t('address')}</Label>
-        <Textarea
-          {...v.fieldProps('address')}
-          rows={2}
-          maxLength={300}
-          value={values.address}
-          onChange={(e) => onChange({ ...values, address: e.target.value })}
-        />
-        <FieldError id={v.idOf('address')} issue={v.issue('address')} />
-      </div>
-    </>
-  );
-}
 
 /** Wali seorang siswa: lihat, tambah baru, tautkan yang sudah ada (kakak-adik), ubah, jadikan utama, dan lepas. */
 export function GuardiansPanel({ studentId }: { studentId: string }) {
@@ -198,7 +76,10 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
     queryFn: async () =>
       unwrap(await api.GET('/v1/guardians', { params: { ...header, query: { q: search.trim() } } })),
   });
-  const refresh = () => queryClient.invalidateQueries({ queryKey: key });
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: key });
+    queryClient.invalidateQueries({ queryKey: ['guardian-directory', school.schoolId] });
+  };
   const onError = (e: unknown) => toast.error(te(errorKey(e)));
 
   const add = useMutation({

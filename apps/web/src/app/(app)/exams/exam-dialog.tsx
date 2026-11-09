@@ -16,6 +16,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { TimeField } from '@/components/ui/time-field';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { semesterLabel } from '@/lib/semester-label';
 import { EXAM_ORDER, type ExamField, validateExam } from './exam-validation';
 
 export interface ExamLike {
@@ -272,7 +273,7 @@ export function ExamDialog({
             >
               {semesterList.map((s) => (
                 <option key={s.id} value={s.id}>
-                  {s.name} · {s.startsOn.slice(0, 4)}
+                  {semesterLabel(s)}
                 </option>
               ))}
             </SelectField>

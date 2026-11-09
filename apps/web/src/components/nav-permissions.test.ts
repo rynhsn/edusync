@@ -14,6 +14,7 @@ const spec = JSON.parse(
 /** Endpoint utama tiap halaman (data yang dimuat saat halaman dibuka, atau aksi inti halaman pengaturan). */
 const PRIMARY: Record<string, string> = {
   '/students': 'GET /v1/students',
+  '/guardians': 'GET /v1/guardians/directory',
   '/cards': 'GET /v1/cards/templates',
   '/teachers': 'GET /v1/teachers',
   '/classes': 'GET /v1/classes',

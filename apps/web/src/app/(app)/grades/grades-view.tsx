@@ -12,6 +12,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, MODULE_TONE, Toolbar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { semesterLabel } from '@/lib/semester-label';
 import { cn } from '@/lib/utils';
 import { AssessmentsPanel } from './assessments-panel';
 import { RecapPanel } from './recap-panel';
@@ -99,7 +100,7 @@ export function GradesView() {
           {semesters.data?.length === 0 && <option value="">{t('chooseSemester')}</option>}
           {semesters.data?.map((s) => (
             <option key={s.id} value={s.id}>
-              {s.name}
+              {semesterLabel(s)}
             </option>
           ))}
         </SelectField>
