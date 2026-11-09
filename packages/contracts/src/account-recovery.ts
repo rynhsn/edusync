@@ -28,7 +28,9 @@ const NIK_PATTERN = /^\d{16}$/;
 export function classifyIdentifier(raw: string): ClassifiedIdentifier {
   const trimmed = raw.trim();
   if (trimmed.includes('@')) return { kind: 'email', value: trimmed.toLowerCase() };
-  if (NIK_PATTERN.test(trimmed)) return { kind: 'nik', value: trimmed };
+  // NIK sering ditulis dengan spasi, titik, atau strip (3201 0101 ...): pemisah dibuang sebelum diperiksa.
+  const compact = /^[\d\s.-]+$/.test(trimmed) ? trimmed.replace(/[\s.-]/g, '') : trimmed;
+  if (NIK_PATTERN.test(compact)) return { kind: 'nik', value: compact };
   return { kind: 'invalid', value: trimmed };
 }
 

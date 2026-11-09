@@ -320,7 +320,7 @@ export function GuardiansPanel({ studentId }: { studentId: string }) {
                     {g.isPrimary && <Badge variant="secondary">{t('primary')}</Badge>}{' '}
                     <CompletenessBadge person={g} />
                     <p className="text-muted-foreground text-xs">
-                      {[g.nikMasked, g.phone, g.email, g.occupation].filter(Boolean).join(' · ')}
+                      {[g.nik ?? g.nikMasked, g.phone, g.email, g.occupation].filter(Boolean).join(' · ')}
                       {g.studentCount > 1 && ` · ${t('siblings', { count: g.studentCount })}`}
                     </p>
                   </div>

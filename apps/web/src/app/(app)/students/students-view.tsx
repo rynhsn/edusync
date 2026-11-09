@@ -729,7 +729,11 @@ export function StudentsView() {
               header: `${t('nis')} / ${t('nisn')}`,
               cell: (s) => <MonoText>{[s.nis, s.nisn].filter(Boolean).join(' / ') || tm('none')}</MonoText>,
             },
-            { key: 'nik', header: t('nik'), cell: (s) => <MonoText>{s.nikMasked ?? tm('none')}</MonoText> },
+            {
+              key: 'nik',
+              header: t('nik'),
+              cell: (s) => <MonoText>{s.nik ?? s.nikMasked ?? tm('none')}</MonoText>,
+            },
             {
               key: 'class',
               header: t('class'),

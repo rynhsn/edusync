@@ -662,7 +662,11 @@ export function TeachersView() {
               ),
             },
             { key: 'nip', header: t('nip'), cell: (r) => <MonoText>{r.nip ?? tm('none')}</MonoText> },
-            { key: 'nik', header: t('nik'), cell: (r) => <MonoText>{r.nikMasked ?? tm('none')}</MonoText> },
+            {
+              key: 'nik',
+              header: t('nik'),
+              cell: (r) => <MonoText>{r.nik ?? r.nikMasked ?? tm('none')}</MonoText>,
+            },
             {
               key: 'completeness',
               header: tc('completenessHeader'),
