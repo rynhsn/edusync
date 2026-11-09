@@ -4,6 +4,7 @@ import { CheckCircle2, Mail, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
+import { PasswordHelpLink } from '@/components/password-help-link';
 import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -219,6 +220,8 @@ export function ForgotForm() {
         </form>
       )}
 
+      {step === 'identifier' && <PasswordHelpLink />}
+
       {step === 'channel' && (
         <div key="channel" className="grid gap-3">
           {alert}
@@ -256,6 +259,7 @@ export function ForgotForm() {
           >
             {t('changeIdentifier')}
           </Button>
+          <PasswordHelpLink variant="prominent" />
         </div>
       )}
 
@@ -297,6 +301,7 @@ export function ForgotForm() {
           >
             {t('changeChannel')}
           </Button>
+          <PasswordHelpLink variant="prominent" />
         </form>
       )}
 

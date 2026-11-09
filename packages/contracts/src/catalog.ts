@@ -272,6 +272,13 @@ export const registrationInput = z.object({
       z.object({
         name: z.string().trim().min(3).max(120),
         slug: slugSchema,
+        npsn: z
+          .string()
+          .max(40)
+          .describe(
+            'NPSN 8 angka (wajib). Spasi, titik, dan strip dibuang; format salah ditolak 400 invalid_npsn, ' +
+              'NPSN ganda dalam satu pendaftaran 400 npsn_duplicate, sudah terdaftar 409 npsn_taken.',
+          ),
         modules: z.array(z.string().min(1)).max(40),
         tier: z.string().min(1),
       }),

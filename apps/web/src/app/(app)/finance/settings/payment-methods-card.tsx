@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -18,6 +19,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { methodIcon } from '../shared';
 import { ListSkeleton, RowMenu, SectionCard } from '../ui';
+import { PAYMENT_METHOD_ORDER, type PaymentMethodField, validatePaymentMethod } from './settings-validation';
 
 interface Draft {
   id: string | null;
@@ -45,6 +47,14 @@ export function PaymentMethodsCard() {
     queryFn: async () => unwrap(await api.GET('/v1/finance/payment-methods', { params: header })),
   });
   const items = list.data?.items ?? [];
+  const validation = useFormValidation<PaymentMethodField>({
+    errors: validatePaymentMethod(
+      { label: draft.label },
+      items.filter((m) => m.id !== draft.id).map((m) => m.label),
+    ),
+    order: PAYMENT_METHOD_ORDER,
+    idPrefix: 'pm',
+  });
   const refresh = () =>
     queryClient.invalidateQueries({ queryKey: ['finance-payment-methods', school.schoolId] });
 
@@ -116,14 +126,16 @@ export function PaymentMethodsCard() {
   const fields = (
     <div className="grid gap-4">
       <div className="grid content-start gap-2">
-        <Label htmlFor="pm-label">{t('pmLabel')}</Label>
+        <Label htmlFor={validation.idOf('label')}>{t('pmLabel')}</Label>
         <Input
-          id="pm-label"
-          required
+          {...validation.fieldProps('label')}
+          className={TOUCH_INPUT}
+          aria-required="true"
           maxLength={40}
           value={draft.label}
           onChange={(e) => setDraft({ ...draft, label: e.target.value })}
         />
+        <FieldError id={validation.idOf('label')} issue={validation.issue('label')} />
         {!draft.id && <p className="text-muted-foreground text-xs">{t('pmLabelHint')}</p>}
       </div>
       <div className="flex items-center gap-2">
@@ -153,7 +165,7 @@ export function PaymentMethodsCard() {
           title={t('pmAdd')}
           submitLabel={tm('add')}
           error={error}
-          disabled={!draft.label.trim()}
+          validation={validation}
           onOpenChange={() => {
             setDraft(EMPTY);
             setError(null);
@@ -248,7 +260,7 @@ export function PaymentMethodsCard() {
         title={t('pmEdit')}
         submitLabel={tm('save')}
         error={error}
-        disabled={!draft.label.trim()}
+        validation={validation}
         onOpenChange={(o) => {
           setEditing(o);
           if (!o) setDraft(EMPTY);

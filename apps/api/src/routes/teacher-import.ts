@@ -4,7 +4,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
-import { cleanNik, NIK_MESSAGE } from '../person-fields';
+import { cleanNik, NIK_MESSAGE, NUPTK_MESSAGE } from '../person-fields';
 import { normalizePhone } from './guardians';
 import { audit, guarded, schoolHeader } from './helpers';
 import type { RELIGIONS } from './people';
@@ -20,6 +20,7 @@ const rowSchema = z.object({
   nip: z.string().max(60).default(''),
   status: z.string().max(30).default(''),
   nik: text(40),
+  nuptk: text(40),
   gender: text(30),
   phone: text(40),
   email: text(300),
@@ -84,6 +85,7 @@ interface PreparedTeacher {
   nip: string | null;
   status: 'active' | 'inactive';
   nik: string | null;
+  nuptk: string | null;
   gender: 'L' | 'P' | null;
   phone: string | null;
   email: string | null;
@@ -110,7 +112,7 @@ export async function teacherImportRoutes(instance: FastifyInstance) {
         description:
           `Izin: \`teacher:manage\`. Maksimal ${MAX_ROWS} baris. \`dryRun: true\` hanya memeriksa. Tanpa \`dryRun\`, ` +
           'guru disimpan hanya bila semua baris valid. NIP dan NIK harus unik di file dan di sekolah; status kosong ' +
-          'berarti aktif. Data diri opsional: `nik` (16 digit), `gender` (L/P), `phone` (dinormalkan ke 62), `email`, ' +
+          'berarti aktif. Data diri opsional: `nik` (16 digit), `nuptk` (16 digit, opsional dan unik bila terisi), `gender` (L/P), `phone` (dinormalkan ke 62), `email`, ' +
           '`birthPlace`, `birthDate` (TTTT-BB-HH), `address`, `religion`, `education`. NIK, telepon, dan email dipakai ' +
           'untuk masuk dan pemulihan akun.',
         headers: schoolHeader,
@@ -150,9 +152,18 @@ export async function teacherImportRoutes(instance: FastifyInstance) {
               ).map((t) => t.nik)
             : [],
         );
+        const nuptks = [...new Set(rows.map((r) => cleanNik(r.nuptk)).filter((n) => /^\d{16}$/.test(n)))];
+        const takenNuptk = new Set(
+          nuptks.length
+            ? (
+                await tx.select({ nuptk: teacher.nuptk }).from(teacher).where(inArray(teacher.nuptk, nuptks))
+              ).map((t) => t.nuptk)
+            : [],
+        );
         const errors: z.infer<typeof errorRow>[] = [];
         const seen = new Map<string, number>();
         const seenNik = new Map<string, number>();
+        const seenNuptk = new Map<string, number>();
         const prepared: PreparedTeacher[] = [];
 
         for (const r of rows) {
@@ -162,6 +173,7 @@ export async function teacherImportRoutes(instance: FastifyInstance) {
           const nip = r.nip.trim();
           const status = STATUS[r.status.trim().toLowerCase()];
           const nik = cleanNik(r.nik);
+          const nuptk = cleanNik(r.nuptk);
           const genderText = r.gender.trim();
           const gender = genderText ? GENDERS[genderText.toLowerCase()] : null;
           const birthPlace = r.birthPlace.trim();
@@ -189,6 +201,13 @@ export async function teacherImportRoutes(instance: FastifyInstance) {
             else if (seenNik.has(nik)) fail('nik', `NIK ganda dengan baris ${seenNik.get(nik)}.`);
             else seenNik.set(nik, r.row);
           }
+          // NUPTK opsional: kosong selalu lolos; hanya yang terisi diperiksa.
+          if (nuptk && !/^\d{16}$/.test(nuptk)) fail('nuptk', NUPTK_MESSAGE);
+          else if (nuptk) {
+            if (takenNuptk.has(nuptk)) fail('nuptk', 'NUPTK itu sudah dipakai guru lain.');
+            else if (seenNuptk.has(nuptk)) fail('nuptk', `NUPTK ganda dengan baris ${seenNuptk.get(nuptk)}.`);
+            else seenNuptk.set(nuptk, r.row);
+          }
           if (genderText && !gender) fail('gender', 'Jenis kelamin harus L atau P.');
           if (phone === undefined) fail('phone', 'Nomor telepon tidak valid.');
           if (email && !z.email().max(254).safeParse(email).success) fail('email', 'Email tidak valid.');
@@ -206,6 +225,7 @@ export async function teacherImportRoutes(instance: FastifyInstance) {
               nip: nip || null,
               status,
               nik: nik || null,
+              nuptk: nuptk || null,
               gender: gender ?? null,
               phone,
               email: email || null,

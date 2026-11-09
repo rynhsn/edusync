@@ -2,6 +2,7 @@
 
 import {
   type CatalogItem,
+  NPSN_LENGTH,
   QuoteError,
   type QuoteLine,
   quoteUnits,
@@ -35,6 +36,7 @@ interface Unit {
   name: string;
   slug: string;
   slugTouched: boolean;
+  npsn: string;
   modules: string[];
   tier: string;
 }
@@ -44,6 +46,7 @@ const newUnit = (): Unit => ({
   name: '',
   slug: '',
   slugTouched: false,
+  npsn: '',
   modules: [],
   tier: 't300',
 });
@@ -63,6 +66,8 @@ export function RegisterForm() {
   const [touched, setTouched] = useState({ password: false });
   const [error, setError] = useState<string | null>(null);
   const [pending, setPending] = useState(false);
+  // NPSN yang ditolak server (409 npsn_taken); galat inline hilang begitu isiannya diubah.
+  const [npsnTaken, setNpsnTaken] = useState<string[]>([]);
 
   const catalog = useQuery({
     queryKey: ['catalog'],
@@ -135,6 +140,16 @@ export function RegisterForm() {
   const slugsOk =
     units.every((u) => slugStatus[`${u.id}-slug`] === 'available') &&
     new Set(units.map((u) => u.slug)).size === units.length;
+  // Galat NPSN per unit: format (bukan 8 angka), kembar dalam satu pendaftaran, atau ditolak server.
+  const npsnError = (u: Unit): string | null => {
+    if (u.npsn.length > 0 && u.npsn.length !== NPSN_LENGTH) return t('npsnInvalid');
+    if (u.npsn.length === NPSN_LENGTH && units.filter((x) => x.npsn === u.npsn).length > 1) {
+      return t('npsnDuplicate');
+    }
+    if (npsnTaken.includes(u.npsn)) return te('errors.npsn_taken');
+    return null;
+  };
+  const npsnOk = units.every((u) => u.npsn.length === NPSN_LENGTH && npsnError(u) === null);
   const passwordCheck = checkPasswords(account.password, account.confirm);
   // Kesalahan panjang baru ditampilkan setelah kolom ditinggalkan, supaya tidak muncul saat masih mengetik.
   const showShort = passwordCheck.tooShort && touched.password;
@@ -143,6 +158,7 @@ export function RegisterForm() {
     !pending &&
     quote &&
     slugsOk &&
+    npsnOk &&
     accountOk &&
     foundationName.trim().length >= 3 &&
     units.every((u) => u.name.trim().length >= 3);
@@ -159,6 +175,7 @@ export function RegisterForm() {
     if (u.name.trim().length < 3) missing.push(t('missingUnitName', { n: i + 1 }));
     const duplicate = units.filter((x) => x.slug === u.slug).length > 1;
     if (slugStatus[`${u.id}-slug`] !== 'available' || duplicate) missing.push(t('missingSlug', { n: i + 1 }));
+    if (u.npsn.length !== NPSN_LENGTH || npsnError(u) !== null) missing.push(t('missingNpsn', { n: i + 1 }));
   });
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -192,6 +209,7 @@ export function RegisterForm() {
             units: units.map((u) => ({
               name: u.name.trim(),
               slug: u.slug,
+              npsn: u.npsn,
               modules: u.modules,
               tier: u.tier,
             })),
@@ -206,6 +224,12 @@ export function RegisterForm() {
       }
       window.location.assign(created.paymentUrl);
     } catch (e) {
+      if (e instanceof ApiError && e.code === 'npsn_taken') {
+        // Server tidak menyebut unit mana; tandai semua NPSN yang dikirim, dan pesan tampil di bawah isiannya.
+        setNpsnTaken(units.map((u) => u.npsn));
+        setError(null);
+        return;
+      }
       setError(te(errorKey(e)));
       if (!(e instanceof ApiError)) setError(te('errors.unknown'));
     } finally {
@@ -390,6 +414,32 @@ export function RegisterForm() {
                         onStatus={setStatusFor}
                         baseDomain={config.data?.baseDomain}
                       />
+                      <div className="grid content-start gap-2">
+                        <Label htmlFor={`${unit.id}-npsn`}>{t('npsn')}</Label>
+                        <Input
+                          id={`${unit.id}-npsn`}
+                          inputMode="numeric"
+                          autoComplete="off"
+                          maxLength={NPSN_LENGTH}
+                          value={unit.npsn}
+                          onChange={(e) =>
+                            update(unit.id, { npsn: e.target.value.replace(/\D/g, '').slice(0, NPSN_LENGTH) })
+                          }
+                          aria-invalid={npsnError(unit) !== null}
+                          aria-describedby={`${unit.id}-npsn-hint`}
+                          required
+                        />
+                        <p
+                          id={`${unit.id}-npsn-hint`}
+                          aria-live="polite"
+                          className={cn(
+                            'text-xs',
+                            npsnError(unit) ? 'text-destructive' : 'text-muted-foreground',
+                          )}
+                        >
+                          {npsnError(unit) ?? t('npsnHint')}
+                        </p>
+                      </div>
                     </div>
 
                     {(catalog.data.plans?.length ?? 0) > 0 && (

@@ -7,6 +7,7 @@ import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -18,14 +19,9 @@ import { SelectField } from '@/components/ui/select-field';
 import { MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
-import {
-  buildGatewayBody,
-  canSaveGateway,
-  type GatewayForm,
-  type GatewayMode,
-  keyPrefixes,
-} from '@/lib/online-charge';
+import { buildGatewayBody, type GatewayForm, type GatewayMode, keyPrefixes } from '@/lib/online-charge';
 import { ListSkeleton, SectionCard } from '../ui';
+import { GATEWAY_ORDER, type GatewayField, validateGateway } from './gateway-validation';
 
 const EMPTY: GatewayForm = { enabled: false, mode: 'sandbox', merchantId: '', clientKey: '', serverKey: '' };
 
@@ -33,6 +29,7 @@ const EMPTY: GatewayForm = { enabled: false, mode: 'sandbox', merchantId: '', cl
 export function GatewayView() {
   const t = useTranslations('finance');
   const te = useTranslations();
+  const tv = useTranslations('formValidation');
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
@@ -64,12 +61,20 @@ export function GatewayView() {
     setLoaded(true);
   }, [data, loaded]);
 
+  const hasKey = data?.hasServerKey ?? false;
+  const validation = useFormValidation<GatewayField>({
+    errors: validateGateway(form, hasKey),
+    order: GATEWAY_ORDER,
+    idPrefix: 'gw',
+  });
+
   const save = useMutation({
     mutationFn: async (v: GatewayForm) =>
       unwrap(await api.PUT('/v1/finance/gateway', { params: header, body: buildGatewayBody(v) })),
     onSuccess: (saved) => {
       toast.success(t('gwSaved'));
       setError(null);
+      validation.reset();
       setTest(null);
       setForm((f) => ({ ...f, serverKey: '', enabled: saved.enabled, mode: saved.mode }));
       queryClient.setQueryData(queryKey, saved);
@@ -93,8 +98,6 @@ export function GatewayView() {
   }
 
   const prefixes = keyPrefixes(form.mode);
-  const hasKey = data?.hasServerKey ?? false;
-  const valid = canSaveGateway(form, hasKey);
 
   return (
     <PageBody>
@@ -134,9 +137,11 @@ export function GatewayView() {
           >
             <form
               className="grid gap-4"
+              noValidate
               onSubmit={(e) => {
                 e.preventDefault();
                 setError(null);
+                if (save.isPending || !validation.attempt()) return;
                 save.mutate(form);
               }}
             >
@@ -165,35 +170,41 @@ export function GatewayView() {
                   </p>
                 </div>
                 <div className="grid content-start gap-2">
-                  <Label htmlFor="gw-merchant">{t('gwMerchantId')}</Label>
+                  <Label htmlFor={validation.idOf('merchantId')}>{t('gwMerchantId')}</Label>
                   <Input
-                    id="gw-merchant"
-                    maxLength={64}
+                    {...validation.fieldProps('merchantId')}
+                    className={TOUCH_INPUT}
+                    maxLength={60}
                     autoComplete="off"
                     value={form.merchantId}
                     onChange={(e) => setForm({ ...form, merchantId: e.target.value })}
                   />
+                  <FieldError id={validation.idOf('merchantId')} issue={validation.issue('merchantId')} />
                 </div>
                 <div className="grid content-start gap-2">
-                  <Label htmlFor="gw-client">{t('gwClientKey')}</Label>
+                  <Label htmlFor={validation.idOf('clientKey')}>{t('gwClientKey')}</Label>
                   <Input
-                    id="gw-client"
+                    {...validation.fieldProps('clientKey')}
+                    className={TOUCH_INPUT}
                     maxLength={200}
                     autoComplete="off"
                     value={form.clientKey}
                     onChange={(e) => setForm({ ...form, clientKey: e.target.value })}
                   />
+                  <FieldError id={validation.idOf('clientKey')} issue={validation.issue('clientKey')} />
                 </div>
                 <div className="grid content-start gap-2">
-                  <Label htmlFor="gw-server">{t('gwServerKey')}</Label>
+                  <Label htmlFor={validation.idOf('serverKey')}>{t('gwServerKey')}</Label>
                   <PasswordInput
-                    id="gw-server"
+                    {...validation.fieldProps('serverKey')}
+                    className={TOUCH_INPUT}
                     maxLength={200}
                     autoComplete="new-password"
                     placeholder={hasKey ? t('gwServerKeySaved') : `${prefixes.server}…`}
                     value={form.serverKey}
                     onChange={(e) => setForm({ ...form, serverKey: e.target.value })}
                   />
+                  <FieldError id={validation.idOf('serverKey')} issue={validation.issue('serverKey')} />
                   <p className="text-muted-foreground text-xs">
                     {hasKey ? t('gwServerKeyKeep') : t('gwServerKeyNew')}
                   </p>
@@ -206,8 +217,13 @@ export function GatewayView() {
                 </Alert>
               )}
 
+              {validation.summary && (
+                <p aria-live="polite" className="text-destructive text-sm">
+                  {tv('summary')}
+                </p>
+              )}
               <div className="flex flex-wrap items-center gap-2">
-                <Button type="submit" disabled={!valid || save.isPending}>
+                <Button type="submit" disabled={save.isPending}>
                   {save.isPending ? t('gwSaving') : t('gwSave')}
                 </Button>
                 <Button
@@ -221,7 +237,6 @@ export function GatewayView() {
                 >
                   {runTest.isPending ? t('gwTesting') : t('gwTest')}
                 </Button>
-                {!valid && <span className="text-muted-foreground text-xs">{t('gwKeyRequired')}</span>}
               </div>
 
               {test && (

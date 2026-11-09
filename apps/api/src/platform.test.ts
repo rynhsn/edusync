@@ -8,6 +8,7 @@ import { inArray, invalidateBillingSettings, outbox, platformStaff, sql, user } 
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp, paymentConfig } from './app';
 import { loadEnv } from './env';
+import { testNpsn } from './npsn-lib';
 
 try {
   process.loadEnvFile(new URL('../../../.env', import.meta.url));
@@ -47,8 +48,20 @@ const post = (url: string, cookie: string, payload: object = {}) =>
 async function activatedFoundation(label: string) {
   const owner = await makeUser(`pemilik-${label}`);
   const units = [
-    { name: 'SMP IT Contoh', slug: `smp-${label}-${run}`, modules: ['attendance'], tier: 't300' },
-    { name: 'SMK Contoh', slug: `smk-${label}-${run}`, modules: ['internship'], tier: 't800' },
+    {
+      name: 'SMP IT Contoh',
+      slug: `smp-${label}-${run}`,
+      npsn: testNpsn(),
+      modules: ['attendance'],
+      tier: 't300',
+    },
+    {
+      name: 'SMK Contoh',
+      slug: `smk-${label}-${run}`,
+      npsn: testNpsn(),
+      modules: ['internship'],
+      tier: 't800',
+    },
   ];
   const created = (
     await post('/v1/registrations', owner.cookie, {
@@ -261,7 +274,15 @@ describe('konsol staf platform', () => {
       await post('/v1/registrations', owner.cookie, {
         foundationName: 'Yayasan pilot',
         period: 'monthly',
-        units: [{ name: 'SMP IT Pilot', slug: `smp-pilot-${run}`, modules: ['attendance'], tier: 't300' }],
+        units: [
+          {
+            name: 'SMP IT Pilot',
+            slug: `smp-pilot-${run}`,
+            npsn: testNpsn(),
+            modules: ['attendance'],
+            tier: 't300',
+          },
+        ],
       })
     ).json();
 

@@ -86,6 +86,7 @@ export async function listFoundations(
           id: s.id,
           name: s.name,
           slug: s.slug,
+          npsn: s.npsn,
           status: s.status,
           suspendedReason: s.suspendedReason,
           suspendedNote: s.suspendedNote,

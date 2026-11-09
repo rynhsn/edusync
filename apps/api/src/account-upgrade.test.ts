@@ -3,6 +3,7 @@ import { inArray, outbox, sql, user } from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from './app';
 import { loadEnv } from './env';
+import { testNpsn } from './npsn-lib';
 
 try {
   process.loadEnvFile(new URL('../../../.env', import.meta.url));
@@ -83,7 +84,15 @@ beforeAll(async () => {
   const reg = await post(owner.cookie, '/v1/registrations', {
     foundationName: `Yayasan Uji ${run}`,
     period: 'monthly',
-    units: [{ name: 'SMP Uji Satu', slug: `unit-a-${run}`, modules: ['attendance', 'grades'], tier: 't300' }],
+    units: [
+      {
+        name: 'SMP Uji Satu',
+        slug: `unit-a-${run}`,
+        npsn: testNpsn(),
+        modules: ['attendance', 'grades'],
+        tier: 't300',
+      },
+    ],
   });
   expect(reg.statusCode).toBe(201);
   expect((await pay(reg.json().invoiceId)).outcome).toBe('activated');
@@ -264,6 +273,7 @@ describe('tambah unit sekolah', () => {
   const newUnit = (slug: string) => ({
     name: 'SMK Uji Dua',
     slug,
+    npsn: testNpsn(`new-unit-${slug}`),
     modules: ['attendance', 'parent_portal'],
     tier: 't300',
   });

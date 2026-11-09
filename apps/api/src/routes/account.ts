@@ -65,6 +65,7 @@ const changeInput = z.object({
 const newUnitInput = changeInput.extend({
   name: z.string().trim().min(3).max(120),
   slug: slugSchema,
+  npsn: z.string().max(40).describe('NPSN 8 angka (wajib). Galat: invalid_npsn, npsn_taken.'),
 });
 
 const lineSchema = z.object({ key: z.string(), name: z.string(), amount: z.number().int() });

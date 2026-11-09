@@ -148,6 +148,7 @@ describe('validateTeacher', () => {
   const blankTeacher = {
     name: 'Budi',
     nip: '',
+    nuptk: '',
     nik: '',
     birthPlace: '',
     birthDate: '',
@@ -156,6 +157,15 @@ describe('validateTeacher', () => {
     email: '',
     address: '',
   };
+
+  it('NUPTK opsional: kosong lolos, terisi harus 16 digit angka', () => {
+    expect(validateTeacher({ ...blankTeacher, nuptk: '' }, TODAY)).toEqual({});
+    expect(validateTeacher({ ...blankTeacher, nuptk: '   ' }, TODAY)).toEqual({});
+    expect(validateTeacher({ ...blankTeacher, nuptk: '7777123412341234' }, TODAY)).toEqual({});
+    for (const bad of ['123', '77771234123412345', '777712341234123a']) {
+      expect(validateTeacher({ ...blankTeacher, nuptk: bad }, TODAY).nuptk, bad).toEqual({ code: 'nuptk' });
+    }
+  });
 
   it('nama wajib, NIP opsional dengan format yang sama dengan API', () => {
     expect(validateTeacher(blankTeacher, TODAY)).toEqual({});

@@ -79,6 +79,7 @@ import {
   ibadahLog,
   inArray,
   invitation,
+  isNull,
   lessonAttendance,
   lessonPeriod,
   letter,
@@ -842,6 +843,16 @@ async function ensureUser(email: string, name: string) {
 const [sch] = await db.select().from(school).where(eq(school.slug, SLUG));
 if (!sch) throw new Error(`Sekolah ${SLUG} tidak ditemukan`);
 const schoolId = sch.id;
+// NPSN contoh jelas palsu (awalan 69999) dan unik; hanya mengisi yang masih kosong supaya NPSN asli tidak tertimpa.
+for (const [slug, npsn] of [
+  [SLUG, '69999001'],
+  ['smpit-miftahul-huda', '69999002'],
+] as const) {
+  await db
+    .update(school)
+    .set({ npsn })
+    .where(and(eq(school.slug, slug), isNull(school.npsn)));
+}
 
 const userIds = new Map<string, string>();
 for (const a of ACCOUNTS) userIds.set(a.email, await ensureUser(a.email, a.name));
@@ -1416,6 +1427,8 @@ const result = await db.transaction(async (tx) => {
         status: 'active' as const,
         // Data diri contoh: NIK jelas palsu (awalan 88888888), semuanya deterministik dan unik.
         nik: `88888888${pad(i + 1, 8)}`,
+        // NUPTK contoh (awalan 7777) untuk sekitar 60% guru; sisanya kosong (mis. guru honorer). Deterministik, unik.
+        nuptk: i % 5 < 3 ? `7777${pad(i + 1, 12)}` : null,
         phone: `62812${pad(i + 1, 8)}`,
         email: `guru${pad(i + 1, 2)}@guru.example`,
         gender: t.gender === 1 ? ('L' as const) : ('P' as const),

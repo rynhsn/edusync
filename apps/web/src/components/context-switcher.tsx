@@ -16,6 +16,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { api, unwrap } from '@/lib/api';
+import { schoolContextId, writeLastContext } from '@/lib/context-choice';
+import { homePathFor } from '@/lib/portal-access';
 import { goToSchool, useSite } from '@/lib/site';
 
 /**
@@ -88,8 +90,13 @@ export function ContextSwitcher({
         : (schools.find((m) => `school:${m.schoolSlug}` === here)?.schoolName ?? t('switchContext'));
 
   // Konsol dan portal pemilik hidup di alamat utama; dari alamat sekolah sesi dipindah dulu lewat token sekali pakai.
-  const goMain = (path: string) =>
-    site.kind === 'main' ? router.push(path) : void goToSchool(site, null, path).catch(() => undefined);
+  const remember = (id: string) => writeLastContext(me.data?.user.id ?? '', id);
+  const goMain = (id: 'platform' | 'owner', path: string) => {
+    remember(id);
+    return site.kind === 'main'
+      ? router.push(path)
+      : void goToSchool(site, null, path).catch(() => undefined);
+  };
 
   return (
     <DropdownMenu>
@@ -107,14 +114,14 @@ export function ContextSwitcher({
           <DropdownMenuGroup>
             <DropdownMenuLabel>{t('switchContext')}</DropdownMenuLabel>
             {isStaff && (
-              <DropdownMenuItem onClick={() => here !== 'platform' && goMain('/platform')}>
+              <DropdownMenuItem onClick={() => here !== 'platform' && goMain('platform', '/platform')}>
                 <ShieldCheck className="size-4" aria-hidden />
                 <span className="flex-1 truncate">{t('contextPlatform')}</span>
                 {here === 'platform' && <Badge variant="secondary">{t('active')}</Badge>}
               </DropdownMenuItem>
             )}
             {isOwner && (
-              <DropdownMenuItem onClick={() => here !== 'owner' && goMain('/account')}>
+              <DropdownMenuItem onClick={() => here !== 'owner' && goMain('owner', '/account')}>
                 <Building2 className="size-4" aria-hidden />
                 <span className="flex-1 truncate">{t('contextOwner')}</span>
                 {here === 'owner' && <Badge variant="secondary">{t('active')}</Badge>}
@@ -130,7 +137,11 @@ export function ContextSwitcher({
               {schools.map((m) => (
                 <DropdownMenuItem
                   key={m.schoolId}
-                  onClick={() => here !== `school:${m.schoolSlug}` && void goToSchool(site, m.schoolSlug)}
+                  onClick={() => {
+                    if (here === schoolContextId(m.schoolSlug)) return;
+                    remember(schoolContextId(m.schoolSlug));
+                    void goToSchool(site, m.schoolSlug, homePathFor(m.permissions));
+                  }}
                 >
                   <GraduationCap className="size-4" aria-hidden />
                   <span className="flex-1 truncate">{m.schoolName}</span>

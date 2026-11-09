@@ -16,6 +16,7 @@ import {
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp, paymentConfig } from './app';
 import { loadEnv } from './env';
+import { testNpsn } from './npsn-lib';
 
 try {
   process.loadEnvFile(new URL('../../../.env', import.meta.url));
@@ -75,7 +76,15 @@ async function activatedFoundation(label: string) {
     await post('/v1/registrations', owner.cookie, {
       foundationName: `Yayasan ${label}`,
       period: 'monthly',
-      units: [{ name: 'SMP IT Contoh', slug: `smp-${label}-${run}`, modules: ['attendance'], tier: 't300' }],
+      units: [
+        {
+          name: 'SMP IT Contoh',
+          slug: `smp-${label}-${run}`,
+          npsn: testNpsn(),
+          modules: ['attendance'],
+          tier: 't300',
+        },
+      ],
     })
   ).json();
   const { rows } = await app.platformDb.execute<{ provider_ref: string; amount: number }>(

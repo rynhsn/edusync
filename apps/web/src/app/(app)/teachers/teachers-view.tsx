@@ -74,6 +74,7 @@ type Religion = (typeof RELIGIONS)[number];
 interface Draft {
   name: string;
   nip: string;
+  nuptk: string;
   nik: string;
   gender: 'L' | 'P' | '';
   birthPlace: string;
@@ -88,6 +89,7 @@ interface Draft {
 const EMPTY: Draft = {
   name: '',
   nip: '',
+  nuptk: '',
   nik: '',
   gender: '',
   birthPlace: '',
@@ -104,6 +106,7 @@ const EMPTY: Draft = {
 const toBody = (d: Draft) => ({
   name: d.name,
   nip: d.nip.trim() || null,
+  nuptk: d.nuptk.trim() || null,
   status: d.status,
   nik: d.nik.trim() || null,
   phone: d.phone.trim() || null,
@@ -163,6 +166,20 @@ function TeacherFields({
           onChange={(e) => onChange({ ...draft, nip: e.target.value })}
         />
         <FieldError id={v.idOf('nip')} issue={v.issue('nip')} />
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-nuptk`}>{t('nuptk')}</Label>
+        <Input
+          {...v.fieldProps('nuptk')}
+          className={TOUCH_INPUT}
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={16}
+          value={draft.nuptk}
+          onChange={(e) => onChange({ ...draft, nuptk: e.target.value.replace(/\D/g, '') })}
+        />
+        <FieldError id={v.idOf('nuptk')} issue={v.issue('nuptk')} />
+        {!v.issue('nuptk') && <p className="text-muted-foreground text-xs">{t('nuptkHint')}</p>}
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor={`${idPrefix}-nik`}>{t('nik')}</Label>
@@ -431,9 +448,9 @@ export function TeachersView() {
     if (rows.length === 0) return void toast.info(tm('exportEmpty'));
     const blob = await buildExport(
       'Guru',
-      ['Nama', 'NIP', 'Status'],
-      rows.map((r) => [r.name, r.nip, r.status === 'active' ? t('active') : t('inactive')]),
-      { textColumns: [2], widths: [30, 24, 14] },
+      ['Nama', 'NIP', 'NUPTK', 'Status'],
+      rows.map((r) => [r.name, r.nip, r.nuptk, r.status === 'active' ? t('active') : t('inactive')]),
+      { textColumns: [2, 3], widths: [30, 24, 20, 14] },
     );
     saveBlob(blob, `guru-${school.schoolSlug}-${new Date().toISOString().slice(0, 10)}.xlsx`);
   }
@@ -475,6 +492,7 @@ export function TeachersView() {
       nikMasked: r.nikMasked,
       name: r.name,
       nip: r.nip ?? '',
+      nuptk: r.nuptk ?? '',
       nik: r.nik ?? '',
       gender: r.gender ?? '',
       birthPlace: r.birthPlace ?? '',
@@ -662,6 +680,11 @@ export function TeachersView() {
               ),
             },
             { key: 'nip', header: t('nip'), cell: (r) => <MonoText>{r.nip ?? tm('none')}</MonoText> },
+            {
+              key: 'nuptk',
+              header: t('nuptk'),
+              cell: (r) => <MonoText>{r.nuptk ?? r.nuptkMasked ?? tm('none')}</MonoText>,
+            },
             {
               key: 'nik',
               header: t('nik'),

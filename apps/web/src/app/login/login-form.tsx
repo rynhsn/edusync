@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { PasswordHelpLink } from '@/components/password-help-link';
 import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -98,6 +99,7 @@ export function LoginForm() {
           {pending ? t('submitting') : t('submit')}
         </Button>
       </form>
+      <PasswordHelpLink />
       <p className="text-muted-foreground mt-6 text-center text-sm">
         {t('noAccount')}{' '}
         <Link href="/register" className="text-primary font-medium underline-offset-4 hover:underline">

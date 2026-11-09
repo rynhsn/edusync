@@ -45,6 +45,8 @@ export const school = pgTable(
       .default('active'),
     timezone: text('timezone').notNull().default('Asia/Jakarta'),
     studentTier: text('student_tier').notNull().default('t300'),
+    /** NPSN 8 digit. Wajib saat mendaftar; sekolah lama boleh kosong. Unik di seluruh platform bila terisi. */
+    npsn: text('npsn'),
     /** Alasan penangguhan: 'billing' dilepas otomatis saat tagihan lunas, 'staff' hanya oleh staf platform. */
     suspendedReason: text('suspended_reason', { enum: ['billing', 'staff'] }),
     /** Alasan yang ditulis staf (tampil ke pengguna sekolah dan pemilik); kosong untuk penangguhan karena tagihan. */
@@ -53,7 +55,11 @@ export const school = pgTable(
     suspendedAt: timestamp('suspended_at', { withTimezone: true }),
     createdAt: createdAt(),
   },
-  (t) => [index('school_foundation_idx').on(t.foundationId)],
+  (t) => [
+    index('school_foundation_idx').on(t.foundationId),
+    uniqueIndex('school_npsn_uq').on(t.npsn).where(sql`${t.npsn} is not null`),
+    check('school_npsn_ck', sql`${t.npsn} is null or ${t.npsn} ~ '^[0-9]{8}$'`),
+  ],
 );
 
 export const academicYear = pgTable(
@@ -289,7 +295,7 @@ export const registration = pgTable(
     foundationName: text('foundation_name').notNull(),
     period: text('period', { enum: ['monthly', 'yearly'] }).notNull(),
     units: jsonb('units')
-      .$type<{ name: string; slug: string; modules: string[]; tier: string }[]>()
+      .$type<{ name: string; slug: string; modules: string[]; tier: string; npsn?: string }[]>()
       .notNull(),
     status: text('status', { enum: ['pending_payment', 'paid', 'expired'] })
       .notNull()
@@ -674,6 +680,8 @@ export const teacher = pgTable(
       .default('active'),
     /** NIK 16 digit; dipakai untuk masuk dan pemulihan akun. Unik per sekolah bila terisi. */
     nik: text('nik'),
+    /** NUPTK 16 digit; opsional (guru honorer sering belum punya). Unik per sekolah bila terisi. */
+    nuptk: text('nuptk'),
     /** Digit berawalan 62, sama dengan siswa dan wali. */
     phone: text('phone'),
     email: text('email'),
@@ -690,6 +698,8 @@ export const teacher = pgTable(
   },
   (t) => [
     unique('teacher_school_nip_uq').on(t.schoolId, t.nip),
+    uniqueIndex('teacher_school_nuptk_uq').on(t.schoolId, t.nuptk).where(sql`${t.nuptk} is not null`),
+    check('teacher_nuptk_ck', sql`${t.nuptk} is null or ${t.nuptk} ~ '^[0-9]{16}$'`),
     unique('teacher_member_uq').on(t.memberId),
     uniqueIndex('teacher_school_nik_uq').on(t.schoolId, t.nik).where(sql`${t.nik} is not null`),
     check('teacher_nik_ck', sql`${t.nik} is null or ${t.nik} ~ '^[0-9]{16}$'`),

@@ -19,7 +19,15 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
-import { nikConflictAs409, nikField, nikOut, nikView } from '../person-fields';
+import {
+  nikConflictAs409,
+  nikField,
+  nikOut,
+  nikView,
+  nuptkField,
+  nuptkOut,
+  nuptkView,
+} from '../person-fields';
 import { normalizePhone } from './guardians';
 import {
   audit,
@@ -88,6 +96,7 @@ const teacherSchema = z.object({
   status: z.enum(['active', 'inactive']),
   memberId: z.uuid().nullable(),
   ...nikOut,
+  ...nuptkOut,
   phone: z.string().nullable(),
   email: z.string().nullable(),
   gender: z.enum(['L', 'P']).nullable(),
@@ -102,6 +111,10 @@ const teacherBody = z.object({
   nip: optionalId,
   status: z.enum(['active', 'inactive']).default('active'),
   nik: nikField,
+  nuptk: nuptkField.describe(
+    'NUPTK 16 angka, opsional (guru honorer sering belum punya; tidak pernah menghalangi penyimpanan). ' +
+      'Spasi, titik, dan strip dibuang. Unik per sekolah bila terisi (409 `nuptk_taken`).',
+  ),
   phone: phoneBody,
   email: emailBody,
   gender: z.enum(['L', 'P']).nullable().default(null),
@@ -120,6 +133,7 @@ function teacherOut(canManage: boolean, t: typeof teacher.$inferSelect) {
     status: t.status,
     memberId: t.memberId,
     ...nikView(canManage, t.nik),
+    ...nuptkView(canManage, t.nuptk),
     phone: t.phone,
     email: t.email,
     gender: t.gender,
@@ -271,8 +285,8 @@ export async function peopleRoutes(instance: FastifyInstance) {
         tags: ['People'],
         summary: 'Daftar guru',
         description:
-          'Izin: `teacher:read`. `q` mencari pada nama atau NIP. NIK utuh hanya dikembalikan bagi pemegang ' +
-          '`teacher:manage`; yang lain hanya menerima `nikMasked` (empat digit terakhir).',
+          'Izin: `teacher:read`. `q` mencari pada nama atau NIP. NIK dan NUPTK utuh hanya dikembalikan bagi pemegang ' +
+          '`teacher:manage`; yang lain hanya menerima `nikMasked` / `nuptkMasked` (empat digit terakhir).',
         headers: schoolHeader,
         querystring: z.object({ q: z.string().trim().max(80).optional() }),
         response: { 200: z.array(teacherSchema), ...guarded },
@@ -300,8 +314,9 @@ export async function peopleRoutes(instance: FastifyInstance) {
         tags: ['People'],
         summary: 'Tambah guru',
         description:
-          'Izin: `teacher:manage`. NIP dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 ' +
-          '`nik_taken`. NIK 16 digit, telepon dinormalkan ke digit berawalan 62, email, jenis kelamin (L/P), tempat ' +
+          'Izin: `teacher:manage`. NIP, NIK, dan NUPTK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan ' +
+          '409 `nik_taken`, NUPTK bentrok 409 `nuptk_taken`. NUPTK 16 digit bersifat opsional (guru honorer sering ' +
+          'belum punya) dan tidak pernah menghalangi penyimpanan. NIK 16 digit, telepon dinormalkan ke digit berawalan 62, email, jenis kelamin (L/P), tempat ' +
           'dan tanggal lahir, alamat, agama, dan pendidikan terakhir opsional. NIK, telepon, dan email dipakai untuk ' +
           'masuk dan pemulihan akun.',
         headers: schoolHeader,

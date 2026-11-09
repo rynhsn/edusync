@@ -9,10 +9,10 @@ async function buffer(build: (s: ExcelJS.Worksheet) => void) {
 }
 
 describe('parseTeacherSheet', () => {
-  it('memetakan kolom, mengenali alias NUPTK, dan melewati baris kosong', async () => {
+  it('memetakan kolom dan melewati baris kosong', async () => {
     const res = await parseTeacherSheet(
       await buffer((s) => {
-        s.addRow(['Nama Guru', 'NUPTK', 'Status']);
+        s.addRow(['Nama Guru', 'NIP', 'Status']);
         s.addRow(['Pak Dodi', '19800101', 'Aktif']);
         s.addRow([]);
         s.addRow(['Bu Eka', 12345, '']);
@@ -20,8 +20,32 @@ describe('parseTeacherSheet', () => {
     );
     expect(res.fatal).toBeNull();
     expect(res.rows).toMatchObject([
-      { row: 2, name: 'Pak Dodi', nip: '19800101', status: 'Aktif', nik: '', phone: '', email: '' },
-      { row: 4, name: 'Bu Eka', nip: '12345', status: '', gender: '', education: '' },
+      {
+        row: 2,
+        name: 'Pak Dodi',
+        nip: '19800101',
+        nuptk: '',
+        status: 'Aktif',
+        nik: '',
+        phone: '',
+        email: '',
+      },
+      { row: 4, name: 'Bu Eka', nip: '12345', nuptk: '', status: '', gender: '', education: '' },
+    ]);
+  });
+
+  it('NUPTK punya kolom sendiri (terpisah dari NIP) dan boleh kosong', async () => {
+    const res = await parseTeacherSheet(
+      await buffer((s) => {
+        s.addRow(['Nama', 'NIP', 'NUPTK']);
+        s.addRow(['Pak Gani', '1980', '7777123412341234']);
+        s.addRow(['Bu Honorer', '', '']);
+      }),
+    );
+    expect(res.fatal).toBeNull();
+    expect(res.rows).toMatchObject([
+      { name: 'Pak Gani', nip: '1980', nuptk: '7777123412341234' },
+      { name: 'Bu Honorer', nip: '', nuptk: '' },
     ]);
   });
 
@@ -84,7 +108,7 @@ describe('parseTeacherSheet', () => {
     await wb.xlsx.load((await buildTeacherTemplate().then((b) => b.arrayBuffer())) as ArrayBuffer);
     const sheet = wb.worksheets[0] as ExcelJS.Worksheet;
     expect(sheet.getRow(1).values).toEqual(
-      expect.arrayContaining(['NIK', 'Jenis Kelamin', 'Telepon/WA', 'Email', 'Pendidikan']),
+      expect.arrayContaining(['NUPTK', 'NIK', 'Jenis Kelamin', 'Telepon/WA', 'Email', 'Pendidikan']),
     );
     for (const col of TEACHER_TEXT_COLUMNS) expect(sheet.getColumn(col).numFmt).toBe('@');
   });

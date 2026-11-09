@@ -4,18 +4,27 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
-import { type ReactNode, useEffect, useRef, useState } from 'react';
+import { type ReactNode, useEffect, useMemo, useRef, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
+import {
+  buildContexts,
+  type ChoiceContext,
+  decideEntry,
+  readLastContext,
+  writeLastContext,
+} from '@/lib/context-choice';
 import { homePathFor } from '@/lib/portal-access';
 import { goToSchool, useSite } from '@/lib/site';
+import { ContextChooser } from './context-chooser';
 
 /**
  * - Belum masuk → halaman login.
  * - Alamat sekolah → dashboard sekolah itu.
- * - Alamat utama: staf platform → konsol; anggota sekolah → dipindahkan ke alamat sekolahnya.
+ * - Alamat utama (/enter): satu tujuan (konsol platform, portal pemilik, atau satu sekolah) → langsung ke sana;
+ *   lebih dari satu → layar "Pilih tujuan" dengan tujuan terakhir dibuka di urutan pertama.
  */
 export function GatewayView({ landing, enter = false }: { landing: ReactNode; enter?: boolean }) {
   const t = useTranslations('nav');
@@ -25,6 +34,8 @@ export function GatewayView({ landing, enter = false }: { landing: ReactNode; en
   const site = useSite();
   const moving = useRef(false);
   const [moveFailed, setMoveFailed] = useState(false);
+  const [openingId, setOpeningId] = useState<string | null>(null);
+  const [pickFailed, setPickFailed] = useState(false);
 
   const me = useQuery({
     queryKey: ['me'],
@@ -65,6 +76,19 @@ export function GatewayView({ landing, enter = false }: { landing: ReactNode; en
     },
   });
 
+  // Hanya di alamat utama (/enter): gabungkan konsol platform, portal pemilik, dan sekolah menjadi daftar tujuan.
+  const lastId = me.data ? readLastContext(me.data.user.id) : null;
+  const decision = useMemo(() => {
+    if (!enter || !site.ready || site.kind !== 'main' || !me.data) return null;
+    if (staff.isPending || owner.isPending) return null;
+    const contexts = buildContexts({
+      isStaff: !!staff.data,
+      isOwner: (owner.data?.foundations.length ?? 0) > 0,
+      memberships: me.data.memberships,
+    });
+    return decideEntry(contexts, lastId);
+  }, [enter, site, me.data, staff.isPending, staff.data, owner.isPending, owner.data, lastId]);
+
   useEffect(() => {
     if (site.ready && site.custom) return void router.replace('/site');
     if (!site.ready || me.isPending || me.isError) return;
@@ -77,34 +101,38 @@ export function GatewayView({ landing, enter = false }: { landing: ReactNode; en
       const here = me.data.memberships.find((m) => m.schoolSlug === site.slug);
       return void router.replace(here ? homePathFor(here.permissions) : '/dashboard');
     }
-    if (staff.isPending) return;
-    if (staff.data) return void router.replace('/platform');
-    if (owner.isPending) return;
-    if (owner.data && owner.data.foundations.length > 0) return void router.replace('/account');
-    const first = [...me.data.memberships].sort((a, b) => a.schoolName.localeCompare(b.schoolName))[0];
-    if (!first || moving.current) return;
+    // Satu konteks: langsung ke sana. Lebih dari satu: layar pilihan (dirender di bawah).
+    if (decision?.action !== 'go' || moving.current) return;
+    const only = decision.context;
+    if (only.kind === 'platform') return void router.replace('/platform');
+    if (only.kind === 'owner') return void router.replace('/account');
     moving.current = true;
-    goToSchool(site, first.schoolSlug, homePathFor(first.permissions)).catch(() => {
+    goToSchool(site, only.slug as string, homePathFor(only.permissions ?? [])).catch(() => {
       moving.current = false;
       setMoveFailed(true);
     });
-  }, [
-    site,
-    me.isPending,
-    me.isError,
-    me.data,
-    staff.isPending,
-    staff.data,
-    owner.isPending,
-    owner.data,
-    router,
-    enter,
-  ]);
+  }, [site, me.isPending, me.isError, me.data, decision, router, enter]);
 
   async function signOut() {
     await authClient.signOut();
     queryClient.clear();
     router.replace('/login');
+  }
+
+  function pick(context: ChoiceContext) {
+    if (me.data) writeLastContext(me.data.user.id, context.id);
+    if (context.kind === 'platform') return router.push('/platform');
+    if (context.kind === 'owner') return router.push('/account');
+    setOpeningId(context.id);
+    setPickFailed(false);
+    goToSchool(
+      site as Extract<typeof site, { ready: true }>,
+      context.slug as string,
+      homePathFor(context.permissions ?? []),
+    ).catch(() => {
+      setOpeningId(null);
+      setPickFailed(true);
+    });
   }
 
   const noSchool =
@@ -140,6 +168,19 @@ export function GatewayView({ landing, enter = false }: { landing: ReactNode; en
   }
 
   if (site.ready && !site.custom && site.kind === 'main' && me.data === null) return null;
+
+  if (decision?.action === 'choose') {
+    return (
+      <ContextChooser
+        contexts={decision.contexts}
+        lastId={decision.contexts.some((c) => c.id === lastId) ? lastId : null}
+        openingId={openingId}
+        failed={pickFailed}
+        onPick={pick}
+        onSignOut={signOut}
+      />
+    );
+  }
 
   if (noSchool && reg && reg.status !== 'paid') {
     return (

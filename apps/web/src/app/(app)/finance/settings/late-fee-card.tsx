@@ -6,7 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
-import { FORM_GRID } from '@/components/form-field';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,24 +14,27 @@ import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { formatRupiah } from '@/lib/money';
+import { cn } from '@/lib/utils';
 import {
   bodyFromDraft,
   draftFromSetting,
   EMPTY_LATE_FEE,
-  isLateFeeDraftValid,
   type LateFeeDraft,
   type LateFeeMode,
 } from '../late-fee';
 import { digitsOnly } from '../shared';
 import { SectionCard } from '../ui';
+import { LATE_FEE_ORDER, type LateFeeField, validateLateFee } from './settings-validation';
 
 /** Pengaturan denda keterlambatan: mode, nilai, toleransi, batas, dan jenis biaya tagihan denda. */
 export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string; active: boolean }[] }) {
   const t = useTranslations('finance');
   const tm = useTranslations('masterData');
   const te = useTranslations();
+  const tv = useTranslations('formValidation');
   const { school } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
@@ -48,11 +51,19 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
     if (setting.data) setDraft(draftFromSetting(setting.data));
   }, [setting.data]);
 
+  const validation = useFormValidation<LateFeeField>({
+    errors: validateLateFee(draft),
+    order: LATE_FEE_ORDER,
+    idPrefix: 'lf',
+  });
+  const field = (name: LateFeeField) => validation.fieldProps(name);
+
   const save = useMutation({
     mutationFn: async () =>
       unwrap(await api.PUT('/v1/finance/late-fee-settings', { params: header, body: bodyFromDraft(draft) })),
     onSuccess: () => {
       setError(null);
+      validation.reset();
       toast.success(tm('saved'));
       queryClient.invalidateQueries({ queryKey: ['finance', school.schoolId] });
       queryClient.invalidateQueries({ queryKey: ['finance-late-fees', school.schoolId] });
@@ -63,7 +74,6 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
   const on = draft.mode !== 'none';
   const percent = draft.mode === 'percent';
   const options = feeTypes.filter((f) => f.active || f.id === draft.feeTypeId);
-  const valid = isLateFeeDraftValid(draft);
 
   return (
     <SectionCard icon={Hourglass} tone="rose" title={t('lateFeeTitle')} description={t('lateFeeHint')}>
@@ -77,18 +87,23 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
       {setting.data && (
         <form
           className="relative grid gap-4"
+          noValidate
           onSubmit={(e) => {
             e.preventDefault();
-            if (valid && !save.isPending) save.mutate();
+            if (save.isPending || !validation.attempt()) return;
+            save.mutate();
           }}
         >
-          <div className={FORM_GRID}>
+          <div className="grid items-start gap-4 sm:grid-cols-2">
             <div className="grid content-start gap-2">
               <Label htmlFor="lf-mode">{t('lateFeeMode')}</Label>
               <SelectField
                 id="lf-mode"
                 value={draft.mode}
-                onChange={(e) => setDraft({ ...draft, mode: e.target.value as LateFeeMode, value: '' })}
+                onChange={(e) => {
+                  setDraft({ ...draft, mode: e.target.value as LateFeeMode, value: '' });
+                  validation.reset();
+                }}
               >
                 <option value="none">{t('lateFeeModeNone')}</option>
                 <option value="flat">{t('lateFeeModeFlat')}</option>
@@ -98,13 +113,16 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
 
             {on && (
               <div className="grid content-start gap-2">
-                <Label htmlFor="lf-value">{percent ? t('lateFeeValuePercent') : t('lateFeeValueFlat')}</Label>
+                <Label htmlFor={validation.idOf('value')}>
+                  {percent ? t('lateFeeValuePercent') : t('lateFeeValueFlat')}
+                </Label>
                 <div className="relative">
                   <Input
-                    id="lf-value"
-                    required
+                    {...field('value')}
+                    aria-required="true"
                     inputMode="numeric"
-                    className={percent ? 'pr-9' : 'pl-10'}
+                    autoComplete="off"
+                    className={cn(TOUCH_INPUT, percent ? 'pr-9' : 'pl-10')}
                     value={draft.value}
                     onChange={(e) => {
                       const v = digitsOnly(e.target.value);
@@ -119,6 +137,7 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
                     {percent ? t('unitPercent') : t('unitRupiah')}
                   </span>
                 </div>
+                <FieldError id={validation.idOf('value')} issue={validation.issue('value')} />
                 {!percent && draft.value && (
                   <p className="text-muted-foreground text-xs">{formatRupiah(Number(draft.value))}</p>
                 )}
@@ -128,52 +147,64 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
             {on && (
               <>
                 <div className="grid content-start gap-2">
-                  <Label htmlFor="lf-grace">{t('lateFeeGrace')}</Label>
+                  <Label htmlFor={validation.idOf('graceDays')}>{t('lateFeeGrace')}</Label>
                   <Input
-                    id="lf-grace"
+                    {...field('graceDays')}
+                    className={TOUCH_INPUT}
                     inputMode="numeric"
+                    autoComplete="off"
                     value={draft.graceDays}
                     onChange={(e) => {
                       const v = digitsOnly(e.target.value);
                       setDraft({ ...draft, graceDays: Number(v) > 365 ? '365' : v });
                     }}
                   />
+                  <FieldError id={validation.idOf('graceDays')} issue={validation.issue('graceDays')} />
                   <p className="text-muted-foreground text-xs">{t('lateFeeGraceHint')}</p>
                 </div>
                 <div className="grid content-start gap-2">
-                  <Label htmlFor="lf-due">{t('lateFeeDueDays')}</Label>
+                  <Label htmlFor={validation.idOf('dueDays')}>{t('lateFeeDueDays')}</Label>
                   <Input
-                    id="lf-due"
-                    required
+                    {...field('dueDays')}
+                    className={TOUCH_INPUT}
+                    aria-required="true"
                     inputMode="numeric"
+                    autoComplete="off"
                     value={draft.dueDays}
                     onChange={(e) => {
                       const v = digitsOnly(e.target.value);
                       setDraft({ ...draft, dueDays: Number(v) > 365 ? '365' : v });
                     }}
                   />
+                  <FieldError id={validation.idOf('dueDays')} issue={validation.issue('dueDays')} />
                   <p className="text-muted-foreground text-xs">{t('lateFeeDueDaysHint')}</p>
                 </div>
                 <div className="grid content-start gap-2">
-                  <Label htmlFor="lf-cap">{t('lateFeeCap')}</Label>
+                  <Label htmlFor={validation.idOf('capAmount')}>{t('lateFeeCap')}</Label>
                   <Input
-                    id="lf-cap"
+                    {...field('capAmount')}
+                    className={TOUCH_INPUT}
                     inputMode="numeric"
+                    autoComplete="off"
                     value={draft.capAmount}
                     placeholder={t('lateFeeCapNone')}
                     onChange={(e) => setDraft({ ...draft, capAmount: digitsOnly(e.target.value) })}
                   />
+                  <FieldError id={validation.idOf('capAmount')} issue={validation.issue('capAmount')} />
                   {draft.capAmount && (
                     <p className="text-muted-foreground text-xs">{formatRupiah(Number(draft.capAmount))}</p>
                   )}
                 </div>
                 <div className="grid content-start gap-2 sm:col-span-2">
-                  <Label htmlFor="lf-fee">{t('lateFeeFeeType')}</Label>
+                  <Label htmlFor={validation.idOf('feeTypeId')}>{t('lateFeeFeeType')}</Label>
                   <SelectField
-                    id="lf-fee"
+                    {...withoutBlur(field('feeTypeId'))}
                     value={draft.feeTypeId}
                     placeholder={t('chooseFeeType')}
-                    onChange={(e) => setDraft({ ...draft, feeTypeId: e.target.value })}
+                    onChange={(e) => {
+                      setDraft({ ...draft, feeTypeId: e.target.value });
+                      validation.touch('feeTypeId');
+                    }}
                   >
                     {options.map((f) => (
                       <option key={f.id} value={f.id}>
@@ -181,6 +212,7 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
                       </option>
                     ))}
                   </SelectField>
+                  <FieldError id={validation.idOf('feeTypeId')} issue={validation.issue('feeTypeId')} />
                   <p className="text-muted-foreground text-xs">{t('lateFeeFeeTypeHint')}</p>
                 </div>
               </>
@@ -192,8 +224,13 @@ export function LateFeeCard({ feeTypes }: { feeTypes: { id: string; name: string
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
+          {validation.summary && (
+            <p aria-live="polite" className="text-destructive text-sm">
+              {tv('summary')}
+            </p>
+          )}
           <div>
-            <Button type="submit" disabled={!valid || save.isPending}>
+            <Button type="submit" disabled={save.isPending}>
               {tm('save')}
             </Button>
           </div>

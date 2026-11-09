@@ -8,7 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
-import { FORM_GRID, FORM_GRID_3 } from '@/components/form-field';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -20,10 +20,20 @@ import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { formatRupiah } from '@/lib/money';
+import { cn } from '@/lib/utils';
 import { digitsOnly, useFinanceYear, YearSelect } from '../shared';
 import { ListSkeleton, RowMenu, SectionCard } from '../ui';
+import {
+  ASSIGN_ORDER,
+  type AssignField,
+  DISCOUNT_RULE_ORDER,
+  type DiscountRuleField,
+  validateAssign,
+  validateDiscountRule,
+} from './settings-validation';
 
 type RuleKind = 'percent' | 'amount';
 
@@ -71,6 +81,7 @@ export function DiscountsCard({
   const t = useTranslations('finance');
   const tm = useTranslations('masterData');
   const te = useTranslations();
+  const tv = useTranslations('formValidation');
   const { school } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
@@ -166,6 +177,7 @@ export function DiscountsCard({
     onSuccess: (r) => {
       setAssignError(null);
       setResult(r);
+      assignValidation.reset();
       refresh();
     },
     onError: (e) => setAssignError(te(errorKey(e))),
@@ -181,20 +193,38 @@ export function DiscountsCard({
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
-  const canAssign =
-    !!ruleId && !!yearId && (scope === 'class' ? !!classId : picked.length > 0) && !assign.isPending;
+  const ruleValidation = useFormValidation<DiscountRuleField>({
+    errors: validateDiscountRule({ name: rule.name, kind: rule.kind, value: rule.value }),
+    order: DISCOUNT_RULE_ORDER,
+    idPrefix: 'rule',
+  });
+  const assignValidation = useFormValidation<AssignField>({
+    errors: validateAssign({
+      ruleId,
+      yearId,
+      scope,
+      classId,
+      pickedCount: picked.length,
+      reason,
+    }),
+    order: ASSIGN_ORDER,
+    idPrefix: 'as',
+  });
+  const assignField = (name: AssignField) => assignValidation.fieldProps(name);
 
   const ruleFields = (
-    <div className={FORM_GRID}>
+    <div className="grid items-start gap-4 sm:grid-cols-2">
       <div className="grid content-start gap-2 sm:col-span-2">
-        <Label htmlFor="rule-name">{t('ruleName')}</Label>
+        <Label htmlFor={ruleValidation.idOf('name')}>{t('ruleName')}</Label>
         <Input
-          id="rule-name"
-          required
-          maxLength={100}
+          {...ruleValidation.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          maxLength={80}
           value={rule.name}
           onChange={(e) => setRule({ ...rule, name: e.target.value })}
         />
+        <FieldError id={ruleValidation.idOf('name')} issue={ruleValidation.issue('name')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor="rule-kind">{t('ruleKind')}</Label>
@@ -208,15 +238,16 @@ export function DiscountsCard({
         </SelectField>
       </div>
       <div className="grid content-start gap-2">
-        <Label htmlFor="rule-value">
+        <Label htmlFor={ruleValidation.idOf('value')}>
           {rule.kind === 'percent' ? t('ruleValuePercent') : t('ruleValueAmount')}
         </Label>
         <div className="relative">
           <Input
-            id="rule-value"
-            required
+            {...ruleValidation.fieldProps('value')}
+            aria-required="true"
             inputMode="numeric"
-            className={rule.kind === 'percent' ? 'pr-9' : 'pl-10'}
+            autoComplete="off"
+            className={cn(TOUCH_INPUT, rule.kind === 'percent' ? 'pr-9' : 'pl-10')}
             value={rule.value}
             onChange={(e) => {
               const v = digitsOnly(e.target.value);
@@ -231,6 +262,7 @@ export function DiscountsCard({
             {rule.kind === 'percent' ? t('unitPercent') : t('unitRupiah')}
           </span>
         </div>
+        <FieldError id={ruleValidation.idOf('value')} issue={ruleValidation.issue('value')} />
         {rule.kind === 'amount' && rule.value && (
           <p className="text-muted-foreground text-xs">{formatRupiah(Number(rule.value))}</p>
         )}
@@ -261,8 +293,6 @@ export function DiscountsCard({
     </div>
   );
 
-  const ruleInvalid = !rule.name.trim() || !rule.value || Number(rule.value) < 1;
-
   return (
     <>
       <SectionCard
@@ -280,7 +310,7 @@ export function DiscountsCard({
             title={t('addDiscountRule')}
             submitLabel={tm('add')}
             error={error}
-            disabled={ruleInvalid}
+            validation={ruleValidation}
             onOpenChange={() => {
               setRule(EMPTY_RULE);
               setError(null);
@@ -375,19 +405,24 @@ export function DiscountsCard({
 
           <form
             className="grid gap-4"
+            noValidate
             onSubmit={(e) => {
               e.preventDefault();
-              if (canAssign) assign.mutate();
+              if (assign.isPending || !assignValidation.attempt()) return;
+              assign.mutate();
             }}
           >
-            <div className={FORM_GRID_3}>
+            <div className="grid items-start gap-4 sm:grid-cols-3">
               <div className="grid content-start gap-2">
-                <Label htmlFor="as-rule">{t('rule')}</Label>
+                <Label htmlFor={assignValidation.idOf('ruleId')}>{t('rule')}</Label>
                 <SelectField
-                  id="as-rule"
+                  {...withoutBlur(assignField('ruleId'))}
                   value={ruleId}
                   placeholder={t('chooseRule')}
-                  onChange={(e) => setRuleId(e.target.value)}
+                  onChange={(e) => {
+                    setRuleId(e.target.value);
+                    assignValidation.touch('ruleId');
+                  }}
                 >
                   {activeRules.map((r) => (
                     <option key={r.id} value={r.id}>
@@ -395,10 +430,20 @@ export function DiscountsCard({
                     </option>
                   ))}
                 </SelectField>
+                <FieldError id={assignValidation.idOf('ruleId')} issue={assignValidation.issue('ruleId')} />
               </div>
               <div className="grid content-start gap-2">
-                <Label htmlFor="as-year">{t('academicYear')}</Label>
-                <YearSelect years={years} yearId={yearId} onChange={setYear} />
+                <Label htmlFor={assignValidation.idOf('yearId')}>{t('academicYear')}</Label>
+                <YearSelect
+                  {...withoutBlur(assignField('yearId'))}
+                  years={years}
+                  yearId={yearId}
+                  onChange={(v) => {
+                    setYear(v);
+                    assignValidation.touch('yearId');
+                  }}
+                />
+                <FieldError id={assignValidation.idOf('yearId')} issue={assignValidation.issue('yearId')} />
               </div>
               <div className="grid content-start gap-2">
                 <Label htmlFor="as-scope">{t('scope')}</Label>
@@ -415,12 +460,15 @@ export function DiscountsCard({
 
             {scope === 'class' ? (
               <div className="grid content-start gap-2 sm:max-w-xs">
-                <Label htmlFor="as-class">{t('class')}</Label>
+                <Label htmlFor={assignValidation.idOf('classId')}>{t('class')}</Label>
                 <SelectField
-                  id="as-class"
+                  {...withoutBlur(assignField('classId'))}
                   value={classId}
                   placeholder={t('chooseClass')}
-                  onChange={(e) => setClassId(e.target.value)}
+                  onChange={(e) => {
+                    setClassId(e.target.value);
+                    assignValidation.touch('classId');
+                  }}
                 >
                   {classes.map((c) => (
                     <option key={c.id} value={c.id}>
@@ -428,14 +476,16 @@ export function DiscountsCard({
                     </option>
                   ))}
                 </SelectField>
+                <FieldError id={assignValidation.idOf('classId')} issue={assignValidation.issue('classId')} />
               </div>
             ) : (
               <div className="grid gap-3">
                 <div className="relative w-full sm:max-w-md">
                   <Search className="text-muted-foreground pointer-events-none absolute top-1/2 left-2.5 size-4 -translate-y-1/2" />
                   <Input
+                    {...withoutBlur(assignField('students'))}
                     aria-label={t('searchStudent')}
-                    className="pl-8"
+                    className={cn(TOUCH_INPUT, 'pl-8')}
                     autoComplete="off"
                     value={q}
                     placeholder={t('searchPlaceholder')}
@@ -503,19 +553,25 @@ export function DiscountsCard({
                       ))}
                     </div>
                   )}
+                  <FieldError
+                    id={assignValidation.idOf('students')}
+                    issue={assignValidation.issue('students')}
+                  />
                 </div>
               </div>
             )}
 
             <div className="grid content-start gap-2">
-              <Label htmlFor="as-reason">{t('assignReason')}</Label>
+              <Label htmlFor={assignValidation.idOf('reason')}>{t('assignReason')}</Label>
               <Input
-                id="as-reason"
+                {...assignField('reason')}
+                className={TOUCH_INPUT}
                 maxLength={200}
                 value={reason}
                 placeholder={t('assignReasonHint')}
                 onChange={(e) => setReason(e.target.value)}
               />
+              <FieldError id={assignValidation.idOf('reason')} issue={assignValidation.issue('reason')} />
             </div>
 
             {assignError && (
@@ -523,8 +579,13 @@ export function DiscountsCard({
                 <AlertDescription>{assignError}</AlertDescription>
               </Alert>
             )}
+            {assignValidation.summary && (
+              <p aria-live="polite" className="text-destructive text-sm">
+                {tv('summary')}
+              </p>
+            )}
             <div>
-              <Button type="submit" disabled={!canAssign}>
+              <Button type="submit" disabled={assign.isPending}>
                 {t('assignButton')}
               </Button>
             </div>
@@ -550,7 +611,7 @@ export function DiscountsCard({
         title={t('editDiscountRule')}
         submitLabel={tm('save')}
         error={error}
-        disabled={ruleInvalid}
+        validation={ruleValidation}
         onOpenChange={(o) => !o && setRule(EMPTY_RULE)}
         onSubmit={() => saveRule.mutateAsync(rule)}
       >

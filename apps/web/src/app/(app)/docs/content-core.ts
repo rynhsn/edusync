@@ -294,7 +294,7 @@ export const CORE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Menambah guru baru',
-            body: 'Data guru terdiri dari nama, NIP, dan status Aktif atau Nonaktif. NIP boleh kosong, tetapi kalau diisi tidak boleh sama dengan guru lain. Data diri lain boleh menyusul: NIK (16 digit, tidak boleh sama dengan orang lain di sekolah yang sama), HP/WhatsApp, email, jenis kelamin, tempat dan tanggal lahir, alamat, agama, dan pendidikan terakhir.',
+            body: 'Data guru terdiri dari nama, NIP, dan status Aktif atau Nonaktif. NIP boleh kosong, tetapi kalau diisi tidak boleh sama dengan guru lain. NUPTK (16 digit) juga opsional dan tidak pernah menghalangi penyimpanan, jadi guru honorer yang belum punya NUPTK tetap bisa disimpan; kalau diisi tidak boleh sama dengan guru lain, dan tidak dihitung sebagai data yang kurang. Data diri lain boleh menyusul: NIK (16 digit, tidak boleh sama dengan orang lain di sekolah yang sama), HP/WhatsApp, email, jenis kelamin, tempat dan tanggal lahir, alamat, agama, dan pendidikan terakhir.',
             steps: [
               'Buka menu Guru di kelompok Data induk.',
               'Klik Tambah guru.',
@@ -362,7 +362,7 @@ export const CORE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Adding a new teacher',
-            body: 'A teacher record has a name, an NIP, and a status of Active or Inactive. The NIP can stay empty, but if filled it must not match another teacher. The other details can be added later: NIK (16 digits, unique within the school), phone/WhatsApp, email, gender, birth place and date, address, religion, and last education.',
+            body: 'A teacher record has a name, an NIP, and a status of Active or Inactive. The NIP can stay empty, but if filled it must not match another teacher. The NUPTK (16 digits) is optional too and never blocks saving, so honorary teachers without one can still be saved; if filled it must not match another teacher, and it is not counted as missing data. The other details can be added later: NIK (16 digits, unique within the school), phone/WhatsApp, email, gender, birth place and date, address, religion, and last education.',
             steps: [
               'Open the Teachers menu in the Master data group.',
               'Click Add a teacher.',
@@ -430,7 +430,7 @@ export const CORE_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Nambihan guru anyar',
-            body: 'Data guru diwangun ku ngaran, NIP, jeung status Aktip atawa Nonaktip. NIP meunang kosong, tapi lamun dieusian teu meunang sarua jeung guru séjén. Data diri séjén meunang nyusul: NIK (16 angka, teu meunang sarua jeung nu séjén dina sakola nu sarua), HP/WhatsApp, surélék, jenis kelamin, tempat jeung tanggal lahir, alamat, agama, jeung atikan pamungkas.',
+            body: 'Data guru diwangun ku ngaran, NIP, jeung status Aktip atawa Nonaktip. NIP meunang kosong, tapi lamun dieusian teu meunang sarua jeung guru séjén. NUPTK (16 angka) oge opsional sarta tara nyegah nyimpen, jadi guru honorer nu acan boga NUPTK tetep bisa disimpen; lamun dieusian teu meunang sarua jeung guru séjén, sarta teu diitung data nu kurang. Data diri séjén meunang nyusul: NIK (16 angka, teu meunang sarua jeung nu séjén dina sakola nu sarua), HP/WhatsApp, surélék, jenis kelamin, tempat jeung tanggal lahir, alamat, agama, jeung atikan pamungkas.',
             steps: [
               'Buka menu Guru dina kelompok Data induk.',
               'Klik Tambih guru.',
@@ -2413,6 +2413,11 @@ export const CORE_DOCS: DocArticle[] = [
             tip: 'NIK siswa, guru, dan wali bisa dipakai bila akunnya sudah terhubung (siswa dan wali lewat tautan portal, guru lewat akun login guru) dan NIK itu cocok dengan tepat satu akun. Bila NIK yang sama cocok dengan lebih dari satu akun, masuk dengan NIK tidak berfungsi; masuklah dengan email.',
           },
           {
+            heading: 'Akun di lebih dari satu sekolah: pilih tujuan setelah masuk',
+            body: 'Bila akun Anda terhubung ke lebih dari satu tempat (misalnya wali murid dengan anak di dua sekolah, guru di dua sekolah, admin beberapa unit, atau staf platform yang juga anggota sekolah), setelah masuk Anda melihat layar Pilih tujuan. Pilih salah satu: konsol platform, portal pemilik lembaga, atau sekolah. Tujuan yang terakhir dibuka tampil paling atas dengan label Terakhir dibuka. Bila hanya ada satu tujuan, Anda langsung dibawa ke sana tanpa layar pilihan.',
+            tip: 'Untuk pindah tujuan kapan saja, pakai menu nama sekolah di bagian atas sidebar (Pindah ke). Pilihan terakhir diingat di peramban ini; di perangkat lain layar pilihan tampil seperti biasa.',
+          },
+          {
             heading: 'Lupa kata sandi: pilih email atau WhatsApp',
             body: 'Anda bisa memulihkan akun sendiri. Setelah mengisi email atau NIK, sistem menampilkan pilihan pengiriman kode 6 digit. Email ditampilkan sebagian (misalnya ri***@gmail.com). WhatsApp hanya tampil bila ada nomor HP, yaitu HP akun atau, bila akun belum punya, HP guru, wali, atau siswa yang terhubung (urutan: akun, guru, wali, siswa), dengan petunjuk 4 angka pertama dan 3 angka terakhir (misalnya 6281****789).',
             steps: [
@@ -2463,6 +2468,11 @@ export const CORE_DOCS: DocArticle[] = [
             tip: 'The NIK of a student, teacher, or guardian works once the account is linked (students and guardians through the portal link, teachers through the teacher login account) and the NIK matches exactly one account. If the same NIK matches more than one account, signing in with the NIK does not work; use the email instead.',
           },
           {
+            heading: 'An account in more than one school: choose where to go after signing in',
+            body: 'If your account is linked to more than one place (for example a guardian with children in two schools, a teacher in two schools, an admin of several units, or platform staff who also belong to a school), you see a Choose where to go screen after signing in. Pick one: the platform console, the foundation owner portal, or a school. The destination you opened last is listed first with a Last opened label. If there is only one destination you are taken straight there, with no chooser.',
+            tip: 'To switch at any time, use the school name menu at the top of the sidebar (Switch to). The last choice is remembered in this browser; on another device the chooser appears as usual.',
+          },
+          {
             heading: 'Forgot your password: choose email or WhatsApp',
             body: 'You can recover the account yourself. After you enter an email or NIK, the system shows where the 6-digit code can be sent. The email is partly hidden (for example ri***@gmail.com). WhatsApp appears only when a phone number exists: the account phone or, if the account has none, the phone of the linked teacher, guardian, or student (in that order: account, teacher, guardian, student), with a clue of the first 4 and last 3 digits (for example 6281****789).',
             steps: [
@@ -2511,6 +2521,11 @@ export const CORE_DOCS: DocArticle[] = [
               'Eusian kecap sandi, tuluy klik Lebet.',
             ],
             tip: 'NIK murid, guru, jeung wali bisa dipaké lamun akunna geus nyambung (murid jeung wali lewat tumbu portal, guru lewat akun asup guru) sarta NIK éta cocog jeung persis hiji akun. Lamun NIK nu sarua cocog jeung leuwih ti hiji akun, asup maké NIK teu tiasa jalan; asup maké surélék.',
+          },
+          {
+            heading: 'Akun di leuwih ti hiji sakola: pilih tujuan sanggeus lebet',
+            body: 'Upami akun anjeun nyambung ka leuwih ti hiji tempat (upamana wali murid nu murid di dua sakola, guru di dua sakola, admin sababaraha unit, atawa staf platform nu ogé anggota sakola), sanggeus lebet anjeun nempo layar Pilih tujuan. Pilih salah sahiji: konsol platform, portal nu gaduh lembaga, atawa sakola. Tujuan nu pamungkas dibuka aya di luhur kalayan labél Pamungkas dibuka. Upami ngan aya hiji tujuan, anjeun langsung dibawa ka dinya tanpa layar pilihan.',
+            tip: 'Pikeun pindah iraha waé, paké ménu ngaran sakola di luhur sidebar (Pindah ka). Pilihan pamungkas diinget dina panyungsi ieu; dina parangkat séjén layar pilihan tampil siga biasa.',
           },
           {
             heading: 'Poho kecap sandi: pilih surélék atawa WhatsApp',

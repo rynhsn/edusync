@@ -1538,7 +1538,7 @@
         "tags": [
           "Billing"
         ],
-        "description": "Harga dihitung ulang di server dari katalog; harga dari klien tidak dipakai. Subdomain dipesan 24 jam. Pendaftaran tertunda milik pengguna yang sama digantikan oleh yang baru. Setelah pembayaran terkonfirmasi, yayasan dan unit dibuat otomatis.",
+        "description": "Harga dihitung ulang di server dari katalog; harga dari klien tidak dipakai. Subdomain dipesan 24 jam. Pendaftaran tertunda milik pengguna yang sama digantikan oleh yang baru. Setelah pembayaran terkonfirmasi, yayasan dan unit dibuat otomatis. Tiap unit wajib membawa NPSN 8 angka. Galat: invalid_npsn (format), npsn_duplicate (NPSN sama dua kali dalam satu pendaftaran), npsn_taken (sudah dipakai sekolah atau pendaftaran lain yang menunggu pembayaran), slug_taken, invalid_selection.",
         "requestBody": {
           "required": true,
           "content": {
@@ -1576,6 +1576,11 @@
                           "maxLength": 40,
                           "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
                         },
+                        "npsn": {
+                          "type": "string",
+                          "maxLength": 40,
+                          "description": "NPSN 8 angka (wajib). Spasi, titik, dan strip dibuang; format salah ditolak 400 invalid_npsn, NPSN ganda dalam satu pendaftaran 400 npsn_duplicate, sudah terdaftar 409 npsn_taken."
+                        },
                         "modules": {
                           "maxItems": 40,
                           "type": "array",
@@ -1592,6 +1597,7 @@
                       "required": [
                         "name",
                         "slug",
+                        "npsn",
                         "modules",
                         "tier"
                       ]
@@ -2045,15 +2051,45 @@
                           },
                           "name": {
                             "type": "string"
+                          },
+                          "npsn": {
+                            "nullable": true,
+                            "type": "string"
                           }
                         },
                         "required": [
                           "id",
                           "slug",
-                          "name"
+                          "name",
+                          "npsn"
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "units": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "name": {
+                            "type": "string"
+                          },
+                          "slug": {
+                            "type": "string"
+                          },
+                          "npsn": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "slug",
+                          "npsn"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "Unit yang didaftarkan, lengkap dengan NPSN-nya (null pada pendaftaran lama)."
                     }
                   },
                   "required": [
@@ -2063,7 +2099,8 @@
                     "period",
                     "expiresAt",
                     "invoice",
-                    "schools"
+                    "schools",
+                    "units"
                   ],
                   "additionalProperties": false
                 }
@@ -2688,6 +2725,11 @@
                             "slug": {
                               "type": "string"
                             },
+                            "npsn": {
+                              "nullable": true,
+                              "description": "NPSN 8 angka; null pada sekolah lama",
+                              "type": "string"
+                            },
                             "status": {
                               "type": "string",
                               "enum": [
@@ -2724,6 +2766,7 @@
                             "id",
                             "name",
                             "slug",
+                            "npsn",
                             "status",
                             "suspendedReason",
                             "suspendedNote",
@@ -2916,6 +2959,11 @@
                               "slug": {
                                 "type": "string"
                               },
+                              "npsn": {
+                                "nullable": true,
+                                "description": "NPSN 8 angka; null pada sekolah lama",
+                                "type": "string"
+                              },
                               "status": {
                                 "type": "string",
                                 "enum": [
@@ -2952,6 +3000,7 @@
                               "id",
                               "name",
                               "slug",
+                              "npsn",
                               "status",
                               "suspendedReason",
                               "suspendedNote",
@@ -21201,13 +21250,19 @@
                     "minLength": 3,
                     "maxLength": 40,
                     "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                  },
+                  "npsn": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "description": "NPSN 8 angka (wajib). Galat: invalid_npsn, npsn_taken."
                   }
                 },
                 "required": [
                   "modules",
                   "tier",
                   "name",
-                  "slug"
+                  "slug",
+                  "npsn"
                 ]
               }
             }
@@ -21457,13 +21512,19 @@
                     "minLength": 3,
                     "maxLength": 40,
                     "pattern": "^[a-z0-9]+(-[a-z0-9]+)*$"
+                  },
+                  "npsn": {
+                    "type": "string",
+                    "maxLength": 40,
+                    "description": "NPSN 8 angka (wajib). Galat: invalid_npsn, npsn_taken."
                   }
                 },
                 "required": [
                   "modules",
                   "tier",
                   "name",
-                  "slug"
+                  "slug",
+                  "npsn"
                 ]
               }
             }
@@ -26552,7 +26613,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `teacher:read`. `q` mencari pada nama atau NIP. NIK utuh hanya dikembalikan bagi pemegang `teacher:manage`; yang lain hanya menerima `nikMasked` (empat digit terakhir).",
+        "description": "Izin: `teacher:read`. `q` mencari pada nama atau NIP. NIK dan NUPTK utuh hanya dikembalikan bagi pemegang `teacher:manage`; yang lain hanya menerima `nikMasked` / `nuptkMasked` (empat digit terakhir).",
         "parameters": [
           {
             "schema": {
@@ -26620,6 +26681,16 @@
                         "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
                         "type": "string"
                       },
+                      "nuptk": {
+                        "nullable": true,
+                        "description": "NUPTK utuh; null bila tidak punya izin kelola atau belum diisi",
+                        "type": "string"
+                      },
+                      "nuptkMasked": {
+                        "nullable": true,
+                        "description": "NUPTK tersamar (empat digit terakhir); null bila belum diisi",
+                        "type": "string"
+                      },
                       "phone": {
                         "nullable": true,
                         "type": "string"
@@ -26676,6 +26747,8 @@
                       "memberId",
                       "nik",
                       "nikMasked",
+                      "nuptk",
+                      "nuptkMasked",
                       "phone",
                       "email",
                       "gender",
@@ -26762,7 +26835,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `teacher:manage`. NIP dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`. NIK 16 digit, telepon dinormalkan ke digit berawalan 62, email, jenis kelamin (L/P), tempat dan tanggal lahir, alamat, agama, dan pendidikan terakhir opsional. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.",
+        "description": "Izin: `teacher:manage`. NIP, NIK, dan NUPTK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`, NUPTK bentrok 409 `nuptk_taken`. NUPTK 16 digit bersifat opsional (guru honorer sering belum punya) dan tidak pernah menghalangi penyimpanan. NIK 16 digit, telepon dinormalkan ke digit berawalan 62, email, jenis kelamin (L/P), tempat dan tanggal lahir, alamat, agama, dan pendidikan terakhir opsional. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.",
         "requestBody": {
           "required": true,
           "content": {
@@ -26790,6 +26863,13 @@
                     ]
                   },
                   "nik": {
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 40
+                  },
+                  "nuptk": {
+                    "description": "NUPTK 16 angka, opsional (guru honorer sering belum punya; tidak pernah menghalangi penyimpanan). Spasi, titik, dan strip dibuang. Unik per sekolah bila terisi (409 `nuptk_taken`).",
                     "default": null,
                     "nullable": true,
                     "type": "string",
@@ -26928,6 +27008,16 @@
                       "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
                       "type": "string"
                     },
+                    "nuptk": {
+                      "nullable": true,
+                      "description": "NUPTK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nuptkMasked": {
+                      "nullable": true,
+                      "description": "NUPTK tersamar (empat digit terakhir); null bila belum diisi",
+                      "type": "string"
+                    },
                     "phone": {
                       "nullable": true,
                       "type": "string"
@@ -26984,6 +27074,8 @@
                     "memberId",
                     "nik",
                     "nikMasked",
+                    "nuptk",
+                    "nuptkMasked",
                     "phone",
                     "email",
                     "gender",
@@ -27136,6 +27228,13 @@
                     "type": "string",
                     "maxLength": 40
                   },
+                  "nuptk": {
+                    "description": "NUPTK 16 angka, opsional (guru honorer sering belum punya; tidak pernah menghalangi penyimpanan). Spasi, titik, dan strip dibuang. Unik per sekolah bila terisi (409 `nuptk_taken`).",
+                    "default": null,
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 40
+                  },
                   "phone": {
                     "default": null,
                     "nullable": true,
@@ -27279,6 +27378,16 @@
                       "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
                       "type": "string"
                     },
+                    "nuptk": {
+                      "nullable": true,
+                      "description": "NUPTK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nuptkMasked": {
+                      "nullable": true,
+                      "description": "NUPTK tersamar (empat digit terakhir); null bila belum diisi",
+                      "type": "string"
+                    },
                     "phone": {
                       "nullable": true,
                       "type": "string"
@@ -27335,6 +27444,8 @@
                     "memberId",
                     "nik",
                     "nikMasked",
+                    "nuptk",
+                    "nuptkMasked",
                     "phone",
                     "email",
                     "gender",
@@ -27756,6 +27867,16 @@
                       "description": "NIK tersamar (empat digit terakhir); null bila belum diisi",
                       "type": "string"
                     },
+                    "nuptk": {
+                      "nullable": true,
+                      "description": "NUPTK utuh; null bila tidak punya izin kelola atau belum diisi",
+                      "type": "string"
+                    },
+                    "nuptkMasked": {
+                      "nullable": true,
+                      "description": "NUPTK tersamar (empat digit terakhir); null bila belum diisi",
+                      "type": "string"
+                    },
                     "phone": {
                       "nullable": true,
                       "type": "string"
@@ -27812,6 +27933,8 @@
                     "memberId",
                     "nik",
                     "nikMasked",
+                    "nuptk",
+                    "nuptkMasked",
                     "phone",
                     "email",
                     "gender",
@@ -99437,6 +99560,11 @@
                       "type": "string",
                       "description": "Nama unit di sistem (`school.name`)"
                     },
+                    "npsn": {
+                      "nullable": true,
+                      "description": "NPSN 8 angka; null pada sekolah lama yang belum mengisinya",
+                      "type": "string"
+                    },
                     "officialName": {
                       "nullable": true,
                       "description": "Nama pada kop; kosong = pakai `name`",
@@ -99490,6 +99618,7 @@
                   },
                   "required": [
                     "name",
+                    "npsn",
                     "officialName",
                     "logoUrl",
                     "street",
@@ -99579,7 +99708,7 @@
         "tags": [
           "School"
         ],
-        "description": "Izin: `school:manage`. Mengganti seluruh teks identitas; logo diubah lewat endpoint terpisah dan tidak tersentuh. `email` harus valid, `website` harus http(s) (400 `validation`).",
+        "description": "Izin: `school:manage`. Mengganti seluruh teks identitas; logo diubah lewat endpoint terpisah dan tidak tersentuh. `email` harus valid, `website` harus http(s) (400 `validation`). `npsn` bila diisi mengganti NPSN sekolah (keunikan diperiksa di seluruh platform, perubahan dicatat di audit); galat `invalid_npsn`, `npsn_taken`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -99664,6 +99793,12 @@
                         "format": "uri"
                       }
                     ]
+                  },
+                  "npsn": {
+                    "description": "NPSN 8 angka. Kosong/tidak dikirim = NPSN tidak diubah (NPSN tidak bisa dikosongkan). Spasi, titik, dan strip dibuang; format salah 400 `invalid_npsn`, sudah dipakai 409 `npsn_taken`.",
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 40
                   }
                 }
               }
@@ -99694,6 +99829,11 @@
                     "name": {
                       "type": "string",
                       "description": "Nama unit di sistem (`school.name`)"
+                    },
+                    "npsn": {
+                      "nullable": true,
+                      "description": "NPSN 8 angka; null pada sekolah lama yang belum mengisinya",
+                      "type": "string"
                     },
                     "officialName": {
                       "nullable": true,
@@ -99748,6 +99888,7 @@
                   },
                   "required": [
                     "name",
+                    "npsn",
                     "officialName",
                     "logoUrl",
                     "street",
@@ -99861,6 +100002,38 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -99926,6 +100099,11 @@
                       "type": "string",
                       "description": "Nama unit di sistem (`school.name`)"
                     },
+                    "npsn": {
+                      "nullable": true,
+                      "description": "NPSN 8 angka; null pada sekolah lama yang belum mengisinya",
+                      "type": "string"
+                    },
                     "officialName": {
                       "nullable": true,
                       "description": "Nama pada kop; kosong = pakai `name`",
@@ -99979,6 +100157,7 @@
                   },
                   "required": [
                     "name",
+                    "npsn",
                     "officialName",
                     "logoUrl",
                     "street",
@@ -116602,7 +116781,7 @@
         "tags": [
           "People"
         ],
-        "description": "Izin: `teacher:manage`. Maksimal 1000 baris. `dryRun: true` hanya memeriksa. Tanpa `dryRun`, guru disimpan hanya bila semua baris valid. NIP dan NIK harus unik di file dan di sekolah; status kosong berarti aktif. Data diri opsional: `nik` (16 digit), `gender` (L/P), `phone` (dinormalkan ke 62), `email`, `birthPlace`, `birthDate` (TTTT-BB-HH), `address`, `religion`, `education`. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.",
+        "description": "Izin: `teacher:manage`. Maksimal 1000 baris. `dryRun: true` hanya memeriksa. Tanpa `dryRun`, guru disimpan hanya bila semua baris valid. NIP dan NIK harus unik di file dan di sekolah; status kosong berarti aktif. Data diri opsional: `nik` (16 digit), `nuptk` (16 digit, opsional dan unik bila terisi), `gender` (L/P), `phone` (dinormalkan ke 62), `email`, `birthPlace`, `birthDate` (TTTT-BB-HH), `address`, `religion`, `education`. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.",
         "requestBody": {
           "required": true,
           "content": {
@@ -116641,6 +116820,11 @@
                           "maxLength": 30
                         },
                         "nik": {
+                          "default": "",
+                          "type": "string",
+                          "maxLength": 40
+                        },
+                        "nuptk": {
                           "default": "",
                           "type": "string",
                           "maxLength": 40

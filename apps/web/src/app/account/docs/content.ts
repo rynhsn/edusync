@@ -1623,7 +1623,7 @@ export const DOC_ARTICLES: DocArticle[] = [
             body: 'Setiap sekolah baru adalah satu unit dengan paketnya sendiri. Unit dibuat otomatis setelah pembayaran terkonfirmasi, dan Anda menjadi admin awalnya.',
             steps: [
               'Klik Tambah unit sekolah (di Ringkasan atau Unit sekolah).',
-              'Isi Nama sekolah dan pilih alamat sekolah yang tersedia.',
+              'Isi Nama sekolah, pilih alamat sekolah yang tersedia, dan isi NPSN (Nomor Pokok Sekolah Nasional, 8 angka; cek di referensi.data.kemendikdasmen.go.id). NPSN wajib dan tidak boleh sama dengan sekolah lain di Edusync.',
               'Pilih modul dan Jumlah siswa.',
               'Periksa Ringkasan sampai muncul Total.',
               'Klik Bayar dan buat unit, lalu selesaikan pembayaran.',
@@ -1726,7 +1726,7 @@ export const DOC_ARTICLES: DocArticle[] = [
             body: 'Each new school is a unit with its own plan. The unit is created automatically once payment is confirmed, and you become its first admin.',
             steps: [
               'Click Add school unit (on Overview or School units).',
-              'Fill in the School name and choose an available school address.',
+              'Fill in the School name, choose an available school address, and enter the NPSN (National School Principal Number, 8 digits; look it up at referensi.data.kemendikdasmen.go.id). The NPSN is required and cannot match another school on Edusync.',
               'Pick the modules and Student count.',
               'Check the Summary until the Total appears.',
               'Click Pay and create unit, then complete the payment.',
@@ -1829,7 +1829,7 @@ export const DOC_ARTICLES: DocArticle[] = [
             body: 'Unggal sakola anyar téh hiji unit kalawan paketna sorangan. Unit dijieun otomatis sanggeus pambayaran dikonfirmasi, sarta anjeun jadi admin awalna.',
             steps: [
               'Klik Tambah unit sakola (dina Ringkesan atawa Unit sakola).',
-              'Eusian Ngaran sakola tuluy pilih alamat sakola nu sayogi.',
+              'Eusian Ngaran sakola, pilih alamat sakola nu sayogi, tuluy eusian NPSN (Nomer Pokok Sakola Nasional, 8 angka; pariksa di referensi.data.kemendikdasmen.go.id). NPSN kudu dieusian sarta teu meunang sarua jeung sakola séjén di Edusync.',
               'Pilih modul jeung Jumlah siswa.',
               'Parios Ringkesan nepi ka Total némbongan.',
               'Klik Bayar jeung jieun unit, tuluy réngsékeun pambayaran.',

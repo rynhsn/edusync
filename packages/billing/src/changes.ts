@@ -36,7 +36,7 @@ import { enqueue, QUEUES } from '@edusync/jobs';
 import { DomainError } from './errors';
 import { createRenewalInvoice } from './lifecycle';
 import type { PaymentProvider } from './provider';
-import { slugStatus } from './service';
+import { assertNpsnsFree, requireNpsn, slugStatus } from './service';
 
 /** Pecahan sisa periode berjalan (0..1) untuk hitung prorata. */
 export function remainingFraction(start: Date, end: Date, now = new Date()) {
@@ -370,6 +370,8 @@ export async function applyUpgradeOrder(
 export interface NewUnitInput {
   name: string;
   slug: string;
+  /** NPSN 8 angka (wajib; spasi/titik/strip dibuang di createNewUnit). */
+  npsn: string;
   modules: string[];
   tier: string;
 }
@@ -410,8 +412,9 @@ export async function createNewUnit(
   provider: PaymentProvider,
   account: { id: string; name: string; email: string },
   foundationId: string,
-  input: NewUnitInput,
+  rawInput: NewUnitInput,
 ) {
+  const input = { ...rawInput, npsn: requireNpsn(rawInput.npsn) };
   const settings = await loadBillingSettings(db);
   const expiresAt = new Date(Date.now() + settings.reservationHours * 3_600_000);
   const orderId = `unit-${randomUUID()}`;
@@ -454,13 +457,22 @@ export async function createNewUnit(
     if ((await slugStatus(tx, input.slug)) === 'taken') {
       throw new DomainError(409, 'slug_taken', `Subdomain "${input.slug}" sudah dipakai.`);
     }
+    await assertNpsnsFree(tx, [input.npsn]);
     const [reg] = await tx
       .insert(registration)
       .values({
         userId: account.id,
         foundationName: f!.name,
         period: preview.sub.period,
-        units: [{ name: input.name, slug: input.slug, modules: preview.modules, tier: input.tier }],
+        units: [
+          {
+            name: input.name,
+            slug: input.slug,
+            npsn: input.npsn,
+            modules: preview.modules,
+            tier: input.tier,
+          },
+        ],
         expiresAt,
         foundationId,
       })
@@ -524,7 +536,13 @@ export async function activateNewUnit(
   for (const unit of reg.units) {
     const [s] = await tx
       .insert(school)
-      .values({ foundationId, slug: unit.slug, name: unit.name, studentTier: unit.tier })
+      .values({
+        foundationId,
+        slug: unit.slug,
+        name: unit.name,
+        studentTier: unit.tier,
+        npsn: unit.npsn ?? null,
+      })
       .returning();
     await seedSchoolRoles(tx, s!.id);
     const [m] = await tx.insert(member).values({ userId: owner.id, schoolId: s!.id }).returning();

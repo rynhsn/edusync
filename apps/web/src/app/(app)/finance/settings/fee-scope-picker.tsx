@@ -37,10 +37,14 @@ interface Props {
   classes: { id: string; name: string }[];
   /** Pesan validasi (sasaran kosong, dsb.) yang ditampilkan di bawah pemilih. */
   errorText?: string | null;
+  /** Galat merah gaya baru (FieldError) di bawah pemilih; menggantikan `errorText` bila diberikan. */
+  error?: React.ReactNode;
+  /** Atribut a11y untuk pemilih "Berlaku untuk" saat ada galat (`aria-invalid`, `aria-describedby`). */
+  scopeProps?: { 'aria-invalid'?: boolean; 'aria-describedby'?: string | undefined };
 }
 
 /** Pemilih "Berlaku untuk": semua siswa, beberapa kelas (daftar centang), atau siswa tertentu (pencarian + chip). */
-export function FeeScopePicker({ value, onChange, classes, errorText }: Props) {
+export function FeeScopePicker({ value, onChange, classes, errorText, error, scopeProps }: Props) {
   const t = useTranslations('finance');
   const tm = useTranslations('masterData');
   const { school } = useSchool();
@@ -71,6 +75,7 @@ export function FeeScopePicker({ value, onChange, classes, errorText }: Props) {
         <Label htmlFor="fee-scope">{t('feeScopeLabel')}</Label>
         <SelectField
           id="fee-scope"
+          {...scopeProps}
           value={value.scope}
           onChange={(e) => onChange({ ...value, scope: e.target.value as FeeScope })}
         >
@@ -215,7 +220,8 @@ export function FeeScopePicker({ value, onChange, classes, errorText }: Props) {
         </div>
       )}
 
-      {errorText && (
+      {error}
+      {!error && errorText && (
         <p role="alert" className="text-destructive text-sm">
           {errorText}
         </p>

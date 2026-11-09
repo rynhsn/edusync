@@ -137,6 +137,10 @@ const KNOWN = [
   'ticket_closed',
   'invalid_assignee',
   'nik_taken',
+  'nuptk_taken',
+  'invalid_npsn',
+  'npsn_taken',
+  'npsn_duplicate',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

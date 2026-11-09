@@ -16,7 +16,7 @@ export const EXAM_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Mengisi identitas sekolah',
-            body: 'Kartu Identitas sekolah ada di bagian paling atas halaman Pengaturan sekolah. Isinya nama resmi untuk kop, alamat yang dipecah per bagian (jalan, kelurahan, kecamatan, kota, provinsi, kode pos), telepon, fax, email, dan situs web. Semua kolom boleh dikosongkan; yang kosong tidak tampil di kop.',
+            body: 'Kartu Identitas sekolah ada di bagian paling atas halaman Pengaturan sekolah. Isinya nama resmi untuk kop, alamat yang dipecah per bagian (jalan, kelurahan, kecamatan, kota, provinsi, kode pos), telepon, fax, email, dan situs web. Semua kolom boleh dikosongkan; yang kosong tidak tampil di kop. Di atasnya ada isian NPSN (Nomor Pokok Sekolah Nasional, 8 angka): sekolah yang mendaftar sudah punya NPSN, sedangkan sekolah lama bisa mengisinya sendiri. NPSN tidak boleh sama dengan sekolah lain di Edusync, dan penggantiannya tercatat di riwayat aktivitas.',
             steps: [
               'Buka menu Pengaturan sekolah.',
               'Di kartu Identitas sekolah, isi Nama resmi pada kop. Kosongkan bila ingin memakai nama unit apa adanya.',
@@ -79,7 +79,7 @@ export const EXAM_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Filling in the school identity',
-            body: 'The School identity card is at the very top of the School settings page. It holds the official name for the letterhead, the address split into parts (street, village, district, city, province, postal code), phone, fax, email, and website. Every field may be left empty; empty ones are not shown on the letterhead.',
+            body: 'The School identity card is at the very top of the School settings page. It holds the official name for the letterhead, the address split into parts (street, village, district, city, province, postal code), phone, fax, email, and website. Every field may be left empty; empty ones are not shown on the letterhead. Above them is the NPSN field (National School Principal Number, 8 digits): schools that register already have an NPSN, while older schools can fill it in themselves. The NPSN cannot match another school on Edusync, and changing it is recorded in the activity log.',
             steps: [
               'Open School settings.',
               'In the School identity card, fill in the Official name on letterhead. Leave it empty to use the unit name as is.',
@@ -142,7 +142,7 @@ export const EXAM_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Ngeusian idéntitas sakola',
-            body: 'Kartu Idéntitas sakola aya di luhur pisan kaca Pangaturan sakola. Eusina ngaran resmi pikeun kop, alamat anu dipasing per bagian (jalan, désa, kacamatan, kota, propinsi, kode pos), telepon, fax, surélék, jeung situs wéb. Sakabéh kolom meunang dikosongkeun; nu kosong teu muncul dina kop.',
+            body: 'Kartu Idéntitas sakola aya di luhur pisan kaca Pangaturan sakola. Eusina ngaran resmi pikeun kop, alamat anu dipasing per bagian (jalan, désa, kacamatan, kota, propinsi, kode pos), telepon, fax, surélék, jeung situs wéb. Sakabéh kolom meunang dikosongkeun; nu kosong teu muncul dina kop. Di luhurna aya eusian NPSN (Nomer Pokok Sakola Nasional, 8 angka): sakola nu ngadaptar geus boga NPSN, sedengkeun sakola lawas bisa ngeusian sorangan. NPSN teu meunang sarua jeung sakola séjén di Edusync, sarta ngarobahna dicatet dina riwayat kagiatan.',
             steps: [
               'Buka ménu Pangaturan sakola.',
               'Dina kartu Idéntitas sakola, eusian Ngaran resmi dina kop. Kosongkeun upami hoyong maké ngaran unit sakumaha aranjeunna.',

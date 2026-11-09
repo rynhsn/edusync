@@ -935,7 +935,7 @@ export interface paths {
         put?: never;
         /**
          * Daftarkan yayasan dan unit, lalu buat invoice
-         * @description Harga dihitung ulang di server dari katalog; harga dari klien tidak dipakai. Subdomain dipesan 24 jam. Pendaftaran tertunda milik pengguna yang sama digantikan oleh yang baru. Setelah pembayaran terkonfirmasi, yayasan dan unit dibuat otomatis.
+         * @description Harga dihitung ulang di server dari katalog; harga dari klien tidak dipakai. Subdomain dipesan 24 jam. Pendaftaran tertunda milik pengguna yang sama digantikan oleh yang baru. Setelah pembayaran terkonfirmasi, yayasan dan unit dibuat otomatis. Tiap unit wajib membawa NPSN 8 angka. Galat: invalid_npsn (format), npsn_duplicate (NPSN sama dua kali dalam satu pendaftaran), npsn_taken (sudah dipakai sekolah atau pendaftaran lain yang menunggu pembayaran), slug_taken, invalid_selection.
          */
         post: {
             parameters: {
@@ -953,6 +953,8 @@ export interface paths {
                         units: {
                             name: string;
                             slug: string;
+                            /** @description NPSN 8 angka (wajib). Spasi, titik, dan strip dibuang; format salah ditolak 400 invalid_npsn, NPSN ganda dalam satu pendaftaran 400 npsn_duplicate, sudah terdaftar 409 npsn_taken. */
+                            npsn: string;
                             modules: string[];
                             tier: string;
                         }[];
@@ -1177,6 +1179,13 @@ export interface paths {
                                 id: string;
                                 slug: string;
                                 name: string;
+                                npsn: string | null;
+                            }[];
+                            /** @description Unit yang didaftarkan, lengkap dengan NPSN-nya (null pada pendaftaran lama). */
+                            units: {
+                                name: string;
+                                slug: string;
+                                npsn: string | null;
                             }[];
                         };
                     };
@@ -1542,6 +1551,8 @@ export interface paths {
                                 id: string;
                                 name: string;
                                 slug: string;
+                                /** @description NPSN 8 angka; null pada sekolah lama */
+                                npsn: string | null;
                                 /** @enum {string} */
                                 status: "active" | "suspended";
                                 /** @enum {string|null} */
@@ -1641,6 +1652,8 @@ export interface paths {
                                     id: string;
                                     name: string;
                                     slug: string;
+                                    /** @description NPSN 8 angka; null pada sekolah lama */
+                                    npsn: string | null;
                                     /** @enum {string} */
                                     status: "active" | "suspended";
                                     /** @enum {string|null} */
@@ -9084,6 +9097,8 @@ export interface paths {
                         tier: string;
                         name: string;
                         slug: string;
+                        /** @description NPSN 8 angka (wajib). Galat: invalid_npsn, npsn_taken. */
+                        npsn: string;
                     };
                 };
             };
@@ -9201,6 +9216,8 @@ export interface paths {
                         tier: string;
                         name: string;
                         slug: string;
+                        /** @description NPSN 8 angka (wajib). Galat: invalid_npsn, npsn_taken. */
+                        npsn: string;
                     };
                 };
             };
@@ -11701,7 +11718,7 @@ export interface paths {
         };
         /**
          * Daftar guru
-         * @description Izin: `teacher:read`. `q` mencari pada nama atau NIP. NIK utuh hanya dikembalikan bagi pemegang `teacher:manage`; yang lain hanya menerima `nikMasked` (empat digit terakhir).
+         * @description Izin: `teacher:read`. `q` mencari pada nama atau NIP. NIK dan NUPTK utuh hanya dikembalikan bagi pemegang `teacher:manage`; yang lain hanya menerima `nikMasked` / `nuptkMasked` (empat digit terakhir).
          */
         get: {
             parameters: {
@@ -11736,6 +11753,10 @@ export interface paths {
                             nik: string | null;
                             /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
                             nikMasked: string | null;
+                            /** @description NUPTK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nuptk: string | null;
+                            /** @description NUPTK tersamar (empat digit terakhir); null bila belum diisi */
+                            nuptkMasked: string | null;
                             phone: string | null;
                             email: string | null;
                             /** @enum {string|null} */
@@ -11783,7 +11804,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah guru
-         * @description Izin: `teacher:manage`. NIP dan NIK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`. NIK 16 digit, telepon dinormalkan ke digit berawalan 62, email, jenis kelamin (L/P), tempat dan tanggal lahir, alamat, agama, dan pendidikan terakhir opsional. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.
+         * @description Izin: `teacher:manage`. NIP, NIK, dan NUPTK (bila diisi) harus unik di sekolah; NIK bentrok menghasilkan 409 `nik_taken`, NUPTK bentrok 409 `nuptk_taken`. NUPTK 16 digit bersifat opsional (guru honorer sering belum punya) dan tidak pernah menghalangi penyimpanan. NIK 16 digit, telepon dinormalkan ke digit berawalan 62, email, jenis kelamin (L/P), tempat dan tanggal lahir, alamat, agama, dan pendidikan terakhir opsional. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.
          */
         post: {
             parameters: {
@@ -11807,6 +11828,11 @@ export interface paths {
                         status?: "active" | "inactive";
                         /** @default null */
                         nik?: string | null;
+                        /**
+                         * @description NUPTK 16 angka, opsional (guru honorer sering belum punya; tidak pernah menghalangi penyimpanan). Spasi, titik, dan strip dibuang. Unik per sekolah bila terisi (409 `nuptk_taken`).
+                         * @default null
+                         */
+                        nuptk?: string | null;
                         /** @default null */
                         phone?: string | null;
                         /** @default null */
@@ -11852,6 +11878,10 @@ export interface paths {
                             nik: string | null;
                             /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
                             nikMasked: string | null;
+                            /** @description NUPTK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nuptk: string | null;
+                            /** @description NUPTK tersamar (empat digit terakhir); null bila belum diisi */
+                            nuptkMasked: string | null;
                             phone: string | null;
                             email: string | null;
                             /** @enum {string|null} */
@@ -11952,6 +11982,11 @@ export interface paths {
                         status?: "active" | "inactive";
                         /** @default null */
                         nik?: string | null;
+                        /**
+                         * @description NUPTK 16 angka, opsional (guru honorer sering belum punya; tidak pernah menghalangi penyimpanan). Spasi, titik, dan strip dibuang. Unik per sekolah bila terisi (409 `nuptk_taken`).
+                         * @default null
+                         */
+                        nuptk?: string | null;
                         /** @default null */
                         phone?: string | null;
                         /** @default null */
@@ -11997,6 +12032,10 @@ export interface paths {
                             nik: string | null;
                             /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
                             nikMasked: string | null;
+                            /** @description NUPTK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nuptk: string | null;
+                            /** @description NUPTK tersamar (empat digit terakhir); null bila belum diisi */
+                            nuptkMasked: string | null;
                             phone: string | null;
                             email: string | null;
                             /** @enum {string|null} */
@@ -12215,6 +12254,10 @@ export interface paths {
                             nik: string | null;
                             /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
                             nikMasked: string | null;
+                            /** @description NUPTK utuh; null bila tidak punya izin kelola atau belum diisi */
+                            nuptk: string | null;
+                            /** @description NUPTK tersamar (empat digit terakhir); null bila belum diisi */
+                            nuptkMasked: string | null;
                             phone: string | null;
                             email: string | null;
                             /** @enum {string|null} */
@@ -44019,6 +44062,8 @@ export interface paths {
                         "application/json": {
                             /** @description Nama unit di sistem (`school.name`) */
                             name: string;
+                            /** @description NPSN 8 angka; null pada sekolah lama yang belum mengisinya */
+                            npsn: string | null;
                             /** @description Nama pada kop; kosong = pakai `name` */
                             officialName: string | null;
                             /** @description Jalur gambar logo (publik, tidak bisa ditebak), null bila belum ada */
@@ -44068,7 +44113,7 @@ export interface paths {
         };
         /**
          * Simpan identitas sekolah
-         * @description Izin: `school:manage`. Mengganti seluruh teks identitas; logo diubah lewat endpoint terpisah dan tidak tersentuh. `email` harus valid, `website` harus http(s) (400 `validation`).
+         * @description Izin: `school:manage`. Mengganti seluruh teks identitas; logo diubah lewat endpoint terpisah dan tidak tersentuh. `email` harus valid, `website` harus http(s) (400 `validation`). `npsn` bila diisi mengganti NPSN sekolah (keunikan diperiksa di seluruh platform, perubahan dicatat di audit); galat `invalid_npsn`, `npsn_taken`.
          */
         put: {
             parameters: {
@@ -44094,6 +44139,8 @@ export interface paths {
                         fax?: string | null;
                         email?: ("" | string) | null;
                         website?: ("" | string) | null;
+                        /** @description NPSN 8 angka. Kosong/tidak dikirim = NPSN tidak diubah (NPSN tidak bisa dikosongkan). Spasi, titik, dan strip dibuang; format salah 400 `invalid_npsn`, sudah dipakai 409 `npsn_taken`. */
+                        npsn?: string | null;
                     };
                 };
             };
@@ -44107,6 +44154,8 @@ export interface paths {
                         "application/json": {
                             /** @description Nama unit di sistem (`school.name`) */
                             name: string;
+                            /** @description NPSN 8 angka; null pada sekolah lama yang belum mengisinya */
+                            npsn: string | null;
                             /** @description Nama pada kop; kosong = pakai `name` */
                             officialName: string | null;
                             /** @description Jalur gambar logo (publik, tidak bisa ditebak), null bila belum ada */
@@ -44154,6 +44203,20 @@ export interface paths {
                 };
                 /** @description Default Response */
                 403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -44217,6 +44280,8 @@ export interface paths {
                         "application/json": {
                             /** @description Nama unit di sistem (`school.name`) */
                             name: string;
+                            /** @description NPSN 8 angka; null pada sekolah lama yang belum mengisinya */
+                            npsn: string | null;
                             /** @description Nama pada kop; kosong = pakai `name` */
                             officialName: string | null;
                             /** @description Jalur gambar logo (publik, tidak bisa ditebak), null bila belum ada */
@@ -51289,7 +51354,7 @@ export interface paths {
         put?: never;
         /**
          * Impor guru (pratinjau atau simpan)
-         * @description Izin: `teacher:manage`. Maksimal 1000 baris. `dryRun: true` hanya memeriksa. Tanpa `dryRun`, guru disimpan hanya bila semua baris valid. NIP dan NIK harus unik di file dan di sekolah; status kosong berarti aktif. Data diri opsional: `nik` (16 digit), `gender` (L/P), `phone` (dinormalkan ke 62), `email`, `birthPlace`, `birthDate` (TTTT-BB-HH), `address`, `religion`, `education`. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.
+         * @description Izin: `teacher:manage`. Maksimal 1000 baris. `dryRun: true` hanya memeriksa. Tanpa `dryRun`, guru disimpan hanya bila semua baris valid. NIP dan NIK harus unik di file dan di sekolah; status kosong berarti aktif. Data diri opsional: `nik` (16 digit), `nuptk` (16 digit, opsional dan unik bila terisi), `gender` (L/P), `phone` (dinormalkan ke 62), `email`, `birthPlace`, `birthDate` (TTTT-BB-HH), `address`, `religion`, `education`. NIK, telepon, dan email dipakai untuk masuk dan pemulihan akun.
          */
         post: {
             parameters: {
@@ -51315,6 +51380,8 @@ export interface paths {
                             status?: string;
                             /** @default  */
                             nik?: string;
+                            /** @default  */
+                            nuptk?: string;
                             /** @default  */
                             gender?: string;
                             /** @default  */

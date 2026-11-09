@@ -20,6 +20,17 @@ describe('dataCompleteness', () => {
     expect(dataCompleteness({ nikMasked: MASKED, phone: null, email: 'a@b.id' })).toBe('complete');
   });
 
+  it('NUPTK opsional: kosong tidak membuat data dianggap kurang', () => {
+    expect(dataCompleteness({ nikMasked: MASKED, phone: '62812', nuptk: null, nuptkMasked: null })).toBe(
+      'complete',
+    );
+    expect(dataCompleteness({ nikMasked: MASKED, phone: '62812', nuptk: '7777123412341234' })).toBe(
+      'complete',
+    );
+    expect(dataCompleteness({ nuptk: '7777123412341234' })).toBe('missingNik');
+    expect(countMissingNik([{ nikMasked: MASKED, nuptk: null }])).toBe(0);
+  });
+
   it('pengguna tanpa izin kelola (nik null, nikMasked ada) tetap dianggap punya NIK', () => {
     expect(hasNik({ nik: null, nikMasked: MASKED })).toBe(true);
     expect(hasNik({ nik: '3201234567890001', nikMasked: null })).toBe(true);

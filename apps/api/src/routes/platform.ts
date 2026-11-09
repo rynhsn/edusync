@@ -20,6 +20,7 @@ const schoolSchema = z.object({
   id: z.uuid(),
   name: z.string(),
   slug: z.string(),
+  npsn: z.string().nullable().describe('NPSN 8 angka; null pada sekolah lama'),
   status: z.enum(['active', 'suspended']),
   suspendedReason: z.enum(['billing', 'staff']).nullable(),
   suspendedNote: z

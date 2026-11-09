@@ -1,6 +1,6 @@
 'use client';
 
-import { slugify } from '@edusync/contracts';
+import { NPSN_LENGTH, slugify } from '@edusync/contracts';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { School } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { api, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useConfig } from '@/lib/site';
+import { cn } from '@/lib/utils';
 import { SlugField, type SlugStatus } from '../register/slug-field';
 import { goPay, useAccount } from './account-context';
 import { PlanPicker } from './plan-picker';
@@ -23,6 +24,7 @@ import { PlanPicker } from './plan-picker';
 export function UnitNewView() {
   const t = useTranslations('account');
   const te = useTranslations();
+  const tr = useTranslations('register');
   const { foundation: f, money, date, moduleLabel, tierLabel } = useAccount();
   const config = useConfig();
 
@@ -33,12 +35,15 @@ export function UnitNewView() {
   const [plan, setPlan] = useState<{ modules: string[]; tier: string }>({ modules: [], tier: 't300' });
   const onStatus = useCallback((_id: string, s: SlugStatus) => setSlugState(s), []);
 
-  const ready = name.trim().length >= 3 && slugState === 'available';
-  const body = { name: name.trim(), slug, ...plan };
+  const [npsn, setNpsn] = useState('');
+  const npsnInvalid = npsn.length > 0 && npsn.length !== NPSN_LENGTH;
+
+  const ready = name.trim().length >= 3 && slugState === 'available' && npsn.length === NPSN_LENGTH;
+  const body = { name: name.trim(), slug, npsn, ...plan };
   const key = [...plan.modules].sort().join(',');
 
   const quote = useQuery({
-    queryKey: ['unit-quote', f.id, name.trim(), slug, key, plan.tier],
+    queryKey: ['unit-quote', f.id, name.trim(), slug, npsn, key, plan.tier],
     enabled: ready,
     retry: false,
     queryFn: async () =>
@@ -99,6 +104,26 @@ export function UnitNewView() {
               onStatus={onStatus}
               baseDomain={config.data?.baseDomain}
             />
+            <div className="grid content-start gap-2">
+              <Label htmlFor="unit-npsn">{tr('npsn')}</Label>
+              <Input
+                id="unit-npsn"
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={NPSN_LENGTH}
+                value={npsn}
+                onChange={(e) => setNpsn(e.target.value.replace(/\D/g, '').slice(0, NPSN_LENGTH))}
+                aria-invalid={npsnInvalid}
+                aria-describedby="unit-npsn-hint"
+              />
+              <p
+                id="unit-npsn-hint"
+                aria-live="polite"
+                className={cn('text-xs', npsnInvalid ? 'text-destructive' : 'text-muted-foreground')}
+              >
+                {npsnInvalid ? tr('npsnInvalid') : tr('npsnHint')}
+              </p>
+            </div>
             <PlanPicker idPrefix="new" modules={plan.modules} tier={plan.tier} onChange={setPlan} />
           </CardContent>
         </Card>

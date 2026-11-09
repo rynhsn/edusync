@@ -1,5 +1,6 @@
 'use client';
 
+import { NPSN_LENGTH } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ImagePlus, Landmark, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -38,6 +39,8 @@ export function IdentityPanel() {
   const fileInput = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [npsnDraft, setNpsnDraft] = useState<string | null>(null);
+  const [npsnError, setNpsnError] = useState<string | null>(null);
 
   const identity = useQuery({
     queryKey: ['school-identity', school.schoolId],
@@ -96,6 +99,34 @@ export function IdentityPanel() {
     },
     onError: (e) =>
       toast.error(e instanceof Error && e.message === 'logo' ? t('logoInvalid') : te(errorKey(e))),
+  });
+
+  // NPSN disimpan lewat PUT identitas yang sama; PUT mengganti seluruh teks identitas, jadi isi tersimpan ikut dikirim.
+  const savedNpsn = identity.data?.npsn ?? '';
+  const npsnValue = npsnDraft ?? savedNpsn;
+  const npsnInvalid = npsnValue.length > 0 && npsnValue.length !== NPSN_LENGTH;
+  const npsnDirty = npsnDraft !== null && npsnDraft !== savedNpsn;
+  const saveNpsn = useMutation({
+    mutationFn: async (npsn: string) =>
+      unwrap(
+        await api.PUT('/v1/school/identity', {
+          params: header,
+          body: {
+            ...(Object.fromEntries(FIELDS.map((f) => [f, saved?.[f]?.trim() || null])) as Record<
+              Field,
+              string | null
+            >),
+            npsn,
+          },
+        }),
+      ),
+    onSuccess: (data) => {
+      setNpsnError(null);
+      setNpsnDraft(null);
+      refresh(data);
+      toast.success(t('npsnSaved'));
+    },
+    onError: (e) => setNpsnError(te(errorKey(e))),
   });
 
   const removeLogo = useMutation({
@@ -182,6 +213,44 @@ export function IdentityPanel() {
             </div>
           )}
         </div>
+      </div>
+
+      <div className="grid max-w-md content-start gap-2">
+        <Label htmlFor="identity-npsn">{t('npsnLabel')}</Label>
+        <div className="flex flex-wrap items-start gap-2">
+          <Input
+            id="identity-npsn"
+            className={cn(TOUCH_INPUT, 'w-40 font-mono')}
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={NPSN_LENGTH}
+            disabled={!canManage || saveNpsn.isPending}
+            value={npsnValue}
+            aria-invalid={npsnInvalid || !!npsnError}
+            aria-describedby="identity-npsn-hint"
+            onChange={(e) => {
+              setNpsnError(null);
+              setNpsnDraft(e.target.value.replace(/\D/g, '').slice(0, NPSN_LENGTH));
+            }}
+          />
+          {canManage && (
+            <Button
+              type="button"
+              className="h-10 md:h-8"
+              disabled={!npsnDirty || npsnValue.length !== NPSN_LENGTH || saveNpsn.isPending}
+              onClick={() => saveNpsn.mutate(npsnValue)}
+            >
+              {t('npsnSave')}
+            </Button>
+          )}
+        </div>
+        <p
+          id="identity-npsn-hint"
+          aria-live="polite"
+          className={cn('text-xs', npsnInvalid || npsnError ? 'text-destructive' : 'text-muted-foreground')}
+        >
+          {npsnError ?? (npsnInvalid ? t('npsnInvalid') : savedNpsn ? t('npsnHint') : t('npsnEmpty'))}
+        </p>
       </div>
 
       <form

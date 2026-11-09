@@ -1,10 +1,11 @@
+import { assertNpsnsFree, NPSN_TAKEN_MESSAGE, requireNpsn } from '@edusync/billing';
 import { eq, school, schoolFile, schoolIdentity, type Tx, withTenant } from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, requireTenant, type TenantContext } from '../identity/guards';
-import { audit, guarded, ok, schoolHeader } from './helpers';
+import { audit, guarded, isUniqueViolation, ok, schoolHeader } from './helpers';
 
 const MAX_LOGO_BYTES = 512 * 1024;
 const LOGO_TYPES = {
@@ -44,10 +45,19 @@ const identityBody = z.object({
     )
     .nullish()
     .transform((v) => v || null),
+  npsn: z
+    .string()
+    .max(40)
+    .nullish()
+    .describe(
+      'NPSN 8 angka. Kosong/tidak dikirim = NPSN tidak diubah (NPSN tidak bisa dikosongkan). Spasi, titik, dan ' +
+        'strip dibuang; format salah 400 `invalid_npsn`, sudah dipakai 409 `npsn_taken`.',
+    ),
 });
 
 const identitySchema = z.object({
   name: z.string().describe('Nama unit di sistem (`school.name`)'),
+  npsn: z.string().nullable().describe('NPSN 8 angka; null pada sekolah lama yang belum mengisinya'),
   officialName: z.string().nullable().describe('Nama pada kop; kosong = pakai `name`'),
   logoUrl: z
     .string()
@@ -79,10 +89,14 @@ export function composeAddress(i: Partial<IdentityRow> | undefined): string | nu
 }
 
 export async function readIdentity(tx: Tx, schoolId: string) {
-  const [sch] = await tx.select({ name: school.name }).from(school).where(eq(school.id, schoolId));
+  const [sch] = await tx
+    .select({ name: school.name, npsn: school.npsn })
+    .from(school)
+    .where(eq(school.id, schoolId));
   const [row] = await tx.select().from(schoolIdentity).where(eq(schoolIdentity.schoolId, schoolId));
   return {
     name: sch?.name ?? '',
+    npsn: sch?.npsn ?? null,
     officialName: row?.officialName ?? null,
     logoUrl: logoPath(row?.logoFileId),
     street: row?.street ?? null,
@@ -132,23 +146,48 @@ export async function schoolIdentityRoutes(instance: FastifyInstance) {
         summary: 'Simpan identitas sekolah',
         description:
           'Izin: `school:manage`. Mengganti seluruh teks identitas; logo diubah lewat endpoint terpisah dan tidak ' +
-          'tersentuh. `email` harus valid, `website` harus http(s) (400 `validation`).',
+          'tersentuh. `email` harus valid, `website` harus http(s) (400 `validation`). `npsn` bila diisi mengganti ' +
+          'NPSN sekolah (keunikan diperiksa di seluruh platform, perubahan dicatat di audit); galat `invalid_npsn`, ' +
+          '`npsn_taken`.',
         headers: schoolHeader,
         body: identityBody,
-        response: { 200: identitySchema, 400: errorSchema, ...guarded },
+        response: { 200: identitySchema, 400: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      return tenant(request, async (tx) => {
-        const values = { ...request.body, updatedAt: new Date() };
-        await tx
-          .insert(schoolIdentity)
-          .values({ schoolId: ctx.schoolId, ...values })
-          .onConflictDoUpdate({ target: schoolIdentity.schoolId, set: values });
-        await audit(tx, ctx, 'school.identity_update', 'school', ctx.schoolId, request.body);
-        return readIdentity(tx, ctx.schoolId);
-      });
+      const { npsn: rawNpsn, ...text } = request.body;
+      const npsn = rawNpsn?.trim() ? requireNpsn(rawNpsn) : null;
+      // Keunikan NPSN berlaku lintas sekolah, sedangkan koneksi tenant hanya melihat sekolahnya sendiri.
+      if (npsn) await assertNpsnsFree(request.server.platformDb, [npsn], { exceptSchoolId: ctx.schoolId });
+      try {
+        return await tenant(request, async (tx) => {
+          const values = { ...text, updatedAt: new Date() };
+          await tx
+            .insert(schoolIdentity)
+            .values({ schoolId: ctx.schoolId, ...values })
+            .onConflictDoUpdate({ target: schoolIdentity.schoolId, set: values });
+          let npsnChange: { npsnFrom: string | null; npsnTo: string } | undefined;
+          if (npsn) {
+            const [before] = await tx
+              .select({ npsn: school.npsn })
+              .from(school)
+              .where(eq(school.id, ctx.schoolId));
+            if ((before?.npsn ?? null) !== npsn) {
+              await tx.update(school).set({ npsn }).where(eq(school.id, ctx.schoolId));
+              npsnChange = { npsnFrom: before?.npsn ?? null, npsnTo: npsn };
+            }
+          }
+          await audit(tx, ctx, 'school.identity_update', 'school', ctx.schoolId, { ...text, ...npsnChange });
+          if (npsnChange) {
+            await audit(tx, ctx, 'school.npsn_update', 'school', ctx.schoolId, npsnChange);
+          }
+          return readIdentity(tx, ctx.schoolId);
+        });
+      } catch (error) {
+        if (isUniqueViolation(error)) throw new HttpError(409, 'npsn_taken', NPSN_TAKEN_MESSAGE);
+        throw error;
+      }
     },
   );
 

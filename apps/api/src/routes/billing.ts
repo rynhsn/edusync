@@ -156,7 +156,9 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
         description:
           'Harga dihitung ulang di server dari katalog; harga dari klien tidak dipakai. Subdomain dipesan 24 jam. ' +
           'Pendaftaran tertunda milik pengguna yang sama digantikan oleh yang baru. Setelah pembayaran terkonfirmasi, ' +
-          'yayasan dan unit dibuat otomatis.',
+          'yayasan dan unit dibuat otomatis. Tiap unit wajib membawa NPSN 8 angka. Galat: invalid_npsn (format), ' +
+          'npsn_duplicate (NPSN sama dua kali dalam satu pendaftaran), npsn_taken (sudah dipakai sekolah atau ' +
+          'pendaftaran lain yang menunggu pembayaran), slug_taken, invalid_selection.',
         body: registrationInput,
         response: {
           201: z.object({
@@ -248,7 +250,12 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
             period: z.enum(BILLING_PERIODS),
             expiresAt: z.iso.datetime(),
             invoice: invoiceSchema.nullable(),
-            schools: z.array(z.object({ id: z.uuid(), slug: z.string(), name: z.string() })),
+            schools: z.array(
+              z.object({ id: z.uuid(), slug: z.string(), name: z.string(), npsn: z.string().nullable() }),
+            ),
+            units: z
+              .array(z.object({ name: z.string(), slug: z.string(), npsn: z.string().nullable() }))
+              .describe('Unit yang didaftarkan, lengkap dengan NPSN-nya (null pada pendaftaran lama).'),
           }),
           401: errorSchema,
           404: errorSchema,
@@ -279,6 +286,7 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
             }
           : null,
         schools,
+        units: reg.units.map((u) => ({ name: u.name, slug: u.slug, npsn: u.npsn ?? null })),
       };
     },
   );

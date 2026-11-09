@@ -1,5 +1,6 @@
 import { randomUUID } from 'node:crypto';
 import {
+  normalizeNpsn,
   QuoteError,
   quoteUnits,
   type RegistrationInput,
@@ -99,12 +100,68 @@ export interface CreateRegistrationResult {
   expiresAt: Date;
 }
 
+export const NPSN_TAKEN_MESSAGE =
+  'NPSN ini sudah terdaftar di Edusync. Hubungi dukungan bila ini sekolah Anda.';
+
+/** Rapikan NPSN (buang spasi/titik/strip); format salah menjadi 400 `invalid_npsn`. */
+export function requireNpsn(raw: string): string {
+  const npsn = normalizeNpsn(raw);
+  if (!npsn) throw new DomainError(400, 'invalid_npsn', 'NPSN harus 8 angka.');
+  return npsn;
+}
+
+/**
+ * NPSN tidak boleh dipakai sekolah mana pun maupun pendaftaran lain yang masih menunggu pembayaran dan belum kedaluwarsa.
+ * Panggil setelah pendaftaran tertunda milik pemohon sendiri dilepas, supaya pendaftaran ulang tidak menabrak dirinya.
+ */
+export async function assertNpsnsFree(
+  tx: Db | Tx,
+  npsns: string[],
+  opts: { exceptRegistrationId?: string; exceptSchoolId?: string } = {},
+) {
+  const { exceptRegistrationId, exceptSchoolId } = opts;
+  if (npsns.length === 0) return;
+  const [existing] = await tx
+    .select({ id: school.id })
+    .from(school)
+    .where(
+      and(inArray(school.npsn, npsns), exceptSchoolId ? sql`${school.id} <> ${exceptSchoolId}` : undefined),
+    )
+    .limit(1);
+  if (existing) throw new DomainError(409, 'npsn_taken', NPSN_TAKEN_MESSAGE);
+  const list = sql.join(
+    npsns.map((n) => sql`${n}`),
+    sql`, `,
+  );
+  const held = await tx
+    .select({ id: registration.id })
+    .from(registration)
+    .where(
+      and(
+        eq(registration.status, 'pending_payment'),
+        gt(registration.expiresAt, new Date()),
+        sql`exists (select 1 from jsonb_array_elements(${registration.units}) u where u->>'npsn' in (${list}))`,
+        exceptRegistrationId ? sql`${registration.id} <> ${exceptRegistrationId}` : undefined,
+      ),
+    )
+    .limit(1);
+  if (held.length > 0) throw new DomainError(409, 'npsn_taken', NPSN_TAKEN_MESSAGE);
+}
+
 export async function createRegistration(
   db: Db,
   provider: PaymentProvider,
   account: { id: string; name: string; email: string },
-  input: RegistrationInput,
+  rawInput: RegistrationInput,
 ): Promise<CreateRegistrationResult> {
+  const input: RegistrationInput = {
+    ...rawInput,
+    units: rawInput.units.map((u) => ({ ...u, npsn: requireNpsn(u.npsn) })),
+  };
+  const npsns = input.units.map((u) => u.npsn);
+  if (new Set(npsns).size !== npsns.length) {
+    throw new DomainError(400, 'npsn_duplicate', 'NPSN tiap unit harus berbeda.');
+  }
   const catalog = await loadCatalog(db);
   const settings = await loadBillingSettings(db);
   let quote: ReturnType<typeof quoteUnits>;
@@ -143,6 +200,7 @@ export async function createRegistration(
         throw new DomainError(409, 'slug_taken', `Subdomain "${slug}" sudah dipakai.`);
       }
     }
+    await assertNpsnsFree(tx, npsns);
 
     const [reg] = await tx
       .insert(registration)
@@ -207,7 +265,7 @@ export async function getRegistration(db: Db, registrationId: string, userId: st
   const [inv] = await db.select().from(invoice).where(eq(invoice.registrationId, reg.id));
   const schools = reg.foundationId
     ? await db
-        .select({ id: school.id, slug: school.slug, name: school.name })
+        .select({ id: school.id, slug: school.slug, name: school.name, npsn: school.npsn })
         .from(school)
         .where(eq(school.foundationId, reg.foundationId))
     : [];
@@ -269,7 +327,13 @@ export async function activateRegistration(
   for (const unit of reg.units) {
     const [s] = await tx
       .insert(school)
-      .values({ foundationId: f!.id, slug: unit.slug, name: unit.name, studentTier: unit.tier })
+      .values({
+        foundationId: f!.id,
+        slug: unit.slug,
+        name: unit.name,
+        studentTier: unit.tier,
+        npsn: unit.npsn ?? null,
+      })
       .returning();
     await seedSchoolRoles(tx, s!.id);
     const [m] = await tx.insert(member).values({ userId: owner.id, schoolId: s!.id }).returning();
@@ -386,6 +450,16 @@ export async function handlePaymentEvent(
       .from(slugReservation)
       .where(and(inArray(slugReservation.slug, slugs), gt(slugReservation.expiresAt, new Date())));
     if (taken.length > 0 || heldByOthers.some((h) => h.registrationId !== reg.id)) return 'needs_review';
+    // NPSN yang sudah dipakai sekolah lain (balapan antar pendaftaran) ditahan untuk ditinjau staf.
+    const npsns = reg.units.flatMap((u) => (u.npsn ? [u.npsn] : []));
+    if (npsns.length > 0) {
+      const npsnTaken = await tx
+        .select({ id: school.id })
+        .from(school)
+        .where(inArray(school.npsn, npsns))
+        .limit(1);
+      if (npsnTaken.length > 0) return 'needs_review';
+    }
 
     // Pendaftaran yang sudah punya yayasan adalah pesanan unit baru untuk yayasan itu.
     if (reg.foundationId) await activateNewUnit(tx, reg, inv);

@@ -231,15 +231,24 @@ export function YearSelect({
   yearId,
   onChange,
   className,
+  id,
+  'aria-invalid': ariaInvalid,
+  'aria-describedby': ariaDescribedby,
 }: {
   years: { id: string; name: string }[];
   yearId: string;
   onChange: (id: string) => void;
   className?: string;
+  id?: string;
+  'aria-invalid'?: boolean;
+  'aria-describedby'?: string | undefined;
 }) {
   const t = useTranslations('finance');
   return (
     <SelectField
+      {...(id ? { id } : {})}
+      {...(ariaInvalid !== undefined ? { 'aria-invalid': ariaInvalid } : {})}
+      {...(ariaDescribedby ? { 'aria-describedby': ariaDescribedby } : {})}
       aria-label={t('academicYear')}
       {...(className ? { className } : {})}
       value={yearId}

@@ -10,6 +10,9 @@ export interface CompletenessInput {
   nikMasked?: string | null;
   phone?: string | null;
   email?: string | null;
+  /** NUPTK guru bersifat opsional: diterima di sini hanya agar jelas bahwa ia TIDAK dihitung sebagai data kurang. */
+  nuptk?: string | null;
+  nuptkMasked?: string | null;
 }
 
 export const hasNik = (p: CompletenessInput): boolean => !!(p.nikMasked || p.nik);

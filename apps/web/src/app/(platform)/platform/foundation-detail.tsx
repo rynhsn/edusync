@@ -109,6 +109,9 @@ export function FoundationDetail({
                       <div className="min-w-0">
                         <p className="truncate text-sm font-medium">{s.name}</p>
                         <p className="text-muted-foreground font-mono text-xs">{s.slug}</p>
+                        <p className="text-muted-foreground text-xs">
+                          {s.npsn ? t('unitNpsn', { npsn: s.npsn }) : t('unitNpsnEmpty')}
+                        </p>
                         {!active && (
                           <p className="text-muted-foreground mt-1 text-xs break-words">
                             {s.suspendedReason === 'staff' && s.suspendedNote

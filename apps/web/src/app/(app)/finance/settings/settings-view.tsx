@@ -10,7 +10,7 @@ import { BackLink } from '@/components/back-link';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
-import { FORM_GRID } from '@/components/form-field';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -20,10 +20,11 @@ import { SelectField } from '@/components/ui/select-field';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EmptyPanel, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { formatRupiah } from '@/lib/money';
 import { useSchoolLevels } from '@/lib/school-settings';
-import { scopeBody, scopeError, summarizeTargets } from '../fee-scope';
+import { scopeBody, summarizeTargets } from '../fee-scope';
 import { digitsOnly, KIND_HINT_KEY, KIND_KEY, KINDS, type Kind, useFinanceYear, YearSelect } from '../shared';
 import { ListSkeleton, Money, RowMenu, SectionCard } from '../ui';
 import { AutoBillingCard } from './auto-billing-card';
@@ -32,6 +33,14 @@ import { DiscountsCard } from './discounts-card';
 import { FeeScopePicker, type ScopeValue } from './fee-scope-picker';
 import { LateFeeCard } from './late-fee-card';
 import { PaymentMethodsCard } from './payment-methods-card';
+import {
+  FEE_TYPE_ORDER,
+  type FeeTypeField,
+  PLAN_ORDER,
+  type PlanField,
+  validateFeeType,
+  validatePlan,
+} from './settings-validation';
 
 interface FeeDraft extends ScopeValue {
   id: string | null;
@@ -179,12 +188,21 @@ export function FinanceSettingsView() {
     onError: (e) => toast.error(te(errorKey(e))),
   });
 
-  const scopeIssue = scopeError({
-    scope: fee.scope,
-    classIds: fee.classIds,
-    studentIds: fee.students.map((s) => s.id),
+  const feeValidation = useFormValidation<FeeTypeField>({
+    errors: validateFeeType({
+      name: fee.name,
+      scope: fee.scope,
+      classIds: fee.classIds,
+      studentIds: fee.students.map((s) => s.id),
+    }),
+    order: FEE_TYPE_ORDER,
+    idPrefix: 'fee',
   });
-  const feeInvalid = !fee.name.trim() || scopeIssue !== null;
+  const planValidation = useFormValidation<PlanField>({
+    errors: validatePlan({ feeTypeId: plan.feeTypeId, amount: plan.amount }),
+    order: PLAN_ORDER,
+    idPrefix: 'plan',
+  });
 
   /** Buka dialog ubah; nama siswa sasaran dimuat belakangan karena daftar jenis biaya hanya memuat id-nya. */
   const editFee = (f: NonNullable<typeof feeTypes.data>[number]) => {
@@ -222,16 +240,18 @@ export function FinanceSettingsView() {
   };
 
   const feeFields = (
-    <div className={FORM_GRID}>
+    <div className="grid items-start gap-4 sm:grid-cols-2">
       <div className="grid content-start gap-2 sm:col-span-2">
-        <Label htmlFor="fee-name">{tm('name')}</Label>
+        <Label htmlFor={feeValidation.idOf('name')}>{tm('name')}</Label>
         <Input
-          id="fee-name"
-          required
-          maxLength={100}
+          {...feeValidation.fieldProps('name')}
+          className={TOUCH_INPUT}
+          aria-required="true"
+          maxLength={80}
           value={fee.name}
           onChange={(e) => setFee({ ...fee, name: e.target.value })}
         />
+        <FieldError id={feeValidation.idOf('name')} issue={feeValidation.issue('name')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor="fee-kind">{t('kind')}</Label>
@@ -263,7 +283,13 @@ export function FinanceSettingsView() {
         value={fee}
         onChange={(v) => setFee({ ...fee, ...v })}
         classes={(classes.data ?? []).map((c) => ({ id: c.id, name: c.name }))}
-        errorText={scopeIssue === 'targets_required' ? t('feeScopeTargetsRequired') : null}
+        scopeProps={{
+          'aria-invalid': feeValidation.issue('scope') !== undefined,
+          'aria-describedby': feeValidation.issue('scope')
+            ? `${feeValidation.idOf('scope')}-error`
+            : undefined,
+        }}
+        error={<FieldError id={feeValidation.idOf('scope')} issue={feeValidation.issue('scope')} />}
       />
       <div className="bg-muted/40 text-muted-foreground rounded-xl border p-3 text-xs sm:col-span-2">
         <p className="text-foreground font-medium">{t('feeScopeExamplesTitle')}</p>
@@ -276,15 +302,18 @@ export function FinanceSettingsView() {
   );
 
   const planFields = (
-    <div className={FORM_GRID}>
+    <div className="grid items-start gap-4 sm:grid-cols-2">
       <div className="grid content-start gap-2">
-        <Label htmlFor="plan-fee">{t('feeType')}</Label>
+        <Label htmlFor={planValidation.idOf('feeTypeId')}>{t('feeType')}</Label>
         <SelectField
-          id="plan-fee"
+          {...withoutBlur(planValidation.fieldProps('feeTypeId'))}
           disabled={plan.editing}
           value={plan.feeTypeId}
           placeholder={t('chooseFeeType')}
-          onChange={(e) => setPlan({ ...plan, feeTypeId: e.target.value })}
+          onChange={(e) => {
+            setPlan({ ...plan, feeTypeId: e.target.value });
+            planValidation.touch('feeTypeId');
+          }}
         >
           {feeList.map((f) => (
             <option key={f.id} value={f.id}>
@@ -292,6 +321,7 @@ export function FinanceSettingsView() {
             </option>
           ))}
         </SelectField>
+        <FieldError id={planValidation.idOf('feeTypeId')} issue={planValidation.issue('feeTypeId')} />
       </div>
       <div className="grid content-start gap-2">
         <Label htmlFor="plan-level">{t('level')}</Label>
@@ -310,14 +340,17 @@ export function FinanceSettingsView() {
         </SelectField>
       </div>
       <div className="grid content-start gap-2 sm:col-span-2">
-        <Label htmlFor="plan-amount">{t('amountRupiah')}</Label>
+        <Label htmlFor={planValidation.idOf('amount')}>{t('amountRupiah')}</Label>
         <Input
-          id="plan-amount"
-          required
+          {...planValidation.fieldProps('amount')}
+          className={TOUCH_INPUT}
+          aria-required="true"
           inputMode="numeric"
+          autoComplete="off"
           value={plan.amount}
           onChange={(e) => setPlan({ ...plan, amount: digitsOnly(e.target.value) })}
         />
+        <FieldError id={planValidation.idOf('amount')} issue={planValidation.issue('amount')} />
         {plan.amount && <p className="text-muted-foreground text-xs">{formatRupiah(Number(plan.amount))}</p>}
       </div>
     </div>
@@ -390,7 +423,7 @@ export function FinanceSettingsView() {
                 title={t('addFeeType')}
                 submitLabel={tm('add')}
                 size="wide"
-                disabled={feeInvalid}
+                validation={feeValidation}
                 error={error}
                 onOpenChange={() => {
                   setFee(EMPTY_FEE);
@@ -486,7 +519,7 @@ export function FinanceSettingsView() {
                   title={t('addPlan')}
                   submitLabel={tm('add')}
                   error={error}
-                  disabled={!plan.feeTypeId || !plan.amount}
+                  validation={planValidation}
                   onOpenChange={() => {
                     setPlan(EMPTY_PLAN);
                     setError(null);
@@ -587,7 +620,7 @@ export function FinanceSettingsView() {
         title={t('editFeeType')}
         submitLabel={tm('save')}
         size="wide"
-        disabled={feeInvalid}
+        validation={feeValidation}
         error={error}
         onOpenChange={(o) => !o && setFee(EMPTY_FEE)}
         onSubmit={() => saveFee.mutateAsync(fee)}
@@ -600,7 +633,7 @@ export function FinanceSettingsView() {
         title={t('editPlan')}
         submitLabel={tm('save')}
         error={error}
-        disabled={!plan.amount}
+        validation={planValidation}
         onOpenChange={(o) => !o && setPlan(EMPTY_PLAN)}
         onSubmit={() => savePlan.mutateAsync(plan)}
       >

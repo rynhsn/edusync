@@ -24,6 +24,7 @@ import { useSchool } from '@/components/app-shell';
 import { BackLink } from '@/components/back-link';
 import { EmptyState } from '@/components/empty-state';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -44,6 +45,7 @@ import {
 } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { formatRupiah } from '@/lib/money';
@@ -70,6 +72,20 @@ import {
   YearSelect,
 } from '../shared';
 import { ENTER, ListSkeleton, type MenuAction, Money, RowMenu, StatSkeleton } from '../ui';
+import {
+  GENERATE_ORDER,
+  type GenerateField,
+  INVOICE_EDIT_ORDER,
+  type InvoiceEditField,
+  SPLIT_ORDER,
+  type SplitField,
+  VOID_ORDER,
+  type VoidField,
+  validateGenerate,
+  validateInvoiceEdit,
+  validateSplit,
+  validateVoid,
+} from './invoices-validation';
 
 const PAGE = 25;
 
@@ -128,6 +144,9 @@ export function InvoicesView() {
     discount: string;
     discountReason: string;
     dueDate: string;
+    /** Nominal tagihan dan yang sudah dibayar: batas atas diskon. */
+    amount: number;
+    paid: number;
   } | null>(null);
   const [voiding, setVoiding] = useState<{ id: string; title: string } | null>(null);
   const [reason, setReason] = useState('');
@@ -218,6 +237,39 @@ export function InvoicesView() {
   const genSemester = genFee?.kind === 'semester';
   const genOutside = classOutsideScope(genFee, gen.classId);
   const genCount = Number(gen.installments || 0);
+
+  const genValidation = useFormValidation<GenerateField>({
+    errors: validateGenerate({
+      feeTypeId: gen.feeTypeId,
+      kind: genFee?.kind ?? null,
+      period: gen.period,
+      dueDate: gen.dueDate,
+      installments: gen.installments,
+    }),
+    order: GENERATE_ORDER,
+    idPrefix: 'gen',
+  });
+  const editValidation = useFormValidation<InvoiceEditField>({
+    errors: validateInvoiceEdit({
+      discount: editing?.discount ?? '',
+      discountReason: editing?.discountReason ?? '',
+      dueDate: editing?.dueDate ?? '',
+      amount: editing?.amount ?? 0,
+      paid: editing?.paid ?? 0,
+    }),
+    order: INVOICE_EDIT_ORDER,
+    idPrefix: 'inv',
+  });
+  const voidValidation = useFormValidation<VoidField>({
+    errors: validateVoid({ reason }),
+    order: VOID_ORDER,
+    idPrefix: 'void',
+  });
+  const splitValidation = useFormValidation<SplitField>({
+    errors: validateSplit({ count: splitting?.count ?? '', firstDue: splitting?.firstDue ?? '' }),
+    order: SPLIT_ORDER,
+    idPrefix: 'split',
+  });
 
   // Tarif jenis biaya terpilih, untuk pratinjau nominal cicilan (hanya bila semua tarifnya sama).
   const genPlans = useQuery({
@@ -396,6 +448,8 @@ export function InvoicesView() {
             discount: String(i.discount),
             discountReason: '',
             dueDate: i.dueDate.slice(0, 10),
+            amount: i.amount,
+            paid: i.paid,
           });
         },
       },
@@ -440,7 +494,7 @@ export function InvoicesView() {
                     description={t('generateHint')}
                     submitLabel={t('generate')}
                     error={error}
-                    disabled={!gen.feeTypeId || !gen.dueDate || ((genMonthly || genSemester) && !gen.period)}
+                    validation={genValidation}
                     onOpenChange={() => {
                       setGen({
                         feeTypeId: '',
@@ -455,12 +509,13 @@ export function InvoicesView() {
                   >
                     <div className="grid gap-4 sm:grid-cols-2">
                       <div className="grid content-start gap-2">
-                        <Label htmlFor="gen-fee">{t('feeType')}</Label>
+                        <Label htmlFor={genValidation.idOf('feeTypeId')}>{t('feeType')}</Label>
                         <SelectField
-                          id="gen-fee"
+                          {...withoutBlur(genValidation.fieldProps('feeTypeId'))}
                           value={gen.feeTypeId}
                           placeholder={t('chooseFeeType')}
                           onChange={(e) => {
+                            genValidation.touch('feeTypeId');
                             const f = feeList.find((x) => x.id === e.target.value);
                             setGen({
                               ...gen,
@@ -483,6 +538,10 @@ export function InvoicesView() {
                               </option>
                             ))}
                         </SelectField>
+                        <FieldError
+                          id={genValidation.idOf('feeTypeId')}
+                          issue={genValidation.issue('feeTypeId')}
+                        />
                       </div>
                       <div className="grid content-start gap-2">
                         <Label htmlFor="gen-class">{t('class')}</Label>
@@ -519,10 +578,20 @@ export function InvoicesView() {
                       {genMonthly && (
                         <div className="grid content-start gap-2">
                           <Label htmlFor="gen-period-month">{t('period')}</Label>
-                          <PeriodPicker
-                            idPrefix="gen-period"
-                            value={gen.period}
-                            onChange={(v) => setGen({ ...gen, period: v })}
+                          <div
+                            id={genValidation.idOf('period')}
+                            tabIndex={-1}
+                            className="rounded-lg outline-none"
+                          >
+                            <PeriodPicker
+                              idPrefix="gen-period"
+                              value={gen.period}
+                              onChange={(v) => setGen({ ...gen, period: v })}
+                            />
+                          </div>
+                          <FieldError
+                            id={genValidation.idOf('period')}
+                            issue={genValidation.issue('period')}
                           />
                         </div>
                       )}
@@ -530,31 +599,46 @@ export function InvoicesView() {
                         <div className="grid content-start gap-2">
                           <Label htmlFor="gen-semester">{t('semesterFilter')}</Label>
                           <SemesterPicker
-                            id="gen-semester"
+                            id={genValidation.idOf('period')}
                             academicYearId={yearId}
                             value={gen.period}
                             onChange={(v) => setGen({ ...gen, period: v })}
+                          />
+                          <FieldError
+                            id={genValidation.idOf('period')}
+                            issue={genValidation.issue('period')}
                           />
                           <p className="text-muted-foreground text-xs">{t('semesterPeriodHint')}</p>
                         </div>
                       )}
                       <div className="grid content-start gap-2">
-                        <Label htmlFor="gen-due">{t('dueDate')}</Label>
+                        <Label htmlFor={genValidation.idOf('dueDate')}>{t('dueDate')}</Label>
                         <DatePicker
-                          id="gen-due"
+                          {...withoutBlur(genValidation.fieldProps('dueDate'))}
+                          className={TOUCH_INPUT}
                           value={gen.dueDate}
-                          onChange={(v) => setGen({ ...gen, dueDate: v })}
+                          onChange={(v) => {
+                            setGen({ ...gen, dueDate: v });
+                            genValidation.touch('dueDate');
+                          }}
+                        />
+                        <FieldError
+                          id={genValidation.idOf('dueDate')}
+                          issue={genValidation.issue('dueDate')}
                         />
                       </div>
                       {genFee && !genMonthly && (
                         <div className="bg-muted/40 grid gap-3 rounded-xl border p-3 sm:col-span-2">
                           <div className="grid content-start gap-2 sm:grid-cols-2">
                             <div className="grid content-start gap-2">
-                              <Label htmlFor="gen-installments">{t('installments')}</Label>
+                              <Label htmlFor={genValidation.idOf('installments')}>{t('installments')}</Label>
                               <SelectField
-                                id="gen-installments"
+                                {...withoutBlur(genValidation.fieldProps('installments'))}
                                 value={gen.installments}
-                                onChange={(e) => setGen({ ...gen, installments: e.target.value })}
+                                onChange={(e) => {
+                                  setGen({ ...gen, installments: e.target.value });
+                                  genValidation.touch('installments');
+                                }}
                               >
                                 <option value="">{t('installmentsOnce')}</option>
                                 {INSTALLMENT_CHOICES.map((n) => (
@@ -563,6 +647,10 @@ export function InvoicesView() {
                                   </option>
                                 ))}
                               </SelectField>
+                              <FieldError
+                                id={genValidation.idOf('installments')}
+                                issue={genValidation.issue('installments')}
+                              />
                             </div>
                             <p className="text-muted-foreground self-end text-xs">{t('installmentsHint')}</p>
                           </div>
@@ -934,35 +1022,49 @@ export function InvoicesView() {
         title={`${t('editInvoice')} · ${editing?.title ?? ''}`}
         submitLabel={tm('save')}
         error={error}
+        validation={editValidation}
         onOpenChange={(o) => !o && setEditing(null)}
         onSubmit={() => (editing ? save.mutateAsync(editing) : Promise.resolve())}
       >
         {editing && (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="grid items-start gap-4 sm:grid-cols-2">
             <div className="grid content-start gap-2">
-              <Label htmlFor="inv-discount">{t('discount')}</Label>
+              <Label htmlFor={editValidation.idOf('discount')}>{t('discount')}</Label>
               <Input
-                id="inv-discount"
+                {...editValidation.fieldProps('discount')}
+                className={TOUCH_INPUT}
                 inputMode="numeric"
+                autoComplete="off"
                 value={editing.discount}
                 onChange={(e) => setEditing({ ...editing, discount: digitsOnly(e.target.value) })}
               />
+              <FieldError id={editValidation.idOf('discount')} issue={editValidation.issue('discount')} />
             </div>
             <div className="grid content-start gap-2">
-              <Label htmlFor="inv-due">{t('dueDate')}</Label>
+              <Label htmlFor={editValidation.idOf('dueDate')}>{t('dueDate')}</Label>
               <DatePicker
-                id="inv-due"
+                {...withoutBlur(editValidation.fieldProps('dueDate'))}
+                className={TOUCH_INPUT}
                 value={editing.dueDate}
-                onChange={(v) => setEditing({ ...editing, dueDate: v })}
+                onChange={(v) => {
+                  setEditing({ ...editing, dueDate: v });
+                  editValidation.touch('dueDate');
+                }}
               />
+              <FieldError id={editValidation.idOf('dueDate')} issue={editValidation.issue('dueDate')} />
             </div>
             <div className="grid content-start gap-2 sm:col-span-2">
-              <Label htmlFor="inv-reason">{t('discountReason')}</Label>
+              <Label htmlFor={editValidation.idOf('discountReason')}>{t('discountReason')}</Label>
               <Input
-                id="inv-reason"
+                {...editValidation.fieldProps('discountReason')}
+                className={TOUCH_INPUT}
                 maxLength={200}
                 value={editing.discountReason}
                 onChange={(e) => setEditing({ ...editing, discountReason: e.target.value })}
+              />
+              <FieldError
+                id={editValidation.idOf('discountReason')}
+                issue={editValidation.issue('discountReason')}
               />
             </div>
           </div>
@@ -975,19 +1077,21 @@ export function InvoicesView() {
         description={t('voidInvoiceHint')}
         submitLabel={t('voidInvoice')}
         error={error}
-        disabled={reason.trim().length < 3}
+        validation={voidValidation}
         onOpenChange={(o) => !o && setVoiding(null)}
         onSubmit={() => voidInvoice.mutateAsync()}
       >
         <div className="grid content-start gap-2">
-          <Label htmlFor="inv-void-reason">{t('reason')}</Label>
+          <Label htmlFor={voidValidation.idOf('reason')}>{t('reason')}</Label>
           <Input
-            id="inv-void-reason"
-            required
-            maxLength={200}
+            {...voidValidation.fieldProps('reason')}
+            className={TOUCH_INPUT}
+            aria-required="true"
+            maxLength={300}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
+          <FieldError id={voidValidation.idOf('reason')} issue={voidValidation.issue('reason')} />
         </div>
       </FormDialog>
 
@@ -997,7 +1101,7 @@ export function InvoicesView() {
         description={t('splitHint')}
         submitLabel={t('splitInstallments')}
         error={error}
-        disabled={!splitting || Number(splitting.count) < 2 || !splitting.firstDue}
+        validation={splitValidation}
         onOpenChange={(o) => !o && setSplitting(null)}
         onSubmit={() => (splitting ? split.mutateAsync(splitting) : Promise.resolve())}
       >
@@ -1005,11 +1109,14 @@ export function InvoicesView() {
           <div className="grid gap-4">
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="grid content-start gap-2">
-                <Label htmlFor="split-count">{t('installmentCount')}</Label>
+                <Label htmlFor={splitValidation.idOf('count')}>{t('installmentCount')}</Label>
                 <SelectField
-                  id="split-count"
+                  {...withoutBlur(splitValidation.fieldProps('count'))}
                   value={splitting.count}
-                  onChange={(e) => setSplitting({ ...splitting, count: e.target.value })}
+                  onChange={(e) => {
+                    setSplitting({ ...splitting, count: e.target.value });
+                    splitValidation.touch('count');
+                  }}
                 >
                   {INSTALLMENT_CHOICES.map((n) => (
                     <option key={n} value={String(n)}>
@@ -1017,14 +1124,20 @@ export function InvoicesView() {
                     </option>
                   ))}
                 </SelectField>
+                <FieldError id={splitValidation.idOf('count')} issue={splitValidation.issue('count')} />
               </div>
               <div className="grid content-start gap-2">
-                <Label htmlFor="split-due">{t('firstDueDate')}</Label>
+                <Label htmlFor={splitValidation.idOf('firstDue')}>{t('firstDueDate')}</Label>
                 <DatePicker
-                  id="split-due"
+                  {...withoutBlur(splitValidation.fieldProps('firstDue'))}
+                  className={TOUCH_INPUT}
                   value={splitting.firstDue}
-                  onChange={(v) => setSplitting({ ...splitting, firstDue: v })}
+                  onChange={(v) => {
+                    setSplitting({ ...splitting, firstDue: v });
+                    splitValidation.touch('firstDue');
+                  }}
                 />
+                <FieldError id={splitValidation.idOf('firstDue')} issue={splitValidation.issue('firstDue')} />
               </div>
             </div>
             <InstallmentTimeline

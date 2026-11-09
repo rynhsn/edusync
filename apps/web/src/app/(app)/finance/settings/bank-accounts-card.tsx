@@ -8,14 +8,16 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
-import { FORM_GRID, FormField } from '@/components/form-field';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { EmptyPanel, IconTile, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { ListSkeleton, RowMenu, SectionCard } from '../ui';
+import { BANK_ACCOUNT_ORDER, type BankAccountField, validateBankAccount } from './settings-validation';
 
 const MAX_ACCOUNTS = 10;
 
@@ -28,12 +30,6 @@ interface Draft {
   active: boolean;
 }
 const EMPTY: Draft = { id: null, bankName: '', accountNumber: '', accountHolder: '', note: '', active: true };
-
-/** Nomor rekening yang sah: angka, spasi, atau tanda hubung, 5 sampai 30 karakter dengan minimal 5 angka. */
-const numberValid = (v: string) => {
-  const s = v.trim();
-  return /^[0-9][0-9 -]*$/.test(s) && s.length >= 5 && s.length <= 30 && s.replace(/\D/g, '').length >= 5;
-};
 
 /** Rekening bank sekolah untuk pembayaran transfer: tambah, ubah, aktif/nonaktif, urutan, dan hapus. */
 export function BankAccountsCard() {
@@ -126,50 +122,66 @@ export function BankAccountsCard() {
     setEditing(true);
   }
 
-  const invalid =
-    draft.bankName.trim().length < 2 ||
-    draft.accountHolder.trim().length < 2 ||
-    !numberValid(draft.accountNumber);
+  const validation = useFormValidation<BankAccountField>({
+    errors: validateBankAccount(draft),
+    order: BANK_ACCOUNT_ORDER,
+    idPrefix: 'ba',
+  });
 
   const fields = (
-    <div className={FORM_GRID}>
-      <FormField label={t('baBank')} htmlFor="ba-bank" hint={t('baBankHint')}>
+    <div className="grid items-start gap-4 sm:grid-cols-2">
+      <div className="grid content-start gap-2">
+        <Label htmlFor={validation.idOf('bankName')}>{t('baBank')}</Label>
         <Input
-          id="ba-bank"
-          required
+          {...validation.fieldProps('bankName')}
+          className={TOUCH_INPUT}
+          aria-required="true"
           maxLength={60}
           value={draft.bankName}
           onChange={(e) => setDraft({ ...draft, bankName: e.target.value })}
         />
-      </FormField>
-      <FormField label={t('baNumber')} htmlFor="ba-number" hint={t('baNumberHint')}>
+        <FieldError id={validation.idOf('bankName')} issue={validation.issue('bankName')} />
+        <p className="text-muted-foreground text-xs">{t('baBankHint')}</p>
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={validation.idOf('accountNumber')}>{t('baNumber')}</Label>
         <Input
-          id="ba-number"
-          required
+          {...validation.fieldProps('accountNumber')}
+          className={TOUCH_INPUT}
+          aria-required="true"
           inputMode="numeric"
           autoComplete="off"
           maxLength={30}
           value={draft.accountNumber}
           onChange={(e) => setDraft({ ...draft, accountNumber: e.target.value })}
         />
-      </FormField>
-      <FormField className="sm:col-span-2" label={t('baHolder')} htmlFor="ba-holder">
+        <FieldError id={validation.idOf('accountNumber')} issue={validation.issue('accountNumber')} />
+        <p className="text-muted-foreground text-xs">{t('baNumberHint')}</p>
+      </div>
+      <div className="grid content-start gap-2 sm:col-span-2">
+        <Label htmlFor={validation.idOf('accountHolder')}>{t('baHolder')}</Label>
         <Input
-          id="ba-holder"
-          required
+          {...validation.fieldProps('accountHolder')}
+          className={TOUCH_INPUT}
+          aria-required="true"
           maxLength={100}
           value={draft.accountHolder}
           onChange={(e) => setDraft({ ...draft, accountHolder: e.target.value })}
         />
-      </FormField>
-      <FormField className="sm:col-span-2" label={t('baNote')} htmlFor="ba-note" hint={t('baNoteHint')}>
+        <FieldError id={validation.idOf('accountHolder')} issue={validation.issue('accountHolder')} />
+      </div>
+      <div className="grid content-start gap-2 sm:col-span-2">
+        <Label htmlFor={validation.idOf('note')}>{t('baNote')}</Label>
         <Input
-          id="ba-note"
+          {...validation.fieldProps('note')}
+          className={TOUCH_INPUT}
           maxLength={200}
           value={draft.note}
           onChange={(e) => setDraft({ ...draft, note: e.target.value })}
         />
-      </FormField>
+        <FieldError id={validation.idOf('note')} issue={validation.issue('note')} />
+        <p className="text-muted-foreground text-xs">{t('baNoteHint')}</p>
+      </div>
     </div>
   );
 
@@ -190,7 +202,7 @@ export function BankAccountsCard() {
           submitLabel={tm('add')}
           size="wide"
           error={error}
-          disabled={invalid}
+          validation={validation}
           onOpenChange={() => {
             setDraft(EMPTY);
             setError(null);
@@ -296,7 +308,7 @@ export function BankAccountsCard() {
         submitLabel={tm('save')}
         size="wide"
         error={error}
-        disabled={invalid}
+        validation={validation}
         onOpenChange={(o) => {
           setEditing(o);
           if (!o) setDraft(EMPTY);

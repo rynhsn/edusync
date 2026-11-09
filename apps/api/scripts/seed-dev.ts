@@ -72,13 +72,24 @@ async function ensureFoundation(slug: string, name: string) {
   return row ?? (await db.select().from(foundation).where(eq(foundation.slug, slug)))[0]!;
 }
 
+/** NPSN contoh jelas palsu (awalan 69999), unik; hanya mengisi sekolah yang NPSN-nya masih kosong. */
+const DEMO_NPSN: Record<string, string> = {
+  'smpit-miftahul-huda': '69999002',
+  'smk-miftahul-huda': '69999001',
+};
+
 async function ensureSchool(foundationId: string, slug: string, name: string) {
+  const npsn = DEMO_NPSN[slug] ?? null;
   const [row] = await db
     .insert(school)
-    .values({ foundationId, slug, name })
+    .values({ foundationId, slug, name, npsn })
     .onConflictDoNothing()
     .returning();
-  const s = row ?? (await db.select().from(school).where(eq(school.slug, slug)))[0]!;
+  let s = row ?? (await db.select().from(school).where(eq(school.slug, slug)))[0]!;
+  if (npsn && !s.npsn) {
+    [s] = await db.update(school).set({ npsn }).where(eq(school.id, s.id)).returning();
+    s = s!;
+  }
   await seedSchoolRoles(db, s.id);
   return s;
 }

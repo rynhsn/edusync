@@ -19,6 +19,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
 import { FormDialog } from '@/components/form-dialog';
+import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -30,10 +31,19 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, IconTile, MODULE_TONE, TONES, ToneBadge, UserAvatar } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { formatRupiah } from '@/lib/money';
 import { cn } from '@/lib/utils';
+import {
+  lineKey,
+  paymentOrder,
+  REASON_ORDER,
+  type ReasonField,
+  validatePayment,
+  validateReason,
+} from './cashier-validation';
 import { downloadReceiptPdf } from './pdf/download';
 import { type Receipt, ReceiptDialog } from './receipt-dialog';
 import {
@@ -59,6 +69,7 @@ interface Picked {
 export function CashierView() {
   const t = useTranslations('finance');
   const te = useTranslations();
+  const tv = useTranslations('formValidation');
   const locale = useLocale() as Locale;
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
@@ -134,9 +145,21 @@ export function CashierView() {
     amount: Number(amounts[i.id] ?? 0),
   }));
   const total = parsed.reduce((s, l) => s + l.amount, 0);
-  const lineOk = (l: { amount: number; outstanding: number }) =>
-    Number.isInteger(l.amount) && l.amount >= 1 && l.amount <= l.outstanding;
-  const valid = parsed.length > 0 && parsed.every(lineOk) && method !== '';
+  const payValidation = useFormValidation<string>({
+    errors: validatePayment({
+      lines: lines.map((i) => ({ id: i.id, amount: amounts[i.id] ?? '', outstanding: i.outstanding })),
+      method,
+      paidAt,
+      note,
+    }),
+    order: paymentOrder(lines),
+    idPrefix: 'fin',
+  });
+  const reasonValidation = useFormValidation<ReasonField>({
+    errors: validateReason({ reason }),
+    order: REASON_ORDER,
+    idPrefix: 'fin-void',
+  });
   const overdueTotal = open.filter((i) => i.overdue).reduce((s, i) => s + i.outstanding, 0);
   const allSelected = open.length > 0 && open.every((i) => i.id in amounts);
 
@@ -148,6 +171,7 @@ export function CashierView() {
     setNote('');
     setMethod('');
     setPaidAt(todayIso());
+    payValidation.reset();
   }
 
   function reset() {
@@ -155,6 +179,7 @@ export function CashierView() {
     setAmounts({});
     setReceipt(null);
     setConfirming(false);
+    payValidation.reset();
   }
 
   function toggle(id: string, outstanding: number, on: boolean) {
@@ -188,6 +213,7 @@ export function CashierView() {
       setReceipt({ doc: doc, fresh: true });
       setAmounts({});
       setNote('');
+      payValidation.reset();
       queryClient.invalidateQueries({ queryKey: ['finance', school.schoolId] });
     },
     onError: (e) => toast.error(te(errorKey(e))),
@@ -403,8 +429,6 @@ export function CashierView() {
                   <ul className="grid content-start gap-2">
                     {open.map((i) => {
                       const on = i.id in amounts;
-                      const line = parsed.find((l) => l.id === i.id);
-                      const bad = on && !!line && !lineOk(line);
                       return (
                         <li
                           key={i.id}
@@ -453,17 +477,23 @@ export function CashierView() {
                                   {t('unitRupiah')}
                                 </span>
                                 <Input
-                                  id={`fin-amt-${i.id}`}
+                                  {...payValidation.fieldProps(lineKey(i.id))}
                                   aria-label={`${t('payAmount')} ${i.title}`}
+                                  aria-required="true"
                                   inputMode="numeric"
-                                  aria-invalid={bad || undefined}
-                                  className="pl-9 text-right tabular-nums"
+                                  autoComplete="off"
+                                  className={cn(TOUCH_INPUT, 'pl-9 text-right tabular-nums')}
                                   value={amounts[i.id] ?? ''}
                                   onChange={(e) =>
                                     setAmounts((a) => ({ ...a, [i.id]: digitsOnly(e.target.value) }))
                                   }
                                 />
                               </div>
+                              <FieldError
+                                id={payValidation.idOf(lineKey(i.id))}
+                                issue={payValidation.issue(lineKey(i.id))}
+                                className="w-full text-right"
+                              />
                             </div>
                           )}
                         </li>
@@ -553,9 +583,10 @@ export function CashierView() {
             <form
               aria-label={t('summary')}
               className="bg-card grid gap-4 rounded-2xl border p-4 shadow-sm lg:sticky lg:top-4"
+              noValidate
               onSubmit={(e) => {
                 e.preventDefault();
-                if (valid) setConfirming(true);
+                if (payValidation.attempt()) setConfirming(true);
               }}
             >
               <div className="flex items-center gap-2">
@@ -563,29 +594,40 @@ export function CashierView() {
                 <h2 className="font-heading text-base font-semibold">{t('summary')}</h2>
               </div>
 
-              {parsed.length === 0 ? (
-                <p className="text-muted-foreground bg-muted/50 rounded-xl p-3 text-sm">
-                  {t('summaryEmpty')}
-                </p>
-              ) : (
-                <ul className="grid content-start gap-1.5 text-sm">
-                  {parsed.map((l) => (
-                    <li key={l.id} className="flex items-baseline justify-between gap-3">
-                      <span className="min-w-0 truncate">{l.title}</span>
-                      <Money value={l.amount} className="shrink-0" />
-                    </li>
-                  ))}
-                </ul>
-              )}
+              <div
+                id={payValidation.idOf('lines')}
+                tabIndex={-1}
+                className="grid content-start gap-2 rounded-lg outline-none"
+              >
+                {parsed.length === 0 ? (
+                  <p className="text-muted-foreground bg-muted/50 rounded-xl p-3 text-sm">
+                    {t('summaryEmpty')}
+                  </p>
+                ) : (
+                  <ul className="grid content-start gap-1.5 text-sm">
+                    {parsed.map((l) => (
+                      <li key={l.id} className="flex items-baseline justify-between gap-3">
+                        <span className="min-w-0 truncate">{l.title}</span>
+                        <Money value={l.amount} className="shrink-0" />
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <FieldError id={payValidation.idOf('lines')} issue={payValidation.issue('lines')} />
+              </div>
 
               <div className="grid content-start gap-2">
                 <span id="fin-method-label" className="text-sm font-medium">
                   {t('method')}
                 </span>
                 <div
+                  id={payValidation.idOf('method')}
+                  tabIndex={-1}
                   role="radiogroup"
                   aria-labelledby="fin-method-label"
-                  className="grid grid-cols-[repeat(auto-fit,minmax(6.5rem,1fr))] gap-2"
+                  aria-invalid={payValidation.issue('method') !== undefined}
+                  aria-describedby={payValidation.issue('method') ? 'fin-method-error' : undefined}
+                  className="grid grid-cols-[repeat(auto-fit,minmax(6.5rem,1fr))] gap-2 rounded-lg outline-none"
                 >
                   {methods.active.map((m) => {
                     const Icon = methodIcon(m.key);
@@ -597,7 +639,10 @@ export function CashierView() {
                         type="button"
                         role="radio"
                         aria-checked={sel}
-                        onClick={() => setMethod(m.key)}
+                        onClick={() => {
+                          setMethod(m.key);
+                          payValidation.touch('method');
+                        }}
                         className={cn(
                           'focus-visible:ring-ring/50 flex flex-col items-center gap-1 rounded-xl border px-2 py-2.5 text-xs font-medium transition-colors outline-none focus-visible:ring-3',
                           sel
@@ -611,15 +656,32 @@ export function CashierView() {
                     );
                   })}
                 </div>
+                <FieldError id={payValidation.idOf('method')} issue={payValidation.issue('method')} />
               </div>
 
               <div className="grid content-start gap-2">
-                <Label htmlFor="fin-paidAt">{t('paidAt')}</Label>
-                <DatePicker id="fin-paidAt" value={paidAt} onChange={setPaidAt} />
+                <Label htmlFor={payValidation.idOf('paidAt')}>{t('paidAt')}</Label>
+                <DatePicker
+                  {...withoutBlur(payValidation.fieldProps('paidAt'))}
+                  className={TOUCH_INPUT}
+                  value={paidAt}
+                  onChange={(v) => {
+                    setPaidAt(v);
+                    payValidation.touch('paidAt');
+                  }}
+                />
+                <FieldError id={payValidation.idOf('paidAt')} issue={payValidation.issue('paidAt')} />
               </div>
               <div className="grid content-start gap-2">
-                <Label htmlFor="fin-note">{t('note')}</Label>
-                <Input id="fin-note" maxLength={200} value={note} onChange={(e) => setNote(e.target.value)} />
+                <Label htmlFor={payValidation.idOf('note')}>{t('note')}</Label>
+                <Input
+                  {...payValidation.fieldProps('note')}
+                  className={TOUCH_INPUT}
+                  maxLength={200}
+                  value={note}
+                  onChange={(e) => setNote(e.target.value)}
+                />
+                <FieldError id={payValidation.idOf('note')} issue={payValidation.issue('note')} />
               </div>
 
               <div className="grid gap-3 border-t pt-4">
@@ -627,16 +689,16 @@ export function CashierView() {
                   <span className="text-muted-foreground text-sm">{t('total')}</span>
                   <Money value={total} className="font-heading text-3xl font-semibold" />
                 </div>
-                {parsed.length > 0 && !valid && (
-                  <p className="text-destructive text-sm" role="alert">
-                    {t('amountInvalid')}
+                {payValidation.summary && (
+                  <p aria-live="polite" className="text-destructive text-sm">
+                    {tv('summary')}
                   </p>
                 )}
                 <Button
                   type="submit"
                   size="lg"
                   className="h-11 w-full bg-amber-500 text-base font-semibold text-amber-950 hover:bg-amber-400 dark:bg-amber-400 dark:hover:bg-amber-300"
-                  disabled={!valid || !paidAt || submit.isPending}
+                  disabled={submit.isPending}
                 >
                   <Wallet className="size-5" /> {t('receivePayment')}
                 </Button>
@@ -672,19 +734,21 @@ export function CashierView() {
         description={t('voidPaymentHint')}
         submitLabel={t('voidPayment')}
         error={voidError}
-        disabled={reason.trim().length < 3}
+        validation={reasonValidation}
         onOpenChange={(o) => !o && setVoiding(null)}
         onSubmit={() => voidPayment.mutateAsync()}
       >
         <div className="grid content-start gap-2">
-          <Label htmlFor="fin-void-reason">{t('reason')}</Label>
+          <Label htmlFor={reasonValidation.idOf('reason')}>{t('reason')}</Label>
           <Input
-            id="fin-void-reason"
-            required
-            maxLength={200}
+            {...reasonValidation.fieldProps('reason')}
+            className={TOUCH_INPUT}
+            aria-required="true"
+            maxLength={300}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
           />
+          <FieldError id={reasonValidation.idOf('reason')} issue={reasonValidation.issue('reason')} />
         </div>
       </FormDialog>
     </PageBody>

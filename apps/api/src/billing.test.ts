@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildApp, paymentConfig } from './app';
 import { loadEnv } from './env';
 import { requireModule, requirePermission } from './identity/guards';
+import { testNpsn } from './npsn-lib';
 
 try {
   process.loadEnvFile(new URL('../../../.env', import.meta.url));
@@ -72,10 +73,17 @@ const units = (label: string) => [
   {
     name: 'SMP IT Contoh',
     slug: `smp-${label}-${run}`,
+    npsn: testNpsn(`smp-${label}-${run}`),
     modules: ['attendance', 'internship'],
     tier: 't300',
   },
-  { name: 'SMK Contoh', slug: `smk-${label}-${run}`, modules: ['internship'], tier: 't800' },
+  {
+    name: 'SMK Contoh',
+    slug: `smk-${label}-${run}`,
+    npsn: testNpsn(`smk-${label}-${run}`),
+    modules: ['internship'],
+    tier: 't800',
+  },
 ];
 
 beforeAll(async () => {

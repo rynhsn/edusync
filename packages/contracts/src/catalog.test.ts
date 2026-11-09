@@ -154,8 +154,21 @@ describe('input pendaftaran', () => {
   const valid = {
     foundationName: 'Yayasan Miftahul Huda',
     period: 'monthly' as const,
-    units: [{ name: 'SMP IT Miftahul Huda', slug: 'smpit-mh', modules: ['attendance'], tier: 't300' }],
+    units: [
+      {
+        name: 'SMP IT Miftahul Huda',
+        slug: 'smpit-mh',
+        npsn: '69999002',
+        modules: ['attendance'],
+        tier: 't300',
+      },
+    ],
   };
+
+  it('NPSN wajib ada di tiap unit', () => {
+    const { npsn: _npsn, ...withoutNpsn } = valid.units[0] as (typeof valid.units)[number];
+    expect(registrationInput.safeParse({ ...valid, units: [withoutNpsn] }).success).toBe(false);
+  });
 
   it('menerima input yang benar', () => {
     expect(registrationInput.safeParse(valid).success).toBe(true);

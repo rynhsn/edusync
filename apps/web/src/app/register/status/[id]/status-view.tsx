@@ -79,6 +79,20 @@ export function StatusView({ id }: { id: string }) {
               <Clock className="text-muted-foreground size-5 animate-pulse" aria-hidden /> {t('waiting')}
             </p>
             <p className="text-muted-foreground text-sm">{t('waitingHint')}</p>
+            {data.units.length > 0 && (
+              <ul className="grid content-start gap-1 text-sm">
+                {data.units.map((u) => (
+                  <li key={u.slug} className="flex flex-wrap items-baseline justify-between gap-2">
+                    <span className="font-medium">{u.name}</span>
+                    {u.npsn && (
+                      <span className="text-muted-foreground font-mono text-xs">
+                        {t('npsnValue', { npsn: u.npsn })}
+                      </span>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
             {data.invoice && (
               <p className="flex items-baseline justify-between border-t pt-3 text-sm">
                 <span className="text-muted-foreground">{t('amount')}</span>
@@ -110,6 +124,11 @@ export function StatusView({ id }: { id: string }) {
                       <span className="text-muted-foreground font-mono text-xs">
                         {config.data ? `${s.slug}.${config.data.baseDomain}` : s.slug}
                       </span>
+                      {s.npsn && (
+                        <span className="text-muted-foreground ml-2 font-mono text-xs">
+                          {t('npsnValue', { npsn: s.npsn })}
+                        </span>
+                      )}
                     </li>
                   ))}
                 </ul>
