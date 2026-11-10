@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 232 64" width="464" height="128" role="img" aria-label="Edusync">
+  <defs>
+    <linearGradient id="g" x1="8" y1="4" x2="56" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#14b8a6"/>
+      <stop offset="1" stop-color="#0f766e"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="15" fill="url(#g)"/>
+  <rect x="18" y="15" width="28" height="8" rx="4" fill="#fff"/>
+  <rect x="18" y="28" width="20" height="8" rx="4" fill="#fff"/>
+  <rect x="18" y="41" width="28" height="8" rx="4" fill="#fff"/>
+  <rect x="18" y="15" width="8" height="34" rx="4" fill="#fff"/>
+  <circle cx="46" cy="32" r="4.5" fill="#fbbf24"/>
+  <text x="78" y="43" font-family="'Segoe UI', 'Helvetica Neue', Arial, sans-serif" font-size="32" font-weight="700" letter-spacing="-0.5" fill="#0f766e">Edusync</text>
+</svg>

@@ -1,4 +1,3 @@
-import { GraduationCap } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface LogoProps {
@@ -10,6 +9,29 @@ interface LogoProps {
   src?: string | null;
   /** Logo unggahan untuk tema gelap; bila kosong, `src` dipakai di kedua tema. */
   srcDark?: string | null;
+}
+
+/**
+ * Lambang Edusync: huruf E dari tiga "halaman" bertumpuk (lengan tengah lebih pendek), dengan titik di ujung
+ * lengan tengah sebagai simpul sinkronisasi. Hanya gambar huruf dan titik; petak berwarnanya dari pembungkus
+ * (bg-primary), sehingga ikut tema. Rancangan yang sama ada di app/icon.svg dan public/logo*.svg.
+ */
+export function LogoGlyph({
+  className,
+  tone = 'default',
+}: {
+  className?: string;
+  tone?: 'default' | 'inverse';
+}) {
+  return (
+    <svg viewBox="16 13 34 38" className={className} fill="none" aria-hidden>
+      <rect x="18" y="15" width="28" height="8" rx="4" fill="currentColor" />
+      <rect x="18" y="28" width="20" height="8" rx="4" fill="currentColor" />
+      <rect x="18" y="41" width="28" height="8" rx="4" fill="currentColor" />
+      <rect x="18" y="15" width="8" height="34" rx="4" fill="currentColor" />
+      <circle cx="46" cy="32" r="4.5" className={tone === 'inverse' ? 'fill-primary' : 'fill-amber'} />
+    </svg>
+  );
 }
 
 export function Logo({ className, tone = 'default', brand = 'Edusync', src, srcDark }: LogoProps) {
@@ -38,7 +60,7 @@ export function Logo({ className, tone = 'default', brand = 'Edusync', src, srcD
           tone === 'inverse' ? 'bg-amber text-amber-foreground' : 'bg-primary text-primary-foreground',
         )}
       >
-        <GraduationCap className="size-5" aria-hidden />
+        <LogoGlyph tone={tone} className="size-[18px]" />
       </span>
       <span className="font-heading text-lg font-semibold tracking-tight">{brand}</span>
     </span>
