@@ -274,7 +274,7 @@ describe('katalog route', () => {
 
   it('route tanpa gerbang sama sekali hanya publik, kiosk, webhook, atau sistem', () => {
     const allowed = [
-      /^\/(health|ready|openapi\.json)$/,
+      /^\/(health|ready|version|openapi\.json)$/,
       /^\/docs/,
       /^\/internal\/tls-ask$/,
       /^\/api\/auth/,
