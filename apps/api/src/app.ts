@@ -90,6 +90,7 @@ import { tahfidzRoutes } from './routes/tahfidz';
 import { teacherImportRoutes } from './routes/teacher-import';
 import { tlsAskRoutes } from './routes/tls-ask';
 import { type AuthLimits, authLimits, Throttle } from './throttle';
+import { appVersion } from './version';
 
 export { paymentConfig };
 
@@ -198,6 +199,18 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
       },
     },
     async () => ({ status: 'ok' as const }),
+  );
+
+  app.get(
+    '/version',
+    {
+      schema: {
+        tags: ['System'],
+        summary: 'Versi rilis dan commit yang sedang berjalan',
+        response: { 200: z.object({ version: z.string(), commit: z.string().nullable() }) },
+      },
+    },
+    async () => appVersion,
   );
 
   app.get(

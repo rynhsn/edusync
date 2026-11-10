@@ -1,22 +1,33 @@
 name: Deploy
-# Otomatis memasang cabang main ke server setelah CI lulus. Perlu tiga rahasia di
-# Settings > Secrets and variables > Actions: DEPLOY_HOST (IP/alamat server), DEPLOY_USER (mis. ubuntu), DEPLOY_SSH_KEY (kunci privat).
+# Produksi hanya berubah saat tag versi (vX.Y.Z) dikirim, dibuat oleh `pnpm release x.y.z`. Cabang main tidak lagi
+# men-deploy sendiri. Perlu tiga rahasia di Settings > Secrets and variables > Actions:
+# DEPLOY_HOST (IP/alamat server), DEPLOY_USER (mis. ubuntu), DEPLOY_SSH_KEY (kunci privat).
+# Deploy ulang atau rollback manual: Actions > Deploy > Run workflow, isi tag yang sudah ada (mis. v1.0.0).
 on:
-  workflow_run:
-    workflows: [CI]
-    branches: [main]
-    types: [completed]
+  push:
+    tags: ["v[0-9]+.[0-9]+.[0-9]+"]
   workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag rilis yang dipasang (mis. v1.0.0)
+        required: true
 
 concurrency:
   group: deploy
   cancel-in-progress: false
 
+permissions:
+  contents: write
+
 jobs:
   deploy:
-    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
     steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
       - name: Siapkan kunci SSH
         env:
           KEY: ${{ secrets.DEPLOY_SSH_KEY }}
@@ -39,4 +50,17 @@ jobs:
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$HOST" 'bash /opt/edusync/app/deploy/deploy.sh'
+        run: ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$HOST" "REF=$TAG bash /opt/edusync/app/deploy/deploy.sh"
+      - name: Cek versi yang berjalan
+        env:
+          HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+        run: ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$HOST" 'curl -fsS http://127.0.0.1:4000/version'
+      - name: Catatan rilis GitHub dari CHANGELOG
+        if: github.event_name == 'push'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          v="${TAG#v}"
+          awk -v v="$v" '$0 ~ "^## \\[" v "\\]" {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md > notes.md
+          gh release create "$TAG" --title "Edusync $TAG" --notes-file notes.md --verify-tag

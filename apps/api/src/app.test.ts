@@ -33,6 +33,12 @@ describe('API', () => {
     expect(res.json()).toEqual({ status: 'ready' });
   });
 
+  it('/version memberi versi rilis dari package.json akar', async () => {
+    const res = await app.inject('/version');
+    expect(res.statusCode).toBe(200);
+    expect(res.json().version).toMatch(/^\d+\.\d+\.\d+$/);
+  });
+
   it('OpenAPI dibuat otomatis dari skema route', async () => {
     const spec = (await app.inject('/openapi.json')).json();
     expect(spec.openapi).toMatch(/^3\./);

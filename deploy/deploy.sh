@@ -17,9 +17,15 @@ main() {
     sudo -u edusync -H bash -c "cd $APP_DIR && set -a && . ./.env && set +a && $*"
   }
 
-  echo "==> Kode terbaru (origin/${BRANCH})"
-  sudo -u edusync -H git -C "$APP_DIR" fetch --prune origin "$BRANCH"
-  sudo -u edusync -H git -C "$APP_DIR" reset --hard "origin/${BRANCH}"
+  # REF=v1.2.0 memasang rilis bertag (jalur produksi); tanpa REF memasang ujung cabang BRANCH.
+  local TARGET="origin/${BRANCH}"
+  if [ -n "${REF:-}" ]; then
+    case "$REF" in v[0-9]*.[0-9]*.[0-9]*) ;; *) echo "REF harus berupa tag vX.Y.Z"; exit 1 ;; esac
+    TARGET="refs/tags/${REF}"
+  fi
+  echo "==> Kode: ${TARGET}"
+  sudo -u edusync -H git -C "$APP_DIR" fetch --prune --prune-tags --tags origin "$BRANCH"
+  sudo -u edusync -H git -C "$APP_DIR" reset --hard "$TARGET"
   # Berkas systemd/Caddy dari repo dipasang ulang bila berubah.
   sudo cp "$APP_DIR"/deploy/systemd/edusync-*.service /etc/systemd/system/
   sudo systemctl daemon-reload

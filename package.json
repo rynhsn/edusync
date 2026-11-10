@@ -9,6 +9,7 @@
   },
   "scripts": {
     "dev": "turbo run dev",
+    "release": "node scripts/release.mjs",
     "build": "turbo run build",
     "start:all": "pnpm --parallel --filter @edusync/api --filter @edusync/worker --filter @edusync/web start",
     "typecheck": "turbo run typecheck",
