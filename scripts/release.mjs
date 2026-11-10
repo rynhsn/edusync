@@ -12,7 +12,11 @@ const fail = (msg) => {
 };
 
 if (!/^\d+\.\d+\.\d+$/.test(version ?? '')) fail('pakai format x.y.z, contoh: pnpm release 1.2.0');
-if (git('branch', '--show-current') !== 'main') fail('rilis hanya dari cabang main');
+// Dibandingkan dengan main di GitHub (bukan nama cabang lokal): cabang kerja boleh bernama lain, asal sama persis.
+git('fetch', 'edusync', 'main');
+if (git('rev-parse', 'HEAD') !== git('rev-parse', 'FETCH_HEAD')) {
+  fail('HEAD harus sama dengan main di GitHub (push dulu, atau pindah ke commit yang sama)');
+}
 if (git('status', '--porcelain')) fail('ada perubahan yang belum di-commit');
 if (git('tag', '--list', `v${version}`)) fail(`tag v${version} sudah ada`);
 
@@ -26,4 +30,4 @@ writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
 git('add', 'package.json');
 git('commit', '-m', `Rilis v${version}`);
 git('tag', '-a', `v${version}`, '-m', `Edusync v${version}`);
-console.log(`Siap. Kirim ke GitHub (ini yang men-deploy produksi):\n  git push edusync main v${version}`);
+console.log(`Siap. Kirim ke GitHub (ini yang men-deploy produksi):\n  git push edusync HEAD:main v${version}`);

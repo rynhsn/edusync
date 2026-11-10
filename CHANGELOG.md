@@ -5,7 +5,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/) dan
 memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis bagian versinya di sini lebih dulu.
 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
-`pnpm release x.y.z` dan `git push edusync main vx.y.z`.
+`pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
 ## Belum dirilis
 
