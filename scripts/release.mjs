@@ -30,4 +30,6 @@ writeFileSync('package.json', `${JSON.stringify(pkg, null, 2)}\n`);
 git('add', 'package.json');
 git('commit', '-m', `Rilis v${version}`);
 git('tag', '-a', `v${version}`, '-m', `Edusync v${version}`);
-console.log(`Siap. Kirim ke GitHub (ini yang men-deploy produksi):\n  git push edusync HEAD:main v${version}`);
+console.log(
+  `Siap. Kirim ke GitHub (ini yang men-deploy produksi):\n  git push edusync HEAD:main v${version}`,
+);
