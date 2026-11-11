@@ -159,6 +159,7 @@ describe('input pendaftaran', () => {
         name: 'SMP IT Miftahul Huda',
         slug: 'smpit-mh',
         npsn: '69999002',
+        educationProfile: 'smp',
         modules: ['attendance'],
         tier: 't300',
       },
@@ -168,6 +169,11 @@ describe('input pendaftaran', () => {
   it('NPSN wajib ada di tiap unit', () => {
     const { npsn: _npsn, ...withoutNpsn } = valid.units[0] as (typeof valid.units)[number];
     expect(registrationInput.safeParse({ ...valid, units: [withoutNpsn] }).success).toBe(false);
+  });
+
+  it('jenjang wajib ada di tiap unit', () => {
+    const { educationProfile: _profile, ...withoutProfile } = valid.units[0] as (typeof valid.units)[number];
+    expect(registrationInput.safeParse({ ...valid, units: [withoutProfile] }).success).toBe(false);
   });
 
   it('menerima input yang benar', () => {
