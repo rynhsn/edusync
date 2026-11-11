@@ -28,6 +28,7 @@ import { rosterOf } from '../attendance-lib';
 import { computeGrades, loadComponents, loadSettings, round2 } from '../grading-lib';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { assertClassReportNotFinal, assertNoFinalInActiveSemesters } from '../report-lock-lib';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const tag = ['Grading'];
@@ -36,9 +37,6 @@ const MODULE = 'grades';
 const readGate = [requirePermission('grade:read'), requireModule(MODULE)];
 const inputGate = [requirePermission('grade:input'), requireModule(MODULE)];
 const configureGate = [requirePermission('grade:configure'), requireModule(MODULE)];
-
-/** Peran yang melihat nilai semua kelas dan mapel (bersama pemegang `grade:configure`). */
-const WIDE_ROLES = ['principal', 'curriculum'];
 
 const DEFAULT_COMPONENTS = [
   { name: 'Tugas', weight: 20 },
@@ -136,7 +134,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
 
   /** Pemegang `grade:configure`, kepala sekolah, dan kurikulum melihat semua kelas dan mapel. */
   const isWide = (ctx: TenantContext) =>
-    ctx.permissions.has('grade:configure') || ctx.roles.some((r) => WIDE_ROLES.includes(r));
+    ctx.permissions.has('grade:configure') || ctx.permissions.has('grade:read_all');
 
   /** Pasangan (kelas, mapel) yang diampu pengguna ini (guru dengan `teacher.memberId` = anggota ini). */
   function myAssignments(tx: Tx, ctx: TenantContext) {
@@ -328,15 +326,17 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Ubah pengaturan penilaian',
         description:
           'Izin: `grade:configure`; modul `grades`. `kkm` 1..100; batas predikat harus berurutan `predicateA` > ' +
-          '`predicateB` > `predicateC` > 0 (selain itu 400 galat validasi).',
+          '`predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). Ditolak 409 `report_final` selama semester ' +
+          'aktif punya rapor final (buka kembali rapornya lebih dulu).',
         headers: schoolHeader,
         body: settingsBody,
-        response: { 200: settingsSchema, 400: errorSchema, ...guarded },
+        response: { 200: settingsSchema, 400: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
+        await assertNoFinalInActiveSemesters(tx);
         await tx
           .insert(gradingSetting)
           .values({ schoolId: ctx.schoolId, ...request.body })
@@ -423,7 +423,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Ubah komponen penilaian',
         description:
           'Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. ' +
-          'Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada.',
+          'Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 ' +
+          '`report_final` selama semester aktif punya rapor final.',
         headers: schoolHeader,
         params: idParams,
         body: componentBody,
@@ -439,6 +440,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
             .from(gradeComponent)
             .where(eq(gradeComponent.id, request.params.id));
           if (!current) throw notFound('Komponen');
+          await assertNoFinalInActiveSemesters(tx);
           await tx
             .update(gradeComponent)
             .set({
@@ -589,10 +591,11 @@ export async function gradingRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu ' +
           'kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan ' +
-          'semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100).',
+          'semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). ' +
+          'Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.',
         headers: schoolHeader,
         body: assessmentBody,
-        response: { 201: assessmentSchema, 400: errorSchema, ...guarded },
+        response: { 201: assessmentSchema, 400: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request, reply) => {
@@ -601,6 +604,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
       const created = await tenant(request, async (tx) => {
         await requireRefs(tx, b);
         if (!(await canInputPair(tx, ctx, b.classId, b.subjectId))) throw notAllowed();
+        await assertClassReportNotFinal(tx, b.semesterId, b.classId);
         // Pengampu pasangan itu bila ada; selain itu pembuatnya bila ia guru.
         const [assigned] = await tx
           .select({ teacherId: teachingAssignment.teacherId })
@@ -634,7 +638,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain ' +
           'itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum. Skor maksimum tidak boleh di bawah ' +
-          'skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`).',
+          'skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). ' +
+          'Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.',
         headers: schoolHeader,
         params: idParams,
         body: assessmentUpdateBody,
@@ -647,6 +652,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
       return tenant(request, async (tx) => {
         const current = await loadAssessment(tx, request.params.id);
         if (!(await canInputPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
+        await assertClassReportNotFinal(tx, current.semesterId, current.classId);
         await requireComponent(tx, b.componentId);
         const [over] = await tx
           .select({ n: count() })
@@ -671,10 +677,11 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Hapus penilaian',
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain ' +
-          'itu 403). Seluruh skor penilaian itu ikut terhapus.',
+          'itu 403). Seluruh skor penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada ' +
+          'semester itu sudah final.',
         headers: schoolHeader,
         params: idParams,
-        response: { 200: ok, 404: errorSchema, ...guarded },
+        response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
@@ -682,6 +689,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
       return tenant(request, async (tx) => {
         const current = await loadAssessment(tx, request.params.id);
         if (!(await canInputPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
+        await assertClassReportNotFinal(tx, current.semesterId, current.classId);
         await tx.delete(score).where(eq(score.assessmentId, current.id));
         await tx.delete(assessment).where(eq(assessment.id, current.id));
         await audit(tx, ctx, 'assessment.delete', 'assessment', current.id, { title: current.title });
@@ -779,6 +787,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
           200: z.object({ saved: z.number().int() }),
           400: errorSchema,
           404: errorSchema,
+          409: errorSchema,
           ...guarded,
         },
       },
@@ -788,6 +797,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
       return tenant(request, async (tx) => {
         const current = await loadAssessment(tx, request.params.id);
         if (!(await canInputPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
+        await assertClassReportNotFinal(tx, current.semesterId, current.classId);
         const { rows } = await rosterOf(tx, current.classId);
         const allowed = new Set(rows.map((s) => s.id));
         // Siswa yang dikirim dua kali: yang terakhir berlaku.

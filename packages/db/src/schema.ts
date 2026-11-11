@@ -718,6 +718,48 @@ export const teacher = pgTable(
   ],
 );
 
+/** Riwayat penugasan guru mapel di satu kelas: diisi oleh route penugasan setiap kali guru ditetapkan, diganti, atau dilepas. */
+export const teachingAssignmentHistory = pgTable(
+  'teaching_assignment_history',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    teacherId: uuid('teacher_id').references(() => teacher.id),
+    previousTeacherId: uuid('previous_teacher_id').references(() => teacher.id),
+    action: text('action', { enum: ['assigned', 'changed', 'released'] }).notNull(),
+    actorId: text('actor_id'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('teaching_assignment_history_class_idx').on(t.schoolId, t.classId, t.createdAt)],
+);
+
+/** Riwayat wali kelas per kelas (pergantian di tengah tahun tetap terlacak). */
+export const homeroomAssignmentHistory = pgTable(
+  'homeroom_assignment_history',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    teacherId: uuid('teacher_id').references(() => teacher.id),
+    previousTeacherId: uuid('previous_teacher_id').references(() => teacher.id),
+    actorId: text('actor_id'),
+    createdAt: createdAt(),
+  },
+  (t) => [index('homeroom_assignment_history_class_idx').on(t.schoolId, t.classId, t.createdAt)],
+);
+
 /** Guru mengampu satu mapel di satu kelas. */
 export const teachingAssignment = pgTable(
   'teaching_assignment',
@@ -952,11 +994,23 @@ export const scheduleEntry = pgTable(
     periodId: uuid('period_id')
       .notNull()
       .references(() => lessonPeriod.id),
+    /** Kosong = berlaku sepanjang tahun ajaran; terisi = khusus semester itu (keunikan per cakupan). */
+    semesterId: uuid('semester_id').references(() => semester.id, { onDelete: 'cascade' }),
     createdAt: createdAt(),
   },
   (t) => [
-    unique('schedule_class_slot_uq').on(t.classId, t.weekday, t.periodId),
-    unique('schedule_teacher_slot_uq').on(t.academicYearId, t.teacherId, t.weekday, t.periodId),
+    uniqueIndex('schedule_class_slot_year_uq')
+      .on(t.classId, t.weekday, t.periodId)
+      .where(sql`${t.semesterId} is null`),
+    uniqueIndex('schedule_class_slot_sem_uq')
+      .on(t.semesterId, t.classId, t.weekday, t.periodId)
+      .where(sql`${t.semesterId} is not null`),
+    uniqueIndex('schedule_teacher_slot_year_uq')
+      .on(t.academicYearId, t.teacherId, t.weekday, t.periodId)
+      .where(sql`${t.semesterId} is null`),
+    uniqueIndex('schedule_teacher_slot_sem_uq')
+      .on(t.semesterId, t.teacherId, t.weekday, t.periodId)
+      .where(sql`${t.semesterId} is not null`),
   ],
 );
 
@@ -1421,11 +1475,48 @@ export const reportCard = pgTable(
     finalizedAt: timestamp('finalized_at', { withTimezone: true }),
     finalizedBy: text('finalized_by'),
     snapshot: jsonb('snapshot'),
+    /** Versi bentuk `snapshot` (1 = bentuk awal); rapor lama tetap dirender menurut versinya. */
+    schemaVersion: integer('schema_version').notNull().default(1),
+    /** Kunci templat render rapor (per jenjang); kosong = templat bawaan. */
+    templateKey: text('template_key'),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [
     unique('report_card_semester_student_uq').on(t.semesterId, t.studentId),
     index('report_card_class_idx').on(t.classId, t.semesterId),
+  ],
+);
+
+/**
+ * Riwayat finalisasi dan buka kembali rapor per siswa. Buka kembali menghapus `report_card.snapshot`, tetapi setiap snapshot
+ * yang pernah difinalkan tetap tersimpan di sini (versi naik 1 tiap peristiwa).
+ */
+export const reportCardSnapshot = pgTable(
+  'report_card_snapshot',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    version: integer('version').notNull(),
+    kind: text('kind', { enum: ['finalized', 'reopened'] }).notNull(),
+    schemaVersion: integer('schema_version').notNull().default(1),
+    snapshot: jsonb('snapshot'),
+    actorId: text('actor_id'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('report_card_snapshot_version_uq').on(t.semesterId, t.studentId, t.version),
+    index('report_card_snapshot_student_idx').on(t.schoolId, t.studentId, t.semesterId),
   ],
 );
 

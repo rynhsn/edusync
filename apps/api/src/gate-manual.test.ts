@@ -12,8 +12,10 @@ import {
   eq,
   foundation,
   member,
+  reportCard,
   school,
   seedSchoolRoles,
+  semester,
   sql,
   student,
   subscription,
@@ -550,6 +552,47 @@ describe('manual dan tap RFID bersama', () => {
 });
 
 describe('koreksi dan daftar kelas', () => {
+  it('koreksi pada semester yang rapor siswanya final ditolak 409 report_final', async () => {
+    const date = daysAgo(8);
+    const [sem] = await app.platformDb
+      .insert(semester)
+      .values({
+        schoolId,
+        academicYearId: yearId,
+        name: 'Ganjil uji',
+        startsOn: daysAgo(30),
+        endsOn: today(),
+        isActive: false,
+      })
+      .returning();
+    const [card] = await app.platformDb
+      .insert(reportCard)
+      .values({
+        schoolId,
+        semesterId: sem!.id,
+        studentId: ids.ani,
+        classId: ids.c7A,
+        status: 'final',
+        snapshot: {},
+        finalizedAt: new Date(),
+        finalizedBy: 'uji',
+      })
+      .returning();
+    try {
+      const res = await call('PUT', `/v1/gate/daily/${ids.ani}`, waliCookie, { date, checkInAt: '07:00' });
+      expect(res.statusCode).toBe(409);
+      expect(res.json().error.code).toBe('report_final');
+      expect(await daily(ids.ani, date)).toBeUndefined();
+    } finally {
+      await app.platformDb.delete(reportCard).where(eq(reportCard.id, card!.id));
+      await app.platformDb.delete(semester).where(eq(semester.id, sem!.id));
+    }
+    // Tanpa rapor final, koreksi yang sama diterima.
+    const ok = await call('PUT', `/v1/gate/daily/${ids.ani}`, waliCookie, { date, checkInAt: '07:00' });
+    expect(ok.statusCode).toBe(200);
+    await call('PUT', `/v1/gate/daily/${ids.ani}`, waliCookie, { date, checkInAt: null, checkOutAt: null });
+  });
+
   it('PUT koreksi jam, ubah status, batalkan, dan tolak jam terbalik / guru lain', async () => {
     const date = daysAgo(7);
     const url = `/v1/gate/daily/${ids.ani}`;

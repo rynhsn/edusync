@@ -24,6 +24,7 @@ import { isOnDuty, jakarta, weekdayOf } from '../gate';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { notifySkippedClass } from '../messaging-lib';
+import { entryAppliesOn, scheduleAppliesOn } from '../schedule-lib';
 import { audit, guarded, schoolHeader } from './helpers';
 
 const STATUSES = ['present', 'excused', 'sick', 'absent'] as const;
@@ -133,7 +134,7 @@ export async function lessonAttendanceRoutes(instance: FastifyInstance) {
                 .innerJoin(subject, eq(subject.id, scheduleEntry.subjectId))
                 .innerJoin(teacher, eq(teacher.id, scheduleEntry.teacherId))
                 .innerJoin(lessonPeriod, eq(lessonPeriod.id, scheduleEntry.periodId))
-                .where(eq(scheduleEntry.weekday, weekday))
+                .where(and(eq(scheduleEntry.weekday, weekday), scheduleAppliesOn(date)))
                 .orderBy(asc(lessonPeriod.number), asc(classRoom.name));
         const visible = canCover ? rows : rows.filter((r) => r.teacherId === mine?.id);
         const ids = visible.map((r) => r.id);
@@ -243,7 +244,8 @@ export async function lessonAttendanceRoutes(instance: FastifyInstance) {
         description:
           'Izin: `attendance:read` ditambah salah satu: guru yang tertulis di jadwal itu, guru piket hari ini ' +
           '(menggantikan, ditandai `substitute`), atau `attendance:configure`; selain itu 403 `not_your_lesson`. ' +
-          'Tanggal harus hari yang sama dengan hari jadwal (400 `invalid_date`), tidak boleh belum tiba (409 ' +
+          'Tanggal harus hari yang sama dengan hari jadwal dan, untuk sel khusus semester, jatuh di dalam semester itu ' +
+          '(400 `invalid_date`), tidak boleh belum tiba (409 ' +
           '`future_date`) atau libur/jeda (409 `school_closed`).',
         headers: schoolHeader,
         body: z.object({
@@ -279,6 +281,9 @@ export async function lessonAttendanceRoutes(instance: FastifyInstance) {
         const entry = await entryOrThrow(tx, scheduleEntryId);
         if (weekdayOf(date) !== entry.weekday) {
           throw new HttpError(400, 'invalid_date', 'Tanggal itu bukan hari jadwal pelajaran ini.');
+        }
+        if (!(await entryAppliesOn(tx, entry, date))) {
+          throw new HttpError(400, 'invalid_date', 'Jadwal pelajaran ini tidak berlaku pada tanggal itu.');
         }
         const auth = await authorizeLesson(tx, ctx, entry, date);
         if (!auth.allowed) {

@@ -22630,7 +22630,7 @@
                   },
                   "permissions": {
                     "minItems": 1,
-                    "maxItems": 48,
+                    "maxItems": 50,
                     "type": "array",
                     "items": {
                       "type": "string",
@@ -22658,8 +22658,10 @@
                         "grade:read",
                         "grade:input",
                         "grade:configure",
+                        "grade:read_all",
                         "report_card:read",
                         "report_card:manage",
+                        "report_card:read_all",
                         "finance:read",
                         "finance:pay",
                         "finance:manage",
@@ -23769,7 +23771,7 @@
                   },
                   "permissions": {
                     "minItems": 1,
-                    "maxItems": 48,
+                    "maxItems": 50,
                     "type": "array",
                     "items": {
                       "type": "string",
@@ -23797,8 +23799,10 @@
                         "grade:read",
                         "grade:input",
                         "grade:configure",
+                        "grade:read_all",
                         "report_card:read",
                         "report_card:manage",
+                        "report_card:read_all",
                         "finance:read",
                         "finance:pay",
                         "finance:manage",
@@ -26034,7 +26038,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `class:manage`. Tahun ajaran kelas tidak dapat dipindah. `homeroomTeacherId` null mengosongkan wali kelas; bila dihilangkan, wali kelas tidak berubah; guru harus milik sekolah ini (400 `invalid_reference`).",
+        "description": "Izin: `class:manage`. Tahun ajaran kelas tidak dapat dipindah. `homeroomTeacherId` null mengosongkan wali kelas; bila dihilangkan, wali kelas tidak berubah; guru harus milik sekolah ini (400 `invalid_reference`). Pergantian wali kelas dicatat di riwayat dan ditolak 409 `report_final` bila semua semester tahun ajaran kelas itu sudah final.",
         "requestBody": {
           "required": true,
           "content": {
@@ -26688,7 +26692,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `class:manage`. Satu mata pelajaran di satu kelas punya satu guru; menetapkan ulang mengganti gurunya.",
+        "description": "Izin: `class:manage`. Satu mata pelajaran di satu kelas punya satu guru; menetapkan ulang mengganti gurunya dan dicatat di riwayat penugasan. Ditolak 409 `report_final` bila semua semester tahun ajaran kelas itu sudah final.",
         "requestBody": {
           "required": true,
           "content": {
@@ -26860,6 +26864,38 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       },
@@ -26868,7 +26904,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `class:manage`.",
+        "description": "Izin: `class:manage`. Dicatat di riwayat penugasan. Ditolak 409 `report_final` bila semua semester tahun ajaran kelas itu sudah final.",
         "parameters": [
           {
             "schema": {
@@ -26990,6 +27026,38 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -31327,7 +31395,7 @@
         "tags": [
           "Schedule"
         ],
-        "description": "Izin: `schedule:read`. Isi `classId` untuk jadwal kelas, atau `teacherId` untuk jadwal guru pada tahun ajaran aktif (atau `academicYearId`). Guru pengampu diambil dari penugasan guru di kelas.",
+        "description": "Izin: `schedule:read`. Isi `classId` untuk jadwal kelas, atau `teacherId` untuk jadwal guru pada tahun ajaran aktif (atau `academicYearId`). Guru pengampu diambil dari penugasan guru di kelas. Tanpa `semesterId` hanya sel setahun penuh yang dikembalikan (`semesterId` null pada hasil). Dengan `semesterId`, hasilnya jadwal efektif semester itu: sel khusus semester itu ditambah sel setahun penuh.",
         "parameters": [
           {
             "schema": {
@@ -31357,6 +31425,16 @@
             },
             "in": "query",
             "name": "academicYearId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "semesterId",
             "required": false
           },
           {
@@ -31419,6 +31497,12 @@
                         "type": "string",
                         "format": "uuid",
                         "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "semesterId": {
+                        "nullable": true,
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                       }
                     },
                     "required": [
@@ -31430,7 +31514,8 @@
                       "teacherId",
                       "teacherName",
                       "weekday",
-                      "periodId"
+                      "periodId",
+                      "semesterId"
                     ],
                     "additionalProperties": false
                   }
@@ -31543,7 +31628,7 @@
         "tags": [
           "Schedule"
         ],
-        "description": "Izin: `schedule:manage`. Gurunya otomatis guru pengampu mata pelajaran itu di kelas tersebut (tetapkan dulu di halaman Kelas). Ditolak 409 bila guru itu sudah mengajar di kelas lain pada hari dan jam yang sama.",
+        "description": "Izin: `schedule:manage`. Gurunya otomatis guru pengampu mata pelajaran itu di kelas tersebut (tetapkan dulu di halaman Kelas). `semesterId` kosong = sel setahun penuh; terisi = sel khusus semester itu (harus semester tahun ajaran kelas, jika tidak 400 `invalid_reference`). Cakupan yang sama menimpa isi sel. Ditolak 409 `schedule_scope_conflict` bila slot kelas itu sudah terisi di cakupan lain yang bertumpuk (sel setahun penuh vs sel semester), dan 409 `teacher_busy` bila guru itu sudah mengajar di kelas lain pada hari dan jam yang sama dengan cakupan beririsan (setahun penuh beririsan dengan semua; semester X hanya dengan setahun penuh dan semester X).",
         "requestBody": {
           "required": true,
           "content": {
@@ -31567,6 +31652,11 @@
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   },
                   "subjectId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "semesterId": {
                     "type": "string",
                     "format": "uuid",
                     "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
@@ -31641,6 +31731,12 @@
                       "type": "string",
                       "format": "uuid",
                       "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "semesterId": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                     }
                   },
                   "required": [
@@ -31652,7 +31748,8 @@
                     "teacherId",
                     "teacherName",
                     "weekday",
-                    "periodId"
+                    "periodId",
+                    "semesterId"
                   ],
                   "additionalProperties": false
                 }
@@ -31826,7 +31923,7 @@
         "tags": [
           "Schedule"
         ],
-        "description": "Izin: `schedule:manage`.",
+        "description": "Izin: `schedule:manage`. Hanya menghapus sel pada cakupan yang persis sama: tanpa `semesterId` = sel setahun penuh, dengan `semesterId` = sel semester itu (400 `invalid_reference` bila bukan semester tahun ajaran kelas). 404 bila tidak ada sel pada cakupan itu.",
         "parameters": [
           {
             "schema": {
@@ -31864,6 +31961,16 @@
               "format": "uuid",
               "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
             },
+            "in": "query",
+            "name": "semesterId",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
             "in": "header",
             "name": "x-school-id",
             "required": true,
@@ -31887,6 +31994,38 @@
                   },
                   "required": [
                     "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
                   ],
                   "additionalProperties": false
                 }
@@ -45924,7 +46063,7 @@
         "tags": [
           "Gate attendance"
         ],
-        "description": "Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Mengoreksi atau membatalkan catatan datang/pulang. Setiap bidang opsional: tidak dikirim = tidak diubah, `null` = dikosongkan, nilai = jam `HH:MM` atau ISO pada `date`. `checkOutAt` tidak boleh sebelum `checkInAt`. `status` bila tidak dikirim: dihitung dari kebijakan saat jam datang diubah, selain itu tetap. Bila kedua jam dikosongkan tanpa `status` dan status lama `present`/`late`, catatan dihapus (kembali ke \"belum ada catatan\"; `removed: true`). Jam yang baru diset ikut dicatat sebagai `tap_event` `manual`. Tidak ada pemberitahuan ke wali. Siswa tidak ada/tidak aktif: 404. Satu entri audit dicatat.",
+        "description": "Izin: `attendance:manage`; modul `attendance`. Aturan akses: pengguna dengan `attendance:configure` boleh untuk semua kelas; guru yang bertugas piket hari ini boleh untuk semua kelas; guru lain hanya untuk kelas yang ia walikan (wali kelas, tahun ajaran aktif); selain itu 403 `forbidden_class`. Mengoreksi atau membatalkan catatan datang/pulang. Setiap bidang opsional: tidak dikirim = tidak diubah, `null` = dikosongkan, nilai = jam `HH:MM` atau ISO pada `date`. `checkOutAt` tidak boleh sebelum `checkInAt`. `status` bila tidak dikirim: dihitung dari kebijakan saat jam datang diubah, selain itu tetap. Bila kedua jam dikosongkan tanpa `status` dan status lama `present`/`late`, catatan dihapus (kembali ke \"belum ada catatan\"; `removed: true`). Jam yang baru diset ikut dicatat sebagai `tap_event` `manual`. Tidak ada pemberitahuan ke wali. Siswa tidak ada/tidak aktif: 404. Ditolak 409 `report_final` bila tanggalnya berada di semester yang rapor siswanya sudah final. Satu entri audit dicatat.",
         "requestBody": {
           "required": true,
           "content": {
@@ -46160,6 +46299,38 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -47298,7 +47469,7 @@
         "tags": [
           "Lesson attendance"
         ],
-        "description": "Izin: `attendance:read` ditambah salah satu: guru yang tertulis di jadwal itu, guru piket hari ini (menggantikan, ditandai `substitute`), atau `attendance:configure`; selain itu 403 `not_your_lesson`. Tanggal harus hari yang sama dengan hari jadwal (400 `invalid_date`), tidak boleh belum tiba (409 `future_date`) atau libur/jeda (409 `school_closed`).",
+        "description": "Izin: `attendance:read` ditambah salah satu: guru yang tertulis di jadwal itu, guru piket hari ini (menggantikan, ditandai `substitute`), atau `attendance:configure`; selain itu 403 `not_your_lesson`. Tanggal harus hari yang sama dengan hari jadwal dan, untuk sel khusus semester, jatuh di dalam semester itu (400 `invalid_date`), tidak boleh belum tiba (409 `future_date`) atau libur/jeda (409 `school_closed`).",
         "requestBody": {
           "required": true,
           "content": {
@@ -55818,7 +55989,7 @@
         "tags": [
           "Extracurricular"
         ],
-        "description": "Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; selain itu 403 `forbidden`. Siswa harus anggota pada tahun ajaran semester itu dan semester harus milik sekolah ini (400 `invalid_reference`). Predikat A-D; dipakai nanti oleh rapor.",
+        "description": "Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; selain itu 403 `forbidden`. Siswa harus anggota pada tahun ajaran semester itu dan semester harus milik sekolah ini (400 `invalid_reference`). Predikat A-D; dipakai nanti oleh rapor. Ditolak 409 `report_final` bila rapor salah satu siswa pada semester itu sudah final.",
         "requestBody": {
           "required": true,
           "content": {
@@ -56016,6 +56187,38 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -57354,7 +57557,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:configure`; modul `grades`. `kkm` 1..100; batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi).",
+        "description": "Izin: `grade:configure`; modul `grades`. `kkm` 1..100; batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).",
         "requestBody": {
           "required": true,
           "content": {
@@ -57515,6 +57718,38 @@
             }
           },
           "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -57915,7 +58150,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada.",
+        "description": "Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 `report_final` selama semester aktif punya rapor final.",
         "requestBody": {
           "required": true,
           "content": {
@@ -58885,7 +59120,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100).",
+        "description": "Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.",
         "requestBody": {
           "required": true,
           "content": {
@@ -59153,6 +59388,38 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -59163,7 +59430,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum. Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`).",
+        "description": "Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum. Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.",
         "requestBody": {
           "required": true,
           "content": {
@@ -59495,7 +59762,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Seluruh skor penilaian itu ikut terhapus.",
+        "description": "Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Seluruh skor penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.",
         "parameters": [
           {
             "schema": {
@@ -59607,6 +59874,38 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -60116,6 +60415,38 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -62036,7 +62367,7 @@
         "tags": [
           "Report cards"
         ],
-        "description": "Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif kelas: dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).",
+        "description": "Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif kelas: dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).",
         "requestBody": {
           "required": true,
           "content": {
@@ -62240,7 +62571,7 @@
         "tags": [
           "Report cards"
         ],
-        "description": "Izin: `report_card:manage`; modul `grades`. Mengembalikan rapor final kelas itu ke draft dan membuang snapshot-nya; catatan wali kelas tetap. `reopened` = jumlah rapor yang dibuka. Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).",
+        "description": "Izin: `report_card:manage`; modul `grades`. Mengembalikan rapor final kelas itu ke draft dan membuang snapshot aktifnya (snapshot yang pernah difinalkan tetap tersimpan di riwayat); catatan wali kelas tetap. `reopened` = jumlah rapor yang dibuka. Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).",
         "requestBody": {
           "required": true,
           "content": {
@@ -109632,7 +109963,7 @@
         "tags": [
           "Exams"
         ],
-        "description": "Izin: `exam:author`; modul `exams`; guru hanya untuk mapel yang ia ampu (403). Per siswa: `absent` (tidak hadir menghapus jawabannya) dan `answers`. Pilihan ganda: `answer` = huruf opsi atau kosong; skor dihitung otomatis (benar = poin soal, selain itu 0) dan `score` kiriman diabaikan. Esai: `score` 0 sampai poin soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Siswa di luar kelas peserta, soal di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`.",
+        "description": "Izin: `exam:author`; modul `exams`; guru hanya untuk mapel yang ia ampu (403). Per siswa: `absent` (tidak hadir menghapus jawabannya) dan `answers`. Pilihan ganda: `answer` = huruf opsi atau kosong; skor dihitung otomatis (benar = poin soal, selain itu 0) dan `score` kiriman diabaikan. Esai: `score` 0 sampai poin soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Siswa di luar kelas peserta, soal di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`. Ditolak 409 `report_final` bila hasil ujian sudah dikirim ke buku nilai kelas yang rapornya final.",
         "requestBody": {
           "required": true,
           "content": {
@@ -110029,6 +110360,38 @@
                 }
               }
             }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -110039,7 +110402,7 @@
         "tags": [
           "Exams"
         ],
-        "description": "Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0).",
+        "description": "Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final.",
         "requestBody": {
           "required": true,
           "content": {
@@ -110217,6 +110580,38 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -110956,7 +111351,7 @@
         "tags": [
           "Exams (siswa)"
         ],
-        "description": "Izin: `portal:read` (akun siswa); modul `exams`. Menyimpan jawaban yang disebut saja. Pilihan ganda: huruf opsi atau kosong (400 `validation` bila huruf tidak ada); esai: teks sampai 10.000 karakter. `blurs` = jumlah siswa meninggalkan tab (hanya naik). Sesudah dikumpulkan atau waktu habis: 409 `closed`.",
+        "description": "Izin: `portal:read` (akun siswa); modul `exams`. Menyimpan jawaban yang disebut saja. Pilihan ganda: huruf opsi atau kosong (400 `validation` bila huruf tidak ada); esai: teks sampai 10.000 karakter. `blurs` = jumlah siswa meninggalkan tab (hanya naik). Sesudah dikumpulkan atau waktu habis: 409 `closed`; bila rapor siswa pada semester ujian sudah final: 409 `report_final`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -111218,7 +111613,7 @@
         "tags": [
           "Exams (siswa)"
         ],
-        "description": "Izin: `portal:read` (akun siswa); modul `exams`. Menutup percobaan; sesudahnya jawaban tidak bisa diubah. Memanggil ulang pada percobaan yang sudah terkumpul tidak error. Skor tidak dikembalikan ke siswa.",
+        "description": "Izin: `portal:read` (akun siswa); modul `exams`. Menutup percobaan; sesudahnya jawaban tidak bisa diubah. Memanggil ulang pada percobaan yang sudah terkumpul tidak error. Skor tidak dikembalikan ke siswa. Ditolak 409 `report_final` bila rapor siswa pada semester ujian sudah final.",
         "parameters": [
           {
             "schema": {
@@ -111330,6 +111725,38 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {

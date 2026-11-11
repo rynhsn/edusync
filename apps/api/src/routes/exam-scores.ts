@@ -26,6 +26,7 @@ import { z } from 'zod';
 import { examOrThrow, guardSubject } from '../exam-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { assertClassesReportNotFinal } from '../report-lock-lib';
 import { audit, guarded, idParams, schoolHeader } from './helpers';
 
 const tag = ['Exams'];
@@ -224,17 +225,28 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           '(tidak hadir menghapus jawabannya) dan `answers`. Pilihan ganda: `answer` = huruf opsi atau kosong; skor ' +
           'dihitung otomatis (benar = poin soal, selain itu 0) dan `score` kiriman diabaikan. Esai: `score` 0 sampai poin ' +
           'soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Siswa di luar kelas peserta, soal ' +
-          'di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`.',
+          'di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`. Ditolak ' +
+          '409 `report_final` bila hasil ujian sudah dikirim ke buku nilai kelas yang rapornya final.',
         headers: schoolHeader,
         params: idParams,
         body: recordsBody,
-        response: { 200: sheetSchema, 400: errorSchema, 404: errorSchema, ...guarded },
+        response: { 200: sheetSchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
         const ex = await examOrThrow(tx, ctx, request.params.id, true);
+        // Hasil yang sudah dikirim ke buku nilai kelas yang rapornya final tidak boleh berubah diam-diam.
+        const pushed = await tx
+          .select({ classId: assessment.classId })
+          .from(assessment)
+          .where(eq(assessment.examId, ex.id));
+        await assertClassesReportNotFinal(
+          tx,
+          ex.semesterId,
+          pushed.map((r) => r.classId),
+        );
         const qs = await tx.select().from(examQuestion).where(eq(examQuestion.examId, ex.id));
         const qById = new Map(qs.map((q) => [q.id, q]));
         const allowed = new Set((await roster(tx, ex)).map((p) => p.studentId));
@@ -319,7 +331,8 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           'poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. ' +
           'Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; ' +
           'komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 ' +
-          '`essay_pending` kecuali `allowPending` = true (esai itu dihitung 0).',
+          '`essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor ' +
+          'salah satu kelas peserta pada semester ujian sudah final.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -331,6 +344,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           200: z.object({ assessments: z.number().int(), scores: z.number().int() }),
           400: errorSchema,
           404: errorSchema,
+          409: errorSchema,
           ...guarded,
         },
       },
@@ -345,6 +359,11 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           .where(eq(gradeComponent.id, request.body.componentId));
         if (!comp) throw invalidRef('Komponen nilai tidak ditemukan.');
         const data = await sheet(tx, ex);
+        await assertClassesReportNotFinal(
+          tx,
+          ex.semesterId,
+          data.students.map((s) => s.classId),
+        );
         if (data.maxTotal <= 0) throw new HttpError(400, 'no_questions', 'Ujian belum memiliki soal.');
         const pending = data.students.filter((s) => s.entered && !s.absent && s.essayPending).length;
         if (pending > 0 && !request.body.allowPending) {

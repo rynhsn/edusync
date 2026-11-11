@@ -18,8 +18,10 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { recordHomeroomChange, recordTeachingChange } from '../assignment-history-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
+import { assertClassYearNotClosed } from '../report-lock-lib';
 import { assertLevelAllowed } from '../school-lib';
 import { audit, conflictAs409, guarded, idParams, isForeignKeyViolation, ok, schoolHeader } from './helpers';
 
@@ -444,6 +446,15 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
               .values({ schoolId: ctx.schoolId, ...request.body })
               .returning();
             await audit(tx, ctx, 'class.create', 'class', r!.id, request.body);
+            if (r!.homeroomTeacherId) {
+              await recordHomeroomChange(tx, {
+                schoolId: ctx.schoolId,
+                classId: r!.id,
+                teacherId: r!.homeroomTeacherId,
+                previousTeacherId: null,
+                actorId: ctx.userId,
+              });
+            }
             return classRow(tx, r!.id);
           }),
         );
@@ -470,7 +481,9 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         summary: 'Ubah kelas',
         description:
           'Izin: `class:manage`. Tahun ajaran kelas tidak dapat dipindah. `homeroomTeacherId` null mengosongkan wali ' +
-          'kelas; bila dihilangkan, wali kelas tidak berubah; guru harus milik sekolah ini (400 `invalid_reference`).',
+          'kelas; bila dihilangkan, wali kelas tidak berubah; guru harus milik sekolah ini (400 `invalid_reference`). ' +
+          'Pergantian wali kelas dicatat di riwayat dan ditolak 409 `report_final` bila semua semester tahun ajaran ' +
+          'kelas itu sudah final.',
         headers: schoolHeader,
         params: idParams,
         body: classBody.omit({ academicYearId: true }),
@@ -483,6 +496,17 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         return await conflictAs409('Nama kelas itu sudah ada pada tahun ajaran ini.', () =>
           tenant(request, async (tx) => {
             await requireRefs(tx, request.body);
+            const [before] = await tx
+              .select({ homeroomTeacherId: classRoom.homeroomTeacherId })
+              .from(classRoom)
+              .where(eq(classRoom.id, request.params.id));
+            const newHomeroom = request.body.homeroomTeacherId ?? null;
+            // Dihilangkan = wali kelas tidak berubah; null = dikosongkan.
+            const homeroomChanged =
+              !!before &&
+              request.body.homeroomTeacherId !== undefined &&
+              (before.homeroomTeacherId ?? null) !== newHomeroom;
+            if (homeroomChanged) await assertClassYearNotClosed(tx, request.params.id);
             const rows = await tx
               .update(classRoom)
               .set(request.body)
@@ -490,6 +514,15 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
               .returning({ id: classRoom.id });
             if (rows.length === 0) throw notFound('Kelas');
             await audit(tx, ctx, 'class.update', 'class', request.params.id, request.body);
+            if (homeroomChanged) {
+              await recordHomeroomChange(tx, {
+                schoolId: ctx.schoolId,
+                classId: request.params.id,
+                teacherId: newHomeroom,
+                previousTeacherId: before?.homeroomTeacherId ?? null,
+                actorId: ctx.userId,
+              });
+            }
             return classRow(tx, request.params.id);
           }),
         );
@@ -579,11 +612,13 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         tags: ['Academic'],
         summary: 'Tetapkan guru pengampu mata pelajaran di sebuah kelas',
         description:
-          'Izin: `class:manage`. Satu mata pelajaran di satu kelas punya satu guru; menetapkan ulang mengganti gurunya.',
+          'Izin: `class:manage`. Satu mata pelajaran di satu kelas punya satu guru; menetapkan ulang mengganti gurunya ' +
+          'dan dicatat di riwayat penugasan. Ditolak 409 `report_final` bila semua semester tahun ajaran kelas itu ' +
+          'sudah final.',
         headers: schoolHeader,
         params: z.object({ id: z.uuid(), subjectId: z.uuid() }),
         body: z.object({ teacherId: z.uuid() }),
-        response: { 200: ok, 400: errorSchema, ...guarded },
+        response: { 200: ok, 400: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
@@ -595,6 +630,17 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
             subjectId: request.params.subjectId,
             teacherId: request.body.teacherId,
           });
+          const [current] = await tx
+            .select({ teacherId: teachingAssignment.teacherId })
+            .from(teachingAssignment)
+            .where(
+              and(
+                eq(teachingAssignment.classId, request.params.id),
+                eq(teachingAssignment.subjectId, request.params.subjectId),
+              ),
+            );
+          const changed = current?.teacherId !== request.body.teacherId;
+          if (changed) await assertClassYearNotClosed(tx, request.params.id);
           await tx
             .insert(teachingAssignment)
             .values({
@@ -611,6 +657,16 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
             subjectId: request.params.subjectId,
             teacherId: request.body.teacherId,
           });
+          if (changed) {
+            await recordTeachingChange(tx, {
+              schoolId: ctx.schoolId,
+              classId: request.params.id,
+              subjectId: request.params.subjectId,
+              teacherId: request.body.teacherId,
+              previousTeacherId: current?.teacherId ?? null,
+              actorId: ctx.userId,
+            });
+          }
         });
       } catch (error) {
         if (isForeignKeyViolation(error)) {
@@ -629,27 +685,46 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Lepas guru dari mata pelajaran di sebuah kelas',
-        description: 'Izin: `class:manage`.',
+        description:
+          'Izin: `class:manage`. Dicatat di riwayat penugasan. Ditolak 409 `report_final` bila semua semester ' +
+          'tahun ajaran kelas itu sudah final.',
         headers: schoolHeader,
         params: z.object({ id: z.uuid(), subjectId: z.uuid() }),
-        response: { 200: ok, 404: errorSchema, ...guarded },
+        response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
       await tenant(request, async (tx) => {
-        const rows = await tx
+        const [current] = await tx
+          .select({ teacherId: teachingAssignment.teacherId })
+          .from(teachingAssignment)
+          .where(
+            and(
+              eq(teachingAssignment.classId, request.params.id),
+              eq(teachingAssignment.subjectId, request.params.subjectId),
+            ),
+          );
+        if (!current) throw notFound('Penugasan');
+        await assertClassYearNotClosed(tx, request.params.id);
+        await tx
           .delete(teachingAssignment)
           .where(
             and(
               eq(teachingAssignment.classId, request.params.id),
               eq(teachingAssignment.subjectId, request.params.subjectId),
             ),
-          )
-          .returning({ id: teachingAssignment.id });
-        if (rows.length === 0) throw notFound('Penugasan');
+          );
         await audit(tx, ctx, 'assignment.remove', 'class', request.params.id, {
           subjectId: request.params.subjectId,
+        });
+        await recordTeachingChange(tx, {
+          schoolId: ctx.schoolId,
+          classId: request.params.id,
+          subjectId: request.params.subjectId,
+          teacherId: null,
+          previousTeacherId: current.teacherId,
+          actorId: ctx.userId,
         });
       });
       return { ok: true as const };

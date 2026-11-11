@@ -46,6 +46,7 @@ const KNOWN = [
   'closed',
   'import_invalid',
   'teacher_busy',
+  'schedule_scope_conflict',
   'future_date',
   'school_closed',
   'forbidden_class',

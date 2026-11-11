@@ -242,7 +242,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             ],
             href: '/report-cards',
             warning:
-              'Rapor final tidak ikut berubah bila nilai diperbaiki kemudian. Untuk mengubahnya, Kurikulum, Operator, atau Admin sekolah harus memakai Buka kembali, yang mengembalikan rapor satu kelas menjadi draf. Catatan wali kelas tetap tersimpan.',
+              'Rapor final terkunci: nilai, penilaian, nilai ujian yang dikirim, penilaian ekskul, pengaturan nilai (KKM dan bobot), dan koreksi absensi pada semester itu ditolak dengan pesan "Rapor sudah difinalisasi" sampai rapor dibuka kembali. Untuk mengubahnya, Kurikulum, Operator, atau Admin sekolah harus memakai Buka kembali, yang mengembalikan rapor satu kelas menjadi draf. Catatan wali kelas tetap tersimpan, dan setiap rapor yang pernah difinalkan tetap tersimpan di riwayat sehingga tidak hilang saat dibuka kembali.',
           },
           {
             heading: 'Mengunduh rapor',
@@ -320,7 +320,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             ],
             href: '/report-cards',
             warning:
-              'A final report card does not change when scores are corrected later. To change it, Curriculum staff, an Operator, or a School admin must use Reopen, which turns the whole class back into drafts. Homeroom notes are kept.',
+              'A final report card is locked: scores, assessments, exam results already sent to the gradebook, extracurricular grades, grading settings (passing grade and weights), and attendance corrections for that semester are rejected with "The report card is finalized" until it is reopened. To change it, Curriculum staff, an Operator, or a School admin must use Reopen, which turns the whole class back into drafts. Homeroom notes are kept, and every report card that was ever finalized stays in the history, so nothing is lost when it is reopened.',
           },
           {
             heading: 'Downloading report cards',
@@ -398,7 +398,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             ],
             href: '/report-cards',
             warning:
-              'Rapor final teu milu robih upami nilai dibenerkeun engké. Kanggo ngarobihna, Kurikulum, Operator, atanapi Admin sekolah kedah ngagunakeun Buka kembali, nu ngabalikeun rapor sakelas jadi draf. Catetan wali kelas tetep disimpen.',
+              'Rapor final dikonci: nilai, panilaian, hasil ujian nu geus dikirim, panilaian ekskul, setélan nilai (KKM jeung bobot), jeung koréksi absénsi dina semester éta ditolak ku pesen "Rapor geus difinalisasi" nepi ka rapor dibuka deui. Kanggo ngarobihna, Kurikulum, Operator, atanapi Admin sekolah kedah ngagunakeun Buka kembali, nu ngabalikeun rapor sakelas jadi draf. Catetan wali kelas tetep disimpen, sarta unggal rapor nu kungsi difinalkeun tetep aya dina riwayat sangkan teu leungit basa dibuka deui.',
           },
           {
             heading: 'Ngaunduh rapor',

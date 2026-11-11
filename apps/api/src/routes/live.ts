@@ -34,6 +34,7 @@ import { closureOn } from '../attendance-lib';
 import { jakarta, weekdayOf } from '../gate';
 import { requireTenant, type TenantContext } from '../identity/guards';
 import { type PeriodSlot, periodState, startOfJakartaDay } from '../live-lib';
+import { scheduleAppliesOn } from '../schedule-lib';
 import { guarded, schoolHeader } from './helpers';
 
 const tag = ['Live'];
@@ -215,6 +216,7 @@ export async function liveRoutes(instance: FastifyInstance) {
                 .where(
                   and(
                     eq(scheduleEntry.weekday, weekday),
+                    scheduleAppliesOn(date),
                     lte(lessonPeriod.startsAt, time),
                     gt(lessonPeriod.endsAt, time),
                   ),
@@ -234,6 +236,7 @@ export async function liveRoutes(instance: FastifyInstance) {
                 .where(
                   and(
                     eq(scheduleEntry.weekday, weekday),
+                    scheduleAppliesOn(date),
                     lte(lessonPeriod.startsAt, time),
                     sql`not exists (select 1 from lesson_attendance la where la.schedule_entry_id = ${scheduleEntry.id} and la.date = ${date}::date)`,
                   ),

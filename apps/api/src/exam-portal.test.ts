@@ -12,6 +12,7 @@ import {
   guardian,
   member,
   portalLink,
+  reportCard,
   school,
   seedSchoolRoles,
   semester,
@@ -337,6 +338,38 @@ describe('mengerjakan ujian', () => {
     const after = graded.students.find((x: { studentId: string }) => x.studentId === studentId);
     expect(after.answers[q3]).toEqual({ answer: 'Jawaban esai saya', score: 5 });
     expect(after.total).toBe(7);
+  });
+
+  it('jawaban dan pengumpulan ditolak 409 report_final bila rapor siswa pada semester ujian sudah final', async () => {
+    const ex = await makeExam({ title: 'Terkunci rapor CBT' });
+    await call('POST', `/v1/portal/exams/${ex.id}/start`, studentCookie);
+    const [q1] = ex.q;
+    const [card] = await app.platformDb
+      .insert(reportCard)
+      .values({
+        schoolId,
+        semesterId,
+        studentId,
+        classId: classA,
+        status: 'final',
+        snapshot: {},
+        finalizedAt: new Date(),
+        finalizedBy: 'uji',
+      })
+      .returning();
+    try {
+      const put = await call('PUT', `/v1/portal/exams/${ex.id}/answers`, studentCookie, {
+        answers: [{ questionId: q1, answer: 'B' }],
+      });
+      expect(put.statusCode).toBe(409);
+      expect(put.json().error.code).toBe('report_final');
+      const submit = await call('POST', `/v1/portal/exams/${ex.id}/submit`, studentCookie);
+      expect(submit.statusCode).toBe(409);
+      expect(submit.json().error.code).toBe('report_final');
+    } finally {
+      await app.platformDb.delete(reportCard).where(eq(reportCard.id, card!.id));
+    }
+    expect((await call('POST', `/v1/portal/exams/${ex.id}/submit`, studentCookie)).statusCode).toBe(200);
   });
 
   it('kumpul menutup percobaan; waktu habis otomatis mengumpulkan', async () => {

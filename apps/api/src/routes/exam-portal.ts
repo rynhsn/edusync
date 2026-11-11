@@ -24,6 +24,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { assertStudentsReportNotFinal } from '../report-lock-lib';
 import { audit, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const tag = ['Exams (siswa)'];
@@ -339,7 +340,8 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
         description:
           'Izin: `portal:read` (akun siswa); modul `exams`. Menyimpan jawaban yang disebut saja. Pilihan ganda: huruf ' +
           'opsi atau kosong (400 `validation` bila huruf tidak ada); esai: teks sampai 10.000 karakter. `blurs` = ' +
-          'jumlah siswa meninggalkan tab (hanya naik). Sesudah dikumpulkan atau waktu habis: 409 `closed`.',
+          'jumlah siswa meninggalkan tab (hanya naik). Sesudah dikumpulkan atau waktu habis: 409 `closed`; bila rapor ' +
+          'siswa pada semester ujian sudah final: 409 `report_final`.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -362,6 +364,7 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
       return tenant(request, async (tx) => {
         const sid = await studentOrThrow(tx, ctx);
         const found = await ownExam(tx, sid, request.params.id);
+        await assertStudentsReportNotFinal(tx, found.e.semesterId, [sid]);
         const at = await finalizeIfExpired(tx, await attemptOf(tx, found.e.id, sid));
         if (!at?.startedAt) throw new HttpError(404, 'not_found', 'Ujian belum dimulai.');
         if (at.submittedAt)
@@ -416,10 +419,11 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
         summary: 'Kumpulkan ujian',
         description:
           'Izin: `portal:read` (akun siswa); modul `exams`. Menutup percobaan; sesudahnya jawaban tidak bisa diubah. ' +
-          'Memanggil ulang pada percobaan yang sudah terkumpul tidak error. Skor tidak dikembalikan ke siswa.',
+          'Memanggil ulang pada percobaan yang sudah terkumpul tidak error. Skor tidak dikembalikan ke siswa. Ditolak ' +
+          '409 `report_final` bila rapor siswa pada semester ujian sudah final.',
         headers: schoolHeader,
         params: idParams,
-        response: { 200: ok, 404: errorSchema, ...guarded },
+        response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
@@ -427,6 +431,7 @@ export async function portalExamsRoutes(instance: FastifyInstance) {
       await tenant(request, async (tx) => {
         const sid = await studentOrThrow(tx, ctx);
         const found = await ownExam(tx, sid, request.params.id);
+        await assertStudentsReportNotFinal(tx, found.e.semesterId, [sid]);
         const at = await finalizeIfExpired(tx, await attemptOf(tx, found.e.id, sid));
         if (!at?.startedAt) throw new HttpError(404, 'not_found', 'Ujian belum dimulai.');
         if (at.submittedAt) return;

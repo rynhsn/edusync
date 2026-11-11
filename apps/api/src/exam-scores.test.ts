@@ -9,6 +9,7 @@ import {
   foundation,
   gradeComponent,
   member,
+  reportCard,
   school,
   score,
   seedSchoolRoles,
@@ -440,6 +441,57 @@ describe('kirim ke buku nilai', () => {
     });
     expect(sent.statusCode, sent.body).toBe(200);
     expect(sent.json().scores).toBe(1);
+  });
+
+  it('rapor final mengunci pengiriman ulang dan lembar jawaban yang sudah terkirim', async () => {
+    const ex = await makeExam({ title: 'Terkunci rapor' });
+    const [q1, q2, q3] = ex.q;
+    const sheet = (value: number) =>
+      call('PUT', `/v1/exams/${ex.id}/scoresheet`, adminCookie, {
+        records: [
+          {
+            studentId: students.andi,
+            answers: [
+              { questionId: q1, answer: 'B' },
+              { questionId: q2, answer: 'C' },
+              { questionId: q3, score: value },
+            ],
+          },
+        ],
+      });
+    expect((await sheet(3)).statusCode).toBe(200);
+    expect((await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId })).statusCode).toBe(
+      200,
+    );
+
+    const [final] = await app.platformDb
+      .insert(reportCard)
+      .values({
+        schoolId,
+        semesterId,
+        studentId: students.andi as string,
+        classId: classA,
+        status: 'final',
+        snapshot: {},
+        finalizedAt: new Date(),
+        finalizedBy: 'uji',
+      })
+      .returning();
+    try {
+      const push = await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId });
+      expect(push.statusCode).toBe(409);
+      expect(push.json().error.code).toBe('report_final');
+      const edit = await sheet(6);
+      expect(edit.statusCode).toBe(409);
+      expect(edit.json().error.code).toBe('report_final');
+    } finally {
+      await app.platformDb.delete(reportCard).where(eq(reportCard.id, final!.id));
+    }
+    // Setelah rapor dibuka (baris dihapus), pengiriman dan perubahan berjalan lagi.
+    expect((await sheet(6)).statusCode).toBe(200);
+    expect((await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId })).statusCode).toBe(
+      200,
+    );
   });
 
   it('ujian tanpa soal ditolak', async () => {

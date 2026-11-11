@@ -30,6 +30,7 @@ import {
 } from '../gate-manual';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { assertStudentsReportNotFinalOnDate } from '../report-lock-lib';
 import { audit, guarded, schoolHeader } from './helpers';
 
 const tag = ['Gate attendance'];
@@ -392,7 +393,8 @@ export async function gateManualRoutes(instance: FastifyInstance) {
           '`checkInAt`. `status` bila tidak dikirim: dihitung dari kebijakan saat jam datang diubah, selain itu tetap. ' +
           'Bila kedua jam dikosongkan tanpa `status` dan status lama `present`/`late`, catatan dihapus (kembali ke ' +
           '"belum ada catatan"; `removed: true`). Jam yang baru diset ikut dicatat sebagai `tap_event` `manual`. ' +
-          'Tidak ada pemberitahuan ke wali. Siswa tidak ada/tidak aktif: 404. Satu entri audit dicatat.',
+          'Tidak ada pemberitahuan ke wali. Siswa tidak ada/tidak aktif: 404. Ditolak 409 `report_final` bila tanggalnya ' +
+          'berada di semester yang rapor siswanya sudah final. Satu entri audit dicatat.',
         headers: schoolHeader,
         params: z.object({ studentId: z.uuid() }),
         body: z.object({
@@ -416,6 +418,7 @@ export async function gateManualRoutes(instance: FastifyInstance) {
           }),
           400: errorSchema,
           404: errorSchema,
+          409: errorSchema,
           ...guarded,
         },
       },
@@ -435,6 +438,8 @@ export async function gateManualRoutes(instance: FastifyInstance) {
         const cls = (await classesOf(tx, [studentId])).get(studentId) ?? null;
         const scope = await manualScope(tx, ctx, b.date);
         if (!canRecordClass(scope, cls?.id ?? null)) throw forbiddenClass();
+        // Angka sakit/izin/alpa dicetak di rapor: koreksi pada semester yang rapornya sudah final ditolak.
+        await assertStudentsReportNotFinalOnDate(tx, [studentId], b.date);
 
         const [row] = await tx
           .select()

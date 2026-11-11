@@ -4,9 +4,12 @@ import {
   asc,
   classRoom,
   eq,
+  isNull,
   lessonPeriod,
   ne,
+  or,
   scheduleEntry,
+  semester,
   subject,
   type Tx,
   teacher,
@@ -46,6 +49,8 @@ const entrySchema = z.object({
   teacherName: z.string(),
   weekday: z.number().int(),
   periodId: z.uuid(),
+  /** Null = sel setahun penuh; terisi = sel khusus semester itu. */
+  semesterId: z.uuid().nullable(),
 });
 const tag = ['Schedule'];
 const gate = (permission: 'schedule:read' | 'schedule:manage') => [
@@ -58,6 +63,18 @@ const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tida
 const minutes = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3));
 const hhmm = (m: number) =>
   `${String(Math.floor(m / 60)).padStart(2, '0')}:${String(m % 60).padStart(2, '0')}`;
+
+/** Semester yang dipilih harus milik tahun ajaran kelas; kosong berarti cakupan setahun penuh. */
+async function assertSemesterOfYear(tx: Tx, semesterId: string | undefined, academicYearId: string) {
+  if (!semesterId) return;
+  const [sem] = await tx
+    .select({ academicYearId: semester.academicYearId })
+    .from(semester)
+    .where(eq(semester.id, semesterId));
+  if (!sem || sem.academicYearId !== academicYearId) {
+    throw new HttpError(400, 'invalid_reference', 'Semester itu bukan milik tahun ajaran kelas ini.');
+  }
+}
 
 /** Jam pelajaran tidak boleh terbalik dan tidak boleh tumpang tindih dengan jam lain. */
 async function assertPeriod(tx: Tx, p: { startsAt: string; endsAt: string }, exceptId?: string) {
@@ -288,20 +305,23 @@ export async function scheduleRoutes(instance: FastifyInstance) {
         summary: 'Jadwal sebuah kelas atau seorang guru',
         description:
           'Izin: `schedule:read`. Isi `classId` untuk jadwal kelas, atau `teacherId` untuk jadwal guru pada tahun ajaran ' +
-          'aktif (atau `academicYearId`). Guru pengampu diambil dari penugasan guru di kelas.',
+          'aktif (atau `academicYearId`). Guru pengampu diambil dari penugasan guru di kelas. Tanpa `semesterId` hanya ' +
+          'sel setahun penuh yang dikembalikan (`semesterId` null pada hasil). Dengan `semesterId`, hasilnya jadwal ' +
+          'efektif semester itu: sel khusus semester itu ditambah sel setahun penuh.',
         headers: schoolHeader,
         querystring: z
           .object({
             classId: z.uuid().optional(),
             teacherId: z.uuid().optional(),
             academicYearId: z.uuid().optional(),
+            semesterId: z.uuid().optional(),
           })
           .refine((q) => q.classId || q.teacherId, { message: 'Isi classId atau teacherId.' }),
         response: { 200: z.array(entrySchema), 400: errorSchema, ...guarded },
       },
     },
     async (request) => {
-      const { classId, teacherId, academicYearId } = request.query;
+      const { classId, teacherId, academicYearId, semesterId } = request.query;
       return tenant(request, async (tx) => {
         let yearId = academicYearId;
         if (!classId && !yearId) {
@@ -323,6 +343,7 @@ export async function scheduleRoutes(instance: FastifyInstance) {
             teacherName: teacher.name,
             weekday: scheduleEntry.weekday,
             periodId: scheduleEntry.periodId,
+            semesterId: scheduleEntry.semesterId,
           })
           .from(scheduleEntry)
           .innerJoin(classRoom, eq(classRoom.id, scheduleEntry.classId))
@@ -333,6 +354,9 @@ export async function scheduleRoutes(instance: FastifyInstance) {
               classId ? eq(scheduleEntry.classId, classId) : undefined,
               teacherId ? eq(scheduleEntry.teacherId, teacherId) : undefined,
               !classId && yearId ? eq(scheduleEntry.academicYearId, yearId) : undefined,
+              semesterId
+                ? or(isNull(scheduleEntry.semesterId), eq(scheduleEntry.semesterId, semesterId))
+                : isNull(scheduleEntry.semesterId),
             ),
           )
           .orderBy(asc(scheduleEntry.weekday));
@@ -349,20 +373,26 @@ export async function scheduleRoutes(instance: FastifyInstance) {
         summary: 'Isi atau ganti satu sel jadwal',
         description:
           'Izin: `schedule:manage`. Gurunya otomatis guru pengampu mata pelajaran itu di kelas tersebut (tetapkan dulu di ' +
-          'halaman Kelas). Ditolak 409 bila guru itu sudah mengajar di kelas lain pada hari dan jam yang sama.',
+          'halaman Kelas). `semesterId` kosong = sel setahun penuh; terisi = sel khusus semester itu (harus semester ' +
+          'tahun ajaran kelas, jika tidak 400 `invalid_reference`). Cakupan yang sama menimpa isi sel. Ditolak 409 ' +
+          '`schedule_scope_conflict` bila slot kelas itu sudah terisi di cakupan lain yang bertumpuk (sel setahun ' +
+          'penuh vs sel semester), dan 409 `teacher_busy` bila guru itu sudah mengajar di kelas lain pada hari dan ' +
+          'jam yang sama dengan cakupan beririsan (setahun penuh beririsan dengan semua; semester X hanya dengan ' +
+          'setahun penuh dan semester X).',
         headers: schoolHeader,
         body: z.object({
           classId: z.uuid(),
           weekday: z.number().int().min(1).max(6),
           periodId: z.uuid(),
           subjectId: z.uuid(),
+          semesterId: z.uuid().optional(),
         }),
         response: { 200: entrySchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      const { classId, weekday, periodId, subjectId } = request.body;
+      const { classId, weekday, periodId, subjectId, semesterId } = request.body;
       try {
         return await tenant(request, async (tx) => {
           const [cls] = await tx.select().from(classRoom).where(eq(classRoom.id, classId));
@@ -372,6 +402,7 @@ export async function scheduleRoutes(instance: FastifyInstance) {
             .from(lessonPeriod)
             .where(eq(lessonPeriod.id, periodId));
           if (!period) throw notFound('Jam pelajaran');
+          await assertSemesterOfYear(tx, semesterId, cls.academicYearId);
           const [assign] = await tx
             .select({
               teacherId: teachingAssignment.teacherId,
@@ -389,6 +420,8 @@ export async function scheduleRoutes(instance: FastifyInstance) {
               'Mata pelajaran ini belum punya guru pengampu di kelas ini. Tetapkan di halaman Kelas.',
             );
           }
+          // Bentrok guru: sel guru yang sama di kelas lain pada hari+jam yang sama, di tahun ajaran yang sama, yang
+          // cakupannya beririsan. Sel tahunan beririsan dengan semua; sel semester X hanya dengan tahunan dan semester X.
           const [busy] = await tx
             .select({ className: classRoom.name })
             .from(scheduleEntry)
@@ -400,6 +433,9 @@ export async function scheduleRoutes(instance: FastifyInstance) {
                 eq(scheduleEntry.weekday, weekday),
                 eq(scheduleEntry.periodId, periodId),
                 ne(scheduleEntry.classId, classId),
+                semesterId
+                  ? or(isNull(scheduleEntry.semesterId), eq(scheduleEntry.semesterId, semesterId))
+                  : undefined,
               ),
             );
           if (busy) {
@@ -409,23 +445,56 @@ export async function scheduleRoutes(instance: FastifyInstance) {
               `${assign.teacherName} sudah mengajar di kelas ${busy.className} pada hari dan jam itu.`,
             );
           }
-          const [row] = await tx
-            .insert(scheduleEntry)
-            .values({
-              schoolId: ctx.schoolId,
-              academicYearId: cls.academicYearId,
-              classId,
-              subjectId,
-              teacherId: assign.teacherId,
-              weekday,
-              periodId,
-            })
-            .onConflictDoUpdate({
-              target: [scheduleEntry.classId, scheduleEntry.weekday, scheduleEntry.periodId],
-              set: { subjectId, teacherId: assign.teacherId },
-            })
-            .returning();
-          await audit(tx, ctx, 'schedule.set', 'class', classId, { weekday, periodId, subjectId });
+          // Satu slot kelas hanya boleh punya satu sel yang berlaku pada tanggal mana pun: tahunan dan semester
+          // tidak boleh bertumpuk. Cakupan yang sama menimpa isi (ganti mapel/guru).
+          const slot = await tx
+            .select({ id: scheduleEntry.id, semesterId: scheduleEntry.semesterId })
+            .from(scheduleEntry)
+            .where(
+              and(
+                eq(scheduleEntry.classId, classId),
+                eq(scheduleEntry.weekday, weekday),
+                eq(scheduleEntry.periodId, periodId),
+              ),
+            );
+          const clash = semesterId
+            ? slot.some((e) => e.semesterId === null)
+            : slot.some((e) => e.semesterId !== null);
+          if (clash) {
+            throw new HttpError(
+              409,
+              'schedule_scope_conflict',
+              semesterId
+                ? 'Slot ini sudah terisi untuk setahun penuh. Kosongkan sel setahun penuh dulu bila ingin mengisi per semester.'
+                : 'Slot ini sudah terisi untuk semester tertentu. Kosongkan sel semester dulu bila ingin mengisi setahun penuh.',
+            );
+          }
+          const same = slot.find((e) => e.semesterId === (semesterId ?? null));
+          const [row] = same
+            ? await tx
+                .update(scheduleEntry)
+                .set({ subjectId, teacherId: assign.teacherId })
+                .where(eq(scheduleEntry.id, same.id))
+                .returning()
+            : await tx
+                .insert(scheduleEntry)
+                .values({
+                  schoolId: ctx.schoolId,
+                  academicYearId: cls.academicYearId,
+                  classId,
+                  subjectId,
+                  teacherId: assign.teacherId,
+                  weekday,
+                  periodId,
+                  semesterId: semesterId ?? null,
+                })
+                .returning();
+          await audit(tx, ctx, 'schedule.set', 'class', classId, {
+            weekday,
+            periodId,
+            subjectId,
+            semesterId: semesterId ?? null,
+          });
           return {
             id: row!.id,
             classId,
@@ -436,6 +505,7 @@ export async function scheduleRoutes(instance: FastifyInstance) {
             teacherName: assign.teacherName,
             weekday,
             periodId,
+            semesterId: semesterId ?? null,
           };
         });
       } catch (error) {
@@ -458,20 +528,31 @@ export async function scheduleRoutes(instance: FastifyInstance) {
       schema: {
         tags: tag,
         summary: 'Kosongkan satu sel jadwal',
-        description: 'Izin: `schedule:manage`.',
+        description:
+          'Izin: `schedule:manage`. Hanya menghapus sel pada cakupan yang persis sama: tanpa `semesterId` = sel setahun ' +
+          'penuh, dengan `semesterId` = sel semester itu (400 `invalid_reference` bila bukan semester tahun ajaran ' +
+          'kelas). 404 bila tidak ada sel pada cakupan itu.',
         headers: schoolHeader,
         querystring: z.object({
           classId: z.uuid(),
           weekday: z.coerce.number().int().min(1).max(6),
           periodId: z.uuid(),
+          semesterId: z.uuid().optional(),
         }),
-        response: { 200: ok, 404: errorSchema, ...guarded },
+        response: { 200: ok, 400: errorSchema, 404: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      const { classId, weekday, periodId } = request.query;
+      const { classId, weekday, periodId, semesterId } = request.query;
       await tenant(request, async (tx) => {
+        if (semesterId) {
+          const [cls] = await tx
+            .select({ academicYearId: classRoom.academicYearId })
+            .from(classRoom)
+            .where(eq(classRoom.id, classId));
+          if (cls) await assertSemesterOfYear(tx, semesterId, cls.academicYearId);
+        }
         const rows = await tx
           .delete(scheduleEntry)
           .where(
@@ -479,11 +560,16 @@ export async function scheduleRoutes(instance: FastifyInstance) {
               eq(scheduleEntry.classId, classId),
               eq(scheduleEntry.weekday, weekday),
               eq(scheduleEntry.periodId, periodId),
+              semesterId ? eq(scheduleEntry.semesterId, semesterId) : isNull(scheduleEntry.semesterId),
             ),
           )
           .returning({ id: scheduleEntry.id });
         if (rows.length === 0) throw notFound('Sel jadwal');
-        await audit(tx, ctx, 'schedule.clear', 'class', classId, { weekday, periodId });
+        await audit(tx, ctx, 'schedule.clear', 'class', classId, {
+          weekday,
+          periodId,
+          semesterId: semesterId ?? null,
+        });
       });
       return { ok: true as const };
     },

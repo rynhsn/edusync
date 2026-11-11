@@ -38,6 +38,7 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { useSchoolSettings } from '@/lib/school-settings';
 import { todayWeekdayNumber } from '@/lib/school-time';
+import { semesterLabel } from '@/lib/semester-label';
 import { cn } from '@/lib/utils';
 import {
   GENERATE_ORDER,
@@ -352,6 +353,7 @@ export function ScheduleView() {
   const [dayPick, setDayPick] = useState<Weekday>(today ?? weekdays[0] ?? 1);
   const [classChoice, setClassChoice] = useState('');
   const [teacherChoice, setTeacherChoice] = useState('');
+  const [scopeChoice, setScopeChoice] = useState('');
   const [periodsOpen, setPeriodsOpen] = useState(false);
   const [cell, setCell] = useState<{
     weekday: Weekday;
@@ -386,6 +388,18 @@ export function ScheduleView() {
     queryFn: async () => unwrap(await api.GET('/v1/teachers', { params: { ...header, query: {} } })),
   });
 
+  // Cakupan jadwal: kosong = setahun penuh (bawaan); terisi = id semester pada tahun ajaran aktif.
+  const semesters = useQuery({
+    queryKey: ['semesters', school.schoolId, activeYear?.id],
+    enabled: !!activeYear,
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/v1/semesters', { params: { ...header, query: { academicYearId: activeYear?.id } } }),
+      ),
+  });
+  const semesterList = semesters.data ?? [];
+  const scopeId = semesterList.some((s) => s.id === scopeChoice) ? scopeChoice : '';
+
   const classList = classes.data ?? [];
   const teacherList = (teachers.data ?? []).filter((x) => x.status === 'active');
   const classId = classChoice || classList[0]?.id || '';
@@ -393,12 +407,18 @@ export function ScheduleView() {
   const target = mode === 'class' ? classId : teacherId;
 
   const schedule = useQuery({
-    queryKey: ['schedule', school.schoolId, mode, target],
+    queryKey: ['schedule', school.schoolId, mode, target, scopeId],
     enabled: !!target,
     queryFn: async () =>
       unwrap(
         await api.GET('/v1/schedule', {
-          params: { ...header, query: mode === 'class' ? { classId: target } : { teacherId: target } },
+          params: {
+            ...header,
+            query: {
+              ...(mode === 'class' ? { classId: target } : { teacherId: target }),
+              ...(scopeId ? { semesterId: scopeId } : {}),
+            },
+          },
         }),
       ),
   });
@@ -414,7 +434,12 @@ export function ScheduleView() {
 
   const setCellMutation = useMutation({
     mutationFn: async (v: { weekday: Weekday; periodId: string; subjectId: string }) =>
-      unwrap(await api.PUT('/v1/schedule/cell', { params: header, body: { classId, ...v } })),
+      unwrap(
+        await api.PUT('/v1/schedule/cell', {
+          params: header,
+          body: { classId, ...v, ...(scopeId ? { semesterId: scopeId } : {}) },
+        }),
+      ),
     onSuccess: () => {
       toast.success(t('saved'));
       setCell(null);
@@ -424,7 +449,11 @@ export function ScheduleView() {
   });
   const clearCell = useMutation({
     mutationFn: async (v: { weekday: Weekday; periodId: string }) =>
-      unwrap(await api.DELETE('/v1/schedule/cell', { params: { ...header, query: { classId, ...v } } })),
+      unwrap(
+        await api.DELETE('/v1/schedule/cell', {
+          params: { ...header, query: { classId, ...v, ...(scopeId ? { semesterId: scopeId } : {}) } },
+        }),
+      ),
     onSuccess: () => {
       toast.success(t('cleared'));
       setCell(null);
@@ -435,6 +464,12 @@ export function ScheduleView() {
 
   const entryAt = (weekday: number, periodId: string) =>
     schedule.data?.find((e) => e.weekday === weekday && e.periodId === periodId);
+  // Sel yang dimiliki cakupan terpilih (bisa diubah/dikosongkan); di cakupan semester, sel setahun penuh hanya tampil.
+  const isOwn = (e: { semesterId: string | null }) => (e.semesterId ?? '') === scopeId;
+  const ownEntryAt = (weekday: number, periodId: string) => {
+    const e = entryAt(weekday, periodId);
+    return e && isOwn(e) ? e : undefined;
+  };
   const noPeriods = periods.data?.length === 0;
 
   const entries = schedule.data ?? [];
@@ -446,7 +481,7 @@ export function ScheduleView() {
   const showGrid = periodList.length > 0 && !!target;
 
   const openCell = (d: Weekday, p: (typeof periodList)[number]) => {
-    const e = entryAt(d, p.id);
+    const e = ownEntryAt(d, p.id);
     setCellError(null);
     setCell({
       weekday: d,
@@ -459,11 +494,15 @@ export function ScheduleView() {
   /** Isi satu sel jadwal: kartu berwarna menurut mata pelajaran, atau slot kosong yang bisa diisi. */
   const renderLesson = (d: Weekday, p: (typeof periodList)[number]) => {
     const e = entryAt(d, p.id);
+    // Sel setahun penuh yang tampil di cakupan semester: hanya baca (diredupkan).
+    const inherited = !!e && !isOwn(e);
     const inner = e ? (
       <span
+        title={inherited ? t('inheritedCell') : undefined}
         className={cn(
           'relative block h-full min-h-14 overflow-hidden rounded-lg py-2 pr-2.5 pl-3.5 text-left',
           TONES[subjectTone(e.subjectName)].soft,
+          inherited && 'opacity-60',
         )}
       >
         <span
@@ -487,7 +526,7 @@ export function ScheduleView() {
         {editable ? <Plus aria-hidden className="size-4" /> : <span aria-hidden>·</span>}
       </span>
     );
-    if (!editable) {
+    if (!editable || inherited) {
       return e ? inner : <span className="sr-only">{t('free')}</span>;
     }
     return (
@@ -602,7 +641,23 @@ export function ScheduleView() {
             ))}
           </SelectField>
         )}
+        {semesterList.length > 0 && (
+          <SelectField
+            aria-label={t('scope')}
+            className="sm:w-56"
+            value={scopeId}
+            onChange={(e) => setScopeChoice(e.target.value)}
+          >
+            <option value="">{t('scopeYear')}</option>
+            {semesterList.map((s) => (
+              <option key={s.id} value={s.id}>
+                {semesterLabel(s)}
+              </option>
+            ))}
+          </SelectField>
+        )}
       </Toolbar>
+      {scopeId && <p className="text-muted-foreground -mt-2 px-1 text-xs">{t('scopeHint')}</p>}
 
       {(periods.isPending || years.isPending || (!!target && schedule.isPending)) && (
         <div className="grid gap-3" aria-busy>
@@ -795,7 +850,7 @@ export function ScheduleView() {
             </Alert>
           )}
           <DialogFooter>
-            {cell && entryAt(cell.weekday, cell.periodId) && (
+            {cell && ownEntryAt(cell.weekday, cell.periodId) && (
               <Button
                 variant="ghost"
                 className="sm:mr-auto"

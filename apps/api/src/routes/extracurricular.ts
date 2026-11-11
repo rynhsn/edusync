@@ -28,6 +28,7 @@ import { z } from 'zod';
 import { todayInJakarta } from '../attendance-lib';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { assertStudentsReportNotFinal } from '../report-lock-lib';
 import { assertCategoryUsable } from './extracurricular-categories';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
@@ -909,7 +910,8 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         description:
           'Izin: `extracurricular:read` ditambah pengelola (`extracurricular:manage`) atau guru pembina ekskul ini; ' +
           'selain itu 403 `forbidden`. Siswa harus anggota pada tahun ajaran semester itu dan semester harus milik ' +
-          'sekolah ini (400 `invalid_reference`). Predikat A-D; dipakai nanti oleh rapor.',
+          'sekolah ini (400 `invalid_reference`). Predikat A-D; dipakai nanti oleh rapor. Ditolak 409 `report_final` ' +
+          'bila rapor salah satu siswa pada semester itu sudah final.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -929,6 +931,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
           200: z.object({ saved: z.number().int() }),
           400: errorSchema,
           404: errorSchema,
+          409: errorSchema,
           ...guarded,
         },
       },
@@ -944,6 +947,11 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         if (records.some((r) => !allowed.has(r.studentId))) {
           throw invalidRef('Ada siswa yang bukan anggota ekstrakurikuler ini.');
         }
+        await assertStudentsReportNotFinal(
+          tx,
+          semesterId,
+          records.map((r) => r.studentId),
+        );
         for (const r of records) {
           await tx
             .insert(extracurricularAssessment)

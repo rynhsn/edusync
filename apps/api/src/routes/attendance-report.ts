@@ -27,6 +27,7 @@ import { closureOn, reportClassScope } from '../attendance-lib';
 import { isOnDuty, weekdayOf } from '../gate';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { scheduleAppliesOn } from '../schedule-lib';
 import { guarded, schoolHeader } from './helpers';
 
 const dateField = z.iso.date();
@@ -381,7 +382,7 @@ export async function attendanceReportRoutes(instance: FastifyInstance) {
           .innerJoin(subject, eq(subject.id, scheduleEntry.subjectId))
           .innerJoin(teacher, eq(teacher.id, scheduleEntry.teacherId))
           .innerJoin(lessonPeriod, eq(lessonPeriod.id, scheduleEntry.periodId))
-          .where(eq(scheduleEntry.weekday, weekday))
+          .where(and(eq(scheduleEntry.weekday, weekday), scheduleAppliesOn(date)))
           .orderBy(asc(lessonPeriod.number), asc(classRoom.name));
         const visible = scope ? rows.filter((r) => r.teacherId === mine?.id) : rows;
         if (visible.length === 0) return { ...base, lessons: [] };

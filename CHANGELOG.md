@@ -20,6 +20,24 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 - Penugasan guru: untuk SD/MI, tombol "tetapkan ke semua mapel kosong" menugaskan satu guru kelas ke seluruh mapel yang belum
   punya pengampu tanpa menimpa guru khusus.
 
+- **Rapor final terkunci** (`409 report_final`): setelah rapor kelas difinalkan, perubahan skor dan penilaian, nilai ujian yang
+  dikirim ke buku nilai (juga lembar jawaban yang sudah terkirim), jawaban dan pengumpulan CBT siswa, penilaian ekskul,
+  koreksi absensi harian pada semester itu, serta pengaturan nilai (KKM, predikat, bobot) selama semester aktif punya rapor
+  final, ditolak sampai rapor dibuka kembali. Wali kelas dan guru pengampu tidak bisa diganti bila semua semester tahun ajaran
+  kelas itu sudah final. Pengaturan rapor (nama kepala sekolah, deskripsi) dan pindah kelas siswa sengaja tidak dikunci.
+- **Riwayat snapshot rapor** (`report_card_snapshot`): tiap finalisasi dan buka kembali tercatat per siswa dengan nomor versi;
+  snapshot yang pernah difinalkan tidak lagi hilang saat rapor dibuka kembali. Rapor menyimpan `schema_version` dan
+  `template_key` untuk bentuk dokumen di masa depan.
+- **Jadwal per semester**: `semesterId` opsional pada `GET /v1/schedule` dan `PUT`/`DELETE /v1/schedule/cell`. Kosong = setahun
+  penuh (perilaku lama); terisi = khusus semester itu, sehingga jadwal Ganjil dan Genap boleh berbeda. Sel tahunan dan sel
+  semester tidak boleh bertumpuk di slot kelas yang sama (`409 schedule_scope_conflict`); bentrok guru dicek lintas
+  cakupan. Absensi jam pelajaran, jam berjalan, dan laporan hanya membaca sel yang berlaku pada tanggalnya. Layar Jadwal
+  mendapat pemilih cakupan.
+- **Riwayat penugasan**: penetapan, penggantian, dan pelepasan guru pengampu (`teaching_assignment_history`) serta pergantian
+  wali kelas (`homeroom_assignment_history`) tercatat otomatis.
+- Izin baru `report_card:read_all` dan `grade:read_all` (admin sekolah, kepala sekolah, kurikulum) menggantikan pencocokan
+  nama peran `principal`/`curriculum` di rapor dan nilai; peran sistem di sekolah yang sudah ada diperbarui oleh migrasi.
+
 ### Perubahan
 
 - Sekolah lama diisi jenjangnya dari kurikulum yang sudah diadopsi bila tepat satu kelompok jenjang; sisanya kosong sampai

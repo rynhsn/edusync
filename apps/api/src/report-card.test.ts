@@ -12,7 +12,10 @@ import {
   extracurricularAssessment,
   foundation,
   gradeComponent,
+  homeroomAssignmentHistory,
   member,
+  reportCard,
+  reportCardSnapshot,
   school,
   score,
   seedSchoolRoles,
@@ -22,11 +25,14 @@ import {
   subject,
   subscription,
   teacher,
+  teachingAssignmentHistory,
   user,
+  withTenant,
 } from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from './app';
 import { loadEnv } from './env';
+import { assertStudentsReportNotFinalOnDate } from './report-lock-lib';
 
 try {
   process.loadEnvFile(new URL('../../../.env', import.meta.url));
@@ -173,7 +179,7 @@ beforeAll(async () => {
     }
     return s!.id;
   };
-  schoolId = await make(`rpr-${run}`, ['grades']);
+  schoolId = await make(`rpr-${run}`, ['grades', 'extracurricular']);
   noModuleId = await make(`rpr-nomod-${run}`, []);
   otherId = await make(`rpr-lain-${run}`, ['grades']);
 
@@ -345,6 +351,7 @@ afterAll(async () => {
       'report_card',
       'report_setting',
       'extracurricular_assessment',
+      'extracurricular_member',
       'extracurricular',
       'daily_attendance',
       'score',
@@ -864,6 +871,238 @@ describe('finalisasi, snapshot, dan buka kembali', () => {
     );
     // Finalisasi ulang menimpa snapshot tanpa gagal.
     expect((await finalize(adminCookie)).statusCode).toBe(200);
+  });
+});
+
+describe('penjaga rapor final', () => {
+  // Kelas 7A sudah final dari blok sebelumnya; 7B belum.
+  const code = (res: { json: () => { error?: { code?: string } } }) => res.json().error?.code;
+
+  it('semua jalur yang mengubah data rapor ditolak 409 report_final', async () => {
+    const put = (url: string, body: object) => call('PUT', url, adminCookie, body);
+    const pramuka = (
+      await app.platformDb.execute<{ id: string }>(
+        sql`select id from extracurricular where school_id = ${schoolId} and name = 'Pramuka'`,
+      )
+    ).rows[0]!.id;
+
+    // Skor dan penilaian kelas yang final.
+    const scores = await put(`/v1/assessments/${ids.matTugas}/scores`, {
+      records: [{ studentId: ids.ani, value: 10 }],
+    });
+    expect(scores.statusCode).toBe(409);
+    expect(code(scores)).toBe('report_final');
+    expect(scores.json().error.message).toContain('7A');
+    const create = await call('POST', '/v1/assessments', adminCookie, {
+      semesterId: ids.semester,
+      classId: ids.class7A,
+      subjectId: ids.mat,
+      componentId: ids.tugas,
+      title: 'Tugas baru',
+      date: '2026-09-01',
+    });
+    expect(create.statusCode).toBe(409);
+    expect(code(create)).toBe('report_final');
+    const update = await put(`/v1/assessments/${ids.matTugas}`, {
+      componentId: ids.tugas,
+      title: 'Ganti judul',
+      date: '2026-08-01',
+      maxScore: 100,
+    });
+    expect(update.statusCode).toBe(409);
+    expect(code(update)).toBe('report_final');
+    expect((await call('DELETE', `/v1/assessments/${ids.matTugas}`, adminCookie)).statusCode).toBe(409);
+
+    // Pengaturan nilai berlaku untuk semua kelas, jadi ikut terkunci selama semester aktif punya rapor final.
+    const settings = await put('/v1/grading/settings', {
+      kkm: 70,
+      predicateA: 90,
+      predicateB: 80,
+      predicateC: 70,
+    });
+    expect(settings.statusCode).toBe(409);
+    expect(code(settings)).toBe('report_final');
+    expect((await put(`/v1/grading/components/${ids.tugas}`, { name: 'Tugas', weight: 40 })).statusCode).toBe(
+      409,
+    );
+
+    // Penilaian ekskul siswa yang rapornya final (Ani harus anggota ekskul pada tahun ajaran itu).
+    await app.platformDb.execute(
+      sql`insert into extracurricular_member (school_id, extracurricular_id, student_id, academic_year_id)
+          select ${schoolId}, ${pramuka}::uuid, ${ids.ani}::uuid, academic_year_id from semester where id = ${ids.semester}`,
+    );
+    const ekskul = await put(`/v1/extracurriculars/${pramuka}/assessments`, {
+      semesterId: ids.semester,
+      records: [{ studentId: ids.ani, predicate: 'B' }],
+    });
+    expect(ekskul.statusCode).toBe(409);
+    expect(code(ekskul)).toBe('report_final');
+
+    // Data tidak berubah.
+    const doc = (await call('GET', docUrl(ids.ani), adminCookie)).json();
+    expect(doc.status).toBe('final');
+  });
+
+  it('kelas lain yang belum final tidak terpengaruh', async () => {
+    const [a7b] = await app.platformDb
+      .insert(assessment)
+      .values({
+        schoolId,
+        semesterId: ids.semester,
+        classId: ids.class7B,
+        subjectId: ids.mat,
+        componentId: ids.tugas,
+        title: 'Tugas 7B',
+        date: '2026-08-02',
+      })
+      .returning();
+    const ok = await call('PUT', `/v1/assessments/${a7b!.id}/scores`, adminCookie, {
+      records: [{ studentId: ids.dewi, value: 80 }],
+    });
+    expect(ok.statusCode).toBe(200);
+  });
+
+  it('absensi bertanggal dalam semester yang final ditolak, di luar rentang tidak', async () => {
+    const check = (date: string) =>
+      withTenant(app.tenantDb, [schoolId], (tx) => assertStudentsReportNotFinalOnDate(tx, [ids.ani], date));
+    await expect(check('2026-07-02')).rejects.toMatchObject({ code: 'report_final', status: 409 });
+    await expect(check('2026-06-30')).resolves.toBeUndefined();
+    await expect(check('2027-01-01')).resolves.toBeUndefined();
+  });
+
+  it('wali kelas dan pengampu tidak bisa diganti saat seluruh semester tahun itu final', async () => {
+    const reassign = () =>
+      call('PUT', `/v1/classes/${ids.class7A}/assignments/${ids.mat}`, adminCookie, { teacherId: ids.tLain });
+    const res = await reassign();
+    expect(res.statusCode).toBe(409);
+    expect(code(res)).toBe('report_final');
+    const homeroom = await call('PUT', `/v1/classes/${ids.class7A}`, adminCookie, {
+      name: '7A',
+      level: '7',
+      homeroomTeacherId: ids.tLain,
+    });
+    expect(homeroom.statusCode).toBe(409);
+    expect(code(homeroom)).toBe('report_final');
+    // Ganti nama saja tidak mengubah wali kelas, jadi tetap boleh.
+    const rename = await call('PUT', `/v1/classes/${ids.class7A}`, adminCookie, { name: '7A', level: '7' });
+    expect(rename.statusCode).toBe(200);
+  });
+
+  it('buka kembali mengizinkan perubahan lagi; riwayat snapshot dan penugasan tercatat', async () => {
+    const countFinal = async () =>
+      (
+        await app.platformDb
+          .select({ id: reportCardSnapshot.id })
+          .from(reportCardSnapshot)
+          .where(and(eq(reportCardSnapshot.studentId, ids.ani), eq(reportCardSnapshot.kind, 'finalized')))
+      ).length;
+    const finalizedBefore = await countFinal();
+    expect(finalizedBefore).toBeGreaterThanOrEqual(3);
+
+    const reopen = await call('POST', '/v1/report-cards/reopen', adminCookie, {
+      semesterId: ids.semester,
+      classId: ids.class7A,
+    });
+    expect(reopen.statusCode).toBe(200);
+    const history = await app.platformDb
+      .select({ version: reportCardSnapshot.version, kind: reportCardSnapshot.kind })
+      .from(reportCardSnapshot)
+      .where(eq(reportCardSnapshot.studentId, ids.ani))
+      .orderBy(reportCardSnapshot.version);
+    // Nomor versi naik satu tiap peristiwa dan buka kembali tercatat; snapshot lama tidak hilang.
+    expect(history.map((h) => h.version)).toEqual(history.map((_, i) => i + 1));
+    expect(history.at(-1)).toMatchObject({ kind: 'reopened' });
+    expect(await countFinal()).toBe(finalizedBefore);
+    const [kept] = await app.platformDb
+      .select({ snapshot: reportCardSnapshot.snapshot, schemaVersion: reportCardSnapshot.schemaVersion })
+      .from(reportCardSnapshot)
+      .where(and(eq(reportCardSnapshot.studentId, ids.ani), eq(reportCardSnapshot.kind, 'finalized')))
+      .limit(1);
+    expect(kept?.schemaVersion).toBe(1);
+    expect(kept?.snapshot).toBeTruthy();
+
+    // Setelah dibuka, skor dan penugasan bisa diubah lagi.
+    expect(
+      (
+        await call('PUT', `/v1/assessments/${ids.matTugas}/scores`, adminCookie, {
+          records: [{ studentId: ids.ani, value: 90 }],
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect(
+      (
+        await call('PUT', `/v1/classes/${ids.class7A}/assignments/${ids.mat}`, adminCookie, {
+          teacherId: ids.tLain,
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect(
+      (
+        await call('PUT', `/v1/classes/${ids.class7A}/assignments/${ids.mat}`, adminCookie, {
+          teacherId: ids.tWali,
+        })
+      ).statusCode,
+    ).toBe(200);
+    const assignments = await app.platformDb
+      .select({ action: teachingAssignmentHistory.action })
+      .from(teachingAssignmentHistory)
+      .where(eq(teachingAssignmentHistory.classId, ids.class7A))
+      .orderBy(teachingAssignmentHistory.createdAt);
+    expect(assignments.map((a) => a.action)).toEqual(['assigned', 'changed']);
+    expect(
+      (await call('DELETE', `/v1/classes/${ids.class7A}/assignments/${ids.mat}`, adminCookie)).statusCode,
+    ).toBe(200);
+    const released = await app.platformDb
+      .select({ action: teachingAssignmentHistory.action })
+      .from(teachingAssignmentHistory)
+      .where(eq(teachingAssignmentHistory.classId, ids.class7A))
+      .orderBy(teachingAssignmentHistory.createdAt);
+    expect(released.map((a) => a.action)).toEqual(['assigned', 'changed', 'released']);
+
+    // Pergantian wali kelas tercatat, dan dihilangkan = tidak berubah (tanpa riwayat baru).
+    const homeroomRows = async () =>
+      (
+        await app.platformDb
+          .select({ id: homeroomAssignmentHistory.id })
+          .from(homeroomAssignmentHistory)
+          .where(eq(homeroomAssignmentHistory.classId, ids.class7A))
+      ).length;
+    const before = await homeroomRows();
+    expect(
+      (
+        await call('PUT', `/v1/classes/${ids.class7A}`, adminCookie, {
+          name: '7A',
+          level: '7',
+          homeroomTeacherId: ids.tLain,
+        })
+      ).statusCode,
+    ).toBe(200);
+    expect(await homeroomRows()).toBe(before + 1);
+    expect(
+      (await call('PUT', `/v1/classes/${ids.class7A}`, adminCookie, { name: '7A', level: '7' })).statusCode,
+    ).toBe(200);
+    expect(await homeroomRows()).toBe(before + 1);
+    // Kembalikan wali kelas awal, lalu finalkan lagi agar blok berikutnya melihat keadaan yang sama.
+    await call('PUT', `/v1/classes/${ids.class7A}`, adminCookie, {
+      name: '7A',
+      level: '7',
+      homeroomTeacherId: ids.tWali,
+    });
+    await setScore(ids.ipaTugas, ids.budi, 85);
+    expect((await finalize(adminCookie, { force: true })).statusCode).toBe(200);
+    const final = await app.platformDb
+      .select({ status: reportCard.status, schemaVersion: reportCard.schemaVersion })
+      .from(reportCard)
+      .where(and(eq(reportCard.semesterId, ids.semester), eq(reportCard.studentId, ids.ani)));
+    expect(final[0]).toEqual({ status: 'final', schemaVersion: 1 });
+  });
+
+  it('kepala sekolah dan kurikulum melihat semua kelas lewat izin, bukan nama peran', async () => {
+    for (const cookie of [principalCookie, curriculumCookie]) {
+      expect((await call('GET', listUrl(), cookie)).statusCode).toBe(200);
+    }
+    // Guru biasa tanpa izin read_all dan bukan wali kelas 7B tetap ditolak.
+    expect((await call('GET', listUrl(ids.class7B), lainCookie)).statusCode).toBe(403);
   });
 });
 

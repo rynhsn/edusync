@@ -4,7 +4,9 @@ import {
   eq,
   inArray,
   isNull,
+  max,
   reportCard,
+  reportCardSnapshot,
   reportSetting,
   semester,
   student,
@@ -33,9 +35,6 @@ const tag = ['Report cards'];
 const MODULE = 'grades';
 
 const readGate = [requirePermission('report_card:read'), requireModule(MODULE)];
-
-/** Peran yang melihat rapor semua kelas (bersama pemegang `report_card:manage`). */
-const WIDE_ROLES = ['principal', 'curriculum'];
 
 const predicateEnum = z.enum(['A', 'B', 'C', 'D']);
 
@@ -123,6 +122,19 @@ const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tida
 const notAllowed = () =>
   forbidden('Anda hanya boleh mengakses rapor kelas yang Anda walikan, kecuali pemegang izin kelola rapor.');
 
+/** Versi bentuk `ReportDocument` yang dibekukan (1 = bentuk awal). Naikkan bila bagian baru ditambahkan. */
+const REPORT_SCHEMA_VERSION = 1;
+
+/** Versi riwayat terakhir per siswa pada semester itu, untuk menomori peristiwa berikutnya. */
+async function latestSnapshotVersions(tx: Tx, semesterId: string) {
+  const rows = await tx
+    .select({ studentId: reportCardSnapshot.studentId, v: max(reportCardSnapshot.version) })
+    .from(reportCardSnapshot)
+    .where(eq(reportCardSnapshot.semesterId, semesterId))
+    .groupBy(reportCardSnapshot.studentId);
+  return new Map(rows.map((r) => [r.studentId, r.v ?? 0]));
+}
+
 /** Rapor: pengaturan, daftar kelas, dokumen per siswa, catatan wali kelas, finalisasi. Modul `grades`. */
 export async function reportCardRoutes(instance: FastifyInstance) {
   const app = instance.withTypeProvider<ZodTypeProvider>();
@@ -132,7 +144,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
   /* ---------- Otorisasi ---------- */
 
   const isWide = (ctx: TenantContext) =>
-    ctx.permissions.has('report_card:manage') || ctx.roles.some((r) => WIDE_ROLES.includes(r));
+    ctx.permissions.has('report_card:manage') || ctx.permissions.has('report_card:read_all');
 
   async function isHomeroom(tx: Tx, ctx: TenantContext, homeroomTeacherId: string | null) {
     if (!homeroomTeacherId) return false;
@@ -419,7 +431,9 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           'Membuat atau menimpa rapor semua siswa aktif kelas: dokumen rapor dibekukan sebagai snapshot dan status ' +
           'menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya ' +
           'penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada ' +
-          'pesan. Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).',
+          'pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak ' +
+          'hilang bila rapor dibuka kembali. Semester/kelas harus milik sekolah ini dan satu tahun ajaran ' +
+          '(400 `invalid_reference`).',
         headers: schoolHeader,
         body: z.object({
           semesterId: z.uuid(),
@@ -471,6 +485,8 @@ export async function reportCardRoutes(instance: FastifyInstance) {
             : [],
         ]);
         const now = new Date();
+        const history: (typeof reportCardSnapshot.$inferInsert)[] = [];
+        const lastVersion = await latestSnapshotVersions(tx, semesterId);
         for (const s of c.roster) {
           const stu = stuRows.find((r) => r.id === s.id);
           if (!stu) continue;
@@ -492,6 +508,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
               finalizedAt: now,
               finalizedBy: ctx.userId,
               snapshot: doc,
+              schemaVersion: REPORT_SCHEMA_VERSION,
             })
             .onConflictDoUpdate({
               target: [reportCard.semesterId, reportCard.studentId],
@@ -501,10 +518,23 @@ export async function reportCardRoutes(instance: FastifyInstance) {
                 finalizedAt: now,
                 finalizedBy: ctx.userId,
                 snapshot: doc,
+                schemaVersion: REPORT_SCHEMA_VERSION,
                 updatedAt: now,
               },
             });
+          history.push({
+            schoolId: ctx.schoolId,
+            semesterId,
+            studentId: s.id,
+            classId,
+            version: (lastVersion.get(s.id) ?? 0) + 1,
+            kind: 'finalized',
+            schemaVersion: REPORT_SCHEMA_VERSION,
+            snapshot: doc,
+            actorId: ctx.userId,
+          });
         }
+        if (history.length > 0) await tx.insert(reportCardSnapshot).values(history);
         await notifyReportCards(tx, ctx.schoolId, {
           semesterId,
           semesterName: sem.name,
@@ -532,8 +562,9 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         summary: 'Buka kembali rapor satu kelas',
         description:
           'Izin: `report_card:manage`; modul `grades`. Mengembalikan rapor final kelas itu ke draft dan membuang ' +
-          'snapshot-nya; catatan wali kelas tetap. `reopened` = jumlah rapor yang dibuka. Semester/kelas harus ' +
-          'milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).',
+          'snapshot aktifnya (snapshot yang pernah difinalkan tetap tersimpan di riwayat); catatan wali kelas tetap. ' +
+          '`reopened` = jumlah rapor yang dibuka. Semester/kelas harus milik sekolah ini dan satu tahun ajaran ' +
+          '(400 `invalid_reference`).',
         headers: schoolHeader,
         body: z.object({ semesterId: z.uuid(), classId: z.uuid() }),
         response: { 200: z.object({ reopened: z.number().int() }), 400: errorSchema, ...guarded },
@@ -544,6 +575,30 @@ export async function reportCardRoutes(instance: FastifyInstance) {
       const { semesterId, classId } = request.body;
       return tenant(request, async (tx) => {
         await requireSemesterClass(tx, semesterId, classId);
+        const toReopen = await tx
+          .select({ studentId: reportCard.studentId })
+          .from(reportCard)
+          .where(
+            and(
+              eq(reportCard.semesterId, semesterId),
+              eq(reportCard.classId, classId),
+              eq(reportCard.status, 'final'),
+            ),
+          );
+        const lastVersion = await latestSnapshotVersions(tx, semesterId);
+        if (toReopen.length > 0) {
+          await tx.insert(reportCardSnapshot).values(
+            toReopen.map((r) => ({
+              schoolId: ctx.schoolId,
+              semesterId,
+              studentId: r.studentId,
+              classId,
+              version: (lastVersion.get(r.studentId) ?? 0) + 1,
+              kind: 'reopened' as const,
+              actorId: ctx.userId,
+            })),
+          );
+        }
         const rows = await tx
           .update(reportCard)
           .set({
