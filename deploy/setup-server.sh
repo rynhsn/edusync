@@ -68,7 +68,7 @@ if [ ! -d /opt/edusync/app/.git ]; then
   sudo -u edusync -H git clone --branch "$BRANCH" "$REPO_URL" /opt/edusync/app
 fi
 
-echo "==> Firewall server: port 80 dan 443 dibuka (22 sudah terbuka). Port 4000, 3000, dan 5432 sengaja tertutup."
+echo "==> Firewall server: port 80 dan 443 dibuka (22 sudah terbuka). Port API (bawaan 4100), 3000, dan 5432 sengaja tertutup."
 for port in 80 443; do
   sudo iptables -C INPUT -p tcp --dport "$port" -j ACCEPT 2>/dev/null || sudo iptables -I INPUT 1 -p tcp --dport "$port" -j ACCEPT
 done

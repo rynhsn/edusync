@@ -55,7 +55,9 @@ jobs:
         env:
           HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-        run: ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$HOST" 'curl -fsS http://127.0.0.1:4000/version'
+        # Port API dibaca dari .env server (bawaan 4100): port 4000 bisa dipakai aplikasi lain di server yang sama.
+        run: |
+          ssh -i ~/.ssh/id_deploy "$DEPLOY_USER@$HOST" 'P=$(sudo grep -E "^API_PORT=" /opt/edusync/app/.env | cut -d= -f2); curl -fsS --retry 6 --retry-delay 2 --retry-connrefused "http://127.0.0.1:${P:-4100}/version"'
       - name: Catatan rilis GitHub dari CHANGELOG
         if: github.event_name == 'push'
         env:

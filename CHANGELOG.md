@@ -9,6 +9,22 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+## [1.1.1] - 2026-11-11
+
+Perbaikan setelah v1.1.0 dipasang di server.
+
+### Diperbaiki
+
+- **Port API di server**: port 4000 ternyata dipakai aplikasi lain di server yang sama (`edusync.service` milik aplikasi Node
+  lain), sehingga API gagal start (`EADDRINUSE`) setelah deploy v1.1.0. API kini memakai port 4100 (`API_PORT` di `.env`
+  server); templat Caddy (`tls-ask`), `init-env.sh`, dan pengecekan versi di workflow Deploy membaca port itu, tidak lagi
+  mengunci 4000.
+- **Izin peran bawaan tidak sampai ke sekolah yang sudah ada**: migrasi yang membaca tabel `role` (ber-RLS) berjalan sebagai
+  pemilik tabel dan melihat nol baris, sehingga `INSERT ... SELECT` untuk izin baru (`account:reset` di migrasi 0079 dan
+  `report_card:read_all`/`grade:read_all` di migrasi 0087) tidak menambah apa pun di server. `pnpm db:migrate` kini
+  melengkapi izin peran bawaan lewat koneksi platform setelah migrasi (hanya menambah, aman diulang).
+- Langkah "Cek versi" di workflow Deploy mencoba ulang sampai API siap, sehingga catatan rilis GitHub tidak terlewat.
+
 ## [1.1.0] - 2026-11-11
 
 Jenjang unit (Fase 0) dan integritas rapor, arsip, serta jadwal per semester (Fase 1).

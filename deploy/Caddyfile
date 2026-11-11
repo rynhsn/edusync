@@ -3,7 +3,7 @@
 {
 	email __ACME_EMAIL__
 	on_demand_tls {
-		ask http://127.0.0.1:4000/internal/tls-ask
+		ask http://127.0.0.1:__API_PORT__/internal/tls-ask
 	}
 }
 

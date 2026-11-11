@@ -28,6 +28,8 @@ fi
 
 IP="${PUBLIC_IP:-$(curl -4 -fsS https://api.ipify.org)}"
 DOMAIN="${DOMAIN:-${IP//./-}.sslip.io}"
+# Port API di server. Bawaan 4100 (bukan 4000) karena 4000 sering dipakai aplikasi lain di server yang sama.
+API_PORT="${API_PORT:-4100}"
 echo "==> Alamat publik: $IP   Domain dasar: $DOMAIN"
 
 rand() { openssl rand -hex "$1"; }
@@ -59,8 +61,8 @@ DATABASE_OWNER_URL=postgres://${DB_OWNER}:${OWNER_PW}@127.0.0.1:5432/${DB_NAME}
 DATABASE_URL=postgres://edusync_app:${APP_PW}@127.0.0.1:5432/${DB_NAME}
 DATABASE_PLATFORM_URL=postgres://edusync_platform:${PLATFORM_PW}@127.0.0.1:5432/${DB_NAME}
 DATABASE_JOBS_URL=postgres://${DB_OWNER}:${OWNER_PW}@127.0.0.1:5432/${DB_NAME}
-API_PORT=4000
-API_URL=http://127.0.0.1:4000
+API_PORT=${API_PORT}
+API_URL=http://127.0.0.1:${API_PORT}
 AUTH_SECRET=${AUTH_SECRET}
 AUTH_URL=https://${DOMAIN}
 TRUSTED_ORIGINS=https://${DOMAIN}
@@ -73,7 +75,7 @@ sudo install -o edusync -g edusync -m 600 "$TMP" "$APP_DIR/.env"
 rm -f "$TMP"
 
 echo "==> Caddy"
-sed "s|__ACME_EMAIL__|${ACME_EMAIL}|" "$APP_DIR/deploy/Caddyfile" | sudo tee /etc/caddy/Caddyfile >/dev/null
+sed -e "s|__ACME_EMAIL__|${ACME_EMAIL}|" -e "s|__API_PORT__|${API_PORT}|" "$APP_DIR/deploy/Caddyfile" | sudo tee /etc/caddy/Caddyfile >/dev/null
 
 echo "==> Layanan systemd"
 sudo cp "$APP_DIR"/deploy/systemd/edusync-*.service /etc/systemd/system/
