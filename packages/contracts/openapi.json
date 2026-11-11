@@ -47,6 +47,42 @@
         "tags": [
           "System"
         ],
+        "description": "Publik. Versi dari package.json akar dan commit git singkat (null bila bukan checkout git).",
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "version": {
+                      "type": "string"
+                    },
+                    "commit": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "version",
+                    "commit"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/version": {
+      "get": {
+        "summary": "Versi rilis dan commit yang sedang berjalan",
+        "tags": [
+          "System"
+        ],
+        "description": "Publik. Versi dari package.json akar dan commit git singkat (null bila bukan checkout git).",
         "responses": {
           "200": {
             "description": "Default Response",

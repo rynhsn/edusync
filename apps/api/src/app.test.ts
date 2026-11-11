@@ -34,9 +34,11 @@ describe('API', () => {
   });
 
   it('/version memberi versi rilis dari package.json akar', async () => {
-    const res = await app.inject('/version');
-    expect(res.statusCode).toBe(200);
-    expect(res.json().version).toMatch(/^\d+\.\d+\.\d+$/);
+    for (const url of ['/version', '/v1/version']) {
+      const res = await app.inject(url);
+      expect(res.statusCode, url).toBe(200);
+      expect(res.json().version, url).toMatch(/^\d+\.\d+\.\d+$/);
+    }
   });
 
   it('OpenAPI dibuat otomatis dari skema route', async () => {

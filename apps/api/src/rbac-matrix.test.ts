@@ -278,7 +278,7 @@ describe('katalog route', () => {
       /^\/docs/,
       /^\/internal\/tls-ask$/,
       /^\/api\/auth/,
-      /^\/v1\/(config|catalog|education-profiles|auth\/recovery\/|slugs\/|public\/|kiosk\/|webhooks\/|dev\/|invitations\/by-token\/:token$|platform\/staff\/invitations\/by-token\/:token$)/,
+      /^\/v1\/(config|catalog|education-profiles|version|auth\/recovery\/|slugs\/|public\/|kiosk\/|webhooks\/|dev\/|invitations\/by-token\/:token$|platform\/staff\/invitations\/by-token\/:token$)/,
     ];
     const stray = eps
       .filter((e) => e.kind === 'open')

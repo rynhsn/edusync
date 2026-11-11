@@ -23,6 +23,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createContext, useContext, useEffect, useMemo } from 'react';
 import { AppHeader, MobileNavDrawer } from '@/components/app-header';
+import { AppVersion } from '@/components/app-version';
 import { ContextSwitcher } from '@/components/context-switcher';
 import { Logo } from '@/components/logo';
 import { ShellAside, SidebarToggle } from '@/components/sidebar-toggle';
@@ -209,6 +210,7 @@ export function PlatformShell({ children }: { children: React.ReactNode }) {
           </div>
         ))}
       </nav>
+      <AppVersion />
     </>
   );
 

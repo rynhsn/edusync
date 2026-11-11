@@ -201,17 +201,22 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
     async () => ({ status: 'ok' as const }),
   );
 
-  app.get(
-    '/version',
-    {
-      schema: {
-        tags: ['System'],
-        summary: 'Versi rilis dan commit yang sedang berjalan',
-        response: { 200: z.object({ version: z.string(), commit: z.string().nullable() }) },
+  // `/version` untuk operasional (cek deploy); `/v1/version` sama persis, dapat dijangkau web lewat proxy `/v1`.
+  for (const path of ['/version', '/v1/version']) {
+    app.get(
+      path,
+      {
+        schema: {
+          tags: ['System'],
+          summary: 'Versi rilis dan commit yang sedang berjalan',
+          description:
+            'Publik. Versi dari package.json akar dan commit git singkat (null bila bukan checkout git).',
+          response: { 200: z.object({ version: z.string(), commit: z.string().nullable() }) },
+        },
       },
-    },
-    async () => appVersion,
-  );
+      async () => appVersion,
+    );
+  }
 
   app.get(
     '/ready',

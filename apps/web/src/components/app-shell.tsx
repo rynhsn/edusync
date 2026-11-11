@@ -53,6 +53,7 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useTranslations } from 'next-intl';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { AppHeader, MobileNavDrawer } from '@/components/app-header';
+import { AppVersion } from '@/components/app-version';
 import { ContextSwitcher } from '@/components/context-switcher';
 import { Logo } from '@/components/logo';
 import { SchoolSuspended } from '@/components/school-suspended';
@@ -837,6 +838,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         pathname={pathname}
         schoolId={school.schoolId}
       />
+      <AppVersion />
     </>
   );
 

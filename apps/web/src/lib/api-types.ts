@@ -50,7 +50,52 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Versi rilis dan commit yang sedang berjalan */
+        /**
+         * Versi rilis dan commit yang sedang berjalan
+         * @description Publik. Versi dari package.json akar dan commit git singkat (null bila bukan checkout git).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            version: string;
+                            commit: string | null;
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Versi rilis dan commit yang sedang berjalan
+         * @description Publik. Versi dari package.json akar dan commit git singkat (null bila bukan checkout git).
+         */
         get: {
             parameters: {
                 query?: never;

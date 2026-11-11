@@ -348,6 +348,8 @@
     }
   },
   "shell": {
+    "version": "Version {version}",
+    "versionCommit": "Commit {commit}",
     "hideSidebar": "Hide sidebar",
     "showSidebar": "Show sidebar",
     "search": {

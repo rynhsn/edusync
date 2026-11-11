@@ -348,6 +348,8 @@
     }
   },
   "shell": {
+    "version": "Vérsi {version}",
+    "versionCommit": "Commit {commit}",
     "hideSidebar": "Sumputkeun menu gigir",
     "showSidebar": "Témbongkeun menu gigir",
     "search": {

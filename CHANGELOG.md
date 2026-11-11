@@ -9,6 +9,13 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+## [1.1.2] - 2026-11-11
+
+### Ditambahkan
+
+- **Versi tampil di antarmuka**: nomor versi ("Versi 1.1.2") di dasar menu samping panel sekolah dan konsol platform; arahkan
+  kursor untuk melihat kode commit. Sumbernya `GET /v1/version` (publik, sama dengan `/version` untuk operasional).
+
 ## [1.1.1] - 2026-11-11
 
 Perbaikan setelah v1.1.0 dipasang di server.
