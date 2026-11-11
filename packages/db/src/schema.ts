@@ -47,6 +47,8 @@ export const school = pgTable(
     studentTier: text('student_tier').notNull().default('t300'),
     /** NPSN 8 digit. Wajib saat mendaftar; sekolah lama boleh kosong. Unik di seluruh platform bila terisi. */
     npsn: text('npsn'),
+    /** Jenjang unit (`ref_education_profile.key`): satu unit satu jenjang. Kosong pada sekolah lama yang belum dipetakan. */
+    educationProfile: text('education_profile').references(() => refEducationProfile.key),
     /** Alasan penangguhan: 'billing' dilepas otomatis saat tagihan lunas, 'staff' hanya oleh staf platform. */
     suspendedReason: text('suspended_reason', { enum: ['billing', 'staff'] }),
     /** Alasan yang ditulis staf (tampil ke pengguna sekolah dan pemilik); kosong untuk penangguhan karena tagihan. */
@@ -295,7 +297,16 @@ export const registration = pgTable(
     foundationName: text('foundation_name').notNull(),
     period: text('period', { enum: ['monthly', 'yearly'] }).notNull(),
     units: jsonb('units')
-      .$type<{ name: string; slug: string; modules: string[]; tier: string; npsn?: string }[]>()
+      .$type<
+        {
+          name: string;
+          slug: string;
+          modules: string[];
+          tier: string;
+          npsn?: string;
+          educationProfile?: string;
+        }[]
+      >()
       .notNull(),
     status: text('status', { enum: ['pending_payment', 'paid', 'expired'] })
       .notNull()
@@ -2874,6 +2885,24 @@ export const admissionDocumentType = pgTable(
 export const refSchoolLevel = pgTable('ref_school_level', {
   key: text('key').primaryKey(),
   name: text('name').notNull(),
+  sort: integer('sort').notNull().default(0),
+  active: boolean('active').notNull().default(true),
+});
+
+/**
+ * Profil jenjang global (sd, mi, smp, mts, sma, ma, smk, mak) yang dikelola lewat migrasi. Menentukan tingkat dan fase bawaan,
+ * model pengajar (`subject` = guru mapel, `class` = guru kelas), otoritas, dan apakah jenjangnya kejuruan (PKL, UKK).
+ */
+export const refEducationProfile = pgTable('ref_education_profile', {
+  key: text('key').primaryKey(),
+  name: text('name').notNull(),
+  /** Kelompok jenjang `ref_school_level.key` yang dipakai bank kurikulum. */
+  levelGroup: text('level_group').notNull(),
+  authority: text('authority', { enum: ['kemendikdasmen', 'kemenag'] }).notNull(),
+  teacherModel: text('teacher_model', { enum: ['subject', 'class'] }).notNull(),
+  vocational: boolean('vocational').notNull().default(false),
+  /** Tingkat bawaan beserta fasenya: `[{code, label, phase}]`. */
+  levels: jsonb('levels').$type<{ code: string; label: string; phase: string }[]>().notNull(),
   sort: integer('sort').notNull().default(0),
   active: boolean('active').notNull().default(true),
 });

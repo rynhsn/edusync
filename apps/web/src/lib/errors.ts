@@ -142,6 +142,9 @@ const KNOWN = [
   'npsn_taken',
   'npsn_duplicate',
   'guardian_in_use',
+  'invalid_education_profile',
+  'profile_locked',
+  'no_education_profile',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

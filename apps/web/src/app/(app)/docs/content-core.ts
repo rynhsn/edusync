@@ -934,6 +934,14 @@ export const CORE_DOCS: DocArticle[] = [
         forWho: 'Admin sekolah dan Operator, biasanya sekali saat sekolah mulai memakai aplikasi.',
         sections: [
           {
+            heading: 'Jenjang unit',
+            body: 'Satu unit sekolah punya satu jenjang (SD, MI, SMP, MTs, SMA, MA, SMK, atau MAK). Jenjang dipilih saat unit didaftarkan dan menentukan tingkat kelas bawaan beserta fasenya, serta fitur yang tampil (PKL hanya untuk jenjang kejuruan). Lembaga yang punya beberapa jenjang mendaftarkannya sebagai unit terpisah, masing-masing beralamat sendiri.',
+            tip: 'Jenjang tampil di bagian Identitas pada Pengaturan sekolah. Sekolah lama yang belum punya jenjang dapat diisi oleh admin platform lewat tiket Laporan.',
+            warning:
+              'Jenjang tidak bisa diganti sendiri. Admin platform hanya bisa menggantinya selama unit belum punya tahun ajaran.',
+            href: '/school-settings',
+          },
+          {
             heading: 'Memilih zona waktu',
             body: 'Zona waktu menjadi acuan tanggal dan jam di seluruh aplikasi: absensi, tagihan, pesan, dan pendaftaran siswa baru (SPMB).',
             steps: [
@@ -988,6 +996,14 @@ export const CORE_DOCS: DocArticle[] = [
         forWho: 'School admins and Operators, usually once when the school starts using the app.',
         sections: [
           {
+            heading: 'School unit level',
+            body: 'Each school unit has exactly one school level (SD, MI, SMP, MTs, SMA, MA, SMK, or MAK). It is chosen when the unit is registered and decides the default grade levels and their phases, and which features appear (internship (PKL) is only for vocational levels). An institution with several levels registers them as separate units, each with its own address.',
+            tip: 'The level shows in the Identity section of School settings. An older school without a level can be set by a platform admin through a Report ticket.',
+            warning:
+              'You cannot change the level yourself. A platform admin can only change it while the unit has no academic year.',
+            href: '/school-settings',
+          },
+          {
             heading: 'Choosing the time zone',
             body: 'The time zone is the reference for dates and times across the app: attendance, invoices, messages, and new student admissions (SPMB).',
             steps: [
@@ -1041,6 +1057,14 @@ export const CORE_DOCS: DocArticle[] = [
           'Atur zona waktu, poé diajar, ngaran semester, jam pangajaran awal, jeung daptar tingkat kelas pikeun hiji unit sakola.',
         forWho: 'Admin sakola jeung Operator, biasana sakali waktu sakola mimiti maké aplikasi.',
         sections: [
+          {
+            heading: 'Jenjang unit',
+            body: 'Hiji unit sakola boga hiji jenjang (SD, MI, SMP, MTs, SMA, MA, SMK, atawa MAK). Jenjang dipilih basa unit didaptarkeun jeung nangtukeun tingkat kelas bawaan sarta fasena, ogé fitur nu muncul (PKL ngan pikeun jenjang kejuruan). Lembaga nu boga sababaraha jenjang ngadaptarkeunana salaku unit sorangan-sorangan, tiap unit boga alamat sorangan.',
+            tip: 'Jenjang muncul dina bagian Idéntitas di Setélan sakola. Sakola heubeul nu can boga jenjang bisa dieusian ku admin platform ngaliwatan tikét Laporan.',
+            warning:
+              'Jenjang teu bisa diganti ku sorangan. Admin platform ngan bisa ngagantina salila unit can boga taun pangajaran.',
+            href: '/school-settings',
+          },
           {
             heading: 'Milih zona waktu',
             body: 'Zona waktu jadi patokan tanggal jeung jam di sakabéh aplikasi: absénsi, tagihan, pesen, jeung pendaptaran murid anyar (SPMB).',

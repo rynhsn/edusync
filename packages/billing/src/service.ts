@@ -27,6 +27,7 @@ import {
   lt,
   member,
   payment,
+  refEducationProfile,
   registration,
   school,
   seedSchoolRoles,
@@ -110,6 +111,19 @@ export function requireNpsn(raw: string): string {
   return npsn;
 }
 
+/** Jenjang harus ada di acuan dan masih aktif; selain itu 400 `invalid_education_profile`. */
+export async function assertEducationProfiles(tx: Db | Tx, keys: string[]) {
+  const unique = [...new Set(keys)];
+  if (unique.length === 0) return;
+  const found = await tx
+    .select({ key: refEducationProfile.key })
+    .from(refEducationProfile)
+    .where(and(inArray(refEducationProfile.key, unique), eq(refEducationProfile.active, true)));
+  if (found.length !== unique.length) {
+    throw new DomainError(400, 'invalid_education_profile', 'Jenjang sekolah tidak dikenal.');
+  }
+}
+
 /**
  * NPSN tidak boleh dipakai sekolah mana pun maupun pendaftaran lain yang masih menunggu pembayaran dan belum kedaluwarsa.
  * Panggil setelah pendaftaran tertunda milik pemohon sendiri dilepas, supaya pendaftaran ulang tidak menabrak dirinya.
@@ -162,6 +176,10 @@ export async function createRegistration(
   if (new Set(npsns).size !== npsns.length) {
     throw new DomainError(400, 'npsn_duplicate', 'NPSN tiap unit harus berbeda.');
   }
+  await assertEducationProfiles(
+    db,
+    input.units.map((u) => u.educationProfile),
+  );
   const catalog = await loadCatalog(db);
   const settings = await loadBillingSettings(db);
   let quote: ReturnType<typeof quoteUnits>;
@@ -333,6 +351,7 @@ export async function activateRegistration(
         name: unit.name,
         studentTier: unit.tier,
         npsn: unit.npsn ?? null,
+        educationProfile: unit.educationProfile ?? null,
       })
       .returning();
     await seedSchoolRoles(tx, s!.id);

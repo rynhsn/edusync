@@ -7,7 +7,7 @@ import {
   previewNewUnit,
   requestRenewal,
 } from '@edusync/billing';
-import { slugSchema } from '@edusync/contracts';
+import { educationProfileKeySchema, slugSchema } from '@edusync/contracts';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -66,6 +66,7 @@ const newUnitInput = changeInput.extend({
   name: z.string().trim().min(3).max(120),
   slug: slugSchema,
   npsn: z.string().max(40).describe('NPSN 8 angka (wajib). Galat: invalid_npsn, npsn_taken.'),
+  educationProfile: educationProfileKeySchema,
 });
 
 const lineSchema = z.object({ key: z.string(), name: z.string(), amount: z.number().int() });

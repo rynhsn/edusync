@@ -89,6 +89,7 @@ beforeAll(async () => {
         name: 'SMP Uji Satu',
         slug: `unit-a-${run}`,
         npsn: testNpsn(),
+        educationProfile: 'smp',
         modules: ['attendance', 'grades'],
         tier: 't300',
       },
@@ -274,6 +275,7 @@ describe('tambah unit sekolah', () => {
     name: 'SMK Uji Dua',
     slug,
     npsn: testNpsn(`new-unit-${slug}`),
+    educationProfile: 'smk',
     modules: ['attendance', 'parent_portal'],
     tier: 't300',
   });

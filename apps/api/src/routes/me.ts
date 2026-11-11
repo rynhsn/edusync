@@ -1,3 +1,4 @@
+import { educationProfileBriefSchema } from '@edusync/contracts';
 import {
   and,
   entitlement,
@@ -6,6 +7,7 @@ import {
   inArray,
   member,
   memberRole,
+  refEducationProfile,
   role,
   rolePermission,
   school,
@@ -39,6 +41,9 @@ const membershipSchema = z.object({
   timezone: z
     .string()
     .describe('Zona waktu IANA sekolah (mis. Asia/Jakarta); dasar tanggal "hari ini" di layar'),
+  educationProfile: educationProfileBriefSchema
+    .nullable()
+    .describe('Jenjang unit (satu unit satu jenjang); null pada sekolah lama yang belum dipetakan'),
   roles: z.array(z.string()),
   permissions: z.array(z.string()).describe('Gabungan izin dari semua peran di sekolah ini'),
   modules: z.array(z.string()).describe('Modul berbayar yang sedang aktif di sekolah ini'),
@@ -77,11 +82,16 @@ export async function meRoutes(instance: FastifyInstance) {
           suspendedNote: school.suspendedNote,
           suspendedAt: school.suspendedAt,
           timezone: school.timezone,
+          profileKey: refEducationProfile.key,
+          profileName: refEducationProfile.name,
+          profileTeacherModel: refEducationProfile.teacherModel,
+          profileVocational: refEducationProfile.vocational,
           roleKey: role.key,
           permission: rolePermission.permission,
         })
         .from(member)
         .innerJoin(school, eq(school.id, member.schoolId))
+        .leftJoin(refEducationProfile, eq(refEducationProfile.key, school.educationProfile))
         .leftJoin(memberRole, eq(memberRole.memberId, member.id))
         .leftJoin(role, eq(role.id, memberRole.roleId))
         .leftJoin(rolePermission, eq(rolePermission.roleId, memberRole.roleId))
@@ -98,6 +108,14 @@ export async function meRoutes(instance: FastifyInstance) {
           suspendedNote: r.suspendedNote,
           suspendedAt: r.suspendedAt?.toISOString() ?? null,
           timezone: r.timezone,
+          educationProfile: r.profileKey
+            ? {
+                key: r.profileKey,
+                name: r.profileName as string,
+                teacherModel: r.profileTeacherModel as 'subject' | 'class',
+                vocational: r.profileVocational as boolean,
+              }
+            : null,
           roles: [],
           permissions: [],
           modules: [],

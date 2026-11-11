@@ -1,14 +1,21 @@
 'use client';
 
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { CalendarClock, CreditCard, Layers, Power, PowerOff, Receipt, School } from 'lucide-react';
 import { useFormatter, useLocale, useTranslations } from 'next-intl';
+import { toast } from 'sonner';
+import {
+  EducationProfileSelect,
+  useEducationProfileName,
+  useEducationProfiles,
+} from '@/components/education-profile-select';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Skeleton } from '@/components/ui/skeleton';
 import { IconTile, type Tone, ToneBadge, UserAvatar } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, unwrap } from '@/lib/api';
+import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { useStaff } from '../platform-shell';
 import { type Foundation, QueryError, SUB_KEY, SUB_TONE, useMoney } from './platform-kit';
@@ -39,6 +46,56 @@ function Section({
       </div>
       {children}
     </section>
+  );
+}
+
+/** Jenjang unit (satu unit satu jenjang): staf admin dapat mengisi atau mengganti; server mengunci bila sudah ada tahun ajaran. */
+function UnitProfile({
+  schoolId,
+  profile,
+  canEdit,
+}: {
+  schoolId: string;
+  profile: string | null;
+  canEdit: boolean;
+}) {
+  const t = useTranslations('platform');
+  const te = useTranslations();
+  const queryClient = useQueryClient();
+  const profiles = useEducationProfiles();
+  const nameOf = useEducationProfileName();
+  const save = useMutation({
+    mutationFn: async (educationProfile: string) =>
+      unwrap(
+        await api.PUT('/v1/platform/schools/{id}/education-profile', {
+          params: { path: { id: schoolId } },
+          body: { educationProfile },
+        }),
+      ),
+    onSuccess: () => {
+      toast.success(t('saved'));
+      for (const key of ['foundations', 'foundation', 'audit']) {
+        queryClient.invalidateQueries({ queryKey: [`platform-${key}`] });
+      }
+    },
+    onError: (e) => toast.error(te(errorKey(e))),
+  });
+  const current = profiles.data?.find((p) => p.key === profile);
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-2">
+      <span className="text-muted-foreground text-xs">
+        {t('unitProfile')}: {profile ? nameOf(profile, current?.name ?? profile) : t('unitProfileEmpty')}
+      </span>
+      {canEdit && (
+        <div className="w-56">
+          <EducationProfileSelect
+            value={profile ?? ''}
+            onChange={(key) => key !== profile && save.mutate(key)}
+            disabled={save.isPending}
+          />
+        </div>
+      )}
+    </div>
   );
 }
 
@@ -112,6 +169,11 @@ export function FoundationDetail({
                         <p className="text-muted-foreground text-xs">
                           {s.npsn ? t('unitNpsn', { npsn: s.npsn }) : t('unitNpsnEmpty')}
                         </p>
+                        <UnitProfile
+                          schoolId={s.id}
+                          profile={s.educationProfile}
+                          canEdit={role === 'admin'}
+                        />
                         {!active && (
                           <p className="text-muted-foreground mt-1 text-xs break-words">
                             {s.suspendedReason === 'staff' && s.suspendedNote

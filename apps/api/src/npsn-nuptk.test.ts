@@ -75,6 +75,7 @@ const unit = (key: string, over: Record<string, unknown> = {}) => ({
   name: 'SMP Uji NPSN',
   slug: `${key}-${run}`,
   npsn: testNpsn(),
+  educationProfile: 'smp',
   modules: ['attendance'],
   tier: 't300',
   ...over,

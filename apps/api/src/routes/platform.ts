@@ -5,8 +5,10 @@ import {
   listFoundations,
   listPendingRegistrations,
   platformOverview,
+  setSchoolEducationProfile,
   setSchoolSuspended,
 } from '@edusync/billing';
+import { educationProfileKeySchema } from '@edusync/contracts';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -21,6 +23,10 @@ const schoolSchema = z.object({
   name: z.string(),
   slug: z.string(),
   npsn: z.string().nullable().describe('NPSN 8 angka; null pada sekolah lama'),
+  educationProfile: z
+    .string()
+    .nullable()
+    .describe('Kunci jenjang unit; null pada sekolah lama yang belum dipetakan'),
   status: z.enum(['active', 'suspended']),
   suspendedReason: z.enum(['billing', 'staff']).nullable(),
   suspendedNote: z
@@ -232,6 +238,33 @@ export async function platformRoutes(instance: FastifyInstance) {
       },
     );
   }
+
+  app.put(
+    '/v1/platform/schools/:id/education-profile',
+    {
+      onRequest: [requireStaff('admin')],
+      schema: {
+        tags: tag,
+        summary: 'Atur jenjang unit sekolah',
+        description:
+          'Satu unit satu jenjang. Jenjang yang masih kosong (sekolah lama) boleh diisi kapan saja; mengganti jenjang yang ' +
+          'sudah ada hanya selama unit belum punya tahun ajaran (409 `profile_locked`). Kunci tidak dikenal 400 ' +
+          '`invalid_education_profile`. Dicatat di audit log.',
+        params: z.object({ id: z.uuid() }),
+        body: z.object({ educationProfile: educationProfileKeySchema }),
+        response: { 200: ok, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      await setSchoolEducationProfile(
+        app.platformDb,
+        request.userId as string,
+        request.params.id,
+        request.body.educationProfile,
+      );
+      return { ok: true as const };
+    },
+  );
 
   app.get(
     '/v1/platform/registrations/pending',

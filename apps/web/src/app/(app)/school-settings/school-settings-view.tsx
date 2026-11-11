@@ -22,6 +22,7 @@ import { toast } from 'sonner';
 import { ActionMenu, ENTER, stagger } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
+import { useEducationProfileName } from '@/components/education-profile-select';
 import { FormDialog } from '@/components/form-dialog';
 import { FORM_GRID } from '@/components/form-field';
 import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
@@ -499,6 +500,7 @@ interface Level {
 function LevelsPanel() {
   const t = useTranslations('schoolSettings');
   const te = useTranslations();
+  const nameOf = useEducationProfileName();
   const { school, header } = useCtx();
   const queryClient = useQueryClient();
   const canManage = useSchool().can('school:manage');
@@ -571,7 +573,12 @@ function LevelsPanel() {
   });
   const defaults = useMutation({
     mutationFn: async () =>
-      unwrap(await api.POST('/v1/school/levels/defaults', { params: header, body: { stage } })),
+      unwrap(
+        await api.POST('/v1/school/levels/defaults', {
+          params: header,
+          body: school.educationProfile ? {} : { stage },
+        }),
+      ),
     onSuccess: () => {
       toast.success(t('defaultsFilled'));
       refresh();
@@ -669,21 +676,28 @@ function LevelsPanel() {
           action={
             canManage ? (
               <div className="flex flex-wrap items-center justify-center gap-2">
-                <div className="w-44">
-                  <SelectField
-                    aria-label={t('stage')}
-                    value={stage}
-                    onChange={(e) => setStage(e.target.value as (typeof STAGES)[number])}
-                  >
-                    {STAGES.map((s) => (
-                      <option key={s} value={s}>
-                        {t(`stages.${s}`)}
-                      </option>
-                    ))}
-                  </SelectField>
-                </div>
+                {/* Unit yang sudah punya jenjang memakai tingkat bawaan jenjangnya; pilihan manual hanya untuk sekolah lama. */}
+                {!school.educationProfile && (
+                  <div className="w-44">
+                    <SelectField
+                      aria-label={t('stage')}
+                      value={stage}
+                      onChange={(e) => setStage(e.target.value as (typeof STAGES)[number])}
+                    >
+                      {STAGES.map((s) => (
+                        <option key={s} value={s}>
+                          {t(`stages.${s}`)}
+                        </option>
+                      ))}
+                    </SelectField>
+                  </div>
+                )}
                 <Button onClick={() => defaults.mutate()} disabled={defaults.isPending}>
-                  {t('fillDefaults')}
+                  {school.educationProfile
+                    ? t('fillDefaultsFor', {
+                        name: nameOf(school.educationProfile.key, school.educationProfile.name),
+                      })
+                    : t('fillDefaults')}
                 </Button>
               </div>
             ) : undefined

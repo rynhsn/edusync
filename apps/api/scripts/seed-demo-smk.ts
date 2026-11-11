@@ -853,6 +853,16 @@ for (const [slug, npsn] of [
     .set({ npsn })
     .where(and(eq(school.slug, slug), isNull(school.npsn)));
 }
+// Jenjang contoh (satu unit satu jenjang); hanya mengisi yang masih kosong.
+for (const [slug, educationProfile] of [
+  [SLUG, 'smk'],
+  ['smpit-miftahul-huda', 'smp'],
+] as const) {
+  await db
+    .update(school)
+    .set({ educationProfile })
+    .where(and(eq(school.slug, slug), isNull(school.educationProfile)));
+}
 
 const userIds = new Map<string, string>();
 for (const a of ACCOUNTS) userIds.set(a.email, await ensureUser(a.email, a.name));

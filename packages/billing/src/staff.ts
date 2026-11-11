@@ -1,4 +1,5 @@
 import {
+  academicYear,
   and,
   auditLog,
   count,
@@ -13,6 +14,7 @@ import {
   or,
   payment,
   platformStaff,
+  refEducationProfile,
   registration,
   school,
   subscription,
@@ -87,6 +89,7 @@ export async function listFoundations(
           name: s.name,
           slug: s.slug,
           npsn: s.npsn,
+          educationProfile: s.educationProfile,
           status: s.status,
           suspendedReason: s.suspendedReason,
           suspendedNote: s.suspendedNote,
@@ -153,6 +156,50 @@ export async function setSchoolSuspended(
       entityType: 'school',
       entityId: schoolId,
       details: { reason, previousStatus: s.status, previousReason: s.suspendedReason },
+    });
+  });
+}
+
+/**
+ * Atur jenjang unit (satu unit satu jenjang). Mengisi jenjang yang masih kosong selalu boleh; mengganti jenjang yang sudah
+ * ada hanya selama unit belum punya tahun ajaran (409 `profile_locked`), karena tingkat, kurikulum, dan nilai bergantung padanya.
+ */
+export async function setSchoolEducationProfile(
+  db: Db,
+  staffUserId: string,
+  schoolId: string,
+  profileKey: string,
+) {
+  return db.transaction(async (tx) => {
+    const [s] = await tx.select().from(school).where(eq(school.id, schoolId)).for('update');
+    if (!s) throw new DomainError(404, 'not_found', 'Sekolah tidak ditemukan.');
+    const [profile] = await tx
+      .select({ key: refEducationProfile.key })
+      .from(refEducationProfile)
+      .where(and(eq(refEducationProfile.key, profileKey), eq(refEducationProfile.active, true)));
+    if (!profile) throw new DomainError(400, 'invalid_education_profile', 'Jenjang sekolah tidak dikenal.');
+    if (s.educationProfile === profileKey) return;
+    if (s.educationProfile) {
+      const [years] = await tx
+        .select({ n: count() })
+        .from(academicYear)
+        .where(eq(academicYear.schoolId, schoolId));
+      if ((years?.n ?? 0) > 0) {
+        throw new DomainError(
+          409,
+          'profile_locked',
+          'Jenjang tidak bisa diganti karena unit ini sudah punya tahun ajaran.',
+        );
+      }
+    }
+    await tx.update(school).set({ educationProfile: profileKey }).where(eq(school.id, schoolId));
+    await tx.insert(auditLog).values({
+      schoolId,
+      actorId: staffUserId,
+      action: 'school.education_profile',
+      entityType: 'school',
+      entityId: schoolId,
+      details: { from: s.educationProfile, to: profileKey },
     });
   });
 }

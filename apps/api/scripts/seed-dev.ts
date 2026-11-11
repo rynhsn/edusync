@@ -78,16 +78,27 @@ const DEMO_NPSN: Record<string, string> = {
   'smk-miftahul-huda': '69999001',
 };
 
+// Jenjang demo: satu unit satu jenjang.
+const DEMO_PROFILE: Record<string, string> = {
+  'smpit-miftahul-huda': 'smp',
+  'smk-miftahul-huda': 'smk',
+};
+
 async function ensureSchool(foundationId: string, slug: string, name: string) {
   const npsn = DEMO_NPSN[slug] ?? null;
+  const educationProfile = DEMO_PROFILE[slug] ?? null;
   const [row] = await db
     .insert(school)
-    .values({ foundationId, slug, name, npsn })
+    .values({ foundationId, slug, name, npsn, educationProfile })
     .onConflictDoNothing()
     .returning();
   let s = row ?? (await db.select().from(school).where(eq(school.slug, slug)))[0]!;
   if (npsn && !s.npsn) {
     [s] = await db.update(school).set({ npsn }).where(eq(school.id, s.id)).returning();
+    s = s!;
+  }
+  if (educationProfile && !s.educationProfile) {
+    [s] = await db.update(school).set({ educationProfile }).where(eq(school.id, s.id)).returning();
     s = s!;
   }
   await seedSchoolRoles(db, s.id);

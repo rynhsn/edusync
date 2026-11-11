@@ -82,6 +82,36 @@ function Assignments({ classId }: { classId: string }) {
     },
     onError: (e) => toast.error(te(errorKey(e))),
   });
+  // SD/MI: satu guru kelas mengampu hampir semua mapel. Hanya mapel yang belum punya pengampu yang diisi, sehingga
+  // guru khusus (mis. PAI, PJOK) yang sudah ditugaskan tidak tertimpa.
+  const classTeacherModel = school.educationProfile?.teacherModel === 'class';
+  const unassigned = (subjects.data ?? []).filter(
+    (s) => !(assignments.data ?? []).some((a) => a.subjectId === s.id),
+  );
+  const assignAll = useMutation({
+    mutationFn: async (tid: string) => {
+      await Promise.all(
+        unassigned.map(async (s) =>
+          unwrap(
+            await api.PUT('/v1/classes/{id}/assignments/{subjectId}', {
+              params: { ...header, path: { id: classId, subjectId: s.id } },
+              body: { teacherId: tid },
+            }),
+          ),
+        ),
+      );
+      return unassigned.length;
+    },
+    onSuccess: (count) => {
+      setTeacherId('');
+      toast.success(t('assignAllDone', { count }));
+      queryClient.invalidateQueries({ queryKey: key });
+    },
+    onError: (e) => {
+      toast.error(te(errorKey(e)));
+      queryClient.invalidateQueries({ queryKey: key });
+    },
+  });
   const release = useMutation({
     mutationFn: async (sid: string) =>
       unwrap(
@@ -158,6 +188,16 @@ function Assignments({ classId }: { classId: string }) {
           >
             {t('assign')}
           </Button>
+          {classTeacherModel && (
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={!teacherId || unassigned.length === 0 || assignAll.isPending}
+              onClick={() => assignAll.mutate(teacherId)}
+            >
+              {t('assignAll', { count: unassigned.length })}
+            </Button>
+          )}
         </div>
       )}
     </div>

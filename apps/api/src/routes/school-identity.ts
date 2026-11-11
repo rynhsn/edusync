@@ -1,5 +1,14 @@
 import { assertNpsnsFree, NPSN_TAKEN_MESSAGE, requireNpsn } from '@edusync/billing';
-import { eq, school, schoolFile, schoolIdentity, type Tx, withTenant } from '@edusync/db';
+import { educationProfileBriefSchema } from '@edusync/contracts';
+import {
+  eq,
+  refEducationProfile,
+  school,
+  schoolFile,
+  schoolIdentity,
+  type Tx,
+  withTenant,
+} from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -58,6 +67,9 @@ const identityBody = z.object({
 const identitySchema = z.object({
   name: z.string().describe('Nama unit di sistem (`school.name`)'),
   npsn: z.string().nullable().describe('NPSN 8 angka; null pada sekolah lama yang belum mengisinya'),
+  educationProfile: educationProfileBriefSchema
+    .nullable()
+    .describe('Jenjang unit; hanya staf platform yang dapat mengubahnya'),
   officialName: z.string().nullable().describe('Nama pada kop; kosong = pakai `name`'),
   logoUrl: z
     .string()
@@ -90,13 +102,29 @@ export function composeAddress(i: Partial<IdentityRow> | undefined): string | nu
 
 export async function readIdentity(tx: Tx, schoolId: string) {
   const [sch] = await tx
-    .select({ name: school.name, npsn: school.npsn })
+    .select({
+      name: school.name,
+      npsn: school.npsn,
+      profileKey: refEducationProfile.key,
+      profileName: refEducationProfile.name,
+      profileTeacherModel: refEducationProfile.teacherModel,
+      profileVocational: refEducationProfile.vocational,
+    })
     .from(school)
+    .leftJoin(refEducationProfile, eq(refEducationProfile.key, school.educationProfile))
     .where(eq(school.id, schoolId));
   const [row] = await tx.select().from(schoolIdentity).where(eq(schoolIdentity.schoolId, schoolId));
   return {
     name: sch?.name ?? '',
     npsn: sch?.npsn ?? null,
+    educationProfile: sch?.profileKey
+      ? {
+          key: sch.profileKey,
+          name: sch.profileName as string,
+          teacherModel: sch.profileTeacherModel as 'subject' | 'class',
+          vocational: sch.profileVocational as boolean,
+        }
+      : null,
     officialName: row?.officialName ?? null,
     logoUrl: logoPath(row?.logoFileId),
     street: row?.street ?? null,

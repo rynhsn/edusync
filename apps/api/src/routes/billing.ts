@@ -8,8 +8,22 @@ import {
   signDevEvent,
   slugStatus,
 } from '@edusync/billing';
-import { BILLING_PERIODS, registrationInput, requirementMap, slugSchema } from '@edusync/contracts';
-import { asc, eq, invoice, loadBillingSettings, loadCatalog, planPreset } from '@edusync/db';
+import {
+  BILLING_PERIODS,
+  educationProfileSchema,
+  registrationInput,
+  requirementMap,
+  slugSchema,
+} from '@edusync/contracts';
+import {
+  asc,
+  eq,
+  invoice,
+  loadBillingSettings,
+  loadCatalog,
+  planPreset,
+  refEducationProfile,
+} from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
@@ -67,6 +81,36 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
       app.log.warn({ err: error }, 'rekonsiliasi pembayaran gagal');
     }
   }
+
+  app.get(
+    '/v1/education-profiles',
+    {
+      schema: {
+        tags: ['Billing'],
+        summary: 'Daftar profil jenjang',
+        description:
+          'Publik. Jenjang yang bisa dipilih saat mendaftarkan unit sekolah (satu unit satu jenjang), beserta tingkat ' +
+          'dan fase bawaannya. Kunci dikirim sebagai `educationProfile` pada pendaftaran dan unit baru.',
+        response: { 200: z.array(educationProfileSchema) },
+      },
+    },
+    async () => {
+      const rows = await app.platformDb
+        .select()
+        .from(refEducationProfile)
+        .where(eq(refEducationProfile.active, true))
+        .orderBy(asc(refEducationProfile.sort));
+      return rows.map((r) => ({
+        key: r.key,
+        name: r.name,
+        levelGroup: r.levelGroup,
+        authority: r.authority,
+        teacherModel: r.teacherModel,
+        vocational: r.vocational,
+        levels: r.levels,
+      }));
+    },
+  );
 
   app.get(
     '/v1/catalog',

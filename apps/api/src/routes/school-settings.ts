@@ -7,6 +7,7 @@ import {
   finFeePlan,
   invalidateSchoolTimezone,
   max,
+  refEducationProfile,
   school,
   schoolLevel,
   schoolSetting,
@@ -228,11 +229,13 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
         tags,
         summary: 'Isi tingkat kelas bawaan',
         description:
-          'Izin: `school:manage`. Menambahkan tingkat bawaan sesuai jenjang (`sd` kelas 1-6, `smp` kelas 7-9, `sma`/`smk` ' +
-          'X-XII). Kode yang sudah ada dilewati; mengembalikan daftar lengkap.',
+          'Izin: `school:manage`. Menambahkan tingkat bawaan sesuai jenjang unit (profil jenjang: `sd`/`mi` kelas 1-6, ' +
+          '`smp`/`mts` kelas 7-9, `sma`/`ma`/`smk`/`mak` X-XII). Tanpa `stage`, jenjang unit yang dipakai; unit yang belum ' +
+          'punya jenjang ditolak 400 `no_education_profile`. `stage` (`sd`, `smp`, `sma`, `smk`) tetap diterima untuk ' +
+          'kompatibilitas. Kode yang sudah ada dilewati; mengembalikan daftar lengkap.',
         headers: schoolHeader,
-        body: z.object({ stage: z.enum(['sd', 'smp', 'sma', 'smk']) }),
-        response: { 200: z.array(levelSchema), ...guarded },
+        body: z.object({ stage: z.enum(['sd', 'smp', 'sma', 'smk']).optional() }),
+        response: { 200: z.array(levelSchema), 400: errorSchema, ...guarded },
       },
     },
     async (request) => {
@@ -241,7 +244,25 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
         const existing = new Set((await listLevels(tx)).map((l) => l.code));
         const [m] = await tx.select({ top: max(schoolLevel.sort) }).from(schoolLevel);
         const sort = m?.top ?? 0;
-        const fresh = (DEFAULT_LEVELS[request.body.stage] ?? []).filter((l) => !existing.has(l.code));
+        let defaults: { code: string; label: string }[];
+        if (request.body.stage) {
+          defaults = DEFAULT_LEVELS[request.body.stage] ?? [];
+        } else {
+          const [profile] = await tx
+            .select({ levels: refEducationProfile.levels })
+            .from(school)
+            .innerJoin(refEducationProfile, eq(refEducationProfile.key, school.educationProfile))
+            .where(eq(school.id, ctx.schoolId));
+          if (!profile) {
+            throw new HttpError(
+              400,
+              'no_education_profile',
+              'Unit ini belum punya jenjang. Hubungi admin platform untuk menetapkannya.',
+            );
+          }
+          defaults = profile.levels;
+        }
+        const fresh = defaults.filter((l) => !existing.has(l.code));
         if (fresh.length > 0) {
           await tx
             .insert(schoolLevel)
@@ -256,7 +277,7 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
             .onConflictDoNothing();
         }
         await audit(tx, ctx, 'school.level_defaults', 'school', ctx.schoolId, {
-          stage: request.body.stage,
+          stage: request.body.stage ?? null,
           added: fresh.length,
         });
         return listLevels(tx);

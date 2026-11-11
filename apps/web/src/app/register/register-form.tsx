@@ -14,6 +14,7 @@ import { Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useCallback, useMemo, useState } from 'react';
+import { EducationProfileSelect } from '@/components/education-profile-select';
 import { PasswordInput } from '@/components/password-input';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -37,6 +38,7 @@ interface Unit {
   slug: string;
   slugTouched: boolean;
   npsn: string;
+  educationProfile: string;
   modules: string[];
   tier: string;
 }
@@ -47,6 +49,7 @@ const newUnit = (): Unit => ({
   slug: '',
   slugTouched: false,
   npsn: '',
+  educationProfile: '',
   modules: [],
   tier: 't300',
 });
@@ -149,6 +152,7 @@ export function RegisterForm() {
     if (npsnTaken.includes(u.npsn)) return te('errors.npsn_taken');
     return null;
   };
+  const profilesOk = units.every((u) => u.educationProfile !== '');
   const npsnOk = units.every((u) => u.npsn.length === NPSN_LENGTH && npsnError(u) === null);
   const passwordCheck = checkPasswords(account.password, account.confirm);
   // Kesalahan panjang baru ditampilkan setelah kolom ditinggalkan, supaya tidak muncul saat masih mengetik.
@@ -159,6 +163,7 @@ export function RegisterForm() {
     quote &&
     slugsOk &&
     npsnOk &&
+    profilesOk &&
     accountOk &&
     foundationName.trim().length >= 3 &&
     units.every((u) => u.name.trim().length >= 3);
@@ -176,6 +181,7 @@ export function RegisterForm() {
     const duplicate = units.filter((x) => x.slug === u.slug).length > 1;
     if (slugStatus[`${u.id}-slug`] !== 'available' || duplicate) missing.push(t('missingSlug', { n: i + 1 }));
     if (u.npsn.length !== NPSN_LENGTH || npsnError(u) !== null) missing.push(t('missingNpsn', { n: i + 1 }));
+    if (u.educationProfile === '') missing.push(t('missingEducationProfile', { n: i + 1 }));
   });
 
   async function onSubmit(event: React.FormEvent<HTMLFormElement>) {
@@ -210,6 +216,7 @@ export function RegisterForm() {
               name: u.name.trim(),
               slug: u.slug,
               npsn: u.npsn,
+              educationProfile: u.educationProfile,
               modules: u.modules,
               tier: u.tier,
             })),
@@ -438,6 +445,18 @@ export function RegisterForm() {
                           )}
                         >
                           {npsnError(unit) ?? t('npsnHint')}
+                        </p>
+                      </div>
+                      <div className="grid content-start gap-2">
+                        <Label htmlFor={`${unit.id}-profile`}>{t('educationProfile')}</Label>
+                        <EducationProfileSelect
+                          id={`${unit.id}-profile`}
+                          value={unit.educationProfile}
+                          onChange={(key) => update(unit.id, { educationProfile: key })}
+                          describedBy={`${unit.id}-profile-hint`}
+                        />
+                        <p id={`${unit.id}-profile-hint`} className="text-muted-foreground text-xs">
+                          {t('educationProfileHint')}
                         </p>
                       </div>
                     </div>

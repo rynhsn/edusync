@@ -81,6 +81,7 @@ async function activatedFoundation(label: string) {
           name: 'SMP IT Contoh',
           slug: `smp-${label}-${run}`,
           npsn: testNpsn(),
+          educationProfile: 'smp',
           modules: ['attendance'],
           tier: 't300',
         },

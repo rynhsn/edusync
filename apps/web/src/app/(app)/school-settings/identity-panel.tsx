@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { useRef, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { useEducationProfileName } from '@/components/education-profile-select';
 import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -32,6 +33,7 @@ const WIDE: Field[] = ['officialName', 'street', 'website'];
 export function IdentityPanel() {
   const t = useTranslations('schoolSettings.identity');
   const te = useTranslations();
+  const nameOf = useEducationProfileName();
   const { school, can } = useSchool();
   const header = { header: schoolHeader(school.schoolId) };
   const canManage = can('school:manage');
@@ -251,6 +253,16 @@ export function IdentityPanel() {
         >
           {npsnError ?? (npsnInvalid ? t('npsnInvalid') : savedNpsn ? t('npsnHint') : t('npsnEmpty'))}
         </p>
+      </div>
+
+      <div className="grid max-w-md content-start gap-1">
+        <Label>{t('educationProfileLabel')}</Label>
+        <p className="text-sm font-medium">
+          {identity.data?.educationProfile
+            ? nameOf(identity.data.educationProfile.key, identity.data.educationProfile.name)
+            : t('educationProfileEmpty')}
+        </p>
+        <p className="text-muted-foreground text-xs">{t('educationProfileHint')}</p>
       </div>
 
       <form

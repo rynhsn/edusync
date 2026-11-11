@@ -6,6 +6,7 @@ import { School } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useCallback, useState } from 'react';
 import { BackLink } from '@/components/back-link';
+import { EducationProfileSelect } from '@/components/education-profile-select';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -35,15 +36,20 @@ export function UnitNewView() {
   const [plan, setPlan] = useState<{ modules: string[]; tier: string }>({ modules: [], tier: 't300' });
   const onStatus = useCallback((_id: string, s: SlugStatus) => setSlugState(s), []);
 
+  const [educationProfile, setEducationProfile] = useState('');
   const [npsn, setNpsn] = useState('');
   const npsnInvalid = npsn.length > 0 && npsn.length !== NPSN_LENGTH;
 
-  const ready = name.trim().length >= 3 && slugState === 'available' && npsn.length === NPSN_LENGTH;
-  const body = { name: name.trim(), slug, npsn, ...plan };
+  const ready =
+    name.trim().length >= 3 &&
+    slugState === 'available' &&
+    npsn.length === NPSN_LENGTH &&
+    educationProfile !== '';
+  const body = { name: name.trim(), slug, npsn, educationProfile, ...plan };
   const key = [...plan.modules].sort().join(',');
 
   const quote = useQuery({
-    queryKey: ['unit-quote', f.id, name.trim(), slug, npsn, key, plan.tier],
+    queryKey: ['unit-quote', f.id, name.trim(), slug, npsn, educationProfile, key, plan.tier],
     enabled: ready,
     retry: false,
     queryFn: async () =>
@@ -122,6 +128,18 @@ export function UnitNewView() {
                 className={cn('text-xs', npsnInvalid ? 'text-destructive' : 'text-muted-foreground')}
               >
                 {npsnInvalid ? tr('npsnInvalid') : tr('npsnHint')}
+              </p>
+            </div>
+            <div className="grid content-start gap-2">
+              <Label htmlFor="unit-profile">{tr('educationProfile')}</Label>
+              <EducationProfileSelect
+                id="unit-profile"
+                value={educationProfile}
+                onChange={setEducationProfile}
+                describedBy="unit-profile-hint"
+              />
+              <p id="unit-profile-hint" className="text-muted-foreground text-xs">
+                {tr('educationProfileHint')}
               </p>
             </div>
             <PlanPicker idPrefix="new" modules={plan.modules} tier={plan.tier} onChange={setPlan} />

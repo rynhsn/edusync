@@ -552,6 +552,19 @@ export interface paths {
                                 suspendedAt: string | null;
                                 /** @description Zona waktu IANA sekolah (mis. Asia/Jakarta); dasar tanggal "hari ini" di layar */
                                 timezone: string;
+                                /** @description Jenjang unit (satu unit satu jenjang); null pada sekolah lama yang belum dipetakan */
+                                educationProfile: {
+                                    /** @description Kunci profil: sd, mi, smp, mts, sma, ma, smk, mak */
+                                    key: string;
+                                    name: string;
+                                    /**
+                                     * @description `subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel
+                                     * @enum {string}
+                                     */
+                                    teacherModel: "subject" | "class";
+                                    /** @description Jenjang kejuruan: PKL dan UKK tersedia */
+                                    vocational: boolean;
+                                } | null;
                                 roles: string[];
                                 /** @description Gabungan izin dari semua peran di sekolah ini */
                                 permissions: string[];
@@ -860,6 +873,66 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/education-profiles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar profil jenjang
+         * @description Publik. Jenjang yang bisa dipilih saat mendaftarkan unit sekolah (satu unit satu jenjang), beserta tingkat dan fase bawaannya. Kunci dikirim sebagai `educationProfile` pada pendaftaran dan unit baru.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Kunci profil: sd, mi, smp, mts, sma, ma, smk, mak */
+                            key: string;
+                            name: string;
+                            /** @description Kelompok jenjang bank kurikulum (`ref_school_level.key`) */
+                            levelGroup: string;
+                            /** @enum {string} */
+                            authority: "kemendikdasmen" | "kemenag";
+                            /**
+                             * @description `subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel
+                             * @enum {string}
+                             */
+                            teacherModel: "subject" | "class";
+                            /** @description Jenjang kejuruan: PKL dan UKK tersedia */
+                            vocational: boolean;
+                            levels: {
+                                code: string;
+                                label: string;
+                                /** @description Fase Kurikulum Merdeka: A (kelas 1-2), B (3-4), C (5-6), D (7-9), E (10), F (11-12) */
+                                phase: string;
+                            }[];
+                        }[];
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/catalog": {
         parameters: {
             query?: never;
@@ -994,6 +1067,8 @@ export interface paths {
                             slug: string;
                             /** @description NPSN 8 angka (wajib). Spasi, titik, dan strip dibuang; format salah ditolak 400 invalid_npsn, NPSN ganda dalam satu pendaftaran 400 npsn_duplicate, sudah terdaftar 409 npsn_taken. */
                             npsn: string;
+                            /** @description Jenjang unit (wajib): kunci dari GET /v1/education-profiles. Galat: invalid_education_profile. */
+                            educationProfile: string;
                             modules: string[];
                             tier: string;
                         }[];
@@ -1592,6 +1667,8 @@ export interface paths {
                                 slug: string;
                                 /** @description NPSN 8 angka; null pada sekolah lama */
                                 npsn: string | null;
+                                /** @description Kunci jenjang unit; null pada sekolah lama yang belum dipetakan */
+                                educationProfile: string | null;
                                 /** @enum {string} */
                                 status: "active" | "suspended";
                                 /** @enum {string|null} */
@@ -1693,6 +1770,8 @@ export interface paths {
                                     slug: string;
                                     /** @description NPSN 8 angka; null pada sekolah lama */
                                     npsn: string | null;
+                                    /** @description Kunci jenjang unit; null pada sekolah lama yang belum dipetakan */
+                                    educationProfile: string | null;
                                     /** @enum {string} */
                                     status: "active" | "suspended";
                                     /** @enum {string|null} */
@@ -1971,6 +2050,127 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/platform/schools/{id}/education-profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Atur jenjang unit sekolah
+         * @description Satu unit satu jenjang. Jenjang yang masih kosong (sekolah lama) boleh diisi kapan saja; mengganti jenjang yang sudah ada hanya selama unit belum punya tahun ajaran (409 `profile_locked`). Kunci tidak dikenal 400 `invalid_education_profile`. Dicatat di audit log.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header?: never;
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Jenjang unit (wajib): kunci dari GET /v1/education-profiles. Galat: invalid_education_profile. */
+                        educationProfile: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -9138,6 +9338,8 @@ export interface paths {
                         slug: string;
                         /** @description NPSN 8 angka (wajib). Galat: invalid_npsn, npsn_taken. */
                         npsn: string;
+                        /** @description Jenjang unit (wajib): kunci dari GET /v1/education-profiles. Galat: invalid_education_profile. */
+                        educationProfile: string;
                     };
                 };
             };
@@ -9257,6 +9459,8 @@ export interface paths {
                         slug: string;
                         /** @description NPSN 8 angka (wajib). Galat: invalid_npsn, npsn_taken. */
                         npsn: string;
+                        /** @description Jenjang unit (wajib): kunci dari GET /v1/education-profiles. Galat: invalid_education_profile. */
+                        educationProfile: string;
                     };
                 };
             };
@@ -43811,7 +44015,7 @@ export interface paths {
         put?: never;
         /**
          * Isi tingkat kelas bawaan
-         * @description Izin: `school:manage`. Menambahkan tingkat bawaan sesuai jenjang (`sd` kelas 1-6, `smp` kelas 7-9, `sma`/`smk` X-XII). Kode yang sudah ada dilewati; mengembalikan daftar lengkap.
+         * @description Izin: `school:manage`. Menambahkan tingkat bawaan sesuai jenjang unit (profil jenjang: `sd`/`mi` kelas 1-6, `smp`/`mts` kelas 7-9, `sma`/`ma`/`smk`/`mak` X-XII). Tanpa `stage`, jenjang unit yang dipakai; unit yang belum punya jenjang ditolak 400 `no_education_profile`. `stage` (`sd`, `smp`, `sma`, `smk`) tetap diterima untuk kompatibilitas. Kode yang sudah ada dilewati; mengembalikan daftar lengkap.
          */
         post: {
             parameters: {
@@ -43827,7 +44031,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         /** @enum {string} */
-                        stage: "sd" | "smp" | "sma" | "smk";
+                        stage?: "sd" | "smp" | "sma" | "smk";
                     };
                 };
             };
@@ -43845,6 +44049,20 @@ export interface paths {
                             label: string;
                             sort: number;
                         }[];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
                     };
                 };
                 /** @description Default Response */
@@ -44103,6 +44321,19 @@ export interface paths {
                             name: string;
                             /** @description NPSN 8 angka; null pada sekolah lama yang belum mengisinya */
                             npsn: string | null;
+                            /** @description Jenjang unit; hanya staf platform yang dapat mengubahnya */
+                            educationProfile: {
+                                /** @description Kunci profil: sd, mi, smp, mts, sma, ma, smk, mak */
+                                key: string;
+                                name: string;
+                                /**
+                                 * @description `subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel
+                                 * @enum {string}
+                                 */
+                                teacherModel: "subject" | "class";
+                                /** @description Jenjang kejuruan: PKL dan UKK tersedia */
+                                vocational: boolean;
+                            } | null;
                             /** @description Nama pada kop; kosong = pakai `name` */
                             officialName: string | null;
                             /** @description Jalur gambar logo (publik, tidak bisa ditebak), null bila belum ada */
@@ -44195,6 +44426,19 @@ export interface paths {
                             name: string;
                             /** @description NPSN 8 angka; null pada sekolah lama yang belum mengisinya */
                             npsn: string | null;
+                            /** @description Jenjang unit; hanya staf platform yang dapat mengubahnya */
+                            educationProfile: {
+                                /** @description Kunci profil: sd, mi, smp, mts, sma, ma, smk, mak */
+                                key: string;
+                                name: string;
+                                /**
+                                 * @description `subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel
+                                 * @enum {string}
+                                 */
+                                teacherModel: "subject" | "class";
+                                /** @description Jenjang kejuruan: PKL dan UKK tersedia */
+                                vocational: boolean;
+                            } | null;
                             /** @description Nama pada kop; kosong = pakai `name` */
                             officialName: string | null;
                             /** @description Jalur gambar logo (publik, tidak bisa ditebak), null bila belum ada */
@@ -44321,6 +44565,19 @@ export interface paths {
                             name: string;
                             /** @description NPSN 8 angka; null pada sekolah lama yang belum mengisinya */
                             npsn: string | null;
+                            /** @description Jenjang unit; hanya staf platform yang dapat mengubahnya */
+                            educationProfile: {
+                                /** @description Kunci profil: sd, mi, smp, mts, sma, ma, smk, mak */
+                                key: string;
+                                name: string;
+                                /**
+                                 * @description `subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel
+                                 * @enum {string}
+                                 */
+                                teacherModel: "subject" | "class";
+                                /** @description Jenjang kejuruan: PKL dan UKK tersedia */
+                                vocational: boolean;
+                            } | null;
                             /** @description Nama pada kop; kosong = pakai `name` */
                             officialName: string | null;
                             /** @description Jalur gambar logo (publik, tidak bisa ditebak), null bila belum ada */

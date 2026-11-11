@@ -782,6 +782,39 @@
                             "type": "string",
                             "description": "Zona waktu IANA sekolah (mis. Asia/Jakarta); dasar tanggal \"hari ini\" di layar"
                           },
+                          "educationProfile": {
+                            "nullable": true,
+                            "description": "Jenjang unit (satu unit satu jenjang); null pada sekolah lama yang belum dipetakan",
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string",
+                                "description": "Kunci profil: sd, mi, smp, mts, sma, ma, smk, mak"
+                              },
+                              "name": {
+                                "type": "string"
+                              },
+                              "teacherModel": {
+                                "type": "string",
+                                "enum": [
+                                  "subject",
+                                  "class"
+                                ],
+                                "description": "`subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel"
+                              },
+                              "vocational": {
+                                "type": "boolean",
+                                "description": "Jenjang kejuruan: PKL dan UKK tersedia"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "name",
+                              "teacherModel",
+                              "vocational"
+                            ],
+                            "additionalProperties": false
+                          },
                           "roles": {
                             "type": "array",
                             "items": {
@@ -812,6 +845,7 @@
                           "suspendedNote",
                           "suspendedAt",
                           "timezone",
+                          "educationProfile",
                           "roles",
                           "permissions",
                           "modules"
@@ -1390,6 +1424,96 @@
         }
       }
     },
+    "/v1/education-profiles": {
+      "get": {
+        "summary": "Daftar profil jenjang",
+        "tags": [
+          "Billing"
+        ],
+        "description": "Publik. Jenjang yang bisa dipilih saat mendaftarkan unit sekolah (satu unit satu jenjang), beserta tingkat dan fase bawaannya. Kunci dikirim sebagai `educationProfile` pada pendaftaran dan unit baru.",
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "key": {
+                        "type": "string",
+                        "description": "Kunci profil: sd, mi, smp, mts, sma, ma, smk, mak"
+                      },
+                      "name": {
+                        "type": "string"
+                      },
+                      "levelGroup": {
+                        "type": "string",
+                        "description": "Kelompok jenjang bank kurikulum (`ref_school_level.key`)"
+                      },
+                      "authority": {
+                        "type": "string",
+                        "enum": [
+                          "kemendikdasmen",
+                          "kemenag"
+                        ]
+                      },
+                      "teacherModel": {
+                        "type": "string",
+                        "enum": [
+                          "subject",
+                          "class"
+                        ],
+                        "description": "`subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel"
+                      },
+                      "vocational": {
+                        "type": "boolean",
+                        "description": "Jenjang kejuruan: PKL dan UKK tersedia"
+                      },
+                      "levels": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "code": {
+                              "type": "string"
+                            },
+                            "label": {
+                              "type": "string"
+                            },
+                            "phase": {
+                              "type": "string",
+                              "description": "Fase Kurikulum Merdeka: A (kelas 1-2), B (3-4), C (5-6), D (7-9), E (10), F (11-12)"
+                            }
+                          },
+                          "required": [
+                            "code",
+                            "label",
+                            "phase"
+                          ],
+                          "additionalProperties": false
+                        }
+                      }
+                    },
+                    "required": [
+                      "key",
+                      "name",
+                      "levelGroup",
+                      "authority",
+                      "teacherModel",
+                      "vocational",
+                      "levels"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/catalog": {
       "get": {
         "summary": "Katalog modul dan harga",
@@ -1615,6 +1739,12 @@
                           "maxLength": 40,
                           "description": "NPSN 8 angka (wajib). Spasi, titik, dan strip dibuang; format salah ditolak 400 invalid_npsn, NPSN ganda dalam satu pendaftaran 400 npsn_duplicate, sudah terdaftar 409 npsn_taken."
                         },
+                        "educationProfile": {
+                          "type": "string",
+                          "minLength": 1,
+                          "maxLength": 20,
+                          "description": "Jenjang unit (wajib): kunci dari GET /v1/education-profiles. Galat: invalid_education_profile."
+                        },
                         "modules": {
                           "maxItems": 40,
                           "type": "array",
@@ -1632,6 +1762,7 @@
                         "name",
                         "slug",
                         "npsn",
+                        "educationProfile",
                         "modules",
                         "tier"
                       ]
@@ -2764,6 +2895,11 @@
                               "description": "NPSN 8 angka; null pada sekolah lama",
                               "type": "string"
                             },
+                            "educationProfile": {
+                              "nullable": true,
+                              "description": "Kunci jenjang unit; null pada sekolah lama yang belum dipetakan",
+                              "type": "string"
+                            },
                             "status": {
                               "type": "string",
                               "enum": [
@@ -2801,6 +2937,7 @@
                             "name",
                             "slug",
                             "npsn",
+                            "educationProfile",
                             "status",
                             "suspendedReason",
                             "suspendedNote",
@@ -2998,6 +3135,11 @@
                                 "description": "NPSN 8 angka; null pada sekolah lama",
                                 "type": "string"
                               },
+                              "educationProfile": {
+                                "nullable": true,
+                                "description": "Kunci jenjang unit; null pada sekolah lama yang belum dipetakan",
+                                "type": "string"
+                              },
                               "status": {
                                 "type": "string",
                                 "enum": [
@@ -3035,6 +3177,7 @@
                               "name",
                               "slug",
                               "npsn",
+                              "educationProfile",
                               "status",
                               "suspendedReason",
                               "suspendedNote",
@@ -3583,6 +3726,232 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/platform/schools/{id}/education-profile": {
+      "put": {
+        "summary": "Atur jenjang unit sekolah",
+        "tags": [
+          "Platform"
+        ],
+        "description": "Satu unit satu jenjang. Jenjang yang masih kosong (sekolah lama) boleh diisi kapan saja; mengganti jenjang yang sudah ada hanya selama unit belum punya tahun ajaran (409 `profile_locked`). Kunci tidak dikenal 400 `invalid_education_profile`. Dicatat di audit log.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "educationProfile": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20,
+                    "description": "Jenjang unit (wajib): kunci dari GET /v1/education-profiles. Galat: invalid_education_profile."
+                  }
+                },
+                "required": [
+                  "educationProfile"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "ok": {
+                      "type": "boolean",
+                      "enum": [
+                        true
+                      ]
+                    }
+                  },
+                  "required": [
+                    "ok"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -21289,6 +21658,12 @@
                     "type": "string",
                     "maxLength": 40,
                     "description": "NPSN 8 angka (wajib). Galat: invalid_npsn, npsn_taken."
+                  },
+                  "educationProfile": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20,
+                    "description": "Jenjang unit (wajib): kunci dari GET /v1/education-profiles. Galat: invalid_education_profile."
                   }
                 },
                 "required": [
@@ -21296,7 +21671,8 @@
                   "tier",
                   "name",
                   "slug",
-                  "npsn"
+                  "npsn",
+                  "educationProfile"
                 ]
               }
             }
@@ -21551,6 +21927,12 @@
                     "type": "string",
                     "maxLength": 40,
                     "description": "NPSN 8 angka (wajib). Galat: invalid_npsn, npsn_taken."
+                  },
+                  "educationProfile": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20,
+                    "description": "Jenjang unit (wajib): kunci dari GET /v1/education-profiles. Galat: invalid_education_profile."
                   }
                 },
                 "required": [
@@ -21558,7 +21940,8 @@
                   "tier",
                   "name",
                   "slug",
-                  "npsn"
+                  "npsn",
+                  "educationProfile"
                 ]
               }
             }
@@ -99045,7 +99428,7 @@
         "tags": [
           "School"
         ],
-        "description": "Izin: `school:manage`. Menambahkan tingkat bawaan sesuai jenjang (`sd` kelas 1-6, `smp` kelas 7-9, `sma`/`smk` X-XII). Kode yang sudah ada dilewati; mengembalikan daftar lengkap.",
+        "description": "Izin: `school:manage`. Menambahkan tingkat bawaan sesuai jenjang unit (profil jenjang: `sd`/`mi` kelas 1-6, `smp`/`mts` kelas 7-9, `sma`/`ma`/`smk`/`mak` X-XII). Tanpa `stage`, jenjang unit yang dipakai; unit yang belum punya jenjang ditolak 400 `no_education_profile`. `stage` (`sd`, `smp`, `sma`, `smk`) tetap diterima untuk kompatibilitas. Kode yang sudah ada dilewati; mengembalikan daftar lengkap.",
         "requestBody": {
           "required": true,
           "content": {
@@ -99062,10 +99445,7 @@
                       "smk"
                     ]
                   }
-                },
-                "required": [
-                  "stage"
-                ]
+                }
               }
             }
           }
@@ -99118,6 +99498,38 @@
                     ],
                     "additionalProperties": false
                   }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
                 }
               }
             }
@@ -99599,6 +100011,39 @@
                       "description": "NPSN 8 angka; null pada sekolah lama yang belum mengisinya",
                       "type": "string"
                     },
+                    "educationProfile": {
+                      "nullable": true,
+                      "description": "Jenjang unit; hanya staf platform yang dapat mengubahnya",
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string",
+                          "description": "Kunci profil: sd, mi, smp, mts, sma, ma, smk, mak"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "teacherModel": {
+                          "type": "string",
+                          "enum": [
+                            "subject",
+                            "class"
+                          ],
+                          "description": "`subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel"
+                        },
+                        "vocational": {
+                          "type": "boolean",
+                          "description": "Jenjang kejuruan: PKL dan UKK tersedia"
+                        }
+                      },
+                      "required": [
+                        "key",
+                        "name",
+                        "teacherModel",
+                        "vocational"
+                      ],
+                      "additionalProperties": false
+                    },
                     "officialName": {
                       "nullable": true,
                       "description": "Nama pada kop; kosong = pakai `name`",
@@ -99653,6 +100098,7 @@
                   "required": [
                     "name",
                     "npsn",
+                    "educationProfile",
                     "officialName",
                     "logoUrl",
                     "street",
@@ -99869,6 +100315,39 @@
                       "description": "NPSN 8 angka; null pada sekolah lama yang belum mengisinya",
                       "type": "string"
                     },
+                    "educationProfile": {
+                      "nullable": true,
+                      "description": "Jenjang unit; hanya staf platform yang dapat mengubahnya",
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string",
+                          "description": "Kunci profil: sd, mi, smp, mts, sma, ma, smk, mak"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "teacherModel": {
+                          "type": "string",
+                          "enum": [
+                            "subject",
+                            "class"
+                          ],
+                          "description": "`subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel"
+                        },
+                        "vocational": {
+                          "type": "boolean",
+                          "description": "Jenjang kejuruan: PKL dan UKK tersedia"
+                        }
+                      },
+                      "required": [
+                        "key",
+                        "name",
+                        "teacherModel",
+                        "vocational"
+                      ],
+                      "additionalProperties": false
+                    },
                     "officialName": {
                       "nullable": true,
                       "description": "Nama pada kop; kosong = pakai `name`",
@@ -99923,6 +100402,7 @@
                   "required": [
                     "name",
                     "npsn",
+                    "educationProfile",
                     "officialName",
                     "logoUrl",
                     "street",
@@ -100138,6 +100618,39 @@
                       "description": "NPSN 8 angka; null pada sekolah lama yang belum mengisinya",
                       "type": "string"
                     },
+                    "educationProfile": {
+                      "nullable": true,
+                      "description": "Jenjang unit; hanya staf platform yang dapat mengubahnya",
+                      "type": "object",
+                      "properties": {
+                        "key": {
+                          "type": "string",
+                          "description": "Kunci profil: sd, mi, smp, mts, sma, ma, smk, mak"
+                        },
+                        "name": {
+                          "type": "string"
+                        },
+                        "teacherModel": {
+                          "type": "string",
+                          "enum": [
+                            "subject",
+                            "class"
+                          ],
+                          "description": "`subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel"
+                        },
+                        "vocational": {
+                          "type": "boolean",
+                          "description": "Jenjang kejuruan: PKL dan UKK tersedia"
+                        }
+                      },
+                      "required": [
+                        "key",
+                        "name",
+                        "teacherModel",
+                        "vocational"
+                      ],
+                      "additionalProperties": false
+                    },
                     "officialName": {
                       "nullable": true,
                       "description": "Nama pada kop; kosong = pakai `name`",
@@ -100192,6 +100705,7 @@
                   "required": [
                     "name",
                     "npsn",
+                    "educationProfile",
                     "officialName",
                     "logoUrl",
                     "street",

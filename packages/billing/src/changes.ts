@@ -36,7 +36,7 @@ import { enqueue, QUEUES } from '@edusync/jobs';
 import { DomainError } from './errors';
 import { createRenewalInvoice } from './lifecycle';
 import type { PaymentProvider } from './provider';
-import { assertNpsnsFree, requireNpsn, slugStatus } from './service';
+import { assertEducationProfiles, assertNpsnsFree, requireNpsn, slugStatus } from './service';
 
 /** Pecahan sisa periode berjalan (0..1) untuk hitung prorata. */
 export function remainingFraction(start: Date, end: Date, now = new Date()) {
@@ -372,6 +372,8 @@ export interface NewUnitInput {
   slug: string;
   /** NPSN 8 angka (wajib; spasi/titik/strip dibuang di createNewUnit). */
   npsn: string;
+  /** Jenjang unit (`ref_education_profile.key`, wajib). */
+  educationProfile: string;
   modules: string[];
   tier: string;
 }
@@ -458,6 +460,7 @@ export async function createNewUnit(
       throw new DomainError(409, 'slug_taken', `Subdomain "${input.slug}" sudah dipakai.`);
     }
     await assertNpsnsFree(tx, [input.npsn]);
+    await assertEducationProfiles(tx, [input.educationProfile]);
     const [reg] = await tx
       .insert(registration)
       .values({
@@ -469,6 +472,7 @@ export async function createNewUnit(
             name: input.name,
             slug: input.slug,
             npsn: input.npsn,
+            educationProfile: input.educationProfile,
             modules: preview.modules,
             tier: input.tier,
           },
@@ -542,6 +546,7 @@ export async function activateNewUnit(
         name: unit.name,
         studentTier: unit.tier,
         npsn: unit.npsn ?? null,
+        educationProfile: unit.educationProfile ?? null,
       })
       .returning();
     await seedSchoolRoles(tx, s!.id);

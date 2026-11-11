@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { educationProfileKeySchema } from './education-profile';
 
 /**
  * Katalog harga awal. Angka di sini hanya contoh; katalog aslinya disimpan di database
@@ -279,6 +280,7 @@ export const registrationInput = z.object({
             'NPSN 8 angka (wajib). Spasi, titik, dan strip dibuang; format salah ditolak 400 invalid_npsn, ' +
               'NPSN ganda dalam satu pendaftaran 400 npsn_duplicate, sudah terdaftar 409 npsn_taken.',
           ),
+        educationProfile: educationProfileKeySchema,
         modules: z.array(z.string().min(1)).max(40),
         tier: z.string().min(1),
       }),

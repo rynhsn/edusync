@@ -65,6 +65,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { UserMenu, useSignOut } from '@/components/user-menu';
 import { ApiError, api, unwrap } from '@/lib/api';
 import { authClient } from '@/lib/auth-client';
+import { hiddenByProfile } from '@/lib/nav-vocational';
 import { isPortalOnly, isPortalPath } from '@/lib/portal-access';
 import { suspensionKind } from '@/lib/school-suspension';
 import { setSchoolTimezone } from '@/lib/school-time';
@@ -83,6 +84,13 @@ interface Membership {
   suspendedReason?: string | null;
   suspendedNote?: string | null;
   suspendedAt?: string | null;
+  /** Jenjang unit (satu unit satu jenjang); null/kosong pada sekolah lama yang belum dipetakan. */
+  educationProfile?: {
+    key: string;
+    name: string;
+    teacherModel: 'subject' | 'class';
+    vocational: boolean;
+  } | null;
   roles: string[];
   permissions: string[];
   modules: string[];
@@ -310,6 +318,7 @@ export const NAV_GROUPS = [
         icon: BriefcaseBusiness,
         permission: 'pkl:read',
         module: 'internship',
+        vocational: true,
       },
       {
         href: '/pkl/partners',
@@ -317,6 +326,7 @@ export const NAV_GROUPS = [
         icon: Factory,
         permission: 'pkl:read',
         module: 'internship',
+        vocational: true,
       },
       {
         href: '/pkl/settings',
@@ -324,6 +334,7 @@ export const NAV_GROUPS = [
         icon: HardHat,
         permission: 'pkl:manage',
         module: 'internship',
+        vocational: true,
         settings: true,
       },
     ],
@@ -484,12 +495,18 @@ type NavItem = (typeof NAV_GROUPS)[number]['items'][number];
  * Menu yang boleh dilihat pengguna (izin dan modul sekolah), kelompok kosong dibuang. Dipakai bersama oleh
  * menu samping dan pencarian, sehingga pengguna tidak pernah melihat halaman yang tidak bisa dibukanya.
  */
-export function visibleNavGroups(permissions: ReadonlySet<string>, modules: readonly string[]) {
+export function visibleNavGroups(
+  permissions: ReadonlySet<string>,
+  modules: readonly string[],
+  /** Kemampuan kejuruan dari jenjang unit; null = jenjang belum ditetapkan (sekolah lama), menu tetap tampil. */
+  vocational: boolean | null = null,
+) {
   const allowed = (n: NavItem) =>
     (n.permission === null ||
       permissions.has(n.permission) ||
       ('orPermission' in n && permissions.has(n.orPermission))) &&
-    (!('module' in n) || modules.includes(n.module));
+    (!('module' in n) || modules.includes(n.module)) &&
+    !hiddenByProfile(n, vocational);
   return NAV_GROUPS.map((g) => ({ ...g, items: g.items.filter(allowed) as NavItem[] })).filter(
     (g) => g.items.length > 0,
   );
@@ -499,11 +516,13 @@ export function visibleNavGroups(permissions: ReadonlySet<string>, modules: read
 function SidebarNav({
   permissions,
   modules,
+  vocational,
   pathname,
   schoolId,
 }: {
   permissions: Set<string>;
   modules: string[];
+  vocational: boolean | null;
   pathname: string;
   schoolId: string;
 }) {
@@ -517,7 +536,7 @@ function SidebarNav({
     rememberPage(pathname);
   }, [pathname]);
 
-  const groups = visibleNavGroups(permissions, modules);
+  const groups = visibleNavGroups(permissions, modules, vocational);
 
   const matches = (href: string) =>
     pathname === href || (href !== '/dashboard' && pathname.startsWith(`${href}/`));
@@ -612,7 +631,11 @@ function SchoolSearch({ school }: { school: Membership }) {
   const t = useTranslations('nav');
   const pages = useMemo<SearchPage[]>(
     () =>
-      visibleNavGroups(new Set(school.permissions), school.modules).flatMap((g) =>
+      visibleNavGroups(
+        new Set(school.permissions),
+        school.modules,
+        school.educationProfile?.vocational ?? null,
+      ).flatMap((g) =>
         g.items.map((n) => ({
           href: n.href,
           label: t(n.labelKey),
@@ -810,6 +833,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <SidebarNav
         permissions={permissions}
         modules={school.modules}
+        vocational={school.educationProfile?.vocational ?? null}
         pathname={pathname}
         schoolId={school.schoolId}
       />

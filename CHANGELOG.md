@@ -9,6 +9,23 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+### Ditambahkan
+
+- **Jenjang unit**: satu unit sekolah punya satu jenjang (SD, MI, SMP, MTs, SMA, MA, SMK, MAK). Jenjang wajib dipilih saat
+  mendaftarkan lembaga dan saat menambah unit, dan menentukan tingkat kelas bawaan beserta fasenya (A sampai F).
+  Staf platform dapat mengisi jenjang sekolah lama dan mengganti jenjang selama unit belum punya tahun ajaran. Daftar profil
+  ada di `GET /v1/education-profiles`; jenjang unit ikut di `GET /v1/me` dan identitas sekolah.
+- Menu PKL hanya tampil di jenjang kejuruan (SMK, MAK); sekolah yang belum punya jenjang tetap melihatnya.
+- Pengaturan sekolah: tingkat kelas bawaan diisi sesuai jenjang unit (tanpa memilih jenjang manual).
+- Penugasan guru: untuk SD/MI, tombol "tetapkan ke semua mapel kosong" menugaskan satu guru kelas ke seluruh mapel yang belum
+  punya pengampu tanpa menimpa guru khusus.
+
+### Perubahan
+
+- Sekolah lama diisi jenjangnya dari kurikulum yang sudah diadopsi bila tepat satu kelompok jenjang; sisanya kosong sampai
+  diisi staf platform.
+- `POST /v1/registrations` dan penambahan unit baru mensyaratkan `educationProfile`.
+
 ## [1.0.0] - 2026-11-10
 
 Rilis produksi pertama.

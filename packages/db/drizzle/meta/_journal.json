@@ -603,6 +603,13 @@
       "when": 1795570200000,
       "tag": "0085_npsn_nuptk",
       "breakpoints": true
+    },
+    {
+      "idx": 86,
+      "version": "7",
+      "when": 1795656600000,
+      "tag": "0086_education_profile",
+      "breakpoints": true
     }
   ]
 }
