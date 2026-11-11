@@ -9,6 +9,10 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+## [1.1.0] - 2026-11-11
+
+Jenjang unit (Fase 0) dan integritas rapor, arsip, serta jadwal per semester (Fase 1).
+
 ### Ditambahkan
 
 - **Jenjang unit**: satu unit sekolah punya satu jenjang (SD, MI, SMP, MTs, SMA, MA, SMK, MAK). Jenjang wajib dipilih saat
