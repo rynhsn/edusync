@@ -55,7 +55,7 @@ pnpm dev
 
 Setiap sekolah punya alamat sendiri: `<alamat-sekolah>.localhost:3000`. Chrome, Edge, dan Firefox mengarahkan `*.localhost` ke komputer Anda tanpa pengaturan tambahan. Sesi login terikat ke alamat tempat login dilakukan, jadi guru masuk di alamat sekolahnya, dan staf serta pemilik yayasan di alamat utama. Pindah sekolah memindahkan alamat dengan token sekali pakai (satu menit).
 
-Akun contoh: `admin@edusync.dev` (admin yayasan dan admin platform), `guru@edusync.test`. Kata sandi ada di `.env`, baris `DEV_SEED_PASSWORD`.
+Akun contoh: `admin@edusync.dev` (admin yayasan dan admin platform), `guru@edusync.test`, dan `siswa@edusync.test` (siswa contoh SMK untuk mencoba ujian CBT). Kata sandi ketiganya ada di `.env`, baris `DEV_SEED_PASSWORD`.
 
 ### Port yang dipakai
 
@@ -65,7 +65,7 @@ Akun contoh: `admin@edusync.dev` (admin yayasan dan admin platform), `guru@edusy
 | 4000 | API (Fastify, dokumen di `/docs`) | `API_PORT` di `.env`                                 |
 | 5440 | PostgreSQL 18 (Docker)            | `docker-compose.yml`, dipetakan ke 5432 di kontainer |
 | 8025 | Mailpit, kotak email uji (web)    | `docker-compose.yml`                                 |
-| 1025 | Mailpit, SMTP                     | `SMTP_PORT` di `.env`                                |
+| 1025 | Mailpit, SMTP                     | `SMTP_PORT` worker, bawaan 1025                      |
 
 Worker tidak membuka port; ia memakai antrean di PostgreSQL. Port 5000 tidak dipakai proyek ini.
 
@@ -94,7 +94,7 @@ pnpm dev
 
 Bila ada perubahan tabel sejak terakhir, jalankan `pnpm db:migrate` sebelum langkah 4. Bila port 3000 atau 4000 bentrok, cari prosesnya di PowerShell: `Get-NetTCPConnection -LocalPort 3000 | Select OwningProcess`.
 
-WhatsApp asli butuh `MESSAGING_PROVIDER=whatsapp` dan `WA_CHROME_PATH` di `.env`. Jangan menjalankan tes worker selagi worker dev menyala.
+Pengiriman WhatsApp sungguhan butuh `MESSAGING_PROVIDER=whatsapp` dan `WA_CHROME_PATH` di `.env`; tanpa itu worker hanya mencatat pesan ke log. Rinciannya di bagian [Modul dan layar penting](#modul-dan-layar-penting).
 
 ## Perintah lain
 
@@ -104,12 +104,16 @@ pnpm lint        # Biome
 pnpm typecheck   # TypeScript
 ```
 
+Jangan menjalankan tes worker selagi worker dev menyala: keduanya memakai antrean yang sama.
+
 Mengosongkan database sama sekali: `docker compose down -v`, lalu ulangi langkah 2 sampai 5.
 
 ## Konfigurasi alamat
 
 - `APP_DOMAIN`: domain dasar sekolah (`localhost:3000` di lokal; domain produksi nanti). Host dan port saja, tanpa `http://`.
 - `API_URL`: alamat API yang dipakai web untuk meneruskan permintaan (`/v1` dan `/api/auth`) dari alamat mana pun.
+- `TRUSTED_ORIGINS`: alamat yang boleh memakai sesi, dipisah koma. Web meneruskan permintaan lewat alamatnya sendiri, jadi isinya alamat web.
+- `CUSTOM_DOMAIN_TARGET`: host tujuan CNAME/A untuk domain milik sekolah. Kosong = host `APP_DOMAIN` tanpa port.
 
 ## Struktur
 
@@ -120,6 +124,7 @@ Mengosongkan database sama sekali: `docker compose down -v`, lalu ulangi langkah
 - `packages/contracts` katalog izin, katalog harga, aturan bersama.
 - `packages/billing` pendaftaran, pembayaran, langganan, konsol staf.
 - `packages/jobs` antrean dan outbox.
+- `deploy` berkas Caddy, unit systemd, dan skrip pasang server produksi; `scripts/release.mjs` pembuat rilis.
 
 ## Siklus langganan
 
@@ -131,7 +136,7 @@ Request tenant memakai peran `edusync_app` (tunduk pada RLS) dan `withTenant(db,
 
 ## Pembayaran
 
-Bawaan: penyedia `dev` (tanpa uang, hanya lokal). Midtrans sandbox: isi `PAYMENT_PROVIDER=midtrans` dan `MIDTRANS_SERVER_KEY` di `.env`. Jangan pernah meng-commit kunci tersebut.
+Bawaan: penyedia `dev` (tanpa uang, hanya lokal). Midtrans sandbox: isi `PAYMENT_PROVIDER=midtrans` dan `MIDTRANS_SERVER_KEY` di `.env` sebagai dasar, lalu nilai di **Platform › Pembayaran** menimpanya (kunci di sana tersimpan terenkripsi). Jangan pernah meng-commit kunci tersebut.
 
 ## Modul dan layar penting
 

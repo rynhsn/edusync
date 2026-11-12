@@ -12,6 +12,7 @@ coverage/
 .turbo/
 .wa-sessions/
 .key/
+CLAUDE.md
 graphify-out/
 apps/worker/.wwebjs_cache/
 testsprite_tests/tmp/
