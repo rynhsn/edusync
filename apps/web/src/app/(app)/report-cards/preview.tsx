@@ -3,6 +3,7 @@
 import { useTranslations } from 'next-intl';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { TONES, ToneBadge, UserAvatar } from '@/components/ui-kit';
+import { formatKkm } from '@/lib/kktp';
 import { cn } from '@/lib/utils';
 import { PredicateBadge, ScoreChip } from '../grades/grade-ui';
 import { formatGrade } from './pdf/format';
@@ -50,7 +51,7 @@ export function ReportCardPreview({ doc }: { doc: ReportCardDoc }) {
               {doc.subjects.map((s) => (
                 <TableRow key={s.subjectId}>
                   <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell className="text-right tabular-nums">{s.kkm}</TableCell>
+                  <TableCell className="text-right tabular-nums">{formatKkm(s.kkm)}</TableCell>
                   <TableCell className="text-right">
                     <ScoreChip predicate={s.predicate} below={s.belowKkm}>
                       {formatGrade(s.final)}

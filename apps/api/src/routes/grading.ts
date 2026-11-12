@@ -28,6 +28,7 @@ import { rosterOf } from '../attendance-lib';
 import { computeGrades, loadComponents, loadSettings, round2 } from '../grading-lib';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { loadKktpResolverForClass } from '../kktp-lib';
 import { assertClassReportNotFinal, assertNoFinalInActiveSemesters } from '../report-lock-lib';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
@@ -48,6 +49,10 @@ const DEFAULT_COMPONENTS = [
 const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', message);
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
 
+const calculationModeSchema = z
+  .enum(['weighted_average'])
+  .describe('Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)');
+
 const settingsSchema = z.object({
   kkm: z
     .number()
@@ -56,6 +61,7 @@ const settingsSchema = z.object({
   predicateA: z.number().int().describe('Nilai minimal predikat A'),
   predicateB: z.number().int().describe('Nilai minimal predikat B'),
   predicateC: z.number().int().describe('Nilai minimal predikat C; di bawahnya predikat D'),
+  calculationMode: calculationModeSchema.optional(),
 });
 
 const settingsBody = z
@@ -64,6 +70,7 @@ const settingsBody = z
     predicateA: z.number().int().min(1).max(100),
     predicateB: z.number().int().min(1).max(100),
     predicateC: z.number().int().min(1).max(100),
+    calculationMode: calculationModeSchema.optional(),
   })
   .refine((b) => b.predicateA > b.predicateB && b.predicateB > b.predicateC && b.predicateC > 0, {
     message: 'Batas predikat harus berurutan: A > B > C > 0.',
@@ -308,8 +315,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Pengaturan penilaian',
         description:
-          'Izin: `grade:read`; modul `grades`. KKM dan batas predikat A/B/C. Sekolah yang belum mengaturnya ' +
-          'mendapat nilai bawaan (KKM 75; A 90, B 80, C 70).',
+          'Izin: `grade:read`; modul `grades`. KKM sekolah, batas predikat A/B/C, dan `calculationMode`. Sekolah yang ' +
+          'belum mengaturnya mendapat nilai bawaan (KKM 75; A 90, B 80, C 70; `weighted_average`). KKM sekolah adalah ' +
+          'jatuhan terakhir; mapel bisa punya KKM sendiri lewat KKTP (`/v1/achievement-criteria`).',
         headers: schoolHeader,
         response: { 200: settingsSchema, ...guarded },
       },
@@ -325,9 +333,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Ubah pengaturan penilaian',
         description:
-          'Izin: `grade:configure`; modul `grades`. `kkm` 1..100; batas predikat harus berurutan `predicateA` > ' +
-          '`predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). Ditolak 409 `report_final` selama semester ' +
-          'aktif punya rapor final (buka kembali rapornya lebih dulu).',
+          'Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat ' +
+          'KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu ' +
+          '400 galat validasi). `calculationMode` opsional (hanya `weighted_average`); bila dihilangkan, nilai yang ada ' +
+          'dipertahankan. Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).',
         headers: schoolHeader,
         body: settingsBody,
         response: { 200: settingsSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -842,6 +851,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:read`; modul `grades`. Per siswa aktif: rata-rata persen tiap komponen, nilai akhir ' +
           '(rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. ' +
+          '`belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). ' +
           '`stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini ' +
           '(400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk ' +
           'kelas+mapel yang ia ampu (403).',
@@ -850,6 +860,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
         response: {
           200: z.object({
             settings: settingsSchema,
+            kkm: z
+              .number()
+              .optional()
+              .describe('KKM efektif mapel ini (KKTP kelas/tingkat, jatuh ke KKM sekolah), desimal'),
             components: z.array(z.object({ id: z.uuid(), name: z.string(), weight: z.number().int() })),
             students: z.array(
               z.object({
@@ -899,6 +913,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
           settings,
         });
         const bySubject = grades.get(subjectId)!;
+        const kkm = (
+          await loadKktpResolverForClass(tx, { classId, subjectIds: [subjectId], fallback: settings.kkm })
+        )(subjectId);
         const students = rows.map((s) => {
           const g = bySubject.get(s.id)!;
           return {
@@ -908,12 +925,13 @@ export async function gradingRoutes(instance: FastifyInstance) {
             perComponent: g.perComponent,
             final: g.final,
             predicate: g.predicate,
-            belowKkm: g.final !== null && g.final < settings.kkm,
+            belowKkm: g.final !== null && g.final < kkm,
           };
         });
         const finals = students.flatMap((s) => (s.final === null ? [] : [s.final]));
         return {
           settings,
+          kkm,
           components: components.map((c) => ({ id: c.id, name: c.name, weight: c.weight })),
           students,
           stats: {

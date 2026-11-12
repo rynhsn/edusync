@@ -55,6 +55,12 @@ describe('validateThresholds', () => {
     expect(validateThresholds({ ...ok, kkm: '' }).kkm).toEqual({ code: 'required' });
     expect(validateThresholds({ ...ok, predicateC: '70,5' }).predicateC).toEqual({ code: 'intInvalid' });
   });
+  it('KKM sekolah tetap bulat: desimal ditolak (KKM desimal diatur per mapel lewat KKTP)', () => {
+    expect(validateThresholds({ ...ok, kkm: '72,5' }).kkm).toEqual({ code: 'intInvalid' });
+    expect(validateThresholds({ ...ok, kkm: '72.5' }).kkm).toEqual({ code: 'intInvalid' });
+    expect(validateThresholds({ ...ok, kkm: '1' })).toEqual({});
+    expect(validateThresholds({ ...ok, kkm: '100' })).toEqual({});
+  });
   it('A harus lebih besar dari B, B dari C', () => {
     const e = validateThresholds({ ...ok, predicateA: '80', predicateB: '80', predicateC: '85' });
     expect(e.predicateA).toMatchObject({ key: 'areaForms.predicateOrder' });

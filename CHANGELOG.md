@@ -16,6 +16,18 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
   naik/tinggal/lulus per siswa; lalu terapkan. Data tahun lama, termasuk rapor final, tidak diubah. Izin baru
   `promotion:manage` (admin dan kurikulum), tabel `promotion_decision` (migrasi 0088), dan empat endpoint di tag Academic.
   Nama kelas yang tidak diawali kode tingkat (mis. "VII A") tidak dinaikkan otomatis; namanya tetap dan muncul sebagai peringatan.
+- **Struktur mapel dan kurikulum** (fase 2B): halaman **Kurikulum** (`/curriculum`) dengan tab Struktur mapel (JP mingguan dan
+  tahunan per tahun ajaran, tingkat, dan program), Versi kurikulum, Adopsi dari acuan, dan KKTP. Mapel kini punya kelompok,
+  muatan lokal, urutan, status aktif, dan asal acuan (`ref_subject_id`), sehingga mapel yang diganti nama tidak muncul lagi
+  sebagai "baru" saat acuan diperbarui. Izin baru `curriculum:manage`. Migrasi 0089.
+- **Perangkat ajar** (fase 2B): halaman **Perangkat ajar saya** (`/teaching-plan`) untuk CP, TP, dan ATP berversi milik sekolah.
+  Mengubah CP/TP yang sudah dipakai ATP terbit membuat versi baru; ATP terbit terkunci dan diubah lewat versi baru. Guru hanya
+  menulis untuk mapel yang diampu. Izin baru `teaching_plan:write`. Migrasi 0090. Isi CP/TP tidak disediakan; sekolah menulis sendiri.
+- **KKTP** (fase 2B): KKM bisa ditetapkan per mapel, tingkat, dan program dengan empat mode (angka desimal, rentang, deskriptor,
+  rubrik). Urutan: mapel+tingkat+program, mapel+tingkat, mapel+program, mapel, lalu KKM sekolah. Tanpa kriteria hasil sama persis
+  seperti sebelumnya; rapor final yang sudah dibekukan tidak berubah. Mengubah kriteria ditolak (409 `report_final`) selama ada
+  rapor final di semester aktif. Rekap nilai, rapor, dan portal memakai KKM per mapel. Migrasi 0091.
+- Rollover tahun ajaran kini juga menyalin struktur kurikulum (`copyCurriculum`) dan ATP terbit sebagai draf (`copyTeachingPlans`).
 
 ## [1.1.2] - 2026-11-11
 

@@ -153,6 +153,21 @@ const KNOWN = [
   'student_not_enrolled',
   'invalid_target_class',
   'duplicate_student',
+  'invalid_curriculum',
+  'invalid_periods',
+  'duplicate_entry',
+  'not_subject_teacher',
+  'superseded',
+  'outcome_inactive',
+  'inactive_objective',
+  'flow_published',
+  'flow_empty',
+  'flow_not_published',
+  'draft_exists',
+  'too_many_items',
+  'criteria_exists',
+  'overlapping_levels',
+  'invalid_criteria',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

@@ -3872,7 +3872,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus kurikulum acuan beserta mapelnya
-         * @description Staf platform (admin). Ditolak (409) bila ada sekolah yang mengadopsi kurikulum ini. Mapel acuan ikut dihapus; salinan di sekolah tidak ada yang terpengaruh karena sekolah sudah menyalinnya.
+         * @description Staf platform (admin). Ditolak (409) bila ada sekolah yang mengadopsi kurikulum ini atau memakainya sebagai versi kurikulum. Mapel acuan ikut dihapus; salinan di sekolah tidak terpengaruh kecuali tautan `refSubjectId`-nya menjadi kosong.
          */
         delete: {
             parameters: {
@@ -9873,7 +9873,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
                     };
                 };
             };
@@ -10409,7 +10409,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
                     };
                 };
             };
@@ -10970,6 +10970,16 @@ export interface paths {
                             id: string;
                             code: string;
                             name: string;
+                            /**
+                             * Format: uuid
+                             * @description Mapel acuan platform asal salinan; null bila buatan sekolah
+                             */
+                            refSubjectId?: string | null;
+                            /** @enum {string|null} */
+                            subjectGroup?: "general" | "vocational_base" | "vocational_concentration" | "vocational_project" | "elective" | "internship" | null;
+                            isLocalContent?: boolean;
+                            sortOrder?: number;
+                            active?: boolean;
                         }[];
                     };
                 };
@@ -11006,7 +11016,7 @@ export interface paths {
         put?: never;
         /**
          * Buat mata pelajaran
-         * @description Izin: `subject:manage`. Kode harus unik di sekolah.
+         * @description Izin: `subject:manage`. Kode harus unik di sekolah. Metadata opsional: `refSubjectId` (mapel acuan; 400 `invalid_reference` bila tidak ada), `subjectGroup`, `isLocalContent`, `sortOrder`, `active`.
          */
         post: {
             parameters: {
@@ -11023,6 +11033,13 @@ export interface paths {
                     "application/json": {
                         code: string;
                         name: string;
+                        /** Format: uuid */
+                        refSubjectId?: string | null;
+                        /** @enum {string|null} */
+                        subjectGroup?: "general" | "vocational_base" | "vocational_concentration" | "vocational_project" | "elective" | "internship" | null;
+                        isLocalContent?: boolean;
+                        sortOrder?: number;
+                        active?: boolean;
                     };
                 };
             };
@@ -11038,6 +11055,30 @@ export interface paths {
                             id: string;
                             code: string;
                             name: string;
+                            /**
+                             * Format: uuid
+                             * @description Mapel acuan platform asal salinan; null bila buatan sekolah
+                             */
+                            refSubjectId?: string | null;
+                            /** @enum {string|null} */
+                            subjectGroup?: "general" | "vocational_base" | "vocational_concentration" | "vocational_project" | "elective" | "internship" | null;
+                            isLocalContent?: boolean;
+                            sortOrder?: number;
+                            active?: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
                         };
                     };
                 };
@@ -11101,7 +11142,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah mata pelajaran
-         * @description Izin: `subject:manage`.
+         * @description Izin: `subject:manage`. Hanya field yang dikirim yang diubah; metadata (`refSubjectId`, `subjectGroup`, `isLocalContent`, `sortOrder`, `active`) yang tidak dikirim tidak berubah.
          */
         put: {
             parameters: {
@@ -11120,6 +11161,13 @@ export interface paths {
                     "application/json": {
                         code: string;
                         name: string;
+                        /** Format: uuid */
+                        refSubjectId?: string | null;
+                        /** @enum {string|null} */
+                        subjectGroup?: "general" | "vocational_base" | "vocational_concentration" | "vocational_project" | "elective" | "internship" | null;
+                        isLocalContent?: boolean;
+                        sortOrder?: number;
+                        active?: boolean;
                     };
                 };
             };
@@ -11135,6 +11183,30 @@ export interface paths {
                             id: string;
                             code: string;
                             name: string;
+                            /**
+                             * Format: uuid
+                             * @description Mapel acuan platform asal salinan; null bila buatan sekolah
+                             */
+                            refSubjectId?: string | null;
+                            /** @enum {string|null} */
+                            subjectGroup?: "general" | "vocational_base" | "vocational_concentration" | "vocational_project" | "elective" | "internship" | null;
+                            isLocalContent?: boolean;
+                            sortOrder?: number;
+                            active?: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
                         };
                     };
                 };
@@ -12278,7 +12350,7 @@ export interface paths {
         put?: never;
         /**
          * Salin tahun ajaran ke tahun berikutnya
-         * @description Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, dan kalender akademik (tanggal digeser selisih tahun mulai). Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` bagi hal yang perlu diperiksa.
+         * @description Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` bagi hal yang perlu diperiksa.
          */
         post: {
             parameters: {
@@ -12303,6 +12375,10 @@ export interface paths {
                         copyAssignments?: boolean;
                         /** @default true */
                         copyCalendar?: boolean;
+                        /** @description Salin alokasi JP dan versi kurikulum; bawaan true */
+                        copyCurriculum?: boolean;
+                        /** @description Salin ATP berstatus terbit sebagai draf ATP tahun tujuan; bawaan true */
+                        copyTeachingPlans?: boolean;
                         /** @default false */
                         dryRun?: boolean;
                     };
@@ -12320,6 +12396,9 @@ export interface paths {
                             classesSkipped: number;
                             assignmentsCreated: number;
                             eventsCreated: number;
+                            allocationsCreated?: number;
+                            versionsCreated?: number;
+                            flowsCreated?: number;
                             warnings: string[];
                         };
                     };
@@ -25259,7 +25338,7 @@ export interface paths {
         };
         /**
          * Pengaturan penilaian
-         * @description Izin: `grade:read`; modul `grades`. KKM dan batas predikat A/B/C. Sekolah yang belum mengaturnya mendapat nilai bawaan (KKM 75; A 90, B 80, C 70).
+         * @description Izin: `grade:read`; modul `grades`. KKM sekolah, batas predikat A/B/C, dan `calculationMode`. Sekolah yang belum mengaturnya mendapat nilai bawaan (KKM 75; A 90, B 80, C 70; `weighted_average`). KKM sekolah adalah jatuhan terakhir; mapel bisa punya KKM sendiri lewat KKTP (`/v1/achievement-criteria`).
          */
         get: {
             parameters: {
@@ -25288,6 +25367,11 @@ export interface paths {
                             predicateB: number;
                             /** @description Nilai minimal predikat C; di bawahnya predikat D */
                             predicateC: number;
+                            /**
+                             * @description Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)
+                             * @enum {string}
+                             */
+                            calculationMode?: "weighted_average";
                         };
                     };
                 };
@@ -25323,7 +25407,7 @@ export interface paths {
         };
         /**
          * Ubah pengaturan penilaian
-         * @description Izin: `grade:configure`; modul `grades`. `kkm` 1..100; batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
+         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (hanya `weighted_average`); bila dihilangkan, nilai yang ada dipertahankan. Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
          */
         put: {
             parameters: {
@@ -25342,6 +25426,11 @@ export interface paths {
                         predicateA: number;
                         predicateB: number;
                         predicateC: number;
+                        /**
+                         * @description Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)
+                         * @enum {string}
+                         */
+                        calculationMode?: "weighted_average";
                     };
                 };
             };
@@ -25361,6 +25450,11 @@ export interface paths {
                             predicateB: number;
                             /** @description Nilai minimal predikat C; di bawahnya predikat D */
                             predicateC: number;
+                            /**
+                             * @description Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)
+                             * @enum {string}
+                             */
+                            calculationMode?: "weighted_average";
                         };
                     };
                 };
@@ -26701,7 +26795,7 @@ export interface paths {
         };
         /**
          * Rekap nilai kelas dan mapel
-         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403).
+         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403).
          */
         get: {
             parameters: {
@@ -26735,7 +26829,14 @@ export interface paths {
                                 predicateB: number;
                                 /** @description Nilai minimal predikat C; di bawahnya predikat D */
                                 predicateC: number;
+                                /**
+                                 * @description Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)
+                                 * @enum {string}
+                                 */
+                                calculationMode?: "weighted_average";
                             };
+                            /** @description KKM efektif mapel ini (KKTP kelas/tingkat, jatuh ke KKM sekolah), desimal */
+                            kkm?: number;
                             components: {
                                 /** Format: uuid */
                                 id: string;
@@ -51318,7 +51419,7 @@ export interface paths {
         };
         /**
          * Pembaruan acuan untuk kurikulum yang sudah diadopsi
-         * @description Izin: `subject:read`. Untuk tiap kurikulum+jenjang yang diadopsi sekolah ini, daftar mapel acuan yang ditambahkan platform setelah adopsi dan belum ada (kodenya) di mapel sekolah. Hanya perbandingan; mapel sekolah tidak pernah diubah. Adopsi lewat `POST /v1/curricula/adopt` dengan `subjectCodes`.
+         * @description Izin: `subject:read`. Untuk tiap kurikulum+jenjang yang diadopsi sekolah ini, daftar mapel acuan yang ditambahkan platform setelah adopsi dan belum ada di mapel sekolah: belum tertaut (`refSubjectId`) dan kodenya tidak dipakai (data lama tanpa tautan dicocokkan lewat kode). Hanya perbandingan; mapel sekolah tidak pernah diubah. Adopsi lewat `POST /v1/curricula/adopt` dengan `subjectCodes`.
          */
         get: {
             parameters: {
@@ -51402,7 +51503,7 @@ export interface paths {
         put?: never;
         /**
          * Adopsi mapel dari bank data kurikulum
-         * @description Izin: `subject:manage`. Menyalin mapel acuan (semua, atau hanya `subjectCodes` yang dipilih) ke mapel sekolah. Mapel dengan kode yang sudah ada dilewati. Salinan bebas diubah sekolah; pembaruan acuan tidak menimpanya.
+         * @description Izin: `subject:manage`. Menyalin mapel acuan (semua, atau hanya `subjectCodes` yang dipilih) ke mapel sekolah. Salinan diberi tautan `refSubjectId` ke mapel acuan. Mapel yang sudah tertaut ke acuan itu atau yang kodenya sudah ada dilewati; bila kodenya sudah ada tapi belum tertaut, tautannya diisi tanpa menimpa nama. Salinan bebas diubah sekolah; pembaruan acuan tidak menimpanya.
          */
         post: {
             parameters: {
@@ -51481,6 +51582,2838 @@ export interface paths {
             };
         };
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/curriculum/allocations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Alokasi jam pelajaran (JP) satu tahun ajaran
+         * @description Izin: `subject:read`. Alokasi JP mingguan/tahunan per (tingkat, program, mapel) beserta nama mapel. `programId` null berarti berlaku untuk semua program. Filter opsional `levelCode` dan `programId`.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    levelCode?: string;
+                    programId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            allocations: {
+                                /** Format: uuid */
+                                id: string;
+                                levelCode: string;
+                                /** Format: uuid */
+                                programId: string | null;
+                                /** Format: uuid */
+                                subjectId: string;
+                                subjectCode: string;
+                                subjectName: string;
+                                weeklyPeriods: number | null;
+                                yearlyPeriods: number | null;
+                                note: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan alokasi jam pelajaran (JP) satu tahun ajaran
+         * @description Izin: `curriculum:manage`. Upsert per (`levelCode`, `programId`, `subjectId`); bagian yang tidak dikirim tidak disentuh. Tiap baris menggantikan baris yang ada: `weeklyPeriods`, `yearlyPeriods`, `note` yang dihilangkan menjadi kosong. Bila kedua JP kosong (null/dihilangkan), baris itu dihapus. Maksimal 500 baris, semua atau tidak sama sekali. 400 `invalid_level`: tingkat tidak ada di daftar tingkat sekolah. 400 `invalid_reference`: mapel atau jurusan bukan milik sekolah ini. 400 `duplicate_entry`: kombinasi yang sama muncul dua kali.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        allocations: {
+                            levelCode: string;
+                            /** Format: uuid */
+                            programId?: string | null;
+                            /** Format: uuid */
+                            subjectId: string;
+                            weeklyPeriods?: number | null;
+                            yearlyPeriods?: number | null;
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            upserted: number;
+                            deleted: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/curriculum/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Versi kurikulum per tingkat pada satu tahun ajaran
+         * @description Izin: `subject:read`. Kurikulum acuan yang dipakai tiap tingkat pada tahun ajaran itu.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            versions: {
+                                /** Format: uuid */
+                                id: string;
+                                levelCode: string;
+                                curriculumKey: string;
+                                curriculumName: string;
+                                /** Format: date */
+                                effectiveFrom: string | null;
+                                note: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan versi kurikulum per tingkat pada satu tahun ajaran
+         * @description Izin: `curriculum:manage`. Upsert per `levelCode`; `curriculumKey` null menghapus versi tingkat itu. Bagian yang tidak dikirim tidak disentuh; `effectiveFrom` dan `note` yang dihilangkan menjadi kosong. Maksimal 500 baris, semua atau tidak sama sekali. 400 `invalid_level`: tingkat tidak ada di daftar tingkat sekolah. 400 `invalid_curriculum`: kurikulum tidak ada di bank data. 400 `duplicate_entry`: tingkat yang sama muncul dua kali.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        versions: {
+                            levelCode: string;
+                            curriculumKey: string | null;
+                            /** Format: date */
+                            effectiveFrom?: string | null;
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                            deleted: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/subjects/{subjectId}/outcomes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar capaian pembelajaran (CP) satu mapel
+         * @description Izin: `subject:read`. CP milik sekolah untuk mapel itu beserta jumlah TP-nya. Bawaan hanya yang aktif; `includeInactive=true` menyertakan versi lama. Filter opsional `phase` (A-F).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    phase?: "A" | "B" | "C" | "D" | "E" | "F";
+                    includeInactive?: "true" | "false";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    subjectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            outcomes: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                                /** @enum {string} */
+                                phase: "A" | "B" | "C" | "D" | "E" | "F";
+                                code: string | null;
+                                description: string;
+                                version: number;
+                                /** Format: uuid */
+                                supersedesId: string | null;
+                                active: boolean;
+                                objectiveCount: number;
+                                updatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah capaian pembelajaran (CP)
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Membuat CP versi 1 untuk mapel dan fase (A-F) itu.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    subjectId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        phase: "A" | "B" | "C" | "D" | "E" | "F";
+                        code?: string | null;
+                        description: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            /** @enum {string} */
+                            phase: "A" | "B" | "C" | "D" | "E" | "F";
+                            code: string | null;
+                            description: string;
+                            version: number;
+                            /** Format: uuid */
+                            supersedesId: string | null;
+                            active: boolean;
+                            objectiveCount: number;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outcomes/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah capaian pembelajaran (CP)
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        phase: "A" | "B" | "C" | "D" | "E" | "F";
+                        code?: string | null;
+                        description: string;
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            /** @enum {string} */
+                            phase: "A" | "B" | "C" | "D" | "E" | "F";
+                            code: string | null;
+                            description: string;
+                            version: number;
+                            /** Format: uuid */
+                            supersedesId: string | null;
+                            active: boolean;
+                            objectiveCount: number;
+                            updatedAt: string;
+                            /** @description true bila perubahan membuat versi baru (baris lama dinonaktifkan) */
+                            versioned: boolean;
+                            /**
+                             * Format: uuid
+                             * @description id versi sebelumnya bila versioned
+                             */
+                            previousId: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus capaian pembelajaran (CP)
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). 409 `in_use`: CP masih punya TP atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/outcomes/{id}/objectives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar tujuan pembelajaran (TP) satu CP
+         * @description Izin: `subject:read`. TP di bawah CP itu menurut `sortOrder`. Bawaan hanya yang aktif; `includeInactive=true` menyertakan versi lama.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    includeInactive?: "true" | "false";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                outcomeId: string;
+                                code: string | null;
+                                description: string;
+                                sortOrder: number;
+                                version: number;
+                                /** Format: uuid */
+                                supersedesId: string | null;
+                                active: boolean;
+                                updatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah tujuan pembelajaran (TP)
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Membuat TP versi 1 di bawah CP itu; `sortOrder` yang dihilangkan diisi urutan berikutnya. 409 `outcome_inactive`: CP sudah dinonaktifkan atau diganti versi baru.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code?: string | null;
+                        description: string;
+                        sortOrder?: number;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            outcomeId: string;
+                            code: string | null;
+                            description: string;
+                            sortOrder: number;
+                            version: number;
+                            /** Format: uuid */
+                            supersedesId: string | null;
+                            active: boolean;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/objectives/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah tujuan pembelajaran (TP)
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        code?: string | null;
+                        description: string;
+                        sortOrder?: number;
+                        active?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            outcomeId: string;
+                            code: string | null;
+                            description: string;
+                            sortOrder: number;
+                            version: number;
+                            /** Format: uuid */
+                            supersedesId: string | null;
+                            active: boolean;
+                            updatedAt: string;
+                            versioned: boolean;
+                            /** Format: uuid */
+                            previousId: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus tujuan pembelajaran (TP)
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). 409 `in_use`: TP dirujuk item ATP (draf maupun terbit) atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-flows": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar alur tujuan pembelajaran (ATP)
+         * @description Izin: `subject:read`. ATP sekolah beserta jumlah item (tanpa isi item; lihat GET per id). Filter opsional `subjectId`, `academicYearId`, `status` (`draft` atau `published`).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    subjectId?: string;
+                    academicYearId?: string;
+                    status?: "draft" | "published";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            flows: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                                subjectCode: string;
+                                subjectName: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                academicYearName: string;
+                                levelCode: string | null;
+                                /** @enum {string|null} */
+                                phase: "A" | "B" | "C" | "D" | "E" | "F" | null;
+                                name: string;
+                                version: number;
+                                /** Format: uuid */
+                                supersedesId: string | null;
+                                /** @enum {string} */
+                                status: "draft" | "published";
+                                publishedAt: string | null;
+                                itemCount: number;
+                                updatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat alur tujuan pembelajaran (ATP) draf
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Satu ATP milik satu mapel dan satu tahun ajaran; isinya urutan TP (maksimal 300) dengan minggu, JP, dan semester. Dibuat sebagai draf versi 1. `phase` yang dihilangkan diturunkan dari `levelCode` bila kode itu kelas 1-12 (angka atau Romawi). 400 `invalid_reference`: TP bukan milik mapel ATP, atau semester bukan milik tahun ajaran ATP. 400 `duplicate_entry`: TP yang sama dua kali. 400 `inactive_objective`: TP nonaktif. 400 `invalid_level`. 409 `conflict`: sudah ada ATP dengan mapel, tahun, nama, tingkat, dan versi yang sama.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        subjectId: string;
+                        /** Format: uuid */
+                        academicYearId: string;
+                        levelCode?: string | null;
+                        /** @enum {string|null} */
+                        phase?: "A" | "B" | "C" | "D" | "E" | "F" | null;
+                        name: string;
+                        items?: {
+                            /** Format: uuid */
+                            objectiveId: string;
+                            weeks?: number | null;
+                            periods?: number | null;
+                            /** Format: uuid */
+                            semesterId?: string | null;
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectCode: string;
+                            subjectName: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            academicYearName: string;
+                            levelCode: string | null;
+                            /** @enum {string|null} */
+                            phase: "A" | "B" | "C" | "D" | "E" | "F" | null;
+                            name: string;
+                            version: number;
+                            /** Format: uuid */
+                            supersedesId: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "published";
+                            publishedAt: string | null;
+                            itemCount: number;
+                            updatedAt: string;
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                objectiveId: string;
+                                sortOrder: number;
+                                weeks: number | null;
+                                periods: number | null;
+                                /** Format: uuid */
+                                semesterId: string | null;
+                                note: string | null;
+                                objectiveCode: string | null;
+                                objectiveDescription: string;
+                                objectiveVersion: number;
+                                objectiveActive: boolean;
+                                /** Format: uuid */
+                                outcomeId: string;
+                                outcomeCode: string | null;
+                                /** @enum {string} */
+                                outcomePhase: "A" | "B" | "C" | "D" | "E" | "F";
+                                outcomeDescription: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-flows/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail ATP beserta item berurut
+         * @description Izin: `subject:read`. ATP dengan item menurut urutan, masing-masing dengan data TP dan CP-nya (`objectiveActive` false berarti TP itu sudah diganti versi baru atau dinonaktifkan).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectCode: string;
+                            subjectName: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            academicYearName: string;
+                            levelCode: string | null;
+                            /** @enum {string|null} */
+                            phase: "A" | "B" | "C" | "D" | "E" | "F" | null;
+                            name: string;
+                            version: number;
+                            /** Format: uuid */
+                            supersedesId: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "published";
+                            publishedAt: string | null;
+                            itemCount: number;
+                            updatedAt: string;
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                objectiveId: string;
+                                sortOrder: number;
+                                weeks: number | null;
+                                periods: number | null;
+                                /** Format: uuid */
+                                semesterId: string | null;
+                                note: string | null;
+                                objectiveCode: string | null;
+                                objectiveDescription: string;
+                                objectiveVersion: number;
+                                objectiveActive: boolean;
+                                /** Format: uuid */
+                                outcomeId: string;
+                                outcomeCode: string | null;
+                                /** @enum {string} */
+                                outcomePhase: "A" | "B" | "C" | "D" | "E" | "F";
+                                outcomeDescription: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah ATP draf
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Satu ATP milik satu mapel dan satu tahun ajaran; isinya urutan TP (maksimal 300) dengan minggu, JP, dan semester. Mengubah metadata (`name`, `levelCode`, `phase`; yang dihilangkan tidak berubah, null mengosongkan tingkat/fase) dan, bila `items` dikirim, mengganti SELURUH item sekaligus (urutan larik = urutan ATP; `items` dihilangkan = item tidak disentuh). Mapel dan tahun ajaran tidak bisa diubah. 409 `flow_published`: ATP sudah terbit dan terkunci. Validasi item seperti pada POST.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name?: string;
+                        levelCode?: string | null;
+                        /** @enum {string|null} */
+                        phase?: "A" | "B" | "C" | "D" | "E" | "F" | null;
+                        items?: {
+                            /** Format: uuid */
+                            objectiveId: string;
+                            weeks?: number | null;
+                            periods?: number | null;
+                            /** Format: uuid */
+                            semesterId?: string | null;
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectCode: string;
+                            subjectName: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            academicYearName: string;
+                            levelCode: string | null;
+                            /** @enum {string|null} */
+                            phase: "A" | "B" | "C" | "D" | "E" | "F" | null;
+                            name: string;
+                            version: number;
+                            /** Format: uuid */
+                            supersedesId: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "published";
+                            publishedAt: string | null;
+                            itemCount: number;
+                            updatedAt: string;
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                objectiveId: string;
+                                sortOrder: number;
+                                weeks: number | null;
+                                periods: number | null;
+                                /** Format: uuid */
+                                semesterId: string | null;
+                                note: string | null;
+                                objectiveCode: string | null;
+                                objectiveDescription: string;
+                                objectiveVersion: number;
+                                objectiveActive: boolean;
+                                /** Format: uuid */
+                                outcomeId: string;
+                                outcomeCode: string | null;
+                                /** @enum {string} */
+                                outcomePhase: "A" | "B" | "C" | "D" | "E" | "F";
+                                outcomeDescription: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus ATP draf
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Hanya draf; 409 `flow_published` bila sudah terbit.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-flows/{id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Terbitkan ATP
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Mengubah draf menjadi terbit dan mengunci isinya; revisi lewat `new-version`. 400 `flow_empty`: ATP tanpa item. 409 `flow_published`: sudah terbit.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectCode: string;
+                            subjectName: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            academicYearName: string;
+                            levelCode: string | null;
+                            /** @enum {string|null} */
+                            phase: "A" | "B" | "C" | "D" | "E" | "F" | null;
+                            name: string;
+                            version: number;
+                            /** Format: uuid */
+                            supersedesId: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "published";
+                            publishedAt: string | null;
+                            itemCount: number;
+                            updatedAt: string;
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                objectiveId: string;
+                                sortOrder: number;
+                                weeks: number | null;
+                                periods: number | null;
+                                /** Format: uuid */
+                                semesterId: string | null;
+                                note: string | null;
+                                objectiveCode: string | null;
+                                objectiveDescription: string;
+                                objectiveVersion: number;
+                                objectiveActive: boolean;
+                                /** Format: uuid */
+                                outcomeId: string;
+                                outcomeCode: string | null;
+                                /** @enum {string} */
+                                outcomePhase: "A" | "B" | "C" | "D" | "E" | "F";
+                                outcomeDescription: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-flows/{id}/new-version": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buat versi berikutnya dari ATP terbit
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Menyalin ATP terbit beserta item menjadi draf versi berikutnya (`supersedesId` = ATP asal); versi lama tetap utuh. 409 `flow_not_published`: ATP asal masih draf. 409 `draft_exists`: ATP yang sama (mapel, tahun, nama, tingkat) sudah punya draf.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectCode: string;
+                            subjectName: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            academicYearName: string;
+                            levelCode: string | null;
+                            /** @enum {string|null} */
+                            phase: "A" | "B" | "C" | "D" | "E" | "F" | null;
+                            name: string;
+                            version: number;
+                            /** Format: uuid */
+                            supersedesId: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "published";
+                            publishedAt: string | null;
+                            itemCount: number;
+                            updatedAt: string;
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                objectiveId: string;
+                                sortOrder: number;
+                                weeks: number | null;
+                                periods: number | null;
+                                /** Format: uuid */
+                                semesterId: string | null;
+                                note: string | null;
+                                objectiveCode: string | null;
+                                objectiveDescription: string;
+                                objectiveVersion: number;
+                                objectiveActive: boolean;
+                                /** Format: uuid */
+                                outcomeId: string;
+                                outcomeCode: string | null;
+                                /** @enum {string} */
+                                outcomePhase: "A" | "B" | "C" | "D" | "E" | "F";
+                                outcomeDescription: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/achievement-criteria": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar KKTP (kriteria ketercapaian tujuan pembelajaran)
+         * @description Izin: `subject:read`. Kriteria per mapel beserta `effectiveThreshold` (nilai terkecil yang tuntas) dan, bila `includeRubric` bukan `false`, level rubriknya. Filter opsional `subjectId`, `levelCode`, `programId`. Baris dengan `objectiveId` adalah kriteria TP; KKM mapel hanya memakai baris tanpa TP.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    subjectId?: string;
+                    levelCode?: string;
+                    programId?: string;
+                    includeRubric?: "true" | "false";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            criteria: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                                subjectCode: string;
+                                subjectName: string;
+                                levelCode: string | null;
+                                /** Format: uuid */
+                                programId: string | null;
+                                /** Format: uuid */
+                                objectiveId: string | null;
+                                /** @enum {string} */
+                                mode: "numeric" | "interval" | "descriptor" | "rubric";
+                                threshold: number | null;
+                                note: string | null;
+                                active: boolean;
+                                /** @description Nilai terkecil yang tuntas menurut kriteria ini; null bila tak dapat dihitung */
+                                effectiveThreshold: number | null;
+                                /** @description Dihilangkan bila `includeRubric` false */
+                                levels?: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    label: string;
+                                    descriptor: string | null;
+                                    minScore: number | null;
+                                    maxScore: number | null;
+                                    isAchieved: boolean;
+                                    sortOrder: number;
+                                }[];
+                                updatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah KKTP
+         * @description Izin: `curriculum:manage`. Satu kriteria per (mapel, `levelCode`, `programId`, `objectiveId`); kosongnya `levelCode`/`programId` berarti berlaku untuk semua. `mode` numeric: wajib `threshold` 0..100 dan tanpa `levels`. interval/rubric: wajib sedikitnya satu level dengan `minScore` dan `maxScore`. descriptor: level boleh tanpa angka. Level ditulis menurut urutan array; `isAchieved` menandai level yang tuntas. Nilai berdesimal paling banyak dua digit. 400 `invalid_criteria`: bentuk tak sah. 400 `overlapping_levels`: rentang level bertumpuk. 400 `invalid_level`: tingkat tak ada di daftar tingkat sekolah. 400 `invalid_reference`: mapel, jurusan, atau TP bukan milik sekolah ini. 409 `criteria_exists`: cakupan sudah punya kriteria. Mengubah KKM efektif memengaruhi rapor draf semua kelas, jadi ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        subjectId: string;
+                        levelCode?: string | null;
+                        /** Format: uuid */
+                        programId?: string | null;
+                        /** Format: uuid */
+                        objectiveId?: string | null;
+                        /** @enum {string} */
+                        mode: "numeric" | "interval" | "descriptor" | "rubric";
+                        threshold?: number | null;
+                        note?: string | null;
+                        /** @default true */
+                        active?: boolean;
+                        /** @default [] */
+                        levels?: {
+                            label: string;
+                            descriptor?: string | null;
+                            minScore?: number | null;
+                            maxScore?: number | null;
+                            /** @default false */
+                            isAchieved?: boolean;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectCode: string;
+                            subjectName: string;
+                            levelCode: string | null;
+                            /** Format: uuid */
+                            programId: string | null;
+                            /** Format: uuid */
+                            objectiveId: string | null;
+                            /** @enum {string} */
+                            mode: "numeric" | "interval" | "descriptor" | "rubric";
+                            threshold: number | null;
+                            note: string | null;
+                            active: boolean;
+                            /** @description Nilai terkecil yang tuntas menurut kriteria ini; null bila tak dapat dihitung */
+                            effectiveThreshold: number | null;
+                            /** @description Dihilangkan bila `includeRubric` false */
+                            levels?: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                descriptor: string | null;
+                                minScore: number | null;
+                                maxScore: number | null;
+                                isAchieved: boolean;
+                                sortOrder: number;
+                            }[];
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/achievement-criteria/resolve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * KKM efektif satu mapel (pratinjau pemecah KKTP)
+         * @description Izin: `subject:read`. KKM efektif mapel untuk `levelCode` dan `programId` (keduanya opsional) beserta sumbernya. Urutan: (tingkat, program) lalu (tingkat) lalu (semua tingkat, program) lalu (mapel saja) lalu `grading_setting.kkm`; hanya kriteria aktif tanpa TP, dan kriteria yang nilainya tak dapat dihitung dilewati. `scope` = tingkat yang menang (`settings` bila tak ada kriteria). 404 bila mapel tak ada.
+         */
+        get: {
+            parameters: {
+                query: {
+                    subjectId: string;
+                    levelCode?: string;
+                    programId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            subjectId: string;
+                            levelCode: string | null;
+                            /** Format: uuid */
+                            programId: string | null;
+                            kkm: number;
+                            /** @enum {string} */
+                            scope: "subject_level_program" | "subject_level" | "subject_program" | "subject" | "settings";
+                            /** Format: uuid */
+                            criteriaId: string | null;
+                            /** @enum {string|null} */
+                            mode: "numeric" | "interval" | "descriptor" | "rubric" | null;
+                            /** @description KKM sekolah (jatuhan terakhir) */
+                            schoolKkm: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/achievement-criteria/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah KKTP
+         * @description Izin: `curriculum:manage`. Mengganti seluruh kriteria beserta seluruh level rubriknya (level yang tidak dikirim dihapus); aturan dan galat sama dengan POST. 404 `not_found` bila tak ada. Mengubah KKM efektif memengaruhi rapor draf semua kelas, jadi ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        subjectId: string;
+                        levelCode?: string | null;
+                        /** Format: uuid */
+                        programId?: string | null;
+                        /** Format: uuid */
+                        objectiveId?: string | null;
+                        /** @enum {string} */
+                        mode: "numeric" | "interval" | "descriptor" | "rubric";
+                        threshold?: number | null;
+                        note?: string | null;
+                        /** @default true */
+                        active?: boolean;
+                        /** @default [] */
+                        levels?: {
+                            label: string;
+                            descriptor?: string | null;
+                            minScore?: number | null;
+                            maxScore?: number | null;
+                            /** @default false */
+                            isAchieved?: boolean;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectCode: string;
+                            subjectName: string;
+                            levelCode: string | null;
+                            /** Format: uuid */
+                            programId: string | null;
+                            /** Format: uuid */
+                            objectiveId: string | null;
+                            /** @enum {string} */
+                            mode: "numeric" | "interval" | "descriptor" | "rubric";
+                            threshold: number | null;
+                            note: string | null;
+                            active: boolean;
+                            /** @description Nilai terkecil yang tuntas menurut kriteria ini; null bila tak dapat dihitung */
+                            effectiveThreshold: number | null;
+                            /** @description Dihilangkan bila `includeRubric` false */
+                            levels?: {
+                                /** Format: uuid */
+                                id: string;
+                                label: string;
+                                descriptor: string | null;
+                                minScore: number | null;
+                                maxScore: number | null;
+                                isAchieved: boolean;
+                                sortOrder: number;
+                            }[];
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus KKTP
+         * @description Izin: `curriculum:manage`. Menghapus kriteria beserta level rubriknya; KKM mapel itu kembali ke tingkat berikutnya atau KKM sekolah. 404 `not_found` bila tak ada. Mengubah KKM efektif memengaruhi rapor draf semua kelas, jadi ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;
@@ -54119,6 +57052,8 @@ export interface paths {
                                 /** Format: uuid */
                                 subjectId: string;
                                 name: string;
+                                /** @description KKM efektif mapel ini (KKTP), desimal */
+                                kkm?: number;
                                 final: number | null;
                                 /** @enum {string|null} */
                                 predicate: "A" | "B" | "C" | "D" | null;

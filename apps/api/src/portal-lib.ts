@@ -49,6 +49,7 @@ import { invoiceRows } from './finance-lib';
 import { assessedSubjects, computeGrades, loadComponents, loadSettings } from './grading-lib';
 import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
+import { loadKktpResolverForClass } from './kktp-lib';
 import { documentSummary, type ReportDocument } from './report-card-lib';
 
 /** Kunci modul tiap bagian portal. Modul inti portal sendiri (`parent_portal`) dicek oleh gerbang route. */
@@ -338,6 +339,11 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
   const components = await loadComponents(tx);
   if (!enr) return { kkm: settings.kkm, average: null as number | null, subjects: [] };
   const subjects = await assessedSubjects(tx, sem.id, enr.classId);
+  const kkmOf = await loadKktpResolverForClass(tx, {
+    classId: enr.classId,
+    subjectIds: subjects.map((s) => s.id),
+    fallback: settings.kkm,
+  });
   const grades = await computeGrades(tx, {
     semesterId: sem.id,
     classId: enr.classId,
@@ -349,12 +355,14 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
   const rows = subjects.map((sub) => {
     const g = grades.get(sub.id)?.get(studentId);
     const final = g?.final ?? null;
+    const kkm = kkmOf(sub.id);
     return {
       subjectId: sub.id,
       name: sub.name,
+      kkm,
       final,
       predicate: g?.predicate ?? null,
-      belowKkm: final !== null && final < settings.kkm,
+      belowKkm: final !== null && final < kkm,
       components: components.map((c) => ({
         name: c.name,
         weight: c.weight,

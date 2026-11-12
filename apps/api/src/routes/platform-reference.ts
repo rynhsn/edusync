@@ -8,6 +8,7 @@ import {
   refSchoolLevel,
   refSubject,
   schoolCurriculum,
+  schoolCurriculumVersion,
   type Tx,
 } from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
@@ -315,8 +316,8 @@ export async function platformReferenceRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Hapus kurikulum acuan beserta mapelnya',
         description:
-          'Staf platform (admin). Ditolak (409) bila ada sekolah yang mengadopsi kurikulum ini. Mapel acuan ikut dihapus; ' +
-          'salinan di sekolah tidak ada yang terpengaruh karena sekolah sudah menyalinnya.',
+          'Staf platform (admin). Ditolak (409) bila ada sekolah yang mengadopsi kurikulum ini atau memakainya sebagai versi ' +
+          'kurikulum. Mapel acuan ikut dihapus; salinan di sekolah tidak terpengaruh kecuali tautan `refSubjectId`-nya menjadi kosong.',
         params: z.object({ key: z.string() }),
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
       },
@@ -329,6 +330,17 @@ export async function platformReferenceRoutes(instance: FastifyInstance) {
         if (!exists) throw new HttpError(404, 'not_found', 'Kurikulum tidak ditemukan.');
         if ((await adoptedCount(tx, eq(schoolCurriculum.curriculumKey, key))) > 0) {
           throw new HttpError(409, 'conflict', 'Kurikulum sudah diadopsi sekolah dan tidak dapat dihapus.');
+        }
+        const [inVersion] = await tx
+          .select({ n: count() })
+          .from(schoolCurriculumVersion)
+          .where(eq(schoolCurriculumVersion.curriculumKey, key));
+        if ((inVersion?.n ?? 0) > 0) {
+          throw new HttpError(
+            409,
+            'conflict',
+            'Kurikulum dipakai sebagai versi kurikulum sekolah dan tidak dapat dihapus.',
+          );
         }
         const gone = await tx
           .delete(refSubject)

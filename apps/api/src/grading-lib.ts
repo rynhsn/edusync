@@ -14,13 +14,24 @@ import {
 
 /** Pustaka perhitungan nilai bersama: dipakai rute penilaian dan rapor agar rumusnya tunggal. */
 
-export const DEFAULT_SETTINGS = { kkm: 75, predicateA: 90, predicateB: 80, predicateC: 70 };
+/** Mode perhitungan nilai akhir yang dikenal; saat ini hanya rata-rata tertimbang. */
+export type CalculationMode = 'weighted_average';
+
+export const DEFAULT_SETTINGS = {
+  kkm: 75,
+  predicateA: 90,
+  predicateB: 80,
+  predicateC: 70,
+  calculationMode: 'weighted_average' as CalculationMode,
+};
 
 export interface GradingSettings {
+  /** KKM sekolah; KKM per mapel (KKTP) dipecah oleh `kktp-lib` dan jatuh ke nilai ini. */
   kkm: number;
   predicateA: number;
   predicateB: number;
   predicateC: number;
+  calculationMode: CalculationMode;
 }
 
 export const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
@@ -28,7 +39,13 @@ export const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 10
 export async function loadSettings(tx: Tx): Promise<GradingSettings> {
   const [s] = await tx.select().from(gradingSetting);
   return s
-    ? { kkm: s.kkm, predicateA: s.predicateA, predicateB: s.predicateB, predicateC: s.predicateC }
+    ? {
+        kkm: s.kkm,
+        predicateA: s.predicateA,
+        predicateB: s.predicateB,
+        predicateC: s.predicateC,
+        calculationMode: s.calculationMode,
+      }
     : { ...DEFAULT_SETTINGS };
 }
 

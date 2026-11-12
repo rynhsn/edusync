@@ -34,7 +34,9 @@ import { recordHomeroomChange, recordTeachingChange } from '../assignment-histor
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
 import { assertClassYearNotClosed } from '../report-lock-lib';
+import { copyCurriculumStructure } from './curriculum-structure';
 import { audit, conflictAs409, guarded, idParams, schoolHeader } from './helpers';
+import { copyTeachingPlans } from './teaching-plan';
 
 /**
  * Rollover tahun ajaran dan kenaikan kelas (fase 2A). Semua tulisan hanya menyentuh tahun tujuan (kelas, penugasan,
@@ -125,6 +127,11 @@ const rolloverBody = z.object({
   copyClasses: z.boolean().default(true),
   copyAssignments: z.boolean().default(true),
   copyCalendar: z.boolean().default(true),
+  copyCurriculum: z.boolean().optional().describe('Salin alokasi JP dan versi kurikulum; bawaan true'),
+  copyTeachingPlans: z
+    .boolean()
+    .optional()
+    .describe('Salin ATP berstatus terbit sebagai draf ATP tahun tujuan; bawaan true'),
   dryRun: z.boolean().default(false),
 });
 
@@ -133,6 +140,9 @@ const rolloverResponse = z.object({
   classesSkipped: z.number().int(),
   assignmentsCreated: z.number().int(),
   eventsCreated: z.number().int(),
+  allocationsCreated: z.number().int().optional(),
+  versionsCreated: z.number().int().optional(),
+  flowsCreated: z.number().int().optional(),
   warnings: z.array(z.string()),
 });
 
@@ -167,7 +177,16 @@ async function runRollover(
   body: z.infer<typeof rolloverBody>,
 ) {
   const warnings: string[] = [];
-  const out = { classesCreated: 0, classesSkipped: 0, assignmentsCreated: 0, eventsCreated: 0, warnings };
+  const out = {
+    classesCreated: 0,
+    classesSkipped: 0,
+    assignmentsCreated: 0,
+    eventsCreated: 0,
+    allocationsCreated: 0,
+    versionsCreated: 0,
+    flowsCreated: 0,
+    warnings,
+  };
   const write = !body.dryRun;
   const levels = await loadLevels(tx);
   if (levels.length === 0 && (body.copyClasses || body.copyAssignments)) {
@@ -433,6 +452,18 @@ async function runRollover(
     if (write && toInsert.length > 0) await tx.insert(calendarEvent).values(toInsert);
   }
 
+  // 5. Struktur kurikulum: alokasi JP dan versi kurikulum per tingkat (tingkat yang sama; yang sudah ada tidak ditimpa).
+  if (body.copyCurriculum ?? true) {
+    const copied = await copyCurriculumStructure(tx, ctx, source.id, target.id, write);
+    out.allocationsCreated = copied.allocationsCreated;
+    out.versionsCreated = copied.versionsCreated;
+  }
+
+  // 6. ATP berstatus terbit tahun sumber menjadi draf ATP tahun tujuan (CP/TP tetap yang sama; yang sudah ada tidak ditimpa).
+  if (body.copyTeachingPlans ?? true) {
+    out.flowsCreated = (await copyTeachingPlans(tx, ctx, source.id, target.id, write)).flowsCreated;
+  }
+
   if (write) {
     await audit(tx, ctx, 'academic_year.rollover', 'academic_year', source.id, {
       targetYearId: target.id,
@@ -440,6 +471,9 @@ async function runRollover(
       classesSkipped: out.classesSkipped,
       assignmentsCreated: out.assignmentsCreated,
       eventsCreated: out.eventsCreated,
+      allocationsCreated: out.allocationsCreated,
+      versionsCreated: out.versionsCreated,
+      flowsCreated: out.flowsCreated,
     });
   }
   return out;
@@ -898,8 +932,12 @@ export async function promotionRoutes(instance: FastifyInstance) {
         description:
           'Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; ' +
           'tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) ' +
-          'beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, dan kalender akademik (tanggal digeser selisih tahun mulai). ' +
-          'Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai); ' +
+          'beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (tanggal digeser selisih tahun mulai), ' +
+          'struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), ' +
+          'dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi ' +
+          'terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). ' +
+          'Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), ' +
+          'alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); ' +
           'yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. ' +
           '400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. ' +
           '400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` bagi hal yang perlu diperiksa.',

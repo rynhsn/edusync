@@ -571,7 +571,10 @@ export const program = pgTable(
     name: text('name').notNull(),
     createdAt: createdAt(),
   },
-  (t) => [unique('program_school_code_uq').on(t.schoolId, t.code)],
+  (t) => [
+    unique('program_school_code_uq').on(t.schoolId, t.code),
+    unique('program_school_id_uq').on(t.schoolId, t.id),
+  ],
 );
 
 /** Kelas pada satu tahun ajaran. Tingkat (`level`) ditulis bebas karena mengikuti kurikulum: "7", "X", "Kelas 1". */
@@ -673,9 +676,31 @@ export const subject = pgTable(
       .references(() => school.id),
     code: text('code').notNull(),
     name: text('name').notNull(),
+    /** Mapel acuan platform asal salinan (adopsi); null untuk mapel buatan sekolah. */
+    refSubjectId: uuid('ref_subject_id').references(() => refSubject.id, { onDelete: 'set null' }),
+    subjectGroup: text('subject_group', {
+      enum: [
+        'general',
+        'vocational_base',
+        'vocational_concentration',
+        'vocational_project',
+        'elective',
+        'internship',
+      ],
+    }),
+    isLocalContent: boolean('is_local_content').notNull().default(false),
+    sortOrder: integer('sort_order').notNull().default(0),
+    active: boolean('active').notNull().default(true),
     createdAt: createdAt(),
   },
-  (t) => [unique('subject_school_code_uq').on(t.schoolId, t.code)],
+  (t) => [
+    unique('subject_school_code_uq').on(t.schoolId, t.code),
+    index('subject_ref_subject_idx').on(t.schoolId, t.refSubjectId),
+    check(
+      'subject_group_ck',
+      sql`${t.subjectGroup} is null or ${t.subjectGroup} in ('general', 'vocational_base', 'vocational_concentration', 'vocational_project', 'elective', 'internship')`,
+    ),
+  ],
 );
 
 /** Guru atau pegawai pengajar. `memberId` menautkan ke akun login bila orangnya punya akun. */
@@ -796,6 +821,248 @@ export const promotionDecision = pgTable(
     index('promotion_decision_year_idx').on(t.schoolId, t.academicYearId),
     check('promotion_decision_decision_ck', sql`${t.decision} in ('promote', 'retain', 'graduate')`),
     check('promotion_decision_graduate_ck', sql`${t.decision} <> 'graduate' or ${t.toClassId} is null`),
+  ],
+);
+
+/**
+ * Alokasi jam pelajaran (JP) satu mapel pada satu tingkat di satu tahun ajaran; `programId` kosong = semua program.
+ * Keunikan memakai indeks ber-COALESCE di migrasi 0089 (tidak diwakili di sini). FK komposit (school_id, x_id) ada di migrasi.
+ */
+export const curriculumSubjectAllocation = pgTable(
+  'curriculum_subject_allocation',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    levelCode: text('level_code').notNull(),
+    programId: uuid('program_id').references(() => program.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    weeklyPeriods: integer('weekly_periods'),
+    yearlyPeriods: integer('yearly_periods'),
+    note: text('note'),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('curriculum_allocation_year_idx').on(t.schoolId, t.academicYearId),
+    check('curriculum_allocation_weekly_ck', sql`${t.weeklyPeriods} is null or ${t.weeklyPeriods} >= 0`),
+    check('curriculum_allocation_yearly_ck', sql`${t.yearlyPeriods} is null or ${t.yearlyPeriods} >= 0`),
+  ],
+);
+
+/** Kurikulum yang dipakai pada satu tingkat di satu tahun ajaran. */
+export const schoolCurriculumVersion = pgTable(
+  'school_curriculum_version',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    levelCode: text('level_code').notNull(),
+    curriculumKey: text('curriculum_key')
+      .notNull()
+      .references(() => refCurriculum.key),
+    effectiveFrom: date('effective_from'),
+    note: text('note'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('school_curriculum_version_uq').on(t.academicYearId, t.levelCode),
+    index('school_curriculum_version_year_idx').on(t.schoolId, t.academicYearId),
+  ],
+);
+
+/**
+ * Capaian pembelajaran (CP) milik sekolah per mapel dan fase (A-F). Berversi: mengubah CP yang sudah dipakai ATP terbit
+ * membuat baris baru (`version` + 1, `supersedesId` = baris lama) dan menonaktifkan yang lama. FK komposit
+ * (school_id, x_id) dan UNIQUE (school_id, id) ada di migrasi 0090.
+ */
+export const learningOutcome = pgTable(
+  'learning_outcome',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    phase: text('phase').notNull(),
+    code: text('code'),
+    description: text('description').notNull(),
+    version: integer('version').notNull().default(1),
+    supersedesId: uuid('supersedes_id'),
+    active: boolean('active').notNull().default(true),
+    createdBy: text('created_by'),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('learning_outcome_subject_idx').on(t.schoolId, t.subjectId),
+    check('learning_outcome_phase_ck', sql`${t.phase} in ('A', 'B', 'C', 'D', 'E', 'F')`),
+  ],
+);
+
+/** Tujuan pembelajaran (TP) di bawah satu CP; berversi seperti CP. */
+export const learningObjective = pgTable(
+  'learning_objective',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    outcomeId: uuid('outcome_id')
+      .notNull()
+      .references(() => learningOutcome.id),
+    code: text('code'),
+    description: text('description').notNull(),
+    sortOrder: integer('sort_order').notNull().default(0),
+    version: integer('version').notNull().default(1),
+    supersedesId: uuid('supersedes_id'),
+    active: boolean('active').notNull().default(true),
+    createdBy: text('created_by'),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index('learning_objective_outcome_idx').on(t.schoolId, t.outcomeId)],
+);
+
+/**
+ * Alur tujuan pembelajaran (ATP) satu mapel pada satu tahun ajaran. `draft` boleh diubah; `published` terkunci dan
+ * revisi lewat versi baru (`supersedesId`). Keunikan (mapel, tahun, nama, tingkat, versi) memakai indeks ber-COALESCE
+ * di migrasi 0090.
+ */
+export const learningFlow = pgTable(
+  'learning_flow',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    levelCode: text('level_code'),
+    phase: text('phase'),
+    name: text('name').notNull(),
+    version: integer('version').notNull().default(1),
+    supersedesId: uuid('supersedes_id'),
+    status: text('status', { enum: ['draft', 'published'] })
+      .notNull()
+      .default('draft'),
+    publishedAt: timestamp('published_at', { withTimezone: true }),
+    createdBy: text('created_by'),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('learning_flow_year_idx').on(t.schoolId, t.academicYearId, t.subjectId),
+    check('learning_flow_status_ck', sql`${t.status} in ('draft', 'published')`),
+    check('learning_flow_phase_ck', sql`${t.phase} is null or ${t.phase} in ('A', 'B', 'C', 'D', 'E', 'F')`),
+  ],
+);
+
+/** Satu TP dalam urutan sebuah ATP, dengan alokasi minggu/JP/semester. Relasi lewat tabel ini, bukan jsonb. */
+export const learningFlowItem = pgTable(
+  'learning_flow_item',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    flowId: uuid('flow_id')
+      .notNull()
+      .references(() => learningFlow.id),
+    objectiveId: uuid('objective_id')
+      .notNull()
+      .references(() => learningObjective.id),
+    sortOrder: integer('sort_order').notNull().default(0),
+    weeks: integer('weeks'),
+    periods: integer('periods'),
+    semesterId: uuid('semester_id').references(() => semester.id),
+    note: text('note'),
+  },
+  (t) => [
+    unique('learning_flow_item_uq').on(t.flowId, t.objectiveId),
+    index('learning_flow_item_objective_idx').on(t.schoolId, t.objectiveId),
+    check('learning_flow_item_weeks_ck', sql`${t.weeks} is null or ${t.weeks} >= 0`),
+    check('learning_flow_item_periods_ck', sql`${t.periods} is null or ${t.periods} >= 0`),
+  ],
+);
+
+/**
+ * KKTP: kriteria ketercapaian per mapel, opsional per tingkat, program, dan TP (`objectiveId`; dipakai tahap penilaian
+ * berikutnya, pemecah KKM mapel mengabaikannya). Mode numeric memakai `threshold`; interval/descriptor/rubric memakai
+ * level di `achievement_rubric_level`. Keunikan cakupan memakai indeks ber-COALESCE di migrasi 0091; FK komposit
+ * (school_id, x_id) dan UNIQUE (school_id, id) juga di sana.
+ */
+export const achievementCriteria = pgTable(
+  'achievement_criteria',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    levelCode: text('level_code'),
+    programId: uuid('program_id').references(() => program.id),
+    objectiveId: uuid('objective_id').references(() => learningObjective.id),
+    mode: text('mode', { enum: ['numeric', 'interval', 'descriptor', 'rubric'] }).notNull(),
+    threshold: numeric('threshold', { precision: 5, scale: 2, mode: 'number' }),
+    note: text('note'),
+    active: boolean('active').notNull().default(true),
+    createdBy: text('created_by'),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    index('achievement_criteria_subject_idx').on(t.schoolId, t.subjectId),
+    check('achievement_criteria_mode_ck', sql`${t.mode} in ('numeric', 'interval', 'descriptor', 'rubric')`),
+    check(
+      'achievement_criteria_threshold_ck',
+      sql`${t.threshold} is null or (${t.threshold} >= 0 and ${t.threshold} <= 100)`,
+    ),
+  ],
+);
+
+/** Level satu kriteria (interval, deskriptor, atau rubrik); rentang inklusif 0..100. */
+export const achievementRubricLevel = pgTable(
+  'achievement_rubric_level',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    criteriaId: uuid('criteria_id')
+      .notNull()
+      .references(() => achievementCriteria.id, { onDelete: 'cascade' }),
+    label: text('label').notNull(),
+    descriptor: text('descriptor'),
+    minScore: numeric('min_score', { precision: 5, scale: 2, mode: 'number' }),
+    maxScore: numeric('max_score', { precision: 5, scale: 2, mode: 'number' }),
+    isAchieved: boolean('is_achieved').notNull().default(false),
+    sortOrder: integer('sort_order').notNull().default(0),
+  },
+  (t) => [
+    index('achievement_rubric_level_criteria_idx').on(t.schoolId, t.criteriaId),
+    check(
+      'achievement_rubric_level_range_ck',
+      sql`${t.minScore} is null or ${t.maxScore} is null or ${t.minScore} <= ${t.maxScore}`,
+    ),
   ],
 );
 
@@ -1386,6 +1653,10 @@ export const gradingSetting = pgTable('grading_setting', {
   predicateA: integer('predicate_a').notNull().default(90),
   predicateB: integer('predicate_b').notNull().default(80),
   predicateC: integer('predicate_c').notNull().default(70),
+  /** Mode perhitungan nilai akhir; saat ini hanya rata-rata tertimbang (CHECK di migrasi 0091). */
+  calculationMode: text('calculation_mode', { enum: ['weighted_average'] })
+    .notNull()
+    .default('weighted_average'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

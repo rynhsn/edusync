@@ -217,7 +217,7 @@ const reportDocumentSchema = z.object({
     z.object({
       subjectId: z.uuid(),
       name: z.string(),
-      kkm: z.number().int(),
+      kkm: z.number(),
       final: z.number().nullable(),
       predicate: predicateEnum.nullable(),
       description: z.string().nullable(),
@@ -874,6 +874,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
               z.object({
                 subjectId: z.uuid(),
                 name: z.string(),
+                kkm: z.number().optional().describe('KKM efektif mapel ini (KKTP), desimal'),
                 final: z.number().nullable(),
                 predicate: predicateEnum.nullable(),
                 belowKkm: z.boolean(),

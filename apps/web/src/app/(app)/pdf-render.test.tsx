@@ -265,6 +265,18 @@ describe('PDF rapor', () => {
     generatedAt: '2026-12-18T02:00:00.000Z',
   };
 
+  it('merender rapor dengan KKM dan nilai desimal per mapel', async () => {
+    const decimal = (i: number) => ({
+      ...subj(i),
+      kkm: 72.5,
+      final: i % 2 === 0 ? 72.5 : 72.25,
+      belowKkm: i % 2 !== 0,
+    });
+    const doc: ReportCardDoc = { ...base, subjects: Array.from({ length: 4 }, (_, i) => decimal(i)) };
+    const buf = await render('rapor-kkm-desimal', <ReportCardDocument docs={[doc]} />);
+    expect(pageCount(buf)).toBeGreaterThanOrEqual(1);
+  });
+
   it('merender rapor final satu siswa', async () => {
     const buf = await render('rapor-final', <ReportCardDocument docs={[base]} />);
     expect(pageCount(buf)).toBeGreaterThanOrEqual(1);

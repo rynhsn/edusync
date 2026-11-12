@@ -1,7 +1,9 @@
 'use client';
 
+import { SUBJECT_GROUPS, type SubjectGroup } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Pencil, Plus, Trash2 } from 'lucide-react';
+import { BookOpen, LibraryBig, Pencil, Plus, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -12,20 +14,31 @@ import {
   FieldError,
   type FormValidation,
   TOUCH_INPUT,
+  TOUCH_SELECT,
   useFormValidation,
 } from '@/components/form-field-error';
 import { ConfirmDelete, ListSkeleton, REVEAL, RowMenu, SearchBox } from '@/components/master-kit';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, TONES, type Tone, Toolbar } from '@/components/ui-kit';
+import { SelectField } from '@/components/ui/select-field';
+import {
+  EmptyPanel,
+  MODULE_TONE,
+  StatCard,
+  StatGrid,
+  TONES,
+  type Tone,
+  ToneBadge,
+  Toolbar,
+} from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { SUBJECT_ORDER, type SubjectField, validateSubject } from '@/lib/form-validation';
 import { cn } from '@/lib/utils';
-import { CurriculumBank } from './curriculum-bank';
 
 const CODE_TONES: Tone[] = ['teal', 'sky', 'violet', 'amber', 'rose', 'emerald'];
 
@@ -39,8 +52,34 @@ function toneFor(code: string): Tone {
 interface Draft {
   code: string;
   name: string;
+  /** Kelompok mapel; '' = tanpa kelompok. */
+  subjectGroup: SubjectGroup | '';
+  isLocalContent: boolean;
+  /** Urutan tampil sebagai teks isian; '' = bawaan. */
+  sortOrder: string;
+  active: boolean;
 }
-const EMPTY: Draft = { code: '', name: '' };
+const EMPTY: Draft = {
+  code: '',
+  name: '',
+  subjectGroup: '',
+  isLocalContent: false,
+  sortOrder: '',
+  active: true,
+};
+
+/** Badan permintaan POST/PUT dari isian formulir. Urutan kosong tidak dikirim (server memakai nilai yang ada atau bawaan). */
+function toBody(d: Draft) {
+  const order = d.sortOrder.trim();
+  return {
+    code: d.code,
+    name: d.name,
+    subjectGroup: d.subjectGroup === '' ? null : d.subjectGroup,
+    isLocalContent: d.isLocalContent,
+    active: d.active,
+    ...(order === '' ? {} : { sortOrder: Number(order) }),
+  };
+}
 
 function SubjectFields({
   idPrefix,
@@ -55,36 +94,106 @@ function SubjectFields({
   v: FormValidation<SubjectField>;
 }) {
   const tm = useTranslations('masterData');
+  const t = useTranslations('subjects');
   return (
-    <div className="grid gap-4 sm:grid-cols-[8rem_1fr]">
-      <div className="grid content-start gap-2">
-        <Label htmlFor={`${idPrefix}-code`}>{tm('code')}</Label>
-        <Input
-          {...v.fieldProps('code')}
-          className={TOUCH_INPUT}
-          aria-required="true"
-          autoComplete="off"
-          maxLength={20}
-          value={draft.code}
-          onChange={(e) => onChange({ ...draft, code: e.target.value })}
-        />
-        <FieldError id={v.idOf('code')} issue={v.issue('code')} />
+    <div className="grid gap-4">
+      <div className="grid gap-4 sm:grid-cols-[8rem_1fr]">
+        <div className="grid content-start gap-2">
+          <Label htmlFor={`${idPrefix}-code`}>{tm('code')}</Label>
+          <Input
+            {...v.fieldProps('code')}
+            className={TOUCH_INPUT}
+            aria-required="true"
+            autoComplete="off"
+            maxLength={20}
+            value={draft.code}
+            onChange={(e) => onChange({ ...draft, code: e.target.value })}
+          />
+          <FieldError id={v.idOf('code')} issue={v.issue('code')} />
+        </div>
+        <div className="grid content-start gap-2">
+          <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
+          <Input
+            {...v.fieldProps('name')}
+            className={TOUCH_INPUT}
+            aria-required="true"
+            autoComplete="off"
+            maxLength={80}
+            value={draft.name}
+            onChange={(e) => onChange({ ...draft, name: e.target.value })}
+          />
+          <FieldError id={v.idOf('name')} issue={v.issue('name')} />
+        </div>
       </div>
-      <div className="grid content-start gap-2">
-        <Label htmlFor={`${idPrefix}-name`}>{tm('name')}</Label>
-        <Input
-          {...v.fieldProps('name')}
-          className={TOUCH_INPUT}
-          aria-required="true"
-          autoComplete="off"
-          maxLength={80}
-          value={draft.name}
-          onChange={(e) => onChange({ ...draft, name: e.target.value })}
+      <div className="grid gap-4 sm:grid-cols-[1fr_8rem]">
+        <div className="grid content-start gap-2">
+          <Label htmlFor={`${idPrefix}-group`}>{t('groupLabel')}</Label>
+          <SelectField
+            id={`${idPrefix}-group`}
+            className={TOUCH_SELECT}
+            value={draft.subjectGroup}
+            onChange={(e) => onChange({ ...draft, subjectGroup: e.target.value as Draft['subjectGroup'] })}
+          >
+            <option value="">{t('groupNone')}</option>
+            {SUBJECT_GROUPS.map((g) => (
+              <option key={g} value={g}>
+                {t(`groups.${g}`)}
+              </option>
+            ))}
+          </SelectField>
+        </div>
+        <div className="grid content-start gap-2">
+          <Label htmlFor={`${idPrefix}-sortOrder`}>{t('sortOrder')}</Label>
+          <Input
+            {...v.fieldProps('sortOrder')}
+            className={TOUCH_INPUT}
+            inputMode="numeric"
+            autoComplete="off"
+            maxLength={4}
+            value={draft.sortOrder}
+            onChange={(e) => onChange({ ...draft, sortOrder: e.target.value })}
+          />
+          <FieldError id={v.idOf('sortOrder')} issue={v.issue('sortOrder')} />
+        </div>
+      </div>
+      <p className="text-muted-foreground -mt-2 text-xs">{t('sortOrderHint')}</p>
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id={`${idPrefix}-local`}
+          className="mt-0.5"
+          checked={draft.isLocalContent}
+          onCheckedChange={(c) => onChange({ ...draft, isLocalContent: c === true })}
         />
-        <FieldError id={v.idOf('name')} issue={v.issue('name')} />
+        <Label htmlFor={`${idPrefix}-local`} className="grid cursor-pointer gap-0.5">
+          <span className="text-sm font-medium">{t('localContent')}</span>
+          <span className="text-muted-foreground text-xs font-normal">{t('localContentHint')}</span>
+        </Label>
+      </div>
+      <div className="flex items-start gap-3">
+        <Checkbox
+          id={`${idPrefix}-active`}
+          className="mt-0.5"
+          checked={draft.active}
+          onCheckedChange={(c) => onChange({ ...draft, active: c === true })}
+        />
+        <Label htmlFor={`${idPrefix}-active`} className="grid cursor-pointer gap-0.5">
+          <span className="text-sm font-medium">{t('active')}</span>
+          <span className="text-muted-foreground text-xs font-normal">{t('activeHint')}</span>
+        </Label>
       </div>
     </div>
   );
+}
+
+interface SubjectRow {
+  id: string;
+  code: string;
+  name: string;
+  refSubjectId?: string | null;
+  subjectGroup?: SubjectGroup | null;
+  isLocalContent?: boolean;
+  sortOrder?: number;
+  active?: boolean;
 }
 
 export function SubjectsView() {
@@ -113,7 +222,7 @@ export function SubjectsView() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: key });
 
   const create = useMutation({
-    mutationFn: async () => unwrap(await api.POST('/v1/subjects', { params: header, body: draft })),
+    mutationFn: async () => unwrap(await api.POST('/v1/subjects', { params: header, body: toBody(draft) })),
     onSuccess: () => {
       setDraft(EMPTY);
       toast.success(tm('created'));
@@ -126,7 +235,7 @@ export function SubjectsView() {
       unwrap(
         await api.PUT('/v1/subjects/{id}', {
           params: { ...header, path: { id: v.id } },
-          body: { code: v.code, name: v.name },
+          body: toBody(v),
         }),
       ),
     onSuccess: () => {
@@ -148,14 +257,22 @@ export function SubjectsView() {
   const [q, setQ] = useState('');
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
   const needle = q.trim().toLowerCase();
-  const rows = (list.data ?? []).filter(
-    (s) => !needle || s.name.toLowerCase().includes(needle) || s.code.toLowerCase().includes(needle),
-  );
+  const rows = (list.data ?? [])
+    .filter((s) => !needle || s.name.toLowerCase().includes(needle) || s.code.toLowerCase().includes(needle))
+    .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name));
 
-  const openEdit = (s: { id: string; code: string; name: string }) => {
+  const openEdit = (s: SubjectRow) => {
     setError(null);
     validation.reset();
-    setEditing({ id: s.id, code: s.code, name: s.name });
+    setEditing({
+      id: s.id,
+      code: s.code,
+      name: s.name,
+      subjectGroup: s.subjectGroup ?? '',
+      isLocalContent: s.isLocalContent ?? false,
+      sortOrder: s.sortOrder === undefined ? '' : String(s.sortOrder),
+      active: s.active ?? true,
+    });
   };
 
   const addButton = (
@@ -187,12 +304,12 @@ export function SubjectsView() {
         title={t('title')}
         description={manage ? t('subtitle') : `${t('subtitle')} ${tm('readOnly')}`}
         actions={
-          manage && (
-            <>
-              <CurriculumBank />
-              {addButton}
-            </>
-          )
+          <>
+            <Button variant="outline" nativeButton={false} render={<Link href="/curriculum" />}>
+              <LibraryBig className="size-4" /> {t('curriculumLink')}
+            </Button>
+            {manage && addButton}
+          </>
         }
       />
 
@@ -232,7 +349,9 @@ export function SubjectsView() {
           action={
             <>
               {addButton}
-              <CurriculumBank />
+              <Button variant="outline" nativeButton={false} render={<Link href="/curriculum" />}>
+                <LibraryBig className="size-4" /> {t('adoptLink')}
+              </Button>
             </>
           }
         />
@@ -271,6 +390,20 @@ export function SubjectsView() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">{s.name}</p>
+                {(s.subjectGroup || s.isLocalContent || s.active === false || s.refSubjectId) && (
+                  <p className="mt-1 flex flex-wrap items-center gap-1">
+                    {s.subjectGroup && (
+                      <span className="text-muted-foreground text-xs">{t(`groups.${s.subjectGroup}`)}</span>
+                    )}
+                    {s.isLocalContent && <ToneBadge tone="amber">{t('localContent')}</ToneBadge>}
+                    {s.active === false && <ToneBadge tone="slate">{t('inactive')}</ToneBadge>}
+                    {s.refSubjectId && (
+                      <ToneBadge tone="sky" dot={false}>
+                        {t('linkedToReference')}
+                      </ToneBadge>
+                    )}
+                  </p>
+                )}
               </div>
               {manage && (
                 <RowMenu

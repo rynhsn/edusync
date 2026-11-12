@@ -299,12 +299,24 @@ describe('modul dan izin', () => {
 describe('pengaturan', () => {
   it('bawaan, ubah, dan validasi', async () => {
     const def = await call('GET', '/v1/grading/settings', adminCookie);
-    expect(def.json()).toEqual({ kkm: 75, predicateA: 90, predicateB: 80, predicateC: 70 });
+    expect(def.json()).toEqual({
+      kkm: 75,
+      predicateA: 90,
+      predicateB: 80,
+      predicateC: 70,
+      calculationMode: 'weighted_average',
+    });
 
     const put = (body: object, cookie = adminCookie) => call('PUT', '/v1/grading/settings', cookie, body);
     const ok = await put({ kkm: 70, predicateA: 92, predicateB: 82, predicateC: 72 });
     expect(ok.statusCode).toBe(200);
-    expect(ok.json()).toEqual({ kkm: 70, predicateA: 92, predicateB: 82, predicateC: 72 });
+    expect(ok.json()).toEqual({
+      kkm: 70,
+      predicateA: 92,
+      predicateB: 82,
+      predicateC: 72,
+      calculationMode: 'weighted_average',
+    });
     expect((await call('GET', '/v1/grading/settings', matCookie)).json().kkm).toBe(70);
     // Kurikulum memegang grade:configure.
     expect(
@@ -316,6 +328,8 @@ describe('pengaturan', () => {
     expect((await put({ kkm: 0, predicateA: 90, predicateB: 80, predicateC: 70 })).statusCode).toBe(400);
     expect((await put({ kkm: 101, predicateA: 90, predicateB: 80, predicateC: 70 })).statusCode).toBe(400);
     expect((await put({ kkm: 75, predicateA: 90, predicateB: 80, predicateC: 0 })).statusCode).toBe(400);
+    // KKM sekolah tetap bilangan bulat; KKM desimal lewat KKTP per mapel.
+    expect((await put({ kkm: 72.5, predicateA: 90, predicateB: 80, predicateC: 70 })).statusCode).toBe(400);
     expect((await call('GET', '/v1/grading/settings', adminCookie)).json().predicateA).toBe(90);
   });
 });
@@ -645,7 +659,13 @@ describe('rekap', () => {
     const res = await recap(matCookie);
     expect(res.statusCode).toBe(200);
     const body = res.json();
-    expect(body.settings).toEqual({ kkm: 75, predicateA: 90, predicateB: 80, predicateC: 70 });
+    expect(body.settings).toEqual({
+      kkm: 75,
+      predicateA: 90,
+      predicateB: 80,
+      predicateC: 70,
+      calculationMode: 'weighted_average',
+    });
     expect(body.components.map((c: { name: string; weight: number }) => [c.name, c.weight])).toEqual([
       ['Tugas', 20],
       ['Ulangan Harian', 30],

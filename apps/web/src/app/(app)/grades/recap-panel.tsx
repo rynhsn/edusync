@@ -20,6 +20,7 @@ import {
 } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { formatKkm, isBelowKkm, pickKkm } from '@/lib/kktp';
 import { buildExport, saveBlob } from '@/lib/sheet';
 import { cn } from '@/lib/utils';
 import { PREDICATES, PredicateBadge, predicateTone, ScoreChip } from './grade-ui';
@@ -91,6 +92,8 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
         <AlertDescription>{te(errorKey(recap.error))}</AlertDescription>
       </Alert>
     );
+  // KKM efektif mapel (KKTP, boleh desimal); tanpa itu KKM sekolah.
+  const kkm = pickKkm(data.kkm, data.settings.kkm);
   const { stats } = data;
   const total = data.students.length;
   const dist = PREDICATES.map((p) => ({ p, n: data.students.filter((s) => s.predicate === p).length }));
@@ -112,7 +115,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
           tone={stats.belowKkmCount > 0 ? 'rose' : 'slate'}
           label={t('belowKkm')}
           value={stats.belowKkmCount}
-          hint={t('kkmInfo', { kkm: data.settings.kkm })}
+          hint={t('kkmInfo', { kkm: formatKkm(kkm) })}
         />
         <StatCard
           icon={Users}
@@ -207,7 +210,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                             'px-3 py-2.5 text-right tabular-nums',
                             v === null || v === undefined
                               ? 'text-muted-foreground'
-                              : v < data.settings.kkm && TONES.rose.text,
+                              : v < kkm && TONES.rose.text,
                           )}
                         >
                           {fmt(v)}
@@ -269,10 +272,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                       <div key={c.id} className="bg-muted/50 rounded-lg px-2 py-1.5">
                         <dt className="text-muted-foreground truncate">{c.name}</dt>
                         <dd
-                          className={cn(
-                            'font-semibold tabular-nums',
-                            v !== null && v !== undefined && v < data.settings.kkm && TONES.rose.text,
-                          )}
+                          className={cn('font-semibold tabular-nums', isBelowKkm(v, kkm) && TONES.rose.text)}
                         >
                           {fmt(v)}
                         </dd>

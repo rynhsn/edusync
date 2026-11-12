@@ -39,7 +39,7 @@ export const ONBOARDING_DOCS: DocArticle[] = [
             heading: 'Tombol Tambah ujian tidak bisa diklik',
             body: 'Tombol itu mati sampai ada minimal satu mata pelajaran dan satu semester, karena setiap ujian dibuat untuk satu mata pelajaran dalam satu semester. Menambah jenis ujian tidak mengubahnya. Di atas daftar ujian tampil pemberitahuan yang menyebut apa yang kurang, lengkap dengan tombol menuju halaman Mata pelajaran atau Tahun ajaran.',
             steps: [
-              'Buka menu Mata pelajaran dan tambahkan mata pelajaran, atau pakai bank kurikulum bila tersedia.',
+              'Buka menu Mata pelajaran dan tambahkan mata pelajaran, atau pakai bank kurikulum bila tersedia (ada di menu Kurikulum).',
               'Buka menu Tahun ajaran dan pastikan ada tahun ajaran dengan semesternya.',
               'Kembali ke Ujian. Tombol Tambah ujian sekarang aktif.',
             ],
@@ -92,7 +92,7 @@ export const ONBOARDING_DOCS: DocArticle[] = [
             heading: 'The Add exam button cannot be clicked',
             body: 'The button stays off until there is at least one subject and one semester, because every exam is made for one subject in one semester. Adding an exam type does not change that. Above the exam list a notice names what is missing, with a button to the Subjects or Academic years page.',
             steps: [
-              'Open the Subjects menu and add subjects, or use the curriculum bank if available.',
+              'Open the Subjects menu and add subjects, or use the curriculum bank if available (found in the Curriculum menu).',
               'Open the Academic years menu and make sure an academic year with semesters exists.',
               'Return to Exams. The Add exam button is now active.',
             ],
@@ -145,7 +145,7 @@ export const ONBOARDING_DOCS: DocArticle[] = [
             heading: 'Tombol Tambah ujian teu bisa diklik',
             body: 'Tombol éta pareum nepi ka aya sahanteuna hiji mata pelajaran jeung hiji semester, sabab unggal ujian dijieun pikeun hiji mata pelajaran dina hiji semester. Nambahkeun jenis ujian teu ngarobah éta. Di luhureun daptar ujian aya béwara nu nyebutkeun naon nu kurang, lengkep jeung tombol ka kaca Mata pelajaran atawa Taun pangajaran.',
             steps: [
-              'Buka ménu Mata pelajaran tuluy tambahkeun mata pelajaran, atawa paké bank kurikulum lamun aya.',
+              'Buka ménu Mata pelajaran tuluy tambahkeun mata pelajaran, atawa paké bank kurikulum lamun aya (aya dina menu Kurikulum).',
               'Buka ménu Taun pangajaran tuluy pastikeun aya taun pangajaran jeung semesterna.',
               'Balik deui ka Ujian. Tombol Tambah ujian ayeuna aktif.',
             ],

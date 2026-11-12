@@ -4,6 +4,8 @@
  * di masa depan. Hasilnya berupa kode galat (bukan teks) yang diterjemahkan oleh komponen FieldError.
  */
 
+import { intInRange } from './form-issues';
+
 export type IssueCode =
   | 'required'
   | 'tooLong'
@@ -247,15 +249,21 @@ export function validateTeacher(v: TeacherValues, today: string = todayIso()): F
 export interface SubjectValues {
   code: string;
   name: string;
+  /** Urutan tampil (teks isian); hanya diperiksa bila ada. */
+  sortOrder?: string;
 }
 export type SubjectField = keyof SubjectValues;
-export const SUBJECT_ORDER: SubjectField[] = ['code', 'name'];
+export const SUBJECT_ORDER: SubjectField[] = ['code', 'name', 'sortOrder'];
 
 export function validateSubject(v: SubjectValues): FieldErrors<SubjectField> {
   const code = v.code.trim();
   return compact<SubjectField>([
     ['code', needs(v.code, 20) ?? (/^[A-Za-z0-9._-]+$/.test(code) ? undefined : { code: 'codeFormat' })],
     ['name', needs(v.name, 80)],
+    [
+      'sortOrder',
+      v.sortOrder === undefined ? undefined : intInRange(v.sortOrder, 0, 9999, { required: false }),
+    ],
   ]);
 }
 

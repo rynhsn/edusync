@@ -19,6 +19,8 @@ const PRIMARY: Record<string, string> = {
   '/teachers': 'GET /v1/teachers',
   '/classes': 'GET /v1/classes',
   '/subjects': 'GET /v1/subjects',
+  '/curriculum': 'GET /v1/academic-years/{id}/curriculum/allocations',
+  '/teaching-plan': 'POST /v1/learning-flows',
   '/academic-years': 'GET /v1/academic-years',
   '/calendar': 'GET /v1/academic-years/{id}/calendar',
   '/promotion': 'GET /v1/academic-years/{id}/promotions',

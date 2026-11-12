@@ -28,11 +28,13 @@ import {
   KeyRound,
   Landmark,
   LayoutDashboard,
+  LibraryBig,
   Mail,
   Megaphone,
   MessageCircle,
   MessagesSquare,
   MoonStar,
+  NotebookPen,
   PenLine,
   Receipt,
   School,
@@ -135,6 +137,7 @@ export const NAV_GROUPS = [
       { href: '/teachers', labelKey: 'teachers', icon: UserRound, permission: 'teacher:read' },
       { href: '/classes', labelKey: 'classes', icon: School, permission: 'class:read' },
       { href: '/subjects', labelKey: 'subjects', icon: BookOpen, permission: 'subject:read' },
+      { href: '/curriculum', labelKey: 'curriculum', icon: LibraryBig, permission: 'subject:read' },
       {
         href: '/academic-years',
         labelKey: 'academicYears',
@@ -206,6 +209,12 @@ export const NAV_GROUPS = [
     key: 'groupAcademic',
     icon: BookOpen,
     items: [
+      {
+        href: '/teaching-plan',
+        labelKey: 'teachingPlan',
+        icon: NotebookPen,
+        permission: 'teaching_plan:write',
+      },
       {
         href: '/schedule',
         labelKey: 'schedule',

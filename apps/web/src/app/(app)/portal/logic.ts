@@ -62,7 +62,12 @@ export function attendanceTone(percentage: number | null): Tone {
   return 'low';
 }
 
-/** Warna nilai terhadap KKM; tanpa KKM, 75 dipakai sebagai patokan. */
+/** KKM satu mapel di portal: KKM mapel (KKTP) bila ada, kalau tidak KKM global; null bila dua-duanya tidak ada. */
+export function subjectKkm(subjectKkm: number | null | undefined, globalKkm: number | null): number | null {
+  return typeof subjectKkm === 'number' && Number.isFinite(subjectKkm) ? subjectKkm : globalKkm;
+}
+
+/** Warna nilai terhadap KKM (boleh desimal); tanpa KKM, 75 dipakai sebagai patokan. */
 export function gradeTone(score: number | null, kkm: number | null): Tone {
   if (score === null) return 'none';
   const pass = kkm ?? 75;

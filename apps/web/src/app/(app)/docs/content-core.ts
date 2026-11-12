@@ -725,8 +725,8 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Menambah mata pelajaran',
-            body: 'Setiap mata pelajaran punya kode dan nama, dan kode tidak boleh sama dengan yang lain di sekolah. Anda bisa menambahnya satu per satu, atau menyalin dari bank kurikulum. Mata pelajaran yang kodenya sudah ada akan dilewati, dan hasil salinan bebas diubah.',
-            tip: 'Mulailah dari bank kurikulum lalu sesuaikan namanya. Cara ini lebih cepat daripada mengetik satu per satu.',
+            body: 'Setiap mata pelajaran punya kode dan nama, dan kode tidak boleh sama dengan yang lain di sekolah. Anda bisa menambahnya satu per satu, atau menyalin dari bank kurikulum lewat menu Kurikulum. Mata pelajaran yang kodenya sudah ada akan dilewati, dan hasil salinan bebas diubah.',
+            tip: 'Mulailah dari bank kurikulum (menu Kurikulum) lalu sesuaikan namanya. Cara ini lebih cepat daripada mengetik satu per satu.',
             href: '/subjects',
           },
           {
@@ -804,8 +804,8 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Adding subjects',
-            body: 'Each subject has a code and a name, and the code must not match another one in the school. You can add them one by one or copy from the curriculum bank. Subjects whose code already exists are skipped, and copied subjects can be freely edited.',
-            tip: 'Start from the curriculum bank and then adjust the names. It is faster than typing them one by one.',
+            body: 'Each subject has a code and a name, and the code must not match another one in the school. You can add them one by one or copy from the curriculum bank through the Curriculum menu. Subjects whose code already exists are skipped, and copied subjects can be freely edited.',
+            tip: 'Start from the curriculum bank (Curriculum menu) and then adjust the names. It is faster than typing them one by one.',
             href: '/subjects',
           },
           {
@@ -883,8 +883,8 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Nambihan mata pelajaran',
-            body: 'Unggal mata pelajaran boga kode jeung ngaran, sarta kode teu meunang sarua jeung nu séjén di sakola. Anjeun bisa nambihanana hiji-hiji, atawa nyalin tina bank kurikulum. Mata pelajaran nu kodena geus aya dilangkungan, sarta hasil salinan bébas dirobah.',
-            tip: 'Mimitian tina bank kurikulum tuluy saluyukeun ngaranna. Leuwih gancang tibatan ngetik hiji-hiji.',
+            body: 'Unggal mata pelajaran boga kode jeung ngaran, sarta kode teu meunang sarua jeung nu séjén di sakola. Anjeun bisa nambihanana hiji-hiji, atawa nyalin tina bank kurikulum lewat menu Kurikulum. Mata pelajaran nu kodena geus aya dilangkungan, sarta hasil salinan bébas dirobah.',
+            tip: 'Mimitian tina bank kurikulum (menu Kurikulum) tuluy saluyukeun ngaranna. Leuwih gancang tibatan ngetik hiji-hiji.',
             href: '/subjects',
           },
           {
@@ -916,6 +916,239 @@ export const CORE_DOCS: DocArticle[] = [
           {
             q: 'Pilihan mata pelajaran dina jadwal kosong. Naon nu kurang?',
             a: 'Jadwal ngan nuduhkeun mata pelajaran nu geus boga guru pangampu di kelas éta. Buka menu Kelas, pilih Guru pangampu dina kelasna, tuluy tetepkeun gurunya.',
+          },
+        ],
+      },
+    },
+  },
+  {
+    slug: 'curriculum',
+    icon: 'book',
+    tone: 'teal',
+    group: 'master',
+    text: {
+      id: {
+        title: 'Mengatur struktur kurikulum dan jam pelajaran',
+        summary:
+          'Ambil mata pelajaran dari bank kurikulum, isi jam pelajaran tiap mapel per tingkat, tentukan kurikulum yang dipakai tiap tingkat, dan bawa semuanya ke tahun ajaran baru.',
+        forWho:
+          'Kurikulum, Operator, dan Admin sekolah yang menyusun mata pelajaran dan jam pelajaran tiap tahun ajaran. Peran lain, termasuk guru, bisa melihat tetapi tidak bisa mengubah.',
+        sections: [
+          {
+            heading: 'Sebelum mulai',
+            body: 'Struktur kurikulum disimpan per tahun ajaran, jadi buat tahun ajarannya lebih dulu. Daftar tingkat sekolah (misalnya 7, 8, 9 atau X, XI, XII) juga harus sudah diisi di Pengaturan sekolah. Halaman Kurikulum punya tiga bagian: Struktur mapel, Versi kurikulum, dan Ambil dari bank.',
+            href: '/academic-years',
+          },
+          {
+            heading: 'Mengambil mata pelajaran dari bank kurikulum',
+            body: 'Bank kurikulum berisi contoh daftar mata pelajaran untuk tiap kurikulum dan jenjang. Mata pelajaran yang diambil disalin ke daftar mapel sekolah dan bebas Anda ubah. Mapel yang sudah pernah diambil, atau yang kodenya sudah ada, dilewati. Bila bank mendapat mapel baru, kotak Pembaruan acuan menawarkan untuk mengambilnya tanpa menyentuh mapel yang sudah Anda ubah.',
+            steps: [
+              'Buka menu Kurikulum, lalu pilih bagian Ambil dari bank.',
+              'Pilih Kurikulum dan Jenjang.',
+              'Hilangkan centang pada mapel yang tidak dipakai, lalu klik Ambil mapel terpilih.',
+            ],
+            tip: 'Data bank hanyalah contoh awal. Periksa kembali dengan aturan terbaru sebelum dipakai.',
+            href: '/curriculum',
+          },
+          {
+            heading: 'Mengisi jam pelajaran tiap mapel',
+            body: 'Di bagian Struktur mapel, pilih tahun ajaran, tingkat, dan jurusan bila ada. Isi jam pelajaran (JP) per minggu dan per tahun untuk tiap mapel. Pilihan Semua jurusan berlaku untuk semua jurusan di tingkat itu. Di atas tabel tampil jumlah JP per minggu dan per tahun. Kolom yang dikosongkan keduanya berarti mapel itu tidak punya alokasi di tingkat tersebut.',
+            steps: [
+              'Pilih Tahun ajaran, Tingkat, dan Jurusan.',
+              'Isi JP per minggu dan JP per tahun pada mapel yang diperlukan. Isi dengan bilangan bulat 0 sampai 9999.',
+              'Klik Simpan perubahan. Hanya baris yang Anda ubah yang disimpan.',
+            ],
+            tip: 'Anda bisa berpindah tingkat setelah menyimpan. Perubahan yang belum disimpan tidak terbawa saat berpindah tingkat, tahun, atau jurusan.',
+            href: '/curriculum',
+          },
+          {
+            heading: 'Menentukan kurikulum tiap tingkat',
+            body: 'Di bagian Versi kurikulum, pilih kurikulum acuan yang dipakai tiap tingkat pada tahun ajaran terpilih, misalnya satu tingkat memakai Kurikulum Merdeka dan tingkat lain masih memakai kurikulum sebelumnya. Tanggal berlaku boleh diisi bila perlu. Memilih Belum ditentukan lalu menyimpan akan menghapus versi tingkat itu.',
+            steps: [
+              'Buka bagian Versi kurikulum dan pilih tahun ajaran.',
+              'Pilih kurikulum pada tiap tingkat, lalu isi tanggal berlaku bila perlu.',
+              'Klik Simpan versi.',
+            ],
+            href: '/curriculum',
+          },
+          {
+            heading: 'Kelompok mapel dan muatan lokal',
+            body: 'Tiap mata pelajaran bisa diberi kelompok (misalnya Umum, Dasar kejuruan, atau Konsentrasi keahlian), ditandai sebagai muatan lokal, diberi urutan tampil, dan dinonaktifkan bila tidak dipakai lagi. Semua itu diatur di menu Mata pelajaran. Mapel nonaktif tidak muncul di tabel jam pelajaran kecuali sudah punya alokasi.',
+            href: '/subjects',
+          },
+          {
+            heading: 'Membawa struktur ke tahun ajaran baru',
+            body: 'Saat menyalin tahun ajaran di menu Kenaikan kelas, pilihan Struktur kurikulum menyalin jam pelajaran dan versi kurikulum ke tahun tujuan. Yang sudah ada di tahun tujuan tidak ditimpa, jadi aman dijalankan ulang. Tanggal berlaku tidak ikut disalin karena tahun baru menentukannya sendiri.',
+            tip: 'Pakai Pratinjau dulu untuk melihat berapa baris yang akan dibuat.',
+            href: '/promotion',
+          },
+        ],
+        faq: [
+          {
+            q: 'Menu Kurikulum tampil tetapi saya tidak bisa mengubah apa pun. Kenapa?',
+            a: 'Mengubah jam pelajaran dan versi kurikulum hanya untuk peran yang mengelola kurikulum, seperti Kurikulum dan Admin sekolah. Peran lain bisa melihat saja. Minta admin sekolah mengatur peran Anda di menu Peran.',
+          },
+          {
+            q: 'Daftar tingkat atau tahun ajaran kosong. Apa yang kurang?',
+            a: 'Tahun ajaran dibuat di menu Tahun ajaran, dan daftar tingkat diisi di Pengaturan sekolah. Setelah keduanya ada, pilihannya muncul di halaman Kurikulum.',
+          },
+          {
+            q: 'Mapel baru tidak muncul di tabel jam pelajaran. Kenapa?',
+            a: 'Mapel yang dinonaktifkan disembunyikan. Aktifkan lagi di menu Mata pelajaran. Pastikan juga Anda memilih tahun ajaran dan tingkat yang benar.',
+          },
+          {
+            q: 'Simpan ditolak dengan pesan tingkat tidak ada. Bagaimana?',
+            a: 'Tingkat itu belum ada atau sudah dihapus dari daftar tingkat sekolah. Tambahkan lagi di Pengaturan sekolah, lalu muat ulang halaman.',
+          },
+        ],
+      },
+      en: {
+        title: 'Setting up the curriculum structure and lesson periods',
+        summary:
+          'Pick subjects from the curriculum bank, fill in each subject’s lesson periods per level, choose the curriculum each level uses, and carry everything over to the new academic year.',
+        forWho:
+          'Curriculum staff, administration staff, and School admins who set up subjects and lesson periods every academic year. Other roles, including teachers, can view but not change.',
+        sections: [
+          {
+            heading: 'Before you start',
+            body: 'The curriculum structure is kept per academic year, so create the academic year first. The school level list (for example 7, 8, 9 or X, XI, XII) must also be filled in under School settings. The Curriculum page has three parts: Subject structure, Curriculum versions, and Pick from the bank.',
+            href: '/academic-years',
+          },
+          {
+            heading: 'Picking subjects from the curriculum bank',
+            body: 'The curriculum bank holds sample subject lists for each curriculum and level. Subjects you pick are copied into the school’s subject list and can be edited freely. Subjects already taken, or whose code already exists, are skipped. When the bank gains new subjects, the Reference updates box offers to take them without touching subjects you have changed.',
+            steps: [
+              'Open the Curriculum menu, then choose the Pick from the bank part.',
+              'Choose the Curriculum and the Level.',
+              'Untick subjects you do not use, then click Add selected subjects.',
+            ],
+            tip: 'Bank data is only a starting sample. Check it against the latest regulations before using it.',
+            href: '/curriculum',
+          },
+          {
+            heading: 'Filling in lesson periods for each subject',
+            body: 'In the Subject structure part, choose the academic year, the level, and the program if there is one. Fill in the lesson periods (JP) per week and per year for each subject. The All programs choice applies to every program at that level. The totals per week and per year show above the table. Leaving both columns empty means the subject has no allocation at that level.',
+            steps: [
+              'Choose the Academic year, Level, and Program.',
+              'Fill in Periods per week and Periods per year for the subjects that need them. Use a whole number from 0 to 9999.',
+              'Click Save changes. Only the rows you changed are saved.',
+            ],
+            tip: 'You can switch levels after saving. Unsaved changes are not carried over when you switch level, year, or program.',
+            href: '/curriculum',
+          },
+          {
+            heading: 'Choosing the curriculum for each level',
+            body: 'In the Curriculum versions part, choose the reference curriculum each level uses in the selected academic year, for example one level on the Merdeka Curriculum while another still uses the earlier one. The effective date is optional. Choosing Not set and saving removes that level’s version.',
+            steps: [
+              'Open the Curriculum versions part and choose the academic year.',
+              'Choose a curriculum for each level, then fill in the effective date if needed.',
+              'Click Save versions.',
+            ],
+            href: '/curriculum',
+          },
+          {
+            heading: 'Subject groups and local content',
+            body: 'Each subject can be given a group (for example General, Vocational foundation, or Vocational concentration), marked as local content, given a display order, and made inactive when no longer used. All of this is set in the Subjects menu. Inactive subjects do not appear in the lesson-period table unless they already have an allocation.',
+            href: '/subjects',
+          },
+          {
+            heading: 'Carrying the structure to a new academic year',
+            body: 'When you copy an academic year in the Class promotion menu, the Curriculum structure option copies the lesson periods and curriculum versions to the target year. Anything already in the target year is not overwritten, so it is safe to run again. Effective dates are not copied because the new year sets its own.',
+            tip: 'Use Preview first to see how many rows will be created.',
+            href: '/promotion',
+          },
+        ],
+        faq: [
+          {
+            q: 'The Curriculum menu shows but I cannot change anything. Why?',
+            a: 'Changing lesson periods and curriculum versions is only for roles that manage the curriculum, such as Curriculum and School admin. Other roles can only view. Ask the school admin to set your role in the Roles menu.',
+          },
+          {
+            q: 'The level list or academic year list is empty. What is missing?',
+            a: 'Academic years are created in the Academic years menu, and the level list is filled in under School settings. Once both exist, the choices appear on the Curriculum page.',
+          },
+          {
+            q: 'A new subject does not appear in the lesson-period table. Why?',
+            a: 'Inactive subjects are hidden. Make the subject active again in the Subjects menu. Also check that you chose the right academic year and level.',
+          },
+          {
+            q: 'Saving is refused with a message that the level does not exist. What now?',
+            a: 'That level is not in the school level list yet, or it was removed. Add it again under School settings, then reload the page.',
+          },
+        ],
+      },
+      su: {
+        title: 'Ngatur struktur kurikulum jeung jam pelajaran',
+        summary:
+          'Candak mata pelajaran tina bank kurikulum, eusian jam pelajaran unggal mapél per tingkat, tangtukeun kurikulum nu dipaké unggal tingkat, tuluy bawa sakabéhna ka taun ajaran anyar.',
+        forWho:
+          'Kurikulum, Operator, jeung Admin sakola nu nyusun mata pelajaran jeung jam pelajaran unggal taun ajaran. Peran séjén, kaasup guru, bisa ningali tapi teu bisa ngarobah.',
+        sections: [
+          {
+            heading: 'Samemeh mimiti',
+            body: 'Struktur kurikulum disimpen per taun ajaran, ku kituna jieun heula taun ajaranna. Daptar tingkat sakola (upamana 7, 8, 9 atawa X, XI, XII) ogé kudu geus kaeusi dina Setélan sakola. Kaca Kurikulum boga tilu bagian: Struktur mapél, Vérsi kurikulum, jeung Candak tina bank.',
+            href: '/academic-years',
+          },
+          {
+            heading: 'Nyandak mata pelajaran tina bank kurikulum',
+            body: 'Bank kurikulum eusina conto daptar mata pelajaran pikeun unggal kurikulum jeung jenjang. Mata pelajaran nu dicandak disalin kana daptar mapél sakola jeung bébas dirobah. Mapél nu geus kungsi dicandak, atawa nu kodéna geus aya, dilaliwatan. Lamun bank meunang mapél anyar, kotak Pembaruan rujukan nawarkeun pikeun nyandakna tanpa noel mapél nu geus Anjeun robah.',
+            steps: [
+              'Buka menu Kurikulum, tuluy pilih bagian Candak tina bank.',
+              'Pilih Kurikulum jeung Jenjang.',
+              'Leungitkeun centang dina mapél nu teu dipaké, tuluy klik Candak mata pelajaran nu dipilih.',
+            ],
+            tip: 'Data bank téh ngan conto awal. Pariksa deui jeung aturan panganyarna samemeh dipaké.',
+            href: '/curriculum',
+          },
+          {
+            heading: 'Ngeusian jam pelajaran unggal mapél',
+            body: 'Dina bagian Struktur mapél, pilih taun ajaran, tingkat, jeung jurusan lamun aya. Eusian jam pelajaran (JP) per minggu jeung per taun pikeun unggal mapél. Pilihan Sadaya jurusan lumaku pikeun sakabéh jurusan di tingkat éta. Di luhur tabel mucunghul jumlah JP per minggu jeung per taun. Lamun dua kolom dikosongkeun, hartina mapél éta teu boga alokasi di tingkat éta.',
+            steps: [
+              'Pilih Taun ajaran, Tingkat, jeung Jurusan.',
+              'Eusian JP per minggu jeung JP per taun dina mapél nu diperlukeun. Eusian wilangan bulat 0 nepi ka 9999.',
+              'Klik Simpen parobahan. Ngan baris nu Anjeun robah nu kasimpen.',
+            ],
+            tip: 'Anjeun bisa pindah tingkat sanggeus nyimpen. Parobahan nu acan kasimpen teu kabawa upami pindah tingkat, taun, atawa jurusan.',
+            href: '/curriculum',
+          },
+          {
+            heading: 'Nangtukeun kurikulum unggal tingkat',
+            body: 'Dina bagian Vérsi kurikulum, pilih kurikulum rujukan nu dipaké unggal tingkat dina taun ajaran nu dipilih, upamana hiji tingkat maké Kurikulum Merdéka sedengkeun tingkat séjén masih maké kurikulum saméméhna. Tanggal lumaku meunang diisi lamun perlu. Milih Acan ditangtukeun tuluy nyimpen bakal ngahapus vérsi tingkat éta.',
+            steps: [
+              'Buka bagian Vérsi kurikulum jeung pilih taun ajaran.',
+              'Pilih kurikulum dina unggal tingkat, tuluy eusian tanggal lumaku lamun perlu.',
+              'Klik Simpen vérsi.',
+            ],
+            href: '/curriculum',
+          },
+          {
+            heading: 'Golongan mapél jeung muatan lokal',
+            body: 'Unggal mata pelajaran bisa dibéré golongan (upamana Umum, Dasar kajuruan, atawa Konsentrasi kaahlian), ditandaan minangka muatan lokal, dibéré urutan tampil, jeung dinonaktipkeun lamun geus teu dipaké. Sakabéhna diatur dina menu Mata pelajaran. Mapél nu teu aktif teu mucunghul dina tabel jam pelajaran iwal geus boga alokasi.',
+            href: '/subjects',
+          },
+          {
+            heading: 'Mawa struktur ka taun ajaran anyar',
+            body: 'Waktu nyalin taun ajaran dina menu Kenaikan kelas, pilihan Struktur kurikulum nyalin jam pelajaran jeung vérsi kurikulum ka taun tujuan. Nu geus aya di taun tujuan teu ditimpa, jadi aman dijalankeun deui. Tanggal lumaku teu milu disalin sabab taun anyar nangtukeun sorangan.',
+            tip: 'Pake Pratinjau heula pikeun nempo sabaraha baris nu bakal dijieun.',
+            href: '/promotion',
+          },
+        ],
+        faq: [
+          {
+            q: 'Menu Kurikulum mucunghul tapi kuring teu bisa ngarobah nanaon. Naha?',
+            a: 'Ngarobah jam pelajaran jeung vérsi kurikulum ngan pikeun peran nu ngokolakeun kurikulum, saperti Kurikulum jeung Admin sakola. Peran séjén ngan bisa ningali. Mentaan admin sakola pikeun ngatur peran Anjeun dina menu Peran.',
+          },
+          {
+            q: 'Daptar tingkat atawa taun ajaran kosong. Naon nu kurang?',
+            a: 'Taun ajaran dijieun dina menu Taun ajaran, jeung daptar tingkat diisi dina Setélan sakola. Sanggeus duanana aya, pilihanana mucunghul di kaca Kurikulum.',
+          },
+          {
+            q: 'Mapél anyar teu mucunghul dina tabel jam pelajaran. Naha?',
+            a: 'Mapél nu dinonaktipkeun disumputkeun. Aktipkeun deui dina menu Mata pelajaran. Pastikeun ogé Anjeun milih taun ajaran jeung tingkat nu bener.',
+          },
+          {
+            q: 'Nyimpen ditolak jeung pesen yén tingkat teu aya. Kumaha?',
+            a: 'Tingkat éta acan aya atawa geus dihapus tina daptar tingkat sakola. Tambihkeun deui dina Setélan sakola, tuluy muat deui kaca.',
           },
         ],
       },

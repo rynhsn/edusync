@@ -60,6 +60,7 @@ export interface ThresholdValues {
 export type ThresholdField = keyof ThresholdValues;
 export const THRESHOLD_ORDER: ThresholdField[] = ['kkm', 'predicateA', 'predicateB', 'predicateC'];
 
+/** KKM sekolah tetap bulat 1..100 (server menolak desimal); KKM desimal per mapel diatur lewat KKTP. */
 export function validateThresholds(v: ThresholdValues): FieldErrors<ThresholdField> {
   const base = {
     kkm: requiredInt(v.kkm, 1, 100),

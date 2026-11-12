@@ -132,7 +132,8 @@ export async function curriculumRoutes(instance: FastifyInstance) {
         summary: 'Pembaruan acuan untuk kurikulum yang sudah diadopsi',
         description:
           'Izin: `subject:read`. Untuk tiap kurikulum+jenjang yang diadopsi sekolah ini, daftar mapel acuan yang ' +
-          'ditambahkan platform setelah adopsi dan belum ada (kodenya) di mapel sekolah. Hanya perbandingan; mapel ' +
+          'ditambahkan platform setelah adopsi dan belum ada di mapel sekolah: belum tertaut (`refSubjectId`) dan kodenya ' +
+          'tidak dipakai (data lama tanpa tautan dicocokkan lewat kode). Hanya perbandingan; mapel ' +
           'sekolah tidak pernah diubah. Adopsi lewat `POST /v1/curricula/adopt` dengan `subjectCodes`.',
         headers: schoolHeader,
         response: {
@@ -158,7 +159,12 @@ export async function curriculumRoutes(instance: FastifyInstance) {
         if (adopted.length === 0) return { updates: [] };
         const curricula = await tx.select().from(refCurriculum);
         const refs = await tx.select().from(refSubject).orderBy(asc(refSubject.sort));
-        const mine = new Set((await tx.select({ code: subject.code }).from(subject)).map((s) => s.code));
+        const mineRows = await tx
+          .select({ code: subject.code, refSubjectId: subject.refSubjectId })
+          .from(subject);
+        const mine = new Set(mineRows.map((s) => s.code));
+        // Mapel yang sudah tertaut ke acuannya dianggap ada walau sekolah mengganti kode atau namanya.
+        const linked = new Set(mineRows.flatMap((s) => (s.refSubjectId ? [s.refSubjectId] : [])));
         const updates = adopted.flatMap((a) => {
           const newSubjects = refs
             .filter(
@@ -166,6 +172,7 @@ export async function curriculumRoutes(instance: FastifyInstance) {
                 r.curriculumKey === a.curriculumKey &&
                 r.levelGroup === a.levelGroup &&
                 r.createdAt > a.adoptedAt &&
+                !linked.has(r.id) &&
                 !mine.has(r.code),
             )
             .map(({ code, name }) => ({ code, name }));
@@ -194,7 +201,9 @@ export async function curriculumRoutes(instance: FastifyInstance) {
         summary: 'Adopsi mapel dari bank data kurikulum',
         description:
           'Izin: `subject:manage`. Menyalin mapel acuan (semua, atau hanya `subjectCodes` yang dipilih) ke mapel sekolah. ' +
-          'Mapel dengan kode yang sudah ada dilewati. Salinan bebas diubah sekolah; pembaruan acuan tidak menimpanya.',
+          'Salinan diberi tautan `refSubjectId` ke mapel acuan. Mapel yang sudah tertaut ke acuan itu atau yang kodenya sudah ' +
+          'ada dilewati; bila kodenya sudah ada tapi belum tertaut, tautannya diisi tanpa menimpa nama. Salinan bebas ' +
+          'diubah sekolah; pembaruan acuan tidak menimpanya.',
         headers: schoolHeader,
         body: z.object({
           curriculumKey: z.string().min(1).max(40),
@@ -229,11 +238,56 @@ export async function curriculumRoutes(instance: FastifyInstance) {
         if (refs.length === 0) {
           throw new HttpError(404, 'not_found', 'Kurikulum atau jenjang itu tidak ada di bank data.');
         }
-        const inserted = await tx
-          .insert(subject)
-          .values(refs.map((r) => ({ schoolId: ctx.schoolId, code: r.code, name: r.name })))
-          .onConflictDoNothing()
-          .returning({ id: subject.id });
+        // Acuan yang sudah punya salinan tertaut (walau kode/nama diubah) tidak disalin lagi.
+        const alreadyLinked = new Set(
+          (
+            await tx
+              .select({ refSubjectId: subject.refSubjectId })
+              .from(subject)
+              .where(
+                inArray(
+                  subject.refSubjectId,
+                  refs.map((r) => r.id),
+                ),
+              )
+          ).flatMap((s) => (s.refSubjectId ? [s.refSubjectId] : [])),
+        );
+        const fresh = refs.filter((r) => !alreadyLinked.has(r.id));
+        const inserted = fresh.length
+          ? await tx
+              .insert(subject)
+              .values(
+                fresh.map((r) => ({
+                  schoolId: ctx.schoolId,
+                  code: r.code,
+                  name: r.name,
+                  refSubjectId: r.id,
+                })),
+              )
+              .onConflictDoNothing()
+              .returning({ id: subject.id })
+          : [];
+        // Kode sudah ada tetapi belum tertaut (data lama): isi tautan saja, nama tidak ditimpa.
+        const insertedIds = new Set(inserted.map((r) => r.id));
+        const existingByCode = fresh.length
+          ? await tx
+              .select({ id: subject.id, code: subject.code, refSubjectId: subject.refSubjectId })
+              .from(subject)
+              .where(
+                inArray(
+                  subject.code,
+                  fresh.map((r) => r.code),
+                ),
+              )
+          : [];
+        let backfilled = 0;
+        for (const e of existingByCode) {
+          if (insertedIds.has(e.id) || e.refSubjectId) continue;
+          const ref = fresh.find((r) => r.code === e.code);
+          if (!ref) continue;
+          await tx.update(subject).set({ refSubjectId: ref.id }).where(eq(subject.id, e.id));
+          backfilled++;
+        }
         await tx
           .insert(schoolCurriculum)
           .values({ schoolId: ctx.schoolId, curriculumKey, levelGroup })
@@ -242,6 +296,7 @@ export async function curriculumRoutes(instance: FastifyInstance) {
           curriculumKey,
           levelGroup,
           created: inserted.length,
+          backfilled,
         });
         return { created: inserted.length, skipped: refs.length - inserted.length };
       });

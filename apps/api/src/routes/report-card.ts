@@ -88,7 +88,7 @@ const documentSchema = z.object({
     z.object({
       subjectId: z.uuid(),
       name: z.string(),
-      kkm: z.number().int(),
+      kkm: z.number(),
       final: z.number().nullable(),
       predicate: predicateEnum.nullable(),
       description: z.string().nullable().describe('Deskripsi capaian otomatis menurut predikat'),

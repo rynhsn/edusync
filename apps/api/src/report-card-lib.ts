@@ -32,6 +32,7 @@ import {
   type StudentGrade,
 } from './grading-lib';
 import { HttpError } from './http-error';
+import { loadKktpResolver } from './kktp-lib';
 
 /** Pengaturan rapor sekolah. Sekolah yang belum mengaturnya mendapat nilai bawaan. */
 export interface ReportSettings {
@@ -126,7 +127,10 @@ export interface ClassContext {
   yearName: string;
   schoolName: string;
   reportSettings: ReportSettings;
+  /** KKM sekolah (`grading_setting.kkm`); KKM tiap mapel ada di `kkmBySubject`. */
   kkm: number;
+  /** KKM efektif per mapel (KKTP berjenjang, jatuh ke `kkm` bila tak ada kriteria). */
+  kkmBySubject: Map<string, number>;
   subjects: { id: string; name: string }[];
   roster: { id: string; name: string; nis: string | null }[];
   grades: Map<string, Map<string, StudentGrade>>;
@@ -165,6 +169,12 @@ export async function loadClassContext(
     components,
     settings,
   });
+  const kkmOf = await loadKktpResolver(tx, {
+    levelCode: cls.level,
+    programId: cls.programId,
+    subjectIds: subjects.map((s) => s.id),
+    fallback: settings.kkm,
+  });
   const averages = new Map(
     studentIds.map((id) => [
       id,
@@ -188,6 +198,7 @@ export async function loadClassContext(
     schoolName: sch?.name ?? '',
     reportSettings,
     kkm: settings.kkm,
+    kkmBySubject: new Map(subjects.map((s) => [s.id, kkmOf(s.id)])),
     subjects,
     roster,
     grades,
@@ -272,14 +283,15 @@ export async function buildDocument(
       const g = c.grades.get(sub.id)?.get(stu.id);
       const final = g?.final ?? null;
       const predicate = g?.predicate ?? null;
+      const kkm = c.kkmBySubject.get(sub.id) ?? c.kkm;
       return {
         subjectId: sub.id,
         name: sub.name,
-        kkm: c.kkm,
+        kkm,
         final,
         predicate,
         description: predicate ? descriptionOf(predicate, d) : null,
-        belowKkm: final !== null && final < c.kkm,
+        belowKkm: final !== null && final < kkm,
       };
     }),
     extracurriculars: ekskul,

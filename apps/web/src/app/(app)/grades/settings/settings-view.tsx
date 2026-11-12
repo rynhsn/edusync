@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Layers, Pencil, Plus, SlidersHorizontal, Target, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -136,6 +137,18 @@ function ThresholdsCard() {
             <p className="text-muted-foreground text-sm">{t('thresholdsHint')}</p>
           </div>
         </div>
+        <p className="text-muted-foreground text-sm">
+          {t('kktpNote')}{' '}
+          <Link href="/curriculum?tab=kktp" className="text-foreground underline underline-offset-2">
+            {t('kktpLink')}
+          </Link>
+        </p>
+        {settings.data.calculationMode && (
+          <p className="text-sm">
+            <span className="text-muted-foreground">{t('calculationModeLabel')}: </span>
+            {t(`calculationMode_${settings.data.calculationMode}`)}
+          </p>
+        )}
         {bands && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {bands.map((b) => (

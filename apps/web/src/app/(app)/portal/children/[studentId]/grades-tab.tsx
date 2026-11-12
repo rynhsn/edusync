@@ -5,9 +5,10 @@ import { useState } from 'react';
 import { SelectField } from '@/components/ui/select-field';
 import type { Locale } from '@/i18n/config';
 import { formatCalendarDate } from '@/lib/format-date';
+import { formatKkm } from '@/lib/kktp';
 import { PORTAL_PATHS, type PortalGrades } from '@/lib/portal-api';
 import { cn } from '@/lib/utils';
-import { gradeTone } from '../../logic';
+import { gradeTone, subjectKkm } from '../../logic';
 import { usePortalDetail } from '../../queries';
 import { EmptyState, TONE_DOT } from '../../ui-bits';
 import { TabState } from './tab-state';
@@ -56,7 +57,8 @@ export function GradesTab({ studentId }: { studentId: string }) {
           )}
           <ul className="grid gap-3 sm:grid-cols-2">
             {data.subjects.map((s) => {
-              const tone = gradeTone(s.final, data.kkm);
+              const kkm = subjectKkm(s.kkm, data.kkm);
+              const tone = gradeTone(s.final, kkm);
               const width = s.final === null ? 0 : Math.min(100, Math.max(0, s.final));
               return (
                 <li key={s.subjectId} className="bg-card grid gap-3 rounded-2xl border p-4">
@@ -76,6 +78,11 @@ export function GradesTab({ studentId }: { studentId: string }) {
                         {s.final === null ? '–' : Math.round(s.final * 10) / 10}
                       </p>
                       {s.predicate && <p className="text-muted-foreground mt-1 text-xs">{s.predicate}</p>}
+                      {kkm !== null && (
+                        <p className="text-muted-foreground text-xs tabular-nums">
+                          {t('kkm', { value: formatKkm(kkm) })}
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div
@@ -93,11 +100,11 @@ export function GradesTab({ studentId }: { studentId: string }) {
                       )}
                       style={{ width: `${width}%` }}
                     />
-                    {data.kkm !== null && (
+                    {kkm !== null && (
                       <span
                         aria-hidden
                         className="bg-foreground/50 absolute inset-y-0 w-0.5"
-                        style={{ left: `${data.kkm}%` }}
+                        style={{ left: `${Math.min(100, Math.max(0, kkm))}%` }}
                       />
                     )}
                   </div>

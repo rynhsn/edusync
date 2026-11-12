@@ -1,3 +1,4 @@
+import { SUBJECT_GROUPS } from '@edusync/contracts';
 import {
   academicYear,
   and,
@@ -8,6 +9,7 @@ import {
   eq,
   isNull,
   program,
+  refSubject,
   student,
   subject,
   type Tx,
@@ -35,8 +37,48 @@ const code = z
 
 const programSchema = z.object({ id: z.uuid(), code: z.string(), name: z.string() });
 const programBody = z.object({ code, name });
-const subjectSchema = z.object({ id: z.uuid(), code: z.string(), name: z.string() });
-const subjectBody = z.object({ code, name });
+const subjectGroup = z.enum(SUBJECT_GROUPS);
+/** Field metadata bersifat opsional di respons dan permintaan agar klien lama tetap diterima. */
+const subjectSchema = z.object({
+  id: z.uuid(),
+  code: z.string(),
+  name: z.string(),
+  refSubjectId: z
+    .uuid()
+    .nullable()
+    .optional()
+    .describe('Mapel acuan platform asal salinan; null bila buatan sekolah'),
+  subjectGroup: subjectGroup.nullable().optional(),
+  isLocalContent: z.boolean().optional(),
+  sortOrder: z.number().int().optional(),
+  active: z.boolean().optional(),
+});
+const subjectBody = z.object({
+  code,
+  name,
+  refSubjectId: z.uuid().nullable().optional(),
+  subjectGroup: subjectGroup.nullable().optional(),
+  isLocalContent: z.boolean().optional(),
+  sortOrder: z.number().int().min(0).max(9999).optional(),
+  active: z.boolean().optional(),
+});
+const subjectOut = (r: typeof subject.$inferSelect) => ({
+  id: r.id,
+  code: r.code,
+  name: r.name,
+  refSubjectId: r.refSubjectId,
+  subjectGroup: r.subjectGroup,
+  isLocalContent: r.isLocalContent,
+  sortOrder: r.sortOrder,
+  active: r.active,
+});
+
+/** Mapel acuan harus ada (tabel acuan global, tidak dijaga RLS). */
+async function requireRefSubject(tx: Tx, refSubjectId: string | null | undefined) {
+  if (!refSubjectId) return;
+  const rows = await tx.select({ id: refSubject.id }).from(refSubject).where(eq(refSubject.id, refSubjectId));
+  if (rows.length === 0) throw new HttpError(400, 'invalid_reference', 'Mapel acuan tidak ditemukan.');
+}
 const classSchema = z.object({
   id: z.uuid(),
   academicYearId: z.uuid(),
@@ -256,7 +298,10 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         response: { 200: z.array(subjectSchema), ...guarded },
       },
     },
-    async (request) => tenant(request, (tx) => tx.select().from(subject).orderBy(asc(subject.name))),
+    async (request) =>
+      tenant(request, async (tx) =>
+        (await tx.select().from(subject).orderBy(asc(subject.name))).map(subjectOut),
+      ),
   );
 
   app.post(
@@ -266,16 +311,19 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Buat mata pelajaran',
-        description: 'Izin: `subject:manage`. Kode harus unik di sekolah.',
+        description:
+          'Izin: `subject:manage`. Kode harus unik di sekolah. Metadata opsional: `refSubjectId` (mapel acuan; 400 ' +
+          '`invalid_reference` bila tidak ada), `subjectGroup`, `isLocalContent`, `sortOrder`, `active`.',
         headers: schoolHeader,
         body: subjectBody,
-        response: { 201: subjectSchema, 409: errorSchema, ...guarded },
+        response: { 201: subjectSchema, 400: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
       const row = await conflictAs409('Kode mata pelajaran itu sudah dipakai.', () =>
         tenant(request, async (tx) => {
+          await requireRefSubject(tx, request.body.refSubjectId);
           const [r] = await tx
             .insert(subject)
             .values({ schoolId: ctx.schoolId, ...request.body })
@@ -284,7 +332,7 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
           return r!;
         }),
       );
-      return reply.code(201).send({ id: row.id, code: row.code, name: row.name });
+      return reply.code(201).send(subjectOut(row));
     },
   );
 
@@ -295,17 +343,20 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Ubah mata pelajaran',
-        description: 'Izin: `subject:manage`.',
+        description:
+          'Izin: `subject:manage`. Hanya field yang dikirim yang diubah; metadata (`refSubjectId`, `subjectGroup`, ' +
+          '`isLocalContent`, `sortOrder`, `active`) yang tidak dikirim tidak berubah.',
         headers: schoolHeader,
         params: idParams,
         body: subjectBody,
-        response: { 200: subjectSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+        response: { 200: subjectSchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
       const row = await conflictAs409('Kode mata pelajaran itu sudah dipakai.', () =>
         tenant(request, async (tx) => {
+          await requireRefSubject(tx, request.body.refSubjectId);
           const [r] = await tx
             .update(subject)
             .set(request.body)
@@ -316,7 +367,7 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
           return r;
         }),
       );
-      return { id: row.id, code: row.code, name: row.name };
+      return subjectOut(row);
     },
   );
 

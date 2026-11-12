@@ -21,6 +21,8 @@ interface Options {
   copyClasses: boolean;
   copyAssignments: boolean;
   copyCalendar: boolean;
+  copyCurriculum: boolean;
+  copyTeachingPlans: boolean;
 }
 
 export function RolloverStep({
@@ -41,8 +43,15 @@ export function RolloverStep({
     copyClasses: true,
     copyAssignments: true,
     copyCalendar: true,
+    copyCurriculum: true,
+    copyTeachingPlans: true,
   });
-  const anyOption = options.copyClasses || options.copyAssignments || options.copyCalendar;
+  const anyOption =
+    options.copyClasses ||
+    options.copyAssignments ||
+    options.copyCalendar ||
+    options.copyCurriculum ||
+    options.copyTeachingPlans;
 
   const run = useMutation({
     mutationFn: async (dryRun: boolean) => ({
@@ -65,6 +74,9 @@ export function RolloverStep({
       );
       queryClient.invalidateQueries({ queryKey: ['classes', school.schoolId] });
       queryClient.invalidateQueries({ queryKey: ['promotions', school.schoolId] });
+      queryClient.invalidateQueries({ queryKey: ['curriculum-allocations', school.schoolId] });
+      queryClient.invalidateQueries({ queryKey: ['curriculum-versions', school.schoolId] });
+      queryClient.invalidateQueries({ queryKey: ['teaching-plan'] });
     },
   });
   const result = run.data;
@@ -79,6 +91,8 @@ export function RolloverStep({
     { key: 'copyClasses', label: t('copyClasses'), hint: t('copyClassesHint') },
     { key: 'copyAssignments', label: t('copyAssignments'), hint: t('copyAssignmentsHint') },
     { key: 'copyCalendar', label: t('copyCalendar'), hint: t('copyCalendarHint') },
+    { key: 'copyCurriculum', label: t('copyCurriculum'), hint: t('copyCurriculumHint') },
+    { key: 'copyTeachingPlans', label: t('copyTeachingPlans'), hint: t('copyTeachingPlansHint') },
   ];
 
   return (
@@ -157,6 +171,31 @@ export function RolloverStep({
               value={result.data.assignmentsCreated}
             />
             <StatCard icon={Copy} tone="sky" label={t('eventsCreated')} value={result.data.eventsCreated} />
+            {options.copyCurriculum && (
+              <>
+                <StatCard
+                  icon={Copy}
+                  tone="amber"
+                  label={t('allocationsCreated')}
+                  value={result.data.allocationsCreated ?? 0}
+                />
+                <StatCard
+                  icon={Copy}
+                  tone="emerald"
+                  label={t('versionsCreated')}
+                  value={result.data.versionsCreated ?? 0}
+                />
+              </>
+            )}
+            {options.copyTeachingPlans && (
+              <StatCard
+                icon={Copy}
+                tone="rose"
+                label={t('flowsCreated')}
+                value={result.data.flowsCreated ?? 0}
+                hint={t('flowsCreatedHint')}
+              />
+            )}
           </StatGrid>
           {warnings.length > 0 ? (
             <Alert>

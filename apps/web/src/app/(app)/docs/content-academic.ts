@@ -20,7 +20,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             body: 'Sebelum guru mulai mengisi, tentukan dulu KKM, batas predikat A/B/C, dan komponen nilai beserta bobotnya (misalnya Tugas atau UTS). Bila sekolah belum punya komponen, tombol Pasang komponen bawaan membuat Tugas (20), Ulangan Harian (30), UTS (20), dan UAS (30). Bila belum diatur, KKM-nya 75 dengan batas A 90, B 80, dan C 70.',
             steps: [
               'Buka Pengaturan penilaian.',
-              'Isi KKM dan batas predikat A, B, dan C. A harus lebih besar dari B, dan B lebih besar dari C.',
+              'Isi KKM dan batas predikat A, B, dan C. A harus lebih besar dari B, dan B lebih besar dari C. KKM ini berlaku untuk mapel yang belum punya KKM sendiri; KKM per mapel (boleh desimal) diatur di tab KKTP pada Kurikulum.',
               'Tambah komponen nilai beserta bobotnya (1 sampai 100), atau klik Pasang komponen bawaan.',
               'Simpan. Bila jumlah bobot bukan 100%, muncul peringatan.',
             ],
@@ -85,7 +85,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             body: 'Before teachers start, decide the passing mark (KKM), the A/B/C predicate thresholds, and the score components with their weights (for example Assignments or Midterm). If the school has no components yet, the Install default components button creates Assignments (20), Daily Tests (30), Midterm (20), and Final Exam (30). If nothing is set, the passing mark is 75 with A 90, B 80, and C 70.',
             steps: [
               'Open Grading settings.',
-              'Enter the passing mark and the A, B, and C thresholds. A must be higher than B, and B higher than C.',
+              'Enter the passing mark and the A, B, and C thresholds. A must be higher than B, and B higher than C. This KKM applies to subjects without their own; a KKM per subject (decimals allowed) is set in the KKTP tab of Curriculum.',
               'Add score components with their weight (1 to 100), or click Install default components.',
               'Save. If the total weight is not 100%, a warning appears.',
             ],
@@ -150,7 +150,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             body: 'Sateuacan guru ngeusian, tangtoskeun heula KKM, wates predikat A/B/C, sareng komponén nilai sareng bobotna (contona Tugas atanapi UTS). Upami sakola can gaduh komponén, tombol Pasang komponen bawaan nyieun Tugas (20), Ulangan Harian (30), UTS (20), sareng UAS (30). Upami can disetél, KKM-na 75 kalayan wates A 90, B 80, sareng C 70.',
             steps: [
               'Buka Pengaturan penilaian.',
-              'Eusian KKM sareng wates predikat A, B, sareng C. A kedah langkung ageung tibatan B, B langkung ageung tibatan C.',
+              'Eusian KKM sareng wates predikat A, B, sareng C. A kedah langkung ageung tibatan B, B langkung ageung tibatan C. KKM ieu berlaku pikeun mapel nu acan gaduh KKM nyalira; KKM per mapel (tiasa désimal) diatur dina tab KKTP di Kurikulum.',
               'Tambihan komponén nilai sareng bobotna (1 dugi ka 100), atanapi klik Pasang komponen bawaan.',
               'Simpen. Upami jumlah bobot sanés 100%, aya émutan.',
             ],
@@ -1211,7 +1211,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Langkah 2: menyalin kelas, penugasan, dan kalender',
-            body: 'Langkah ini menyiapkan tahun tujuan. Kelas 7A menjadi 8A di tahun tujuan, lengkap dengan wali kelas dan guru mata pelajarannya. Kelas tingkat pertama juga disalin apa adanya untuk siswa baru dan siswa yang tinggal kelas. Kelas tingkat terakhir tidak disalin karena siswanya lulus. Kalender akademik ikut disalin dengan tanggal yang digeser. Hasilnya menampilkan jumlah yang dibuat dan daftar hal yang perlu diperiksa, misalnya wali kelas yang sudah nonaktif. Langkah ini boleh dilewati bila kelas tahun tujuan sudah Anda buat sendiri.',
+            body: 'Langkah ini menyiapkan tahun tujuan. Kelas 7A menjadi 8A di tahun tujuan, lengkap dengan wali kelas dan guru mata pelajarannya. Kelas tingkat pertama juga disalin apa adanya untuk siswa baru dan siswa yang tinggal kelas. Kelas tingkat terakhir tidak disalin karena siswanya lulus. Kalender akademik ikut disalin dengan tanggal yang digeser. Struktur kurikulum (jam pelajaran dan versi kurikulum tiap tingkat) juga ikut disalin. Hasilnya menampilkan jumlah yang dibuat dan daftar hal yang perlu diperiksa, misalnya wali kelas yang sudah nonaktif. Langkah ini boleh dilewati bila kelas tahun tujuan sudah Anda buat sendiri.',
             steps: [
               'Centang apa saja yang ingin disalin.',
               'Klik Pratinjau untuk melihat jumlahnya dan peringatan.',
@@ -1291,7 +1291,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Step 2: copying classes, assignments, and calendar',
-            body: 'This step prepares the target year. Class 7A becomes 8A in the target year, together with its homeroom teacher and subject teachers. First-level classes are also copied as they are for new students and students who repeat. Final-level classes are not copied because their students graduate. The academic calendar is copied too, with shifted dates. The result shows the numbers created and a list of things to check, for example a homeroom teacher who is no longer active. You can skip this step if you already created the target year classes yourself.',
+            body: 'This step prepares the target year. Class 7A becomes 8A in the target year, together with its homeroom teacher and subject teachers. First-level classes are also copied as they are for new students and students who repeat. Final-level classes are not copied because their students graduate. The academic calendar is copied too, with shifted dates. The curriculum structure (lesson periods and the curriculum version of each level) is copied as well. The result shows the numbers created and a list of things to check, for example a homeroom teacher who is no longer active. You can skip this step if you already created the target year classes yourself.',
             steps: [
               'Tick what you want to copy.',
               'Click Preview to see the numbers and warnings.',
@@ -1371,7 +1371,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Léngkah 2: nyalin kelas, tugas, jeung kalénder',
-            body: 'Léngkah ieu nyiapkeun taun tujuan. Kelas 7A jadi 8A di taun tujuan, lengkep jeung wali kelas jeung guru mata pelajaranna. Kelas tingkat kahiji ogé disalin sakumaha aya pikeun siswa anyar jeung siswa nu tinggal kelas. Kelas tingkat panungtungan teu disalin lantaran siswana lulus. Kalénder akadémik milu disalin kalayan tanggal nu digeser. Hasilna nembongkeun jumlah nu dijieun jeung daptar hal nu kudu dipariksa, upamana wali kelas nu geus nonaktip. Léngkah ieu meunang diliwatan upami kelas taun tujuan geus dijieun ku anjeun sorangan.',
+            body: 'Léngkah ieu nyiapkeun taun tujuan. Kelas 7A jadi 8A di taun tujuan, lengkep jeung wali kelas jeung guru mata pelajaranna. Kelas tingkat kahiji ogé disalin sakumaha aya pikeun siswa anyar jeung siswa nu tinggal kelas. Kelas tingkat panungtungan teu disalin lantaran siswana lulus. Kalénder akadémik milu disalin kalayan tanggal nu digeser. Struktur kurikulum (jam pelajaran jeung vérsi kurikulum unggal tingkat) ogé milu disalin. Hasilna nembongkeun jumlah nu dijieun jeung daptar hal nu kudu dipariksa, upamana wali kelas nu geus nonaktip. Léngkah ieu meunang diliwatan upami kelas taun tujuan geus dijieun ku anjeun sorangan.',
             steps: [
               'Centang naon waé nu rék disalin.',
               'Klik Pratinjau pikeun ningali jumlahna jeung pépéling.',
@@ -1424,6 +1424,458 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Ménu Naékna kelas teu muncul di kuring.',
             a: 'Ménu ieu ngan pikeun peran nu dibéré aksés naékna kelas, saperti Kurikulum jeung Admin sakola. Tuhu admin sakola pikeun mariksa peran anjeun.',
+          },
+        ],
+      },
+    },
+  },
+  {
+    slug: 'teaching-plan',
+    icon: 'book',
+    tone: 'sky',
+    group: 'academic',
+    text: {
+      id: {
+        title: 'Perangkat ajar: CP, TP, dan ATP',
+        summary:
+          'Cara guru dan kurikulum menyusun capaian pembelajaran (CP), tujuan pembelajaran (TP), dan alur tujuan pembelajaran (ATP) per mata pelajaran, lalu menerbitkannya.',
+        forWho:
+          'Guru yang menyusun perangkat ajar mata pelajaran yang diampunya, serta Kurikulum dan Admin sekolah yang mengelola semua mata pelajaran.',
+        sections: [
+          {
+            heading: 'Gambaran singkat',
+            body: 'Perangkat ajar terdiri dari tiga bagian. Capaian pembelajaran (CP) adalah sasaran per fase. Tujuan pembelajaran (TP) adalah langkah-langkah kecil di bawah CP. Alur tujuan pembelajaran (ATP) adalah urutan TP dalam satu tahun ajaran, lengkap dengan perkiraan minggu, jam pelajaran, dan semester. Seluruhnya opsional: sekolah yang belum memakainya tetap bisa menjalankan fitur lain.',
+            tip: 'Guru hanya melihat dan mengubah mata pelajaran yang ia ampu. Kurikulum dan Admin sekolah dapat mengelola semua mata pelajaran.',
+          },
+          {
+            heading: 'Menyusun CP dan TP',
+            body: 'Pilih mata pelajaran, lalu buka bagian Capaian dan tujuan. CP dikelompokkan per fase (A sampai F). Di bawah tiap CP Anda menambahkan TP, mengubah urutannya dengan tombol naik dan turun, menonaktifkan, atau menghapusnya.',
+            steps: [
+              'Buka menu Perangkat ajar saya dan pilih mata pelajaran.',
+              'Klik Tambah CP, pilih fase, lalu tulis capaian pembelajarannya.',
+              'Di bawah CP itu, klik Tambah TP dan tulis tujuannya. Ulangi untuk TP berikutnya.',
+              'Gunakan tombol naik dan turun untuk mengatur urutan TP.',
+            ],
+            href: '/teaching-plan',
+          },
+          {
+            heading: 'Mengubah teks yang sudah dipakai',
+            body: 'Selama CP atau TP belum dipakai ATP yang terbit, mengubah teksnya langsung menimpa teks lama. Bila sudah dipakai ATP yang terbit, teks lama tidak ditimpa: sistem membuat versi baru dan menandai yang lama sebagai versi lama. ATP yang sudah terbit tetap menunjuk teks lama, jadi arsipnya tidak berubah. Untuk memakai teks baru, buat versi baru ATP-nya.',
+            warning:
+              'TP yang masih dipakai sebuah ATP tidak bisa dihapus. Keluarkan dulu dari ATP-nya, atau nonaktifkan saja TP itu.',
+          },
+          {
+            heading: 'Menyusun ATP',
+            body: 'Buka bagian Alur tujuan, pilih tahun ajaran, lalu buat ATP baru dengan nama dan tingkat; fase terisi otomatis dari tingkat. ATP baru berstatus draf. Tambahkan TP dari CP mata pelajaran itu, isi perkiraan minggu, jam pelajaran, dan semester, lalu atur urutannya. Satu TP hanya boleh muncul sekali dalam satu ATP, dan satu ATP maksimal berisi 300 item.',
+            steps: [
+              'Pilih tahun ajaran, lalu klik ATP baru dan isi namanya.',
+              'Klik Tambah TP, centang TP yang diperlukan, lalu klik tombol tambah.',
+              'Isi minggu, JP, dan semester pada tiap baris, dan atur urutannya.',
+              'Klik Simpan draf. Perubahan yang belum disimpan ditandai di bawah tabel.',
+            ],
+            href: '/teaching-plan',
+          },
+          {
+            heading: 'Menerbitkan dan membuat versi baru',
+            body: 'Bila ATP sudah siap, klik Terbitkan lalu konfirmasi. ATP yang terbit terkunci dan hanya bisa dilihat. Untuk merevisinya, klik Buat versi baru: isinya disalin menjadi draf versi berikutnya, sedangkan versi yang terbit tetap utuh. Draf yang belum terbit bisa dihapus.',
+            tip: 'Saat pergantian tahun ajaran, pilih Salin perangkat ajar di langkah menyalin data pada menu Kenaikan kelas. ATP yang terbit disalin sebagai draf ke tahun baru untuk Anda periksa dan terbitkan lagi.',
+            warning:
+              'ATP yang sudah terbit tidak bisa diubah atau dihapus. Pastikan isinya benar sebelum menerbitkan.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Apakah perangkat ajar wajib diisi?',
+            a: 'Tidak. Perangkat ajar bersifat opsional. Sekolah yang belum memakainya tetap dapat menjalankan fitur lain seperti jadwal, nilai, dan rapor.',
+          },
+          {
+            q: 'Mengapa saya tidak melihat mata pelajaran tertentu?',
+            a: 'Guru hanya melihat mata pelajaran yang ia ampu. Bila mata pelajaran Anda tidak muncul, minta Kurikulum atau Admin sekolah mengatur penugasan mengajar Anda.',
+          },
+          {
+            q: 'Saya mengubah teks TP, tetapi muncul versi baru. Apakah itu wajar?',
+            a: 'Wajar. TP itu sudah dipakai ATP yang terbit, jadi teks lama dipertahankan sebagai arsip dan teks baru disimpan sebagai versi baru. Buat versi baru ATP bila ingin memakai teks yang baru.',
+          },
+          {
+            q: 'Mengapa tombol Terbitkan tidak bisa diklik?',
+            a: 'ATP harus berisi minimal satu TP dan tidak boleh punya perubahan yang belum disimpan. Simpan draf dulu, lalu coba lagi.',
+          },
+          {
+            q: 'Siapa yang bisa melihat perangkat ajar?',
+            a: 'Pengguna yang boleh melihat mata pelajaran dapat melihatnya. Hanya guru pengampu, Kurikulum, dan Admin sekolah yang dapat menyusun atau mengubahnya.',
+          },
+        ],
+      },
+      en: {
+        title: 'Teaching materials: CP, TP, and ATP',
+        summary:
+          'How teachers and the curriculum team prepare learning outcomes (CP), learning objectives (TP), and learning objective flows (ATP) for each subject, and then publish them.',
+        forWho:
+          'Teachers who prepare the teaching materials of the subjects they teach, and the Curriculum team and School admins who manage all subjects.',
+        sections: [
+          {
+            heading: 'Overview',
+            body: 'Teaching materials have three parts. Learning outcomes (CP) are the goals for each phase. Learning objectives (TP) are the small steps under a CP. The learning objective flow (ATP) is the order of TP across a school year, with estimated weeks, lesson periods, and semester. All of it is optional: a school that does not use it can still run every other feature.',
+            tip: 'Teachers only see and change the subjects they teach. The Curriculum team and School admins can manage all subjects.',
+          },
+          {
+            heading: 'Preparing CP and TP',
+            body: 'Pick a subject and open the Outcomes and objectives section. CP are grouped by phase (A to F). Under each CP you add TP, reorder them with the up and down buttons, deactivate them, or delete them.',
+            steps: [
+              'Open My teaching materials and pick a subject.',
+              'Click Add CP, pick the phase, and write the learning outcome.',
+              'Under that CP, click Add TP and write the objective. Repeat for the next TP.',
+              'Use the up and down buttons to set the order of the TP.',
+            ],
+            href: '/teaching-plan',
+          },
+          {
+            heading: 'Changing text that is already in use',
+            body: 'As long as a CP or TP is not used by a published ATP, changing its text simply replaces the old text. Once a published ATP uses it, the old text is not overwritten: the system creates a new version and marks the old one as an old version. A published ATP keeps pointing to the old text, so its record does not change. To use the new text, create a new version of the ATP.',
+            warning:
+              'A TP that an ATP still uses cannot be deleted. Remove it from that ATP first, or simply deactivate the TP.',
+          },
+          {
+            heading: 'Preparing an ATP',
+            body: 'Open the Objective flows section, pick the school year, and create a new ATP with a name and level; the phase is filled in automatically from the level. A new ATP is a draft. Add TP from the CP of that subject, fill in the estimated weeks, lesson periods, and semester, and set the order. A TP can appear only once in an ATP, and one ATP can hold at most 300 items.',
+            steps: [
+              'Pick the school year, click New ATP, and enter its name.',
+              'Click Add TP, tick the TP you need, and click the add button.',
+              'Fill in weeks, periods, and semester on each row, and set the order.',
+              'Click Save draft. Unsaved changes are flagged under the table.',
+            ],
+            href: '/teaching-plan',
+          },
+          {
+            heading: 'Publishing and creating a new version',
+            body: 'When the ATP is ready, click Publish and confirm. A published ATP is locked and read-only. To revise it, click Create new version: its contents are copied into a draft of the next version while the published version stays intact. A draft that has not been published can be deleted.',
+            tip: 'At the change of school year, tick Copy teaching materials in the copy step of the Promotion menu. Published ATP are copied to the new year as drafts for you to review and publish again.',
+            warning:
+              'A published ATP cannot be changed or deleted. Make sure its contents are right before publishing.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Do I have to fill in the teaching materials?',
+            a: 'No. Teaching materials are optional. A school that does not use them can still run other features such as the schedule, grades, and report cards.',
+          },
+          {
+            q: 'Why do I not see a certain subject?',
+            a: 'Teachers only see the subjects they teach. If your subject does not appear, ask the Curriculum team or a School admin to set up your teaching assignments.',
+          },
+          {
+            q: 'I changed the text of a TP but a new version appeared. Is that normal?',
+            a: 'Yes. The TP was already used by a published ATP, so the old text is kept as a record and the new text is saved as a new version. Create a new version of the ATP if you want to use the new text.',
+          },
+          {
+            q: 'Why can I not click Publish?',
+            a: 'An ATP must contain at least one TP and must have no unsaved changes. Save the draft first, then try again.',
+          },
+          {
+            q: 'Who can see the teaching materials?',
+            a: 'Users who can view subjects can see them. Only the teacher of the subject, the Curriculum team, and School admins can prepare or change them.',
+          },
+        ],
+      },
+      su: {
+        title: 'Parabot ngajar: CP, TP, jeung ATP',
+        summary:
+          'Cara guru jeung kurikulum nyusun capaian pangajaran (CP), tujuan pangajaran (TP), jeung alur tujuan pangajaran (ATP) pikeun unggal mata pelajaran, tuluy nerbitkeunana.',
+        forWho:
+          'Guru nu nyusun parabot ngajar mata pelajaran nu diampuna, sarta Kurikulum jeung Admin sakola nu ngatur kabéh mata pelajaran.',
+        sections: [
+          {
+            heading: 'Gambaran singget',
+            body: 'Parabot ngajar diwangun ku tilu bagian. Capaian pangajaran (CP) nyaéta sasaran per fase. Tujuan pangajaran (TP) nyaéta léngkah-léngkah leutik handapeun CP. Alur tujuan pangajaran (ATP) nyaéta urutan TP dina sataun pangajaran, lengkep jeung kira-kira minggu, jam pelajaran, jeung semester. Kabéhanana opsional: sakola nu acan makéna tetep bisa ngajalankeun fitur séjén.',
+            tip: 'Guru ngan ningali jeung ngarobah mata pelajaran nu diampuna. Kurikulum jeung Admin sakola bisa ngatur kabéh mata pelajaran.',
+          },
+          {
+            heading: 'Nyusun CP jeung TP',
+            body: 'Pilih mata pelajaran, tuluy buka bagian Capaian jeung tujuan. CP dikelompokkeun per fase (A nepi ka F). Handapeun unggal CP anjeun nambahan TP, ngarobah urutanana ku tombol naék jeung turun, mareuman, atawa micecun.',
+            steps: [
+              'Buka ménu Parabot ngajar kuring tuluy pilih mata pelajaran.',
+              'Klik Tambah CP, pilih fase, tuluy tulis capaian pangajaranna.',
+              'Handapeun CP éta, klik Tambah TP tuluy tulis tujuanana. Ulang pikeun TP saterusna.',
+              'Paké tombol naék jeung turun pikeun ngatur urutan TP.',
+            ],
+            href: '/teaching-plan',
+          },
+          {
+            heading: 'Ngarobah téks nu geus dipaké',
+            body: 'Salami CP atawa TP acan dipaké ATP nu geus terbit, ngarobah téksna langsung nimpa téks heubeul. Upami geus dipaké ATP nu geus terbit, téks heubeul teu ditimpa: sistem nyieun vérsi anyar jeung nandaan nu heubeul minangka vérsi heubeul. ATP nu geus terbit tetep nuduhkeun téks heubeul, jadi arsipna teu robah. Pikeun makéna téks anyar, jieun vérsi anyar ATP-na.',
+            warning:
+              'TP nu masih dipaké hiji ATP teu bisa dipiceun. Kaluarkeun heula tina ATP-na, atawa pareuman waé TP éta.',
+          },
+          {
+            heading: 'Nyusun ATP',
+            body: 'Buka bagian Alur tujuan, pilih taun pangajaran, tuluy jieun ATP anyar jeung ngaran sarta tingkat; fase kaeusi otomatis tina tingkat. ATP anyar statusna konsép. Tambihan TP tina CP mata pelajaran éta, eusian kira-kira minggu, jam pelajaran, jeung semester, tuluy atur urutanana. Hiji TP ngan meunang muncul sakali dina hiji ATP, jeung hiji ATP maksimal eusina 300 butir.',
+            steps: [
+              'Pilih taun pangajaran, klik ATP anyar tuluy eusian ngaranna.',
+              'Klik Tambah TP, centang TP nu diperlukeun, tuluy klik tombol tambah.',
+              'Eusian minggu, JP, jeung semester dina unggal baris, tuluy atur urutanana.',
+              'Klik Simpen konsép. Parobahan nu acan disimpen ditandaan handapeun tabel.',
+            ],
+            href: '/teaching-plan',
+          },
+          {
+            heading: 'Nerbitkeun jeung nyieun vérsi anyar',
+            body: 'Upami ATP geus siap, klik Terbitkeun tuluy konfirmasi. ATP nu geus terbit dikonci jeung ngan bisa dilieuk. Pikeun ngarévisi, klik Jieun vérsi anyar: eusina disalin jadi konsép vérsi saterusna, sedengkeun vérsi nu terbit tetep utuh. Konsép nu acan terbit bisa dipiceun.',
+            tip: 'Waktu ganti taun pangajaran, pilih Salin parabot ngajar dina léngkah nyalin data di ménu Naékna kelas. ATP nu terbit disalin jadi konsép ka taun anyar pikeun dipariksa jeung diterbitkeun deui.',
+            warning:
+              'ATP nu geus terbit teu bisa dirobah atawa dipiceun. Pastikeun eusina bener saacan nerbitkeun.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha parabot ngajar kudu dieusi?',
+            a: 'Henteu. Parabot ngajar sipatna opsional. Sakola nu acan makéna tetep bisa ngajalankeun fitur séjén saperti jadwal, nilai, jeung rapor.',
+          },
+          {
+            q: 'Naha kuring teu ningali mata pelajaran tangtu?',
+            a: 'Guru ngan ningali mata pelajaran nu diampuna. Upami mata pelajaran anjeun teu muncul, pénta Kurikulum atawa Admin sakola pikeun ngatur tugas ngajar anjeun.',
+          },
+          {
+            q: 'Kuring ngarobah téks TP, tapi muncul vérsi anyar. Naha éta wajar?',
+            a: 'Wajar. TP éta geus dipaké ATP nu geus terbit, jadi téks heubeul dijaga minangka arsip jeung téks anyar disimpen minangka vérsi anyar. Jieun vérsi anyar ATP upami hayang makéna téks anyar.',
+          },
+          {
+            q: 'Naha tombol Terbitkeun teu bisa diklik?',
+            a: 'ATP kudu eusina sahanteuna hiji TP jeung teu meunang aya parobahan nu acan disimpen. Simpen heula konsépna, tuluy cobaan deui.',
+          },
+          {
+            q: 'Saha nu bisa ningali parabot ngajar?',
+            a: 'Pamaké nu meunang ningali mata pelajaran bisa ningalina. Ngan guru pangampu, Kurikulum, jeung Admin sakola nu bisa nyusun atawa ngarobahna.',
+          },
+        ],
+      },
+    },
+  },
+  {
+    slug: 'kktp',
+    icon: 'book',
+    tone: 'teal',
+    group: 'academic',
+    module: 'grades',
+    text: {
+      id: {
+        title: 'KKTP: KKM per mata pelajaran',
+        summary:
+          'Cara menentukan batas ketuntasan (KKM) tiap mata pelajaran, termasuk KKM desimal dan kriteria berlevel, serta bagaimana nilai itu dipakai di rekap nilai, portal, dan rapor.',
+        forWho:
+          'Kurikulum, Operator, dan Admin sekolah yang mengatur batas ketuntasan. Guru dan peran lain bisa melihat kriteria, tetapi tidak mengubahnya.',
+        sections: [
+          {
+            heading: 'Apa itu KKTP dan kapan dipakai',
+            body: 'Secara bawaan semua mata pelajaran memakai satu KKM sekolah yang diatur di Pengaturan penilaian. Bila sebuah mapel perlu batas sendiri, buat kriteria untuknya di tab KKTP pada halaman Kurikulum. Kriteria bisa berlaku untuk semua tingkat dan jurusan, atau dikhususkan pada satu tingkat dan satu jurusan. Mapel tanpa kriteria tetap memakai KKM sekolah.',
+            href: '/curriculum?tab=kktp',
+            tip: 'Mulai dari yang sederhana: biarkan KKM sekolah berlaku, dan buat kriteria hanya untuk mapel yang memang berbeda.',
+          },
+          {
+            heading: 'Membuat kriteria berupa satu angka',
+            body: 'Mode Angka adalah yang paling sederhana: siswa tuntas bila nilainya sama dengan atau di atas satu angka. Angka boleh desimal, misalnya 72,5.',
+            steps: [
+              'Buka Kurikulum, lalu tab KKTP.',
+              'Klik Tambah kriteria.',
+              'Pilih mata pelajaran. Pilih tingkat dan jurusan bila kriteria hanya untuk itu, atau biarkan Semua.',
+              'Pilih mode Angka, isi KKM antara 0 dan 100 (paling banyak dua desimal), lalu Simpan.',
+            ],
+            href: '/curriculum?tab=kktp',
+            warning:
+              'Satu kombinasi mapel, tingkat, dan jurusan hanya boleh punya satu kriteria. Bila sudah ada, ubah yang lama.',
+          },
+          {
+            heading: 'Kriteria berlevel: rentang nilai, deskriptor, dan rubrik',
+            body: 'Untuk penilaian bertingkat, pilih mode Rentang nilai, Deskriptor, atau Rubrik. Tiap level punya label, deskripsi, nilai terendah dan tertinggi, dan centang Tuntas. KKM efektifnya adalah nilai terendah dari level yang dicentang Tuntas. Pada mode Deskriptor angka boleh dikosongkan.',
+            steps: [
+              'Di dialog kriteria, pilih mode Rentang nilai, Deskriptor, atau Rubrik.',
+              'Klik Tambah level, lalu isi label, nilai terendah, dan nilai tertinggi.',
+              'Centang Tuntas pada level yang dianggap tercapai. Urutkan level dengan tombol panah.',
+              'Pastikan rentang antarlevel tidak bertumpuk, lalu Simpan.',
+            ],
+            warning:
+              'Rentang dua level tidak boleh tumpang tindih, dan batasnya ikut dihitung. Misalnya 60 sampai 75 dan 75 sampai 90 bertumpuk di angka 75. Gunakan 60 sampai 74,99 dan 75 sampai 90.',
+          },
+          {
+            heading: 'Melihat KKM yang berlaku lewat Pratinjau KKM',
+            body: 'Di bagian bawah tab KKTP, pilih mapel, tingkat, dan jurusan untuk melihat KKM yang akan dipakai dan asalnya. Urutan pencarian: kriteria mapel untuk tingkat dan jurusan itu, lalu mapel untuk tingkat itu, lalu mapel untuk jurusan itu, lalu kriteria umum mapel, dan terakhir KKM sekolah.',
+            href: '/curriculum?tab=kktp',
+            tip: 'Pakai pratinjau sebelum rapor dibagikan untuk memastikan setiap mapel memakai KKM yang Anda maksud.',
+          },
+          {
+            heading: 'Di mana KKM mapel muncul, dan kapan perubahan ditolak',
+            body: 'KKM mapel dipakai di rekap nilai (penanda di bawah KKM), di portal orang tua dan siswa, dan di rapor. Nilai desimal ditampilkan apa adanya, misalnya 72,5. Karena mengubah KKM bisa mengubah penanda dan isi rapor, menambah, mengubah, atau menghapus kriteria ditolak selama semester aktif punya rapor yang sudah final.',
+            warning:
+              'Bila muncul pesan bahwa rapor sudah final, buka kembali rapor yang sudah final di menu Rapor, ubah kriterianya, lalu finalkan lagi.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Apakah KKM sekolah bisa desimal?',
+            a: 'Tidak. KKM sekolah di Pengaturan penilaian berupa bilangan bulat 1 sampai 100. KKM desimal diatur per mapel lewat kriteria KKTP.',
+          },
+          {
+            q: 'Mapel saya tidak punya kriteria. KKM mana yang dipakai?',
+            a: 'KKM sekolah dari Pengaturan penilaian. Anda bisa memastikannya lewat Pratinjau KKM.',
+          },
+          {
+            q: 'Kriteria saya ditolak karena rapor sudah final. Apa yang harus dilakukan?',
+            a: 'Buka kembali rapor yang sudah final pada semester aktif, lakukan perubahan kriteria, lalu finalkan ulang rapornya.',
+          },
+          {
+            q: 'Kenapa kriteria berlevel saya ditolak?',
+            a: 'Biasanya karena rentang dua level bertumpuk, ada level tanpa label, atau nilai terendah lebih besar dari nilai tertinggi. Dialog menunjukkan level yang bermasalah.',
+          },
+          {
+            q: 'Bolehkah satu mapel punya KKM berbeda untuk tiap tingkat?',
+            a: 'Boleh. Buat satu kriteria per tingkat, atau satu kriteria umum ditambah kriteria khusus untuk tingkat yang berbeda. Kriteria yang paling khusus yang dipakai.',
+          },
+        ],
+      },
+      en: {
+        title: 'KKTP: the passing mark per subject',
+        summary:
+          'How to set the passing mark (KKM) of each subject, including decimal marks and levelled criteria, and how it is used in grade recaps, the parent portal, and report cards.',
+        forWho:
+          'Curriculum staff, Operators, and School admins who set passing marks. Teachers and other roles can view the criteria but not change them.',
+        sections: [
+          {
+            heading: 'What KKTP is and when to use it',
+            body: 'By default every subject uses one school-wide KKM, set in Grading settings. When a subject needs its own passing mark, create a criterion for it in the KKTP tab of the Curriculum page. A criterion can apply to all levels and programs, or be limited to one level and one program. Subjects without a criterion keep using the school KKM.',
+            href: '/curriculum?tab=kktp',
+            tip: 'Start simple: let the school KKM apply, and create criteria only for subjects that really differ.',
+          },
+          {
+            heading: 'Creating a criterion with a single number',
+            body: 'The Number mode is the simplest: a student passes with a score equal to or above one number. The number may have decimals, for example 72.5.',
+            steps: [
+              'Open Curriculum, then the KKTP tab.',
+              'Click Add criterion.',
+              'Choose the subject. Choose a level and program if the criterion is only for those, or leave All.',
+              'Choose the Number mode, enter the KKM between 0 and 100 (at most two decimals), then Save.',
+            ],
+            href: '/curriculum?tab=kktp',
+            warning:
+              'One combination of subject, level, and program may have only one criterion. If one already exists, edit the old one.',
+          },
+          {
+            heading: 'Levelled criteria: score ranges, descriptors, and rubrics',
+            body: 'For graded levels, choose the Score ranges, Descriptor, or Rubric mode. Each level has a label, a description, a lowest and highest score, and a Mastered tick. The effective KKM is the lowest score among the levels ticked Mastered. In the Descriptor mode the numbers may be left empty.',
+            steps: [
+              'In the criterion dialog, choose the Score ranges, Descriptor, or Rubric mode.',
+              'Click Add level, then fill in the label, lowest score, and highest score.',
+              'Tick Mastered on the levels that count as achieved. Reorder levels with the arrow buttons.',
+              'Make sure the ranges of different levels do not overlap, then Save.',
+            ],
+            warning:
+              'The ranges of two levels must not overlap, and their limits count. For example 60 to 75 and 75 to 90 overlap at 75. Use 60 to 74.99 and 75 to 90.',
+          },
+          {
+            heading: 'Checking the KKM in effect with the KKM preview',
+            body: 'At the bottom of the KKTP tab, choose a subject, level, and program to see which KKM will be used and where it comes from. The search order is: the subject criterion for that level and program, then the subject for that level, then the subject for that program, then the general subject criterion, and finally the school KKM.',
+            href: '/curriculum?tab=kktp',
+            tip: 'Use the preview before report cards are handed out to confirm every subject uses the KKM you intend.',
+          },
+          {
+            heading: 'Where the subject KKM appears, and when changes are refused',
+            body: 'The subject KKM is used in the grade recap (the below-KKM marker), in the parent and student portal, and on report cards. Decimal marks are shown as they are, for example 72.5. Because changing a KKM can change markers and report card content, adding, changing, or deleting a criterion is refused while the active semester has finalized report cards.',
+            warning:
+              'If a message says the report card is finalized, reopen the finalized report cards in the Report cards menu, change the criterion, then finalize again.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Can the school KKM have decimals?',
+            a: 'No. The school KKM in Grading settings is a whole number from 1 to 100. Decimal marks are set per subject through KKTP criteria.',
+          },
+          {
+            q: 'My subject has no criterion. Which KKM is used?',
+            a: 'The school KKM from Grading settings. You can confirm it with the KKM preview.',
+          },
+          {
+            q: 'My criterion was refused because report cards are finalized. What now?',
+            a: 'Reopen the finalized report cards of the active semester, make the criterion change, then finalize the report cards again.',
+          },
+          {
+            q: 'Why was my levelled criterion refused?',
+            a: 'Usually because two level ranges overlap, a level has no label, or the lowest score is above the highest score. The dialog points to the level with the problem.',
+          },
+          {
+            q: 'Can one subject have a different KKM for each level?',
+            a: 'Yes. Create one criterion per level, or one general criterion plus specific criteria for the levels that differ. The most specific criterion is the one used.',
+          },
+        ],
+      },
+      su: {
+        title: 'KKTP: KKM per mata pelajaran',
+        summary:
+          'Cara nangtukeun wates katuntasan (KKM) unggal mata pelajaran, kaasup KKM désimal jeung kriteria bertingkat, sarta kumaha nilai éta dipaké dina rekap nilai, portal, jeung rapor.',
+        forWho:
+          'Kurikulum, Operator, jeung Admin sakola nu nga-atur wates katuntasan. Guru jeung peran séjén bisa nempo kriteria, tapi teu bisa ngarobahna.',
+        sections: [
+          {
+            heading: 'Naon éta KKTP jeung iraha dipaké',
+            body: 'Sacara baku sadaya mata pelajaran maké hiji KKM sakola nu diatur dina Pangaturan penilaian. Upami hiji mapel butuh wates sorangan, jieun kriteria pikeun mapel éta dina tab KKTP di kaca Kurikulum. Kriteria bisa berlaku pikeun sadaya tingkat jeung jurusan, atawa dihususkeun kana hiji tingkat jeung hiji jurusan. Mapel tanpa kriteria tetep maké KKM sakola.',
+            href: '/curriculum?tab=kktp',
+            tip: 'Mimitian ti nu basajan: sing KKM sakola nu berlaku, jeung jieun kriteria ngan pikeun mapel nu memang béda.',
+          },
+          {
+            heading: 'Nyieun kriteria mangrupa hiji angka',
+            body: 'Mode Angka mangrupa nu pangbasajanna: murid tuntas upami nilaina sarua atawa leuwih luhur ti hiji angka. Angka bisa désimal, contona 72,5.',
+            steps: [
+              'Buka Kurikulum, tuluy tab KKTP.',
+              'Klik Tambah kriteria.',
+              'Pilih mata pelajaran. Pilih tingkat jeung jurusan upami kriteria ngan pikeun éta, atawa sing Sadaya.',
+              'Pilih mode Angka, eusian KKM antara 0 jeung 100 (paling loba dua désimal), tuluy Simpen.',
+            ],
+            href: '/curriculum?tab=kktp',
+            warning:
+              'Hiji kombinasi mapel, tingkat, jeung jurusan ngan meunang boga hiji kriteria. Upami geus aya, robah nu heubeul.',
+          },
+          {
+            heading: 'Kriteria bertingkat: rentang nilai, déskriptor, jeung rubrik',
+            body: 'Pikeun penilaian bertingkat, pilih mode Rentang nilai, Déskriptor, atawa Rubrik. Unggal tingkatan boga labél, pedaran, nilai panghandapna jeung pangluhurna, sarta centang Tuntas. KKM éfektifna nyaéta nilai panghandapna tina tingkatan nu dicentang Tuntas. Dina mode Déskriptor angka bisa dikosongkeun.',
+            steps: [
+              'Dina dialog kriteria, pilih mode Rentang nilai, Déskriptor, atawa Rubrik.',
+              'Klik Tambah tingkatan, tuluy eusian labél, nilai panghandapna, jeung nilai pangluhurna.',
+              'Centang Tuntas dina tingkatan nu dianggap kahontal. Urutkeun tingkatan maké tombol panah.',
+              'Pastikeun rentang antartingkatan teu tumpang tindih, tuluy Simpen.',
+            ],
+            warning:
+              'Rentang dua tingkatan teu meunang tumpang tindih, jeung watesna diitung. Upamana 60 nepi ka 75 jeung 75 nepi ka 90 tumpang tindih dina angka 75. Pake 60 nepi ka 74,99 jeung 75 nepi ka 90.',
+          },
+          {
+            heading: 'Nempo KKM nu berlaku lewat Pratayang KKM',
+            body: 'Di handap tab KKTP, pilih mapel, tingkat, jeung jurusan pikeun nempo KKM nu bakal dipaké jeung asalna. Urutan pamilarianana: kriteria mapel pikeun tingkat jeung jurusan éta, tuluy mapel pikeun tingkat éta, tuluy mapel pikeun jurusan éta, tuluy kriteria umum mapel, jeung pamungkas KKM sakola.',
+            href: '/curriculum?tab=kktp',
+            tip: 'Pake pratayang saacan rapor dibagikeun pikeun mastikeun unggal mapel maké KKM nu dimaksud.',
+          },
+          {
+            heading: 'Di mana KKM mapel muncul, jeung iraha parobahan ditolak',
+            body: 'KKM mapel dipaké dina rekap nilai (tanda di handap KKM), dina portal kolot jeung murid, jeung dina rapor. Nilai désimal dipidangkeun sakumaha aya, contona 72,5. Sabab ngarobah KKM bisa ngarobah tanda jeung eusi rapor, nambah, ngarobah, atawa miceun kriteria ditolak salami semester aktif boga rapor nu geus final.',
+            warning:
+              'Upami aya pesen yén rapor geus final, buka deui rapor nu geus final dina ménu Rapor, robah kriteriana, tuluy finalkeun deui.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha KKM sakola bisa désimal?',
+            a: 'Henteu. KKM sakola dina Pangaturan penilaian mangrupa wilangan bulat 1 nepi ka 100. KKM désimal diatur per mapel lewat kriteria KKTP.',
+          },
+          {
+            q: 'Mapel kuring teu boga kriteria. KKM mana nu dipaké?',
+            a: 'KKM sakola tina Pangaturan penilaian. Anjeun bisa mastikeunana lewat Pratayang KKM.',
+          },
+          {
+            q: 'Kriteria kuring ditolak sabab rapor geus final. Kumaha?',
+            a: 'Buka deui rapor nu geus final dina semester aktif, robah kriteriana, tuluy finalkeun deui raporna.',
+          },
+          {
+            q: 'Naha kriteria bertingkat kuring ditolak?',
+            a: 'Biasana sabab rentang dua tingkatan tumpang tindih, aya tingkatan tanpa labél, atawa nilai panghandapna leuwih gede tibatan nilai pangluhurna. Dialog nunjukkeun tingkatan nu bermasalah.',
+          },
+          {
+            q: 'Naha hiji mapel bisa boga KKM béda pikeun unggal tingkat?',
+            a: 'Bisa. Jieun hiji kriteria per tingkat, atawa hiji kriteria umum tambah kriteria husus pikeun tingkat nu béda. Kriteria nu pangkhususna nu dipaké.',
           },
         ],
       },

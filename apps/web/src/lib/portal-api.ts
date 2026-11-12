@@ -131,6 +131,8 @@ export interface PortalGrades {
   subjects: {
     subjectId: string;
     name: string;
+    /** KKM efektif mapel ini (KKTP, boleh desimal); tidak ada bila server belum menghitungnya per mapel. */
+    kkm?: number;
     final: number | null;
     predicate: Predicate | null;
     belowKkm: boolean;

@@ -9,6 +9,7 @@ import {
   monthRange,
   ringDash,
   shiftMonth,
+  subjectKkm,
 } from './logic';
 
 describe('shiftMonth', () => {
@@ -60,6 +61,20 @@ describe('nada', () => {
     expect(gradeTone(70, 75)).toBe('low');
     expect(gradeTone(80, null)).toBe('warn');
     expect(gradeTone(null, 75)).toBe('none');
+  });
+  it('KKM desimal: batas inklusif tanpa pembulatan', () => {
+    expect(gradeTone(72.5, 72.5)).toBe('warn');
+    expect(gradeTone(72.49, 72.5)).toBe('low');
+    expect(gradeTone(82.5, 72.5)).toBe('good');
+    expect(gradeTone(82.49, 72.5)).toBe('warn');
+  });
+  it('KKM mapel didahulukan, KKM global sebagai cadangan', () => {
+    expect(subjectKkm(72.5, 75)).toBe(72.5);
+    expect(subjectKkm(undefined, 75)).toBe(75);
+    expect(subjectKkm(undefined, null)).toBeNull();
+    expect(subjectKkm(0, 75)).toBe(0);
+    expect(gradeTone(73, subjectKkm(72.5, 75))).toBe('warn');
+    expect(gradeTone(73, subjectKkm(undefined, 75))).toBe('low');
   });
 });
 

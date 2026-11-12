@@ -210,6 +210,24 @@ describe('validateSubject', () => {
     expect(validateSubject({ code: 'M'.repeat(21), name: 'x' }).code).toEqual({ code: 'tooLong', max: 20 });
     expect(validateSubject({ code: 'MTK', name: 'n'.repeat(81) }).name).toEqual({ code: 'tooLong', max: 80 });
   });
+
+  it('urutan tampil opsional: kosong lolos, harus bilangan bulat 0 sampai 9999', () => {
+    const base = { code: 'MTK', name: 'Matematika' };
+    expect(validateSubject({ ...base, sortOrder: '' })).toEqual({});
+    expect(validateSubject({ ...base, sortOrder: '10' })).toEqual({});
+    expect(validateSubject({ ...base, sortOrder: '0' })).toEqual({});
+    expect(validateSubject({ ...base, sortOrder: 'abc' }).sortOrder).toEqual({ code: 'intInvalid' });
+    expect(validateSubject({ ...base, sortOrder: '-1' }).sortOrder).toEqual({
+      code: 'range',
+      min: 0,
+      max: 9999,
+    });
+    expect(validateSubject({ ...base, sortOrder: '10000' }).sortOrder).toEqual({
+      code: 'range',
+      min: 0,
+      max: 9999,
+    });
+  });
 });
 
 describe('validateClass', () => {
