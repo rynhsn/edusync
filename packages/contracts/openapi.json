@@ -1530,6 +1530,19 @@
                           ],
                           "additionalProperties": false
                         }
+                      },
+                      "suggestedPeriodMinutes": {
+                        "description": "SARAN menit per JP (35/40/45 menurut jenjang); bukan nilai tersimpan, sekolah mengaturnya per tingkat",
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "suggestedEffectiveWeeks": {
+                        "description": "SARAN minggu efektif per tahun (36; tingkat akhir 32); bukan nilai tersimpan",
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
                       }
                     },
                     "required": [
@@ -24297,6 +24310,16 @@
                       },
                       "name": {
                         "type": "string"
+                      },
+                      "durationYears": {
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "finalLevelCode": {
+                        "nullable": true,
+                        "type": "string"
                       }
                     },
                     "required": [
@@ -24381,7 +24404,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `class:manage`. Kode harus unik di sekolah.",
+        "description": "Izin: `class:manage`. Kode harus unik di sekolah. Opsional: `durationYears` (3 atau 4) dan `finalLevelCode` (tingkat akhir program, mis. XIII untuk SMK 4 tahun; dipakai kenaikan kelas dan rollover; harus kode tingkat sekolah, 400 `invalid_level`). Hanya `finalLevelCode` yang menentukan tingkat akhir; `durationYears` tanpa `finalLevelCode` sah tetapi informatif.",
         "requestBody": {
           "required": true,
           "content": {
@@ -24399,6 +24422,31 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 80
+                  },
+                  "durationYears": {
+                    "description": "Lama program (3 atau 4 tahun)",
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "enum": [
+                          3
+                        ]
+                      },
+                      {
+                        "type": "number",
+                        "enum": [
+                          4
+                        ]
+                      }
+                    ]
+                  },
+                  "finalLevelCode": {
+                    "description": "Kode tingkat akhir program (harus ada di daftar tingkat sekolah, 400 `invalid_level`); kosong = tingkat dengan sort terbesar. Hanya field inilah yang menentukan tingkat akhir; `durationYears` bersifat informatif.",
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20
                   }
                 },
                 "required": [
@@ -24440,12 +24488,54 @@
                     },
                     "name": {
                       "type": "string"
+                    },
+                    "durationYears": {
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "finalLevelCode": {
+                      "nullable": true,
+                      "type": "string"
                     }
                   },
                   "required": [
                     "id",
                     "code",
                     "name"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
                   ],
                   "additionalProperties": false
                 }
@@ -24557,7 +24647,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `class:manage`.",
+        "description": "Izin: `class:manage`. Field opsional (`durationYears`, `finalLevelCode`) yang tidak dikirim tidak berubah; null mengosongkan. `finalLevelCode` harus kode tingkat sekolah (400 `invalid_level`) dan satu-satunya penentu tingkat akhir.",
         "requestBody": {
           "required": true,
           "content": {
@@ -24575,6 +24665,31 @@
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 80
+                  },
+                  "durationYears": {
+                    "description": "Lama program (3 atau 4 tahun)",
+                    "nullable": true,
+                    "anyOf": [
+                      {
+                        "type": "number",
+                        "enum": [
+                          3
+                        ]
+                      },
+                      {
+                        "type": "number",
+                        "enum": [
+                          4
+                        ]
+                      }
+                    ]
+                  },
+                  "finalLevelCode": {
+                    "description": "Kode tingkat akhir program (harus ada di daftar tingkat sekolah, 400 `invalid_level`); kosong = tingkat dengan sort terbesar. Hanya field inilah yang menentukan tingkat akhir; `durationYears` bersifat informatif.",
+                    "nullable": true,
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 20
                   }
                 },
                 "required": [
@@ -24626,12 +24741,54 @@
                     },
                     "name": {
                       "type": "string"
+                    },
+                    "durationYears": {
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "finalLevelCode": {
+                      "nullable": true,
+                      "type": "string"
                     }
                   },
                   "required": [
                     "id",
                     "code",
                     "name"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
                   ],
                   "additionalProperties": false
                 }
@@ -24773,7 +24930,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `class:manage`. Ditolak bila masih dipakai kelas.",
+        "description": "Izin: `class:manage`. Ditolak 409 `in_use` bila masih dipakai kelas, alokasi JP kurikulum, atau KKTP.",
         "parameters": [
           {
             "schema": {
@@ -25002,13 +25159,32 @@
                       "subjectGroup": {
                         "nullable": true,
                         "type": "string",
+                        "minLength": 1,
+                        "maxLength": 40
+                      },
+                      "kind": {
+                        "description": "Jenis mapel; bawaan `compulsory`",
+                        "type": "string",
                         "enum": [
-                          "general",
-                          "vocational_base",
-                          "vocational_concentration",
-                          "vocational_project",
+                          "compulsory",
                           "elective",
+                          "local_content",
+                          "project",
                           "internship"
+                        ]
+                      },
+                      "religionVariant": {
+                        "description": "Varian pendidikan agama (hanya mapel agama)",
+                        "nullable": true,
+                        "type": "string",
+                        "enum": [
+                          "islam",
+                          "christian",
+                          "catholic",
+                          "hindu",
+                          "buddhist",
+                          "confucian",
+                          "belief"
                         ]
                       },
                       "isLocalContent": {
@@ -25105,7 +25281,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `subject:manage`. Kode harus unik di sekolah. Metadata opsional: `refSubjectId` (mapel acuan; 400 `invalid_reference` bila tidak ada), `subjectGroup`, `isLocalContent`, `sortOrder`, `active`.",
+        "description": "Izin: `subject:manage`. Kode harus unik di sekolah. Metadata opsional: `refSubjectId` (mapel acuan; 400 `invalid_reference` bila tidak ada), `subjectGroup` (kunci `GET /v1/reference/subject-groups`; 400 `invalid_subject_group`), `kind` (compulsory, elective, local_content, project, internship; bawaan compulsory), `religionVariant`, `isLocalContent`, `sortOrder`, `active`. `kind` dan `isLocalContent` disinkronkan server: `kind` local_content menghasilkan `isLocalContent` true; `isLocalContent` true tanpa `kind` menjadikan `kind` local_content.",
         "requestBody": {
           "required": true,
           "content": {
@@ -25133,13 +25309,30 @@
                   "subjectGroup": {
                     "nullable": true,
                     "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "kind": {
+                    "type": "string",
                     "enum": [
-                      "general",
-                      "vocational_base",
-                      "vocational_concentration",
-                      "vocational_project",
+                      "compulsory",
                       "elective",
+                      "local_content",
+                      "project",
                       "internship"
+                    ]
+                  },
+                  "religionVariant": {
+                    "nullable": true,
+                    "type": "string",
+                    "enum": [
+                      "islam",
+                      "christian",
+                      "catholic",
+                      "hindu",
+                      "buddhist",
+                      "confucian",
+                      "belief"
                     ]
                   },
                   "isLocalContent": {
@@ -25204,13 +25397,32 @@
                     "subjectGroup": {
                       "nullable": true,
                       "type": "string",
+                      "minLength": 1,
+                      "maxLength": 40
+                    },
+                    "kind": {
+                      "description": "Jenis mapel; bawaan `compulsory`",
+                      "type": "string",
                       "enum": [
-                        "general",
-                        "vocational_base",
-                        "vocational_concentration",
-                        "vocational_project",
+                        "compulsory",
                         "elective",
+                        "local_content",
+                        "project",
                         "internship"
+                      ]
+                    },
+                    "religionVariant": {
+                      "description": "Varian pendidikan agama (hanya mapel agama)",
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "islam",
+                        "christian",
+                        "catholic",
+                        "hindu",
+                        "buddhist",
+                        "confucian",
+                        "belief"
                       ]
                     },
                     "isLocalContent": {
@@ -25372,7 +25584,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `subject:manage`. Hanya field yang dikirim yang diubah; metadata (`refSubjectId`, `subjectGroup`, `isLocalContent`, `sortOrder`, `active`) yang tidak dikirim tidak berubah.",
+        "description": "Izin: `subject:manage`. Hanya field yang dikirim yang diubah; metadata (`refSubjectId`, `subjectGroup`, `kind`, `religionVariant`, `isLocalContent`, `sortOrder`, `active`) yang tidak dikirim tidak berubah, kecuali penyelarasan `kind`/`isLocalContent`: `kind` local_content mengatur `isLocalContent` true; `isLocalContent` true tanpa `kind` mengatur `kind` local_content; `isLocalContent` false tanpa `kind` pada mapel local_content mengatur `kind` compulsory; `kind` lain tanpa `isLocalContent` pada mapel local_content mengatur `isLocalContent` false.",
         "requestBody": {
           "required": true,
           "content": {
@@ -25400,13 +25612,30 @@
                   "subjectGroup": {
                     "nullable": true,
                     "type": "string",
+                    "minLength": 1,
+                    "maxLength": 40
+                  },
+                  "kind": {
+                    "type": "string",
                     "enum": [
-                      "general",
-                      "vocational_base",
-                      "vocational_concentration",
-                      "vocational_project",
+                      "compulsory",
                       "elective",
+                      "local_content",
+                      "project",
                       "internship"
+                    ]
+                  },
+                  "religionVariant": {
+                    "nullable": true,
+                    "type": "string",
+                    "enum": [
+                      "islam",
+                      "christian",
+                      "catholic",
+                      "hindu",
+                      "buddhist",
+                      "confucian",
+                      "belief"
                     ]
                   },
                   "isLocalContent": {
@@ -25481,13 +25710,32 @@
                     "subjectGroup": {
                       "nullable": true,
                       "type": "string",
+                      "minLength": 1,
+                      "maxLength": 40
+                    },
+                    "kind": {
+                      "description": "Jenis mapel; bawaan `compulsory`",
+                      "type": "string",
                       "enum": [
-                        "general",
-                        "vocational_base",
-                        "vocational_concentration",
-                        "vocational_project",
+                        "compulsory",
                         "elective",
+                        "local_content",
+                        "project",
                         "internship"
+                      ]
+                    },
+                    "religionVariant": {
+                      "description": "Varian pendidikan agama (hanya mapel agama)",
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "islam",
+                        "christian",
+                        "catholic",
+                        "hindu",
+                        "buddhist",
+                        "confucian",
+                        "belief"
                       ]
                     },
                     "isLocalContent": {
@@ -25679,7 +25927,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `subject:manage`. Ditolak bila sudah ditugaskan ke guru.",
+        "description": "Izin: `subject:manage`. Ditolak 409 `in_use` bila sudah ditugaskan ke guru, dipakai alokasi JP kurikulum, CP, ATP, atau KKTP.",
         "parameters": [
           {
             "schema": {
@@ -26590,7 +26838,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `class:manage`. Ditolak bila masih ada siswa atau penugasan guru di kelas itu.",
+        "description": "Izin: `class:manage`. Ditolak 409 `in_use` bila masih ada siswa, penugasan guru, atau keputusan kenaikan kelas yang merujuk kelas itu.",
         "parameters": [
           {
             "schema": {
@@ -27352,7 +27600,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `promotion:manage`. Kelas tahun ajaran itu beserta siswa aktif yang ter-enroll, dengan keputusan tersimpan (`decision`, null bila belum), saran bawaan (`suggestedDecision`: naik, atau lulus bila kelasnya tingkat terakhir), kelas tujuan, dan penanda `applied`. Tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`).",
+        "description": "Izin: `promotion:manage`. Kelas tahun ajaran itu beserta siswa aktif yang ter-enroll, dengan keputusan tersimpan (`decision`, null bila belum), saran bawaan (`suggestedDecision`: `promote`; null di tingkat akhir karena kelulusan ditetapkan sekolah setelah ujian satuan pendidikan dan wajib dipilih eksplisit), kelas tujuan, catatan (`note`, `reason`, `followUp`, `meetingDate`), dan penanda `applied`. Tingkat akhir kelas = `final_level_code` jurusannya bila diisi, jika tidak tingkat dengan `sort` terbesar; tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`). Kelas bertingkat yang tidak ada di daftar tingkat sekolah ditandai `levelUnknown` true dan tidak mendapat saran `promote`.",
         "parameters": [
           {
             "schema": {
@@ -27437,6 +27685,10 @@
                           "isFinalLevel": {
                             "type": "boolean"
                           },
+                          "levelUnknown": {
+                            "description": "true bila tingkat kelas tidak ada di daftar tingkat sekolah: tidak ada saran `promote`, dan naik kelas wajib menyertakan `toClassId` (400 `level_unknown`)",
+                            "type": "boolean"
+                          },
                           "students": {
                             "type": "array",
                             "items": {
@@ -27465,12 +27717,13 @@
                                   ]
                                 },
                                 "suggestedDecision": {
+                                  "nullable": true,
+                                  "description": "Saran bawaan: `promote` bila bukan tingkat akhir; null di tingkat akhir (kelulusan ditetapkan sekolah, wajib dipilih eksplisit)",
                                   "type": "string",
                                   "enum": [
                                     "promote",
                                     "graduate"
-                                  ],
-                                  "description": "Saran bawaan: naik kelas, atau lulus bila kelasnya tingkat terakhir"
+                                  ]
                                 },
                                 "toClassId": {
                                   "nullable": true,
@@ -27482,6 +27735,23 @@
                                 "note": {
                                   "nullable": true,
                                   "type": "string"
+                                },
+                                "reason": {
+                                  "description": "Alasan keputusan (mis. tinggal kelas)",
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "followUp": {
+                                  "description": "Tindak lanjut",
+                                  "nullable": true,
+                                  "type": "string"
+                                },
+                                "meetingDate": {
+                                  "description": "Tanggal rapat dewan pendidik",
+                                  "nullable": true,
+                                  "type": "string",
+                                  "format": "date",
+                                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
                                 },
                                 "applied": {
                                   "type": "boolean",
@@ -27626,7 +27896,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; semua atau tidak sama sekali. 400 `not_final_level`: lulus hanya untuk kelas tingkat terakhir dan naik tidak bisa dari tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: `toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). 409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah.",
+        "description": "Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; `graduate` berarti \"ditetapkan lulus\": kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, tidak disarankan otomatis. Catatan opsional per baris: `note`, `reason` (alasan), `followUp` (tindak lanjut), `meetingDate` (tanggal rapat dewan pendidik, YYYY-MM-DD); yang DIHILANGKAN dipertahankan dari keputusan tersimpan, `null` eksplisit mengosongkan. Semua atau tidak sama sekali. 400 `level_unknown`: `promote` tanpa `toClassId` untuk kelas yang tingkatnya tidak ada di daftar tingkat sekolah. 400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: `toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). 409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber).",
         "requestBody": {
           "required": true,
           "content": {
@@ -27664,6 +27934,22 @@
                           "nullable": true,
                           "type": "string",
                           "maxLength": 500
+                        },
+                        "reason": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "followUp": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 1000
+                        },
+                        "meetingDate": {
+                          "nullable": true,
+                          "type": "string",
+                          "format": "date",
+                          "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
                         }
                       },
                       "required": [
@@ -27894,7 +28180,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` bagi hal yang perlu diperiksa.",
+        "description": "Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` (kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, final_level_not_copied, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, event_class_skipped, event_out_of_year, flow_inactive_objectives) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.",
         "requestBody": {
           "required": true,
           "content": {
@@ -27916,7 +28202,8 @@
                     "type": "boolean"
                   },
                   "copyCalendar": {
-                    "default": true,
+                    "default": false,
+                    "description": "Salin kalender akademik (tanggal digeser selisih tahun mulai); bawaan false karena kalender tiap tahun berbeda",
                     "type": "boolean"
                   },
                   "copyCurriculum": {
@@ -28009,6 +28296,36 @@
                       "type": "array",
                       "items": {
                         "type": "string"
+                      }
+                    },
+                    "warningItems": {
+                      "description": "Peringatan terstruktur (kode stabil + parameter) yang sejajar dengan `warnings`, untuk diterjemahkan klien",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "params": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "params"
+                        ],
+                        "additionalProperties": false
                       }
                     }
                   },
@@ -28193,7 +28510,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, atau kelas tingkat berikutnya pada tahun tujuan dengan \"bagian\" nama yang sama, atau kelas pertama tingkat itu), `retain` di kelas sebaya tahun tujuan, `graduate` mengubah status siswa menjadi lulus. Enrollment lama tidak dihapus; siswa yang sudah ter-enroll di tahun tujuan dilewati dan dilaporkan di `alreadyEnrolled`. Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, tanpa menggagalkan yang lain. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.",
+        "description": "Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, atau kelas tingkat berikutnya pada tahun tujuan dengan \"bagian\" nama yang sama, atau bila tidak ada, satu-satunya kelas sejurusan pada tingkat itu; selain itu `unplaced` `no_target_class`, tidak pernah menebak kelas pertama), `retain` di kelas sebaya tahun tujuan dengan aturan yang sama, `graduate` mengubah status siswa menjadi lulus (tingkat akhir kelas asal divalidasi ulang: bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; siswa yang sudah ter-enroll di tahun tujuan (termasuk yang terdahului proses lain) dilewati dan dilaporkan di `alreadyEnrolled`, keputusannya tidak ditandai diterapkan. Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. `graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber (status lulus mengeluarkan siswa dari roster rapor draf). Penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.",
         "requestBody": {
           "required": true,
           "content": {
@@ -28279,6 +28596,23 @@
                           },
                           "reason": {
                             "type": "string"
+                          },
+                          "reasonCode": {
+                            "description": "Kode alasan stabil: student_missing, student_not_active, source_class_missing, target_class_invalid, no_next_level, no_target_class, not_final_level",
+                            "type": "string"
+                          },
+                          "reasonParams": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            }
                           }
                         },
                         "required": [
@@ -28317,6 +28651,42 @@
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991,
                       "description": "Siswa aktif tahun sumber yang belum punya keputusan"
+                    },
+                    "graduateReportNotFinal": {
+                      "description": "Jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Status lulus mengeluarkan siswa dari roster rapor draf, jadi finalkan rapornya lebih dulu",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "warningItems": {
+                      "description": "Peringatan terstruktur (kode stabil + parameter): graduate_report_not_final",
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "code": {
+                            "type": "string"
+                          },
+                          "params": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                }
+                              ]
+                            }
+                          }
+                        },
+                        "required": [
+                          "code",
+                          "params"
+                        ],
+                        "additionalProperties": false
+                      }
                     }
                   },
                   "required": [
@@ -58831,7 +59201,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:read`; modul `grades`. KKM sekolah, batas predikat A/B/C, dan `calculationMode`. Sekolah yang belum mengaturnya mendapat nilai bawaan (KKM 75; A 90, B 80, C 70; `weighted_average`). KKM sekolah adalah jatuhan terakhir; mapel bisa punya KKM sendiri lewat KKTP (`/v1/achievement-criteria`).",
+        "description": "Izin: `grade:read`; modul `grades`. KKM sekolah, batas predikat A/B/C, dan `calculationMode`. Sekolah yang belum mengaturnya mendapat nilai bawaan (KKM 75; A 90, B 80, C 70; `weighted_average`). KKM sekolah adalah jatuhan terakhir; mapel bisa punya KKM sendiri lewat KKTP (`/v1/achievement-criteria`). Jumlah bobot komponen (dari `GET /v1/grading/components`) harus 100 agar mode `percentage` bisa dipilih.",
         "parameters": [
           {
             "schema": {
@@ -58880,9 +59250,11 @@
                     "calculationMode": {
                       "type": "string",
                       "enum": [
-                        "weighted_average"
+                        "weighted_average",
+                        "percentage",
+                        "simple_average"
                       ],
-                      "description": "Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)"
+                      "description": "Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan."
                     }
                   },
                   "required": [
@@ -58967,7 +59339,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (hanya `weighted_average`); bila dihilangkan, nilai yang ada dipertahankan. Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).",
+        "description": "Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).",
         "requestBody": {
           "required": true,
           "content": {
@@ -58998,9 +59370,11 @@
                   "calculationMode": {
                     "type": "string",
                     "enum": [
-                      "weighted_average"
+                      "weighted_average",
+                      "percentage",
+                      "simple_average"
                     ],
-                    "description": "Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)"
+                    "description": "Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan."
                   }
                 },
                 "required": [
@@ -59061,9 +59435,11 @@
                     "calculationMode": {
                       "type": "string",
                       "enum": [
-                        "weighted_average"
+                        "weighted_average",
+                        "percentage",
+                        "simple_average"
                       ],
-                      "description": "Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)"
+                      "description": "Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan."
                     }
                   },
                   "required": [
@@ -59214,7 +59590,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:read`; modul `grades`. Komponen berbobot (mis. Tugas, UTS), urut `sort` lalu nama. `assessmentCount` = jumlah penilaian yang memakainya.",
+        "description": "Izin: `grade:read`; modul `grades`. Komponen berbobot (mis. Tugas, UTS), urut `sort` lalu nama. `assessmentCount` = jumlah penilaian yang memakainya. Pemakaian bobot bergantung mode nilai akhir: dinormalisasi pada `weighted_average`, diabaikan pada `simple_average`, dan harus berjumlah 100 pada `percentage`.",
         "parameters": [
           {
             "schema": {
@@ -59347,7 +59723,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `weight` 1..100; bobot tidak harus berjumlah 100 karena dinormalisasi saat nilai akhir dihitung. `sort` bawaan: paling akhir.",
+        "description": "Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `weight` 1..100. Jumlah bobot tidak harus 100 pada mode `weighted_average` (dinormalisasi saat nilai akhir dihitung) dan `simple_average` (bobot diabaikan), tetapi mode `percentage` mensyaratkan jumlah 100 (dicek saat memilih mode itu di `PUT /v1/grading/settings`; bobot yang diubah sesudahnya tidak diperiksa ulang, hasil `percentage` tetap dibatasi 0..100). `sort` bawaan: paling akhir.",
         "requestBody": {
           "required": true,
           "content": {
@@ -59574,7 +59950,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 `report_final` selama semester aktif punya rapor final.",
+        "description": "Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 `report_final` selama semester aktif punya rapor final. Bobot tidak dinormalisasi pada mode `percentage`; jumlahnya diperiksa saat mode itu dipilih, bukan di sini.",
         "requestBody": {
           "required": true,
           "content": {
@@ -61993,9 +62369,11 @@
                         "calculationMode": {
                           "type": "string",
                           "enum": [
-                            "weighted_average"
+                            "weighted_average",
+                            "percentage",
+                            "simple_average"
                           ],
-                          "description": "Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)"
+                          "description": "Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan."
                         }
                       },
                       "required": [
@@ -100919,6 +101297,20 @@
                         "type": "integer",
                         "minimum": -9007199254740991,
                         "maximum": 9007199254740991
+                      },
+                      "periodMinutes": {
+                        "description": "Menit per JP pada tingkat ini",
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "effectiveWeeks": {
+                        "description": "Minggu efektif per tahun pada tingkat ini",
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
                       }
                     },
                     "required": [
@@ -101028,6 +101420,18 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 10000
+                  },
+                  "periodMinutes": {
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 300
+                  },
+                  "effectiveWeeks": {
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 60
                   }
                 },
                 "required": [
@@ -101071,6 +101475,20 @@
                       "type": "string"
                     },
                     "sort": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "periodMinutes": {
+                      "description": "Menit per JP pada tingkat ini",
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "effectiveWeeks": {
+                      "description": "Minggu efektif per tahun pada tingkat ini",
+                      "nullable": true,
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
@@ -101252,6 +101670,20 @@
                         "type": "integer",
                         "minimum": -9007199254740991,
                         "maximum": 9007199254740991
+                      },
+                      "periodMinutes": {
+                        "description": "Menit per JP pada tingkat ini",
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
+                      },
+                      "effectiveWeeks": {
+                        "description": "Minggu efektif per tahun pada tingkat ini",
+                        "nullable": true,
+                        "type": "integer",
+                        "minimum": -9007199254740991,
+                        "maximum": 9007199254740991
                       }
                     },
                     "required": [
@@ -101371,7 +101803,7 @@
         "tags": [
           "School"
         ],
-        "description": "Izin: `school:manage`. Hanya nama tampilan dan urutan; kode tetap. 404 `not_found` bila tak ada.",
+        "description": "Izin: `school:manage`. Nama tampilan, urutan, serta konfigurasi `periodMinutes` (menit per JP) dan `effectiveWeeks` (minggu efektif) yang dihilangkan tidak berubah; kode tetap. 404 `not_found` bila tak ada.",
         "requestBody": {
           "required": true,
           "content": {
@@ -101388,6 +101820,20 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 10000
+                  },
+                  "periodMinutes": {
+                    "description": "Menit per JP; dihilangkan = tidak berubah, null mengosongkan",
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 300
+                  },
+                  "effectiveWeeks": {
+                    "description": "Minggu efektif; dihilangkan = tidak berubah, null mengosongkan",
+                    "nullable": true,
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 60
                   }
                 },
                 "required": [
@@ -101441,6 +101887,20 @@
                       "type": "string"
                     },
                     "sort": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "periodMinutes": {
+                      "description": "Menit per JP pada tingkat ini",
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "effectiveWeeks": {
+                      "description": "Minggu efektif per tahun pada tingkat ini",
+                      "nullable": true,
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
@@ -101560,7 +102020,7 @@
         "tags": [
           "School"
         ],
-        "description": "Izin: `school:manage`. Ditolak (409 `in_use`) bila masih dipakai kelas, tarif, atau periode SPMB. 404 `not_found` bila tak ada.",
+        "description": "Izin: `school:manage`. Ditolak (409 `in_use`) bila masih dipakai kelas, tarif, periode SPMB, tingkat akhir jurusan (`finalLevelCode`), alokasi JP, versi kurikulum, ATP, atau KKTP. 404 `not_found` bila tak ada.",
         "parameters": [
           {
             "schema": {
@@ -116822,6 +117282,160 @@
         }
       }
     },
+    "/v1/reference/subject-groups": {
+      "get": {
+        "summary": "Daftar kelompok mapel (acuan)",
+        "tags": [
+          "Reference"
+        ],
+        "description": "Izin: `subject:read`. Kelompok mapel acuan platform, berurutan (`sort`). `profileKeys` null = berlaku untuk semua profil jenjang. `reportSection` mengelompokkan mapel di rapor. Daftar adalah acuan awal yang masih harus diverifikasi ke Lampiran II Permendikdasmen 13/2025; kunci lama (vocational_base, dst.) tetap ada agar data lama valid dan ditandai di label. Kunci ini dipakai pada `subjectGroup` mapel.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "groups": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "key": {
+                            "type": "string"
+                          },
+                          "labelId": {
+                            "type": "string"
+                          },
+                          "labelEn": {
+                            "type": "string"
+                          },
+                          "labelSu": {
+                            "type": "string"
+                          },
+                          "profileKeys": {
+                            "nullable": true,
+                            "type": "array",
+                            "items": {
+                              "type": "string"
+                            }
+                          },
+                          "reportSection": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "sort": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "active": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "key",
+                          "labelId",
+                          "labelEn",
+                          "labelSu",
+                          "profileKeys",
+                          "reportSection",
+                          "sort",
+                          "active"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "groups"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/reference/curricula/updates": {
       "get": {
         "summary": "Pembaruan acuan untuk kurikulum yang sudah diadopsi",
@@ -117163,7 +117777,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `subject:read`. Alokasi JP mingguan/tahunan per (tingkat, program, mapel) beserta nama mapel. `programId` null berarti berlaku untuk semua program. Filter opsional `levelCode` dan `programId`.",
+        "description": "Izin: `subject:read`. Alokasi JP mingguan/tahunan (intrakurikuler), kokurikuler tahunan, dan minggu per (tingkat, program, mapel) beserta nama mapel. `programId` null berarti berlaku untuk semua program. Filter opsional `levelCode` dan `programId`.",
         "parameters": [
           {
             "schema": {
@@ -117246,11 +117860,27 @@
                           },
                           "weeklyPeriods": {
                             "nullable": true,
+                            "description": "JP mingguan intrakurikuler",
                             "type": "integer",
                             "minimum": -9007199254740991,
                             "maximum": 9007199254740991
                           },
                           "yearlyPeriods": {
+                            "nullable": true,
+                            "description": "JP tahunan intrakurikuler",
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "cocurricularYearlyPeriods": {
+                            "description": "JP kokurikuler tahunan",
+                            "nullable": true,
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "weeks": {
+                            "description": "Durasi dalam minggu (mis. PKL)",
                             "nullable": true,
                             "type": "integer",
                             "minimum": -9007199254740991,
@@ -117387,7 +118017,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `curriculum:manage`. Upsert per (`levelCode`, `programId`, `subjectId`); bagian yang tidak dikirim tidak disentuh. Tiap baris menggantikan baris yang ada: `weeklyPeriods`, `yearlyPeriods`, `note` yang dihilangkan menjadi kosong. Bila kedua JP kosong (null/dihilangkan), baris itu dihapus. Maksimal 500 baris, semua atau tidak sama sekali. 400 `invalid_level`: tingkat tidak ada di daftar tingkat sekolah. 400 `invalid_reference`: mapel atau jurusan bukan milik sekolah ini. 400 `duplicate_entry`: kombinasi yang sama muncul dua kali.",
+        "description": "Izin: `curriculum:manage`. Upsert per (`levelCode`, `programId`, `subjectId`); bagian yang tidak dikirim tidak disentuh. Tiap baris menggantikan baris yang ada: `weeklyPeriods`, `yearlyPeriods`, `note` yang dihilangkan menjadi kosong. `cocurricularYearlyPeriods` dan `weeks` yang dihilangkan mempertahankan nilai tersimpan (null mengosongkan); `weeklyPeriods`/`yearlyPeriods` berarti intrakurikuler. Bila semua JP/minggu kosong, baris itu dihapus. Maksimal 500 baris, semua atau tidak sama sekali. 400 `invalid_level`: tingkat tidak ada di daftar tingkat sekolah. 400 `invalid_reference`: mapel atau jurusan bukan milik sekolah ini. 400 `duplicate_entry`: kombinasi yang sama muncul dua kali.",
         "requestBody": {
           "required": true,
           "content": {
@@ -117424,6 +118054,18 @@
                           "maximum": 9999
                         },
                         "yearlyPeriods": {
+                          "nullable": true,
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9999
+                        },
+                        "cocurricularYearlyPeriods": {
+                          "nullable": true,
+                          "type": "integer",
+                          "minimum": 0,
+                          "maximum": 9999
+                        },
+                        "weeks": {
                           "nullable": true,
                           "type": "integer",
                           "minimum": 0,
@@ -118642,7 +119284,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus (berlaku juga untuk `active` true pada versi lama; aktifkan versi terbaru).",
         "requestBody": {
           "required": true,
           "content": {
@@ -119584,7 +120226,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus; berlaku juga untuk `active` true pada versi lama (aktifkan versi terbaru).",
         "requestBody": {
           "required": true,
           "content": {
@@ -120553,6 +121195,12 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "inactiveItemCount": {
+                      "description": "Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
@@ -120952,6 +121600,12 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "inactiveItemCount": {
+                      "description": "Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
@@ -121360,6 +122014,12 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "inactiveItemCount": {
+                      "description": "Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
@@ -121736,7 +122396,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Mengubah draf menjadi terbit dan mengunci isinya; revisi lewat `new-version`. 400 `flow_empty`: ATP tanpa item. 409 `flow_published`: sudah terbit.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Mengubah draf menjadi terbit dan mengunci isinya; revisi lewat `new-version`. 400 `flow_empty`: ATP tanpa item. 400 `inactive_objective`: ada item yang menunjuk TP nonaktif (daftar TP ada di pesan galat; ganti item itu dulu). 409 `flow_published`: sudah terbit.",
         "parameters": [
           {
             "schema": {
@@ -121941,6 +122601,12 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "inactiveItemCount": {
+                      "description": "Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [
@@ -122135,7 +122801,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Menyalin ATP terbit beserta item menjadi draf versi berikutnya (`supersedesId` = ATP asal); versi lama tetap utuh. 409 `flow_not_published`: ATP asal masih draf. 409 `draft_exists`: ATP yang sama (mapel, tahun, nama, tingkat) sudah punya draf.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Menyalin ATP terbit beserta item menjadi draf versi berikutnya (`supersedesId` = ATP asal); versi lama tetap utuh. Item yang menunjuk TP nonaktif ikut disalin dan dihitung di `inactiveItemCount` (peringatan; ganti sebelum menerbitkan, 400 `inactive_objective`). 409 `flow_not_published`: ATP asal masih draf. 409 `draft_exists`: ATP yang sama (mapel, tahun, nama, tingkat) sudah punya draf.",
         "parameters": [
           {
             "schema": {
@@ -122340,6 +123006,12 @@
                         ],
                         "additionalProperties": false
                       }
+                    },
+                    "inactiveItemCount": {
+                      "description": "Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
                     }
                   },
                   "required": [

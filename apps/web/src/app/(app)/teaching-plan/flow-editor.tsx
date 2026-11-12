@@ -13,6 +13,7 @@ import {
   Save,
   Send,
   Trash2,
+  TriangleAlert,
   X,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -31,14 +32,16 @@ import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { EmptyPanel, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
-import { api, schoolHeader, unwrap } from '@/lib/api';
+import { ApiError, api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import {
   addObjectives,
   type DraftItem,
+  type InactiveObjectivesIssue,
   itemsChanged,
   MAX_FLOW_ITEMS,
   moveItem,
+  parseInactiveObjectives,
   removeItemAt,
   toDraftItems,
   toRequestItems,
@@ -165,6 +168,7 @@ export function FlowEditor({
     }
   });
 
+  const [inactiveIssue, setInactiveIssue] = useState<InactiveObjectivesIssue | null>(null);
   const save = useMutation({
     mutationFn: async () => {
       const req = toRequestItems(items);
@@ -187,6 +191,7 @@ export function FlowEditor({
     },
     onSuccess: () => {
       toast.success(t('draftSaved'));
+      setInactiveIssue(null);
       setDraft(null);
       invalidate();
     },
@@ -199,10 +204,17 @@ export function FlowEditor({
       ),
     onSuccess: () => {
       toast.success(t('published'));
+      setInactiveIssue(null);
       setDraft(null);
       invalidate();
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => {
+      // TP nonaktif menghalangi terbit: tampilkan daftarnya di halaman (bukan hanya toast) beserta petunjuknya.
+      if (e instanceof ApiError && e.code === 'inactive_objective') {
+        setInactiveIssue(parseInactiveObjectives(e.message));
+        invalidate();
+      } else toast.error(te(errorKey(e)));
+    },
   });
   const newVersion = useMutation({
     mutationFn: async () =>
@@ -256,6 +268,8 @@ export function FlowEditor({
 
   const semesterName = new Map((semesters.data ?? []).map((s) => [s.id, s.name]));
   const totals = totalsOf(items);
+  // Item yang menunjuk TP nonaktif (TP versi lama): menurut server, atau menurut isian bila server tak mengirim.
+  const inactiveCount = data.inactiveItemCount ?? 0;
   const busy = save.isPending || publish.isPending || newVersion.isPending || remove.isPending;
 
   function setField(index: number, field: keyof DraftItem, value: string) {
@@ -275,6 +289,12 @@ export function FlowEditor({
             <FlowStatusBadge status={data.status} />
             <ToneBadge tone="sky">{t('badgeVersion', { version: data.version })}</ToneBadge>
             {data.supersedesId && <ToneBadge tone="violet">{t('badgeReplaces')}</ToneBadge>}
+            {inactiveCount > 0 && (
+              <ToneBadge tone="amber" dot={false}>
+                <TriangleAlert className="size-3" aria-hidden />{' '}
+                {t('inactiveBadge', { count: inactiveCount })}
+              </ToneBadge>
+            )}
           </div>
           <p className="text-muted-foreground mt-1 text-sm">
             {[
@@ -294,6 +314,22 @@ export function FlowEditor({
         )}
       </div>
 
+      {inactiveCount > 0 && (
+        <Alert variant={data.status === 'draft' ? 'destructive' : 'default'}>
+          <TriangleAlert className="size-4" aria-hidden />
+          <AlertTitle>{t('inactiveTitle', { count: inactiveCount })}</AlertTitle>
+          <AlertDescription>
+            {data.status === 'draft' ? t('inactiveBodyDraft') : t('inactiveBodyPublished')}
+            {inactiveIssue && inactiveIssue.items.length > 0 && (
+              <span className="mt-2 block">
+                {t('inactiveListLead')} <span className="font-medium">{inactiveIssue.items.join(', ')}</span>
+                {inactiveIssue.more > 0 && ` ${t('inactiveListMore', { count: inactiveIssue.more })}`}
+              </span>
+            )}
+          </AlertDescription>
+        </Alert>
+      )}
+
       {data.status === 'published' && (
         <Alert>
           <Lock className="size-4" aria-hidden />
@@ -311,7 +347,7 @@ export function FlowEditor({
         />
       ) : (
         <div className="bg-card overflow-x-auto rounded-2xl border">
-          <Table>
+          <Table className="max-lg:block max-lg:[&_tbody]:block max-lg:[&_thead]:hidden">
             <TableHeader>
               <TableRow>
                 <TableHead className="w-12">{t('colNo')}</TableHead>
@@ -330,9 +366,15 @@ export function FlowEditor({
               {items.map((it, index) => {
                 const o = info.get(it.objectiveId);
                 return (
-                  <TableRow key={it.objectiveId}>
-                    <TableCell className="text-muted-foreground align-top">{index + 1}</TableCell>
-                    <TableCell className="align-top whitespace-normal">
+                  <TableRow
+                    key={it.objectiveId}
+                    className="max-lg:grid max-lg:grid-cols-2 max-lg:gap-x-3 max-lg:gap-y-2 max-lg:px-3 max-lg:py-3"
+                  >
+                    <TableCell className="text-muted-foreground align-top max-lg:col-span-2 max-lg:p-0 max-lg:text-xs">
+                      <span className="lg:hidden">{t('colNo')} </span>
+                      {index + 1}
+                    </TableCell>
+                    <TableCell className="align-top whitespace-normal max-lg:col-span-2 max-lg:p-0">
                       <div className="flex flex-wrap items-center gap-1.5">
                         {o?.code && (
                           <ToneBadge tone="slate" dot={false}>
@@ -349,7 +391,10 @@ export function FlowEditor({
                       </div>
                       <p className="mt-1 text-sm whitespace-pre-line">{o?.description ?? '...'}</p>
                     </TableCell>
-                    <TableCell className="align-top">
+                    <TableCell className="align-top max-lg:p-0">
+                      <span className="text-muted-foreground mb-1 block text-xs lg:hidden">
+                        {t('colWeeks')}
+                      </span>
                       {editable ? (
                         <Input
                           inputMode="numeric"
@@ -361,7 +406,10 @@ export function FlowEditor({
                         it.weeks || '-'
                       )}
                     </TableCell>
-                    <TableCell className="align-top">
+                    <TableCell className="align-top max-lg:p-0">
+                      <span className="text-muted-foreground mb-1 block text-xs lg:hidden">
+                        {t('colPeriods')}
+                      </span>
                       {editable ? (
                         <Input
                           inputMode="numeric"
@@ -373,7 +421,10 @@ export function FlowEditor({
                         it.periods || '-'
                       )}
                     </TableCell>
-                    <TableCell className="align-top">
+                    <TableCell className="align-top max-lg:col-span-2 max-lg:p-0">
+                      <span className="text-muted-foreground mb-1 block text-xs lg:hidden">
+                        {t('colSemester')}
+                      </span>
                       {editable ? (
                         <SelectField
                           className={TOUCH_SELECT}
@@ -393,7 +444,7 @@ export function FlowEditor({
                       )}
                     </TableCell>
                     {editable && (
-                      <TableCell className="align-top">
+                      <TableCell className="align-top max-lg:col-span-2 max-lg:p-0">
                         <div className="flex items-center justify-end">
                           <Button
                             size="icon-sm"

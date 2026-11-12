@@ -46,7 +46,13 @@ export function ImportStepper({
             >
               {done ? <Check className="size-4" aria-hidden /> : i + 1}
             </span>
-            <span className={cn('text-sm font-medium', !current && !done && 'text-muted-foreground')}>
+            <span
+              className={cn(
+                'text-sm font-medium',
+                !current && !done && 'text-muted-foreground',
+                labels.length > 3 && !current && 'sr-only sm:not-sr-only',
+              )}
+            >
               {label}
             </span>
             {i < labels.length - 1 && (

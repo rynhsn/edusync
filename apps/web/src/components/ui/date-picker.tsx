@@ -24,6 +24,8 @@ interface Props {
   clearable?: boolean;
   /** Pemilih bulan dan tahun (dropdown), cocok untuk tanggal lahir. */
   yearRange?: { from: number; to: number };
+  /** Bulan yang dibuka saat belum ada tanggal terpilih (TTTT-BB-HH), mis. tanggal mulai untuk pemilih tanggal akhir. */
+  defaultMonth?: string;
   'aria-invalid'?: boolean;
   'aria-describedby'?: string | undefined;
   onBlur?: () => void;
@@ -50,6 +52,7 @@ export function DatePicker({
   className,
   clearable,
   yearRange,
+  defaultMonth,
 }: Props) {
   const locale = useLocale() as Locale;
   const t = useTranslations('common');
@@ -80,7 +83,10 @@ export function DatePicker({
         <Calendar
           mode="single"
           selected={selected}
-          defaultMonth={selected ?? (yearRange ? new Date(yearRange.to - 12, 0) : undefined)}
+          defaultMonth={
+            selected ??
+            (defaultMonth ? parse(defaultMonth) : yearRange ? new Date(yearRange.to - 12, 0) : undefined)
+          }
           onSelect={(d) => {
             if (d) onChange(toIso(d));
             setOpen(false);

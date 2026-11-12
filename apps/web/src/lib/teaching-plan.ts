@@ -178,3 +178,37 @@ export function groupByPhase<T extends WithPhase>(
     .map((phase) => ({ phase, rows: rows.filter((r) => r.phase === phase) }))
     .filter((g) => g.rows.length > 0);
 }
+
+export interface InactiveObjectivesIssue {
+  /** Jumlah TP bermasalah bila terbaca dari pesan server. */
+  count: number | null;
+  /** Kode atau potongan teks TP yang bermasalah (maksimal 10 dari server). */
+  items: string[];
+  /** TP bermasalah lain yang tidak disebut satu per satu. */
+  more: number;
+}
+
+/**
+ * Daftar TP bermasalah dari pesan galat `inactive_objective` saat menerbitkan, mis.
+ * "ATP memuat 3 TP yang sudah nonaktif atau diganti versi baru: 7.1, 7.2, dan 1 lainnya. Ganti item itu ...".
+ * Pesan yang bentuknya lain menghasilkan daftar kosong (petunjuk umum tetap ditampilkan).
+ */
+export function parseInactiveObjectives(message: string): InactiveObjectivesIssue {
+  const m = /memuat\s+(\d+)\s+TP[^:]*:\s*([\s\S]+?)\.\s*Ganti/i.exec(message);
+  if (!m?.[1] || !m[2]) return { count: null, items: [], more: 0 };
+  let list = m[2];
+  let more = 0;
+  const tail = /,\s*dan\s+(\d+)\s+lainnya$/i.exec(list);
+  if (tail?.[1]) {
+    more = Number(tail[1]);
+    list = list.slice(0, tail.index);
+  }
+  return {
+    count: Number(m[1]),
+    items: list
+      .split(',')
+      .map((s) => s.trim())
+      .filter(Boolean),
+    more,
+  };
+}

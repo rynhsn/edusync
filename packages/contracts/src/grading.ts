@@ -40,19 +40,40 @@ export function componentAverage(scores: readonly ScoreInput[]): number | null {
   return total / filled.length;
 }
 
+/** Mode perhitungan nilai akhir (Panduan Pembelajaran dan Asesmen 2025). */
+export const CALCULATION_MODES = ['weighted_average', 'percentage', 'simple_average'] as const;
+export type CalculationMode = (typeof CALCULATION_MODES)[number];
+
 /**
- * Nilai akhir: rata-rata tertimbang komponen yang punya minimal satu skor. Bobot dinormalisasi hanya atas komponen
- * yang punya skor, jadi komponen yang belum terisi tidak menarik nilai ke bawah. Dibulatkan 2 desimal;
- * `null` bila tidak ada skor sama sekali.
+ * Nilai akhir menurut mode (bawaan `weighted_average`, rumus lama). Dibulatkan 2 desimal; `null` bila tidak ada skor.
+ * - `weighted_average`: rata-rata tertimbang komponen yang punya minimal satu skor; bobot dinormalisasi hanya atas
+ *   komponen itu, jadi komponen kosong tidak menarik nilai ke bawah.
+ * - `percentage`: jumlah (rata-rata komponen x bobot%) / 100 TANPA renormalisasi; komponen tanpa skor menyumbang 0.
+ *   Hanya bermakna bila bobot berjumlah 100 (API menolak mode ini bila tidak); sebagai pengaman hasil dibatasi 0..100.
+ * - `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor.
  */
-export function finalGrade(components: readonly ComponentInput[]): number | null {
+export function finalGrade(
+  components: readonly ComponentInput[],
+  mode: CalculationMode = 'weighted_average',
+): number | null {
+  if (mode === 'simple_average') {
+    const avgs = components.map((c) => componentAverage(c.scores)).filter((a): a is number => a !== null);
+    if (avgs.length === 0) return null;
+    return round2(avgs.reduce((sum, a) => sum + a, 0) / avgs.length);
+  }
   let weighted = 0;
   let weights = 0;
+  let anyScore = false;
   for (const c of components) {
     const avg = componentAverage(c.scores);
-    if (avg === null || !(c.weight > 0)) continue;
+    if (avg === null) continue;
+    anyScore = true;
+    if (!(c.weight > 0)) continue;
     weighted += avg * c.weight;
     weights += c.weight;
+  }
+  if (mode === 'percentage') {
+    return anyScore && weights > 0 ? Math.min(100, Math.max(0, round2(weighted / 100))) : null;
   }
   if (weights === 0) return null;
   return round2(weighted / weights);

@@ -168,9 +168,36 @@ const KNOWN = [
   'criteria_exists',
   'overlapping_levels',
   'invalid_criteria',
+  'invalid_subject_group',
+  'weights_sum_invalid',
+  'level_unknown',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];
+
+/** Benda yang sedang diubah atau dihapus; membuat galat umum (`in_use`, `invalid_level`) menyebut penyebab yang tepat. */
+export type ErrorContext = 'level' | 'program' | 'subject' | 'class';
+
+const IN_USE_KEY = {
+  level: 'errors.in_use_level',
+  program: 'errors.in_use_program',
+  subject: 'errors.in_use_subject',
+  class: 'errors.in_use_class',
+} as const satisfies Record<ErrorContext, string>;
+
+/**
+ * Seperti `errorKey`, tetapi memakai teks yang menyebut apa yang masih memakai benda itu (`in_use`) atau menjelaskan
+ * tingkat akhir program (`invalid_level` pada program). Kode lain mengikuti `errorKey`.
+ */
+export function errorKeyIn(
+  error: unknown,
+  context: ErrorContext,
+): ReturnType<typeof errorKey> | (typeof IN_USE_KEY)[ErrorContext] | 'errors.invalid_level_final' {
+  const code = error instanceof ApiError ? error.code : undefined;
+  if (code === 'in_use') return IN_USE_KEY[context];
+  if (code === 'invalid_level' && context === 'program') return 'errors.invalid_level_final';
+  return errorKey(error);
+}
 
 /**
  * Kunci terjemahan untuk sebuah kesalahan. API mengirim kode yang stabil, jadi teksnya mengikuti

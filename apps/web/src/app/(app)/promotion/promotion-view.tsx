@@ -21,7 +21,7 @@ import { formatCalendarDate } from '@/lib/format-date';
 import { cn } from '@/lib/utils';
 import { ApplyStep } from './apply-step';
 import { DecisionsStep, useDecisions } from './decisions-step';
-import { defaultSourceId, eligibleTargets, studentNames } from './promotion-logic';
+import { defaultSourceId, eligibleTargets, isBlocked, studentNames } from './promotion-logic';
 import { RolloverStep } from './rollover-step';
 
 const LAST_STEP = 3;
@@ -56,6 +56,8 @@ export function PromotionView() {
   const yearLabel = (y: { name: string; isActive: boolean }) =>
     y.isActive ? `${y.name} (${t('activeSuffix')})` : y.name;
 
+  // Langkah keputusan: siswa tingkat akhir wajib diputuskan eksplisit sebelum lanjut ke penerapan.
+  const nextBlocked = step === 2 && (decisions.query.isPending || isBlocked(decisions.blockers));
   const labels = [t('stepYears'), t('stepRollover'), t('stepDecisions'), t('stepApply')];
 
   if (!allowed) {
@@ -204,9 +206,21 @@ export function PromotionView() {
             <ArrowLeft className="size-4" aria-hidden /> {t('prev')}
           </Button>
           {step < LAST_STEP && (
-            <Button disabled={!ready} onClick={() => setStep((s) => Math.min(LAST_STEP, s + 1))}>
-              {t('next')} <ArrowRight className="size-4" aria-hidden />
-            </Button>
+            <div className="flex flex-wrap items-center justify-end gap-3">
+              {nextBlocked && isBlocked(decisions.blockers) && (
+                <p role="status" className="max-w-xs text-xs font-medium text-amber-700 dark:text-amber-300">
+                  {decisions.blockers.missingFinal > 0
+                    ? t('blockedMissingFinal', { count: decisions.blockers.missingFinal })
+                    : t('blockedInvalidDetails', { count: decisions.blockers.invalidDetails })}
+                </p>
+              )}
+              <Button
+                disabled={!ready || nextBlocked}
+                onClick={() => setStep((s) => Math.min(LAST_STEP, s + 1))}
+              >
+                {t('next')} <ArrowRight className="size-4" aria-hidden />
+              </Button>
+            </div>
           )}
         </div>
       )}

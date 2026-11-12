@@ -14,12 +14,16 @@ import {
   asc,
   calendarEvent,
   classRoom,
+  desc,
   enrollment,
   eq,
   inArray,
   isNull,
+  program,
   promotionDecision,
+  reportCard,
   schoolLevel,
+  semester,
   sql,
   student,
   type Tx,
@@ -72,9 +76,32 @@ async function loadTargetYear(tx: Tx, source: YearRow, targetYearId: string): Pr
 const loadLevels = (tx: Tx) =>
   tx.select({ code: schoolLevel.code, sort: schoolLevel.sort }).from(schoolLevel);
 
+/**
+ * Tingkat akhir per program (`program.final_level_code`). Kelas tanpa program, atau program tanpa tingkat akhir, memakai
+ * tingkat dengan `sort` terbesar (aturan lama).
+ */
+async function loadFinalLevelResolver(tx: Tx) {
+  const rows = await tx.select({ id: program.id, finalLevelCode: program.finalLevelCode }).from(program);
+  const byProgram = new Map(rows.map((r) => [r.id, r.finalLevelCode]));
+  return (programId: string | null | undefined): string | null =>
+    programId ? (byProgram.get(programId) ?? null) : null;
+}
+
 /** Kunci per tahun tujuan: dua rollover atau penerapan bersamaan untuk tahun yang sama berjalan bergantian. */
 const lockTarget = (tx: Tx, kind: string, targetYearId: string) =>
   tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`${kind}:${targetYearId}`}))`);
+
+/**
+ * Kunci per TAHUN SUMBER untuk menyimpan dan menerapkan keputusan: dua penerapan ke tahun tujuan berbeda, atau simpan
+ * bersamaan dengan penerapan, berjalan bergantian sehingga satu keputusan tidak diterapkan dua kali. Selalu diambil
+ * SEBELUM kunci tahun tujuan agar urutan kunci seragam (tanpa deadlock).
+ */
+const lockSource = (tx: Tx, sourceYearId: string) =>
+  tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`promotion:${sourceYearId}`}))`);
+
+/** Tingkat kelas dikenal bila ada di daftar tingkat sekolah; tingkat tak dikenal tidak punya tingkat berikutnya. */
+const isKnownLevel = (levels: readonly { code: string }[], code: string) =>
+  levels.some((l) => l.code === code);
 
 /* ---------- Skema ---------- */
 
@@ -85,12 +112,18 @@ const studentEntry = z.object({
   decision: decisionEnum.nullable().describe('Keputusan tersimpan; null bila belum diputuskan'),
   suggestedDecision: z
     .enum(['promote', 'graduate'])
-    .describe('Saran bawaan: naik kelas, atau lulus bila kelasnya tingkat terakhir'),
+    .nullable()
+    .describe(
+      'Saran bawaan: `promote` bila bukan tingkat akhir; null di tingkat akhir (kelulusan ditetapkan sekolah, wajib dipilih eksplisit)',
+    ),
   toClassId: z
     .uuid()
     .nullable()
     .describe('Kelas tujuan eksplisit; null = ditentukan otomatis saat diterapkan'),
   note: z.string().nullable(),
+  reason: z.string().nullable().optional().describe('Alasan keputusan (mis. tinggal kelas)'),
+  followUp: z.string().nullable().optional().describe('Tindak lanjut'),
+  meetingDate: z.iso.date().nullable().optional().describe('Tanggal rapat dewan pendidik'),
   applied: z.boolean().describe('Keputusan sudah diterapkan ke tahun tujuan; tidak bisa diubah lagi'),
 });
 
@@ -100,6 +133,12 @@ const classEntry = z.object({
   level: z.string(),
   nextLevel: z.string().nullable(),
   isFinalLevel: z.boolean(),
+  levelUnknown: z
+    .boolean()
+    .optional()
+    .describe(
+      'true bila tingkat kelas tidak ada di daftar tingkat sekolah: tidak ada saran `promote`, dan naik kelas wajib menyertakan `toClassId` (400 `level_unknown`)',
+    ),
   students: z.array(studentEntry),
 });
 
@@ -116,6 +155,9 @@ const decisionsBody = z.object({
         decision: decisionEnum,
         toClassId: z.uuid().nullable().optional(),
         note: z.string().trim().max(500).nullable().optional(),
+        reason: z.string().trim().max(1000).nullable().optional(),
+        followUp: z.string().trim().max(1000).nullable().optional(),
+        meetingDate: z.iso.date().nullable().optional(),
       }),
     )
     .min(1)
@@ -126,7 +168,12 @@ const rolloverBody = z.object({
   targetYearId: z.uuid(),
   copyClasses: z.boolean().default(true),
   copyAssignments: z.boolean().default(true),
-  copyCalendar: z.boolean().default(true),
+  copyCalendar: z
+    .boolean()
+    .default(false)
+    .describe(
+      'Salin kalender akademik (tanggal digeser selisih tahun mulai); bawaan false karena kalender tiap tahun berbeda',
+    ),
   copyCurriculum: z.boolean().optional().describe('Salin alokasi JP dan versi kurikulum; bawaan true'),
   copyTeachingPlans: z
     .boolean()
@@ -144,6 +191,12 @@ const rolloverResponse = z.object({
   versionsCreated: z.number().int().optional(),
   flowsCreated: z.number().int().optional(),
   warnings: z.array(z.string()),
+  warningItems: z
+    .array(z.object({ code: z.string(), params: z.record(z.string(), z.union([z.string(), z.number()])) }))
+    .optional()
+    .describe(
+      'Peringatan terstruktur (kode stabil + parameter) yang sejajar dengan `warnings`, untuk diterjemahkan klien',
+    ),
 });
 
 const applyBody = z.object({ targetYearId: z.uuid(), dryRun: z.boolean().default(false) });
@@ -152,11 +205,34 @@ const applyResponse = z.object({
   placed: z.number().int().describe('Siswa naik kelas yang ditempatkan di kelas tahun tujuan'),
   retained: z.number().int().describe('Siswa tinggal kelas yang ditempatkan di kelas sebaya tahun tujuan'),
   graduated: z.number().int().describe('Siswa yang statusnya menjadi lulus'),
-  unplaced: z.array(z.object({ studentId: z.uuid(), reason: z.string() })),
+  unplaced: z.array(
+    z.object({
+      studentId: z.uuid(),
+      reason: z.string(),
+      reasonCode: z
+        .string()
+        .optional()
+        .describe(
+          'Kode alasan stabil: student_missing, student_not_active, source_class_missing, target_class_invalid, no_next_level, no_target_class, not_final_level',
+        ),
+      reasonParams: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
+    }),
+  ),
   alreadyEnrolled: z
     .array(z.object({ studentId: z.uuid(), classId: z.uuid() }))
     .describe('Sudah punya enrollment di tahun tujuan: dilewati, keputusannya tetap menunggu'),
   skippedNoDecision: z.number().int().describe('Siswa aktif tahun sumber yang belum punya keputusan'),
+  graduateReportNotFinal: z
+    .number()
+    .int()
+    .optional()
+    .describe(
+      'Jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Status lulus mengeluarkan siswa dari roster rapor draf, jadi finalkan rapornya lebih dulu',
+    ),
+  warningItems: z
+    .array(z.object({ code: z.string(), params: z.record(z.string(), z.union([z.string(), z.number()])) }))
+    .optional()
+    .describe('Peringatan terstruktur (kode stabil + parameter): graduate_report_not_final'),
 });
 
 /* ---------- Rollover ---------- */
@@ -177,6 +253,11 @@ async function runRollover(
   body: z.infer<typeof rolloverBody>,
 ) {
   const warnings: string[] = [];
+  const warningItems: { code: string; params: Record<string, string | number> }[] = [];
+  const warn = (code: string, params: Record<string, string | number>, message: string) => {
+    warnings.push(message);
+    warningItems.push({ code, params });
+  };
   const out = {
     classesCreated: 0,
     classesSkipped: 0,
@@ -186,6 +267,7 @@ async function runRollover(
     versionsCreated: 0,
     flowsCreated: 0,
     warnings,
+    warningItems,
   };
   const write = !body.dryRun;
   const levels = await loadLevels(tx);
@@ -196,6 +278,7 @@ async function runRollover(
     );
   }
   const first = firstLevel(levels);
+  const finalOf = await loadFinalLevelResolver(tx);
   const srcClasses = await tx
     .select()
     .from(classRoom)
@@ -222,24 +305,29 @@ async function runRollover(
   let finalLevelClasses = 0;
   for (const c of srcClasses) {
     if (!levels.some((l) => l.code === c.level)) {
-      warnings.push(
+      warn(
+        'class_level_unknown',
+        { className: c.name, level: c.level },
         `Kelas "${c.name}" bertingkat "${c.level}" yang tidak ada di daftar tingkat sekolah, jadi dilewati.`,
       );
       if (body.copyClasses) out.classesSkipped++;
       continue;
     }
-    if (isFinalLevel(levels, c.level)) {
+    const finalCode = finalOf(c.programId);
+    if (isFinalLevel(levels, c.level, finalCode)) {
       finalLevelClasses++;
       continue;
     }
-    const next = nextLevel(levels, c.level) as string;
+    const next = nextLevel(levels, c.level, finalCode) as string;
     const derived = deriveTargetClassName(c.name, c.level, next);
-    if (derived.warning) warnings.push(derived.warning);
+    if (derived.warning) warn('class_name_unmatched', { className: c.name, level: c.level }, derived.warning);
     const candidates: Planned[] = [{ src: c, name: derived.name, level: next, primary: true }];
     if (c.level === first) candidates.push({ src: c, name: c.name, level: c.level, primary: false });
     for (const cand of candidates) {
       if (seen.has(cand.name)) {
-        warnings.push(
+        warn(
+          'class_name_conflict',
+          { className: cand.name, sourceName: c.name },
           `Kelas hasil salinan "${cand.name}" (dari "${c.name}") bentrok dengan kelas lain dalam rencana yang sama, jadi dilewati.`,
         );
         if (body.copyClasses) out.classesSkipped++;
@@ -250,7 +338,11 @@ async function runRollover(
     }
   }
   if (finalLevelClasses > 0) {
-    warnings.push(`${finalLevelClasses} kelas tingkat akhir tidak disalin (siswanya lulus).`);
+    warn(
+      'final_level_not_copied',
+      { count: finalLevelClasses },
+      `${finalLevelClasses} kelas tingkat akhir tidak disalin (kelulusan ditetapkan sekolah).`,
+    );
   }
 
   // 2. Kelas: cocokkan dengan kelas tahun tujuan menurut nama; yang sudah ada dilewati.
@@ -263,7 +355,9 @@ async function runRollover(
     if (existing) {
       if (body.copyClasses) out.classesSkipped++;
       if (existing.level !== p.level) {
-        warnings.push(
+        warn(
+          'class_level_mismatch',
+          { className: p.name, existingLevel: existing.level, expectedLevel: p.level },
           `Kelas "${p.name}" sudah ada di tahun tujuan dengan tingkat "${existing.level}" (seharusnya "${p.level}"); dipakai apa adanya.`,
         );
       }
@@ -317,13 +411,17 @@ async function runRollover(
     if (copy) copies.set(p.src.id, [...(copies.get(p.src.id) ?? []), copy]);
   }
   if (inactiveHomerooms > 0) {
-    warnings.push(
+    warn(
+      'inactive_homeroom_skipped',
+      { count: inactiveHomerooms },
       `${inactiveHomerooms} wali kelas nonaktif tidak disalin; isi wali kelasnya di tahun tujuan.`,
     );
   }
   const doubled = [...homeroomLoad.values()].filter((n) => n > 1).length;
   if (doubled > 0) {
-    warnings.push(
+    warn(
+      'homeroom_multiple',
+      { count: doubled },
       `${doubled} guru menjadi wali kelas di lebih dari satu kelas hasil salinan (kelas tingkat pertama disalin dua kali); periksa wali kelas di tahun tujuan.`,
     );
   }
@@ -361,7 +459,11 @@ async function runRollover(
       }
     }
     if (inactiveTeachers > 0) {
-      warnings.push(`${inactiveTeachers} penugasan guru nonaktif tidak disalin.`);
+      warn(
+        'inactive_teacher_skipped',
+        { count: inactiveTeachers },
+        `${inactiveTeachers} penugasan guru nonaktif tidak disalin.`,
+      );
     }
     out.assignmentsCreated = toInsert.length;
     if (write && toInsert.length > 0) {
@@ -393,7 +495,7 @@ async function runRollover(
   }
 
   // 4. Kalender: tanggal digeser selisih tahun mulai; cakupan kelas dipetakan ke kelas baru atau dilewati.
-  if (body.copyCalendar) {
+  if (body.copyCalendar ?? false) {
     const events = await tx.select().from(calendarEvent).where(eq(calendarEvent.academicYearId, source.id));
     const key = (e: {
       type: string;
@@ -441,10 +543,16 @@ async function runRollover(
       toInsert.push({ schoolId: ctx.schoolId, academicYearId: target.id, ...row });
     }
     if (skippedClass > 0) {
-      warnings.push(`${skippedClass} acara kalender kelas dilewati karena kelas tujuannya tidak ada.`);
+      warn(
+        'event_class_skipped',
+        { count: skippedClass },
+        `${skippedClass} acara kalender kelas dilewati karena kelas tujuannya tidak ada.`,
+      );
     }
     if (skippedRange > 0) {
-      warnings.push(
+      warn(
+        'event_out_of_year',
+        { count: skippedRange },
         `${skippedRange} acara kalender dilewati karena tanggalnya jatuh di luar tahun ajaran tujuan.`,
       );
     }
@@ -461,7 +569,15 @@ async function runRollover(
 
   // 6. ATP berstatus terbit tahun sumber menjadi draf ATP tahun tujuan (CP/TP tetap yang sama; yang sudah ada tidak ditimpa).
   if (body.copyTeachingPlans ?? true) {
-    out.flowsCreated = (await copyTeachingPlans(tx, ctx, source.id, target.id, write)).flowsCreated;
+    const copied = await copyTeachingPlans(tx, ctx, source.id, target.id, write);
+    out.flowsCreated = copied.flowsCreated;
+    if (copied.inactiveItems > 0) {
+      warn(
+        'flow_inactive_objectives',
+        { flows: copied.inactiveFlows, items: copied.inactiveItems },
+        `${copied.inactiveFlows} ATP hasil salinan memuat ${copied.inactiveItems} item TP nonaktif; ganti TP-nya sebelum menerbitkan ATP itu.`,
+      );
+    }
   }
 
   if (write) {
@@ -490,6 +606,7 @@ async function runApply(
 ) {
   const write = !body.dryRun;
   const levels = await loadLevels(tx);
+  const finalOf = await loadFinalLevelResolver(tx);
   const decisions = await tx
     .select()
     .from(promotionDecision)
@@ -546,43 +663,80 @@ async function runApply(
     placed: 0,
     retained: 0,
     graduated: 0,
-    unplaced: [] as { studentId: string; reason: string }[],
+    unplaced: [] as {
+      studentId: string;
+      reason: string;
+      reasonCode?: string;
+      reasonParams?: Record<string, string | number>;
+    }[],
     alreadyEnrolled: [] as { studentId: string; classId: string }[],
     skippedNoDecision: 0,
+    graduateReportNotFinal: 0,
+    warningItems: [] as { code: string; params: Record<string, string | number> }[],
   };
-  const enrollRows: (typeof enrollment.$inferInsert)[] = [];
-  const graduateIds: string[] = [];
-  const appliedIds: string[] = [];
+  /** Penempatan yang direncanakan; hanya yang benar-benar menghasilkan enrollment yang ditandai diterapkan. */
+  const pending: { decisionId: string; decision: string; row: typeof enrollment.$inferInsert }[] = [];
+  const graduates: { decisionId: string; studentId: string; classId: string }[] = [];
 
+  /**
+   * Kelas tujuan otomatis: kelas bernama sama dengan turunan nama kelas asal; bila tidak ada, satu-satunya kelas
+   * sejurusan pada tingkat itu (hanya bila kelas asal punya jurusan). Selain itu null (tidak ditebak): siswa dilaporkan
+   * `unplaced` agar sekolah membuat kelasnya atau memilih kelas tujuan eksplisit.
+   */
   const pickClass = (from: typeof classRoom.$inferSelect, level: string) => {
     const derived =
       level === from.level ? from.name : deriveTargetClassName(from.name, from.level, level).name;
     const pool = targetClasses.filter((c) => c.level === level);
-    return (
-      pool.find((c) => c.name === derived) ??
-      pool.find((c) => c.programId !== null && c.programId === from.programId) ??
-      pool[0] ??
-      null
-    );
+    const byName = pool.find((c) => c.name === derived);
+    if (byName) return byName;
+    if (from.programId) {
+      const samePrograms = pool.filter((c) => c.programId === from.programId);
+      if (samePrograms.length === 1) return samePrograms[0] as typeof classRoom.$inferSelect;
+    }
+    return null;
   };
 
   for (const d of decisions) {
     const stu = students.get(d.studentId);
     if (!stu || stu.deletedAt) {
-      out.unplaced.push({ studentId: d.studentId, reason: 'Siswa tidak ditemukan atau sudah dihapus.' });
+      out.unplaced.push({
+        studentId: d.studentId,
+        reason: 'Siswa tidak ditemukan atau sudah dihapus.',
+        reasonCode: 'student_missing',
+      });
       continue;
     }
     if (stu.status !== 'active') {
       out.unplaced.push({
         studentId: d.studentId,
         reason: `Status siswa "${stu.status}", bukan aktif, jadi keputusan tidak diterapkan.`,
+        reasonCode: 'student_not_active',
+        reasonParams: { status: stu.status },
       });
       continue;
     }
     if (d.decision === 'graduate') {
+      // Tingkat akhir divalidasi ulang: daftar tingkat atau tingkat akhir jurusan bisa berubah sejak keputusan disimpan.
+      const from = fromClasses.get(d.fromClassId);
+      if (!from) {
+        out.unplaced.push({
+          studentId: d.studentId,
+          reason: 'Kelas asal siswa sudah tidak ada.',
+          reasonCode: 'source_class_missing',
+        });
+        continue;
+      }
+      if (!isFinalLevel(levels, from.level, finalOf(from.programId))) {
+        out.unplaced.push({
+          studentId: d.studentId,
+          reason: `Kelas "${from.name}" (tingkat "${from.level}") bukan tingkat akhir lagi, jadi keputusan lulus tidak diterapkan. Ubah keputusannya.`,
+          reasonCode: 'not_final_level',
+          reasonParams: { className: from.name, level: from.level },
+        });
+        continue;
+      }
       out.graduated++;
-      graduateIds.push(d.studentId);
-      appliedIds.push(d.id);
+      graduates.push({ decisionId: d.id, studentId: d.studentId, classId: from.id });
       continue;
     }
     const already = enrolledTarget.get(d.studentId);
@@ -592,7 +746,11 @@ async function runApply(
     }
     const from = fromClasses.get(d.fromClassId);
     if (!from) {
-      out.unplaced.push({ studentId: d.studentId, reason: 'Kelas asal siswa sudah tidak ada.' });
+      out.unplaced.push({
+        studentId: d.studentId,
+        reason: 'Kelas asal siswa sudah tidak ada.',
+        reasonCode: 'source_class_missing',
+      });
       continue;
     }
     let dest: typeof classRoom.$inferSelect | null = null;
@@ -602,16 +760,20 @@ async function runApply(
         out.unplaced.push({
           studentId: d.studentId,
           reason: 'Kelas tujuan yang dipilih bukan kelas pada tahun ajaran tujuan.',
+          reasonCode: 'target_class_invalid',
         });
         continue;
       }
       dest = picked;
     } else {
-      const level = d.decision === 'promote' ? nextLevel(levels, from.level) : from.level;
+      const level =
+        d.decision === 'promote' ? nextLevel(levels, from.level, finalOf(from.programId)) : from.level;
       if (!level) {
         out.unplaced.push({
           studentId: d.studentId,
           reason: `Kelas "${from.name}" tidak punya tingkat berikutnya; gunakan keputusan lulus atau pilih kelas tujuan.`,
+          reasonCode: 'no_next_level',
+          reasonParams: { className: from.name },
         });
         continue;
       }
@@ -619,20 +781,20 @@ async function runApply(
       if (!dest) {
         out.unplaced.push({
           studentId: d.studentId,
-          reason: `Tahun ajaran tujuan belum punya kelas tingkat "${level}". Jalankan rollover atau buat kelasnya.`,
+          reason: `Tahun ajaran tujuan belum punya kelas tingkat "${level}" yang cocok untuk "${from.name}". Jalankan rollover, buat kelasnya, atau pilih kelas tujuan.`,
+          reasonCode: 'no_target_class',
+          reasonParams: { level },
         });
         continue;
       }
     }
     if (d.decision === 'promote') out.placed++;
     else out.retained++;
-    enrollRows.push({
-      schoolId: ctx.schoolId,
-      studentId: d.studentId,
-      classId: dest.id,
-      academicYearId: target.id,
+    pending.push({
+      decisionId: d.id,
+      decision: d.decision,
+      row: { schoolId: ctx.schoolId, studentId: d.studentId, classId: dest.id, academicYearId: target.id },
     });
-    appliedIds.push(d.id);
   }
 
   // Siswa aktif tahun sumber yang belum punya keputusan sama sekali.
@@ -653,16 +815,105 @@ async function runApply(
   );
   out.skippedNoDecision = enrolledSource.filter((e) => !decidedAll.has(e.studentId)).length;
 
-  if (write) {
-    if (enrollRows.length > 0) await tx.insert(enrollment).values(enrollRows).onConflictDoNothing();
-    if (graduateIds.length > 0) {
-      await tx.update(student).set({ status: 'graduated' }).where(inArray(student.id, graduateIds));
+  // Peringatan: status `graduated` mengeluarkan siswa dari roster rapor draf, jadi kelas lulusan yang belum difinalkan
+  // pada semester terakhir tahun sumber tidak bisa lagi difinalkan utuh setelah penerapan.
+  if (graduates.length > 0) {
+    const [lastSemester] = await tx
+      .select({ id: semester.id })
+      .from(semester)
+      .where(eq(semester.academicYearId, source.id))
+      .orderBy(desc(semester.startsOn))
+      .limit(1);
+    const finalClasses = new Set(
+      lastSemester
+        ? (
+            await tx
+              .selectDistinct({ classId: reportCard.classId })
+              .from(reportCard)
+              .where(
+                and(
+                  eq(reportCard.semesterId, lastSemester.id),
+                  eq(reportCard.status, 'final'),
+                  inArray(reportCard.classId, [...new Set(graduates.map((g) => g.classId))]),
+                ),
+              )
+          ).map((r) => r.classId)
+        : [],
+    );
+    out.graduateReportNotFinal = graduates.filter((g) => !finalClasses.has(g.classId)).length;
+    if (out.graduateReportNotFinal > 0) {
+      out.warningItems.push({
+        code: 'graduate_report_not_final',
+        params: { count: out.graduateReportNotFinal },
+      });
     }
-    if (appliedIds.length > 0) {
+  }
+
+  if (write) {
+    const inserted = pending.length
+      ? await tx
+          .insert(enrollment)
+          .values(pending.map((p) => p.row))
+          .onConflictDoNothing()
+          .returning({ studentId: enrollment.studentId })
+      : [];
+    const enrolledNow = new Set(inserted.map((r) => r.studentId));
+    // Konflik (siswa ter-enroll di tahun tujuan oleh proses lain sejak pembacaan): bukan penempatan kita, keputusan menunggu.
+    const lost = pending.filter((p) => !enrolledNow.has(p.row.studentId));
+    if (lost.length > 0) {
+      const existing = new Map(
+        (
+          await tx
+            .select({ studentId: enrollment.studentId, classId: enrollment.classId })
+            .from(enrollment)
+            .where(
+              and(
+                eq(enrollment.academicYearId, target.id),
+                inArray(
+                  enrollment.studentId,
+                  lost.map((p) => p.row.studentId),
+                ),
+              ),
+            )
+        ).map((e) => [e.studentId, e.classId]),
+      );
+      for (const p of lost) {
+        out.alreadyEnrolled.push({
+          studentId: p.row.studentId,
+          classId: existing.get(p.row.studentId) ?? p.row.classId,
+        });
+        if (p.decision === 'promote') out.placed--;
+        else out.retained--;
+      }
+    }
+    const candidateIds = [
+      ...pending.filter((p) => enrolledNow.has(p.row.studentId)).map((p) => p.decisionId),
+      ...graduates.map((g) => g.decisionId),
+    ];
+    // Penanda diterapkan hanya pada keputusan yang masih belum diterapkan (pengaman bila proses lain mendahului).
+    const marked = new Set(
+      candidateIds.length > 0
+        ? (
+            await tx
+              .update(promotionDecision)
+              .set({ appliedAt: new Date() })
+              .where(and(inArray(promotionDecision.id, candidateIds), isNull(promotionDecision.appliedAt)))
+              .returning({ id: promotionDecision.id })
+          ).map((r) => r.id)
+        : [],
+    );
+    const graduating = graduates.filter((g) => marked.has(g.decisionId));
+    out.graduated = graduating.length;
+    if (graduating.length > 0) {
       await tx
-        .update(promotionDecision)
-        .set({ appliedAt: new Date() })
-        .where(inArray(promotionDecision.id, appliedIds));
+        .update(student)
+        .set({ status: 'graduated' })
+        .where(
+          inArray(
+            student.id,
+            graduating.map((g) => g.studentId),
+          ),
+        );
     }
     await audit(tx, ctx, 'academic_year.promotions_apply', 'academic_year', source.id, {
       targetYearId: target.id,
@@ -697,8 +948,11 @@ export async function promotionRoutes(instance: FastifyInstance) {
         summary: 'Daftar siswa dan keputusan kenaikan kelas satu tahun ajaran',
         description:
           'Izin: `promotion:manage`. Kelas tahun ajaran itu beserta siswa aktif yang ter-enroll, dengan keputusan tersimpan ' +
-          '(`decision`, null bila belum), saran bawaan (`suggestedDecision`: naik, atau lulus bila kelasnya tingkat terakhir), ' +
-          'kelas tujuan, dan penanda `applied`. Tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`).',
+          '(`decision`, null bila belum), saran bawaan (`suggestedDecision`: `promote`; null di tingkat akhir karena kelulusan ' +
+          'ditetapkan sekolah setelah ujian satuan pendidikan dan wajib dipilih eksplisit), kelas tujuan, catatan (`note`, ' +
+          '`reason`, `followUp`, `meetingDate`), dan penanda `applied`. Tingkat akhir kelas = `final_level_code` jurusannya bila ' +
+          'diisi, jika tidak tingkat dengan `sort` terbesar; tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`). ' +
+          'Kelas bertingkat yang tidak ada di daftar tingkat sekolah ditandai `levelUnknown` true dan tidak mendapat saran `promote`.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: listResponse, 404: errorSchema, ...guarded },
@@ -708,6 +962,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
       tenant(request, async (tx) => {
         const year = await loadYear(tx, request.params.id);
         const levels = await loadLevels(tx);
+        const finalOf = await loadFinalLevelResolver(tx);
         const classes = await tx
           .select()
           .from(classRoom)
@@ -737,13 +992,16 @@ export async function promotionRoutes(instance: FastifyInstance) {
         return {
           academicYear: { id: year.id, name: year.name, startsOn: year.startsOn, endsOn: year.endsOn },
           classes: classes.map((c) => {
-            const final = isFinalLevel(levels, c.level);
+            const finalCode = finalOf(c.programId);
+            const final = isFinalLevel(levels, c.level, finalCode);
+            const known = isKnownLevel(levels, c.level);
             return {
               classId: c.id,
               name: c.name,
               level: c.level,
-              nextLevel: nextLevel(levels, c.level),
+              nextLevel: nextLevel(levels, c.level, finalCode),
               isFinalLevel: final,
+              levelUnknown: !known,
               students: rows
                 // Siswa aktif, atau yang sudah punya keputusan (mis. sudah lulus setelah diterapkan).
                 .filter((r) => r.classId === c.id && (r.status === 'active' || decisions.has(r.studentId)))
@@ -754,9 +1012,12 @@ export async function promotionRoutes(instance: FastifyInstance) {
                     name: r.name,
                     nis: r.nis,
                     decision: d?.decision ?? null,
-                    suggestedDecision: final ? ('graduate' as const) : ('promote' as const),
+                    suggestedDecision: final || !known ? null : ('promote' as const),
                     toClassId: d?.toClassId ?? null,
                     note: d?.note ?? null,
+                    reason: d?.reason ?? null,
+                    followUp: d?.followUp ?? null,
+                    meetingDate: d?.meetingDate ?? null,
                     applied: !!d?.appliedAt,
                   };
                 }),
@@ -775,10 +1036,15 @@ export async function promotionRoutes(instance: FastifyInstance) {
         summary: 'Simpan keputusan kenaikan kelas',
         description:
           'Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; ' +
-          'semua atau tidak sama sekali. 400 `not_final_level`: lulus hanya untuk kelas tingkat terakhir dan naik tidak bisa dari ' +
+          '`graduate` berarti "ditetapkan lulus": kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, tidak disarankan ' +
+          'otomatis. Catatan opsional per baris: `note`, `reason` (alasan), `followUp` (tindak lanjut), `meetingDate` (tanggal rapat ' +
+          'dewan pendidik, YYYY-MM-DD); yang DIHILANGKAN dipertahankan dari keputusan tersimpan, `null` eksplisit mengosongkan. ' +
+          'Semua atau tidak sama sekali. 400 `level_unknown`: `promote` tanpa `toClassId` untuk kelas yang tingkatnya tidak ada di daftar tingkat sekolah. ' +
+          '400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari ' +
           'tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: ' +
           '`toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). ' +
-          '409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah.',
+          '409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun ' +
+          'sumber yang sama berjalan bergantian (kunci per tahun sumber).',
         headers: schoolHeader,
         params: idParams,
         body: decisionsBody,
@@ -797,7 +1063,9 @@ export async function promotionRoutes(instance: FastifyInstance) {
       return conflictAs409('Keputusan kenaikan kelas bentrok dengan perubahan lain; coba lagi.', () =>
         tenant(request, async (tx) => {
           const year = await loadYear(tx, request.params.id);
+          await lockSource(tx, year.id);
           const levels = await loadLevels(tx);
+          const finalOf = await loadFinalLevelResolver(tx);
           const ids = items.map((i) => i.studentId);
           if (new Set(ids).size !== ids.length) {
             throw bad('duplicate_student', 'Satu siswa hanya boleh muncul sekali dalam satu permintaan.');
@@ -809,6 +1077,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
                   studentId: enrollment.studentId,
                   classId: enrollment.classId,
                   level: classRoom.level,
+                  programId: classRoom.programId,
                 })
                 .from(enrollment)
                 .innerJoin(classRoom, eq(classRoom.id, enrollment.classId))
@@ -859,7 +1128,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
                 `Keputusan untuk siswa ${item.studentId} sudah diterapkan ke tahun ajaran berikutnya dan tidak bisa diubah.`,
               );
             }
-            const final = isFinalLevel(levels, enr.level);
+            const final = isFinalLevel(levels, enr.level, finalOf(enr.programId));
             if (item.decision === 'graduate' && !final) {
               throw bad(
                 'not_final_level',
@@ -870,6 +1139,12 @@ export async function promotionRoutes(instance: FastifyInstance) {
               throw bad(
                 'not_final_level',
                 `Kelas tingkat terakhir ("${enr.level}") tidak bisa naik kelas; pilih lulus atau tinggal kelas.`,
+              );
+            }
+            if (item.decision === 'promote' && !item.toClassId && !isKnownLevel(levels, enr.level)) {
+              throw bad(
+                'level_unknown',
+                `Tingkat "${enr.level}" tidak ada di daftar tingkat sekolah, jadi tingkat berikutnya tidak diketahui. Pilih kelas tujuan atau perbaiki daftar tingkat.`,
               );
             }
             let toClassId: string | null = null;
@@ -883,6 +1158,8 @@ export async function promotionRoutes(instance: FastifyInstance) {
               }
               toClassId = item.toClassId;
             }
+            // Dihilangkan = pertahankan catatan tersimpan; null eksplisit = kosongkan.
+            const prev = existing.get(item.studentId);
             values.push({
               schoolId: ctx.schoolId,
               academicYearId: year.id,
@@ -890,12 +1167,15 @@ export async function promotionRoutes(instance: FastifyInstance) {
               fromClassId: enr.classId,
               decision: item.decision as PromotionDecision,
               toClassId,
-              note: item.note ?? null,
+              note: item.note === undefined ? (prev?.note ?? null) : item.note,
+              reason: item.reason === undefined ? (prev?.reason ?? null) : item.reason,
+              followUp: item.followUp === undefined ? (prev?.followUp ?? null) : item.followUp,
+              meetingDate: item.meetingDate === undefined ? (prev?.meetingDate ?? null) : item.meetingDate,
               decidedBy: ctx.userId,
               decidedAt: new Date(),
             });
           }
-          await tx
+          const written = await tx
             .insert(promotionDecision)
             .values(values)
             .onConflictDoUpdate({
@@ -905,18 +1185,30 @@ export async function promotionRoutes(instance: FastifyInstance) {
                 decision: sql`excluded.decision`,
                 toClassId: sql`excluded.to_class_id`,
                 note: sql`excluded.note`,
+                reason: sql`excluded.reason`,
+                followUp: sql`excluded.follow_up`,
+                meetingDate: sql`excluded.meeting_date`,
                 decidedBy: sql`excluded.decided_by`,
                 decidedAt: sql`excluded.decided_at`,
               },
               setWhere: isNull(promotionDecision.appliedAt),
-            });
+            })
+            .returning({ id: promotionDecision.id });
+          if (written.length !== values.length) {
+            // Ada keputusan yang diterapkan oleh proses lain di antara pemeriksaan dan penulisan: batalkan semuanya.
+            throw new HttpError(
+              409,
+              'promotion_applied',
+              'Sebagian keputusan sudah diterapkan ke tahun ajaran berikutnya dan tidak bisa diubah; muat ulang daftar.',
+            );
+          }
           await audit(tx, ctx, 'promotion.decide', 'academic_year', year.id, {
             count: values.length,
             promote: values.filter((v) => v.decision === 'promote').length,
             retain: values.filter((v) => v.decision === 'retain').length,
             graduate: values.filter((v) => v.decision === 'graduate').length,
           });
-          return { saved: values.length };
+          return { saved: written.length };
         }),
       );
     },
@@ -932,7 +1224,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
         description:
           'Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; ' +
           'tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) ' +
-          'beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (tanggal digeser selisih tahun mulai), ' +
+          'beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), ' +
           'struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), ' +
           'dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi ' +
           'terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). ' +
@@ -940,7 +1232,10 @@ export async function promotionRoutes(instance: FastifyInstance) {
           'alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); ' +
           'yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. ' +
           '400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. ' +
-          '400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` bagi hal yang perlu diperiksa.',
+          '400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` ' +
+          '(kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, ' +
+          'final_level_not_copied, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, ' +
+          'event_class_skipped, event_out_of_year, flow_inactive_objectives) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.',
         headers: schoolHeader,
         params: idParams,
         body: rolloverBody,
@@ -969,10 +1264,17 @@ export async function promotionRoutes(instance: FastifyInstance) {
         summary: 'Terapkan keputusan kenaikan kelas ke tahun berikutnya',
         description:
           'Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, ' +
-          'atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau kelas pertama tingkat itu), `retain` di kelas ' +
-          'sebaya tahun tujuan, `graduate` mengubah status siswa menjadi lulus. Enrollment lama tidak dihapus; siswa yang sudah ter-enroll ' +
-          'di tahun tujuan dilewati dan dilaporkan di `alreadyEnrolled`. Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, ' +
-          'tanpa menggagalkan yang lain. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. ' +
+          'atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau bila tidak ada, satu-satunya kelas sejurusan ' +
+          'pada tingkat itu; selain itu `unplaced` `no_target_class`, tidak pernah menebak kelas pertama), `retain` di kelas sebaya ' +
+          'tahun tujuan dengan aturan yang sama, `graduate` mengubah status siswa menjadi lulus (tingkat akhir kelas asal divalidasi ulang: ' +
+          'bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; siswa yang sudah ter-enroll ' +
+          'di tahun tujuan (termasuk yang terdahului proses lain) dilewati dan dilaporkan di `alreadyEnrolled`, keputusannya tidak ditandai diterapkan. ' +
+          'Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, ' +
+          'dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; ' +
+          'riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. ' +
+          '`graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor ' +
+          'final pada semester terakhir tahun sumber (status lulus mengeluarkan siswa dari roster rapor draf). Penerapan untuk tahun sumber yang sama ' +
+          'berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. ' +
           '400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.',
         headers: schoolHeader,
         params: idParams,
@@ -986,6 +1288,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
         tenant(request, async (tx) => {
           const source = await loadYear(tx, request.params.id);
           const target = await loadTargetYear(tx, source, request.body.targetYearId);
+          await lockSource(tx, source.id);
           await lockTarget(tx, 'apply', target.id);
           return runApply(tx, ctx, source, target, request.body);
         }),

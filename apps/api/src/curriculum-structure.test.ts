@@ -323,6 +323,7 @@ describe('CRUD mapel dengan metadata', () => {
       subjectGroup: 'lainnya',
     });
     expect(badGroup.statusCode).toBe(400);
+    expect(badGroup.json().error.code).toBe('invalid_subject_group');
     const badRef = await call('POST', '/v1/subjects', operatorCookie, {
       code: `BAD-${run}`,
       name: 'X',

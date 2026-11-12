@@ -7,16 +7,23 @@ import { totalPeriodsByLevel } from '@edusync/contracts';
 
 export const MAX_PERIODS = 9999;
 
-/** Isian JP satu mapel: teks apa adanya dari kolom isian ('' = kosong). */
+/**
+ * Isian JP satu mapel: teks apa adanya dari kolom isian ('' = kosong). `weekly` dan `yearly` intrakurikuler;
+ * `cocurricular` JP kokurikuler tahunan; `weeks` durasi dalam minggu (PKL).
+ */
 export interface PeriodDraft {
   weekly: string;
   yearly: string;
+  cocurricular: string;
+  weeks: string;
 }
 
 export interface AllocationRow {
   subjectId: string;
   weeklyPeriods: number | null;
   yearlyPeriods: number | null;
+  cocurricularYearlyPeriods?: number | null;
+  weeks?: number | null;
   note: string | null;
 }
 
@@ -26,6 +33,8 @@ export interface AllocationItem {
   subjectId: string;
   weeklyPeriods: number | null;
   yearlyPeriods: number | null;
+  cocurricularYearlyPeriods: number | null;
+  weeks: number | null;
   note: string | null;
 }
 
@@ -50,6 +59,8 @@ export function effectiveDraft(
   return {
     weekly: edit?.weekly ?? periodsToText(saved?.weeklyPeriods),
     yearly: edit?.yearly ?? periodsToText(saved?.yearlyPeriods),
+    cocurricular: edit?.cocurricular ?? periodsToText(saved?.cocurricularYearlyPeriods),
+    weeks: edit?.weeks ?? periodsToText(saved?.weeks),
   };
 }
 
@@ -60,8 +71,9 @@ export interface ChangedAllocations {
 }
 
 /**
- * Baris yang berubah dibanding data tersimpan, siap dikirim ke PUT. Kedua JP kosong berarti baris dihapus
- * (hanya dikirim bila sebelumnya ada). Catatan baris yang sudah ada dibawa supaya tidak terhapus oleh PUT.
+ * Baris yang berubah dibanding data tersimpan, siap dikirim ke PUT. Semua isian kosong (JP, kokurikuler, minggu)
+ * berarti baris dihapus (hanya dikirim bila sebelumnya ada). Catatan baris yang sudah ada dibawa supaya tidak
+ * terhapus oleh PUT; keempat isian selalu dikirim dengan nilai efektifnya.
  */
 export function diffAllocations(
   levelCode: string,
@@ -77,48 +89,89 @@ export function diffAllocations(
     const draft = effectiveDraft(prev, edit);
     const weekly = parsePeriods(draft.weekly);
     const yearly = parsePeriods(draft.yearly);
-    if (weekly === 'invalid' || yearly === 'invalid') {
+    const cocurricular = parsePeriods(draft.cocurricular);
+    const weeks = parsePeriods(draft.weeks);
+    if (weekly === 'invalid' || yearly === 'invalid' || cocurricular === 'invalid' || weeks === 'invalid') {
       invalid.push(subjectId);
       continue;
     }
-    const before = { weekly: prev?.weeklyPeriods ?? null, yearly: prev?.yearlyPeriods ?? null };
-    if (weekly === before.weekly && yearly === before.yearly) continue;
+    const before = {
+      weekly: prev?.weeklyPeriods ?? null,
+      yearly: prev?.yearlyPeriods ?? null,
+      cocurricular: prev?.cocurricularYearlyPeriods ?? null,
+      weeks: prev?.weeks ?? null,
+    };
+    if (
+      weekly === before.weekly &&
+      yearly === before.yearly &&
+      cocurricular === before.cocurricular &&
+      weeks === before.weeks
+    ) {
+      continue;
+    }
     // Tidak ada baris tersimpan dan tetap kosong: tidak ada yang dihapus atau dibuat.
-    if (!prev && weekly === null && yearly === null) continue;
+    if (!prev && weekly === null && yearly === null && cocurricular === null && weeks === null) continue;
     items.push({
       levelCode,
       programId,
       subjectId,
       weeklyPeriods: weekly,
       yearlyPeriods: yearly,
+      cocurricularYearlyPeriods: cocurricular,
+      weeks,
       note: prev?.note ?? null,
     });
   }
   return { items, invalid };
 }
 
-/** Jumlah JP mingguan dan tahunan setelah suntingan diterapkan (isian tidak valid dihitung 0). */
+export interface PeriodSums {
+  /** JP mingguan intrakurikuler. */
+  weekly: number;
+  /** JP tahunan intrakurikuler. */
+  yearly: number;
+  /** JP kokurikuler tahunan. */
+  cocurricular: number;
+  /** Jumlah minggu (PKL). */
+  weeks: number;
+  /** Mapel yang punya sedikitnya satu isian. */
+  filled: number;
+}
+
+/** Jumlah JP setelah suntingan diterapkan, intrakurikuler dan kokurikuler terpisah (isian tidak valid dihitung 0). */
 export function sumPeriods(
   saved: readonly AllocationRow[],
   edits: Readonly<Record<string, Partial<PeriodDraft>>>,
   subjectIds: readonly string[],
-): { weekly: number; yearly: number; filled: number } {
+): PeriodSums {
   const bySubject = new Map(saved.map((r) => [r.subjectId, r]));
   const rows = subjectIds.map((id) => {
     const d = effectiveDraft(bySubject.get(id), edits[id]);
-    const weekly = parsePeriods(d.weekly);
-    const yearly = parsePeriods(d.yearly);
+    const num = (text: string) => {
+      const n = parsePeriods(text);
+      return typeof n === 'number' ? n : null;
+    };
     return {
       levelCode: '',
-      weeklyPeriods: typeof weekly === 'number' ? weekly : null,
-      yearlyPeriods: typeof yearly === 'number' ? yearly : null,
+      weeklyPeriods: num(d.weekly),
+      yearlyPeriods: num(d.yearly),
+      cocurricularYearlyPeriods: num(d.cocurricular),
+      weeks: num(d.weeks),
     };
   });
   const total = totalPeriodsByLevel(rows)[0];
   return {
     weekly: total?.weeklyPeriods ?? 0,
     yearly: total?.yearlyPeriods ?? 0,
-    filled: rows.filter((r) => r.weeklyPeriods !== null || r.yearlyPeriods !== null).length,
+    cocurricular: total?.cocurricularYearlyPeriods ?? 0,
+    weeks: total?.weeks ?? 0,
+    filled: rows.filter(
+      (r) =>
+        r.weeklyPeriods !== null ||
+        r.yearlyPeriods !== null ||
+        r.cocurricularYearlyPeriods !== null ||
+        r.weeks !== null,
+    ).length,
   };
 }
 

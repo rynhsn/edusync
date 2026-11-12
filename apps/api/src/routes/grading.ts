@@ -1,3 +1,4 @@
+import { CALCULATION_MODES } from '@edusync/contracts';
 import {
   and,
   asc,
@@ -50,8 +51,13 @@ const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', 
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
 
 const calculationModeSchema = z
-  .enum(['weighted_average'])
-  .describe('Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)');
+  .enum(CALCULATION_MODES)
+  .describe(
+    'Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu ' +
+      '(jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, ' +
+      'hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). ' +
+      '`simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan.',
+  );
 
 const settingsSchema = z.object({
   kkm: z
@@ -317,7 +323,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:read`; modul `grades`. KKM sekolah, batas predikat A/B/C, dan `calculationMode`. Sekolah yang ' +
           'belum mengaturnya mendapat nilai bawaan (KKM 75; A 90, B 80, C 70; `weighted_average`). KKM sekolah adalah ' +
-          'jatuhan terakhir; mapel bisa punya KKM sendiri lewat KKTP (`/v1/achievement-criteria`).',
+          'jatuhan terakhir; mapel bisa punya KKM sendiri lewat KKTP (`/v1/achievement-criteria`). Jumlah bobot ' +
+          'komponen (dari `GET /v1/grading/components`) harus 100 agar mode `percentage` bisa dipilih.',
         headers: schoolHeader,
         response: { 200: settingsSchema, ...guarded },
       },
@@ -335,8 +342,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat ' +
           'KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu ' +
-          '400 galat validasi). `calculationMode` opsional (hanya `weighted_average`); bila dihilangkan, nilai yang ada ' +
-          'dipertahankan. Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).',
+          '400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada ' +
+          'dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen bukan 100 (mode lain tidak ' +
+          'memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). ' +
+          'Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).',
         headers: schoolHeader,
         body: settingsBody,
         response: { 200: settingsSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -345,6 +354,16 @@ export async function gradingRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
+        if (request.body.calculationMode === 'percentage') {
+          const sum = (await loadComponents(tx)).reduce((n, c) => n + c.weight, 0);
+          if (sum !== 100) {
+            throw new HttpError(
+              400,
+              'weights_sum_invalid',
+              `Mode persentase mensyaratkan jumlah bobot komponen tepat 100 (sekarang ${sum}). Sesuaikan bobot komponen lebih dulu.`,
+            );
+          }
+        }
         await assertNoFinalInActiveSemesters(tx);
         await tx
           .insert(gradingSetting)
@@ -379,7 +398,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Daftar komponen penilaian',
         description:
           'Izin: `grade:read`; modul `grades`. Komponen berbobot (mis. Tugas, UTS), urut `sort` lalu nama. ' +
-          '`assessmentCount` = jumlah penilaian yang memakainya.',
+          '`assessmentCount` = jumlah penilaian yang memakainya. Pemakaian bobot bergantung mode nilai akhir: dinormalisasi pada ' +
+          '`weighted_average`, diabaikan pada `simple_average`, dan harus berjumlah 100 pada `percentage`.',
         headers: schoolHeader,
         response: { 200: z.array(componentSchema), ...guarded },
       },
@@ -395,8 +415,11 @@ export async function gradingRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Tambah komponen penilaian',
         description:
-          'Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `weight` 1..100; bobot ' +
-          'tidak harus berjumlah 100 karena dinormalisasi saat nilai akhir dihitung. `sort` bawaan: paling akhir.',
+          'Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `weight` 1..100. Jumlah bobot ' +
+          'tidak harus 100 pada mode `weighted_average` (dinormalisasi saat nilai akhir dihitung) dan `simple_average` (bobot ' +
+          'diabaikan), tetapi mode `percentage` mensyaratkan jumlah 100 (dicek saat memilih mode itu di `PUT /v1/grading/settings`; ' +
+          'bobot yang diubah sesudahnya tidak diperiksa ulang, hasil `percentage` tetap dibatasi 0..100). ' +
+          '`sort` bawaan: paling akhir.',
         headers: schoolHeader,
         body: componentBody,
         response: { 201: componentSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -433,7 +456,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. ' +
           'Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 ' +
-          '`report_final` selama semester aktif punya rapor final.',
+          '`report_final` selama semester aktif punya rapor final. Bobot tidak dinormalisasi pada mode `percentage`; jumlahnya ' +
+          'diperiksa saat mode itu dipilih, bukan di sini.',
         headers: schoolHeader,
         params: idParams,
         body: componentBody,

@@ -94,3 +94,39 @@ describe('shiftDateByYears', () => {
     expect(shiftDateByYears('2028-02-29', 4)).toBe('2032-02-29');
   });
 });
+
+describe('tingkat akhir per program (final_level_code)', () => {
+  const smk = [
+    { code: 'X', sort: 1 },
+    { code: 'XI', sort: 2 },
+    { code: 'XII', sort: 3 },
+    { code: 'XIII', sort: 4 },
+  ];
+
+  it('tanpa final_level_code: sort terbesar (aturan lama)', () => {
+    expect(isFinalLevel(smk, 'XIII')).toBe(true);
+    expect(isFinalLevel(smk, 'XII')).toBe(false);
+    expect(isFinalLevel(smk, 'XII', null)).toBe(false);
+    expect(nextLevel(smk, 'XII')).toBe('XIII');
+  });
+
+  it('program 3 tahun (final XII): XII final, tidak punya tingkat berikutnya', () => {
+    expect(isFinalLevel(smk, 'XII', 'XII')).toBe(true);
+    expect(nextLevel(smk, 'XII', 'XII')).toBeNull();
+    expect(isFinalLevel(smk, 'XI', 'XII')).toBe(false);
+    expect(nextLevel(smk, 'XI', 'XII')).toBe('XII');
+  });
+
+  it('program 4 tahun (final XIII): XII masih naik ke XIII', () => {
+    expect(isFinalLevel(smk, 'XII', 'XIII')).toBe(false);
+    expect(nextLevel(smk, 'XII', 'XIII')).toBe('XIII');
+    expect(isFinalLevel(smk, 'XIII', 'XIII')).toBe(true);
+  });
+
+  it('tingkat di atas tingkat akhir program dianggap akhir; kode tak dikenal diabaikan', () => {
+    expect(isFinalLevel(smk, 'XIII', 'XII')).toBe(true);
+    expect(nextLevel(smk, 'XIII', 'XII')).toBeNull();
+    expect(isFinalLevel(smk, 'XII', 'XIV')).toBe(false);
+    expect(isFinalLevel(smk, 'XIII', 'XIV')).toBe(true);
+  });
+});

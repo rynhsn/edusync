@@ -81,7 +81,7 @@ export function CurriculumView() {
       <div
         role="tablist"
         aria-label={t('tabsLabel')}
-        className="bg-muted flex w-full gap-0.5 overflow-x-auto rounded-xl p-0.5 sm:w-fit"
+        className="bg-muted grid w-full grid-cols-2 gap-0.5 rounded-xl p-0.5 lg:flex lg:w-fit lg:overflow-x-auto"
       >
         {TABS.map((k) => {
           const Icon = TAB_ICONS[k];
@@ -95,7 +95,7 @@ export function CurriculumView() {
               aria-controls={`cur-panel-${k}`}
               onClick={() => setTab(k)}
               className={cn(
-                'focus-visible:ring-ring/60 inline-flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-sm font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-2',
+                'focus-visible:ring-ring/60 inline-flex items-center justify-center gap-1.5 rounded-[10px] px-3 py-1.5 text-center text-sm max-lg:min-h-11 font-medium lg:whitespace-nowrap outline-none transition-colors focus-visible:ring-2',
                 tab === k
                   ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground',

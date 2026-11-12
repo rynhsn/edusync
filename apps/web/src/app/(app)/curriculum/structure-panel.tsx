@@ -1,8 +1,8 @@
 'use client';
 
-import { type SubjectGroup, totalPeriodsByLevel } from '@edusync/contracts';
+import { totalPeriodsByLevel } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { BookOpen, Clock, Layers, ListChecks, School } from 'lucide-react';
+import { BookOpen, Clock, Layers, ListChecks, School, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -27,13 +27,16 @@ import {
   sumPeriods,
 } from '@/lib/curriculum-grid';
 import { errorKey } from '@/lib/errors';
+import { effectiveHours } from '@/lib/level-config';
 import { useSchoolLevels } from '@/lib/school-settings';
+import { useSubjectGroups } from '@/lib/use-subject-groups';
 import { cn } from '@/lib/utils';
 
 /** Grid jam pelajaran (JP) per mapel untuk satu tahun ajaran, tingkat, dan (opsional) jurusan. */
 export function StructurePanel({ yearId, canWrite }: { yearId: string; canWrite: boolean }) {
   const t = useTranslations('curriculum');
   const ts = useTranslations('subjects');
+  const { labelOf } = useSubjectGroups();
   const te = useTranslations();
   const { school } = useSchool();
   const queryClient = useQueryClient();
@@ -87,6 +90,8 @@ export function StructurePanel({ yearId, canWrite }: { yearId: string; canWrite:
       subjectId: a.subjectId,
       weeklyPeriods: a.weeklyPeriods,
       yearlyPeriods: a.yearlyPeriods,
+      cocurricularYearlyPeriods: a.cocurricularYearlyPeriods ?? null,
+      weeks: a.weeks ?? null,
       note: a.note,
     }));
   const savedBySubject = new Map(saved.map((r) => [r.subjectId, r]));
@@ -104,6 +109,8 @@ export function StructurePanel({ yearId, canWrite }: { yearId: string; canWrite:
   const programName = (id: string | null) =>
     id ? (programList.find((p) => p.id === id)?.name ?? '-') : t('allPrograms');
   const perProgram = totalPeriodsByLevel(all);
+  const levelInfo = levelList.find((l) => l.code === levelCode);
+  const yearlyHours = effectiveHours(totals.yearly, levelInfo?.periodMinutes);
 
   const save = useMutation({
     mutationFn: async () =>
@@ -181,9 +188,37 @@ export function StructurePanel({ yearId, canWrite }: { yearId: string; canWrite:
         </div>
       </div>
 
-      <StatGrid className="grid-cols-1 sm:grid-cols-3">
+      <p className="text-muted-foreground max-w-2xl text-sm">
+        {levelInfo?.periodMinutes || levelInfo?.effectiveWeeks
+          ? t('levelConfigSet', {
+              level: levelInfo.label,
+              minutes: levelInfo.periodMinutes ?? '-',
+              weeks: levelInfo.effectiveWeeks ?? '-',
+            })
+          : t('levelConfigUnset', { level: levelInfo?.label ?? '' })}{' '}
+        <Link href="/school-settings" className="text-foreground font-medium underline underline-offset-2">
+          {t('levelConfigLink')}
+        </Link>
+      </p>
+
+      <StatGrid className="grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={Clock} tone="teal" label={t('statWeekly')} value={totals.weekly} />
-        <StatCard icon={Layers} tone="sky" label={t('statYearly')} value={totals.yearly} />
+        <StatCard
+          icon={Layers}
+          tone="sky"
+          label={t('statYearly')}
+          value={totals.yearly}
+          hint={
+            yearlyHours === null ? t('statYearlyNoMinutes') : t('statYearlyHours', { hours: yearlyHours })
+          }
+        />
+        <StatCard
+          icon={Sparkles}
+          tone="amber"
+          label={t('statCocurricular')}
+          value={totals.cocurricular}
+          hint={t('statCocurricularHint')}
+        />
         <StatCard
           icon={ListChecks}
           tone="violet"
@@ -203,6 +238,7 @@ export function StructurePanel({ yearId, canWrite }: { yearId: string; canWrite:
                   program: programName(p.programId),
                   weekly: p.weeklyPeriods,
                   yearly: p.yearlyPeriods,
+                  cocurricular: p.cocurricularYearlyPeriods,
                 })}
               </li>
             ))}
@@ -233,7 +269,10 @@ export function StructurePanel({ yearId, canWrite }: { yearId: string; canWrite:
 
       {allocations.data && rows.length > 0 && (
         <div className="bg-card overflow-x-auto rounded-2xl border">
-          <Table aria-label={t('gridLabel')}>
+          <Table
+            aria-label={t('gridLabel')}
+            className="max-lg:block max-lg:[&_tbody]:block max-lg:[&_thead]:hidden"
+          >
             <TableHeader>
               <TableRow>
                 <TableHead className="w-24">{t('colCode')}</TableHead>
@@ -241,29 +280,47 @@ export function StructurePanel({ yearId, canWrite }: { yearId: string; canWrite:
                 <TableHead>{t('colGroup')}</TableHead>
                 <TableHead className="w-32">{t('colWeekly')}</TableHead>
                 <TableHead className="w-32">{t('colYearly')}</TableHead>
+                <TableHead className="w-32">{t('colCocurricular')}</TableHead>
+                <TableHead className="w-28">{t('colWeeks')}</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {rows.map((s) => {
                 const d = effectiveDraft(savedBySubject.get(s.id), edits[s.id]);
                 const bad = (text: string) => parsePeriods(text) === 'invalid';
+                // Minggu hanya relevan untuk mapel PKL (jenis internship) atau yang sudah punya isian minggu.
+                const showWeeks = s.kind === 'internship' || d.weeks !== '';
                 return (
-                  <TableRow key={s.id} className={cn(s.active === false && 'text-muted-foreground')}>
-                    <TableCell className="font-mono text-xs">{s.code}</TableCell>
-                    <TableCell>
+                  <TableRow
+                    key={s.id}
+                    className={cn(
+                      'max-lg:grid max-lg:grid-cols-2 max-lg:gap-x-3 max-lg:gap-y-1 max-lg:px-3 max-lg:py-3',
+                      s.active === false && 'text-muted-foreground',
+                    )}
+                  >
+                    <TableCell className="font-mono text-xs max-lg:col-span-2 max-lg:p-0">{s.code}</TableCell>
+                    <TableCell className="max-lg:col-span-2 max-lg:p-0">
                       <span className="font-medium">{s.name}</span>
                       <span className="ml-2 inline-flex flex-wrap gap-1 align-middle">
                         {s.isLocalContent && <ToneBadge tone="amber">{t('localContent')}</ToneBadge>}
+                        {s.kind && s.kind !== 'compulsory' && (
+                          <ToneBadge tone="violet" dot={false}>
+                            {ts(`kinds.${s.kind}`)}
+                          </ToneBadge>
+                        )}
                         {s.active === false && <ToneBadge tone="slate">{t('inactiveSubject')}</ToneBadge>}
                       </span>
                     </TableCell>
-                    <TableCell className="text-sm">
-                      {s.subjectGroup ? ts(`groups.${s.subjectGroup as SubjectGroup}`) : '-'}
+                    <TableCell className="text-sm max-lg:col-span-2 max-lg:p-0 max-lg:text-muted-foreground max-lg:text-xs">
+                      {s.subjectGroup ? labelOf(s.subjectGroup) : '-'}
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="max-lg:mt-1 max-lg:p-0">
+                      <span className="text-muted-foreground mb-1 block text-xs lg:hidden">
+                        {t('colWeekly')}
+                      </span>
                       <Input
                         inputMode="numeric"
-                        className="w-24 tabular-nums"
+                        className="w-24 tabular-nums max-lg:w-full"
                         aria-label={t('weeklyFor', { name: s.name })}
                         aria-invalid={bad(d.weekly)}
                         readOnly={!canWrite}
@@ -271,16 +328,55 @@ export function StructurePanel({ yearId, canWrite }: { yearId: string; canWrite:
                         onChange={(e) => setField(s.id, 'weekly', e.target.value)}
                       />
                     </TableCell>
-                    <TableCell>
+                    <TableCell className="max-lg:mt-1 max-lg:p-0">
+                      <span className="text-muted-foreground mb-1 block text-xs lg:hidden">
+                        {t('colYearly')}
+                      </span>
                       <Input
                         inputMode="numeric"
-                        className="w-24 tabular-nums"
+                        className="w-24 tabular-nums max-lg:w-full"
                         aria-label={t('yearlyFor', { name: s.name })}
                         aria-invalid={bad(d.yearly)}
                         readOnly={!canWrite}
                         value={d.yearly}
                         onChange={(e) => setField(s.id, 'yearly', e.target.value)}
                       />
+                    </TableCell>
+                    <TableCell className="max-lg:mt-1 max-lg:p-0">
+                      <span className="text-muted-foreground mb-1 block text-xs lg:hidden">
+                        {t('colCocurricular')}
+                      </span>
+                      <Input
+                        inputMode="numeric"
+                        className="w-24 tabular-nums max-lg:w-full"
+                        aria-label={t('cocurricularFor', { name: s.name })}
+                        aria-invalid={bad(d.cocurricular)}
+                        readOnly={!canWrite}
+                        value={d.cocurricular}
+                        onChange={(e) => setField(s.id, 'cocurricular', e.target.value)}
+                      />
+                    </TableCell>
+                    <TableCell className={cn('max-lg:mt-1 max-lg:p-0', !showWeeks && 'max-lg:hidden')}>
+                      {showWeeks ? (
+                        <>
+                          <span className="text-muted-foreground mb-1 block text-xs lg:hidden">
+                            {t('colWeeks')}
+                          </span>
+                          <Input
+                            inputMode="numeric"
+                            className="w-20 tabular-nums max-lg:w-full"
+                            aria-label={t('weeksFor', { name: s.name })}
+                            aria-invalid={bad(d.weeks)}
+                            readOnly={!canWrite}
+                            value={d.weeks}
+                            onChange={(e) => setField(s.id, 'weeks', e.target.value)}
+                          />
+                        </>
+                      ) : (
+                        <span aria-hidden className="text-muted-foreground">
+                          -
+                        </span>
+                      )}
                     </TableCell>
                   </TableRow>
                 );

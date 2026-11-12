@@ -29,6 +29,19 @@ export const educationProfileSchema = z.object({
     .describe('`subject` = guru mapel; `class` = guru kelas (SD/MI) yang mengampu banyak mapel'),
   vocational: z.boolean().describe('Jenjang kejuruan: PKL dan UKK tersedia'),
   levels: z.array(educationProfileLevelSchema),
+  suggestedPeriodMinutes: z
+    .number()
+    .int()
+    .nullable()
+    .optional()
+    .describe(
+      'SARAN menit per JP (35/40/45 menurut jenjang); bukan nilai tersimpan, sekolah mengaturnya per tingkat',
+    ),
+  suggestedEffectiveWeeks: z
+    .number()
+    .int()
+    .optional()
+    .describe('SARAN minggu efektif per tahun (36; tingkat akhir 32); bukan nilai tersimpan'),
 });
 
 export type EducationProfile = z.infer<typeof educationProfileSchema>;

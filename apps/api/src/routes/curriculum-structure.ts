@@ -57,8 +57,10 @@ const allocationOut = z.object({
   subjectId: z.uuid(),
   subjectCode: z.string(),
   subjectName: z.string(),
-  weeklyPeriods: z.number().int().nullable(),
-  yearlyPeriods: z.number().int().nullable(),
+  weeklyPeriods: z.number().int().nullable().describe('JP mingguan intrakurikuler'),
+  yearlyPeriods: z.number().int().nullable().describe('JP tahunan intrakurikuler'),
+  cocurricularYearlyPeriods: z.number().int().nullable().optional().describe('JP kokurikuler tahunan'),
+  weeks: z.number().int().nullable().optional().describe('Durasi dalam minggu (mis. PKL)'),
   note: z.string().nullable(),
 });
 
@@ -71,6 +73,8 @@ const allocationsBody = z.object({
         subjectId: z.uuid(),
         weeklyPeriods: periods,
         yearlyPeriods: periods,
+        cocurricularYearlyPeriods: periods,
+        weeks: periods,
         note: z.string().trim().max(500).nullable().optional(),
       }),
     )
@@ -132,6 +136,8 @@ export async function copyCurriculumStructure(
       subjectId: a.subjectId,
       weeklyPeriods: a.weeklyPeriods,
       yearlyPeriods: a.yearlyPeriods,
+      cocurricularYearlyPeriods: a.cocurricularYearlyPeriods,
+      weeks: a.weeks,
       note: a.note,
     }));
 
@@ -199,7 +205,7 @@ export async function curriculumStructureRoutes(instance: FastifyInstance) {
         tags: ['Curriculum'],
         summary: 'Alokasi jam pelajaran (JP) satu tahun ajaran',
         description:
-          'Izin: `subject:read`. Alokasi JP mingguan/tahunan per (tingkat, program, mapel) beserta nama mapel. ' +
+          'Izin: `subject:read`. Alokasi JP mingguan/tahunan (intrakurikuler), kokurikuler tahunan, dan minggu per (tingkat, program, mapel) beserta nama mapel. ' +
           '`programId` null berarti berlaku untuk semua program. Filter opsional `levelCode` dan `programId`.',
         headers: schoolHeader,
         params: idParams,
@@ -225,6 +231,8 @@ export async function curriculumStructureRoutes(instance: FastifyInstance) {
             subjectName: subject.name,
             weeklyPeriods: curriculumSubjectAllocation.weeklyPeriods,
             yearlyPeriods: curriculumSubjectAllocation.yearlyPeriods,
+            cocurricularYearlyPeriods: curriculumSubjectAllocation.cocurricularYearlyPeriods,
+            weeks: curriculumSubjectAllocation.weeks,
             note: curriculumSubjectAllocation.note,
           })
           .from(curriculumSubjectAllocation)
@@ -256,7 +264,7 @@ export async function curriculumStructureRoutes(instance: FastifyInstance) {
         description:
           'Izin: `curriculum:manage`. Upsert per (`levelCode`, `programId`, `subjectId`); bagian yang tidak dikirim tidak ' +
           'disentuh. Tiap baris menggantikan baris yang ada: `weeklyPeriods`, `yearlyPeriods`, `note` yang dihilangkan menjadi ' +
-          'kosong. Bila kedua JP kosong (null/dihilangkan), baris itu dihapus. Maksimal 500 baris, semua atau tidak sama sekali. ' +
+          'kosong. `cocurricularYearlyPeriods` dan `weeks` yang dihilangkan mempertahankan nilai tersimpan (null mengosongkan); `weeklyPeriods`/`yearlyPeriods` berarti intrakurikuler. Bila semua JP/minggu kosong, baris itu dihapus. Maksimal 500 baris, semua atau tidak sama sekali. ' +
           '400 `invalid_level`: tingkat tidak ada di daftar tingkat sekolah. 400 `invalid_reference`: mapel atau jurusan ' +
           'bukan milik sekolah ini. 400 `duplicate_entry`: kombinasi yang sama muncul dua kali.',
         headers: schoolHeader,
@@ -282,7 +290,12 @@ export async function curriculumStructureRoutes(instance: FastifyInstance) {
             items.map((i) => i.levelCode),
           );
           for (const i of items) {
-            if (!isValidPeriods(i.weeklyPeriods) || !isValidPeriods(i.yearlyPeriods)) {
+            if (
+              !isValidPeriods(i.weeklyPeriods) ||
+              !isValidPeriods(i.yearlyPeriods) ||
+              !isValidPeriods(i.cocurricularYearlyPeriods) ||
+              !isValidPeriods(i.weeks)
+            ) {
               throw bad('invalid_periods', 'JP harus bilangan bulat tidak negatif.');
             }
           }
@@ -317,16 +330,23 @@ export async function curriculumStructureRoutes(instance: FastifyInstance) {
                 .select()
                 .from(curriculumSubjectAllocation)
                 .where(eq(curriculumSubjectAllocation.academicYearId, request.params.id))
-            ).map((a) => [allocKey(a.levelCode, a.programId, a.subjectId), a.id]),
+            ).map((a) => [allocKey(a.levelCode, a.programId, a.subjectId), a]),
           );
           let upserted = 0;
           let deleted = 0;
           for (const [idx, i] of items.entries()) {
             const key = keys[idx] as string;
-            const rowId = existing.get(key);
+            const prev = existing.get(key);
+            const rowId = prev?.id;
             const weekly = i.weeklyPeriods ?? null;
             const yearly = i.yearlyPeriods ?? null;
-            if (weekly === null && yearly === null) {
+            // Field baru: dihilangkan (undefined) mempertahankan nilai tersimpan, supaya klien lama tidak menghapusnya.
+            const cocurricular =
+              i.cocurricularYearlyPeriods === undefined
+                ? (prev?.cocurricularYearlyPeriods ?? null)
+                : i.cocurricularYearlyPeriods;
+            const weeks = i.weeks === undefined ? (prev?.weeks ?? null) : i.weeks;
+            if (weekly === null && yearly === null && cocurricular === null && weeks === null) {
               if (rowId) {
                 await tx.delete(curriculumSubjectAllocation).where(eq(curriculumSubjectAllocation.id, rowId));
                 deleted++;
@@ -336,6 +356,8 @@ export async function curriculumStructureRoutes(instance: FastifyInstance) {
             const values = {
               weeklyPeriods: weekly,
               yearlyPeriods: yearly,
+              cocurricularYearlyPeriods: cocurricular,
+              weeks,
               note: i.note ?? null,
               updatedAt: new Date(),
             };

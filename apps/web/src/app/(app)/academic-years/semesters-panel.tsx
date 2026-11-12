@@ -177,6 +177,7 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
                     <DatePicker
                       {...withoutBlur(editV.fieldProps('endsOn'))}
                       className={TOUCH_INPUT}
+                      {...(editing.startsOn ? { defaultMonth: editing.startsOn } : {})}
                       aria-label={t('ends')}
                       value={editing.endsOn}
                       onChange={(v) => {

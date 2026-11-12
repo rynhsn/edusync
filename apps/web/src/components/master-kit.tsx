@@ -89,6 +89,7 @@ export function DataRows<T>({
   actions,
   actionsHeader,
   onRowClick,
+  cardsBelow = 'md',
 }: {
   rows: T[];
   rowKey: (row: T) => string;
@@ -96,11 +97,17 @@ export function DataRows<T>({
   actions?: (row: T) => React.ReactNode;
   actionsHeader: string;
   onRowClick?: (row: T) => void;
+  /**
+   * Lebar layar di bawah mana daftar tampil sebagai kartu. Bawaan `md`; pakai `lg` untuk tabel lebar
+   * (banyak kolom) yang bergulir menyamping di 768 px.
+   */
+  cardsBelow?: 'md' | 'lg';
 }) {
   const [first, ...rest] = columns;
+  const wide = cardsBelow === 'lg';
   return (
     <div className={cn('bg-card overflow-hidden rounded-2xl border', REVEAL)}>
-      <div className="hidden md:block">
+      <div className={wide ? 'hidden lg:block' : 'hidden md:block'}>
         <Table>
           <TableHeader>
             <TableRow className="bg-muted/40 hover:bg-muted/40">
@@ -142,7 +149,7 @@ export function DataRows<T>({
         </Table>
       </div>
 
-      <ul className="divide-y md:hidden">
+      <ul className={wide ? 'divide-y lg:hidden' : 'divide-y md:hidden'}>
         {rows.map((r) => (
           <li key={rowKey(r)} className="p-3.5">
             <div className="flex items-start justify-between gap-2">

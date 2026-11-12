@@ -569,9 +569,14 @@ export const program = pgTable(
       .references(() => school.id),
     code: text('code').notNull(),
     name: text('name').notNull(),
+    /** Lama program dalam tahun (3 atau 4; SMK). Kosong = tidak ditentukan. */
+    durationYears: integer('duration_years'),
+    /** Kode tingkat akhir program (mis. XII atau XIII); kosong = tingkat dengan `sort` terbesar. */
+    finalLevelCode: text('final_level_code'),
     createdAt: createdAt(),
   },
   (t) => [
+    check('program_duration_years_ck', sql`${t.durationYears} is null or ${t.durationYears} in (3, 4)`),
     unique('program_school_code_uq').on(t.schoolId, t.code),
     unique('program_school_id_uq').on(t.schoolId, t.id),
   ],
@@ -678,15 +683,13 @@ export const subject = pgTable(
     name: text('name').notNull(),
     /** Mapel acuan platform asal salinan (adopsi); null untuk mapel buatan sekolah. */
     refSubjectId: uuid('ref_subject_id').references(() => refSubject.id, { onDelete: 'set null' }),
-    subjectGroup: text('subject_group', {
-      enum: [
-        'general',
-        'vocational_base',
-        'vocational_concentration',
-        'vocational_project',
-        'elective',
-        'internship',
-      ],
+    /** Kelompok mapel: kunci `ref_subject_group` (FK di migrasi 0092). */
+    subjectGroup: text('subject_group').references(() => refSubjectGroup.key),
+    kind: text('kind', { enum: ['compulsory', 'elective', 'local_content', 'project', 'internship'] })
+      .notNull()
+      .default('compulsory'),
+    religionVariant: text('religion_variant', {
+      enum: ['islam', 'christian', 'catholic', 'hindu', 'buddhist', 'confucian', 'belief'],
     }),
     isLocalContent: boolean('is_local_content').notNull().default(false),
     sortOrder: integer('sort_order').notNull().default(0),
@@ -697,8 +700,8 @@ export const subject = pgTable(
     unique('subject_school_code_uq').on(t.schoolId, t.code),
     index('subject_ref_subject_idx').on(t.schoolId, t.refSubjectId),
     check(
-      'subject_group_ck',
-      sql`${t.subjectGroup} is null or ${t.subjectGroup} in ('general', 'vocational_base', 'vocational_concentration', 'vocational_project', 'elective', 'internship')`,
+      'subject_kind_ck',
+      sql`${t.kind} in ('compulsory', 'elective', 'local_content', 'project', 'internship')`,
     ),
   ],
 );
@@ -791,7 +794,7 @@ export const homeroomAssignmentHistory = pgTable(
 /**
  * Keputusan kenaikan kelas satu siswa pada akhir satu tahun ajaran (`academicYearId` = tahun yang ditutup). Diisi sebelum
  * penempatan; `appliedAt` terisi saat keputusan sudah diterapkan ke tahun berikutnya. FK komposit (school_id, x_id)
- * ada di migrasi 0088.
+ * ada di migrasi 0088; `promotion_decision_from_class_fk` menjadi NO ACTION (menolak penghapusan kelas asal) di migrasi 0093.
  */
 export const promotionDecision = pgTable(
   'promotion_decision',
@@ -812,6 +815,10 @@ export const promotionDecision = pgTable(
     decision: text('decision', { enum: ['promote', 'retain', 'graduate'] }).notNull(),
     toClassId: uuid('to_class_id').references(() => classRoom.id),
     note: text('note'),
+    /** Alasan keputusan (mis. tinggal kelas), tindak lanjut, dan tanggal rapat dewan pendidik. */
+    reason: text('reason'),
+    followUp: text('follow_up'),
+    meetingDate: date('meeting_date'),
     decidedBy: text('decided_by'),
     decidedAt: timestamp('decided_at', { withTimezone: true }).notNull().defaultNow(),
     appliedAt: timestamp('applied_at', { withTimezone: true }),
@@ -826,7 +833,8 @@ export const promotionDecision = pgTable(
 
 /**
  * Alokasi jam pelajaran (JP) satu mapel pada satu tingkat di satu tahun ajaran; `programId` kosong = semua program.
- * Keunikan memakai indeks ber-COALESCE di migrasi 0089 (tidak diwakili di sini). FK komposit (school_id, x_id) ada di migrasi.
+ * Keunikan memakai indeks ber-COALESCE di migrasi 0089 (tidak diwakili di sini). FK komposit (school_id, x_id) ada di migrasi;
+ * FK ke program dan mapel NO ACTION sejak migrasi 0093 (penghapusan jurusan/mapel yang masih beralokasi ditolak).
  */
 export const curriculumSubjectAllocation = pgTable(
   'curriculum_subject_allocation',
@@ -845,6 +853,10 @@ export const curriculumSubjectAllocation = pgTable(
       .references(() => subject.id),
     weeklyPeriods: integer('weekly_periods'),
     yearlyPeriods: integer('yearly_periods'),
+    /** JP kokurikuler tahunan (potongan JP mapel); weekly/yearly di atas berarti intrakurikuler. */
+    cocurricularYearlyPeriods: integer('cocurricular_yearly_periods'),
+    /** Durasi dalam minggu (mis. PKL). */
+    weeks: integer('weeks'),
     note: text('note'),
     createdAt: createdAt(),
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -853,6 +865,11 @@ export const curriculumSubjectAllocation = pgTable(
     index('curriculum_allocation_year_idx').on(t.schoolId, t.academicYearId),
     check('curriculum_allocation_weekly_ck', sql`${t.weeklyPeriods} is null or ${t.weeklyPeriods} >= 0`),
     check('curriculum_allocation_yearly_ck', sql`${t.yearlyPeriods} is null or ${t.yearlyPeriods} >= 0`),
+    check(
+      'curriculum_allocation_cocurricular_ck',
+      sql`${t.cocurricularYearlyPeriods} is null or ${t.cocurricularYearlyPeriods} >= 0`,
+    ),
+    check('curriculum_allocation_weeks_ck', sql`${t.weeks} is null or ${t.weeks} >= 0`),
   ],
 );
 
@@ -1653,8 +1670,8 @@ export const gradingSetting = pgTable('grading_setting', {
   predicateA: integer('predicate_a').notNull().default(90),
   predicateB: integer('predicate_b').notNull().default(80),
   predicateC: integer('predicate_c').notNull().default(70),
-  /** Mode perhitungan nilai akhir; saat ini hanya rata-rata tertimbang (CHECK di migrasi 0091). */
-  calculationMode: text('calculation_mode', { enum: ['weighted_average'] })
+  /** Mode perhitungan nilai akhir: `weighted_average`, `percentage`, `simple_average` (CHECK di migrasi 0092). */
+  calculationMode: text('calculation_mode', { enum: ['weighted_average', 'percentage', 'simple_average'] })
     .notNull()
     .default('weighted_average'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
@@ -3090,6 +3107,9 @@ export const schoolLevel = pgTable(
     code: text('code').notNull(),
     label: text('label').notNull(),
     sort: integer('sort').notNull().default(0),
+    /** Menit per JP dan jumlah minggu efektif per tingkat (konfigurasi sekolah; kosong = belum diatur). */
+    periodMinutes: integer('period_minutes'),
+    effectiveWeeks: integer('effective_weeks'),
     createdAt: createdAt(),
   },
   (t) => [unique('school_level_uq').on(t.schoolId, t.code)],
@@ -3304,6 +3324,22 @@ export const refEducationProfile = pgTable('ref_education_profile', {
   vocational: boolean('vocational').notNull().default(false),
   /** Tingkat bawaan beserta fasenya: `[{code, label, phase}]`. */
   levels: jsonb('levels').$type<{ code: string; label: string; phase: string }[]>().notNull(),
+  sort: integer('sort').notNull().default(0),
+  active: boolean('active').notNull().default(true),
+});
+
+/**
+ * Kelompok mapel global (acuan awal; harus diverifikasi ke Lampiran II Permendikdasmen 13/2025 dan KMA 1503/2025).
+ * Tanpa `school_id` dan tanpa RLS, seperti `ref_education_profile`: sekolah hanya membaca, platform menulis lewat migrasi.
+ * `profileKeys` null = berlaku untuk semua profil jenjang.
+ */
+export const refSubjectGroup = pgTable('ref_subject_group', {
+  key: text('key').primaryKey(),
+  labelId: text('label_id').notNull(),
+  labelEn: text('label_en').notNull(),
+  labelSu: text('label_su').notNull(),
+  profileKeys: text('profile_keys').array(),
+  reportSection: text('report_section'),
   sort: integer('sort').notNull().default(0),
   active: boolean('active').notNull().default(true),
 });

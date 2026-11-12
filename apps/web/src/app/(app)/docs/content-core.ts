@@ -704,7 +704,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Membuat kelas baru',
-            body: 'Kelas dibuat untuk satu tahun ajaran, dan namanya tidak boleh sama dengan kelas lain di tahun itu. Jurusan boleh dikosongkan; gunakan hanya untuk sekolah yang punya jurusan atau peminatan.',
+            body: 'Kelas dibuat untuk satu tahun ajaran, dan namanya tidak boleh sama dengan kelas lain di tahun itu. Jurusan boleh dikosongkan; gunakan hanya untuk sekolah yang punya jurusan atau peminatan. Di tombol Jurusan, tiap jurusan bisa diberi lama studi (3 atau 4 tahun, misalnya SMK) dan tingkat akhir; tingkat akhir inilah yang dianggap kelas akhir saat kenaikan kelas.',
             steps: [
               'Buka menu Kelas, lalu pilih Tahun ajaran.',
               'Klik Tambah kelas.',
@@ -783,7 +783,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Creating a new class',
-            body: 'A class belongs to one academic year, and its name must not match another class in that year. The program can stay empty; use it only for schools with majors or specialisations.',
+            body: 'A class belongs to one academic year, and its name must not match another class in that year. The program can stay empty; use it only for schools with majors or specialisations. Under the Programs button, each program can be given a length of study (3 or 4 years, for example for vocational schools) and a final level; that final level is the one treated as the final class during promotion.',
             steps: [
               'Open the Classes menu, then pick the Academic year.',
               'Click Add a class.',
@@ -862,7 +862,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Nyieun kelas anyar',
-            body: 'Kelas dijieun pikeun hiji taun pangajaran, sarta ngaranna teu meunang sarua jeung kelas séjén dina taun éta. Jurusan meunang kosong; anggo ngan pikeun sakola nu boga jurusan atawa peminatan.',
+            body: 'Kelas dijieun pikeun hiji taun pangajaran, sarta ngaranna teu meunang sarua jeung kelas séjén dina taun éta. Jurusan meunang kosong; anggo ngan pikeun sakola nu boga jurusan atawa peminatan. Dina tombol Jurusan, unggal jurusan bisa dibéré lilana diajar (3 atawa 4 taun, upamana SMK) jeung tingkat ahir; tingkat ahir éta nu dianggap kelas ahir nalika kanaékan kelas.',
             steps: [
               'Buka menu Kelas, tuluy pilih Taun pangajaran.',
               'Klik Tambih kelas.',
@@ -952,7 +952,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengisi jam pelajaran tiap mapel',
-            body: 'Di bagian Struktur mapel, pilih tahun ajaran, tingkat, dan jurusan bila ada. Isi jam pelajaran (JP) per minggu dan per tahun untuk tiap mapel. Pilihan Semua jurusan berlaku untuk semua jurusan di tingkat itu. Di atas tabel tampil jumlah JP per minggu dan per tahun. Kolom yang dikosongkan keduanya berarti mapel itu tidak punya alokasi di tingkat tersebut.',
+            body: 'Di bagian Struktur mapel, pilih tahun ajaran, tingkat, dan jurusan bila ada. Isi jam pelajaran (JP) per minggu dan per tahun untuk tiap mapel; keduanya adalah JP intrakurikuler (pelajaran di kelas). JP kokurikuler per tahun diisi di kolom sendiri dan dijumlahkan terpisah. Kolom Minggu hanya muncul untuk mapel Praktik kerja lapangan (PKL). Pilihan Semua jurusan berlaku untuk semua jurusan di tingkat itu. Di atas tabel tampil jumlah JP per minggu, per tahun, dan kokurikuler. Menit per JP dan minggu efektif tiap tingkat bisa diisi di Pengaturan sekolah untuk menghitung jam efektif, tetapi boleh dikosongkan. Bila semua kolom satu mapel dikosongkan, mapel itu tidak punya alokasi di tingkat tersebut.',
             steps: [
               'Pilih Tahun ajaran, Tingkat, dan Jurusan.',
               'Isi JP per minggu dan JP per tahun pada mapel yang diperlukan. Isi dengan bilangan bulat 0 sampai 9999.',
@@ -973,7 +973,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Kelompok mapel dan muatan lokal',
-            body: 'Tiap mata pelajaran bisa diberi kelompok (misalnya Umum, Dasar kejuruan, atau Konsentrasi keahlian), ditandai sebagai muatan lokal, diberi urutan tampil, dan dinonaktifkan bila tidak dipakai lagi. Semua itu diatur di menu Mata pelajaran. Mapel nonaktif tidak muncul di tabel jam pelajaran kecuali sudah punya alokasi.',
+            body: 'Tiap mata pelajaran bisa diberi kelompok (misalnya Pendidikan Agama, Umum, atau Kejuruan; daftarnya mengikuti jenjang sekolah Anda), jenis mapel (wajib, pilihan, muatan lokal, projek, atau praktik kerja lapangan), agama untuk mapel agama, diberi urutan tampil, dan dinonaktifkan bila tidak dipakai lagi. Kelompok lama yang sudah terpakai tetap tampil dengan keterangan data lama. Semua itu diatur di menu Mata pelajaran. Mapel nonaktif tidak muncul di tabel jam pelajaran kecuali sudah punya alokasi.',
             href: '/subjects',
           },
           {
@@ -1027,7 +1027,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Filling in lesson periods for each subject',
-            body: 'In the Subject structure part, choose the academic year, the level, and the program if there is one. Fill in the lesson periods (JP) per week and per year for each subject. The All programs choice applies to every program at that level. The totals per week and per year show above the table. Leaving both columns empty means the subject has no allocation at that level.',
+            body: 'In the Subject structure part, choose the academic year, the level, and the program if there is one. Fill in the lesson periods (JP) per week and per year for each subject; both are intracurricular periods (lessons in class). Yearly co-curricular periods go in their own column and are totalled separately. The Weeks column only appears for work-based internship subjects. The All programs choice applies to every program at that level. The totals per week, per year, and co-curricular show above the table. Minutes per period and effective weeks of each level can be filled in under School settings to work out effective hours, but they may be left empty. If every column of a subject is emptied, the subject has no allocation at that level.',
             steps: [
               'Choose the Academic year, Level, and Program.',
               'Fill in Periods per week and Periods per year for the subjects that need them. Use a whole number from 0 to 9999.',
@@ -1048,7 +1048,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Subject groups and local content',
-            body: 'Each subject can be given a group (for example General, Vocational foundation, or Vocational concentration), marked as local content, given a display order, and made inactive when no longer used. All of this is set in the Subjects menu. Inactive subjects do not appear in the lesson-period table unless they already have an allocation.',
+            body: 'Each subject can be given a group (for example Religious Education, General, or Vocational; the list follows your school level), a subject type (compulsory, elective, local content, project, or work-based internship), a religion for religion subjects, a display order, and be made inactive when no longer used. Older groups that are already in use still show, marked as legacy. All of this is set in the Subjects menu. Inactive subjects do not appear in the lesson-period table unless they already have an allocation.',
             href: '/subjects',
           },
           {
@@ -1102,7 +1102,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Ngeusian jam pelajaran unggal mapél',
-            body: 'Dina bagian Struktur mapél, pilih taun ajaran, tingkat, jeung jurusan lamun aya. Eusian jam pelajaran (JP) per minggu jeung per taun pikeun unggal mapél. Pilihan Sadaya jurusan lumaku pikeun sakabéh jurusan di tingkat éta. Di luhur tabel mucunghul jumlah JP per minggu jeung per taun. Lamun dua kolom dikosongkeun, hartina mapél éta teu boga alokasi di tingkat éta.',
+            body: 'Dina bagian Struktur mapél, pilih taun ajaran, tingkat, jeung jurusan lamun aya. Eusian jam pelajaran (JP) per minggu jeung per taun pikeun unggal mapél; duanana téh JP intrakurikuler (pelajaran di kelas). JP kokurikuler per taun diisi dina kolom sorangan jeung dijumlahkeun misah. Kolom Minggu ngan mucunghul pikeun mapél Praktik kerja lapangan (PKL). Pilihan Sadaya jurusan lumaku pikeun sakabéh jurusan di tingkat éta. Di luhur tabel mucunghul jumlah JP per minggu, per taun, jeung kokurikuler. Menit per JP jeung minggu éfektif unggal tingkat bisa diisi dina Setélan sakola pikeun ngitung jam éfektif, tapi meunang dikosongkeun. Lamun sakabéh kolom hiji mapél dikosongkeun, hartina mapél éta teu boga alokasi di tingkat éta.',
             steps: [
               'Pilih Taun ajaran, Tingkat, jeung Jurusan.',
               'Eusian JP per minggu jeung JP per taun dina mapél nu diperlukeun. Eusian wilangan bulat 0 nepi ka 9999.',
@@ -1123,7 +1123,7 @@ export const CORE_DOCS: DocArticle[] = [
           },
           {
             heading: 'Golongan mapél jeung muatan lokal',
-            body: 'Unggal mata pelajaran bisa dibéré golongan (upamana Umum, Dasar kajuruan, atawa Konsentrasi kaahlian), ditandaan minangka muatan lokal, dibéré urutan tampil, jeung dinonaktipkeun lamun geus teu dipaké. Sakabéhna diatur dina menu Mata pelajaran. Mapél nu teu aktif teu mucunghul dina tabel jam pelajaran iwal geus boga alokasi.',
+            body: 'Unggal mata pelajaran bisa dibéré golongan (upamana Atikan Agama, Umum, atawa Kajuruan; daptarna nuturkeun jenjang sakola), jenis mapél (wajib, pilihan, muatan lokal, proyék, atawa praktik kerja lapangan), agama pikeun mapél agama, dibéré urutan tampil, jeung dinonaktipkeun lamun geus teu dipaké. Golongan heubeul nu geus kapaké tetep mucunghul kalayan katerangan data heubeul. Sakabéhna diatur dina menu Mata pelajaran. Mapél nu teu aktif teu mucunghul dina tabel jam pelajaran iwal geus boga alokasi.',
             href: '/subjects',
           },
           {

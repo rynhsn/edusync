@@ -22,10 +22,15 @@ import { toast } from 'sonner';
 import { ActionMenu, ENTER, stagger } from '@/components/access-kit';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
-import { useEducationProfileName } from '@/components/education-profile-select';
+import { useEducationProfileName, useEducationProfiles } from '@/components/education-profile-select';
 import { FormDialog } from '@/components/form-dialog';
 import { FORM_GRID } from '@/components/form-field';
-import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
+import {
+  FieldError,
+  type FormValidation,
+  TOUCH_INPUT,
+  useFormValidation,
+} from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -37,7 +42,15 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { TimeField } from '@/components/ui/time-field';
 import { EmptyPanel, IconTile, TONES, type Tone } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
-import { errorKey } from '@/lib/errors';
+import { errorKey, errorKeyIn } from '@/lib/errors';
+import {
+  applySuggestion,
+  configToDraft,
+  hasSuggestion,
+  type LevelConfigDraft,
+  type LevelSuggestion,
+  levelConfigPatch,
+} from '@/lib/level-config';
 import { cn } from '@/lib/utils';
 import { IdentityPanel } from './identity-panel';
 import {
@@ -495,6 +508,79 @@ interface Level {
   code: string;
   label: string;
   sort: number;
+  periodMinutes?: number | null;
+  effectiveWeeks?: number | null;
+}
+
+/**
+ * Isian menit per JP dan minggu efektif sebuah tingkat. Opsional dan boleh kosong; saran dari profil jenjang hanya
+ * mengisi kolom bila tombol "Pakai saran" ditekan.
+ */
+function LevelPeriodFields<K extends string>({
+  form,
+  onChange,
+  v,
+  suggestion,
+  profileName,
+}: {
+  form: LevelConfigDraft;
+  onChange: (next: LevelConfigDraft) => void;
+  v: FormValidation<K>;
+  suggestion: LevelSuggestion | null;
+  profileName: string;
+}) {
+  const t = useTranslations('schoolSettings');
+  const minutesKey = 'periodMinutes' as K;
+  const weeksKey = 'effectiveWeeks' as K;
+  return (
+    <>
+      <p className="text-muted-foreground text-xs sm:col-span-2">{t('periodConfigNote')}</p>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={v.idOf(minutesKey)}>{t('periodMinutes')}</Label>
+        <Input
+          {...v.fieldProps(minutesKey)}
+          className={TOUCH_INPUT}
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={3}
+          value={form.periodMinutes}
+          onChange={(e) => onChange({ ...form, periodMinutes: e.target.value })}
+        />
+        <FieldError id={v.idOf(minutesKey)} issue={v.issue(minutesKey)} />
+        <p className="text-muted-foreground text-xs">{t('periodMinutesHint')}</p>
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={v.idOf(weeksKey)}>{t('effectiveWeeks')}</Label>
+        <Input
+          {...v.fieldProps(weeksKey)}
+          className={TOUCH_INPUT}
+          inputMode="numeric"
+          autoComplete="off"
+          maxLength={2}
+          value={form.effectiveWeeks}
+          onChange={(e) => onChange({ ...form, effectiveWeeks: e.target.value })}
+        />
+        <FieldError id={v.idOf(weeksKey)} issue={v.issue(weeksKey)} />
+        <p className="text-muted-foreground text-xs">{t('effectiveWeeksHint')}</p>
+      </div>
+      {hasSuggestion(suggestion) && (
+        <div className="bg-muted/50 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3 sm:col-span-2">
+          <p className="text-muted-foreground min-w-0 flex-1 basis-56 text-xs">
+            {suggestion.periodMinutes != null && suggestion.effectiveWeeks != null
+              ? t('suggestionHint', {
+                  name: profileName,
+                  minutes: suggestion.periodMinutes,
+                  weeks: suggestion.effectiveWeeks,
+                })
+              : t('suggestionHintWeeksOnly', { name: profileName, weeks: suggestion.effectiveWeeks ?? '-' })}
+          </p>
+          <Button type="button" variant="outline" onClick={() => onChange(applySuggestion(form, suggestion))}>
+            {t('useSuggestion')}
+          </Button>
+        </div>
+      )}
+    </>
+  );
 }
 
 function LevelsPanel() {
@@ -510,9 +596,22 @@ function LevelsPanel() {
   });
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['school-levels', school.schoolId] });
 
-  const [createForm, setCreateForm] = useState({ code: '', label: '', sort: '' });
+  const profiles = useEducationProfiles();
+  const profile = profiles.data?.find((p) => p.key === school.educationProfile?.key);
+  const suggestion: LevelSuggestion | null = profile
+    ? {
+        periodMinutes: profile.suggestedPeriodMinutes ?? null,
+        effectiveWeeks: profile.suggestedEffectiveWeeks ?? null,
+      }
+    : null;
+  const profileName = school.educationProfile
+    ? nameOf(school.educationProfile.key, school.educationProfile.name)
+    : '';
+
+  const emptyCreate = { code: '', label: '', sort: '', periodMinutes: '', effectiveWeeks: '' };
+  const [createForm, setCreateForm] = useState(emptyCreate);
   const [editing, setEditing] = useState<Level | null>(null);
-  const [editForm, setEditForm] = useState({ label: '', sort: '0' });
+  const [editForm, setEditForm] = useState({ label: '', sort: '0', periodMinutes: '', effectiveWeeks: '' });
   const [deleting, setDeleting] = useState<Level | null>(null);
   const [stage, setStage] = useState<(typeof STAGES)[number]>('smp');
   const [error, setError] = useState<string | null>(null);
@@ -536,12 +635,13 @@ function LevelsPanel() {
             code: createForm.code.trim(),
             label: createForm.label.trim(),
             ...(createForm.sort.trim() !== '' ? { sort: Number(createForm.sort) } : {}),
+            ...levelConfigPatch({}, createForm).body,
           },
         }),
       ),
     onSuccess: () => {
       setError(null);
-      setCreateForm({ code: '', label: '', sort: '' });
+      setCreateForm(emptyCreate);
       toast.success(t('levelAdded'));
       refresh();
     },
@@ -552,7 +652,12 @@ function LevelsPanel() {
       unwrap(
         await api.PUT('/v1/school/levels/{id}', {
           params: { ...header, path: { id: (editing as Level).id } },
-          body: { label: editForm.label.trim(), sort: Number(editForm.sort) },
+          // Hanya menit/minggu yang berubah yang dikirim; server mempertahankan yang tidak dikirim.
+          body: {
+            label: editForm.label.trim(),
+            sort: Number(editForm.sort),
+            ...levelConfigPatch(editing as Level, editForm).body,
+          },
         }),
       ),
     onSuccess: () => {
@@ -569,7 +674,7 @@ function LevelsPanel() {
       toast.success(t('levelDeleted'));
       refresh();
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => toast.error(te(errorKeyIn(e, 'level'))),
   });
   const defaults = useMutation({
     mutationFn: async () =>
@@ -607,7 +712,7 @@ function LevelsPanel() {
             validation={createValidation}
             onOpenChange={(o) => {
               setError(null);
-              if (!o) setCreateForm({ code: '', label: '', sort: '' });
+              if (!o) setCreateForm(emptyCreate);
             }}
             onSubmit={() => create.mutateAsync()}
             trigger={
@@ -660,6 +765,13 @@ function LevelsPanel() {
                 <FieldError id={createValidation.idOf('sort')} issue={createValidation.issue('sort')} />
                 <p className="text-muted-foreground text-xs">{t('levelSortHint')}</p>
               </div>
+              <LevelPeriodFields
+                form={createForm}
+                onChange={(f) => setCreateForm({ ...createForm, ...f })}
+                v={createValidation}
+                suggestion={suggestion}
+                profileName={profileName}
+              />
             </div>
           </FormDialog>
         )}
@@ -722,6 +834,15 @@ function LevelsPanel() {
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium">{l.label}</p>
                 <p className="text-muted-foreground text-xs tabular-nums">{t('levelOrder', { n: l.sort })}</p>
+                {(l.periodMinutes || l.effectiveWeeks) && (
+                  <p className="text-muted-foreground text-xs tabular-nums">
+                    {l.periodMinutes && l.effectiveWeeks
+                      ? t('levelPeriodSummary', { minutes: l.periodMinutes, weeks: l.effectiveWeeks })
+                      : l.periodMinutes
+                        ? t('levelPeriodMinutesOnly', { minutes: l.periodMinutes })
+                        : t('levelPeriodWeeksOnly', { weeks: l.effectiveWeeks ?? '-' })}
+                  </p>
+                )}
               </div>
               {canManage && (
                 <ActionMenu
@@ -734,7 +855,7 @@ function LevelsPanel() {
                         setError(null);
                         editValidation.reset();
                         setEditing(l);
-                        setEditForm({ label: l.label, sort: String(l.sort) });
+                        setEditForm({ label: l.label, sort: String(l.sort), ...configToDraft(l) });
                       },
                     },
                     {
@@ -789,6 +910,13 @@ function LevelsPanel() {
             />
             <FieldError id={editValidation.idOf('sort')} issue={editValidation.issue('sort')} />
           </div>
+          <LevelPeriodFields
+            form={editForm}
+            onChange={(f) => setEditForm({ ...editForm, ...f })}
+            v={editValidation}
+            suggestion={suggestion}
+            profileName={profileName}
+          />
         </div>
       </FormDialog>
 

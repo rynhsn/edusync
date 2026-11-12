@@ -1,6 +1,6 @@
 /**
  * Aturan murni kenaikan kelas dan rollover tahun ajaran. Tingkat berikutnya diturunkan dari daftar tingkat sekolah
- * (`school_level`): urutan memakai `sort`, tingkat terakhir = `sort` terbesar. Tanpa akses database, supaya bisa diuji sendiri.
+ * (`school_level`): urutan memakai `sort`, tingkat terakhir = `sort` terbesar kecuali program menetapkan `final_level_code`. Tanpa akses database, supaya bisa diuji sendiri.
  */
 
 export const PROMOTION_DECISIONS = ['promote', 'retain', 'graduate'] as const;
@@ -21,18 +21,34 @@ export function firstLevel(levels: readonly PromotionLevel[]): string | null {
   return sortLevels(levels)[0]?.code ?? null;
 }
 
-/** Kode tingkat berikutnya (sort terkecil yang lebih besar dari tingkat ini). Null bila tingkat terakhir atau tak dikenal. */
-export function nextLevel(levels: readonly PromotionLevel[], code: string): string | null {
-  const current = levels.find((l) => l.code === code);
-  if (!current) return null;
-  return sortLevels(levels.filter((l) => l.sort > current.sort))[0]?.code ?? null;
-}
-
-/** Tingkat terakhir = sort terbesar. Tingkat tak dikenal atau daftar kosong bukan tingkat akhir. */
-export function isFinalLevel(levels: readonly PromotionLevel[], code: string): boolean {
+/**
+ * Tingkat akhir kelas: `finalLevelCode` (mis. `program.final_level_code`) bila terisi dan dikenal di daftar tingkat;
+ * bila tidak, tingkat dengan `sort` terbesar. Tingkat tak dikenal atau daftar kosong bukan tingkat akhir.
+ * Dengan `finalLevelCode`, tingkat di atasnya (sort lebih besar) juga dianggap akhir, supaya kelas yang kebetulan lebih
+ * tinggi dari tingkat akhir programnya tidak naik lagi.
+ */
+export function isFinalLevel(
+  levels: readonly PromotionLevel[],
+  code: string,
+  finalLevelCode?: string | null,
+): boolean {
   const current = levels.find((l) => l.code === code);
   if (!current) return false;
+  const configured = finalLevelCode ? levels.find((l) => l.code === finalLevelCode) : undefined;
+  if (configured) return current.sort >= configured.sort;
   return !levels.some((l) => l.sort > current.sort);
+}
+
+/** Kode tingkat berikutnya (sort terkecil yang lebih besar). Null bila tingkat akhir (lihat `isFinalLevel`) atau tak dikenal. */
+export function nextLevel(
+  levels: readonly PromotionLevel[],
+  code: string,
+  finalLevelCode?: string | null,
+): string | null {
+  const current = levels.find((l) => l.code === code);
+  if (!current) return null;
+  if (isFinalLevel(levels, code, finalLevelCode)) return null;
+  return sortLevels(levels.filter((l) => l.sort > current.sort))[0]?.code ?? null;
 }
 
 const isDigit = (c: string) => c >= '0' && c <= '9';

@@ -1,6 +1,5 @@
 'use client';
 
-import { SUBJECT_GROUPS, type SubjectGroup } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, LibraryBig, Pencil, Plus, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -36,8 +35,18 @@ import {
   Toolbar,
 } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
-import { errorKey } from '@/lib/errors';
+import { errorKey, errorKeyIn } from '@/lib/errors';
 import { SUBJECT_ORDER, type SubjectField, validateSubject } from '@/lib/form-validation';
+import {
+  groupsForPicker,
+  isReligionGroup,
+  RELIGION_VARIANT_KEYS,
+  type ReligionVariantKey,
+  religionVariantFor,
+  SUBJECT_KIND_KEYS,
+  type SubjectKindKey,
+} from '@/lib/subject-groups';
+import { useSubjectGroups } from '@/lib/use-subject-groups';
 import { cn } from '@/lib/utils';
 
 const CODE_TONES: Tone[] = ['teal', 'sky', 'violet', 'amber', 'rose', 'emerald'];
@@ -52,8 +61,12 @@ function toneFor(code: string): Tone {
 interface Draft {
   code: string;
   name: string;
-  /** Kelompok mapel; '' = tanpa kelompok. */
-  subjectGroup: SubjectGroup | '';
+  /** Kunci kelompok mapel dari acuan platform; '' = tanpa kelompok. */
+  subjectGroup: string;
+  /** Jenis mapel (peran di struktur kurikulum). */
+  kind: SubjectKindKey;
+  /** Varian agama; hanya berlaku bila kelompoknya agama. */
+  religionVariant: ReligionVariantKey | '';
   isLocalContent: boolean;
   /** Urutan tampil sebagai teks isian; '' = bawaan. */
   sortOrder: string;
@@ -63,6 +76,8 @@ const EMPTY: Draft = {
   code: '',
   name: '',
   subjectGroup: '',
+  kind: 'compulsory',
+  religionVariant: '',
   isLocalContent: false,
   sortOrder: '',
   active: true,
@@ -75,6 +90,8 @@ function toBody(d: Draft) {
     code: d.code,
     name: d.name,
     subjectGroup: d.subjectGroup === '' ? null : d.subjectGroup,
+    kind: d.kind,
+    religionVariant: religionVariantFor(d),
     isLocalContent: d.isLocalContent,
     active: d.active,
     ...(order === '' ? {} : { sortOrder: Number(order) }),
@@ -86,15 +103,26 @@ function SubjectFields({
   draft,
   onChange,
   v,
+  usedGroupKeys,
 }: {
   idPrefix: string;
   draft: Draft;
   onChange: (d: Draft) => void;
   /** Validasi galat-merah; id isian = `${idPrefix}-${field}`. */
   v: FormValidation<SubjectField>;
+  /** Kunci kelompok yang sudah dipakai mapel sekolah (kelompok lama tetap tampil bila dipakai). */
+  usedGroupKeys: ReadonlySet<string>;
 }) {
   const tm = useTranslations('masterData');
   const t = useTranslations('subjects');
+  const { groups, labelOf, profileKey } = useSubjectGroups();
+  const pickable = groupsForPicker(groups, {
+    profileKey,
+    usedKeys: usedGroupKeys,
+    currentKey: draft.subjectGroup,
+  });
+  // Kunci yang tidak ada di acuan tetap harus terlihat supaya tidak hilang diam-diam saat disimpan.
+  const unknownCurrent = draft.subjectGroup !== '' && !groups.some((g) => g.key === draft.subjectGroup);
   return (
     <div className="grid gap-4">
       <div className="grid gap-4 sm:grid-cols-[8rem_1fr]">
@@ -132,15 +160,23 @@ function SubjectFields({
             id={`${idPrefix}-group`}
             className={TOUCH_SELECT}
             value={draft.subjectGroup}
-            onChange={(e) => onChange({ ...draft, subjectGroup: e.target.value as Draft['subjectGroup'] })}
+            onChange={(e) =>
+              onChange({
+                ...draft,
+                subjectGroup: e.target.value,
+                religionVariant: isReligionGroup(e.target.value) ? draft.religionVariant : '',
+              })
+            }
           >
             <option value="">{t('groupNone')}</option>
-            {SUBJECT_GROUPS.map((g) => (
-              <option key={g} value={g}>
-                {t(`groups.${g}`)}
+            {unknownCurrent && <option value={draft.subjectGroup}>{draft.subjectGroup}</option>}
+            {pickable.map((g) => (
+              <option key={g.key} value={g.key}>
+                {labelOf(g.key)}
               </option>
             ))}
           </SelectField>
+          <p className="text-muted-foreground text-xs">{t('groupHint')}</p>
         </div>
         <div className="grid content-start gap-2">
           <Label htmlFor={`${idPrefix}-sortOrder`}>{t('sortOrder')}</Label>
@@ -157,6 +193,45 @@ function SubjectFields({
         </div>
       </div>
       <p className="text-muted-foreground -mt-2 text-xs">{t('sortOrderHint')}</p>
+      <div className={cn('grid gap-4', isReligionGroup(draft.subjectGroup) && 'sm:grid-cols-2')}>
+        <div className="grid content-start gap-2">
+          <Label htmlFor={`${idPrefix}-kind`}>{t('kindLabel')}</Label>
+          <SelectField
+            id={`${idPrefix}-kind`}
+            className={TOUCH_SELECT}
+            value={draft.kind}
+            onChange={(e) => onChange({ ...draft, kind: e.target.value as SubjectKindKey })}
+          >
+            {SUBJECT_KIND_KEYS.map((k) => (
+              <option key={k} value={k}>
+                {t(`kinds.${k}`)}
+              </option>
+            ))}
+          </SelectField>
+          <p className="text-muted-foreground text-xs">{t('kindHint')}</p>
+        </div>
+        {isReligionGroup(draft.subjectGroup) && (
+          <div className="grid content-start gap-2">
+            <Label htmlFor={`${idPrefix}-religion`}>{t('religionLabel')}</Label>
+            <SelectField
+              id={`${idPrefix}-religion`}
+              className={TOUCH_SELECT}
+              value={draft.religionVariant}
+              onChange={(e) =>
+                onChange({ ...draft, religionVariant: e.target.value as Draft['religionVariant'] })
+              }
+            >
+              <option value="">{t('religionNone')}</option>
+              {RELIGION_VARIANT_KEYS.map((r) => (
+                <option key={r} value={r}>
+                  {t(`religions.${r}`)}
+                </option>
+              ))}
+            </SelectField>
+            <p className="text-muted-foreground text-xs">{t('religionHint')}</p>
+          </div>
+        )}
+      </div>
       <div className="flex items-start gap-3">
         <Checkbox
           id={`${idPrefix}-local`}
@@ -190,7 +265,9 @@ interface SubjectRow {
   code: string;
   name: string;
   refSubjectId?: string | null;
-  subjectGroup?: SubjectGroup | null;
+  subjectGroup?: string | null;
+  kind?: SubjectKindKey;
+  religionVariant?: ReligionVariantKey | null;
   isLocalContent?: boolean;
   sortOrder?: number;
   active?: boolean;
@@ -207,6 +284,7 @@ export function SubjectsView() {
   const manage = can('subject:manage');
 
   const [draft, setDraft] = useState<Draft>(EMPTY);
+  const { labelOf } = useSubjectGroups();
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<({ id: string } & Draft) | null>(null);
   const validation = useFormValidation<SubjectField>({
@@ -251,7 +329,7 @@ export function SubjectsView() {
       toast.success(tm('deleted'));
       refresh();
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => toast.error(te(errorKeyIn(e, 'subject'))),
   });
 
   const [q, setQ] = useState('');
@@ -261,6 +339,8 @@ export function SubjectsView() {
     .filter((s) => !needle || s.name.toLowerCase().includes(needle) || s.code.toLowerCase().includes(needle))
     .sort((a, b) => (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || a.name.localeCompare(b.name));
 
+  const usedGroupKeys = new Set((list.data ?? []).flatMap((s) => (s.subjectGroup ? [s.subjectGroup] : [])));
+
   const openEdit = (s: SubjectRow) => {
     setError(null);
     validation.reset();
@@ -269,6 +349,8 @@ export function SubjectsView() {
       code: s.code,
       name: s.name,
       subjectGroup: s.subjectGroup ?? '',
+      kind: s.kind ?? 'compulsory',
+      religionVariant: s.religionVariant ?? '',
       isLocalContent: s.isLocalContent ?? false,
       sortOrder: s.sortOrder === undefined ? '' : String(s.sortOrder),
       active: s.active ?? true,
@@ -292,7 +374,13 @@ export function SubjectsView() {
       }}
       onSubmit={() => create.mutateAsync()}
     >
-      <SubjectFields idPrefix="new" draft={draft} onChange={setDraft} v={validation} />
+      <SubjectFields
+        idPrefix="new"
+        draft={draft}
+        onChange={setDraft}
+        v={validation}
+        usedGroupKeys={usedGroupKeys}
+      />
     </FormDialog>
   );
 
@@ -371,7 +459,7 @@ export function SubjectsView() {
       )}
 
       {rows.length > 0 && (
-        <ul className={cn('grid gap-3 sm:grid-cols-2 xl:grid-cols-3', REVEAL)}>
+        <ul className={cn('grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2 xl:grid-cols-3', REVEAL)}>
           {rows.map((s) => (
             <li
               key={s.id}
@@ -390,10 +478,24 @@ export function SubjectsView() {
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate font-medium">{s.name}</p>
-                {(s.subjectGroup || s.isLocalContent || s.active === false || s.refSubjectId) && (
+                {(s.subjectGroup ||
+                  s.isLocalContent ||
+                  s.active === false ||
+                  s.refSubjectId ||
+                  (s.kind && s.kind !== 'compulsory')) && (
                   <p className="mt-1 flex flex-wrap items-center gap-1">
                     {s.subjectGroup && (
-                      <span className="text-muted-foreground text-xs">{t(`groups.${s.subjectGroup}`)}</span>
+                      <span className="text-muted-foreground text-xs">{labelOf(s.subjectGroup)}</span>
+                    )}
+                    {s.kind && s.kind !== 'compulsory' && (
+                      <ToneBadge tone="violet" dot={false}>
+                        {t(`kinds.${s.kind}`)}
+                      </ToneBadge>
+                    )}
+                    {isReligionGroup(s.subjectGroup) && s.religionVariant && (
+                      <ToneBadge tone="emerald" dot={false}>
+                        {t(`religions.${s.religionVariant}`)}
+                      </ToneBadge>
                     )}
                     {s.isLocalContent && <ToneBadge tone="amber">{t('localContent')}</ToneBadge>}
                     {s.active === false && <ToneBadge tone="slate">{t('inactive')}</ToneBadge>}
@@ -449,6 +551,7 @@ export function SubjectsView() {
             draft={editing}
             onChange={(d) => setEditing({ id: editing.id, ...d })}
             v={validation}
+            usedGroupKeys={usedGroupKeys}
           />
         )}
       </FormDialog>

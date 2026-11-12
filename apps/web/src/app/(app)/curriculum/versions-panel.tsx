@@ -120,7 +120,7 @@ export function VersionsPanel({ yearId, canWrite }: { yearId: string; canWrite: 
       </div>
 
       <div className="bg-card overflow-x-auto rounded-2xl border">
-        <Table>
+        <Table className="max-lg:block max-lg:[&_tbody]:block max-lg:[&_thead]:hidden">
           <TableHeader>
             <TableRow>
               <TableHead className="w-32">{t('colLevel')}</TableHead>
@@ -134,11 +134,14 @@ export function VersionsPanel({ yearId, canWrite }: { yearId: string; canWrite: 
               const key = edits[r.code]?.curriculumKey ?? prev?.curriculumKey ?? '';
               const date = edits[r.code]?.effectiveFrom ?? prev?.effectiveFrom ?? '';
               return (
-                <TableRow key={r.code}>
-                  <TableCell className="font-medium">{r.label}</TableCell>
-                  <TableCell>
+                <TableRow key={r.code} className="max-lg:grid max-lg:gap-2 max-lg:px-3 max-lg:py-3">
+                  <TableCell className="font-medium max-lg:p-0">{r.label}</TableCell>
+                  <TableCell className="max-lg:p-0">
+                    <span className="text-muted-foreground mb-1 block text-xs lg:hidden">
+                      {t('colCurriculum')}
+                    </span>
                     <SelectField
-                      className={cn('min-w-56', TOUCH_SELECT)}
+                      className={cn('lg:min-w-56', TOUCH_SELECT)}
                       aria-label={t('versionFor', { level: r.label })}
                       value={key}
                       disabled={!canWrite}
@@ -152,7 +155,10 @@ export function VersionsPanel({ yearId, canWrite }: { yearId: string; canWrite: 
                       ))}
                     </SelectField>
                   </TableCell>
-                  <TableCell>
+                  <TableCell className="max-lg:p-0">
+                    <span className="text-muted-foreground mb-1 block text-xs lg:hidden">
+                      {t('colEffective')}
+                    </span>
                     <Input
                       type="date"
                       aria-label={t('dateFor', { level: r.label })}

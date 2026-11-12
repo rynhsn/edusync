@@ -705,6 +705,70 @@ describe('rekap', () => {
     await setSettings({ kkm: 75, predicateA: 90, predicateB: 80, predicateC: 70 });
   });
 
+  it('mode nilai akhir: percentage, simple_average, dan kembali ke bawaan identik', async () => {
+    const base = { kkm: 75, predicateA: 90, predicateB: 80, predicateC: 70 };
+    // Ani: 90/90/80/kosong; Budi: 60/50/kosong/kosong; bobot 20/30/20/30.
+    const finals = async () =>
+      (await recap(adminCookie)).json().students.map((s: { final: number | null }) => s.final);
+
+    expect((await setSettings({ ...base, calculationMode: 'percentage' })).json().calculationMode).toBe(
+      'percentage',
+    );
+    // Tanpa renormalisasi: (90*20 + 90*30 + 80*20) / 100 = 61; (60*20 + 50*30) / 100 = 27.
+    expect(await finals()).toEqual([61, 27, null]);
+    expect((await call('GET', '/v1/grading/settings', matCookie)).json().calculationMode).toBe('percentage');
+
+    await setSettings({ ...base, calculationMode: 'simple_average' });
+    // Rata-rata tanpa bobot atas komponen yang punya skor: (90+90+80)/3 = 86.67; (60+50)/2 = 55.
+    expect(await finals()).toEqual([86.67, 55, null]);
+
+    // Bila dihilangkan, mode yang ada dipertahankan; mode tak dikenal ditolak.
+    expect((await setSettings(base)).json().calculationMode).toBe('simple_average');
+    expect((await setSettings({ ...base, calculationMode: 'median' })).statusCode).toBe(400);
+
+    await setSettings({ ...base, calculationMode: 'weighted_average' });
+    expect(await finals()).toEqual([87.14, 54, null]);
+  });
+
+  it('mode percentage hanya diterima bila jumlah bobot komponen tepat 100 (400 weights_sum_invalid)', async () => {
+    const base = { kkm: 75, predicateA: 90, predicateB: 80, predicateC: 70 };
+    const comps = (await call('GET', '/v1/grading/components', adminCookie)).json() as {
+      id: string;
+      name: string;
+      weight: number;
+      sort: number;
+    }[];
+    const tugas = comps.find((c) => c.id === ids.tugas)!;
+    const weightSum = (list: { weight: number }[]) => list.reduce((n, c) => n + c.weight, 0);
+    expect(weightSum(comps)).toBe(100);
+
+    // Bobot 90 + 30 + 20 + 30 = 170: mode percentage ditolak, mode lain tetap diterima.
+    const bump = (weight: number) =>
+      call('PUT', `/v1/grading/components/${tugas.id}`, adminCookie, {
+        name: tugas.name,
+        weight,
+        sort: tugas.sort,
+      });
+    expect((await bump(90)).statusCode).toBe(200);
+    const rejected = await setSettings({ ...base, calculationMode: 'percentage' });
+    expect([rejected.statusCode, rejected.json().error.code]).toEqual([400, 'weights_sum_invalid']);
+    expect(rejected.json().error.message).toContain('170');
+    expect((await call('GET', '/v1/grading/settings', adminCookie)).json().calculationMode).toBe(
+      'weighted_average',
+    );
+    expect((await setSettings({ ...base, calculationMode: 'simple_average' })).statusCode).toBe(200);
+    expect((await setSettings({ ...base, calculationMode: 'weighted_average' })).statusCode).toBe(200);
+    // Mode dihilangkan: tidak memeriksa jumlah bobot (mode bawaan/yang ada dipertahankan).
+    expect((await setSettings(base)).statusCode).toBe(200);
+
+    // Jumlah tepat 100: diterima, dan hasil tidak pernah di atas 100.
+    expect((await bump(tugas.weight)).statusCode).toBe(200);
+    expect((await setSettings({ ...base, calculationMode: 'percentage' })).statusCode).toBe(200);
+    const finals = (await recap(adminCookie)).json().students.map((s: { final: number | null }) => s.final);
+    expect(finals.every((f: number | null) => f === null || (f >= 0 && f <= 100))).toBe(true);
+    await setSettings({ ...base, calculationMode: 'weighted_average' });
+  });
+
   it('rekap tanpa penilaian: semua kosong dan statistik null', async () => {
     const res = await call(
       'GET',

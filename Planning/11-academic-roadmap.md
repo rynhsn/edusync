@@ -1,7 +1,8 @@
 # Roadmap penyesuaian akademik (v1.1 sampai v1.6)
 
 Turunan dari [audit akademik](../docs/AUDIT-AKADEMIK.md). Dokumen ini hanya rencana kerja; kode belum disentuh.
-Status: **menunggu persetujuan**. Disusun 11 Nov 2026 dari v1.0.0.
+Status: fase 0, 1, 2A, dan 2B sudah dikerjakan (lihat "Status pelaksanaan" dan "Revisi hasil verifikasi regulasi" di bawah). Disusun 11 Nov 2026
+dari v1.0.0; direvisi 12 Nov 2026 setelah verifikasi regulasi dan uji peramban.
 
 ## Prinsip
 
@@ -26,6 +27,87 @@ Status: **menunggu persetujuan**. Disusun 11 Nov 2026 dari v1.0.0.
 
 Urutan yang disarankan: **0 dan 1 berjalan bersama, lalu 2, 3, 4, 5.** Fase 1 dan rollover (fase 2) paling mendesak: yang pertama
 melindungi data, yang kedua dibutuhkan sebelum akhir tahun ajaran (Juni 2027).
+
+---
+
+## Status pelaksanaan (12 Nov 2026)
+
+| Fase | Status | Rujukan |
+|---|---|---|
+| 0. Profil jenjang | Selesai, dirilis v1.1.0 | `ec17cd5`, `1c20196` |
+| 1. Integritas rapor dan jadwal | Selesai, dirilis v1.1.0 | `443b281` |
+| 2A. Rollover dan kenaikan kelas | Selesai, belum dirilis | `34148b9`, migrasi 0088 |
+| 2B. Struktur mapel, CP/TP/ATP, KKTP | Selesai, belum dirilis | `7477227`, migrasi 0089-0091 |
+| 2C. Koreksi hasil verifikasi regulasi (K1-K5, K7, C5) | Selesai, belum dirilis | migrasi 0092; K6 (istilah) hanya sebagian: "KKM" dan "KKTP" dieja lengkap, "siswa" belum diganti "murid" |
+| 3-5 | Belum dimulai | lihat revisi di bawah |
+
+Sisa 2C yang belum dikerjakan: tingkat akhir belum diturunkan otomatis dari lama studi (hanya dari tingkat akhir yang diisi);
+seed profil madrasah dan SMK menunggu pembacaan teks resmi.
+
+Teruji di peramban (12 Nov): wizard rollover sampai selesai (idempoten), portal wali dengan KKM per mapel, pratinjau dan PDF rapor,
+penolakan `report_final` pada KKTP, peran guru dan baca-saja, bahasa Sunda dan Inggris. Belum teruji: tablet 768 px secara penuh,
+`levels_not_configured`, siswa tanpa kelas tujuan (`unplaced`), peringatan nama kelas, `too_many_items`.
+
+## Revisi hasil verifikasi regulasi (12 Nov 2026)
+
+Dasar: [regulasi-umum.md](../docs/regulasi-umum.md) dan [regulasi-madrasah-smk.md](../docs/regulasi-madrasah-smk.md). Kedua dokumen memuat tabel
+klaim dengan status sumber (resmi, sekunder, belum terverifikasi). Ringkasnya: **arah roadmap sesuai, tetapi ada koreksi pada hal yang
+sudah terlanjur dibuat (2A, 2B) dan celah alur akademik yang belum ada.** Batasan: beberapa teks resmi tidak terbaca (Lampiran II
+Permendikdasmen 13/2025, KMA 1503/2025, CP BSKAP 046/H/KR/2025), jadi angka JP dan struktur madrasah/SMK terbaru wajib dicek ulang
+sebelum dijadikan data acuan.
+
+**Yang dibenarkan:** fase A-F dan pemetaan tingkat; KKTP menggantikan KKM (KKM tidak lagi ada di panduan resmi 2025, KKM sekolah kini hanya
+fallback); CP/TP/ATP dibuat guru (tidak ada acuan nasional wajib untuk TP/ATP); satu unit satu jenjang; aditif dan berversi; delapan dimensi
+profil lulusan untuk sekolah umum.
+
+**Koreksi pada yang sudah dibuat (diusulkan sebagai fase 2C, sebelum rilis v1.2.0):**
+
+| # | Koreksi | Alasan | Prioritas |
+|---|---|---|---|
+| K1 | `subject.subject_group`: hapus CHECK enum, ganti tabel acuan berversi `ref_subject_group` (kunci, label i18n, profil berlaku, urutan rapor); pisahkan kelompok struktur dari peran mapel; tambah penanda agama per agama dan pilihan | SMK resmi hanya punya kelompok Umum dan Kejuruan (Matematika, B. Inggris, Informatika, Projek IPAS ada di Kejuruan); tidak ada "dasar bidang" di Kurikulum Merdeka; madrasah butuh rumpun PAI/Arab | P0 |
+| K2 | Alokasi JP: dua kolom (intrakurikuler dan kokurikuler), konfigurasi menit per JP dan minggu efektif per tingkat, PKL dalam minggu | Lampiran II 13/2025; 35/40/45 menit; 36 minggu, 32 minggu kelas akhir | P0 |
+| K3 | Tingkat akhir tidak konstan: simpan lama program atau tingkat akhir pada program/kelas (SMK 3 atau 4 tahun, XII atau XIII) | SMK 4 tahun: XI-XIII Fase F | P0 |
+| K4 | Wizard kenaikan kelas: jangan menyarankan "lulus" otomatis; pisahkan "selesai tingkat akhir" dari "ditetapkan lulus"; tambah status naik dengan catatan, alasan, dan catatan musyawarah | Tidak ada rumus nasional; kelulusan butuh ujian satuan pendidikan dan penetapan sekolah | P0 |
+| K5 | `calculation_mode`: tiga nilai resmi (pembobotan, persentase, rata-rata), bukan satu | Panduan Pembelajaran dan Asesmen 2025 | P1 |
+| K6 | Istilah di UI: murid, satuan pendidikan, kriteria ketercapaian; "KKM" hanya alias; label fallback "batas ketuntasan sekolah" | Selaras regulasi | P1 |
+| K7 | Rollover: jangan menyalin tanggal kalender tanpa konfirmasi (minggu efektif dan kalender per tahun berbeda); pesan peringatan API perlu terjemahan | Kalender nasional tidak berformat tetap; temuan uji UI | P1 |
+
+**Celah yang belum ada di roadmap:**
+
+| # | Celah | Prioritas | Fase usulan |
+|---|---|---|---|
+| C1 | Pilihan mapel per murid (SMA XI-XII 4-5 pilihan dari minimal 7, agama per murid, seni/prakarya satu jenis); memengaruhi rapor, jadwal, rollover | P0 untuk SMA, P1 lainnya | 3B |
+| C2 | Ujian satuan pendidikan, penetapan kelulusan, SKL, nomor ijazah | P0 | 3C |
+| C3 | Mutasi murid masuk dan keluar (SPMB 3/2025 Pasal 55-58) | P0 | 3C |
+| C4 | Komponen rapor yang kurang: tanggapan orang tua/wali, deskripsi kokurikuler, mode rapor deskriptif Fase A | P0 | 3 |
+| C5 | Tinggal kelas administratif dengan riwayat rombel utuh (sudah didukung `retain`; perlu laporan dan riwayat) | P0 | 2C |
+| C6 | Legger kelas dan berita acara musyawarah dewan pendidik | P1 | 3C |
+| C7 | Ekspor minimal untuk e-Rapor/Dapodik/EMIS (rombel, mapel per kelas, nilai akhir, deskripsi); format dan skema belum terverifikasi | P1 | naik ke sekitar fase 3 |
+| C8 | Guru wali dan pemisahan wali kelas dan guru BK sebagai peran | P1-P2 | 4 |
+| C9 | Penilaian proses pembelajaran (refleksi guru/sejawat/kepala sekolah, minimal 1 kali per semester) | P2 | 3 |
+| C10 | Beban kerja guru 24-40 jam tatap muka (dihitung dari penugasan dan jadwal) | P2 | 4 |
+| C11 | Pendampingan atau peran pendamping untuk kokurikuler (team teaching hanya untuk projek) | P2 | 4 |
+
+**Perubahan pada fase berikutnya (sesuai hasil verifikasi):**
+- **Fase 3:** jenis asesmen resmi hanya formatif dan sumatif; diagnostik menjadi penanda asesmen awal; formatif tidak pernah masuk nilai rapor,
+  kenaikan, atau kelulusan. Remedial dicatat sebagai pendampingan, tanpa mengunci "batas = KKTP". Jurnal mengajar dan modul ajar bersifat
+  opsional (tidak ada kewajiban nasional) dengan nama netral "perencanaan pembelajaran".
+- **Fase 4:** kerangka profil madrasah **bukan** himpunan dimensi terpisah: madrasah memakai delapan dimensi yang sama; yang khas adalah
+  Panca Cinta (Kepdirjen Pendis 6077/2025). Seed madrasah (mapel PAI/Arab, JP) menunggu pembacaan KMA 1503/2025. Kokurikuler memuat bentuk
+  kolaboratif lintas disiplin, G7KAIH, atau lainnya, dengan alokasi JP tahunan.
+- **Fase 5:** PKL adalah mapel (792 JP kelas XII program 3 tahun; 1.368 JP kelas XIII program 4 tahun) dan nilainya masuk rapor; bobot
+  sekolah:industri menjadi konfigurasi (tidak ada aturan nasional). UKK mengikuti Pedoman Direktorat SMK (tiga pola penyelenggara, dua
+  skala skor, penguji internal/eksternal, pengiriman nilai ke e-Rapor SMK sebelum pengumuman kelulusan).
+
+**Tidak boleh dikodekan keras (konfigurasi atau acuan berversi):** pemetaan tingkat-fase, struktur kurikulum dan JP, menit per JP, jumlah dan
+nama dimensi profil, cara hitung nilai akhir, kriteria ketuntasan dan kebijakan remedial, aturan kenaikan dan kelulusan, kalender dan
+semester, kuota SPMB, format rapor, penjurusan SMA (kebijakan belum final).
+
+**Standar tampilan (berlaku untuk semua fase berikutnya):** setiap halaman baru diuji pada 375 px, 768 px, dan mode gelap; target sentuh
+minimal 44 px; tabel menjadi kartu di bawah `lg`; dialog dengan footer aksi yang selalu terjangkau; tiga bahasa tanpa teks terpotong.
+
+**Keputusan yang menunggu persetujuan:** (1) apakah fase 2C (K1-K7) dikerjakan sebelum rilis v1.2.0; (2) urutan fase 3, 3B, 3C; (3) apakah
+fitur kelulusan (C2) dan mutasi (C3) dimajukan sebelum kokurikuler dan madrasah.
 
 ---
 

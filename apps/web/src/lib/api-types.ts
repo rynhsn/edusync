@@ -965,6 +965,10 @@ export interface paths {
                                 /** @description Fase Kurikulum Merdeka: A (kelas 1-2), B (3-4), C (5-6), D (7-9), E (10), F (11-12) */
                                 phase: string;
                             }[];
+                            /** @description SARAN menit per JP (35/40/45 menurut jenjang); bukan nilai tersimpan, sekolah mengaturnya per tingkat */
+                            suggestedPeriodMinutes?: number | null;
+                            /** @description SARAN minggu efektif per tahun (36; tingkat akhir 32); bukan nilai tersimpan */
+                            suggestedEffectiveWeeks?: number;
                         }[];
                     };
                 };
@@ -10616,6 +10620,8 @@ export interface paths {
                             id: string;
                             code: string;
                             name: string;
+                            durationYears?: number | null;
+                            finalLevelCode?: string | null;
                         }[];
                     };
                 };
@@ -10652,7 +10658,7 @@ export interface paths {
         put?: never;
         /**
          * Buat jurusan
-         * @description Izin: `class:manage`. Kode harus unik di sekolah.
+         * @description Izin: `class:manage`. Kode harus unik di sekolah. Opsional: `durationYears` (3 atau 4) dan `finalLevelCode` (tingkat akhir program, mis. XIII untuk SMK 4 tahun; dipakai kenaikan kelas dan rollover; harus kode tingkat sekolah, 400 `invalid_level`). Hanya `finalLevelCode` yang menentukan tingkat akhir; `durationYears` tanpa `finalLevelCode` sah tetapi informatif.
          */
         post: {
             parameters: {
@@ -10669,6 +10675,10 @@ export interface paths {
                     "application/json": {
                         code: string;
                         name: string;
+                        /** @description Lama program (3 atau 4 tahun) */
+                        durationYears?: (3 | 4) | null;
+                        /** @description Kode tingkat akhir program (harus ada di daftar tingkat sekolah, 400 `invalid_level`); kosong = tingkat dengan sort terbesar. Hanya field inilah yang menentukan tingkat akhir; `durationYears` bersifat informatif. */
+                        finalLevelCode?: string | null;
                     };
                 };
             };
@@ -10684,6 +10694,22 @@ export interface paths {
                             id: string;
                             code: string;
                             name: string;
+                            durationYears?: number | null;
+                            finalLevelCode?: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
                         };
                     };
                 };
@@ -10747,7 +10773,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah jurusan
-         * @description Izin: `class:manage`.
+         * @description Izin: `class:manage`. Field opsional (`durationYears`, `finalLevelCode`) yang tidak dikirim tidak berubah; null mengosongkan. `finalLevelCode` harus kode tingkat sekolah (400 `invalid_level`) dan satu-satunya penentu tingkat akhir.
          */
         put: {
             parameters: {
@@ -10766,6 +10792,10 @@ export interface paths {
                     "application/json": {
                         code: string;
                         name: string;
+                        /** @description Lama program (3 atau 4 tahun) */
+                        durationYears?: (3 | 4) | null;
+                        /** @description Kode tingkat akhir program (harus ada di daftar tingkat sekolah, 400 `invalid_level`); kosong = tingkat dengan sort terbesar. Hanya field inilah yang menentukan tingkat akhir; `durationYears` bersifat informatif. */
+                        finalLevelCode?: string | null;
                     };
                 };
             };
@@ -10781,6 +10811,22 @@ export interface paths {
                             id: string;
                             code: string;
                             name: string;
+                            durationYears?: number | null;
+                            finalLevelCode?: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
                         };
                     };
                 };
@@ -10845,7 +10891,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus jurusan
-         * @description Izin: `class:manage`. Ditolak bila masih dipakai kelas.
+         * @description Izin: `class:manage`. Ditolak 409 `in_use` bila masih dipakai kelas, alokasi JP kurikulum, atau KKTP.
          */
         delete: {
             parameters: {
@@ -10975,8 +11021,17 @@ export interface paths {
                              * @description Mapel acuan platform asal salinan; null bila buatan sekolah
                              */
                             refSubjectId?: string | null;
-                            /** @enum {string|null} */
-                            subjectGroup?: "general" | "vocational_base" | "vocational_concentration" | "vocational_project" | "elective" | "internship" | null;
+                            subjectGroup?: string | null;
+                            /**
+                             * @description Jenis mapel; bawaan `compulsory`
+                             * @enum {string}
+                             */
+                            kind?: "compulsory" | "elective" | "local_content" | "project" | "internship";
+                            /**
+                             * @description Varian pendidikan agama (hanya mapel agama)
+                             * @enum {string|null}
+                             */
+                            religionVariant?: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "belief" | null;
                             isLocalContent?: boolean;
                             sortOrder?: number;
                             active?: boolean;
@@ -11016,7 +11071,7 @@ export interface paths {
         put?: never;
         /**
          * Buat mata pelajaran
-         * @description Izin: `subject:manage`. Kode harus unik di sekolah. Metadata opsional: `refSubjectId` (mapel acuan; 400 `invalid_reference` bila tidak ada), `subjectGroup`, `isLocalContent`, `sortOrder`, `active`.
+         * @description Izin: `subject:manage`. Kode harus unik di sekolah. Metadata opsional: `refSubjectId` (mapel acuan; 400 `invalid_reference` bila tidak ada), `subjectGroup` (kunci `GET /v1/reference/subject-groups`; 400 `invalid_subject_group`), `kind` (compulsory, elective, local_content, project, internship; bawaan compulsory), `religionVariant`, `isLocalContent`, `sortOrder`, `active`. `kind` dan `isLocalContent` disinkronkan server: `kind` local_content menghasilkan `isLocalContent` true; `isLocalContent` true tanpa `kind` menjadikan `kind` local_content.
          */
         post: {
             parameters: {
@@ -11035,8 +11090,11 @@ export interface paths {
                         name: string;
                         /** Format: uuid */
                         refSubjectId?: string | null;
+                        subjectGroup?: string | null;
+                        /** @enum {string} */
+                        kind?: "compulsory" | "elective" | "local_content" | "project" | "internship";
                         /** @enum {string|null} */
-                        subjectGroup?: "general" | "vocational_base" | "vocational_concentration" | "vocational_project" | "elective" | "internship" | null;
+                        religionVariant?: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "belief" | null;
                         isLocalContent?: boolean;
                         sortOrder?: number;
                         active?: boolean;
@@ -11060,8 +11118,17 @@ export interface paths {
                              * @description Mapel acuan platform asal salinan; null bila buatan sekolah
                              */
                             refSubjectId?: string | null;
-                            /** @enum {string|null} */
-                            subjectGroup?: "general" | "vocational_base" | "vocational_concentration" | "vocational_project" | "elective" | "internship" | null;
+                            subjectGroup?: string | null;
+                            /**
+                             * @description Jenis mapel; bawaan `compulsory`
+                             * @enum {string}
+                             */
+                            kind?: "compulsory" | "elective" | "local_content" | "project" | "internship";
+                            /**
+                             * @description Varian pendidikan agama (hanya mapel agama)
+                             * @enum {string|null}
+                             */
+                            religionVariant?: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "belief" | null;
                             isLocalContent?: boolean;
                             sortOrder?: number;
                             active?: boolean;
@@ -11142,7 +11209,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah mata pelajaran
-         * @description Izin: `subject:manage`. Hanya field yang dikirim yang diubah; metadata (`refSubjectId`, `subjectGroup`, `isLocalContent`, `sortOrder`, `active`) yang tidak dikirim tidak berubah.
+         * @description Izin: `subject:manage`. Hanya field yang dikirim yang diubah; metadata (`refSubjectId`, `subjectGroup`, `kind`, `religionVariant`, `isLocalContent`, `sortOrder`, `active`) yang tidak dikirim tidak berubah, kecuali penyelarasan `kind`/`isLocalContent`: `kind` local_content mengatur `isLocalContent` true; `isLocalContent` true tanpa `kind` mengatur `kind` local_content; `isLocalContent` false tanpa `kind` pada mapel local_content mengatur `kind` compulsory; `kind` lain tanpa `isLocalContent` pada mapel local_content mengatur `isLocalContent` false.
          */
         put: {
             parameters: {
@@ -11163,8 +11230,11 @@ export interface paths {
                         name: string;
                         /** Format: uuid */
                         refSubjectId?: string | null;
+                        subjectGroup?: string | null;
+                        /** @enum {string} */
+                        kind?: "compulsory" | "elective" | "local_content" | "project" | "internship";
                         /** @enum {string|null} */
-                        subjectGroup?: "general" | "vocational_base" | "vocational_concentration" | "vocational_project" | "elective" | "internship" | null;
+                        religionVariant?: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "belief" | null;
                         isLocalContent?: boolean;
                         sortOrder?: number;
                         active?: boolean;
@@ -11188,8 +11258,17 @@ export interface paths {
                              * @description Mapel acuan platform asal salinan; null bila buatan sekolah
                              */
                             refSubjectId?: string | null;
-                            /** @enum {string|null} */
-                            subjectGroup?: "general" | "vocational_base" | "vocational_concentration" | "vocational_project" | "elective" | "internship" | null;
+                            subjectGroup?: string | null;
+                            /**
+                             * @description Jenis mapel; bawaan `compulsory`
+                             * @enum {string}
+                             */
+                            kind?: "compulsory" | "elective" | "local_content" | "project" | "internship";
+                            /**
+                             * @description Varian pendidikan agama (hanya mapel agama)
+                             * @enum {string|null}
+                             */
+                            religionVariant?: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "belief" | null;
                             isLocalContent?: boolean;
                             sortOrder?: number;
                             active?: boolean;
@@ -11271,7 +11350,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus mata pelajaran
-         * @description Izin: `subject:manage`. Ditolak bila sudah ditugaskan ke guru.
+         * @description Izin: `subject:manage`. Ditolak 409 `in_use` bila sudah ditugaskan ke guru, dipakai alokasi JP kurikulum, CP, ATP, atau KKTP.
          */
         delete: {
             parameters: {
@@ -11713,7 +11792,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus kelas
-         * @description Izin: `class:manage`. Ditolak bila masih ada siswa atau penugasan guru di kelas itu.
+         * @description Izin: `class:manage`. Ditolak 409 `in_use` bila masih ada siswa, penugasan guru, atau keputusan kenaikan kelas yang merujuk kelas itu.
          */
         delete: {
             parameters: {
@@ -12106,7 +12185,7 @@ export interface paths {
         };
         /**
          * Daftar siswa dan keputusan kenaikan kelas satu tahun ajaran
-         * @description Izin: `promotion:manage`. Kelas tahun ajaran itu beserta siswa aktif yang ter-enroll, dengan keputusan tersimpan (`decision`, null bila belum), saran bawaan (`suggestedDecision`: naik, atau lulus bila kelasnya tingkat terakhir), kelas tujuan, dan penanda `applied`. Tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`).
+         * @description Izin: `promotion:manage`. Kelas tahun ajaran itu beserta siswa aktif yang ter-enroll, dengan keputusan tersimpan (`decision`, null bila belum), saran bawaan (`suggestedDecision`: `promote`; null di tingkat akhir karena kelulusan ditetapkan sekolah setelah ujian satuan pendidikan dan wajib dipilih eksplisit), kelas tujuan, catatan (`note`, `reason`, `followUp`, `meetingDate`), dan penanda `applied`. Tingkat akhir kelas = `final_level_code` jurusannya bila diisi, jika tidak tingkat dengan `sort` terbesar; tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`). Kelas bertingkat yang tidak ada di daftar tingkat sekolah ditandai `levelUnknown` true dan tidak mendapat saran `promote`.
          */
         get: {
             parameters: {
@@ -12145,6 +12224,8 @@ export interface paths {
                                 level: string;
                                 nextLevel: string | null;
                                 isFinalLevel: boolean;
+                                /** @description true bila tingkat kelas tidak ada di daftar tingkat sekolah: tidak ada saran `promote`, dan naik kelas wajib menyertakan `toClassId` (400 `level_unknown`) */
+                                levelUnknown?: boolean;
                                 students: {
                                     /** Format: uuid */
                                     studentId: string;
@@ -12156,16 +12237,25 @@ export interface paths {
                                      */
                                     decision: "promote" | "retain" | "graduate" | null;
                                     /**
-                                     * @description Saran bawaan: naik kelas, atau lulus bila kelasnya tingkat terakhir
-                                     * @enum {string}
+                                     * @description Saran bawaan: `promote` bila bukan tingkat akhir; null di tingkat akhir (kelulusan ditetapkan sekolah, wajib dipilih eksplisit)
+                                     * @enum {string|null}
                                      */
-                                    suggestedDecision: "promote" | "graduate";
+                                    suggestedDecision: "promote" | "graduate" | null;
                                     /**
                                      * Format: uuid
                                      * @description Kelas tujuan eksplisit; null = ditentukan otomatis saat diterapkan
                                      */
                                     toClassId: string | null;
                                     note: string | null;
+                                    /** @description Alasan keputusan (mis. tinggal kelas) */
+                                    reason?: string | null;
+                                    /** @description Tindak lanjut */
+                                    followUp?: string | null;
+                                    /**
+                                     * Format: date
+                                     * @description Tanggal rapat dewan pendidik
+                                     */
+                                    meetingDate?: string | null;
                                     /** @description Keputusan sudah diterapkan ke tahun tujuan; tidak bisa diubah lagi */
                                     applied: boolean;
                                 }[];
@@ -12219,7 +12309,7 @@ export interface paths {
         };
         /**
          * Simpan keputusan kenaikan kelas
-         * @description Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; semua atau tidak sama sekali. 400 `not_final_level`: lulus hanya untuk kelas tingkat terakhir dan naik tidak bisa dari tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: `toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). 409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah.
+         * @description Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; `graduate` berarti "ditetapkan lulus": kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, tidak disarankan otomatis. Catatan opsional per baris: `note`, `reason` (alasan), `followUp` (tindak lanjut), `meetingDate` (tanggal rapat dewan pendidik, YYYY-MM-DD); yang DIHILANGKAN dipertahankan dari keputusan tersimpan, `null` eksplisit mengosongkan. Semua atau tidak sama sekali. 400 `level_unknown`: `promote` tanpa `toClassId` untuk kelas yang tingkatnya tidak ada di daftar tingkat sekolah. 400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: `toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). 409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber).
          */
         put: {
             parameters: {
@@ -12244,6 +12334,10 @@ export interface paths {
                             /** Format: uuid */
                             toClassId?: string | null;
                             note?: string | null;
+                            reason?: string | null;
+                            followUp?: string | null;
+                            /** Format: date */
+                            meetingDate?: string | null;
                         }[];
                     };
                 };
@@ -12350,7 +12444,7 @@ export interface paths {
         put?: never;
         /**
          * Salin tahun ajaran ke tahun berikutnya
-         * @description Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` bagi hal yang perlu diperiksa.
+         * @description Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` (kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, final_level_not_copied, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, event_class_skipped, event_out_of_year, flow_inactive_objectives) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.
          */
         post: {
             parameters: {
@@ -12373,7 +12467,10 @@ export interface paths {
                         copyClasses?: boolean;
                         /** @default true */
                         copyAssignments?: boolean;
-                        /** @default true */
+                        /**
+                         * @description Salin kalender akademik (tanggal digeser selisih tahun mulai); bawaan false karena kalender tiap tahun berbeda
+                         * @default false
+                         */
                         copyCalendar?: boolean;
                         /** @description Salin alokasi JP dan versi kurikulum; bawaan true */
                         copyCurriculum?: boolean;
@@ -12400,6 +12497,13 @@ export interface paths {
                             versionsCreated?: number;
                             flowsCreated?: number;
                             warnings: string[];
+                            /** @description Peringatan terstruktur (kode stabil + parameter) yang sejajar dengan `warnings`, untuk diterjemahkan klien */
+                            warningItems?: {
+                                code: string;
+                                params: {
+                                    [key: string]: string | number;
+                                };
+                            }[];
                         };
                     };
                 };
@@ -12492,7 +12596,7 @@ export interface paths {
         put?: never;
         /**
          * Terapkan keputusan kenaikan kelas ke tahun berikutnya
-         * @description Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau kelas pertama tingkat itu), `retain` di kelas sebaya tahun tujuan, `graduate` mengubah status siswa menjadi lulus. Enrollment lama tidak dihapus; siswa yang sudah ter-enroll di tahun tujuan dilewati dan dilaporkan di `alreadyEnrolled`. Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, tanpa menggagalkan yang lain. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.
+         * @description Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau bila tidak ada, satu-satunya kelas sejurusan pada tingkat itu; selain itu `unplaced` `no_target_class`, tidak pernah menebak kelas pertama), `retain` di kelas sebaya tahun tujuan dengan aturan yang sama, `graduate` mengubah status siswa menjadi lulus (tingkat akhir kelas asal divalidasi ulang: bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; siswa yang sudah ter-enroll di tahun tujuan (termasuk yang terdahului proses lain) dilewati dan dilaporkan di `alreadyEnrolled`, keputusannya tidak ditandai diterapkan. Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. `graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber (status lulus mengeluarkan siswa dari roster rapor draf). Penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.
          */
         post: {
             parameters: {
@@ -12534,6 +12638,11 @@ export interface paths {
                                 /** Format: uuid */
                                 studentId: string;
                                 reason: string;
+                                /** @description Kode alasan stabil: student_missing, student_not_active, source_class_missing, target_class_invalid, no_next_level, no_target_class, not_final_level */
+                                reasonCode?: string;
+                                reasonParams?: {
+                                    [key: string]: string | number;
+                                };
                             }[];
                             /** @description Sudah punya enrollment di tahun tujuan: dilewati, keputusannya tetap menunggu */
                             alreadyEnrolled: {
@@ -12544,6 +12653,15 @@ export interface paths {
                             }[];
                             /** @description Siswa aktif tahun sumber yang belum punya keputusan */
                             skippedNoDecision: number;
+                            /** @description Jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Status lulus mengeluarkan siswa dari roster rapor draf, jadi finalkan rapornya lebih dulu */
+                            graduateReportNotFinal?: number;
+                            /** @description Peringatan terstruktur (kode stabil + parameter): graduate_report_not_final */
+                            warningItems?: {
+                                code: string;
+                                params: {
+                                    [key: string]: string | number;
+                                };
+                            }[];
                         };
                     };
                 };
@@ -25338,7 +25456,7 @@ export interface paths {
         };
         /**
          * Pengaturan penilaian
-         * @description Izin: `grade:read`; modul `grades`. KKM sekolah, batas predikat A/B/C, dan `calculationMode`. Sekolah yang belum mengaturnya mendapat nilai bawaan (KKM 75; A 90, B 80, C 70; `weighted_average`). KKM sekolah adalah jatuhan terakhir; mapel bisa punya KKM sendiri lewat KKTP (`/v1/achievement-criteria`).
+         * @description Izin: `grade:read`; modul `grades`. KKM sekolah, batas predikat A/B/C, dan `calculationMode`. Sekolah yang belum mengaturnya mendapat nilai bawaan (KKM 75; A 90, B 80, C 70; `weighted_average`). KKM sekolah adalah jatuhan terakhir; mapel bisa punya KKM sendiri lewat KKTP (`/v1/achievement-criteria`). Jumlah bobot komponen (dari `GET /v1/grading/components`) harus 100 agar mode `percentage` bisa dipilih.
          */
         get: {
             parameters: {
@@ -25368,10 +25486,10 @@ export interface paths {
                             /** @description Nilai minimal predikat C; di bawahnya predikat D */
                             predicateC: number;
                             /**
-                             * @description Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)
+                             * @description Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan.
                              * @enum {string}
                              */
-                            calculationMode?: "weighted_average";
+                            calculationMode?: "weighted_average" | "percentage" | "simple_average";
                         };
                     };
                 };
@@ -25407,7 +25525,7 @@ export interface paths {
         };
         /**
          * Ubah pengaturan penilaian
-         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (hanya `weighted_average`); bila dihilangkan, nilai yang ada dipertahankan. Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
+         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
          */
         put: {
             parameters: {
@@ -25427,10 +25545,10 @@ export interface paths {
                         predicateB: number;
                         predicateC: number;
                         /**
-                         * @description Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)
+                         * @description Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan.
                          * @enum {string}
                          */
-                        calculationMode?: "weighted_average";
+                        calculationMode?: "weighted_average" | "percentage" | "simple_average";
                     };
                 };
             };
@@ -25451,10 +25569,10 @@ export interface paths {
                             /** @description Nilai minimal predikat C; di bawahnya predikat D */
                             predicateC: number;
                             /**
-                             * @description Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)
+                             * @description Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan.
                              * @enum {string}
                              */
-                            calculationMode?: "weighted_average";
+                            calculationMode?: "weighted_average" | "percentage" | "simple_average";
                         };
                     };
                 };
@@ -25532,7 +25650,7 @@ export interface paths {
         };
         /**
          * Daftar komponen penilaian
-         * @description Izin: `grade:read`; modul `grades`. Komponen berbobot (mis. Tugas, UTS), urut `sort` lalu nama. `assessmentCount` = jumlah penilaian yang memakainya.
+         * @description Izin: `grade:read`; modul `grades`. Komponen berbobot (mis. Tugas, UTS), urut `sort` lalu nama. `assessmentCount` = jumlah penilaian yang memakainya. Pemakaian bobot bergantung mode nilai akhir: dinormalisasi pada `weighted_average`, diabaikan pada `simple_average`, dan harus berjumlah 100 pada `percentage`.
          */
         get: {
             parameters: {
@@ -25596,7 +25714,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah komponen penilaian
-         * @description Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `weight` 1..100; bobot tidak harus berjumlah 100 karena dinormalisasi saat nilai akhir dihitung. `sort` bawaan: paling akhir.
+         * @description Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `weight` 1..100. Jumlah bobot tidak harus 100 pada mode `weighted_average` (dinormalisasi saat nilai akhir dihitung) dan `simple_average` (bobot diabaikan), tetapi mode `percentage` mensyaratkan jumlah 100 (dicek saat memilih mode itu di `PUT /v1/grading/settings`; bobot yang diubah sesudahnya tidak diperiksa ulang, hasil `percentage` tetap dibatasi 0..100). `sort` bawaan: paling akhir.
          */
         post: {
             parameters: {
@@ -25709,7 +25827,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah komponen penilaian
-         * @description Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 `report_final` selama semester aktif punya rapor final.
+         * @description Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 `report_final` selama semester aktif punya rapor final. Bobot tidak dinormalisasi pada mode `percentage`; jumlahnya diperiksa saat mode itu dipilih, bukan di sini.
          */
         put: {
             parameters: {
@@ -26830,10 +26948,10 @@ export interface paths {
                                 /** @description Nilai minimal predikat C; di bawahnya predikat D */
                                 predicateC: number;
                                 /**
-                                 * @description Mode perhitungan nilai akhir; saat ini hanya `weighted_average` (rata-rata tertimbang, bawaan)
+                                 * @description Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan.
                                  * @enum {string}
                                  */
-                                calculationMode?: "weighted_average";
+                                calculationMode?: "weighted_average" | "percentage" | "simple_average";
                             };
                             /** @description KKM efektif mapel ini (KKTP kelas/tingkat, jatuh ke KKM sekolah), desimal */
                             kkm?: number;
@@ -44681,6 +44799,10 @@ export interface paths {
                             code: string;
                             label: string;
                             sort: number;
+                            /** @description Menit per JP pada tingkat ini */
+                            periodMinutes?: number | null;
+                            /** @description Minggu efektif per tahun pada tingkat ini */
+                            effectiveWeeks?: number | null;
                         }[];
                     };
                 };
@@ -44736,6 +44858,8 @@ export interface paths {
                         label: string;
                         /** @description Urutan; bila dihilangkan, ditaruh paling akhir */
                         sort?: number;
+                        periodMinutes?: number | null;
+                        effectiveWeeks?: number | null;
                     };
                 };
             };
@@ -44752,6 +44876,10 @@ export interface paths {
                             code: string;
                             label: string;
                             sort: number;
+                            /** @description Menit per JP pada tingkat ini */
+                            periodMinutes?: number | null;
+                            /** @description Minggu efektif per tahun pada tingkat ini */
+                            effectiveWeeks?: number | null;
                         };
                     };
                 };
@@ -44849,6 +44977,10 @@ export interface paths {
                             code: string;
                             label: string;
                             sort: number;
+                            /** @description Menit per JP pada tingkat ini */
+                            periodMinutes?: number | null;
+                            /** @description Minggu efektif per tahun pada tingkat ini */
+                            effectiveWeeks?: number | null;
                         }[];
                     };
                 };
@@ -44912,7 +45044,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah tingkat kelas
-         * @description Izin: `school:manage`. Hanya nama tampilan dan urutan; kode tetap. 404 `not_found` bila tak ada.
+         * @description Izin: `school:manage`. Nama tampilan, urutan, serta konfigurasi `periodMinutes` (menit per JP) dan `effectiveWeeks` (minggu efektif) yang dihilangkan tidak berubah; kode tetap. 404 `not_found` bila tak ada.
          */
         put: {
             parameters: {
@@ -44931,6 +45063,10 @@ export interface paths {
                     "application/json": {
                         label: string;
                         sort: number;
+                        /** @description Menit per JP; dihilangkan = tidak berubah, null mengosongkan */
+                        periodMinutes?: number | null;
+                        /** @description Minggu efektif; dihilangkan = tidak berubah, null mengosongkan */
+                        effectiveWeeks?: number | null;
                     };
                 };
             };
@@ -44947,6 +45083,10 @@ export interface paths {
                             code: string;
                             label: string;
                             sort: number;
+                            /** @description Menit per JP pada tingkat ini */
+                            periodMinutes?: number | null;
+                            /** @description Minggu efektif per tahun pada tingkat ini */
+                            effectiveWeeks?: number | null;
                         };
                     };
                 };
@@ -44997,7 +45137,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus tingkat kelas
-         * @description Izin: `school:manage`. Ditolak (409 `in_use`) bila masih dipakai kelas, tarif, atau periode SPMB. 404 `not_found` bila tak ada.
+         * @description Izin: `school:manage`. Ditolak (409 `in_use`) bila masih dipakai kelas, tarif, periode SPMB, tingkat akhir jurusan (`finalLevelCode`), alokasi JP, versi kurikulum, ATP, atau KKTP. 404 `not_found` bila tak ada.
          */
         delete: {
             parameters: {
@@ -51410,6 +51550,87 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/reference/subject-groups": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar kelompok mapel (acuan)
+         * @description Izin: `subject:read`. Kelompok mapel acuan platform, berurutan (`sort`). `profileKeys` null = berlaku untuk semua profil jenjang. `reportSection` mengelompokkan mapel di rapor. Daftar adalah acuan awal yang masih harus diverifikasi ke Lampiran II Permendikdasmen 13/2025; kunci lama (vocational_base, dst.) tetap ada agar data lama valid dan ditandai di label. Kunci ini dipakai pada `subjectGroup` mapel.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            groups: {
+                                key: string;
+                                labelId: string;
+                                labelEn: string;
+                                labelSu: string;
+                                profileKeys: string[] | null;
+                                reportSection: string | null;
+                                sort: number;
+                                active: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/reference/curricula/updates": {
         parameters: {
             query?: never;
@@ -51596,7 +51817,7 @@ export interface paths {
         };
         /**
          * Alokasi jam pelajaran (JP) satu tahun ajaran
-         * @description Izin: `subject:read`. Alokasi JP mingguan/tahunan per (tingkat, program, mapel) beserta nama mapel. `programId` null berarti berlaku untuk semua program. Filter opsional `levelCode` dan `programId`.
+         * @description Izin: `subject:read`. Alokasi JP mingguan/tahunan (intrakurikuler), kokurikuler tahunan, dan minggu per (tingkat, program, mapel) beserta nama mapel. `programId` null berarti berlaku untuk semua program. Filter opsional `levelCode` dan `programId`.
          */
         get: {
             parameters: {
@@ -51632,8 +51853,14 @@ export interface paths {
                                 subjectId: string;
                                 subjectCode: string;
                                 subjectName: string;
+                                /** @description JP mingguan intrakurikuler */
                                 weeklyPeriods: number | null;
+                                /** @description JP tahunan intrakurikuler */
                                 yearlyPeriods: number | null;
+                                /** @description JP kokurikuler tahunan */
+                                cocurricularYearlyPeriods?: number | null;
+                                /** @description Durasi dalam minggu (mis. PKL) */
+                                weeks?: number | null;
                                 note: string | null;
                             }[];
                         };
@@ -51685,7 +51912,7 @@ export interface paths {
         };
         /**
          * Simpan alokasi jam pelajaran (JP) satu tahun ajaran
-         * @description Izin: `curriculum:manage`. Upsert per (`levelCode`, `programId`, `subjectId`); bagian yang tidak dikirim tidak disentuh. Tiap baris menggantikan baris yang ada: `weeklyPeriods`, `yearlyPeriods`, `note` yang dihilangkan menjadi kosong. Bila kedua JP kosong (null/dihilangkan), baris itu dihapus. Maksimal 500 baris, semua atau tidak sama sekali. 400 `invalid_level`: tingkat tidak ada di daftar tingkat sekolah. 400 `invalid_reference`: mapel atau jurusan bukan milik sekolah ini. 400 `duplicate_entry`: kombinasi yang sama muncul dua kali.
+         * @description Izin: `curriculum:manage`. Upsert per (`levelCode`, `programId`, `subjectId`); bagian yang tidak dikirim tidak disentuh. Tiap baris menggantikan baris yang ada: `weeklyPeriods`, `yearlyPeriods`, `note` yang dihilangkan menjadi kosong. `cocurricularYearlyPeriods` dan `weeks` yang dihilangkan mempertahankan nilai tersimpan (null mengosongkan); `weeklyPeriods`/`yearlyPeriods` berarti intrakurikuler. Bila semua JP/minggu kosong, baris itu dihapus. Maksimal 500 baris, semua atau tidak sama sekali. 400 `invalid_level`: tingkat tidak ada di daftar tingkat sekolah. 400 `invalid_reference`: mapel atau jurusan bukan milik sekolah ini. 400 `duplicate_entry`: kombinasi yang sama muncul dua kali.
          */
         put: {
             parameters: {
@@ -51710,6 +51937,8 @@ export interface paths {
                             subjectId: string;
                             weeklyPeriods?: number | null;
                             yearlyPeriods?: number | null;
+                            cocurricularYearlyPeriods?: number | null;
+                            weeks?: number | null;
                             note?: string | null;
                         }[];
                     };
@@ -52241,7 +52470,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah capaian pembelajaran (CP)
-         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus.
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus (berlaku juga untuk `active` true pada versi lama; aktifkan versi terbaru).
          */
         put: {
             parameters: {
@@ -52668,7 +52897,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah tujuan pembelajaran (TP)
-         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus.
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus; berlaku juga untuk `active` true pada versi lama (aktifkan versi terbaru).
          */
         put: {
             parameters: {
@@ -53049,6 +53278,8 @@ export interface paths {
                                 outcomePhase: "A" | "B" | "C" | "D" | "E" | "F";
                                 outcomeDescription: string;
                             }[];
+                            /** @description Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu */
+                            inactiveItemCount?: number;
                         };
                     };
                 };
@@ -53205,6 +53436,8 @@ export interface paths {
                                 outcomePhase: "A" | "B" | "C" | "D" | "E" | "F";
                                 outcomeDescription: string;
                             }[];
+                            /** @description Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu */
+                            inactiveItemCount?: number;
                         };
                     };
                 };
@@ -53338,6 +53571,8 @@ export interface paths {
                                 outcomePhase: "A" | "B" | "C" | "D" | "E" | "F";
                                 outcomeDescription: string;
                             }[];
+                            /** @description Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu */
+                            inactiveItemCount?: number;
                         };
                     };
                 };
@@ -53518,7 +53753,7 @@ export interface paths {
         put?: never;
         /**
          * Terbitkan ATP
-         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Mengubah draf menjadi terbit dan mengunci isinya; revisi lewat `new-version`. 400 `flow_empty`: ATP tanpa item. 409 `flow_published`: sudah terbit.
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Mengubah draf menjadi terbit dan mengunci isinya; revisi lewat `new-version`. 400 `flow_empty`: ATP tanpa item. 400 `inactive_objective`: ada item yang menunjuk TP nonaktif (daftar TP ada di pesan galat; ganti item itu dulu). 409 `flow_published`: sudah terbit.
          */
         post: {
             parameters: {
@@ -53584,6 +53819,8 @@ export interface paths {
                                 outcomePhase: "A" | "B" | "C" | "D" | "E" | "F";
                                 outcomeDescription: string;
                             }[];
+                            /** @description Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu */
+                            inactiveItemCount?: number;
                         };
                     };
                 };
@@ -53676,7 +53913,7 @@ export interface paths {
         put?: never;
         /**
          * Buat versi berikutnya dari ATP terbit
-         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Menyalin ATP terbit beserta item menjadi draf versi berikutnya (`supersedesId` = ATP asal); versi lama tetap utuh. 409 `flow_not_published`: ATP asal masih draf. 409 `draft_exists`: ATP yang sama (mapel, tahun, nama, tingkat) sudah punya draf.
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Menyalin ATP terbit beserta item menjadi draf versi berikutnya (`supersedesId` = ATP asal); versi lama tetap utuh. Item yang menunjuk TP nonaktif ikut disalin dan dihitung di `inactiveItemCount` (peringatan; ganti sebelum menerbitkan, 400 `inactive_objective`). 409 `flow_not_published`: ATP asal masih draf. 409 `draft_exists`: ATP yang sama (mapel, tahun, nama, tingkat) sudah punya draf.
          */
         post: {
             parameters: {
@@ -53742,6 +53979,8 @@ export interface paths {
                                 outcomePhase: "A" | "B" | "C" | "D" | "E" | "F";
                                 outcomeDescription: string;
                             }[];
+                            /** @description Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu */
+                            inactiveItemCount?: number;
                         };
                     };
                 };

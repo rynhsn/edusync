@@ -20,7 +20,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             body: 'Sebelum guru mulai mengisi, tentukan dulu KKM, batas predikat A/B/C, dan komponen nilai beserta bobotnya (misalnya Tugas atau UTS). Bila sekolah belum punya komponen, tombol Pasang komponen bawaan membuat Tugas (20), Ulangan Harian (30), UTS (20), dan UAS (30). Bila belum diatur, KKM-nya 75 dengan batas A 90, B 80, dan C 70.',
             steps: [
               'Buka Pengaturan penilaian.',
-              'Isi KKM dan batas predikat A, B, dan C. A harus lebih besar dari B, dan B lebih besar dari C. KKM ini berlaku untuk mapel yang belum punya KKM sendiri; KKM per mapel (boleh desimal) diatur di tab KKTP pada Kurikulum.',
+              'Isi batas ketuntasan bawaan sekolah (KKM) dan batas predikat A, B, dan C. A harus lebih besar dari B, dan B lebih besar dari C. Batas ini berlaku untuk mapel yang belum punya Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) sendiri; batas per mapel (boleh desimal) diatur di tab KKTP pada Kurikulum. Di bagian yang sama Anda memilih cara menghitung nilai akhir; mengubahnya memengaruhi rapor draf dan ditolak bila semester aktif sudah punya rapor final.',
               'Tambah komponen nilai beserta bobotnya (1 sampai 100), atau klik Pasang komponen bawaan.',
               'Simpan. Bila jumlah bobot bukan 100%, muncul peringatan.',
             ],
@@ -46,7 +46,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Membaca rekap dan nilai akhir',
-            body: 'Tab Rekap menampilkan, per siswa, rata-rata tiap komponen, nilai akhir, dan predikat. Di bagian atas ada ringkasan rata-rata kelas, nilai tertinggi, nilai terendah, dan jumlah siswa di bawah KKM. Nilai akhir adalah rata-rata berbobot. Komponen yang belum punya nilai tidak ikut dihitung, sehingga nilai akhir tidak turun hanya karena ada komponen yang belum diujikan. Rekap bisa diunduh sebagai Excel.',
+            body: 'Tab Rekap menampilkan, per siswa, rata-rata tiap komponen, nilai akhir, dan predikat. Di bagian atas ada ringkasan rata-rata kelas, nilai tertinggi, nilai terendah, dan jumlah siswa di bawah KKM. Nilai akhir dihitung menurut cara yang dipilih di Pengaturan penilaian. Rata-rata tertimbang (bawaan): komponen yang belum punya nilai tidak ikut dihitung, sehingga nilai akhir tidak turun hanya karena ada komponen yang belum diujikan. Persentase: bobot dianggap persen dan komponen yang belum dinilai dihitung 0. Rata-rata biasa: rata-rata komponen yang sudah ada nilainya tanpa bobot. Rekap bisa diunduh sebagai Excel.',
             href: '/grades',
             tip: 'Gunakan jumlah siswa di bawah KKM untuk merencanakan remedial lebih awal.',
           },
@@ -72,6 +72,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             q: 'Nilai akhir siswa berubah sendiri. Kenapa?',
             a: 'Nilai akhir dihitung ulang setiap ada nilai baru atau bobot yang diubah. Periksa Pengaturan penilaian untuk melihat apakah bobot komponen baru saja diubah.',
           },
+          {
+            q: 'Mode persentase tidak bisa disimpan. Mengapa?',
+            a: 'Mode persentase mensyaratkan jumlah bobot semua komponen tepat 100%. Saat Anda memilih mode ini, layar menampilkan jumlah bobot saat ini. Bila bukan 100%, muncul peringatan merah dan tombol Simpan tidak aktif. Ubah bobot di kartu Komponen nilai sampai jumlahnya 100%, lalu simpan lagi. Mode lain tidak mensyaratkan jumlah bobot 100%.',
+          },
         ],
       },
       en: {
@@ -85,7 +89,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             body: 'Before teachers start, decide the passing mark (KKM), the A/B/C predicate thresholds, and the score components with their weights (for example Assignments or Midterm). If the school has no components yet, the Install default components button creates Assignments (20), Daily Tests (30), Midterm (20), and Final Exam (30). If nothing is set, the passing mark is 75 with A 90, B 80, and C 70.',
             steps: [
               'Open Grading settings.',
-              'Enter the passing mark and the A, B, and C thresholds. A must be higher than B, and B higher than C. This KKM applies to subjects without their own; a KKM per subject (decimals allowed) is set in the KKTP tab of Curriculum.',
+              'Enter the school\'s default mastery threshold (KKM) and the A, B, and C thresholds. A must be higher than B, and B higher than C. This threshold applies to subjects without their own Learning Objective Achievement Criteria (KKTP); a threshold per subject (decimals allowed) is set in the KKTP tab of Curriculum. In the same place you choose how the final grade is calculated; changing it affects draft report cards and is refused while the active semester has finalized report cards.',
               'Add score components with their weight (1 to 100), or click Install default components.',
               'Save. If the total weight is not 100%, a warning appears.',
             ],
@@ -137,6 +141,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             q: 'A student final score changed by itself. Why?',
             a: 'The final score is recalculated whenever a new score is added or a weight is changed. Check Grading settings to see whether a component weight was changed recently.',
           },
+          {
+            q: 'Why can I not save the percentage mode?',
+            a: 'The percentage mode needs the weights of all components to add up to exactly 100%. When you pick this mode, the screen shows the current total weight. If it is not 100%, a red warning appears and the Save button is disabled. Change the weights in the Grade components card until they add up to 100%, then save again. The other modes do not need the weights to add up to 100%.',
+          },
         ],
       },
       su: {
@@ -150,7 +158,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             body: 'Sateuacan guru ngeusian, tangtoskeun heula KKM, wates predikat A/B/C, sareng komponén nilai sareng bobotna (contona Tugas atanapi UTS). Upami sakola can gaduh komponén, tombol Pasang komponen bawaan nyieun Tugas (20), Ulangan Harian (30), UTS (20), sareng UAS (30). Upami can disetél, KKM-na 75 kalayan wates A 90, B 80, sareng C 70.',
             steps: [
               'Buka Pengaturan penilaian.',
-              'Eusian KKM sareng wates predikat A, B, sareng C. A kedah langkung ageung tibatan B, B langkung ageung tibatan C. KKM ieu berlaku pikeun mapel nu acan gaduh KKM nyalira; KKM per mapel (tiasa désimal) diatur dina tab KKTP di Kurikulum.',
+              'Eusian wates katuntasan baku sakola (KKM) sareng wates predikat A, B, sareng C. A kedah langkung ageung tibatan B, B langkung ageung tibatan C. Wates ieu berlaku pikeun mapel nu acan gaduh Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) nyalira; wates per mapel (tiasa désimal) diatur dina tab KKTP di Kurikulum. Di tempat nu sami anjeun milih cara ngitung nilai ahir; ngarobihna mangaruhan rapor rarancang sareng ditolak upami semester aktif gaduh rapor final.',
               'Tambihan komponén nilai sareng bobotna (1 dugi ka 100), atanapi klik Pasang komponen bawaan.',
               'Simpen. Upami jumlah bobot sanés 100%, aya émutan.',
             ],
@@ -201,6 +209,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Nilai akhir siswa robih nyalira. Naha?',
             a: 'Nilai akhir diitung deui unggal aya nilai anyar atanapi bobot dirobih. Pariksa Pengaturan penilaian pikeun ningali bobot komponén nembé dirobih atanapi henteu.',
+          },
+          {
+            q: 'Naha mode persén teu bisa disimpen?',
+            a: 'Mode persén merlukeun jumlah bobot sakabéh komponén pas 100%. Nalika milih mode ieu, layar nembongkeun jumlah bobot ayeuna. Lamun lain 100%, aya paringatan beureum jeung tombol Simpen teu aktif. Robah bobot dina kartu Komponén nilai nepi ka jumlahna 100%, tuluy simpen deui. Mode séjén teu merlukeun jumlah bobot 100%.',
           },
         ],
       },
@@ -1190,12 +1202,12 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       id: {
         title: 'Kenaikan kelas dan tahun ajaran baru',
         summary:
-          'Cara menyiapkan tahun ajaran berikutnya, memutuskan siswa naik, tinggal, atau lulus, lalu menerapkannya tanpa mengubah data tahun lalu.',
+          'Cara menyiapkan tahun ajaran berikutnya, memutuskan siswa naik, tinggal, atau ditetapkan lulus, lalu menerapkannya tanpa mengubah data tahun lalu.',
         forWho: 'Kurikulum, Operator, dan Admin sekolah yang mengelola pergantian tahun ajaran.',
         sections: [
           {
             heading: 'Sebelum mulai',
-            body: 'Pastikan tahun ajaran berikutnya sudah dibuat dan dimulai setelah tahun yang sedang berjalan. Pastikan juga daftar tingkat sekolah sudah diisi (misalnya 7, 8, dan 9), karena urutan tingkat itulah yang menentukan siapa naik ke mana dan tingkat mana yang terakhir. Data tahun lama tidak pernah diubah oleh proses ini, jadi kelas, penugasan guru, nilai, dan rapor tahun lalu tetap utuh.',
+            body: 'Pastikan tahun ajaran berikutnya sudah dibuat dan dimulai setelah tahun yang sedang berjalan. Pastikan juga daftar tingkat sekolah sudah diisi (misalnya 7, 8, dan 9), karena urutan tingkat itulah yang menentukan siapa naik ke mana dan tingkat mana yang terakhir. Untuk SMK, lama studi (3 atau 4 tahun) dan tingkat akhir tiap jurusan bisa diatur di menu Kelas pada tombol Jurusan. Data tahun lama tidak pernah diubah oleh proses ini, jadi kelas, penugasan guru, nilai, dan rapor tahun lalu tetap utuh.',
             href: '/academic-years',
             tip: 'Setiap langkah punya tombol Pratinjau yang hanya menampilkan perkiraan tanpa menyimpan apa pun. Pakai dulu sebelum menjalankan.',
           },
@@ -1211,7 +1223,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Langkah 2: menyalin kelas, penugasan, dan kalender',
-            body: 'Langkah ini menyiapkan tahun tujuan. Kelas 7A menjadi 8A di tahun tujuan, lengkap dengan wali kelas dan guru mata pelajarannya. Kelas tingkat pertama juga disalin apa adanya untuk siswa baru dan siswa yang tinggal kelas. Kelas tingkat terakhir tidak disalin karena siswanya lulus. Kalender akademik ikut disalin dengan tanggal yang digeser. Struktur kurikulum (jam pelajaran dan versi kurikulum tiap tingkat) juga ikut disalin. Hasilnya menampilkan jumlah yang dibuat dan daftar hal yang perlu diperiksa, misalnya wali kelas yang sudah nonaktif. Langkah ini boleh dilewati bila kelas tahun tujuan sudah Anda buat sendiri.',
+            body: 'Langkah ini menyiapkan tahun tujuan. Kelas 7A menjadi 8A di tahun tujuan, lengkap dengan wali kelas dan guru mata pelajarannya. Kelas tingkat pertama juga disalin apa adanya untuk siswa baru dan siswa yang tinggal kelas. Kelas tingkat terakhir tidak disalin karena kelulusan ditetapkan sekolah. Kalender akademik hanya disalin bila Anda mencentang pilihannya; pilihan itu mati secara bawaan karena kalender tiap tahun berbeda, dan tanggalnya digeser satu tahun sehingga harus Anda periksa kembali sebelum dipakai. Struktur kurikulum (jam pelajaran dan versi kurikulum tiap tingkat) juga ikut disalin. Hasilnya menampilkan jumlah yang dibuat dan daftar hal yang perlu diperiksa, misalnya wali kelas yang sudah nonaktif. Langkah ini boleh dilewati bila kelas tahun tujuan sudah Anda buat sendiri.',
             steps: [
               'Centang apa saja yang ingin disalin.',
               'Klik Pratinjau untuk melihat jumlahnya dan peringatan.',
@@ -1223,17 +1235,17 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Langkah 3: memutuskan nasib tiap siswa',
-            body: 'Semua siswa aktif di tahun sumber tampil per kelas. Bawaannya naik kelas, dan lulus untuk kelas tingkat terakhir. Ubah per siswa menjadi Tinggal bila perlu, atau pakai tombol di atas kelas seperti Semua naik untuk mengubah satu kelas sekaligus. Keputusan baru berlaku setelah Anda klik Simpan keputusan. Keputusan yang sudah diterapkan terkunci dan tidak bisa diubah lagi.',
+            body: 'Semua siswa aktif di tahun sumber tampil per kelas. Bawaannya naik kelas. Untuk kelas tingkat terakhir tidak ada pilihan bawaan: kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, jadi Anda wajib memilih Ditetapkan lulus atau Tinggal untuk setiap siswa, dan tombol Simpan serta Berikutnya baru terbuka setelah semuanya dipilih. Ubah per siswa menjadi Tinggal bila perlu, atau pakai tombol di atas kelas seperti Semua naik untuk mengubah satu kelas sekaligus. Tiap siswa punya Catatan keputusan yang boleh diisi: alasan, tindak lanjut (misalnya pendampingan), dan tanggal musyawarah, yang juga bisa diterapkan sekaligus ke satu kelas. Daftar kelas yang besar bisa dilipat dan dicari menurut nama atau NIS. Keputusan baru berlaku setelah Anda klik Simpan keputusan. Keputusan yang sudah diterapkan terkunci dan tidak bisa diubah lagi.',
             steps: [
               'Periksa tiap kelas, ubah siswa yang tinggal kelas.',
               'Klik Simpan keputusan.',
               'Pastikan tulisan Semua keputusan sudah tersimpan muncul.',
             ],
-            tip: 'Anda boleh menyimpan bertahap dan melanjutkannya di hari lain.',
+            tip: 'Siswa tingkat akhir yang belum dipilih ditandai kuning supaya mudah ditemukan.',
           },
           {
             heading: 'Langkah 4: menerapkan ke tahun tujuan',
-            body: 'Siswa yang naik atau tinggal didaftarkan ke kelas di tahun tujuan, dan siswa yang lulus berubah statusnya menjadi lulus. Klik Pratinjau dulu untuk melihat berapa yang naik, tinggal, dan lulus. Siswa yang belum bisa ditempatkan tampil beserta alasannya, misalnya tahun tujuan belum punya kelas untuk tingkatnya. Perbaiki penyebabnya lalu terapkan lagi. Siswa yang sudah terdaftar di tahun tujuan dilewati, dan siswa aktif yang belum punya keputusan dihitung terpisah.',
+            body: 'Siswa yang naik atau tinggal didaftarkan ke kelas di tahun tujuan, dan siswa yang ditetapkan lulus berubah statusnya menjadi lulus. Klik Pratinjau dulu untuk melihat berapa yang naik, tinggal, dan ditetapkan lulus. Siswa yang belum bisa ditempatkan tampil beserta alasannya, misalnya tahun tujuan belum punya kelas untuk tingkatnya. Perbaiki penyebabnya lalu terapkan lagi. Siswa yang sudah terdaftar di tahun tujuan dilewati. Siswa tingkat akhir yang belum punya keputusan dihitung terpisah dan tetap aktif; mereka tidak naik dan tidak diluluskan otomatis.',
             steps: [
               'Klik Pratinjau dan periksa angkanya.',
               'Klik Terapkan sekarang, lalu konfirmasi.',
@@ -1247,7 +1259,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         faq: [
           {
             q: 'Apakah data dan rapor tahun lalu ikut berubah?',
-            a: 'Tidak. Proses ini hanya menambah kelas dan pendaftaran di tahun tujuan serta mengubah status siswa yang lulus. Kelas, penugasan, nilai, dan rapor tahun sumber tidak disentuh.',
+            a: 'Tidak. Proses ini hanya menambah kelas dan pendaftaran di tahun tujuan serta mengubah status siswa yang ditetapkan lulus. Kelas, penugasan, nilai, dan rapor tahun sumber tidak disentuh.',
           },
           {
             q: 'Bolehkah saya menjalankan langkahnya lebih dari sekali?',
@@ -1265,17 +1277,25 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             q: 'Menu Kenaikan kelas tidak muncul di tempat saya.',
             a: 'Menu ini hanya untuk peran yang diberi akses kenaikan kelas, seperti Kurikulum dan Admin sekolah. Minta admin sekolah memeriksa peran Anda.',
           },
+          {
+            q: 'Mengapa muncul peringatan siswa lulus padahal rapor belum final?',
+            a: 'Saat langkah Terapkan dibuka, sistem memeriksa lebih dulu, tanpa mengubah data, apakah rapor semester terakhir kelas yang siswanya akan lulus sudah final. Siswa berstatus lulus tidak muncul lagi di daftar rapor, jadi rapor yang belum final tidak bisa dituntaskan lagi. Bila ada yang belum final, peringatan merah tampil di atas tombol Terapkan beserta tautan ke halaman Rapor, dan Anda diminta konfirmasi sekali lagi. Sebaiknya finalkan rapornya dulu, lalu kembali ke sini.',
+          },
+          {
+            q: 'Apa arti Tingkat kelas belum dikenal?',
+            a: 'Tingkat kelas itu tidak ada di daftar tingkat sekolah, sehingga tingkat berikutnya tidak diketahui dan tidak ada keputusan bawaan. Untuk sementara hanya pilihan Tinggal yang tersedia. Perbaiki daftar tingkat di Pengaturan sekolah, lalu muat ulang halaman Kenaikan kelas.',
+          },
         ],
       },
       en: {
         title: 'Promotion and the new school year',
         summary:
-          'How to prepare the next school year, decide which students move up, repeat, or graduate, and apply it without changing last year data.',
+          'How to prepare the next school year, decide which students move up, repeat, or are confirmed as graduating, and apply it without changing last year data.',
         forWho: 'Curriculum staff, Operators, and School admins who manage the change of school year.',
         sections: [
           {
             heading: 'Before you start',
-            body: 'Make sure the next academic year has been created and starts after the current one. Also make sure the school level list is filled in (for example 7, 8, and 9), because the order of the levels decides who moves where and which level is the last. This process never changes old-year data, so last year classes, teacher assignments, scores, and report cards stay intact.',
+            body: 'Make sure the next academic year has been created and starts after the current one. Also make sure the school level list is filled in (for example 7, 8, and 9), because the order of the levels decides who moves where and which level is the last. For vocational schools (SMK), the length of study (3 or 4 years) and the final level of each program can be set in the Classes menu under the Programs button. This process never changes old-year data, so last year classes, teacher assignments, scores, and report cards stay intact.',
             href: '/academic-years',
             tip: 'Every step has a Preview button that only shows an estimate without saving anything. Use it before you run.',
           },
@@ -1291,7 +1311,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Step 2: copying classes, assignments, and calendar',
-            body: 'This step prepares the target year. Class 7A becomes 8A in the target year, together with its homeroom teacher and subject teachers. First-level classes are also copied as they are for new students and students who repeat. Final-level classes are not copied because their students graduate. The academic calendar is copied too, with shifted dates. The curriculum structure (lesson periods and the curriculum version of each level) is copied as well. The result shows the numbers created and a list of things to check, for example a homeroom teacher who is no longer active. You can skip this step if you already created the target year classes yourself.',
+            body: 'This step prepares the target year. Class 7A becomes 8A in the target year, together with its homeroom teacher and subject teachers. First-level classes are also copied as they are for new students and students who repeat. Final-level classes are not copied because graduation is decided by the school. The academic calendar is only copied if you tick that option; it is off by default because calendars differ every year, and its dates are shifted by one year so you must check them again before use. The curriculum structure (lesson periods and the curriculum version of each level) is copied as well. The result shows the numbers created and a list of things to check, for example a homeroom teacher who is no longer active. You can skip this step if you already created the target year classes yourself.',
             steps: [
               'Tick what you want to copy.',
               'Click Preview to see the numbers and warnings.',
@@ -1303,17 +1323,17 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Step 3: deciding for each student',
-            body: 'All active students of the source year appear per class. The default is to move up, and to graduate for final-level classes. Change a student to Repeat when needed, or use the buttons above a class such as Everyone moves up to change a whole class at once. A new decision takes effect after you click Save decisions. Decisions that were applied are locked and cannot be changed anymore.',
+            body: 'All active students of the source year appear per class. The default is to move up. Final-level classes have no default: graduation is decided by the school after the school examination, so you must choose Confirmed graduating or Repeat for every student, and the Save and Next buttons only unlock once all of them are chosen. Change a student to Repeat when needed, or use the buttons above a class such as Everyone moves up to change a whole class at once. Each student has Decision notes you may fill in: a reason, a follow-up (for example coaching), and a meeting date, which can also be applied to a whole class at once. Large class lists can be folded and searched by name or student number. A new decision takes effect after you click Save decisions. Decisions that were applied are locked and cannot be changed anymore.',
             steps: [
               'Check each class and change the students who repeat.',
               'Click Save decisions.',
               'Make sure the text All decisions are saved appears.',
             ],
-            tip: 'You can save in stages and continue on another day.',
+            tip: 'Final-level students who are not chosen yet are marked yellow so they are easy to find.',
           },
           {
             heading: 'Step 4: applying to the target year',
-            body: 'Students who move up or repeat are enrolled in classes of the target year, and students who graduate get the graduated status. Click Preview first to see how many move up, repeat, and graduate. Students who could not be placed are listed with the reason, for example the target year has no class for their level yet. Fix the cause and apply again. Students already enrolled in the target year are skipped, and active students without a decision are counted separately.',
+            body: 'Students who move up or repeat are enrolled in classes of the target year, and students confirmed as graduating get the graduated status. Click Preview first to see how many move up, repeat, and are confirmed as graduating. Students who could not be placed are listed with the reason, for example the target year has no class for their level yet. Fix the cause and apply again. Students already enrolled in the target year are skipped. Final-level students without a decision are counted separately and stay active; they do not move up and are not graduated automatically.',
             steps: [
               'Click Preview and check the numbers.',
               'Click Apply now, then confirm.',
@@ -1327,7 +1347,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         faq: [
           {
             q: 'Does last year data and the report cards change?',
-            a: 'No. This process only adds classes and enrollments in the target year and changes the status of students who graduate. Classes, assignments, scores, and report cards of the source year are not touched.',
+            a: 'No. This process only adds classes and enrollments in the target year and changes the status of students confirmed as graduating. Classes, assignments, scores, and report cards of the source year are not touched.',
           },
           {
             q: 'May I run a step more than once?',
@@ -1345,12 +1365,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             q: 'The Promotion menu does not show up for me.',
             a: 'This menu is only for roles that were given promotion access, such as Curriculum staff and School admins. Ask a school admin to check your role.',
           },
+          {
+            q: 'Why does a warning say graduating students have report cards that are not final?',
+            a: 'When the Apply step opens, the system first checks, without changing any data, whether the last-semester report cards of the classes whose students will graduate are final. Graduated students no longer appear in the report card list, so an unfinished report card can no longer be completed. If some are not final, a red warning appears above the Apply button with a link to the Report cards page, and you are asked to confirm once more. It is best to finalize the report cards first, then come back here.',
+          },
+          {
+            q: 'What does Class grade not recognized mean?',
+            a: 'The grade of that class is not in the school grade list, so the next grade is unknown and there is no default decision. For now only Retain is available. Fix the grade list in School settings, then reload the Promotion page.',
+          },
         ],
       },
       su: {
         title: 'Naékna kelas jeung taun pangajaran anyar',
         summary:
-          'Cara nyiapkeun taun pangajaran saterusna, mutuskeun siswa naék, tinggal, atawa lulus, tuluy ngalarapkeunana tanpa ngarobah data taun kamari.',
+          'Cara nyiapkeun taun pangajaran saterusna, mutuskeun siswa naék, tinggal, atawa ditetepkeun lulus, tuluy ngalarapkeunana tanpa ngarobah data taun kamari.',
         forWho: 'Kurikulum, Operator, jeung Admin sakola nu ngurus gantina taun pangajaran.',
         sections: [
           {
@@ -1371,7 +1399,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Léngkah 2: nyalin kelas, tugas, jeung kalénder',
-            body: 'Léngkah ieu nyiapkeun taun tujuan. Kelas 7A jadi 8A di taun tujuan, lengkep jeung wali kelas jeung guru mata pelajaranna. Kelas tingkat kahiji ogé disalin sakumaha aya pikeun siswa anyar jeung siswa nu tinggal kelas. Kelas tingkat panungtungan teu disalin lantaran siswana lulus. Kalénder akadémik milu disalin kalayan tanggal nu digeser. Struktur kurikulum (jam pelajaran jeung vérsi kurikulum unggal tingkat) ogé milu disalin. Hasilna nembongkeun jumlah nu dijieun jeung daptar hal nu kudu dipariksa, upamana wali kelas nu geus nonaktip. Léngkah ieu meunang diliwatan upami kelas taun tujuan geus dijieun ku anjeun sorangan.',
+            body: 'Léngkah ieu nyiapkeun taun tujuan. Kelas 7A jadi 8A di taun tujuan, lengkep jeung wali kelas jeung guru mata pelajaranna. Kelas tingkat kahiji ogé disalin sakumaha aya pikeun siswa anyar jeung siswa nu tinggal kelas. Kelas tingkat panungtungan teu disalin lantaran kalulusan ditetepkeun ku sakola. Kalénder akadémik ngan disalin upami pilihanna dicentang; pilihan éta pareum sacara baku sabab kalénder unggal taun béda, jeung tanggalna digeser sataun kudu dipariksa deui samemeh dipaké. Struktur kurikulum (jam pelajaran jeung vérsi kurikulum unggal tingkat) ogé milu disalin. Hasilna nembongkeun jumlah nu dijieun jeung daptar hal nu kudu dipariksa, upamana wali kelas nu geus nonaktip. Léngkah ieu meunang diliwatan upami kelas taun tujuan geus dijieun ku anjeun sorangan.',
             steps: [
               'Centang naon waé nu rék disalin.',
               'Klik Pratinjau pikeun ningali jumlahna jeung pépéling.',
@@ -1383,17 +1411,17 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Léngkah 3: mutuskeun nasib unggal siswa',
-            body: 'Sakabéh siswa aktip di taun sumber nembongan per kelas. Dasarna naék kelas, jeung lulus pikeun kelas tingkat panungtungan. Robah per siswa jadi Tinggal upami perlu, atawa paké tombol di luhur kelas saperti Kabéh naék pikeun ngarobah hiji kelas sakaligus. Kaputusan anyar kalaku sanggeus anjeun klik Simpen kaputusan. Kaputusan nu geus dilarapkeun dikonci jeung teu bisa dirobah deui.',
+            body: 'Sakabéh siswa aktip di taun sumber nembongan per kelas. Dasarna naék kelas. Pikeun kelas tingkat panungtungan euweuh pilihan dasar: kalulusan ditetepkeun ku sakola sanggeus ujian satuan atikan, jadi anjeun kudu milih Ditetepkeun lulus atawa Tinggal pikeun unggal siswa, jeung tombol Simpen sarta Saterusna kakara muka sanggeus sakabéhna dipilih. Robah per siswa jadi Tinggal upami perlu, atawa paké tombol di luhur kelas saperti Kabéh naék pikeun ngarobah hiji kelas sakaligus. Unggal siswa boga Catetan kaputusan nu meunang dieusian: alesan, tindak lanjut (upamana pamentaan), jeung tanggal musyawarah, nu bisa ogé dilarapkeun ka hiji kelas sakaligus. Daptar kelas nu badag bisa dilipet jeung dipilarian nurutkeun ngaran atawa NIS. Kaputusan anyar kalaku sanggeus anjeun klik Simpen kaputusan. Kaputusan nu geus dilarapkeun dikonci jeung teu bisa dirobah deui.',
             steps: [
               'Pariksa unggal kelas, robah siswa nu tinggal kelas.',
               'Klik Simpen kaputusan.',
               'Pastikeun tulisan Sakabéh kaputusan geus disimpen muncul.',
             ],
-            tip: 'Anjeun meunang nyimpen bertahap jeung neruskeun poé séjén.',
+            tip: 'Siswa tingkat panungtungan nu can dipilih dibéré tanda konéng supaya gampang kapanggih.',
           },
           {
             heading: 'Léngkah 4: ngalarapkeun ka taun tujuan',
-            body: 'Siswa nu naék atawa tinggal didaftarkeun ka kelas di taun tujuan, jeung siswa nu lulus robah statusna jadi lulus. Klik Pratinjau heula pikeun ningali sabaraha nu naék, tinggal, jeung lulus. Siswa nu can bisa ditempatkeun nembongan jeung alesanana, upamana taun tujuan can boga kelas pikeun tingkatna. Bérésan sababna tuluy larapkeun deui. Siswa nu geus kadaftar di taun tujuan diliwatan, jeung siswa aktip nu can boga kaputusan diitung sorangan.',
+            body: 'Siswa nu naék atawa tinggal didaftarkeun ka kelas di taun tujuan, jeung siswa nu ditetepkeun lulus robah statusna jadi lulus. Klik Pratinjau heula pikeun ningali sabaraha nu naék, tinggal, jeung ditetepkeun lulus. Siswa nu can bisa ditempatkeun nembongan jeung alesanana, upamana taun tujuan can boga kelas pikeun tingkatna. Bérésan sababna tuluy larapkeun deui. Siswa nu geus kadaftar di taun tujuan diliwatan. Siswa tingkat panungtungan nu can boga kaputusan diitung sorangan jeung tetep aktip; maranéhna teu naék jeung teu diluluskeun otomatis.',
             steps: [
               'Klik Pratinjau jeung pariksa angkana.',
               'Klik Larapkeun ayeuna, tuluy konfirmasi.',
@@ -1407,7 +1435,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         faq: [
           {
             q: 'Naha data jeung rapor taun kamari milu robah?',
-            a: 'Henteu. Prosés ieu ngan nambahan kelas jeung pendaptaran di taun tujuan sarta ngarobah status siswa nu lulus. Kelas, tugas, nilai, jeung rapor taun sumber teu disabit.',
+            a: 'Henteu. Prosés ieu ngan nambahan kelas jeung pendaptaran di taun tujuan sarta ngarobah status siswa nu ditetepkeun lulus. Kelas, tugas, nilai, jeung rapor taun sumber teu disabit.',
           },
           {
             q: 'Naha kuring meunang ngajalankeun léngkahna leuwih ti sakali?',
@@ -1424,6 +1452,14 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Ménu Naékna kelas teu muncul di kuring.',
             a: 'Ménu ieu ngan pikeun peran nu dibéré aksés naékna kelas, saperti Kurikulum jeung Admin sakola. Tuhu admin sakola pikeun mariksa peran anjeun.',
+          },
+          {
+            q: 'Naha aya paringatan siswa lulus padahal rapot acan final?',
+            a: 'Nalika léngkah Terapkeun dibuka, sistem mariksa heula, tanpa ngarobah data, naha rapot semester pamungkas kelas nu siswana bakal lulus geus final. Siswa nu status lulus teu muncul deui dina daptar rapot, jadi rapot nu acan final teu bisa dibérés deui. Lamun aya nu acan final, paringatan beureum muncul di luhur tombol Terapkeun jeung tautan ka kaca Rapot, tuluy anjeun dipénta konfirmasi sakali deui. Sakuduna finalkeun heula rapotna, tuluy balik ka dieu.',
+          },
+          {
+            q: 'Naon hartina Tingkat kelas can kanyahoan?',
+            a: 'Tingkat kelas éta teu aya dina daptar tingkat sakola, jadi tingkat saterusna teu kanyahoan jeung euweuh kaputusan bawaan. Samentara ngan pilihan Tinggal nu aya. Bérés daptar tingkat di Pangaturan sakola, tuluy muat deui kaca Naékna kelas.',
           },
         ],
       },
@@ -1504,6 +1540,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             q: 'Siapa yang bisa melihat perangkat ajar?',
             a: 'Pengguna yang boleh melihat mata pelajaran dapat melihatnya. Hanya guru pengampu, Kurikulum, dan Admin sekolah yang dapat menyusun atau mengubahnya.',
           },
+          {
+            q: 'Apa arti lencana tujuan nonaktif pada alur?',
+            a: 'Lencana itu menandakan ada item yang menunjuk tujuan pembelajaran versi lama, yaitu yang sudah diganti versi baru atau dinonaktifkan. Alur seperti itu tidak bisa diterbitkan. Buka alurnya, hapus item bertanda versi lama, tambahkan tujuan versi baru, lalu simpan draf. Saat tahun ajaran disalin, alur hasil salinan yang memuat tujuan nonaktif juga diberi peringatan.',
+          },
         ],
       },
       en: {
@@ -1574,6 +1614,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Who can see the teaching materials?',
             a: 'Users who can view subjects can see them. Only the teacher of the subject, the Curriculum team, and School admins can prepare or change them.',
+          },
+          {
+            q: 'What does the inactive objectives badge on a flow mean?',
+            a: 'The badge means some items point to an old version of a learning objective, one that was replaced by a new version or deactivated. Such a flow cannot be published. Open the flow, remove the items marked as an old version, add the new version of the objective, then save the draft. When an academic year is copied, copied flows that contain inactive objectives also get a warning.',
           },
         ],
       },
@@ -1646,6 +1690,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             q: 'Saha nu bisa ningali parabot ngajar?',
             a: 'Pamaké nu meunang ningali mata pelajaran bisa ningalina. Ngan guru pangampu, Kurikulum, jeung Admin sakola nu bisa nyusun atawa ngarobahna.',
           },
+          {
+            q: 'Naon hartina lencana tujuan nonaktif dina alur?',
+            a: 'Lencana éta nandakeun aya item nu nuduhkeun tujuan pembelajaran vérsi heubeul, nyaéta nu geus diganti vérsi anyar atawa dinonaktifkeun. Alur kitu teu bisa diterbitkeun. Buka alurna, hapus item nu ditandaan vérsi heubeul, tambahkeun tujuan vérsi anyar, tuluy simpen rarancang. Nalika taun ajaran disalin, alur hasil salinan nu ngandung tujuan nonaktif ogé dibéré paringatan.',
+          },
         ],
       },
     },
@@ -1658,15 +1706,15 @@ export const ACADEMIC_DOCS: DocArticle[] = [
     module: 'grades',
     text: {
       id: {
-        title: 'KKTP: KKM per mata pelajaran',
+        title: 'Kriteria Ketercapaian Tujuan Pembelajaran (KKTP)',
         summary:
-          'Cara menentukan batas ketuntasan (KKM) tiap mata pelajaran, termasuk KKM desimal dan kriteria berlevel, serta bagaimana nilai itu dipakai di rekap nilai, portal, dan rapor.',
+          'Cara menentukan Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) tiap mata pelajaran, termasuk batas ketuntasan desimal dan kriteria berlevel, serta bagaimana nilai itu dipakai di rekap nilai, portal, dan rapor.',
         forWho:
           'Kurikulum, Operator, dan Admin sekolah yang mengatur batas ketuntasan. Guru dan peran lain bisa melihat kriteria, tetapi tidak mengubahnya.',
         sections: [
           {
-            heading: 'Apa itu KKTP dan kapan dipakai',
-            body: 'Secara bawaan semua mata pelajaran memakai satu KKM sekolah yang diatur di Pengaturan penilaian. Bila sebuah mapel perlu batas sendiri, buat kriteria untuknya di tab KKTP pada halaman Kurikulum. Kriteria bisa berlaku untuk semua tingkat dan jurusan, atau dikhususkan pada satu tingkat dan satu jurusan. Mapel tanpa kriteria tetap memakai KKM sekolah.',
+            heading: 'Apa itu Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) dan kapan dipakai',
+            body: 'Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) menentukan kapan siswa dianggap mencapai tujuan pembelajaran sebuah mapel. Secara bawaan semua mata pelajaran memakai satu batas ketuntasan bawaan sekolah (KKM) yang diatur di Pengaturan penilaian. Bila sebuah mapel perlu batas sendiri, buat kriteria untuknya di tab KKTP pada halaman Kurikulum. Kriteria bisa berlaku untuk semua tingkat dan jurusan, atau dikhususkan pada satu tingkat dan satu jurusan. Mapel tanpa kriteria tetap memakai KKM sekolah.',
             href: '/curriculum?tab=kktp',
             tip: 'Mulai dari yang sederhana: biarkan KKM sekolah berlaku, dan buat kriteria hanya untuk mapel yang memang berbeda.',
           },
@@ -1732,15 +1780,15 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         ],
       },
       en: {
-        title: 'KKTP: the passing mark per subject',
+        title: 'Learning Objective Achievement Criteria (KKTP)',
         summary:
-          'How to set the passing mark (KKM) of each subject, including decimal marks and levelled criteria, and how it is used in grade recaps, the parent portal, and report cards.',
+          'How to set the Learning Objective Achievement Criteria (KKTP) of each subject, including decimal marks and levelled criteria, and how it is used in grade recaps, the parent portal, and report cards.',
         forWho:
           'Curriculum staff, Operators, and School admins who set passing marks. Teachers and other roles can view the criteria but not change them.',
         sections: [
           {
-            heading: 'What KKTP is and when to use it',
-            body: 'By default every subject uses one school-wide KKM, set in Grading settings. When a subject needs its own passing mark, create a criterion for it in the KKTP tab of the Curriculum page. A criterion can apply to all levels and programs, or be limited to one level and one program. Subjects without a criterion keep using the school KKM.',
+            heading: 'What the Learning Objective Achievement Criteria (KKTP) are and when to use them',
+            body: 'The Learning Objective Achievement Criteria (KKTP) decide when a student counts as having reached the learning objectives of a subject. By default every subject uses one school-wide default mastery threshold (KKM), set in Grading settings. When a subject needs its own passing mark, create a criterion for it in the KKTP tab of the Curriculum page. A criterion can apply to all levels and programs, or be limited to one level and one program. Subjects without a criterion keep using the school KKM.',
             href: '/curriculum?tab=kktp',
             tip: 'Start simple: let the school KKM apply, and create criteria only for subjects that really differ.',
           },
@@ -1806,15 +1854,15 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         ],
       },
       su: {
-        title: 'KKTP: KKM per mata pelajaran',
+        title: 'Kriteria Ketercapaian Tujuan Pembelajaran (KKTP)',
         summary:
-          'Cara nangtukeun wates katuntasan (KKM) unggal mata pelajaran, kaasup KKM désimal jeung kriteria bertingkat, sarta kumaha nilai éta dipaké dina rekap nilai, portal, jeung rapor.',
+          'Cara nangtukeun Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) unggal mata pelajaran, kaasup wates katuntasan désimal jeung kriteria bertingkat, sarta kumaha nilai éta dipaké dina rekap nilai, portal, jeung rapor.',
         forWho:
           'Kurikulum, Operator, jeung Admin sakola nu nga-atur wates katuntasan. Guru jeung peran séjén bisa nempo kriteria, tapi teu bisa ngarobahna.',
         sections: [
           {
-            heading: 'Naon éta KKTP jeung iraha dipaké',
-            body: 'Sacara baku sadaya mata pelajaran maké hiji KKM sakola nu diatur dina Pangaturan penilaian. Upami hiji mapel butuh wates sorangan, jieun kriteria pikeun mapel éta dina tab KKTP di kaca Kurikulum. Kriteria bisa berlaku pikeun sadaya tingkat jeung jurusan, atawa dihususkeun kana hiji tingkat jeung hiji jurusan. Mapel tanpa kriteria tetep maké KKM sakola.',
+            heading: 'Naon éta Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) jeung iraha dipaké',
+            body: 'Kriteria Ketercapaian Tujuan Pembelajaran (KKTP) nangtukeun iraha siswa dianggap geus ngahontal tujuan pembelajaran hiji mapel. Sacara baku sadaya mata pelajaran maké hiji wates katuntasan baku sakola (KKM) nu diatur dina Pangaturan penilaian. Upami hiji mapel butuh wates sorangan, jieun kriteria pikeun mapel éta dina tab KKTP di kaca Kurikulum. Kriteria bisa berlaku pikeun sadaya tingkat jeung jurusan, atawa dihususkeun kana hiji tingkat jeung hiji jurusan. Mapel tanpa kriteria tetep maké KKM sakola.',
             href: '/curriculum?tab=kktp',
             tip: 'Mimitian ti nu basajan: sing KKM sakola nu berlaku, jeung jieun kriteria ngan pikeun mapel nu memang béda.',
           },

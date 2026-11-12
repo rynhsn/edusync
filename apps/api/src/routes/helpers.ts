@@ -14,10 +14,11 @@ export function isUniqueViolation(error: unknown): boolean {
   return e?.code === '23505' || e?.cause?.code === '23505';
 }
 
-/** Pelanggaran foreign key (23503): data masih dipakai tabel lain atau rujukan tidak ada. */
+/** Pelanggaran foreign key (23503, atau 23001 untuk ON DELETE RESTRICT): data masih dipakai tabel lain atau rujukan tidak ada. */
 export function isForeignKeyViolation(error: unknown): boolean {
   const e = error as { code?: string; cause?: { code?: string } };
-  return e?.code === '23503' || e?.cause?.code === '23503';
+  const codes = ['23503', '23001'];
+  return codes.includes(e?.code ?? '') || codes.includes(e?.cause?.code ?? '');
 }
 
 /** Jalankan operasi tulis; unique yang bentrok menjadi 409 dengan pesan yang diberikan. */

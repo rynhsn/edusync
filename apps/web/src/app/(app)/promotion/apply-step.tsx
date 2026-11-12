@@ -1,8 +1,19 @@
 'use client';
 
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { CheckCircle2, Eye, GraduationCap, Play, RotateCcw, UserCheck, UserX } from 'lucide-react';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  CheckCircle2,
+  Eye,
+  GraduationCap,
+  Play,
+  RotateCcw,
+  TriangleAlert,
+  UserCheck,
+  UserX,
+} from 'lucide-react';
+import Link from 'next/link';
 import { useTranslations } from 'next-intl';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { ConfirmDialog } from '@/components/confirm-dialog';
@@ -13,6 +24,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { StatCard, StatGrid, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import {
+  graduateReportNotFinalCount,
+  needsGraduateConfirm,
+  type UnplacedReasonCode,
+  unplacedReason,
+} from './promotion-logic';
 import { StepError } from './step-error';
 
 export function ApplyStep({
@@ -38,18 +55,26 @@ export function ApplyStep({
   const { school } = useSchool();
   const queryClient = useQueryClient();
 
+  const blocked = unsaved > 0 || decided === 0;
+  const call = async (dryRun: boolean) =>
+    unwrap(
+      await api.POST('/v1/academic-years/{id}/promotions/apply', {
+        params: { header: schoolHeader(school.schoolId), path: { id: sourceId } },
+        body: { targetYearId: targetId, dryRun },
+      }),
+    );
+
+  // Pratinjau otomatis (tanpa menulis data) supaya peringatan tampil sebelum tombol Terapkan.
+  const preview = useQuery({
+    queryKey: ['promotion-preview', school.schoolId, sourceId, targetId],
+    enabled: !blocked,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+    queryFn: () => call(true),
+  });
   const run = useMutation({
-    mutationFn: async (dryRun: boolean) => ({
-      dryRun,
-      data: unwrap(
-        await api.POST('/v1/academic-years/{id}/promotions/apply', {
-          params: { header: schoolHeader(school.schoolId), path: { id: sourceId } },
-          body: { targetYearId: targetId, dryRun },
-        }),
-      ),
-    }),
-    onSuccess: ({ dryRun, data }) => {
-      if (dryRun) return;
+    mutationFn: () => call(false),
+    onSuccess: (data) => {
       toast.success(
         t('applyDone', { placed: data.placed, retained: data.retained, graduated: data.graduated }),
       );
@@ -58,8 +83,14 @@ export function ApplyStep({
       queryClient.invalidateQueries({ queryKey: ['classes', school.schoolId] });
     },
   });
-  const result = run.data;
-  const blocked = unsaved > 0 || decided === 0;
+  const [graduateOpen, setGraduateOpen] = useState(false);
+  const result = run.data
+    ? { dryRun: false, data: run.data }
+    : preview.data
+      ? { dryRun: true, data: preview.data }
+      : undefined;
+  const graduateCount = graduateReportNotFinalCount(preview.data ?? {});
+  const warnGraduate = !run.data && needsGraduateConfirm(graduateCount);
   const nameOf = (id: string) => names.get(id) ?? id;
 
   return (
@@ -84,9 +115,26 @@ export function ApplyStep({
         </Alert>
       )}
 
+      {warnGraduate && (
+        <Alert variant="destructive">
+          <TriangleAlert className="size-4" aria-hidden />
+          <AlertTitle>{t('graduateWarnTitle')}</AlertTitle>
+          <AlertDescription>
+            {t('applyWarning.graduate_report_not_final', { count: graduateCount })}{' '}
+            <Link href="/report-cards" className="font-medium underline underline-offset-2">
+              {t('reportCardsLink')}
+            </Link>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="flex flex-wrap items-center gap-2">
-        <Button variant="outline" disabled={blocked || run.isPending} onClick={() => run.mutate(true)}>
-          <Eye className="size-4" aria-hidden /> {run.isPending ? t('working') : t('preview')}
+        <Button
+          variant="outline"
+          disabled={blocked || run.isPending || preview.isFetching}
+          onClick={() => preview.refetch()}
+        >
+          <Eye className="size-4" aria-hidden /> {preview.isFetching ? t('working') : t('preview')}
         </Button>
         <ConfirmDialog
           trigger={
@@ -99,14 +147,37 @@ export function ApplyStep({
           confirmLabel={t('applyRun')}
           pending={run.isPending}
           onConfirm={async () => {
+            // Siswa lulus tanpa rapor final: butuh konfirmasi tambahan sebelum benar-benar menerapkan.
+            if (warnGraduate) {
+              setGraduateOpen(true);
+              return;
+            }
             try {
-              await run.mutateAsync(false);
+              await run.mutateAsync();
+            } catch {
+              // Galat tampil di bawah tombol.
+            }
+          }}
+        />
+        <ConfirmDialog
+          open={graduateOpen}
+          onOpenChange={setGraduateOpen}
+          destructive
+          title={t('graduateConfirmTitle')}
+          description={t('graduateConfirmBody', { count: graduateCount })}
+          confirmLabel={t('graduateConfirmLabel')}
+          pending={run.isPending}
+          onConfirm={async () => {
+            try {
+              await run.mutateAsync();
             } catch {
               // Galat tampil di bawah tombol.
             }
           }}
         />
       </div>
+
+      {preview.isError && <StepError error={preview.error} />}
 
       {run.isError && <StepError error={run.error} />}
 
@@ -140,6 +211,12 @@ export function ApplyStep({
             />
           </StatGrid>
 
+          {result.data.skippedNoDecision > 0 && (
+            <Alert>
+              <AlertDescription>{t('resNoDecisionNote')}</AlertDescription>
+            </Alert>
+          )}
+
           {result.data.unplaced.length === 0 ? (
             <p className="text-muted-foreground text-sm">{t('allPlaced')}</p>
           ) : (
@@ -157,12 +234,20 @@ export function ApplyStep({
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {result.data.unplaced.map((u) => (
-                      <TableRow key={u.studentId}>
-                        <TableCell className="font-medium">{nameOf(u.studentId)}</TableCell>
-                        <TableCell className="text-muted-foreground whitespace-normal">{u.reason}</TableCell>
-                      </TableRow>
-                    ))}
+                    {result.data.unplaced.map((u) => {
+                      // Alasan diterjemahkan menurut kode stabil; kode tak dikenal memakai teks dari server.
+                      const r = unplacedReason(u);
+                      return (
+                        <TableRow key={u.studentId}>
+                          <TableCell className="font-medium">{nameOf(u.studentId)}</TableCell>
+                          <TableCell className="text-muted-foreground whitespace-normal">
+                            {r.code
+                              ? t(`unplacedReason.${r.code as UnplacedReasonCode}`, r.params)
+                              : r.fallback}
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                   </TableBody>
                 </Table>
               </div>

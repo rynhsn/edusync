@@ -1,5 +1,6 @@
 'use client';
 
+import type { CalculationMode } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Layers, Pencil, Plus, SlidersHorizontal, Target, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -20,7 +21,17 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, IconTile, MODULE_TONE, TONES, ToneBadge } from '@/components/ui-kit';
-import { api, schoolHeader, unwrap } from '@/lib/api';
+import { ApiError, api, schoolHeader, unwrap } from '@/lib/api';
+import {
+  CALC_EXAMPLE,
+  CALC_MODE_KEYS,
+  calcExampleResult,
+  modeChange,
+  modeOrDefault,
+  percentageSaveBlocked,
+  weightsSumFromMessage,
+  weightsTotal,
+} from '@/lib/calc-mode';
 import { errorKey } from '@/lib/errors';
 import { cn } from '@/lib/utils';
 import { COMPONENT_TONES, predicateTone } from '../grade-ui';
@@ -53,6 +64,8 @@ function ThresholdsCard() {
     predicateC: '',
   });
   const [dirty, setDirty] = useState(false);
+  const [mode, setMode] = useState<CalculationMode>('weighted_average');
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const key = ['grading-settings', school.schoolId];
   const settings = useQuery({
@@ -67,8 +80,19 @@ function ThresholdsCard() {
       predicateB: String(settings.data.predicateB),
       predicateC: String(settings.data.predicateC),
     });
+    setMode(modeOrDefault(settings.data.calculationMode));
     setDirty(false);
   }, [settings.data]);
+
+  // Komponen nilai dimuat dengan kunci yang sama dengan kartu Komponen, jadi satu permintaan dipakai bersama.
+  const components = useQuery({
+    queryKey: ['grading-components', school.schoolId],
+    queryFn: async () => unwrap(await api.GET('/v1/grading/components', { params: header })),
+  });
+  const weightsLoaded = components.data !== undefined;
+  const total = weightsTotal(components.data ?? []);
+  const percentageBlocked =
+    weightsLoaded && percentageSaveBlocked(settings.data?.calculationMode, mode, total);
 
   const n = {
     kkm: num(values.kkm),
@@ -89,17 +113,32 @@ function ThresholdsCard() {
       unwrap(
         await api.PUT('/v1/grading/settings', {
           params: header,
-          body: { kkm: n.kkm, predicateA: n.a, predicateB: n.b, predicateC: n.c },
+          body: {
+            kkm: n.kkm,
+            predicateA: n.a,
+            predicateB: n.b,
+            predicateC: n.c,
+            ...modeChange(settings.data?.calculationMode, mode),
+          },
         }),
       ),
     onSuccess: () => {
       toast.success(t('settingsSaved'));
+      setSaveError(null);
       setDirty(false);
       validation.reset();
       queryClient.invalidateQueries({ queryKey: key });
       queryClient.invalidateQueries({ queryKey: ['grading-recap', school.schoolId] });
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => {
+      // Rapor final mengunci pengaturan: jelaskan penyebab dan jalan keluarnya, bukan hanya galat umum.
+      if (e instanceof ApiError && e.code === 'report_final') setSaveError(t('calcModeReportFinal'));
+      else if (e instanceof ApiError && e.code === 'weights_sum_invalid') {
+        // Server mengembalikan jumlah bobot saat ini di pesannya; bila tak terbaca, pakai jumlah dari komponen yang dimuat.
+        setSaveError(t('weightsSumInvalid', { total: weightsSumFromMessage(e.message) ?? total }));
+        queryClient.invalidateQueries({ queryKey: ['grading-components', school.schoolId] });
+      } else setSaveError(te(errorKey(e)));
+    },
   });
 
   if (settings.isPending) return <Skeleton className="h-40 w-full" />;
@@ -143,12 +182,6 @@ function ThresholdsCard() {
             {t('kktpLink')}
           </Link>
         </p>
-        {settings.data.calculationMode && (
-          <p className="text-sm">
-            <span className="text-muted-foreground">{t('calculationModeLabel')}: </span>
-            {t(`calculationMode_${settings.data.calculationMode}`)}
-          </p>
-        )}
         {bands && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {bands.map((b) => (
@@ -179,8 +212,93 @@ function ThresholdsCard() {
             </div>
           ))}
         </div>
+        <fieldset className="grid gap-3">
+          <legend className="font-heading text-base font-semibold">{t('calculationModeLabel')}</legend>
+          <p className="text-muted-foreground text-sm">
+            {t('calcModeHelp', {
+              task: CALC_EXAMPLE.taskScore,
+              taskWeight: CALC_EXAMPLE.taskWeight,
+              mid: CALC_EXAMPLE.midScore,
+              midWeight: CALC_EXAMPLE.midWeight,
+              finalWeight: CALC_EXAMPLE.finalWeight,
+            })}
+          </p>
+          <div className="grid gap-2 lg:grid-cols-3">
+            {CALC_MODE_KEYS.map((m) => (
+              <label
+                key={m}
+                htmlFor={`calc-mode-${m}`}
+                className={cn(
+                  'has-[:focus-visible]:ring-ring/50 flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors has-[:focus-visible]:ring-[3px]',
+                  mode === m ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+                )}
+              >
+                <input
+                  id={`calc-mode-${m}`}
+                  type="radio"
+                  name="calc-mode"
+                  className="accent-primary mt-1 size-4 shrink-0"
+                  checked={mode === m}
+                  onChange={() => {
+                    setMode(m);
+                    setDirty(true);
+                  }}
+                />
+                <span className="grid gap-1">
+                  <span className="text-sm font-medium">{t(`calcMode.${m}.title`)}</span>
+                  <span className="text-muted-foreground text-xs">{t(`calcMode.${m}.desc`)}</span>
+                  <span className="text-xs font-medium tabular-nums">
+                    {t(`calcMode.${m}.example`, {
+                      task: CALC_EXAMPLE.taskScore,
+                      taskWeight: CALC_EXAMPLE.taskWeight,
+                      mid: CALC_EXAMPLE.midScore,
+                      midWeight: CALC_EXAMPLE.midWeight,
+                      finalWeight: CALC_EXAMPLE.finalWeight,
+                      result: calcExampleResult(m) ?? '-',
+                    })}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+          {mode === 'percentage' && weightsLoaded && (
+            <div
+              role={total === 100 ? undefined : 'alert'}
+              className={cn(
+                'grid gap-1 rounded-xl border p-3 text-sm',
+                total === 100 ? TONES.emerald.soft : TONES.rose.soft,
+              )}
+            >
+              <p className="font-medium tabular-nums">{t('percentageWeightsTotal', { total })}</p>
+              {total === 100 ? (
+                <p>{t('percentageWeightsOk')}</p>
+              ) : (
+                <p>
+                  {t('percentageWeightsWarn')}{' '}
+                  <a href="#grade-components" className="font-medium underline underline-offset-2">
+                    {t('percentageWeightsLink')}
+                  </a>
+                </p>
+              )}
+            </div>
+          )}
+          {mode !== modeOrDefault(settings.data.calculationMode) && (
+            <Alert>
+              <AlertDescription>{t('calcModeWarning')}</AlertDescription>
+            </Alert>
+          )}
+        </fieldset>
+        {saveError && (
+          <Alert variant="destructive" role="alert">
+            <AlertDescription>{saveError}</AlertDescription>
+          </Alert>
+        )}
         <div className="flex flex-wrap items-center gap-3">
-          <Button type="submit" className="h-10 md:h-8" disabled={!dirty || save.isPending}>
+          <Button
+            type="submit"
+            className="h-10 md:h-8"
+            disabled={!dirty || save.isPending || percentageBlocked}
+          >
             {t('save')}
           </Button>
           {validation.summary && (
@@ -219,7 +337,12 @@ function ComponentsCard() {
     queryFn: async () => unwrap(await api.GET('/v1/grading/components', { params: header })),
   });
   const items = list.data ?? [];
-  const total = items.reduce((sum, c) => sum + c.weight, 0);
+  const total = weightsTotal(items);
+  const modeQuery = useQuery({
+    queryKey: ['grading-settings', school.schoolId],
+    queryFn: async () => unwrap(await api.GET('/v1/grading/settings', { params: header })),
+  });
+  const mode = modeOrDefault(modeQuery.data?.calculationMode);
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: key });
@@ -281,13 +404,16 @@ function ComponentsCard() {
   }
 
   return (
-    <Card className="gap-4 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+    <Card
+      id="grade-components"
+      className="scroll-mt-20 gap-4 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <IconTile icon={Layers} tone="amber" />
           <div>
             <h2 className="font-heading text-lg font-semibold">{t('componentsTitle')}</h2>
-            <p className="text-muted-foreground text-sm">{t('componentsHint')}</p>
+            <p className="text-muted-foreground text-sm">{t(`componentsHint_${mode}`)}</p>
           </div>
         </div>
         <Button
@@ -399,7 +525,12 @@ function ComponentsCard() {
             pending={remove.isPending}
             onConfirm={() => (deleting ? remove.mutateAsync(deleting.id) : Promise.resolve())}
           />
-          {total !== 100 && (
+          {total !== 100 && mode === 'percentage' && (
+            <Alert variant="destructive">
+              <AlertDescription>{t('weightWarningPercentage', { total })}</AlertDescription>
+            </Alert>
+          )}
+          {total !== 100 && mode === 'weighted_average' && (
             <Alert variant="destructive">
               <AlertDescription>{t('weightWarning', { total })}</AlertDescription>
             </Alert>

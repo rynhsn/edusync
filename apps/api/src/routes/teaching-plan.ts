@@ -167,7 +167,16 @@ const flowOut = z.object({
   itemCount: z.number().int(),
   updatedAt: z.string(),
 });
-const flowDetail = flowOut.extend({ items: z.array(itemOut) });
+const flowDetail = flowOut.extend({
+  items: z.array(itemOut),
+  inactiveItemCount: z
+    .number()
+    .int()
+    .optional()
+    .describe(
+      'Jumlah item yang menunjuk TP nonaktif (diganti versi baru atau dinonaktifkan). ATP dengan item seperti ini tidak bisa diterbitkan (400 `inactive_objective`); ganti TP-nya dulu',
+    ),
+});
 
 const flowIdParams = idParams;
 const subjectParams = z.object({ subjectId: z.uuid() });
@@ -306,7 +315,11 @@ async function flowDetailOf(tx: Tx, id: string) {
   const [row] = await flowQuery(tx).where(eq(learningFlow.id, id));
   if (!row) throw notFound('ATP');
   const items = await loadFlowItems(tx, id);
-  return { ...toFlow(row as FlowRow, items.length), items };
+  return {
+    ...toFlow(row as FlowRow, items.length),
+    items,
+    inactiveItemCount: items.filter((i) => !i.objectiveActive).length,
+  };
 }
 
 /** Membaca ATP lalu mengunci mapelnya dan membaca ulang, supaya status yang diperiksa adalah yang terbaru. */
@@ -424,7 +437,7 @@ export async function copyTeachingPlans(
   sourceYearId: string,
   targetYearId: string,
   write: boolean,
-): Promise<{ flowsCreated: number }> {
+): Promise<{ flowsCreated: number; inactiveFlows: number; inactiveItems: number }> {
   const key = (f: { subjectId: string; name: string; levelCode: string | null }) =>
     `${f.subjectId}|${f.name}|${f.levelCode ?? ''}`;
   const src = await tx
@@ -438,7 +451,27 @@ export async function copyTeachingPlans(
     (await tx.select().from(learningFlow).where(eq(learningFlow.academicYearId, targetYearId))).map(key),
   );
   const todo = [...latest.values()].filter((f) => !have.has(key(f)));
-  if (!write) return { flowsCreated: todo.length };
+  // Item yang menunjuk TP nonaktif tetap disalin (riwayat tidak dihapus), tetapi dilaporkan agar diganti sebelum terbit.
+  const inactiveRows = todo.length
+    ? await tx
+        .select({ flowId: learningFlowItem.flowId })
+        .from(learningFlowItem)
+        .innerJoin(learningObjective, eq(learningObjective.id, learningFlowItem.objectiveId))
+        .where(
+          and(
+            inArray(
+              learningFlowItem.flowId,
+              todo.map((f) => f.id),
+            ),
+            eq(learningObjective.active, false),
+          ),
+        )
+    : [];
+  const inactive = {
+    inactiveFlows: new Set(inactiveRows.map((r) => r.flowId)).size,
+    inactiveItems: inactiveRows.length,
+  };
+  if (!write) return { flowsCreated: todo.length, ...inactive };
 
   let created = 0;
   for (const f of todo) {
@@ -479,7 +512,7 @@ export async function copyTeachingPlans(
     }
     created++;
   }
-  return { flowsCreated: created };
+  return { flowsCreated: created, ...inactive };
 }
 
 /* ---------- Route ---------- */
@@ -602,7 +635,7 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
           'ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama ' +
           'dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP ' +
           'terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. ' +
-          '409 `superseded`: versi ini sudah punya penerus.',
+          '409 `superseded`: versi ini sudah punya penerus (berlaku juga untuk `active` true pada versi lama; aktifkan versi terbaru).',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -625,7 +658,8 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
         const nextCode = body.code === undefined ? cur.code : body.code || null;
         const textChanged = body.phase !== cur.phase || body.description !== cur.description;
 
-        if (textChanged) {
+        // Mengaktifkan kembali versi lama (yang sudah punya penerus) juga ditolak walau teksnya tidak berubah.
+        if (textChanged || body.active === true) {
           const [successor] = await tx
             .select({ id: learningOutcome.id })
             .from(learningOutcome)
@@ -873,7 +907,7 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
           'dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP ' +
           'berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama ' +
           'dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, ' +
-          'diubah di tempat. 409 `superseded`: versi ini sudah punya penerus.',
+          'diubah di tempat. 409 `superseded`: versi ini sudah punya penerus; berlaku juga untuk `active` true pada versi lama (aktifkan versi terbaru).',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -897,7 +931,7 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
         const nextCode = body.code === undefined ? cur.code : body.code || null;
         const textChanged = body.description !== cur.description;
 
-        if (textChanged) {
+        if (textChanged || body.active === true) {
           const [successor] = await tx
             .select({ id: learningObjective.id })
             .from(learningObjective)
@@ -1215,7 +1249,8 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
         summary: 'Terbitkan ATP',
         description:
           `Izin: \`teaching_plan:write\`.${writeNote} Mengubah draf menjadi terbit dan mengunci isinya; revisi lewat ` +
-          '`new-version`. 400 `flow_empty`: ATP tanpa item. 409 `flow_published`: sudah terbit.',
+          '`new-version`. 400 `flow_empty`: ATP tanpa item. 400 `inactive_objective`: ada item yang menunjuk TP nonaktif (daftar TP ada ' +
+          'di pesan galat; ganti item itu dulu). 409 `flow_published`: sudah terbit.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: flowDetail, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
@@ -1231,6 +1266,15 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
           .from(learningFlowItem)
           .where(eq(learningFlowItem.flowId, flow.id));
         if (!n || n.n === 0) throw bad('flow_empty', 'ATP tanpa item tidak bisa diterbitkan.');
+        const inactive = (await loadFlowItems(tx, flow.id)).filter((i) => !i.objectiveActive);
+        if (inactive.length > 0) {
+          const names = inactive.map((i) => i.objectiveCode ?? i.objectiveDescription.slice(0, 40));
+          const shown = names.slice(0, 10).join(', ');
+          throw bad(
+            'inactive_objective',
+            `ATP memuat ${inactive.length} TP yang sudah nonaktif atau diganti versi baru: ${shown}${names.length > 10 ? `, dan ${names.length - 10} lainnya` : ''}. Ganti item itu dengan TP aktif sebelum menerbitkan.`,
+          );
+        }
         await tx
           .update(learningFlow)
           .set({ status: 'published', publishedAt: new Date(), updatedAt: new Date() })
@@ -1250,7 +1294,8 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
         summary: 'Buat versi berikutnya dari ATP terbit',
         description:
           `Izin: \`teaching_plan:write\`.${writeNote} Menyalin ATP terbit beserta item menjadi draf versi berikutnya ` +
-          '(`supersedesId` = ATP asal); versi lama tetap utuh. 409 `flow_not_published`: ATP asal masih draf. ' +
+          '(`supersedesId` = ATP asal); versi lama tetap utuh. Item yang menunjuk TP nonaktif ikut disalin dan dihitung di ' +
+          '`inactiveItemCount` (peringatan; ganti sebelum menerbitkan, 400 `inactive_objective`). 409 `flow_not_published`: ATP asal masih draf. ' +
           '409 `draft_exists`: ATP yang sama (mapel, tahun, nama, tingkat) sudah punya draf.',
         headers: schoolHeader,
         params: idParams,

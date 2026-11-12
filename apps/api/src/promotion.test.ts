@@ -386,7 +386,11 @@ describe('rollover tahun ajaran', () => {
 
   it('dryRun menghitung tanpa menulis apa pun', async () => {
     before = await sourceSnapshot();
-    const res = await rollover(adminCookie, years.y1, { targetYearId: years.y2, dryRun: true });
+    const res = await rollover(adminCookie, years.y1, {
+      targetYearId: years.y2,
+      dryRun: true,
+      copyCalendar: true,
+    });
     expect(res.statusCode).toBe(200);
     expect(res.json()).toMatchObject({
       classesCreated: 5,
@@ -406,9 +410,17 @@ describe('rollover tahun ajaran', () => {
   });
 
   it('menyalin kelas, wali kelas, penugasan, dan kalender; tingkat akhir tidak disalin', async () => {
-    const res = await rollover(adminCookie, years.y1, { targetYearId: years.y2 });
+    const res = await rollover(adminCookie, years.y1, { targetYearId: years.y2, copyCalendar: true });
     expect(res.statusCode).toBe(200);
     const body = res.json();
+    // Peringatan terstruktur sejajar dengan teks, dengan kode stabil.
+    expect(body.warningItems).toHaveLength(body.warnings.length);
+    expect(body.warningItems).toEqual(
+      expect.arrayContaining([
+        { code: 'final_level_not_copied', params: { count: 1 } },
+        { code: 'inactive_homeroom_skipped', params: { count: 1 } },
+      ]),
+    );
     expect(body).toMatchObject({
       classesCreated: 5,
       classesSkipped: 0,
@@ -460,7 +472,7 @@ describe('rollover tahun ajaran', () => {
   });
 
   it('idempoten: dijalankan ulang tidak menambah apa pun', async () => {
-    const res = await rollover(adminCookie, years.y1, { targetYearId: years.y2 });
+    const res = await rollover(adminCookie, years.y1, { targetYearId: years.y2, copyCalendar: true });
     expect(res.statusCode).toBe(200);
     expect(res.json()).toMatchObject({
       classesCreated: 0,
@@ -472,6 +484,12 @@ describe('rollover tahun ajaran', () => {
     expect(
       await db().select().from(calendarEvent).where(eq(calendarEvent.academicYearId, years.y2)),
     ).toHaveLength(2);
+  });
+
+  it('kalender tidak disalin bila copyCalendar tidak dikirim (bawaan false)', async () => {
+    const res = await rollover(adminCookie, years.y1, { targetYearId: years.y3, dryRun: true });
+    expect(res.statusCode).toBe(200);
+    expect(res.json()).toMatchObject({ classesCreated: 5, eventsCreated: 0 });
   });
 
   it('opsi copy* mematikan bagian yang tidak diminta', async () => {
@@ -502,7 +520,8 @@ describe('keputusan kenaikan kelas', () => {
     expect(c7a.students[0]).toMatchObject({ decision: null, suggestedDecision: 'promote', applied: false });
     const c9a = body.classes.find((c: { name: string }) => c.name === '9A');
     expect(c9a).toMatchObject({ nextLevel: null, isFinalLevel: true });
-    expect(c9a.students[0].suggestedDecision).toBe('graduate');
+    // Kelulusan ditetapkan sekolah: tidak ada saran otomatis di tingkat akhir.
+    expect(c9a.students[0].suggestedDecision).toBeNull();
   });
 
   it('menolak keputusan yang tidak sah, dan tidak menyimpan sebagian', async () => {
@@ -717,6 +736,13 @@ describe('penerapan keputusan', () => {
     );
     expect(body.unplaced.find((u: { studentId: string }) => u.studentId === stu.sz2).reason).toContain(
       'bukan kelas pada tahun ajaran tujuan',
+    );
+    expect(body.unplaced.find((u: { studentId: string }) => u.studentId === stu.sz1)).toMatchObject({
+      reasonCode: 'no_target_class',
+      reasonParams: { level: '8' },
+    });
+    expect(body.unplaced.find((u: { studentId: string }) => u.studentId === stu.sz2).reasonCode).toBe(
+      'target_class_invalid',
     );
     const decisions = await db()
       .select()

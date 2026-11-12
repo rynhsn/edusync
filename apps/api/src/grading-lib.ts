@@ -1,4 +1,10 @@
-import { componentAverage, finalGrade, type Predicate, predicateOf } from '@edusync/contracts';
+import {
+  type CalculationMode,
+  componentAverage,
+  finalGrade,
+  type Predicate,
+  predicateOf,
+} from '@edusync/contracts';
 import {
   and,
   asc,
@@ -14,8 +20,7 @@ import {
 
 /** Pustaka perhitungan nilai bersama: dipakai rute penilaian dan rapor agar rumusnya tunggal. */
 
-/** Mode perhitungan nilai akhir yang dikenal; saat ini hanya rata-rata tertimbang. */
-export type CalculationMode = 'weighted_average';
+export type { CalculationMode };
 
 export const DEFAULT_SETTINGS = {
   kkm: 75,
@@ -120,7 +125,7 @@ export async function computeGrades(
         .filter((a) => a.subjectId === subjectId && a.componentId === c.id)
         .map((a) => ({ value: scoreOf.get(`${a.id}:${studentId}`) ?? null, max: a.maxScore })),
     }));
-    const final = finalGrade(groups);
+    const final = finalGrade(groups, p.settings.calculationMode);
     return {
       perComponent: groups.map((g) => {
         const avg = componentAverage(g.scores);

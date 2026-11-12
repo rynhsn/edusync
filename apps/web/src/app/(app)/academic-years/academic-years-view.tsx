@@ -158,6 +158,8 @@ export function AcademicYearsView() {
             <DatePicker
               {...withoutBlur(validation.fieldProps('endsOn'))}
               className={TOUCH_INPUT}
+              // Tanggal akhir dibuka di bulan tanggal mulai, bukan bulan hari ini.
+              {...(draft.startsOn ? { defaultMonth: draft.startsOn } : {})}
               value={draft.endsOn}
               onChange={(v) => {
                 setDraft({ ...draft, endsOn: v });

@@ -1,14 +1,19 @@
 import { DEFAULT_LEVELS, isValidTimezone, MAX_SEMESTERS } from '@edusync/contracts';
 import {
+  achievementCriteria,
   admissionPeriod,
   asc,
   classRoom,
+  curriculumSubjectAllocation,
   eq,
   finFeePlan,
   invalidateSchoolTimezone,
+  learningFlow,
   max,
+  program,
   refEducationProfile,
   school,
+  schoolCurriculumVersion,
   schoolLevel,
   schoolSetting,
   type Tx,
@@ -58,6 +63,13 @@ const levelSchema = z.object({
   code: z.string(),
   label: z.string(),
   sort: z.number().int(),
+  periodMinutes: z.number().int().nullable().optional().describe('Menit per JP pada tingkat ini'),
+  effectiveWeeks: z
+    .number()
+    .int()
+    .nullable()
+    .optional()
+    .describe('Minggu efektif per tahun pada tingkat ini'),
 });
 const levelCode = z
   .string()
@@ -65,6 +77,8 @@ const levelCode = z
   .min(1)
   .max(20)
   .regex(/^[A-Za-z0-9._-]+$/, 'Hanya huruf, angka, titik, garis bawah, dan tanda hubung.');
+const periodMinutes = z.number().int().min(1).max(300).nullable();
+const effectiveWeeks = z.number().int().min(1).max(60).nullable();
 const levelCreate = z.object({
   code: levelCode,
   label: z.string().trim().min(1).max(60),
@@ -75,10 +89,18 @@ const levelCreate = z.object({
     .max(10_000)
     .optional()
     .describe('Urutan; bila dihilangkan, ditaruh paling akhir'),
+  periodMinutes: periodMinutes.optional(),
+  effectiveWeeks: effectiveWeeks.optional(),
 });
 const levelUpdate = z.object({
   label: z.string().trim().min(1).max(60),
   sort: z.number().int().min(0).max(10_000),
+  periodMinutes: periodMinutes
+    .optional()
+    .describe('Menit per JP; dihilangkan = tidak berubah, null mengosongkan'),
+  effectiveWeeks: effectiveWeeks
+    .optional()
+    .describe('Minggu efektif; dihilangkan = tidak berubah, null mengosongkan'),
 });
 
 const tags = ['School'];
@@ -159,6 +181,8 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
         code: schoolLevel.code,
         label: schoolLevel.label,
         sort: schoolLevel.sort,
+        periodMinutes: schoolLevel.periodMinutes,
+        effectiveWeeks: schoolLevel.effectiveWeeks,
       })
       .from(schoolLevel)
       .orderBy(asc(schoolLevel.sort), asc(schoolLevel.code));
@@ -206,12 +230,21 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
           }
           const [r] = await tx
             .insert(schoolLevel)
-            .values({ schoolId: ctx.schoolId, code: request.body.code, label: request.body.label, sort })
+            .values({
+              schoolId: ctx.schoolId,
+              code: request.body.code,
+              label: request.body.label,
+              sort,
+              periodMinutes: request.body.periodMinutes ?? null,
+              effectiveWeeks: request.body.effectiveWeeks ?? null,
+            })
             .returning({
               id: schoolLevel.id,
               code: schoolLevel.code,
               label: schoolLevel.label,
               sort: schoolLevel.sort,
+              periodMinutes: schoolLevel.periodMinutes,
+              effectiveWeeks: schoolLevel.effectiveWeeks,
             });
           await audit(tx, ctx, 'school.level_create', 'school_level', r!.id, request.body);
           return r!;
@@ -293,7 +326,8 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
         tags,
         summary: 'Ubah tingkat kelas',
         description:
-          'Izin: `school:manage`. Hanya nama tampilan dan urutan; kode tetap. 404 `not_found` bila tak ada.',
+          'Izin: `school:manage`. Nama tampilan, urutan, serta konfigurasi `periodMinutes` (menit per JP) dan `effectiveWeeks` ' +
+          '(minggu efektif) yang dihilangkan tidak berubah; kode tetap. 404 `not_found` bila tak ada.',
         headers: schoolHeader,
         params: idParams,
         body: levelUpdate,
@@ -312,6 +346,8 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
             code: schoolLevel.code,
             label: schoolLevel.label,
             sort: schoolLevel.sort,
+            periodMinutes: schoolLevel.periodMinutes,
+            effectiveWeeks: schoolLevel.effectiveWeeks,
           });
         const r = rows[0];
         if (!r) throw new HttpError(404, 'not_found', 'Tingkat tidak ditemukan.');
@@ -329,8 +365,8 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
         tags,
         summary: 'Hapus tingkat kelas',
         description:
-          'Izin: `school:manage`. Ditolak (409 `in_use`) bila masih dipakai kelas, tarif, atau periode SPMB. ' +
-          '404 `not_found` bila tak ada.',
+          'Izin: `school:manage`. Ditolak (409 `in_use`) bila masih dipakai kelas, tarif, periode SPMB, tingkat akhir ' +
+          'jurusan (`finalLevelCode`), alokasi JP, versi kurikulum, ATP, atau KKTP. 404 `not_found` bila tak ada.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
@@ -355,9 +391,44 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
               .from(admissionPeriod)
               .where(eq(admissionPeriod.level, lv.code))
               .limit(1),
+          )) ||
+          (await used(
+            tx.select({ id: program.id }).from(program).where(eq(program.finalLevelCode, lv.code)).limit(1),
+          )) ||
+          (await used(
+            tx
+              .select({ id: curriculumSubjectAllocation.id })
+              .from(curriculumSubjectAllocation)
+              .where(eq(curriculumSubjectAllocation.levelCode, lv.code))
+              .limit(1),
+          )) ||
+          (await used(
+            tx
+              .select({ id: schoolCurriculumVersion.id })
+              .from(schoolCurriculumVersion)
+              .where(eq(schoolCurriculumVersion.levelCode, lv.code))
+              .limit(1),
+          )) ||
+          (await used(
+            tx
+              .select({ id: learningFlow.id })
+              .from(learningFlow)
+              .where(eq(learningFlow.levelCode, lv.code))
+              .limit(1),
+          )) ||
+          (await used(
+            tx
+              .select({ id: achievementCriteria.id })
+              .from(achievementCriteria)
+              .where(eq(achievementCriteria.levelCode, lv.code))
+              .limit(1),
           ));
         if (inUse) {
-          throw new HttpError(409, 'in_use', 'Tingkat ini masih dipakai kelas, tarif, atau periode SPMB.');
+          throw new HttpError(
+            409,
+            'in_use',
+            'Tingkat ini masih dipakai kelas, tarif, periode SPMB, tingkat akhir jurusan, alokasi JP, versi kurikulum, ATP, atau KKTP.',
+          );
         }
         await tx.delete(schoolLevel).where(eq(schoolLevel.id, lv.id));
         await audit(tx, ctx, 'school.level_delete', 'school_level', lv.id, { code: lv.code });

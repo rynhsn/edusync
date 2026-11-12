@@ -29,6 +29,28 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
   rapor final di semester aktif. Rekap nilai, rapor, dan portal memakai KKM per mapel. Migrasi 0091.
 - Rollover tahun ajaran kini juga menyalin struktur kurikulum (`copyCurriculum`) dan ATP terbit sebagai draf (`copyTeachingPlans`).
 
+### Diubah (koreksi hasil verifikasi regulasi, fase 2C)
+
+- **Kelompok mapel dari acuan**: batasan nilai tetap pada `subject_group` diganti tabel acuan `ref_subject_group` (label tiga bahasa,
+  berlaku per jenjang); kunci lama tetap sah. Mapel kini punya jenis (wajib, pilihan, muatan lokal, projek, PKL) dan varian agama.
+  Daftar kelompok adalah acuan awal yang masih harus dicocokkan dengan lampiran struktur kurikulum. Migrasi 0092.
+- **JP dua kolom**: alokasi mapel memisahkan JP intrakurikuler dan kokurikuler serta jumlah minggu (untuk PKL); tiap tingkat kelas dapat
+  menyimpan menit per JP dan minggu efektif (angka 35/40/45 menit dan 36 minggu hanya muncul sebagai saran).
+- **Tingkat akhir per program**: program punya lama studi (3 atau 4 tahun) dan tingkat akhir sendiri (mis. XII atau XIII untuk SMK).
+- **Kenaikan kelas**: di tingkat akhir tidak ada keputusan bawaan; "ditetapkan lulus" harus dipilih eksplisit karena kelulusan ditetapkan
+  sekolah setelah ujian satuan pendidikan. Keputusan dapat memuat alasan, tindak lanjut, dan tanggal musyawarah.
+- **Mode nilai akhir**: tiga pilihan (pembobotan, persentase, rata-rata); bawaan tetap pembobotan sehingga hasil lama tidak berubah.
+- **Rollover**: kalender tidak lagi disalin secara bawaan (tanggal perlu diperiksa); peringatan dan alasan siswa yang belum
+  ditempatkan memiliki kode stabil dan diterjemahkan di antarmuka.
+- **Perbaikan hasil review**: mode nilai persentase ditolak bila jumlah bobot komponen bukan 100; tingkat akhir program divalidasi
+  dan tingkat yang masih dipakai tidak bisa dihapus; siswa yang kelas tujuannya tidak ada kini masuk daftar "belum ditempatkan"
+  (tidak lagi dimasukkan ke kelas pertama); keputusan lulus divalidasi ulang dan pratinjau memperingatkan rapor yang belum final;
+  catatan keputusan tidak lagi terhapus saat tidak dikirim; penerapan kenaikan diserialkan per tahun ajaran sumber; menghapus
+  program, mapel, atau kelas yang masih dirujuk alokasi atau keputusan ditolak (migrasi 0093); ATP tidak bisa diterbitkan bila
+  memuat tujuan nonaktif.
+- **Tampilan**: target sentuh 44 px di ponsel, dialog dengan tombol aksi yang selalu terjangkau, tabel menjadi kartu di layar sempit,
+  dan beberapa halaman yang melebar di ponsel diperbaiki. Label "KKM" dan "KKTP" dieja lengkap.
+
 ## [1.1.2] - 2026-11-11
 
 ### Ditambahkan

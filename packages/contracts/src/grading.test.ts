@@ -98,3 +98,80 @@ describe('predicateOf', () => {
     expect(predicateOf(85, { predicateA: 85, predicateB: 75, predicateC: 60 })).toBe('A');
   });
 });
+
+describe('finalGrade: mode perhitungan', () => {
+  const comps = [
+    { weight: 40, scores: [s(80)] },
+    { weight: 30, scores: [s(60)] },
+    { weight: 30, scores: [] }, // belum ada nilai
+  ];
+
+  it('weighted_average (bawaan) menormalisasi bobot atas komponen yang punya skor', () => {
+    // (80*40 + 60*30) / 70 = 71.43
+    expect(finalGrade(comps)).toBe(71.43);
+    expect(finalGrade(comps, 'weighted_average')).toBe(71.43);
+  });
+
+  it('percentage: tanpa renormalisasi, komponen kosong menyumbang 0', () => {
+    // (80*40 + 60*30) / 100 = 50
+    expect(finalGrade(comps, 'percentage')).toBe(50);
+    expect(
+      finalGrade(
+        [
+          { weight: 60, scores: [s(100)] },
+          { weight: 40, scores: [s(50)] },
+        ],
+        'percentage',
+      ),
+    ).toBe(80);
+  });
+
+  it('percentage: hasil dibatasi 0..100 sebagai pengaman bila bobot berlebih', () => {
+    expect(finalGrade([{ weight: 130, scores: [s(100)] }], 'percentage')).toBe(100);
+    expect(
+      finalGrade(
+        [
+          { weight: 70, scores: [s(100)] },
+          { weight: 130, scores: [s(100)] },
+        ],
+        'percentage',
+      ),
+    ).toBe(100);
+    // Mode bawaan tidak terpengaruh: tetap rata-rata tertimbang yang dinormalisasi.
+    expect(finalGrade([{ weight: 130, scores: [s(100)] }])).toBe(100);
+  });
+
+  it('percentage: bobot tidak berjumlah 100 mengikuti rumus apa adanya', () => {
+    expect(finalGrade([{ weight: 50, scores: [s(80)] }], 'percentage')).toBe(40);
+  });
+
+  it('simple_average: rata-rata tanpa bobot atas komponen yang punya skor', () => {
+    expect(finalGrade(comps, 'simple_average')).toBe(70);
+    expect(
+      finalGrade(
+        [
+          { weight: 90, scores: [s(100)] },
+          { weight: 10, scores: [s(50)] },
+        ],
+        'simple_average',
+      ),
+    ).toBe(75);
+  });
+
+  it('semua mode: null bila tidak ada skor sama sekali', () => {
+    for (const mode of ['weighted_average', 'percentage', 'simple_average'] as const) {
+      expect(finalGrade([], mode)).toBeNull();
+      expect(finalGrade([{ weight: 50, scores: [s(null)] }], mode)).toBeNull();
+    }
+  });
+
+  it('semua mode: nilai nol yang sah bukan null', () => {
+    for (const mode of ['weighted_average', 'percentage', 'simple_average'] as const) {
+      expect(finalGrade([{ weight: 100, scores: [s(0)] }], mode)).toBe(0);
+    }
+  });
+
+  it('simple_average tidak memakai bobot sama sekali', () => {
+    expect(finalGrade([{ weight: 0, scores: [s(80)] }], 'simple_average')).toBe(80);
+  });
+});

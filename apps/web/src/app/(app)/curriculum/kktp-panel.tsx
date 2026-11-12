@@ -265,6 +265,7 @@ export function KktpPanel({ canWrite }: { canWrite: boolean }) {
       )}
       {rows.length > 0 && (
         <DataRows
+          cardsBelow="lg"
           rows={rows}
           rowKey={(r) => r.id}
           actionsHeader={t('rowActions')}
@@ -793,7 +794,10 @@ function CriteriaForm({
                         checked={l.isAchieved}
                         onCheckedChange={(v) => setLevel(i, { isAchieved: v === true })}
                       />
-                      <Label htmlFor={`kktp-l-${l.key}-ok`} className="cursor-pointer text-sm font-normal">
+                      <Label
+                        htmlFor={`kktp-l-${l.key}-ok`}
+                        className="cursor-pointer text-sm font-normal max-md:flex max-md:min-h-11 max-md:items-center"
+                      >
                         {t('levelAchieved')}
                       </Label>
                     </div>
@@ -888,7 +892,10 @@ function CriteriaForm({
           checked={draft.active}
           onCheckedChange={(v) => setDraft((d) => ({ ...d, active: v === true }))}
         />
-        <Label htmlFor="kktp-active" className="cursor-pointer text-sm font-normal">
+        <Label
+          htmlFor="kktp-active"
+          className="cursor-pointer text-sm font-normal max-md:flex max-md:min-h-11 max-md:items-center"
+        >
           {t('active')}
         </Label>
       </div>

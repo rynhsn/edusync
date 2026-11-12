@@ -44,9 +44,19 @@ export interface LevelCreateValues {
   code: string;
   label: string;
   sort: string;
+  /** Menit per JP (opsional, 1 sampai 300). */
+  periodMinutes?: string;
+  /** Minggu efektif per tahun (opsional, 1 sampai 60). */
+  effectiveWeeks?: string;
 }
 export type LevelCreateField = keyof LevelCreateValues;
-export const LEVEL_CREATE_ORDER: LevelCreateField[] = ['code', 'label', 'sort'];
+export const LEVEL_CREATE_ORDER: LevelCreateField[] = [
+  'code',
+  'label',
+  'sort',
+  'periodMinutes',
+  'effectiveWeeks',
+];
 
 export function validateLevelCreate(v: LevelCreateValues): FieldErrors<LevelCreateField> {
   const code = v.code.trim();
@@ -57,20 +67,26 @@ export function validateLevelCreate(v: LevelCreateValues): FieldErrors<LevelCrea
     ],
     ['label', requiredText(v.label, 60)],
     ['sort', intInRange(v.sort, 0, 10_000, { required: false })],
+    ['periodMinutes', intInRange(v.periodMinutes ?? '', 1, 300, { required: false })],
+    ['effectiveWeeks', intInRange(v.effectiveWeeks ?? '', 1, 60, { required: false })],
   ]);
 }
 
 export interface LevelEditValues {
   label: string;
   sort: string;
+  periodMinutes?: string;
+  effectiveWeeks?: string;
 }
 export type LevelEditField = keyof LevelEditValues;
-export const LEVEL_EDIT_ORDER: LevelEditField[] = ['label', 'sort'];
+export const LEVEL_EDIT_ORDER: LevelEditField[] = ['label', 'sort', 'periodMinutes', 'effectiveWeeks'];
 
 export function validateLevelEdit(v: LevelEditValues): FieldErrors<LevelEditField> {
   return compactErrors<LevelEditField>([
     ['label', requiredText(v.label, 60)],
     ['sort', intInRange(v.sort, 0, 10_000, { required: true })],
+    ['periodMinutes', intInRange(v.periodMinutes ?? '', 1, 300, { required: false })],
+    ['effectiveWeeks', intInRange(v.effectiveWeeks ?? '', 1, 60, { required: false })],
   ]);
 }
 

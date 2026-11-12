@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { CalendarDays, Layers, Pencil, Plus, School, Trash2, UserCheck, Users, UserX } from 'lucide-react';
+import { CalendarDays, Layers, Pencil, Plus, School, Trash2, UserCheck, Users, UserX, X } from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -28,7 +28,7 @@ import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, TONES, Toolbar, UserAvatar } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
-import { errorKey } from '@/lib/errors';
+import { errorKey, errorKeyIn } from '@/lib/errors';
 import {
   CLASS_ORDER,
   type ClassField,
@@ -37,7 +37,74 @@ import {
   validateClass,
   validateSubject,
 } from '@/lib/form-validation';
+import {
+  PROGRAM_DURATIONS,
+  type ProgramConfigDraft,
+  programConfigPatch,
+  programConfigToDraft,
+} from '@/lib/level-config';
+import { useSchoolLevels } from '@/lib/school-settings';
 import { cn } from '@/lib/utils';
+
+/**
+ * Lama studi dan tingkat akhir program (K3). SMK dapat berlangsung 3 atau 4 tahun; tingkat akhir menentukan kelas
+ * yang dianggap kelas akhir saat kenaikan kelas dan salin tahun ajaran. Kosong = tingkat tertinggi sekolah.
+ */
+function ProgramConfigFields({
+  idPrefix,
+  value,
+  onChange,
+  levels,
+}: {
+  idPrefix: string;
+  value: ProgramConfigDraft;
+  onChange: (next: ProgramConfigDraft) => void;
+  levels: { code: string; label: string }[];
+}) {
+  const t = useTranslations('classes');
+  return (
+    <>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-duration`}>{t('programDuration')}</Label>
+        <SelectField
+          id={`${idPrefix}-duration`}
+          className={TOUCH_SELECT}
+          value={value.durationYears}
+          onChange={(e) =>
+            onChange({ ...value, durationYears: e.target.value as ProgramConfigDraft['durationYears'] })
+          }
+        >
+          <option value="">{t('programDurationNone')}</option>
+          {PROGRAM_DURATIONS.map((y) => (
+            <option key={y} value={String(y)}>
+              {t('programDurationYears', { years: y })}
+            </option>
+          ))}
+        </SelectField>
+      </div>
+      <div className="grid content-start gap-2">
+        <Label htmlFor={`${idPrefix}-final`}>{t('programFinalLevel')}</Label>
+        <SelectField
+          id={`${idPrefix}-final`}
+          className={TOUCH_SELECT}
+          value={value.finalLevelCode}
+          onChange={(e) => onChange({ ...value, finalLevelCode: e.target.value })}
+        >
+          <option value="">{t('programFinalAuto')}</option>
+          {levels.map((l) => (
+            <option key={l.code} value={l.code}>
+              {l.label}
+            </option>
+          ))}
+          {value.finalLevelCode !== '' && !levels.some((l) => l.code === value.finalLevelCode) && (
+            <option value={value.finalLevelCode}>{value.finalLevelCode}</option>
+          )}
+        </SelectField>
+      </div>
+      <p className="text-muted-foreground text-xs sm:col-span-2">{t('programConfigHelp')}</p>
+    </>
+  );
+}
 
 /** Guru pengampu mata pelajaran di satu kelas. */
 function Assignments({ classId }: { classId: string }) {
@@ -227,7 +294,17 @@ export function ClassesView() {
   });
   const [error, setError] = useState<string | null>(null);
   const [assignFor, setAssignFor] = useState<{ id: string; name: string } | null>(null);
-  const [programDraft, setProgramDraft] = useState({ code: '', name: '' });
+  const emptyProgram = {
+    code: '',
+    name: '',
+    durationYears: '' as ProgramConfigDraft['durationYears'],
+    finalLevelCode: '',
+  };
+  const [programDraft, setProgramDraft] = useState(emptyProgram);
+  const [programEditing, setProgramEditing] = useState<
+    ({ id: string; code: string; name: string } & ProgramConfigDraft) | null
+  >(null);
+  const levelList = useSchoolLevels().data ?? [];
   const [programError, setProgramError] = useState<string | null>(null);
   // Kode dan nama jurusan memakai aturan yang sama dengan mata pelajaran (kode 20, nama 80; zod programBody).
   const programValidation = useFormValidation<SubjectField>({
@@ -309,18 +386,47 @@ export function ClassesView() {
       toast.success(tm('deleted'));
       refreshClasses();
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => toast.error(te(errorKeyIn(e, 'class'))),
   });
   const createProgram = useMutation({
-    mutationFn: async () => unwrap(await api.POST('/v1/programs', { params: header, body: programDraft })),
+    mutationFn: async () =>
+      unwrap(
+        await api.POST('/v1/programs', {
+          params: header,
+          body: {
+            code: programDraft.code,
+            name: programDraft.name,
+            ...programConfigPatch({}, programDraft),
+          },
+        }),
+      ),
     onSuccess: () => {
       setProgramError(null);
-      setProgramDraft({ code: '', name: '' });
+      setProgramDraft(emptyProgram);
       programValidation.reset();
       toast.success(tm('created'));
       refreshPrograms();
     },
-    onError: (e) => setProgramError(te(errorKey(e))),
+    onError: (e) => setProgramError(te(errorKeyIn(e, 'program'))),
+  });
+  const updateProgram = useMutation({
+    mutationFn: async (p: NonNullable<typeof programEditing>) => {
+      const saved = programs.data?.find((x) => x.id === p.id) ?? {};
+      return unwrap(
+        await api.PUT('/v1/programs/{id}', {
+          params: { ...header, path: { id: p.id } },
+          // Hanya lama studi dan tingkat akhir yang berubah yang dikirim; kode dan nama tetap.
+          body: { code: p.code, name: p.name, ...programConfigPatch(saved, p) },
+        }),
+      );
+    },
+    onSuccess: () => {
+      setProgramError(null);
+      setProgramEditing(null);
+      toast.success(tm('saved'));
+      refreshPrograms();
+    },
+    onError: (e) => setProgramError(te(errorKeyIn(e, 'program'))),
   });
   const removeProgram = useMutation({
     mutationFn: async (id: string) =>
@@ -329,7 +435,7 @@ export function ClassesView() {
       toast.success(tm('deleted'));
       refreshPrograms();
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => toast.error(te(errorKeyIn(e, 'program'))),
   });
 
   const hasYears = (years.data?.length ?? 0) > 0;
@@ -479,27 +585,82 @@ export function ClassesView() {
                 )}
                 <ul className="divide-y rounded-lg border">
                   {programs.data?.map((p) => (
-                    <li key={p.id} className="flex items-center justify-between gap-2 px-3 py-2 text-sm">
-                      <span>
-                        {p.name} <span className="text-muted-foreground font-mono text-xs">{p.code}</span>
-                      </span>
-                      {manage && (
-                        <Button
-                          size="icon-sm"
-                          variant="ghost"
-                          aria-label={tm('delete')}
-                          disabled={removeProgram.isPending}
-                          onClick={() => removeProgram.mutate(p.id)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
+                    <li key={p.id} className="grid gap-3 px-3 py-2 text-sm">
+                      <div className="flex items-center justify-between gap-2">
+                        <span className="min-w-0">
+                          <span className="block">
+                            {p.name} <span className="text-muted-foreground font-mono text-xs">{p.code}</span>
+                          </span>
+                          {(p.durationYears || p.finalLevelCode) && (
+                            <span className="text-muted-foreground block text-xs">
+                              {[
+                                p.durationYears
+                                  ? t('programDurationYears', { years: p.durationYears })
+                                  : null,
+                                p.finalLevelCode ? t('programFinalIs', { level: p.finalLevelCode }) : null,
+                              ]
+                                .filter(Boolean)
+                                .join(' · ')}
+                            </span>
+                          )}
+                        </span>
+                        {manage && (
+                          <span className="flex shrink-0 items-center">
+                            <Button
+                              size="icon-sm"
+                              variant="ghost"
+                              aria-label={tm('edit')}
+                              aria-expanded={programEditing?.id === p.id}
+                              onClick={() => {
+                                setProgramError(null);
+                                setProgramEditing(
+                                  programEditing?.id === p.id
+                                    ? null
+                                    : { id: p.id, code: p.code, name: p.name, ...programConfigToDraft(p) },
+                                );
+                              }}
+                            >
+                              {programEditing?.id === p.id ? (
+                                <X className="size-4" />
+                              ) : (
+                                <Pencil className="size-4" />
+                              )}
+                            </Button>
+                            <Button
+                              size="icon-sm"
+                              variant="ghost"
+                              aria-label={tm('delete')}
+                              disabled={removeProgram.isPending}
+                              onClick={() => removeProgram.mutate(p.id)}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          </span>
+                        )}
+                      </div>
+                      {manage && programEditing?.id === p.id && (
+                        <div className="grid gap-3 sm:grid-cols-2">
+                          <ProgramConfigFields
+                            idPrefix={`program-edit-${p.id}`}
+                            value={programEditing}
+                            onChange={(next) => setProgramEditing({ ...programEditing, ...next })}
+                            levels={levelList}
+                          />
+                          <Button
+                            className="sm:col-span-2 sm:w-fit"
+                            disabled={updateProgram.isPending}
+                            onClick={() => updateProgram.mutate(programEditing)}
+                          >
+                            {tm('save')}
+                          </Button>
+                        </div>
                       )}
                     </li>
                   ))}
                 </ul>
                 {manage && (
                   <form
-                    className="grid gap-3 sm:grid-cols-[7rem_1fr_auto] sm:items-start"
+                    className="grid gap-3 sm:grid-cols-[7rem_1fr] sm:items-start"
                     noValidate
                     onSubmit={(e) => {
                       e.preventDefault();
@@ -539,20 +700,37 @@ export function ClassesView() {
                         issue={programValidation.issue('name')}
                       />
                     </div>
-                    <Button type="submit" className="h-10 sm:mt-6 md:h-8" disabled={createProgram.isPending}>
+                    <div className="grid gap-3 sm:col-span-2 sm:grid-cols-2">
+                      <ProgramConfigFields
+                        idPrefix="program-new"
+                        value={programDraft}
+                        onChange={(next) => setProgramDraft({ ...programDraft, ...next })}
+                        levels={levelList}
+                      />
+                    </div>
+                    <Button
+                      type="submit"
+                      className="h-10 sm:col-span-2 sm:w-fit md:h-8"
+                      disabled={createProgram.isPending}
+                    >
                       <Plus className="size-4" /> {tm('add')}
                     </Button>
                     {programValidation.summary && (
-                      <p aria-live="polite" className="text-destructive text-sm sm:col-span-3">
+                      <p aria-live="polite" className="text-destructive text-sm sm:col-span-2">
                         {tv('summary')}
                       </p>
                     )}
                     {programError && (
-                      <Alert variant="destructive" className="sm:col-span-3">
+                      <Alert variant="destructive" className="sm:col-span-2">
                         <AlertDescription>{programError}</AlertDescription>
                       </Alert>
                     )}
                   </form>
+                )}
+                {programError && programEditing && (
+                  <Alert variant="destructive">
+                    <AlertDescription>{programError}</AlertDescription>
+                  </Alert>
                 )}
               </DialogContent>
             </Dialog>

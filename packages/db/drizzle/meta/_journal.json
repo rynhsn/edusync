@@ -645,6 +645,20 @@
       "when": 1796088600000,
       "tag": "0091_achievement_criteria",
       "breakpoints": true
+    },
+    {
+      "idx": 92,
+      "version": "7",
+      "when": 1796175000000,
+      "tag": "0092_regulation_corrections",
+      "breakpoints": true
+    },
+    {
+      "idx": 93,
+      "version": "7",
+      "when": 1796261400000,
+      "tag": "0093_fk_restrict",
+      "breakpoints": true
     }
   ]
 }

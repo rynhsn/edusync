@@ -6,6 +6,7 @@ import {
   refCurriculum,
   refSchoolLevel,
   refSubject,
+  refSubjectGroup,
   schoolCurriculum,
   subject,
   withTenant,
@@ -119,6 +120,50 @@ export async function curriculumRoutes(instance: FastifyInstance) {
           .where(eq(refSchoolLevel.active, true))
           .orderBy(asc(refSchoolLevel.sort), asc(refSchoolLevel.key));
         return { levels: rows.map(({ key, name, sort }) => ({ key, name, sort })) };
+      });
+    },
+  );
+
+  app.get(
+    '/v1/reference/subject-groups',
+    {
+      onRequest: [requirePermission('subject:read')],
+      schema: {
+        tags: ['Reference'],
+        summary: 'Daftar kelompok mapel (acuan)',
+        description:
+          'Izin: `subject:read`. Kelompok mapel acuan platform, berurutan (`sort`). `profileKeys` null = berlaku untuk semua ' +
+          'profil jenjang. `reportSection` mengelompokkan mapel di rapor. Daftar adalah acuan awal yang masih harus diverifikasi ' +
+          'ke Lampiran II Permendikdasmen 13/2025; kunci lama (vocational_base, dst.) tetap ada agar data lama valid dan ' +
+          'ditandai di label. Kunci ini dipakai pada `subjectGroup` mapel.',
+        headers: schoolHeader,
+        response: {
+          200: z.object({
+            groups: z.array(
+              z.object({
+                key: z.string(),
+                labelId: z.string(),
+                labelEn: z.string(),
+                labelSu: z.string(),
+                profileKeys: z.array(z.string()).nullable(),
+                reportSection: z.string().nullable(),
+                sort: z.number().int(),
+                active: z.boolean(),
+              }),
+            ),
+          }),
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      return withTenant(request.server.tenantDb, [ctx.schoolId], async (tx) => {
+        const rows = await tx
+          .select()
+          .from(refSubjectGroup)
+          .orderBy(asc(refSubjectGroup.sort), asc(refSubjectGroup.key));
+        return { groups: rows };
       });
     },
   );

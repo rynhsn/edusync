@@ -1,4 +1,4 @@
-import { SUBJECT_GROUPS } from '@edusync/contracts';
+import { RELIGION_VARIANTS, SUBJECT_KINDS } from '@edusync/contracts';
 import {
   academicYear,
   and,
@@ -10,6 +10,8 @@ import {
   isNull,
   program,
   refSubject,
+  refSubjectGroup,
+  schoolLevel,
   student,
   subject,
   type Tx,
@@ -35,9 +37,43 @@ const code = z
   .max(20)
   .regex(/^[A-Za-z0-9._-]+$/, 'Hanya huruf, angka, titik, garis bawah, dan tanda hubung.');
 
-const programSchema = z.object({ id: z.uuid(), code: z.string(), name: z.string() });
-const programBody = z.object({ code, name });
-const subjectGroup = z.enum(SUBJECT_GROUPS);
+const programSchema = z.object({
+  id: z.uuid(),
+  code: z.string(),
+  name: z.string(),
+  durationYears: z.number().int().nullable().optional(),
+  finalLevelCode: z.string().nullable().optional(),
+});
+const programOut = (r: typeof program.$inferSelect) => ({
+  id: r.id,
+  code: r.code,
+  name: r.name,
+  durationYears: r.durationYears,
+  finalLevelCode: r.finalLevelCode,
+});
+const programExtra = {
+  durationYears: z
+    .union([z.literal(3), z.literal(4)])
+    .nullable()
+    .optional()
+    .describe('Lama program (3 atau 4 tahun)'),
+  finalLevelCode: z
+    .string()
+    .trim()
+    .min(1)
+    .max(20)
+    .nullable()
+    .optional()
+    .describe(
+      'Kode tingkat akhir program (harus ada di daftar tingkat sekolah, 400 `invalid_level`); kosong = tingkat dengan sort terbesar. ' +
+        'Hanya field inilah yang menentukan tingkat akhir; `durationYears` bersifat informatif.',
+    ),
+};
+const programBody = z.object({ code, name, ...programExtra });
+/** Kunci kelompok mapel divalidasi terhadap tabel acuan `ref_subject_group` (400 `invalid_subject_group`), bukan enum kode. */
+const subjectGroup = z.string().trim().min(1).max(40);
+const subjectKind = z.enum(SUBJECT_KINDS);
+const religionVariant = z.enum(RELIGION_VARIANTS);
 /** Field metadata bersifat opsional di respons dan permintaan agar klien lama tetap diterima. */
 const subjectSchema = z.object({
   id: z.uuid(),
@@ -49,6 +85,11 @@ const subjectSchema = z.object({
     .optional()
     .describe('Mapel acuan platform asal salinan; null bila buatan sekolah'),
   subjectGroup: subjectGroup.nullable().optional(),
+  kind: subjectKind.optional().describe('Jenis mapel; bawaan `compulsory`'),
+  religionVariant: religionVariant
+    .nullable()
+    .optional()
+    .describe('Varian pendidikan agama (hanya mapel agama)'),
   isLocalContent: z.boolean().optional(),
   sortOrder: z.number().int().optional(),
   active: z.boolean().optional(),
@@ -58,6 +99,8 @@ const subjectBody = z.object({
   name,
   refSubjectId: z.uuid().nullable().optional(),
   subjectGroup: subjectGroup.nullable().optional(),
+  kind: subjectKind.optional(),
+  religionVariant: religionVariant.nullable().optional(),
   isLocalContent: z.boolean().optional(),
   sortOrder: z.number().int().min(0).max(9999).optional(),
   active: z.boolean().optional(),
@@ -68,10 +111,68 @@ const subjectOut = (r: typeof subject.$inferSelect) => ({
   name: r.name,
   refSubjectId: r.refSubjectId,
   subjectGroup: r.subjectGroup,
+  kind: r.kind,
+  religionVariant: r.religionVariant,
   isLocalContent: r.isLocalContent,
   sortOrder: r.sortOrder,
   active: r.active,
 });
+
+/**
+ * Jenis mapel dan penanda muatan lokal harus searah: `kind` = `local_content` berarti `isLocalContent` true.
+ * Hanya field yang dikirim yang dihitung; `prev` = nilai tersimpan (PUT), kosong pada POST.
+ * - kind `local_content` selalu menghasilkan isLocalContent true (kind menang bila keduanya dikirim dan bertentangan).
+ * - isLocalContent true tanpa kind menjadi kind `local_content`.
+ * - isLocalContent false tanpa kind: bila sebelumnya `local_content` menjadi `compulsory`.
+ * - kind lain tanpa isLocalContent: bila sebelumnya `local_content` isLocalContent menjadi false.
+ * Kombinasi kind bukan local_content + isLocalContent true yang sama-sama dikirim diterima apa adanya.
+ */
+function syncLocalContent(
+  body: { kind?: (typeof SUBJECT_KINDS)[number] | undefined; isLocalContent?: boolean | undefined },
+  prev?: { kind: string; isLocalContent: boolean },
+): { kind?: (typeof SUBJECT_KINDS)[number]; isLocalContent?: boolean } {
+  let { kind, isLocalContent } = body;
+  if (kind === 'local_content') {
+    isLocalContent = true;
+  } else if (kind === undefined) {
+    if (isLocalContent === true) kind = 'local_content';
+    else if (isLocalContent === false && prev?.kind === 'local_content') kind = 'compulsory';
+  } else if (isLocalContent === undefined && prev?.kind === 'local_content') {
+    isLocalContent = false;
+  }
+  return {
+    ...(kind !== undefined ? { kind } : {}),
+    ...(isLocalContent !== undefined ? { isLocalContent } : {}),
+  };
+}
+
+/** Tingkat akhir program harus kode yang ada di daftar tingkat sekolah (bukan teks bebas). */
+async function requireFinalLevel(tx: Tx, code: string | null | undefined) {
+  if (!code) return;
+  const rows = await tx
+    .select({ code: schoolLevel.code })
+    .from(schoolLevel)
+    .where(eq(schoolLevel.code, code));
+  if (rows.length === 0) {
+    throw new HttpError(
+      400,
+      'invalid_level',
+      `Tingkat akhir "${code}" tidak ada di daftar tingkat sekolah. Tambahkan di Pengaturan sekolah.`,
+    );
+  }
+}
+
+/** Kelompok mapel harus ada di tabel acuan (kelompok lama yang sudah nonaktif tetap diterima agar data lama bisa disimpan ulang). */
+async function requireSubjectGroup(tx: Tx, key: string | null | undefined) {
+  if (!key) return;
+  const rows = await tx
+    .select({ key: refSubjectGroup.key })
+    .from(refSubjectGroup)
+    .where(eq(refSubjectGroup.key, key));
+  if (rows.length === 0) {
+    throw new HttpError(400, 'invalid_subject_group', `Kelompok mapel "${key}" tidak dikenal.`);
+  }
+}
 
 /** Mapel acuan harus ada (tabel acuan global, tidak dijaga RLS). */
 async function requireRefSubject(tx: Tx, refSubjectId: string | null | undefined) {
@@ -188,7 +289,10 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         response: { 200: z.array(programSchema), ...guarded },
       },
     },
-    async (request) => tenant(request, (tx) => tx.select().from(program).orderBy(asc(program.name))),
+    async (request) =>
+      tenant(request, async (tx) =>
+        (await tx.select().from(program).orderBy(asc(program.name))).map(programOut),
+      ),
   );
 
   app.post(
@@ -198,16 +302,20 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Buat jurusan',
-        description: 'Izin: `class:manage`. Kode harus unik di sekolah.',
+        description:
+          'Izin: `class:manage`. Kode harus unik di sekolah. Opsional: `durationYears` (3 atau 4) dan `finalLevelCode` ' +
+          '(tingkat akhir program, mis. XIII untuk SMK 4 tahun; dipakai kenaikan kelas dan rollover; harus kode tingkat sekolah, 400 ' +
+          '`invalid_level`). Hanya `finalLevelCode` yang menentukan tingkat akhir; `durationYears` tanpa `finalLevelCode` sah tetapi informatif.',
         headers: schoolHeader,
         body: programBody,
-        response: { 201: programSchema, 409: errorSchema, ...guarded },
+        response: { 201: programSchema, 400: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
       const row = await conflictAs409('Kode jurusan itu sudah dipakai.', () =>
         tenant(request, async (tx) => {
+          await requireFinalLevel(tx, request.body.finalLevelCode);
           const [r] = await tx
             .insert(program)
             .values({ schoolId: ctx.schoolId, ...request.body })
@@ -216,7 +324,7 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
           return r!;
         }),
       );
-      return reply.code(201).send({ id: row.id, code: row.code, name: row.name });
+      return reply.code(201).send(programOut(row));
     },
   );
 
@@ -227,17 +335,20 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Ubah jurusan',
-        description: 'Izin: `class:manage`.',
+        description:
+          'Izin: `class:manage`. Field opsional (`durationYears`, `finalLevelCode`) yang tidak dikirim tidak berubah; null mengosongkan. ' +
+          '`finalLevelCode` harus kode tingkat sekolah (400 `invalid_level`) dan satu-satunya penentu tingkat akhir.',
         headers: schoolHeader,
         params: idParams,
         body: programBody,
-        response: { 200: programSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+        response: { 200: programSchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
       const row = await conflictAs409('Kode jurusan itu sudah dipakai.', () =>
         tenant(request, async (tx) => {
+          await requireFinalLevel(tx, request.body.finalLevelCode);
           const [r] = await tx
             .update(program)
             .set(request.body)
@@ -248,7 +359,7 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
           return r;
         }),
       );
-      return { id: row.id, code: row.code, name: row.name };
+      return programOut(row);
     },
   );
 
@@ -259,7 +370,8 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Hapus jurusan',
-        description: 'Izin: `class:manage`. Ditolak bila masih dipakai kelas.',
+        description:
+          'Izin: `class:manage`. Ditolak 409 `in_use` bila masih dipakai kelas, alokasi JP kurikulum, atau KKTP.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
@@ -313,7 +425,10 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         summary: 'Buat mata pelajaran',
         description:
           'Izin: `subject:manage`. Kode harus unik di sekolah. Metadata opsional: `refSubjectId` (mapel acuan; 400 ' +
-          '`invalid_reference` bila tidak ada), `subjectGroup`, `isLocalContent`, `sortOrder`, `active`.',
+          '`invalid_reference` bila tidak ada), `subjectGroup` (kunci `GET /v1/reference/subject-groups`; 400 `invalid_subject_group`), ' +
+          '`kind` (compulsory, elective, local_content, project, internship; bawaan compulsory), `religionVariant`, `isLocalContent`, `sortOrder`, `active`. ' +
+          '`kind` dan `isLocalContent` disinkronkan server: `kind` local_content menghasilkan `isLocalContent` true; `isLocalContent` true ' +
+          'tanpa `kind` menjadikan `kind` local_content.',
         headers: schoolHeader,
         body: subjectBody,
         response: { 201: subjectSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -324,11 +439,13 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       const row = await conflictAs409('Kode mata pelajaran itu sudah dipakai.', () =>
         tenant(request, async (tx) => {
           await requireRefSubject(tx, request.body.refSubjectId);
+          await requireSubjectGroup(tx, request.body.subjectGroup);
+          const values = { ...request.body, ...syncLocalContent(request.body) };
           const [r] = await tx
             .insert(subject)
-            .values({ schoolId: ctx.schoolId, ...request.body })
+            .values({ schoolId: ctx.schoolId, ...values })
             .returning();
-          await audit(tx, ctx, 'subject.create', 'subject', r!.id, request.body);
+          await audit(tx, ctx, 'subject.create', 'subject', r!.id, values);
           return r!;
         }),
       );
@@ -344,8 +461,11 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
         tags: ['Academic'],
         summary: 'Ubah mata pelajaran',
         description:
-          'Izin: `subject:manage`. Hanya field yang dikirim yang diubah; metadata (`refSubjectId`, `subjectGroup`, ' +
-          '`isLocalContent`, `sortOrder`, `active`) yang tidak dikirim tidak berubah.',
+          'Izin: `subject:manage`. Hanya field yang dikirim yang diubah; metadata (`refSubjectId`, `subjectGroup`, `kind`, ' +
+          '`religionVariant`, `isLocalContent`, `sortOrder`, `active`) yang tidak dikirim tidak berubah, kecuali penyelarasan `kind`/`isLocalContent`: ' +
+          '`kind` local_content mengatur `isLocalContent` true; `isLocalContent` true tanpa `kind` mengatur `kind` local_content; ' +
+          '`isLocalContent` false tanpa `kind` pada mapel local_content mengatur `kind` compulsory; `kind` lain tanpa `isLocalContent` ' +
+          'pada mapel local_content mengatur `isLocalContent` false.',
         headers: schoolHeader,
         params: idParams,
         body: subjectBody,
@@ -357,13 +477,20 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       const row = await conflictAs409('Kode mata pelajaran itu sudah dipakai.', () =>
         tenant(request, async (tx) => {
           await requireRefSubject(tx, request.body.refSubjectId);
+          await requireSubjectGroup(tx, request.body.subjectGroup);
+          const [prev] = await tx
+            .select({ kind: subject.kind, isLocalContent: subject.isLocalContent })
+            .from(subject)
+            .where(eq(subject.id, request.params.id));
+          if (!prev) throw notFound('Mata pelajaran');
+          const values = { ...request.body, ...syncLocalContent(request.body, prev) };
           const [r] = await tx
             .update(subject)
-            .set(request.body)
+            .set(values)
             .where(eq(subject.id, request.params.id))
             .returning();
           if (!r) throw notFound('Mata pelajaran');
-          await audit(tx, ctx, 'subject.update', 'subject', r.id, request.body);
+          await audit(tx, ctx, 'subject.update', 'subject', r.id, values);
           return r;
         }),
       );
@@ -378,7 +505,8 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Hapus mata pelajaran',
-        description: 'Izin: `subject:manage`. Ditolak bila sudah ditugaskan ke guru.',
+        description:
+          'Izin: `subject:manage`. Ditolak 409 `in_use` bila sudah ditugaskan ke guru, dipakai alokasi JP kurikulum, CP, ATP, atau KKTP.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
@@ -592,7 +720,8 @@ export async function academicStructureRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Hapus kelas',
-        description: 'Izin: `class:manage`. Ditolak bila masih ada siswa atau penugasan guru di kelas itu.',
+        description:
+          'Izin: `class:manage`. Ditolak 409 `in_use` bila masih ada siswa, penugasan guru, atau keputusan kenaikan kelas yang merujuk kelas itu.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },

@@ -113,7 +113,10 @@ export function OutcomesPanel({ subjectId, canWrite }: { subjectId: string; canW
           checked={showInactive}
           onCheckedChange={(v) => setShowInactive(v === true)}
         />
-        <Label htmlFor="tp-show-inactive" className="cursor-pointer text-sm font-normal">
+        <Label
+          htmlFor="tp-show-inactive"
+          className="cursor-pointer text-sm font-normal max-md:flex max-md:min-h-11 max-md:items-center"
+        >
           {t('showInactive')}
         </Label>
       </div>
@@ -388,11 +391,11 @@ function ObjectivesList({
             <li
               key={o.id}
               className={cn(
-                'bg-muted/40 flex items-start gap-2 rounded-xl border px-3 py-2',
+                'bg-muted/40 flex flex-wrap items-start gap-2 rounded-xl border px-3 py-2 sm:flex-nowrap',
                 !o.active && 'opacity-70',
               )}
             >
-              <div className="min-w-0 flex-1">
+              <div className="min-w-0 basis-full sm:flex-1 sm:basis-0">
                 <div className="flex flex-wrap items-center gap-1.5">
                   {o.code && (
                     <ToneBadge tone="slate" dot={false}>
@@ -404,7 +407,7 @@ function ObjectivesList({
                 <p className="mt-1 text-sm whitespace-pre-line">{o.description}</p>
               </div>
               {canWrite && o.active && (
-                <div className="flex shrink-0 items-center">
+                <div className="flex shrink-0 items-center max-sm:ml-auto">
                   <Button
                     size="icon-sm"
                     variant="ghost"

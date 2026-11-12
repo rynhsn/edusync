@@ -6,6 +6,7 @@ import {
   itemsChanged,
   MAX_FLOW_ITEMS,
   moveItem,
+  parseInactiveObjectives,
   parseQuantity,
   removeItemAt,
   reorderObjectives,
@@ -172,5 +173,29 @@ describe('groupByPhase', () => {
       { phase: 'D', rows: [rows[1]] },
       { phase: 'E', rows: [rows[0], rows[2]] },
     ]);
+  });
+});
+
+describe('galat penerbitan: TP nonaktif', () => {
+  it('daftar TP dibaca dari pesan server', () => {
+    expect(
+      parseInactiveObjectives(
+        'ATP memuat 3 TP yang sudah nonaktif atau diganti versi baru: 7.1, 7.2, 7.3. Ganti item itu dengan TP aktif sebelum menerbitkan.',
+      ),
+    ).toEqual({ count: 3, items: ['7.1', '7.2', '7.3'], more: 0 });
+  });
+  it('bagian "dan N lainnya" dihitung terpisah', () => {
+    expect(
+      parseInactiveObjectives(
+        'ATP memuat 12 TP yang sudah nonaktif atau diganti versi baru: a, b, c, d, e, f, g, h, i, j, dan 2 lainnya. Ganti item itu dengan TP aktif sebelum menerbitkan.',
+      ),
+    ).toEqual({ count: 12, items: ['a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j'], more: 2 });
+  });
+  it('pesan berbentuk lain menghasilkan daftar kosong', () => {
+    expect(parseInactiveObjectives('TP yang sudah dinonaktifkan tidak bisa ditambahkan.')).toEqual({
+      count: null,
+      items: [],
+      more: 0,
+    });
   });
 });

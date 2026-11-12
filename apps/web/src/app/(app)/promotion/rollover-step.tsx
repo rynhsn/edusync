@@ -15,6 +15,7 @@ import { Label } from '@/components/ui/label';
 import { StatCard, StatGrid, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { cn } from '@/lib/utils';
+import { type RolloverWarningCode, rolloverWarnings } from './promotion-logic';
 import { StepError } from './step-error';
 
 interface Options {
@@ -42,7 +43,8 @@ export function RolloverStep({
   const [options, setOptions] = useState<Options>({
     copyClasses: true,
     copyAssignments: true,
-    copyCalendar: true,
+    // Kalender tiap tahun berbeda: salin hanya bila dipilih dan tanggalnya diperiksa ulang.
+    copyCalendar: false,
     copyCurriculum: true,
     copyTeachingPlans: true,
   });
@@ -80,7 +82,7 @@ export function RolloverStep({
     },
   });
   const result = run.data;
-  const warnings = result ? [...new Set(result.data.warnings)] : [];
+  const warnings = result ? rolloverWarnings(result.data) : [];
 
   function toggle(key: keyof Options, value: boolean) {
     setOptions((o) => ({ ...o, [key]: value }));
@@ -112,11 +114,11 @@ export function RolloverStep({
           <div key={r.key} className="flex items-start gap-3">
             <Checkbox
               id={`promo-${r.key}`}
-              className="mt-0.5"
+              className="mt-1"
               checked={options[r.key]}
               onCheckedChange={(v) => toggle(r.key, v === true)}
             />
-            <Label htmlFor={`promo-${r.key}`} className="grid cursor-pointer gap-0.5">
+            <Label htmlFor={`promo-${r.key}`} className="grid min-h-11 cursor-pointer content-start gap-0.5">
               <span className="text-sm font-medium">{r.label}</span>
               <span className="text-muted-foreground text-xs font-normal">{r.hint}</span>
             </Label>
@@ -193,7 +195,7 @@ export function RolloverStep({
                 tone="rose"
                 label={t('flowsCreated')}
                 value={result.data.flowsCreated ?? 0}
-                hint={t('flowsCreatedHint')}
+                hint={(result.data.flowsCreated ?? 0) > 0 ? t('flowsCreatedHint') : undefined}
               />
             )}
           </StatGrid>
@@ -203,7 +205,9 @@ export function RolloverStep({
               <AlertDescription>
                 <ul className="mt-1 list-disc space-y-1 pl-5">
                   {warnings.map((w) => (
-                    <li key={w}>{w}</li>
+                    <li key={`${w.code ?? 'text'}:${w.fallback}`}>
+                      {w.code ? t(`rolloverWarning.${w.code as RolloverWarningCode}`, w.params) : w.fallback}
+                    </li>
                   ))}
                 </ul>
               </AlertDescription>

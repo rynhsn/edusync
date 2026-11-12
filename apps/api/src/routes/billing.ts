@@ -13,7 +13,9 @@ import {
   educationProfileSchema,
   registrationInput,
   requirementMap,
+  SUGGESTED_EFFECTIVE_WEEKS,
   slugSchema,
+  suggestedPeriodMinutes,
 } from '@edusync/contracts';
 import {
   asc,
@@ -108,6 +110,8 @@ export async function billingRoutes(instance: FastifyInstance, options: { env: E
         teacherModel: r.teacherModel,
         vocational: r.vocational,
         levels: r.levels,
+        suggestedPeriodMinutes: suggestedPeriodMinutes(r.key),
+        suggestedEffectiveWeeks: SUGGESTED_EFFECTIVE_WEEKS,
       }));
     },
   );

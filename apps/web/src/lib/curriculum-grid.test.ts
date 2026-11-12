@@ -13,7 +13,20 @@ const row = (
   w: number | null,
   y: number | null,
   note: string | null = null,
-): AllocationRow => ({ subjectId, weeklyPeriods: w, yearlyPeriods: y, note });
+  extra: { cocurricularYearlyPeriods?: number | null; weeks?: number | null } = {},
+): AllocationRow => ({ subjectId, weeklyPeriods: w, yearlyPeriods: y, note, ...extra });
+
+/** Bentuk item PUT: keempat isian JP selalu hadir. */
+const item = (over: Record<string, unknown>) => ({
+  levelCode: '7',
+  programId: null,
+  weeklyPeriods: null,
+  yearlyPeriods: null,
+  cocurricularYearlyPeriods: null,
+  weeks: null,
+  note: null,
+  ...over,
+});
 
 describe('parsePeriods', () => {
   it('mengurai bilangan bulat, kosong menjadi null, selain itu tidak valid', () => {
@@ -38,9 +51,7 @@ describe('diffAllocations', () => {
   it('hanya mengirim baris yang berubah', () => {
     const r = diffAllocations('7', null, saved, { a: { weekly: '2' }, b: { weekly: '5' } });
     expect(r.invalid).toEqual([]);
-    expect(r.items).toEqual([
-      { levelCode: '7', programId: null, subjectId: 'b', weeklyPeriods: 5, yearlyPeriods: null, note: null },
-    ]);
+    expect(r.items).toEqual([item({ subjectId: 'b', weeklyPeriods: 5 })]);
   });
 
   it('membawa catatan baris yang ada', () => {
@@ -56,16 +67,7 @@ describe('diffAllocations', () => {
 
   it('kedua JP kosong pada baris yang ada berarti hapus', () => {
     const r = diffAllocations('7', null, saved, { a: { weekly: '', yearly: '' } });
-    expect(r.items).toEqual([
-      {
-        levelCode: '7',
-        programId: null,
-        subjectId: 'a',
-        weeklyPeriods: null,
-        yearlyPeriods: null,
-        note: 'catatan',
-      },
-    ]);
+    expect(r.items).toEqual([item({ subjectId: 'a', note: 'catatan' })]);
   });
 
   it('baris baru yang tetap kosong tidak dikirim', () => {
@@ -74,9 +76,7 @@ describe('diffAllocations', () => {
 
   it('baris baru terisi dikirim', () => {
     const r = diffAllocations('7', null, saved, { z: { weekly: '3' } });
-    expect(r.items).toEqual([
-      { levelCode: '7', programId: null, subjectId: 'z', weeklyPeriods: 3, yearlyPeriods: null, note: null },
-    ]);
+    expect(r.items).toEqual([item({ subjectId: 'z', weeklyPeriods: 3 })]);
   });
 
   it('isian tidak valid dilaporkan dan tidak dikirim', () => {
@@ -90,6 +90,34 @@ describe('diffAllocations', () => {
   });
 });
 
+describe('diffAllocations kokurikuler dan minggu', () => {
+  const saved = [
+    row('a', 2, 72, 'c', { cocurricularYearlyPeriods: 36 }),
+    row('p', null, null, null, { weeks: 24 }),
+  ];
+  it('mengubah kokurikuler membawa nilai intrakurikuler dan minggu yang ada', () => {
+    const r = diffAllocations('7', null, saved, { a: { cocurricular: '40' } });
+    expect(r.items).toEqual([
+      item({ subjectId: 'a', weeklyPeriods: 2, yearlyPeriods: 72, cocurricularYearlyPeriods: 40, note: 'c' }),
+    ]);
+  });
+  it('baris yang hanya berisi minggu (PKL) tidak dihapus saat JP tetap kosong', () => {
+    const r = diffAllocations('7', null, saved, { p: { weeks: '28' } });
+    expect(r.items).toEqual([item({ subjectId: 'p', weeks: 28 })]);
+  });
+  it('baris baru yang hanya berisi kokurikuler dikirim', () => {
+    expect(diffAllocations('7', null, saved, { z: { cocurricular: '30' } }).items).toEqual([
+      item({ subjectId: 'z', cocurricularYearlyPeriods: 30 }),
+    ]);
+  });
+  it('semua isian dikosongkan berarti hapus; isian tidak valid pada kolom baru dilaporkan', () => {
+    expect(diffAllocations('7', null, saved, { p: { weeks: '' } }).items).toEqual([item({ subjectId: 'p' })]);
+    const r = diffAllocations('7', null, saved, { a: { weeks: 'x' }, p: { cocurricular: '-1' } });
+    expect(r.invalid).toEqual(['a', 'p']);
+    expect(r.items).toEqual([]);
+  });
+});
+
 describe('sumPeriods', () => {
   it('menjumlahkan nilai tersimpan dengan suntingan, kosong dihitung 0', () => {
     const saved = [row('a', 2, 72), row('b', 4, null), row('c', null, null)];
@@ -99,17 +127,32 @@ describe('sumPeriods', () => {
       'c',
       'd',
     ]);
-    expect(t).toEqual({ weekly: 8, yearly: 108, filled: 3 });
+    expect(t).toEqual({ weekly: 8, yearly: 108, cocurricular: 0, weeks: 0, filled: 3 });
   });
   it('isian tidak valid dihitung 0', () => {
     expect(sumPeriods([row('a', 2, 72)], { a: { weekly: 'x' } }, ['a'])).toEqual({
       weekly: 0,
       yearly: 72,
+      cocurricular: 0,
+      weeks: 0,
       filled: 1,
     });
   });
   it('tanpa mapel menghasilkan nol', () => {
-    expect(sumPeriods([], {}, [])).toEqual({ weekly: 0, yearly: 0, filled: 0 });
+    expect(sumPeriods([], {}, [])).toEqual({ weekly: 0, yearly: 0, cocurricular: 0, weeks: 0, filled: 0 });
+  });
+  it('kokurikuler dan minggu dijumlahkan terpisah dari JP intrakurikuler', () => {
+    const saved = [
+      row('a', 2, 72, null, { cocurricularYearlyPeriods: 36 }),
+      row('p', null, null, null, { weeks: 24 }),
+    ];
+    expect(sumPeriods(saved, { a: { cocurricular: '40' } }, ['a', 'p'])).toEqual({
+      weekly: 2,
+      yearly: 72,
+      cocurricular: 40,
+      weeks: 24,
+      filled: 2,
+    });
   });
 });
 
