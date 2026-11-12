@@ -23,7 +23,7 @@ import {
   type Tx,
   teacher,
 } from '@edusync/db';
-import { rosterOf } from './attendance-lib';
+import { historicalRosterOf } from './attendance-lib';
 import { loadGradingConfig } from './grading-config-lib';
 import { assessedSubjects, computeGrades, type StudentGrade } from './grading-lib';
 import { HttpError } from './http-error';
@@ -136,7 +136,8 @@ export interface ClassContext {
 
 /**
  * Hitung nilai seluruh siswa kelas. Rumus nilai akhir dan predikat sama dengan rekap penilaian (`computeGrades`).
- * `extraStudentIds` menambahkan siswa di luar roster aktif (mis. siswa yang kini nonaktif) agar nilainya ikut dihitung.
+ * Roster memakai `historicalRosterOf` (aktif dan lulusan yang terdaftar di tahun kelas ini).
+ * `extraStudentIds` menambahkan siswa di luar roster itu (mis. siswa pindah yang kini nonaktif) agar nilainya ikut dihitung.
  */
 export async function loadClassContext(
   tx: Tx,
@@ -144,7 +145,7 @@ export async function loadClassContext(
   clsInput: ClassRow,
   extraStudentIds: string[] = [],
 ): Promise<ClassContext> {
-  const { cls, rows: roster } = await rosterOf(tx, clsInput.id);
+  const { cls, rows: roster } = await historicalRosterOf(tx, clsInput.id);
   const [sch] = await tx.select({ name: school.name }).from(school);
   const [year] = await tx
     .select({ name: academicYear.name })

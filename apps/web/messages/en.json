@@ -816,7 +816,7 @@
       "not_final_level": "Class \"{className}\" (grade \"{level}\") is no longer a final grade, so the graduating decision was not applied. Change the decision in the Decisions step, then apply again."
     },
     "applyWarning": {
-      "graduate_report_not_final": "{count} students will be set as graduated even though the last-semester report cards of their class are not finalized; graduated students no longer appear in the report card list, so finalize the report cards of that class first."
+      "graduate_report_not_final": "{count} students will be set as graduated even though the last-semester report cards of their class are not finalized; finalize them before or after confirming graduation, graduated students still appear in their class report cards."
     }
   },
   "teachingPlan": {

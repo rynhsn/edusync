@@ -25,7 +25,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { rosterOf } from '../attendance-lib';
+import { historicalRosterOf, rosterOf } from '../attendance-lib';
 import {
   activeSemesterConfig,
   assertComponentInSemester,
@@ -191,8 +191,8 @@ const assessmentSchema = z.object({
   title: z.string(),
   date: z.string(),
   maxScore: z.number().int(),
-  filled: z.number().int().describe('Jumlah siswa aktif kelas yang sudah punya skor'),
-  total: z.number().int().describe('Jumlah siswa aktif di kelas'),
+  filled: z.number().int().describe('Jumlah siswa aktif atau lulusan kelas yang sudah punya skor'),
+  total: z.number().int().describe('Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu)'),
   canInput: z.boolean().describe('Pengguna ini boleh mengubah penilaian dan skornya'),
 });
 
@@ -343,8 +343,14 @@ export async function gradingRoutes(instance: FastifyInstance) {
       .select({ classId: enrollment.classId, n: count() })
       .from(enrollment)
       .innerJoin(student, eq(student.id, enrollment.studentId))
+      .innerJoin(classRoom, eq(classRoom.id, enrollment.classId))
       .where(
-        and(inArray(enrollment.classId, classIds), isNull(student.deletedAt), eq(student.status, 'active')),
+        and(
+          inArray(enrollment.classId, classIds),
+          eq(enrollment.academicYearId, classRoom.academicYearId),
+          isNull(student.deletedAt),
+          inArray(student.status, ['active', 'graduated']),
+        ),
       )
       .groupBy(enrollment.classId);
     const filled = await tx
@@ -356,6 +362,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         and(eq(enrollment.studentId, score.studentId), eq(enrollment.classId, assessment.classId)),
       )
       .innerJoin(student, eq(student.id, score.studentId))
+      .innerJoin(classRoom, eq(classRoom.id, assessment.classId))
       .where(
         and(
           inArray(
@@ -363,8 +370,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
             visible.map((r) => r.a.id),
           ),
           sql`${score.value} is not null`,
+          eq(enrollment.academicYearId, classRoom.academicYearId),
           isNull(student.deletedAt),
-          eq(student.status, 'active'),
+          inArray(student.status, ['active', 'graduated']),
         ),
       )
       .groupBy(score.assessmentId);
@@ -817,7 +825,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'Izin: `grade:read`; modul `grades`. Filter `semesterId`, `classId`, `subjectId` (opsional), terbaru lebih ' +
           'dulu. Pemegang `grade:configure`, kepala sekolah, dan kurikulum melihat semuanya; pengguna lain hanya ' +
           'penilaian untuk pasangan (kelas, mapel) yang ia ampu (daftar kosong bila tidak mengampu). `filled`/`total` ' +
-          'menghitung siswa aktif kelas.',
+          'menghitung siswa aktif dan lulusan kelas.',
         headers: schoolHeader,
         querystring: z.object({
           semesterId: z.uuid().optional(),
@@ -966,7 +974,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Skor satu penilaian',
         description:
-          'Izin: `grade:read`; modul `grades`. Roster siswa aktif kelas penilaian (urut nama) dengan skor ' +
+          'Izin: `grade:read`; modul `grades`. Roster siswa aktif dan lulusan kelas penilaian (urut nama) dengan skor ' +
           '(`value` null bila belum diisi). Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya boleh ' +
           'untuk kelas+mapel yang ia ampu (403). `canInput` menandai hak mengisi.',
         headers: schoolHeader,
@@ -996,7 +1004,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         const current = await loadAssessment(tx, request.params.id);
         if (!(await canReadPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
         const view = (await assessmentViews(tx, ctx, { id: current.id }))[0]!;
-        const { rows } = await rosterOf(tx, current.classId);
+        const { rows } = await historicalRosterOf(tx, current.classId);
         const scores = await tx.select().from(score).where(eq(score.assessmentId, current.id));
         return {
           assessment: view,
@@ -1098,7 +1106,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Rekap nilai kelas dan mapel',
         description:
-          'Izin: `grade:read`; modul `grades`. Per siswa aktif: rata-rata persen tiap komponen, nilai akhir ' +
+          'Izin: `grade:read`; modul `grades`. Per siswa aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir ' +
           '(rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. ' +
           '`belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). ' +
           '`stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini ' +
@@ -1157,7 +1165,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
 
         const cfg = await loadGradingConfig(tx, semesterId);
         const { settings, components } = cfg;
-        const { rows } = await rosterOf(tx, classId);
+        const { rows } = await historicalRosterOf(tx, classId);
         const grades = await computeGrades(tx, {
           semesterId,
           classId,
@@ -1288,7 +1296,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
           : [];
 
         const { settings, components } = await loadGradingConfig(tx, semesterId);
-        const { rows } = await rosterOf(tx, classId);
+        const { rows } = await historicalRosterOf(tx, classId);
         const grades = await computeGrades(tx, {
           semesterId,
           classId,

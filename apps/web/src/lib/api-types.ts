@@ -12596,7 +12596,7 @@ export interface paths {
         put?: never;
         /**
          * Terapkan keputusan kenaikan kelas ke tahun berikutnya
-         * @description Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau bila tidak ada, satu-satunya kelas sejurusan pada tingkat itu; selain itu `unplaced` `no_target_class`, tidak pernah menebak kelas pertama), `retain` di kelas sebaya tahun tujuan dengan aturan yang sama, `graduate` mengubah status siswa menjadi lulus (tingkat akhir kelas asal divalidasi ulang: bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; siswa yang sudah ter-enroll di tahun tujuan (termasuk yang terdahului proses lain) dilewati dan dilaporkan di `alreadyEnrolled`, keputusannya tidak ditandai diterapkan. Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. `graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber (status lulus mengeluarkan siswa dari roster rapor draf). Penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.
+         * @description Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau bila tidak ada, satu-satunya kelas sejurusan pada tingkat itu; selain itu `unplaced` `no_target_class`, tidak pernah menebak kelas pertama), `retain` di kelas sebaya tahun tujuan dengan aturan yang sama, `graduate` mengubah status siswa menjadi lulus (tingkat akhir kelas asal divalidasi ulang: bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; siswa yang sudah ter-enroll di tahun tujuan (termasuk yang terdahului proses lain) dilewati dan dilaporkan di `alreadyEnrolled`, keputusannya tidak ditandai diterapkan. Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. `graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber (lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah lulus). Penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.
          */
         post: {
             parameters: {
@@ -12653,7 +12653,7 @@ export interface paths {
                             }[];
                             /** @description Siswa aktif tahun sumber yang belum punya keputusan */
                             skippedNoDecision: number;
-                            /** @description Jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Status lulus mengeluarkan siswa dari roster rapor draf, jadi finalkan rapornya lebih dulu */
+                            /** @description Jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah ditetapkan lulus; peringatan ini hanya mengingatkan bahwa rapornya belum final */
                             graduateReportNotFinal?: number;
                             /** @description Peringatan terstruktur (kode stabil + parameter): graduate_report_not_final */
                             warningItems?: {
@@ -26522,7 +26522,7 @@ export interface paths {
         };
         /**
          * Daftar penilaian
-         * @description Izin: `grade:read`; modul `grades`. Filter `semesterId`, `classId`, `subjectId` (opsional), terbaru lebih dulu. Pemegang `grade:configure`, kepala sekolah, dan kurikulum melihat semuanya; pengguna lain hanya penilaian untuk pasangan (kelas, mapel) yang ia ampu (daftar kosong bila tidak mengampu). `filled`/`total` menghitung siswa aktif kelas.
+         * @description Izin: `grade:read`; modul `grades`. Filter `semesterId`, `classId`, `subjectId` (opsional), terbaru lebih dulu. Pemegang `grade:configure`, kepala sekolah, dan kurikulum melihat semuanya; pengguna lain hanya penilaian untuk pasangan (kelas, mapel) yang ia ampu (daftar kosong bila tidak mengampu). `filled`/`total` menghitung siswa aktif dan lulusan kelas.
          */
         get: {
             parameters: {
@@ -26566,9 +26566,9 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
-                            /** @description Jumlah siswa aktif kelas yang sudah punya skor */
+                            /** @description Jumlah siswa aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
-                            /** @description Jumlah siswa aktif di kelas */
+                            /** @description Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
                             total: number;
                             /** @description Pengguna ini boleh mengubah penilaian dan skornya */
                             canInput: boolean;
@@ -26666,9 +26666,9 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
-                            /** @description Jumlah siswa aktif kelas yang sudah punya skor */
+                            /** @description Jumlah siswa aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
-                            /** @description Jumlah siswa aktif di kelas */
+                            /** @description Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
                             total: number;
                             /** @description Pengguna ini boleh mengubah penilaian dan skornya */
                             canInput: boolean;
@@ -26803,9 +26803,9 @@ export interface paths {
                             title: string;
                             date: string;
                             maxScore: number;
-                            /** @description Jumlah siswa aktif kelas yang sudah punya skor */
+                            /** @description Jumlah siswa aktif atau lulusan kelas yang sudah punya skor */
                             filled: number;
-                            /** @description Jumlah siswa aktif di kelas */
+                            /** @description Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
                             total: number;
                             /** @description Pengguna ini boleh mengubah penilaian dan skornya */
                             canInput: boolean;
@@ -26987,7 +26987,7 @@ export interface paths {
         };
         /**
          * Skor satu penilaian
-         * @description Izin: `grade:read`; modul `grades`. Roster siswa aktif kelas penilaian (urut nama) dengan skor (`value` null bila belum diisi). Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya boleh untuk kelas+mapel yang ia ampu (403). `canInput` menandai hak mengisi.
+         * @description Izin: `grade:read`; modul `grades`. Roster siswa aktif dan lulusan kelas penilaian (urut nama) dengan skor (`value` null bila belum diisi). Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya boleh untuk kelas+mapel yang ia ampu (403). `canInput` menandai hak mengisi.
          */
         get: {
             parameters: {
@@ -27030,9 +27030,9 @@ export interface paths {
                                 title: string;
                                 date: string;
                                 maxScore: number;
-                                /** @description Jumlah siswa aktif kelas yang sudah punya skor */
+                                /** @description Jumlah siswa aktif atau lulusan kelas yang sudah punya skor */
                                 filled: number;
-                                /** @description Jumlah siswa aktif di kelas */
+                                /** @description Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
                                 total: number;
                                 /** @description Pengguna ini boleh mengubah penilaian dan skornya */
                                 canInput: boolean;
@@ -27222,7 +27222,7 @@ export interface paths {
         };
         /**
          * Rekap nilai kelas dan mapel
-         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Siswa yang rapornya FINAL pada kelas ini memakai angka snapshot rapor (`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat atas muncul bila ada yang demikian. Siswa tanpa rapor final dihitung dari konfigurasi efektif semester (salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`.
+         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Siswa yang rapornya FINAL pada kelas ini memakai angka snapshot rapor (`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat atas muncul bila ada yang demikian. Siswa tanpa rapor final dihitung dari konfigurasi efektif semester (salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`.
          */
         get: {
             parameters: {
@@ -27670,7 +27670,7 @@ export interface paths {
         };
         /**
          * Daftar rapor satu kelas
-         * @description Izin: `report_card:read`; modul `grades`. Siswa aktif kelas (urut nama) dengan status rapor, ada tidaknya catatan wali kelas, rata-rata nilai akhir mapel, dan kelengkapan nilai (`subjectsGraded` dari `subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). Rapor final memakai snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
+         * @description Izin: `report_card:read`; modul `grades`. Siswa aktif dan lulusan kelas pada tahun ajaran kelas itu (urut nama) dengan status rapor, ada tidaknya catatan wali kelas, rata-rata nilai akhir mapel, dan kelengkapan nilai (`subjectsGraded` dari `subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). Rapor final memakai snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
          */
         get: {
             parameters: {
@@ -28061,7 +28061,7 @@ export interface paths {
         put?: never;
         /**
          * Finalkan rapor satu kelas
-         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif kelas: dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif dan lulusan kelas (tahun ajaran kelas itu): dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
          */
         post: {
             parameters: {

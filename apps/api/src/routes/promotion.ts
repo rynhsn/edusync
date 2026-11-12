@@ -227,7 +227,7 @@ const applyResponse = z.object({
     .int()
     .optional()
     .describe(
-      'Jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Status lulus mengeluarkan siswa dari roster rapor draf, jadi finalkan rapornya lebih dulu',
+      'Jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah ditetapkan lulus; peringatan ini hanya mengingatkan bahwa rapornya belum final',
     ),
   warningItems: z
     .array(z.object({ code: z.string(), params: z.record(z.string(), z.union([z.string(), z.number()])) }))
@@ -1273,7 +1273,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
           'dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; ' +
           'riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. ' +
           '`graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor ' +
-          'final pada semester terakhir tahun sumber (status lulus mengeluarkan siswa dari roster rapor draf). Penerapan untuk tahun sumber yang sama ' +
+          'final pada semester terakhir tahun sumber (lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah lulus). Penerapan untuk tahun sumber yang sama ' +
           'berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. ' +
           '400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.',
         headers: schoolHeader,

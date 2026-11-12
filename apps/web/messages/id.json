@@ -816,7 +816,7 @@
       "not_final_level": "Kelas \"{className}\" (tingkat \"{level}\") bukan tingkat akhir lagi, jadi keputusan lulus tidak diterapkan. Ubah keputusannya di langkah Keputusan, lalu terapkan ulang."
     },
     "applyWarning": {
-      "graduate_report_not_final": "{count} siswa akan ditetapkan lulus padahal rapor semester terakhir kelasnya belum final; siswa berstatus lulus tidak muncul lagi di daftar rapor, jadi finalkan rapor kelasnya lebih dulu."
+      "graduate_report_not_final": "{count} siswa akan ditetapkan lulus padahal rapor semester terakhir kelasnya belum final; finalkan sebelum atau sesudah menetapkan lulus, siswa lulusan tetap tampil di rapor kelasnya."
     }
   },
   "teachingPlan": {

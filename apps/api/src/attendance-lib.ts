@@ -57,6 +57,32 @@ export async function rosterOf(tx: Tx, classId: string) {
   return { cls, rows };
 }
 
+/**
+ * Roster historis kelas untuk pembacaan dan finalisasi rapor/rekap nilai: siswa aktif dan lulusan (`graduated`) yang
+ * terdaftar di kelas itu pada tahun ajaran kelas tersebut, urut nama. Lulusan ditetapkan lulus oleh kenaikan kelas
+ * setelah tahun terakhirnya, sedangkan enrollment tahun itu tetap ada, jadi rapornya tetap harus tampil dan dapat
+ * difinalkan. Lulusan tanpa enrollment pada tahun kelas ini tidak ikut. Siswa pindah (`transferred`) dan keluar
+ * (`dropped`) tetap dikecualikan. Jalur operasional dan penulisan memakai `rosterOf` (hanya aktif).
+ */
+export async function historicalRosterOf(tx: Tx, classId: string) {
+  const [cls] = await tx.select().from(classRoom).where(eq(classRoom.id, classId));
+  if (!cls) throw new HttpError(404, 'not_found', 'Kelas tidak ditemukan.');
+  const rows = await tx
+    .select({ id: student.id, name: student.name, nis: student.nis })
+    .from(enrollment)
+    .innerJoin(student, eq(student.id, enrollment.studentId))
+    .where(
+      and(
+        eq(enrollment.classId, classId),
+        eq(enrollment.academicYearId, cls.academicYearId),
+        isNull(student.deletedAt),
+        inArray(student.status, ['active', 'graduated']),
+      ),
+    )
+    .orderBy(asc(student.name));
+  return { cls, rows };
+}
+
 /** Peran yang melihat laporan semua kelas meskipun juga tercatat sebagai guru. */
 const REPORT_WIDE_ROLES = ['principal', 'curriculum'];
 

@@ -39,6 +39,9 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
   salinan bekunya. Data lama dibekukan otomatis saat migrasi (`pnpm --filter @edusync/db backfill:grading-config`; skrip
   verifikasi baca-saja `verify:grading-config`). Migrasi 0094. Komponen yang dibuat sesudah pembekuan ditolak
   (409 `component_not_in_semester`) sampai konfigurasi disinkronkan.
+- **Siswa yang sudah ditetapkan lulus tetap tampil di rapor, rekap, dan matriks kelas tahun terakhirnya** (selama punya
+  enrollment di tahun kelas itu), dan rapornya dapat difinalkan sebelum atau sesudah kelulusan ditetapkan. Absensi, gerbang,
+  kartu, dan jalur operasional lain tetap hanya memuat siswa aktif.
 - Arsip rapor final tidak lagi ikut terhapus saat kelas, siswa, atau semesternya dihapus; penghapusan ditolak (409 `in_use`).
   Migrasi 0095.
 - Pengaturan KKTP kini mensyaratkan modul Nilai dan rapor.

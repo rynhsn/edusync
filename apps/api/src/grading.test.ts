@@ -201,7 +201,8 @@ beforeAll(async () => {
   ids.ani = await mkStudent(schoolId, main.yearId, ids.class7A, 'Ani');
   ids.budi = await mkStudent(schoolId, main.yearId, ids.class7A, 'Budi');
   ids.citra = await mkStudent(schoolId, main.yearId, ids.class7A, 'Citra');
-  ids.alumni = await mkStudent(schoolId, main.yearId, ids.class7A, 'Alumni', 'graduated');
+  // Zaki berstatus lulus tetapi punya enrollment tahun kelas ini: tampil di bacaan (roster historis), ditolak di tulis.
+  ids.alumni = await mkStudent(schoolId, main.yearId, ids.class7A, 'Zaki', 'graduated');
   ids.dewi = await mkStudent(schoolId, main.yearId, ids.class7B, 'Dewi');
   ids.foreignStudent = await mkStudent(otherId, foreign.yearId, ids.foreignClass, 'Siswa Lain');
 
@@ -409,7 +410,7 @@ describe('penilaian', () => {
       teacherName: 'Pak Mat',
       maxScore: 100,
       filled: 0,
-      total: 3,
+      total: 4,
       canInput: true,
     });
     ids.matTugas = byTeacher.json().id;
@@ -536,13 +537,13 @@ describe('skor', () => {
   const save = (id: string, records: object[], cookie = adminCookie) =>
     call('PUT', `/v1/assessments/${id}/scores`, cookie, { records });
 
-  it('roster hanya siswa aktif kelas, urut nama, dengan skor kosong', async () => {
+  it('roster baca: aktif dan lulusan tahun kelas itu, urut nama, dengan skor kosong', async () => {
     const res = await scoresOf(ids.matTugas, matCookie);
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body.canInput).toBe(true);
     expect(body.assessment.id).toBe(ids.matTugas);
-    expect(body.students.map((s: { name: string }) => s.name)).toEqual(['Ani', 'Budi', 'Citra']);
+    expect(body.students.map((s: { name: string }) => s.name)).toEqual(['Ani', 'Budi', 'Citra', 'Zaki']);
     expect(body.students.every((s: { value: number | null }) => s.value === null)).toBe(true);
     // Kepala sekolah membaca tetapi tidak mengisi.
     const asPrincipal = await scoresOf(ids.matTugas, principalCookie);
@@ -624,11 +625,11 @@ describe('skor', () => {
     await save(ids.matUh, [{ studentId: ids.citra, value: null }]);
 
     const tugas = (await scoresOf(ids.matTugas)).json();
-    expect(tugas.students.map((s: { value: number | null }) => s.value)).toEqual([90, 60, null]);
+    expect(tugas.students.map((s: { value: number | null }) => s.value)).toEqual([90, 60, null, null]);
     expect(tugas.students[1].note).toBe('terlambat');
-    expect(tugas.assessment).toMatchObject({ filled: 2, total: 3 });
+    expect(tugas.assessment).toMatchObject({ filled: 2, total: 4 });
     const uh = (await scoresOf(ids.matUh)).json();
-    expect(uh.students.map((s: { value: number | null }) => s.value)).toEqual([45, 25, null]);
+    expect(uh.students.map((s: { value: number | null }) => s.value)).toEqual([45, 25, null, null]);
     expect(uh.assessment.filled).toBe(2);
     // Menimpa skor yang sama tidak menggandakan baris.
     await save(ids.matTugas, [{ studentId: ids.ani, value: 90 }], matCookie);
@@ -672,7 +673,7 @@ describe('rekap', () => {
       ['UTS', 20],
       ['UAS', 30],
     ]);
-    expect(body.students.map((s: { name: string }) => s.name)).toEqual(['Ani', 'Budi', 'Citra']);
+    expect(body.students.map((s: { name: string }) => s.name)).toEqual(['Ani', 'Budi', 'Citra', 'Zaki']);
     const [ani, budi, citra] = body.students;
 
     // Ani: Tugas 90, UH 90, UTS 80, UAS kosong => (90*20 + 90*30 + 80*20) / 70 = 87.14
@@ -715,19 +716,19 @@ describe('rekap', () => {
       'percentage',
     );
     // Tanpa renormalisasi: (90*20 + 90*30 + 80*20) / 100 = 61; (60*20 + 50*30) / 100 = 27.
-    expect(await finals()).toEqual([61, 27, null]);
+    expect(await finals()).toEqual([61, 27, null, null]);
     expect((await call('GET', '/v1/grading/settings', matCookie)).json().calculationMode).toBe('percentage');
 
     await setSettings({ ...base, calculationMode: 'simple_average' });
     // Rata-rata tanpa bobot atas komponen yang punya skor: (90+90+80)/3 = 86.67; (60+50)/2 = 55.
-    expect(await finals()).toEqual([86.67, 55, null]);
+    expect(await finals()).toEqual([86.67, 55, null, null]);
 
     // Bila dihilangkan, mode yang ada dipertahankan; mode tak dikenal ditolak.
     expect((await setSettings(base)).json().calculationMode).toBe('simple_average');
     expect((await setSettings({ ...base, calculationMode: 'median' })).statusCode).toBe(400);
 
     await setSettings({ ...base, calculationMode: 'weighted_average' });
-    expect(await finals()).toEqual([87.14, 54, null]);
+    expect(await finals()).toEqual([87.14, 54, null, null]);
   });
 
   it('mode percentage hanya diterima bila jumlah bobot komponen tepat 100 (400 weights_sum_invalid)', async () => {
@@ -807,7 +808,7 @@ describe('rekap', () => {
     expect(res.statusCode).toBe(200);
     const body = res.json();
     expect(body.subjects.map((s: { name: string }) => s.name)).toEqual(['IPA', 'Matematika']);
-    expect(body.students.map((s: { name: string }) => s.name)).toEqual(['Ani', 'Budi', 'Citra']);
+    expect(body.students.map((s: { name: string }) => s.name)).toEqual(['Ani', 'Budi', 'Citra', 'Zaki']);
     const gradesOf = (name: string) =>
       Object.fromEntries(
         body.students

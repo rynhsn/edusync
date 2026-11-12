@@ -255,7 +255,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Daftar rapor satu kelas',
         description:
-          'Izin: `report_card:read`; modul `grades`. Siswa aktif kelas (urut nama) dengan status rapor, ada tidaknya ' +
+          'Izin: `report_card:read`; modul `grades`. Siswa aktif dan lulusan kelas pada tahun ajaran kelas itu (urut nama) dengan status rapor, ada tidaknya ' +
           'catatan wali kelas, rata-rata nilai akhir mapel, dan kelengkapan nilai (`subjectsGraded` dari ' +
           '`subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). Rapor final memakai ' +
           'snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu ' +
@@ -429,7 +429,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         summary: 'Finalkan rapor satu kelas',
         description:
           'Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). ' +
-          'Membuat atau menimpa rapor semua siswa aktif kelas: dokumen rapor dibekukan sebagai snapshot dan status ' +
+          'Membuat atau menimpa rapor semua siswa aktif dan lulusan kelas (tahun ajaran kelas itu): dokumen rapor dibekukan sebagai snapshot dan status ' +
           'menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya ' +
           'penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada ' +
           'pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak ' +

@@ -311,6 +311,10 @@ beforeAll(async () => {
   // IPA (Tugas saja): Ani 95 A; Budi tanpa skor; Citra 60 D.
   await setScore(ids.ipaTugas, ids.ani, 95);
   await setScore(ids.ipaTugas, ids.citra, 60);
+  // Alumni (status lulus, enrollment tahun ini tetap): ikut roster rapor sehingga nilainya lengkap agar alur lama utuh.
+  await setScore(ids.matTugas, ids.alumni, 40);
+  await setScore(ids.matUts, ids.alumni, 40);
+  await setScore(ids.ipaTugas, ids.alumni, 40);
 
   // Ekskul Ani semester ini; absensi dalam dan di luar rentang semester.
   const [pramuka] = await db.insert(extracurricular).values({ schoolId, name: 'Pramuka' }).returning();
@@ -522,7 +526,18 @@ describe('daftar rapor kelas', () => {
   it('wali kelas dan peran lebar boleh; guru lain 403; rujukan divalidasi', async () => {
     const res = await call('GET', listUrl(), waliCookie);
     expect(res.statusCode).toBe(200);
+    // Alumni (status lulus, enrollment tahun ini tetap) tetap tampil di rapor kelasnya, urut nama.
     expect(res.json()).toEqual([
+      {
+        studentId: ids.alumni,
+        name: 'Alumni',
+        nis: `Alumni-${run}`,
+        status: 'draft',
+        hasNote: false,
+        average: 40,
+        subjectsGraded: 2,
+        subjectsTotal: 2,
+      },
       {
         studentId: ids.ani,
         name: 'Ani',
@@ -691,10 +706,11 @@ describe('peringkat', () => {
         .showRank,
     ).toBe(true);
     const rank = async (id: string) => (await call('GET', docUrl(id), adminCookie)).json().rank;
-    // Rata-rata: Ani 90, Budi 75, Citra 55.
-    expect(await rank(ids.ani)).toEqual({ position: 1, of: 3 });
-    expect(await rank(ids.budi)).toEqual({ position: 2, of: 3 });
-    expect(await rank(ids.citra)).toEqual({ position: 3, of: 3 });
+    // Rata-rata: Ani 90, Budi 75, Citra 55, Alumni (lulusan, ikut peringkat) 40.
+    expect(await rank(ids.ani)).toEqual({ position: 1, of: 4 });
+    expect(await rank(ids.budi)).toEqual({ position: 2, of: 4 });
+    expect(await rank(ids.citra)).toEqual({ position: 3, of: 4 });
+    expect(await rank(ids.alumni)).toEqual({ position: 4, of: 4 });
     await call('PUT', '/v1/report-cards/settings', adminCookie, { ...settings, showRank: false });
     expect(await rank(ids.ani)).toBeNull();
   });
@@ -762,8 +778,8 @@ describe('finalisasi, snapshot, dan buka kembali', () => {
     const before = (await call('GET', docUrl(ids.ani), adminCookie)).json();
     const res = await finalize(waliCookie, { force: true });
     expect(res.statusCode).toBe(200);
-    // Siswa lulus (Alumni) tidak ikut.
-    expect(res.json()).toEqual({ finalized: 3 });
+    // Siswa berstatus lulus (Alumni) dengan enrollment tahun kelas ini tetap ikut finalisasi (roster historis).
+    expect(res.json()).toEqual({ finalized: 4 });
 
     const frozen = (await call('GET', docUrl(ids.ani), waliCookie)).json();
     expect(frozen.status).toBe('final');
@@ -789,9 +805,9 @@ describe('finalisasi, snapshot, dan buka kembali', () => {
 
     // Daftar memakai snapshot: rata-rata Ani tetap 90 dan status final.
     const list = (await call('GET', listUrl(), adminCookie)).json();
-    expect(list.map((s: { status: string }) => s.status)).toEqual(['final', 'final', 'final']);
-    expect(list[0]).toMatchObject({ name: 'Ani', average: 90, hasNote: true });
-    expect(list[1]).toMatchObject({ name: 'Budi', average: 75, subjectsGraded: 1, subjectsTotal: 2 });
+    expect(list.map((s: { status: string }) => s.status)).toEqual(['final', 'final', 'final', 'final']);
+    expect(list[1]).toMatchObject({ name: 'Ani', average: 90, hasNote: true });
+    expect(list[2]).toMatchObject({ name: 'Budi', average: 75, subjectsGraded: 1, subjectsTotal: 2 });
   });
 
   it('catatan ditolak 409 report_final saat final', async () => {
@@ -827,7 +843,7 @@ describe('finalisasi, snapshot, dan buka kembali', () => {
     ).toBe(400);
     const res = await reopen(curriculumCookie);
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ reopened: 3 });
+    expect(res.json()).toEqual({ reopened: 4 });
     expect((await reopen(adminCookie)).json()).toEqual({ reopened: 0 });
 
     const doc = (await call('GET', docUrl(ids.ani), adminCookie)).json();
@@ -841,7 +857,7 @@ describe('finalisasi, snapshot, dan buka kembali', () => {
     });
     expect(doc.principal).toEqual({ name: 'Pengganti', nip: null });
     // Rata-rata Ani kini 70 (45 dan 95), di bawah Budi (75).
-    expect(doc.rank).toEqual({ position: 2, of: 3 });
+    expect(doc.rank).toEqual({ position: 2, of: 4 });
     // Catatan wali kelas tetap ada dan dapat diubah lagi.
     expect(doc.homeroomNote).toBe('Pertahankan prestasimu.');
     expect(
@@ -859,7 +875,7 @@ describe('finalisasi, snapshot, dan buka kembali', () => {
     await setScore(ids.ipaTugas, ids.budi, 85);
     const res = await finalize(waliCookie);
     expect(res.statusCode).toBe(200);
-    expect(res.json()).toEqual({ finalized: 3 });
+    expect(res.json()).toEqual({ finalized: 4 });
     const budi = (await call('GET', docUrl(ids.budi), adminCookie)).json();
     expect(budi.status).toBe('final');
     expect(budi.subjects.find((s: { name: string }) => s.name === 'IPA')).toMatchObject({

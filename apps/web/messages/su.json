@@ -816,7 +816,7 @@
       "not_final_level": "Kelas \"{className}\" (tingkat \"{level}\") lain tingkat tungtung deui, jadi kaputusan lulus teu diterapkeun. Robah kaputusanna dina léngkah Kaputusan, tuluy terapkeun deui."
     },
     "applyWarning": {
-      "graduate_report_not_final": "{count} siswa bakal ditetepkeun lulus padahal rapot semester pamungkas kelasna acan final; siswa nu status lulus teu muncul deui dina daptar rapot, jadi finalkeun heula rapot kelasna."
+      "graduate_report_not_final": "{count} siswa bakal ditetepkeun lulus padahal rapot semester pamungkas kelasna acan final; finalkeun saméméh atawa sanggeus netepkeun lulus, siswa lulusan tetep muncul dina rapot kelasna."
     }
   },
   "teachingPlan": {
