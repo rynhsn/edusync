@@ -617,6 +617,13 @@
       "when": 1795743000000,
       "tag": "0087_academic_integrity",
       "breakpoints": true
+    },
+    {
+      "idx": 88,
+      "version": "7",
+      "when": 1795829400000,
+      "tag": "0088_promotion_decision",
+      "breakpoints": true
     }
   ]
 }

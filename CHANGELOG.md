@@ -9,6 +9,14 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+### Ditambahkan
+
+- **Kenaikan kelas dan rollover tahun ajaran** (fase 2A): halaman **Kenaikan kelas** (`/promotion`) dengan empat langkah. Salin
+  kelas, wali kelas, penugasan guru, dan kalender ke tahun ajaran baru (ada pratinjau, aman dijalankan ulang); tentukan
+  naik/tinggal/lulus per siswa; lalu terapkan. Data tahun lama, termasuk rapor final, tidak diubah. Izin baru
+  `promotion:manage` (admin dan kurikulum), tabel `promotion_decision` (migrasi 0088), dan empat endpoint di tag Academic.
+  Nama kelas yang tidak diawali kode tingkat (mis. "VII A") tidak dinaikkan otomatis; namanya tetap dan muncul sebagai peringatan.
+
 ## [1.1.2] - 2026-11-11
 
 ### Ditambahkan

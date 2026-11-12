@@ -16,6 +16,7 @@ export * from './messaging';
 export * from './omr';
 export * from './permissions';
 export * from './pkl';
+export * from './promotion';
 export * from './quran';
 export * from './report-card';
 export * from './school-domain';

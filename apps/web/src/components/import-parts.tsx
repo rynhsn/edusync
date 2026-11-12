@@ -7,13 +7,24 @@ import { cn } from '@/lib/utils';
 
 export type ImportStep = 0 | 1 | 2;
 
-/** Penunjuk langkah Unggah → Pratinjau → Selesai. */
-export function ImportStepper({ step }: { step: ImportStep }) {
+/**
+ * Penunjuk langkah. Bawaannya Unggah → Pratinjau → Selesai (alur impor); wizard lain mengirim `labels` dan
+ * `ariaLabel` sendiri.
+ */
+export function ImportStepper({
+  step,
+  labels: customLabels,
+  ariaLabel,
+}: {
+  step: number;
+  labels?: readonly string[];
+  ariaLabel?: string;
+}) {
   const t = useTranslations('importKit');
-  const labels = [t('stepUpload'), t('stepPreview'), t('stepDone')];
+  const labels = customLabels ?? [t('stepUpload'), t('stepPreview'), t('stepDone')];
   return (
     <ol
-      aria-label={t('steps')}
+      aria-label={ariaLabel ?? t('steps')}
       className="bg-card flex items-center gap-2 rounded-2xl border p-3 sm:gap-3 sm:p-4"
     >
       {labels.map((label, i) => {

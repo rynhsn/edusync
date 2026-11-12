@@ -146,6 +146,13 @@ const KNOWN = [
   'invalid_education_profile',
   'profile_locked',
   'no_education_profile',
+  'levels_not_configured',
+  'promotion_applied',
+  'invalid_target',
+  'not_final_level',
+  'student_not_enrolled',
+  'invalid_target_class',
+  'duplicate_student',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

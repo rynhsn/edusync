@@ -77,7 +77,10 @@ export const academicYear = pgTable(
     isActive: boolean('is_active').notNull().default(false),
     createdAt: createdAt(),
   },
-  (t) => [unique('academic_year_school_name_uq').on(t.schoolId, t.name)],
+  (t) => [
+    unique('academic_year_school_name_uq').on(t.schoolId, t.name),
+    unique('academic_year_school_id_uq').on(t.schoolId, t.id),
+  ],
 );
 
 export const auditLog = pgTable(
@@ -758,6 +761,42 @@ export const homeroomAssignmentHistory = pgTable(
     createdAt: createdAt(),
   },
   (t) => [index('homeroom_assignment_history_class_idx').on(t.schoolId, t.classId, t.createdAt)],
+);
+
+/**
+ * Keputusan kenaikan kelas satu siswa pada akhir satu tahun ajaran (`academicYearId` = tahun yang ditutup). Diisi sebelum
+ * penempatan; `appliedAt` terisi saat keputusan sudah diterapkan ke tahun berikutnya. FK komposit (school_id, x_id)
+ * ada di migrasi 0088.
+ */
+export const promotionDecision = pgTable(
+  'promotion_decision',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    fromClassId: uuid('from_class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    decision: text('decision', { enum: ['promote', 'retain', 'graduate'] }).notNull(),
+    toClassId: uuid('to_class_id').references(() => classRoom.id),
+    note: text('note'),
+    decidedBy: text('decided_by'),
+    decidedAt: timestamp('decided_at', { withTimezone: true }).notNull().defaultNow(),
+    appliedAt: timestamp('applied_at', { withTimezone: true }),
+  },
+  (t) => [
+    unique('promotion_decision_year_student_uq').on(t.academicYearId, t.studentId),
+    index('promotion_decision_year_idx').on(t.schoolId, t.academicYearId),
+    check('promotion_decision_decision_ck', sql`${t.decision} in ('promote', 'retain', 'graduate')`),
+    check('promotion_decision_graduate_ck', sql`${t.decision} <> 'graduate' or ${t.toClassId} is null`),
+  ],
 );
 
 /** Guru mengampu satu mapel di satu kelas. */

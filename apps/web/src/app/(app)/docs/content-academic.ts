@@ -1181,4 +1181,252 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'promotion',
+    icon: 'school',
+    tone: 'violet',
+    group: 'academic',
+    text: {
+      id: {
+        title: 'Kenaikan kelas dan tahun ajaran baru',
+        summary:
+          'Cara menyiapkan tahun ajaran berikutnya, memutuskan siswa naik, tinggal, atau lulus, lalu menerapkannya tanpa mengubah data tahun lalu.',
+        forWho: 'Kurikulum, Operator, dan Admin sekolah yang mengelola pergantian tahun ajaran.',
+        sections: [
+          {
+            heading: 'Sebelum mulai',
+            body: 'Pastikan tahun ajaran berikutnya sudah dibuat dan dimulai setelah tahun yang sedang berjalan. Pastikan juga daftar tingkat sekolah sudah diisi (misalnya 7, 8, dan 9), karena urutan tingkat itulah yang menentukan siapa naik ke mana dan tingkat mana yang terakhir. Data tahun lama tidak pernah diubah oleh proses ini, jadi kelas, penugasan guru, nilai, dan rapor tahun lalu tetap utuh.',
+            href: '/academic-years',
+            tip: 'Setiap langkah punya tombol Pratinjau yang hanya menampilkan perkiraan tanpa menyimpan apa pun. Pakai dulu sebelum menjalankan.',
+          },
+          {
+            heading: 'Langkah 1: memilih tahun sumber dan tahun tujuan',
+            body: 'Tahun sumber adalah tahun yang siswanya akan dinaikkan, bawaannya tahun ajaran aktif. Tahun tujuan adalah tahun ajaran berikutnya. Hanya tahun yang dimulai setelah tahun sumber yang bisa dipilih. Bila belum ada, buat dulu di menu Tahun ajaran.',
+            steps: [
+              'Buka menu Kenaikan kelas.',
+              'Pilih Tahun ajaran sumber.',
+              'Pilih Tahun ajaran tujuan, lalu klik Berikutnya.',
+            ],
+            href: '/promotion',
+          },
+          {
+            heading: 'Langkah 2: menyalin kelas, penugasan, dan kalender',
+            body: 'Langkah ini menyiapkan tahun tujuan. Kelas 7A menjadi 8A di tahun tujuan, lengkap dengan wali kelas dan guru mata pelajarannya. Kelas tingkat pertama juga disalin apa adanya untuk siswa baru dan siswa yang tinggal kelas. Kelas tingkat terakhir tidak disalin karena siswanya lulus. Kalender akademik ikut disalin dengan tanggal yang digeser. Hasilnya menampilkan jumlah yang dibuat dan daftar hal yang perlu diperiksa, misalnya wali kelas yang sudah nonaktif. Langkah ini boleh dilewati bila kelas tahun tujuan sudah Anda buat sendiri.',
+            steps: [
+              'Centang apa saja yang ingin disalin.',
+              'Klik Pratinjau untuk melihat jumlahnya dan peringatan.',
+              'Klik Jalankan penyalinan, lalu konfirmasi.',
+            ],
+            tip: 'Aman dijalankan ulang. Kelas, penugasan, dan acara yang sudah ada dilewati, bukan digandakan.',
+            warning:
+              'Bila muncul pesan bahwa daftar tingkat masih kosong, isi dulu tingkat di Pengaturan sekolah, lalu ulangi.',
+          },
+          {
+            heading: 'Langkah 3: memutuskan nasib tiap siswa',
+            body: 'Semua siswa aktif di tahun sumber tampil per kelas. Bawaannya naik kelas, dan lulus untuk kelas tingkat terakhir. Ubah per siswa menjadi Tinggal bila perlu, atau pakai tombol di atas kelas seperti Semua naik untuk mengubah satu kelas sekaligus. Keputusan baru berlaku setelah Anda klik Simpan keputusan. Keputusan yang sudah diterapkan terkunci dan tidak bisa diubah lagi.',
+            steps: [
+              'Periksa tiap kelas, ubah siswa yang tinggal kelas.',
+              'Klik Simpan keputusan.',
+              'Pastikan tulisan Semua keputusan sudah tersimpan muncul.',
+            ],
+            tip: 'Anda boleh menyimpan bertahap dan melanjutkannya di hari lain.',
+          },
+          {
+            heading: 'Langkah 4: menerapkan ke tahun tujuan',
+            body: 'Siswa yang naik atau tinggal didaftarkan ke kelas di tahun tujuan, dan siswa yang lulus berubah statusnya menjadi lulus. Klik Pratinjau dulu untuk melihat berapa yang naik, tinggal, dan lulus. Siswa yang belum bisa ditempatkan tampil beserta alasannya, misalnya tahun tujuan belum punya kelas untuk tingkatnya. Perbaiki penyebabnya lalu terapkan lagi. Siswa yang sudah terdaftar di tahun tujuan dilewati, dan siswa aktif yang belum punya keputusan dihitung terpisah.',
+            steps: [
+              'Klik Pratinjau dan periksa angkanya.',
+              'Klik Terapkan sekarang, lalu konfirmasi.',
+              'Buka menu Siswa dan Kelas untuk memastikan hasilnya.',
+            ],
+            href: '/students',
+            warning:
+              'Hanya keputusan yang sudah disimpan yang diterapkan. Tahun ajaran aktif tidak berganti otomatis; ganti sendiri di menu Tahun ajaran setelah semuanya siap.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Apakah data dan rapor tahun lalu ikut berubah?',
+            a: 'Tidak. Proses ini hanya menambah kelas dan pendaftaran di tahun tujuan serta mengubah status siswa yang lulus. Kelas, penugasan, nilai, dan rapor tahun sumber tidak disentuh.',
+          },
+          {
+            q: 'Bolehkah saya menjalankan langkahnya lebih dari sekali?',
+            a: 'Boleh. Yang sudah ada atau sudah diproses dilewati, sehingga tidak ada yang digandakan. Ini berguna bila Anda baru melengkapi kelas tahun tujuan dan ingin menerapkan ulang siswa yang tadi belum bisa ditempatkan.',
+          },
+          {
+            q: 'Ada siswa yang belum bisa ditempatkan. Apa yang harus dilakukan?',
+            a: 'Baca alasannya di daftar. Yang paling sering, tahun tujuan belum punya kelas untuk tingkat itu. Buat kelasnya (atau jalankan penyalinan di langkah 2), lalu terapkan lagi.',
+          },
+          {
+            q: 'Salah memilih keputusan setelah diterapkan. Bagaimana?',
+            a: 'Keputusan yang sudah diterapkan terkunci. Pindahkan kelas siswa itu lewat menu Siswa, dan hubungi admin bila statusnya perlu dikembalikan dari lulus.',
+          },
+          {
+            q: 'Menu Kenaikan kelas tidak muncul di tempat saya.',
+            a: 'Menu ini hanya untuk peran yang diberi akses kenaikan kelas, seperti Kurikulum dan Admin sekolah. Minta admin sekolah memeriksa peran Anda.',
+          },
+        ],
+      },
+      en: {
+        title: 'Promotion and the new school year',
+        summary:
+          'How to prepare the next school year, decide which students move up, repeat, or graduate, and apply it without changing last year data.',
+        forWho: 'Curriculum staff, Operators, and School admins who manage the change of school year.',
+        sections: [
+          {
+            heading: 'Before you start',
+            body: 'Make sure the next academic year has been created and starts after the current one. Also make sure the school level list is filled in (for example 7, 8, and 9), because the order of the levels decides who moves where and which level is the last. This process never changes old-year data, so last year classes, teacher assignments, scores, and report cards stay intact.',
+            href: '/academic-years',
+            tip: 'Every step has a Preview button that only shows an estimate without saving anything. Use it before you run.',
+          },
+          {
+            heading: 'Step 1: picking the source and target year',
+            body: 'The source year is the one whose students will be moved up, by default the active academic year. The target year is the next academic year. Only years that start after the source year can be chosen. If there is none, create it first in the Academic years menu.',
+            steps: [
+              'Open the Promotion menu.',
+              'Pick the Source academic year.',
+              'Pick the Target academic year, then click Next.',
+            ],
+            href: '/promotion',
+          },
+          {
+            heading: 'Step 2: copying classes, assignments, and calendar',
+            body: 'This step prepares the target year. Class 7A becomes 8A in the target year, together with its homeroom teacher and subject teachers. First-level classes are also copied as they are for new students and students who repeat. Final-level classes are not copied because their students graduate. The academic calendar is copied too, with shifted dates. The result shows the numbers created and a list of things to check, for example a homeroom teacher who is no longer active. You can skip this step if you already created the target year classes yourself.',
+            steps: [
+              'Tick what you want to copy.',
+              'Click Preview to see the numbers and warnings.',
+              'Click Run the copy, then confirm.',
+            ],
+            tip: 'It is safe to run again. Classes, assignments, and events that already exist are skipped, not duplicated.',
+            warning:
+              'If a message says the level list is empty, fill in the levels in School settings first, then try again.',
+          },
+          {
+            heading: 'Step 3: deciding for each student',
+            body: 'All active students of the source year appear per class. The default is to move up, and to graduate for final-level classes. Change a student to Repeat when needed, or use the buttons above a class such as Everyone moves up to change a whole class at once. A new decision takes effect after you click Save decisions. Decisions that were applied are locked and cannot be changed anymore.',
+            steps: [
+              'Check each class and change the students who repeat.',
+              'Click Save decisions.',
+              'Make sure the text All decisions are saved appears.',
+            ],
+            tip: 'You can save in stages and continue on another day.',
+          },
+          {
+            heading: 'Step 4: applying to the target year',
+            body: 'Students who move up or repeat are enrolled in classes of the target year, and students who graduate get the graduated status. Click Preview first to see how many move up, repeat, and graduate. Students who could not be placed are listed with the reason, for example the target year has no class for their level yet. Fix the cause and apply again. Students already enrolled in the target year are skipped, and active students without a decision are counted separately.',
+            steps: [
+              'Click Preview and check the numbers.',
+              'Click Apply now, then confirm.',
+              'Open the Students and Classes menus to check the result.',
+            ],
+            href: '/students',
+            warning:
+              'Only saved decisions are applied. The active school year does not switch automatically; switch it yourself in the Academic years menu when everything is ready.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Does last year data and the report cards change?',
+            a: 'No. This process only adds classes and enrollments in the target year and changes the status of students who graduate. Classes, assignments, scores, and report cards of the source year are not touched.',
+          },
+          {
+            q: 'May I run a step more than once?',
+            a: 'Yes. What already exists or was already processed is skipped, so nothing is duplicated. This helps when you have just completed the target year classes and want to apply again for students who could not be placed earlier.',
+          },
+          {
+            q: 'Some students could not be placed. What should I do?',
+            a: 'Read the reason in the list. Most often the target year has no class for that level yet. Create the class (or run the copy in step 2), then apply again.',
+          },
+          {
+            q: 'I chose the wrong decision after applying. What now?',
+            a: 'Applied decisions are locked. Move that student class from the Students menu, and contact an admin if the status needs to be changed back from graduated.',
+          },
+          {
+            q: 'The Promotion menu does not show up for me.',
+            a: 'This menu is only for roles that were given promotion access, such as Curriculum staff and School admins. Ask a school admin to check your role.',
+          },
+        ],
+      },
+      su: {
+        title: 'Naékna kelas jeung taun pangajaran anyar',
+        summary:
+          'Cara nyiapkeun taun pangajaran saterusna, mutuskeun siswa naék, tinggal, atawa lulus, tuluy ngalarapkeunana tanpa ngarobah data taun kamari.',
+        forWho: 'Kurikulum, Operator, jeung Admin sakola nu ngurus gantina taun pangajaran.',
+        sections: [
+          {
+            heading: 'Saméméh mimiti',
+            body: 'Pastikeun taun pangajaran saterusna geus dijieun jeung dimimitian sanggeus taun nu keur jalan. Pastikeun ogé daptar tingkat sakola geus dieusian (upamana 7, 8, jeung 9), sabab urutan tingkat éta nu nangtukeun saha naék ka mana jeung tingkat mana nu panungtungan. Data taun heubeul teu pernah dirobah ku prosés ieu, jadi kelas, tugas guru, nilai, jeung rapor taun kamari tetep utuh.',
+            href: '/academic-years',
+            tip: 'Unggal léngkah boga tombol Pratinjau nu ukur nembongkeun kira-kira tanpa nyimpen nanaon. Paké heula saméméh ngajalankeun.',
+          },
+          {
+            heading: 'Léngkah 1: milih taun sumber jeung taun tujuan',
+            body: 'Taun sumber nyaéta taun nu siswana rék dinaékkeun, dasarna taun pangajaran aktip. Taun tujuan nyaéta taun pangajaran saterusna. Ngan taun nu dimimitian sanggeus taun sumber nu bisa dipilih. Upami can aya, jieun heula dina ménu Taun pangajaran.',
+            steps: [
+              'Buka ménu Naékna kelas.',
+              'Pilih Taun pangajaran sumber.',
+              'Pilih Taun pangajaran tujuan, tuluy klik Saterusna.',
+            ],
+            href: '/promotion',
+          },
+          {
+            heading: 'Léngkah 2: nyalin kelas, tugas, jeung kalénder',
+            body: 'Léngkah ieu nyiapkeun taun tujuan. Kelas 7A jadi 8A di taun tujuan, lengkep jeung wali kelas jeung guru mata pelajaranna. Kelas tingkat kahiji ogé disalin sakumaha aya pikeun siswa anyar jeung siswa nu tinggal kelas. Kelas tingkat panungtungan teu disalin lantaran siswana lulus. Kalénder akadémik milu disalin kalayan tanggal nu digeser. Hasilna nembongkeun jumlah nu dijieun jeung daptar hal nu kudu dipariksa, upamana wali kelas nu geus nonaktip. Léngkah ieu meunang diliwatan upami kelas taun tujuan geus dijieun ku anjeun sorangan.',
+            steps: [
+              'Centang naon waé nu rék disalin.',
+              'Klik Pratinjau pikeun ningali jumlahna jeung pépéling.',
+              'Klik Jalankeun panyalinan, tuluy konfirmasi.',
+            ],
+            tip: 'Aman dijalankeun deui. Kelas, tugas, jeung acara nu geus aya diliwatan, teu digandakeun.',
+            warning:
+              'Upami aya pesen yén daptar tingkat masih kosong, eusian heula tingkat dina Setélan sakola, tuluy ulang deui.',
+          },
+          {
+            heading: 'Léngkah 3: mutuskeun nasib unggal siswa',
+            body: 'Sakabéh siswa aktip di taun sumber nembongan per kelas. Dasarna naék kelas, jeung lulus pikeun kelas tingkat panungtungan. Robah per siswa jadi Tinggal upami perlu, atawa paké tombol di luhur kelas saperti Kabéh naék pikeun ngarobah hiji kelas sakaligus. Kaputusan anyar kalaku sanggeus anjeun klik Simpen kaputusan. Kaputusan nu geus dilarapkeun dikonci jeung teu bisa dirobah deui.',
+            steps: [
+              'Pariksa unggal kelas, robah siswa nu tinggal kelas.',
+              'Klik Simpen kaputusan.',
+              'Pastikeun tulisan Sakabéh kaputusan geus disimpen muncul.',
+            ],
+            tip: 'Anjeun meunang nyimpen bertahap jeung neruskeun poé séjén.',
+          },
+          {
+            heading: 'Léngkah 4: ngalarapkeun ka taun tujuan',
+            body: 'Siswa nu naék atawa tinggal didaftarkeun ka kelas di taun tujuan, jeung siswa nu lulus robah statusna jadi lulus. Klik Pratinjau heula pikeun ningali sabaraha nu naék, tinggal, jeung lulus. Siswa nu can bisa ditempatkeun nembongan jeung alesanana, upamana taun tujuan can boga kelas pikeun tingkatna. Bérésan sababna tuluy larapkeun deui. Siswa nu geus kadaftar di taun tujuan diliwatan, jeung siswa aktip nu can boga kaputusan diitung sorangan.',
+            steps: [
+              'Klik Pratinjau jeung pariksa angkana.',
+              'Klik Larapkeun ayeuna, tuluy konfirmasi.',
+              'Buka ménu Siswa jeung Kelas pikeun mastikeun hasilna.',
+            ],
+            href: '/students',
+            warning:
+              'Ngan kaputusan nu geus disimpen nu dilarapkeun. Taun pangajaran aktip teu ganti otomatis; gantian sorangan dina ménu Taun pangajaran sanggeus sagalana siap.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha data jeung rapor taun kamari milu robah?',
+            a: 'Henteu. Prosés ieu ngan nambahan kelas jeung pendaptaran di taun tujuan sarta ngarobah status siswa nu lulus. Kelas, tugas, nilai, jeung rapor taun sumber teu disabit.',
+          },
+          {
+            q: 'Naha kuring meunang ngajalankeun léngkahna leuwih ti sakali?',
+            a: 'Meunang. Nu geus aya atawa geus diprosés diliwatan, jadi teu aya nu digandakeun. Ieu mangpaat upami anjeun karék ngalengkepan kelas taun tujuan jeung hayang ngalarapkeun deui siswa nu tadi can bisa ditempatkeun.',
+          },
+          {
+            q: 'Aya siswa nu can bisa ditempatkeun. Kedah kumaha?',
+            a: 'Baca alesanana dina daptar. Pangmindingna, taun tujuan can boga kelas pikeun tingkat éta. Jieun kelasna (atawa jalankeun panyalinan di léngkah 2), tuluy larapkeun deui.',
+          },
+          {
+            q: 'Salah milih kaputusan sanggeus dilarapkeun. Kumaha?',
+            a: 'Kaputusan nu geus dilarapkeun dikonci. Pindahkeun kelas siswa éta tina ménu Siswa, jeung hubungan admin upami statusna kudu dibalikkeun tina lulus.',
+          },
+          {
+            q: 'Ménu Naékna kelas teu muncul di kuring.',
+            a: 'Ménu ieu ngan pikeun peran nu dibéré aksés naékna kelas, saperti Kurikulum jeung Admin sakola. Tuhu admin sakola pikeun mariksa peran anjeun.',
+          },
+        ],
+      },
+    },
+  },
 ];

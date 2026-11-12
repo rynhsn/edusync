@@ -76,6 +76,7 @@ import { platformSupportRoutes } from './routes/platform-support';
 import { platformUserRoutes } from './routes/platform-users';
 import { portalRoutes } from './routes/portal';
 import { portalPublicRoutes } from './routes/portal-public';
+import { promotionRoutes } from './routes/promotion';
 import { recoveryRoutes } from './routes/recovery';
 import { reportCardRoutes } from './routes/report-card';
 import { roleRoutes } from './routes/roles';
@@ -273,6 +274,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(memberRoutes);
   await app.register(roleRoutes);
   await app.register(academicStructureRoutes);
+  await app.register(promotionRoutes);
   await app.register(peopleRoutes);
   await app.register(scheduleRoutes);
   await app.register(attendanceReportRoutes);

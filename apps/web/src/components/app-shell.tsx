@@ -10,6 +10,7 @@ import {
   CalendarDays,
   CalendarRange,
   ChevronRight,
+  ChevronsUp,
   ClipboardCheck,
   ClipboardList,
   ClipboardSignature,
@@ -141,6 +142,7 @@ export const NAV_GROUPS = [
         permission: 'academic_year:read',
       },
       { href: '/calendar', labelKey: 'calendar', icon: CalendarRange, permission: 'academic_year:read' },
+      { href: '/promotion', labelKey: 'promotion', icon: ChevronsUp, permission: 'promotion:manage' },
       {
         href: '/school-settings',
         labelKey: 'schoolSettings',

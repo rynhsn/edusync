@@ -8,6 +8,7 @@ export const PERMISSIONS = [
   'role:manage',
   'academic_year:read',
   'academic_year:manage',
+  'promotion:manage',
   'class:read',
   'class:manage',
   'student:read',
@@ -102,6 +103,7 @@ export const SYSTEM_ROLES = {
     permissions: [
       'academic_year:read',
       'academic_year:manage',
+      'promotion:manage',
       'class:read',
       'class:manage',
       'subject:read',
