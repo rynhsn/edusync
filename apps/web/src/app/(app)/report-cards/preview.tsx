@@ -37,7 +37,7 @@ export function ReportCardPreview({ doc }: { doc: ReportCardDoc }) {
       <section className="grid content-start gap-2">
         <h3 className="font-medium">{t('subjectsTitle')}</h3>
         <div className="overflow-x-auto rounded-lg border">
-          <Table>
+          <Table className="max-md:block max-md:[&_tbody]:block max-md:[&_thead]:hidden">
             <TableHeader>
               <TableRow>
                 <TableHead>{t('subject')}</TableHead>
@@ -49,16 +49,26 @@ export function ReportCardPreview({ doc }: { doc: ReportCardDoc }) {
             </TableHeader>
             <TableBody>
               {doc.subjects.map((s) => (
-                <TableRow key={s.subjectId}>
-                  <TableCell className="font-medium">{s.name}</TableCell>
-                  <TableCell className="text-right tabular-nums">{formatKkm(s.kkm)}</TableCell>
-                  <TableCell className="text-right">
+                <TableRow
+                  key={s.subjectId}
+                  className="max-md:grid max-md:grid-cols-[1fr_auto] max-md:gap-x-3 max-md:gap-y-1 max-md:px-3 max-md:py-3"
+                >
+                  <TableCell className="font-medium max-md:col-start-1 max-md:row-start-1 max-md:p-0 max-md:whitespace-normal">
+                    {s.name}
+                  </TableCell>
+                  <TableCell className="text-right tabular-nums max-md:col-start-1 max-md:row-start-2 max-md:p-0 max-md:text-left max-md:text-muted-foreground">
+                    <span className="md:hidden">{t('kkm')}: </span>
+                    {formatKkm(s.kkm)}
+                  </TableCell>
+                  <TableCell className="text-right max-md:col-start-2 max-md:row-start-1 max-md:p-0">
                     <ScoreChip predicate={s.predicate} below={s.belowKkm}>
                       {formatGrade(s.final)}
                     </ScoreChip>
                   </TableCell>
-                  <TableCell>{s.predicate ? <PredicateBadge predicate={s.predicate} /> : '-'}</TableCell>
-                  <TableCell className="text-muted-foreground min-w-48 whitespace-normal">
+                  <TableCell className="max-md:col-start-2 max-md:row-start-2 max-md:p-0 max-md:text-right">
+                    {s.predicate ? <PredicateBadge predicate={s.predicate} /> : '-'}
+                  </TableCell>
+                  <TableCell className="text-muted-foreground min-w-48 whitespace-normal max-md:col-span-2 max-md:min-w-0 max-md:p-0 max-md:text-xs">
                     {s.description ?? '-'}
                   </TableCell>
                 </TableRow>

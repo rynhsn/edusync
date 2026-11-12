@@ -64,7 +64,12 @@ export function UserMenu({
             {image && <AvatarImage src={image} alt="" />}
             <AvatarFallback>{(name ?? '?').slice(0, 2).toUpperCase()}</AvatarFallback>
           </Avatar>
-          <span className="hidden text-sm sm:inline">{name}</span>
+          <span
+            className="hidden max-w-48 truncate text-sm lg:inline xl:max-w-none"
+            title={name ?? undefined}
+          >
+            {name}
+          </span>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="min-w-56">
           <DropdownMenuGroup>

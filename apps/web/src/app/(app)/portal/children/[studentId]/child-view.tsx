@@ -61,7 +61,7 @@ export function ChildView({ studentId }: { studentId: string }) {
   }
 
   return (
-    <div className="mx-auto grid w-full max-w-3xl content-start gap-5 pb-24 md:pb-6">
+    <div className="mx-auto grid w-full max-w-3xl grid-cols-[minmax(0,1fr)] content-start gap-5 pb-24 md:pb-6">
       <header className="flex items-center gap-3">
         {child ? (
           <ChildAvatar name={child.name} className="size-14 text-lg" />
@@ -137,7 +137,7 @@ export function ChildView({ studentId }: { studentId: string }) {
                 aria-current={tab === key ? 'page' : undefined}
                 onClick={() => go(key)}
                 className={cn(
-                  'focus-visible:ring-ring/50 flex w-full flex-col items-center gap-0.5 px-1 pt-2 pb-1.5 text-[11px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-inset',
+                  'focus-visible:ring-ring/50 flex w-full flex-col items-center gap-0.5 px-0 pt-2 pb-1.5 text-[11px] font-medium outline-none focus-visible:ring-2 focus-visible:ring-inset',
                   tab === key ? 'text-primary' : 'text-muted-foreground',
                 )}
               >

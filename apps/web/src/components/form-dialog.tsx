@@ -106,7 +106,7 @@ export function FormDialog({
           </DialogHeader>
           <div className="grid gap-4">{children}</div>
           {error && (
-            <div ref={errorRef}>
+            <div ref={errorRef} className="scroll-mb-28">
               <Alert variant="destructive" role="alert">
                 <AlertDescription>{error}</AlertDescription>
               </Alert>
@@ -117,11 +117,11 @@ export function FormDialog({
               {tv('summary')}
             </p>
           )}
-          <DialogFooter>
-            <Button type="button" variant="ghost" className="h-10 md:h-8" onClick={() => change(false)}>
+          <DialogFooter className="max-sm:sticky max-sm:-bottom-4 max-sm:z-10 max-sm:flex-row-reverse max-sm:bg-muted max-sm:[&>*]:flex-1">
+            <Button type="button" variant="ghost" className="h-11 md:h-8" onClick={() => change(false)}>
               {t('cancel')}
             </Button>
-            <Button type="submit" className="h-10 md:h-8" disabled={pending || disabled}>
+            <Button type="submit" className="h-11 md:h-8" disabled={pending || disabled}>
               {submitLabel}
             </Button>
           </DialogFooter>

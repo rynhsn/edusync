@@ -580,7 +580,7 @@ export function ReportCardsView() {
                 <li
                   key={r.studentId}
                   style={{ animationDelay: `${Math.min(i, 9) * 30}ms` }}
-                  className="bg-card hover:border-foreground/20 grid gap-3.5 rounded-2xl border p-4 transition-colors motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:fill-mode-both motion-safe:duration-300"
+                  className="bg-card hover:border-foreground/20 grid min-w-0 gap-3.5 rounded-2xl border p-4 transition-colors motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:fill-mode-both motion-safe:duration-300"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <PersonCell name={r.name} sub={r.nis} />

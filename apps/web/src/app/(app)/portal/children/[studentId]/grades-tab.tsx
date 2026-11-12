@@ -26,7 +26,7 @@ export function GradesTab({ studentId }: { studentId: string }) {
   const data = q.data;
 
   return (
-    <div className="grid gap-3">
+    <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
       {data && data.semesters.length > 1 && (
         <SelectField
           aria-label={t('semester')}
@@ -55,13 +55,16 @@ export function GradesTab({ studentId }: { studentId: string }) {
               </p>
             </div>
           )}
-          <ul className="grid gap-3 sm:grid-cols-2">
+          <ul className="grid grid-cols-[minmax(0,1fr)] gap-3 sm:grid-cols-2">
             {data.subjects.map((s) => {
               const kkm = subjectKkm(s.kkm, data.kkm);
               const tone = gradeTone(s.final, kkm);
               const width = s.final === null ? 0 : Math.min(100, Math.max(0, s.final));
               return (
-                <li key={s.subjectId} className="bg-card grid gap-3 rounded-2xl border p-4">
+                <li
+                  key={s.subjectId}
+                  className="bg-card grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3 rounded-2xl border p-4"
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0">
                       <p className="font-heading truncate font-semibold">{s.name}</p>
@@ -79,7 +82,7 @@ export function GradesTab({ studentId }: { studentId: string }) {
                       </p>
                       {s.predicate && <p className="text-muted-foreground mt-1 text-xs">{s.predicate}</p>}
                       {kkm !== null && (
-                        <p className="text-muted-foreground text-xs tabular-nums">
+                        <p className="text-muted-foreground text-xs whitespace-nowrap tabular-nums">
                           {t('kkm', { value: formatKkm(kkm) })}
                         </p>
                       )}
@@ -114,7 +117,10 @@ export function GradesTab({ studentId }: { studentId: string }) {
             })}
           </ul>
           {data.recentScores.length > 0 && (
-            <section className="grid content-start gap-2" aria-labelledby="portal-recent">
+            <section
+              className="grid grid-cols-[minmax(0,1fr)] content-start gap-2"
+              aria-labelledby="portal-recent"
+            >
               <h3 id="portal-recent" className="font-heading font-semibold">
                 {t('recentScores')}
               </h3>

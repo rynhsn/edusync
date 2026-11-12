@@ -271,14 +271,14 @@ export function TopbarSearch({
       <Button
         type="button"
         variant="outline"
-        className="text-muted-foreground max-sm:w-8 max-sm:px-0 sm:min-w-44 sm:justify-start sm:gap-2"
+        className="text-muted-foreground max-sm:w-11 max-sm:px-0 sm:max-lg:w-8 sm:max-lg:px-0 lg:min-w-44 lg:justify-start lg:gap-2"
         onClick={() => setOpen(true)}
         aria-label={t('open')}
         aria-haspopup="dialog"
         aria-keyshortcuts="Control+K Meta+K"
       >
         <Search className="size-4" aria-hidden />
-        <span className="hidden flex-1 text-left sm:inline">{t('button')}</span>
+        <span className="hidden flex-1 text-left lg:inline">{t('button')}</span>
         <kbd className="bg-muted text-muted-foreground hidden rounded border px-1.5 font-sans text-[11px] lg:inline">
           {t('shortcut')}
         </kbd>

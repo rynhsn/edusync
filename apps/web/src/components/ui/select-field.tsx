@@ -69,7 +69,7 @@ export function SelectField({
         aria-invalid={ariaInvalid}
         aria-describedby={ariaDescribedby}
         onBlur={onBlur}
-        className={cn('w-full', className)}
+        className={cn('w-full max-md:min-h-11 pointer-coarse:min-h-11', className)}
       >
         <SelectValue placeholder={placeholder} />
       </SelectTrigger>

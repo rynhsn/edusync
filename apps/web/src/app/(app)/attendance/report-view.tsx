@@ -486,7 +486,10 @@ export function ReportView() {
                   <li
                     key={r.studentId}
                     style={stagger(i)}
-                    className={cn(ENTER, 'bg-card grid gap-3 rounded-2xl border p-4')}
+                    className={cn(
+                      ENTER,
+                      'bg-card grid grid-cols-[minmax(0,1fr)] gap-3 rounded-2xl border p-4',
+                    )}
                   >
                     <div className="flex items-center justify-between gap-3">
                       <PersonCell name={r.name} sub={[r.className, r.nis].filter(Boolean).join(' · ')} />

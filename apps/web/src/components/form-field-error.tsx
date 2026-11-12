@@ -5,9 +5,9 @@ import { useState } from 'react';
 import { type FieldErrors, type FieldIssue, firstInvalid } from '@/lib/form-validation';
 import { cn } from '@/lib/utils';
 
-/** Tinggi sentuh minimal 40px di ponsel; di layar lebar kembali ke ukuran biasa. */
-export const TOUCH_INPUT = 'h-10 md:h-8';
-export const TOUCH_SELECT = 'data-[size=default]:h-10 md:data-[size=default]:h-8';
+/** Tinggi sentuh minimal 44px di ponsel; di layar lebar kembali ke ukuran biasa. */
+export const TOUCH_INPUT = 'h-11 md:h-8';
+export const TOUCH_SELECT = 'data-[size=default]:h-11 md:data-[size=default]:h-8';
 
 /** Galat satu isian: kode dari validasi klien (diterjemahkan) atau teks dari server (apa adanya). */
 export type FieldMessage = FieldIssue | string | undefined;

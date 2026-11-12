@@ -138,7 +138,7 @@ export function GradesView() {
               aria-pressed={mode === m}
               onClick={() => setMode(m)}
               className={cn(
-                'focus-visible:ring-ring/60 rounded-[10px] px-3 py-1.5 text-sm font-medium outline-none transition-colors focus-visible:ring-2',
+                'focus-visible:ring-ring/60 rounded-[10px] px-3 py-1.5 text-sm font-medium max-sm:min-h-11 outline-none transition-colors focus-visible:ring-2',
                 mode === m
                   ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground',

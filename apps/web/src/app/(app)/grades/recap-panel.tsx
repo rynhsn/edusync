@@ -265,12 +265,12 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                     {t('belowKkmBadge')}
                   </ToneBadge>
                 )}
-                <dl className="grid grid-cols-3 gap-2 text-xs">
+                <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
                   {data.components.map((c) => {
                     const v = s.perComponent.find((p) => p.componentId === c.id)?.average;
                     return (
                       <div key={c.id} className="bg-muted/50 rounded-lg px-2 py-1.5">
-                        <dt className="text-muted-foreground truncate">{c.name}</dt>
+                        <dt className="text-muted-foreground break-words">{c.name}</dt>
                         <dd
                           className={cn('font-semibold tabular-nums', isBelowKkm(v, kkm) && TONES.rose.text)}
                         >

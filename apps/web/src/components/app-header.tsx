@@ -32,16 +32,16 @@ export function AppHeader({
   return (
     <header
       className={cn(
-        'bg-background/80 sticky top-0 z-20 flex items-center justify-between gap-2 border-b p-3 backdrop-blur',
+        'bg-background/80 sticky top-0 z-20 flex items-center justify-between gap-2 border-b p-3 backdrop-blur max-sm:gap-1 max-sm:p-2',
         className,
       )}
     >
-      <div className="flex min-w-0 items-center gap-2">
+      <div className="flex min-w-0 items-center gap-2 max-sm:gap-1">
         {mobileNav}
         {sidebarToggle}
         {leading}
       </div>
-      <div className="flex items-center gap-1">
+      <div className="flex shrink-0 items-center gap-1 max-sm:gap-0">
         {search}
         {children}
       </div>
