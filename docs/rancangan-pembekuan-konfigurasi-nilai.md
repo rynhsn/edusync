@@ -430,17 +430,15 @@ salinan); pemanggil yang menghitung nilai sebuah semester wajib pindah ke `loadG
 
 ### 6.3 Endpoint
 
-| Endpoint                                                                      | Gerbang                           | Isi                                                                                                                                                        |
-| ----------------------------------------------------------------------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `GET /v1/semesters/:id/grading-config` (baru)                                 | `grade:read`, modul `grades`      | Konfigurasi efektif semester dan statusnya: `frozen`, `origin`, `frozenAt`, `matchesLive`, `finalClassCount`. 404 bila semester bukan milik sekolah.       |
-| `POST /v1/semesters/:id/grading-config/sync` (baru)                           | `grade:configure`, modul `grades` | Menimpa salinan dengan konfigurasi hidup (membuatnya bila belum ada). `409 report_final` bila semester itu punya rapor final. Audit `grading_config.sync`. |
-| `GET /v1/grading/settings`                                                    | tetap                             | + `activeSemesterConfig` opsional: `{ semesterId, frozen, origin, frozenAt, matchesLive, hasFinal }`.                                                      |
-| `PUT /v1/grading/settings`, komponen, KKTP (tulis)                            | tetap                             | + `syncedSemesterId` opsional pada respons bila aturan W berjalan. Deskripsi OpenAPI diperbarui.                                                           |
-| `GET /v1/grading/recap`, `/recap/class`, `GET /v1/portal/children/:id/grades` | tetap                             | + `source: 'report'` opsional bila angka berasal dari snapshot.                                                                                            |
-| `GET /v1/achievement-criteria/resolve`                                        | tetap                             | + kueri opsional `semesterId`: pecah terhadap konfigurasi efektif semester itu.                                                                            |
-| `POST /v1/assessments`, `PUT /v1/assessments/:id`, dorong nilai ujian         | tetap                             | + `409 component_not_in_semester`.                                                                                                                         |
-| `POST /v1/report-cards/finalize`                                              | tetap                             | Membekukan semester lebih dulu; respons tidak berubah.                                                                                                     |
-| `PUT /v1/semesters/:id/activate`                                              | tetap                             | Membekukan semester yang ditinggalkan; respons tidak berubah.                                                                                              |
+- `GET /v1/semesters/:id/grading-config` (baru) (gerbang: `grade:read`, modul `grades`): Konfigurasi efektif semester dan statusnya: `frozen`, `origin`, `frozenAt`, `matchesLive`, `finalClassCount`. 404 bila semester bukan milik sekolah.
+- `POST /v1/semesters/:id/grading-config/sync` (baru) (gerbang: `grade:configure`, modul `grades`): Menimpa salinan dengan konfigurasi hidup (membuatnya bila belum ada). `409 report_final` bila semester itu punya rapor final. Audit `grading_config.sync`.
+- `GET /v1/grading/settings` (gerbang: tetap): + `activeSemesterConfig` opsional: `{ semesterId, frozen, origin, frozenAt, matchesLive, hasFinal }`.
+- `PUT /v1/grading/settings`, komponen, KKTP (tulis) (gerbang: tetap): + `syncedSemesterId` opsional pada respons bila aturan W berjalan. Deskripsi OpenAPI diperbarui.
+- `GET /v1/grading/recap`, `/recap/class`, `GET /v1/portal/children/:id/grades` (gerbang: tetap): + `source: 'report'` opsional bila angka berasal dari snapshot.
+- `GET /v1/achievement-criteria/resolve` (gerbang: tetap): + kueri opsional `semesterId`: pecah terhadap konfigurasi efektif semester itu.
+- `POST /v1/assessments`, `PUT /v1/assessments/:id`, dorong nilai ujian (gerbang: tetap): + `409 component_not_in_semester`.
+- `POST /v1/report-cards/finalize` (gerbang: tetap): Membekukan semester lebih dulu; respons tidak berubah.
+- `PUT /v1/semesters/:id/activate` (gerbang: tetap): Membekukan semester yang ditinggalkan; respons tidak berubah.
 
 ### 6.4 Guard dan galat
 
