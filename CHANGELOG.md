@@ -9,6 +9,8 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+## [1.2.0] - 2026-11-13
+
 ### Ditambahkan
 
 - **Kenaikan kelas dan rollover tahun ajaran** (fase 2A): halaman **Kenaikan kelas** (`/promotion`) dengan empat langkah. Salin

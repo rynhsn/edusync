@@ -101,7 +101,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             body: 'Before teachers start, decide the passing mark (KKM), the A/B/C predicate thresholds, and the score components with their weights (for example Assignments or Midterm). If the school has no components yet, the Install default components button creates Assignments (20), Daily Tests (30), Midterm (20), and Final Exam (30). If nothing is set, the passing mark is 75 with A 90, B 80, and C 70.',
             steps: [
               'Open Grading settings.',
-              'Enter the school\'s default mastery threshold (KKM) and the A, B, and C thresholds. A must be higher than B, and B higher than C. This threshold applies to subjects without their own Learning Objective Achievement Criteria (KKTP); a threshold per subject (decimals allowed) is set in the KKTP tab of Curriculum. In the same place you choose how the final grade is calculated; changing it affects draft report cards and is refused while the active semester has finalized report cards.',
+              "Enter the school's default mastery threshold (KKM) and the A, B, and C thresholds. A must be higher than B, and B higher than C. This threshold applies to subjects without their own Learning Objective Achievement Criteria (KKTP); a threshold per subject (decimals allowed) is set in the KKTP tab of Curriculum. In the same place you choose how the final grade is calculated; changing it affects draft report cards and is refused while the active semester has finalized report cards.",
               'Add score components with their weight (1 to 100), or click Install default components.',
               'Save. If the total weight is not 100%, a warning appears.',
             ],
@@ -137,7 +137,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             href: '/grades/settings',
             tip: 'Changing the rules in an active semester that is already frozen is applied automatically to the saved rules of that semester, as long as there is no final report card.',
             warning:
-              'A component created after a semester was frozen does not apply to that semester yet. If an assessment is refused because of this, open Grading settings and choose Match today\'s rules for that semester.',
+              "A component created after a semester was frozen does not apply to that semester yet. If an assessment is refused because of this, open Grading settings and choose Match today's rules for that semester.",
           },
           {
             heading: 'Who can do what',

@@ -192,7 +192,10 @@ const assessmentSchema = z.object({
   date: z.string(),
   maxScore: z.number().int(),
   filled: z.number().int().describe('Jumlah siswa aktif atau lulusan kelas yang sudah punya skor'),
-  total: z.number().int().describe('Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu)'),
+  total: z
+    .number()
+    .int()
+    .describe('Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu)'),
   canInput: z.boolean().describe('Pengguna ini boleh mengubah penilaian dan skornya'),
 });
 
