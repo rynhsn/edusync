@@ -8,6 +8,7 @@
     "start": "tsx --env-file=../../.env src/main.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run",
+    "verify:grading-config": "tsx --env-file=../../.env scripts/verify-grading-config.ts",
     "openapi:export": "tsx --env-file=../../.env scripts/export-openapi.ts",
     "seed:dev": "tsx --env-file=../../.env scripts/seed-dev.ts",
     "seed:demo-smk": "tsx --env-file=../../.env scripts/seed-demo-smk.ts",

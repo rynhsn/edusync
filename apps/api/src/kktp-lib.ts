@@ -71,7 +71,14 @@ export async function loadKktpResolver(
   tx: Tx,
   p: { levelCode: string | null; programId: string | null; subjectIds: string[]; fallback: number },
 ): Promise<KktpResolver> {
-  const rows = await loadKktpRows(tx, p.subjectIds);
+  return makeKktpResolver(await loadKktpRows(tx, p.subjectIds), p);
+}
+
+/** Pemecah KKM dari baris kriteria yang sudah dimuat (tabel hidup atau salinan beku). Tanpa akses database. */
+export function makeKktpResolver(
+  rows: Map<string, KktpRow[]>,
+  p: { levelCode: string | null; programId: string | null; fallback: number },
+): KktpResolver {
   const detail = (subjectId: string) =>
     resolveKkm(rows.get(subjectId) ?? [], { levelCode: p.levelCode, programId: p.programId }, p.fallback);
   return Object.assign((subjectId: string) => detail(subjectId).kkm, { detail });

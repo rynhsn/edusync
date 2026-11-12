@@ -857,7 +857,10 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
           'Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `grades` (bila tidak aktif `available` ' +
           'false dan data kosong). Nilai akhir per mapel dihitung dengan rumus yang sama dengan rekap penilaian dan ' +
           'rapor, untuk semester `semesterId` (bawaan: semester aktif, atau yang terbaru). `semesters` memuat pilihan ' +
-          'semester; `recentScores` adalah skor terbaru terlepas dari semester. 404 bila `semesterId` bukan milik sekolah ini.',
+          'semester; `recentScores` adalah skor terbaru terlepas dari semester. Bila rapor anak pada semester itu sudah FINAL, ' +
+          'nilai akhir, predikat, KKM, dan `belowKkm` per mapel diambil dari snapshot rapor dan diberi `source: report` ' +
+          '(sama persis dengan rapor terbit); rincian komponen dihitung dari konfigurasi efektif semester. ' +
+          '404 bila `semesterId` bukan milik sekolah ini.',
         headers: schoolHeader,
         params: studentParams,
         querystring: z.object({ semesterId: z.uuid().optional() }),
@@ -870,6 +873,12 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
             ),
             kkm: z.number().int().nullable(),
             average: z.number().nullable(),
+            source: z
+              .literal('report')
+              .optional()
+              .describe(
+                'Ada (`report`) bila ada mapel yang angkanya dari snapshot rapor final; dihilangkan selain itu',
+              ),
             subjects: z.array(
               z.object({
                 subjectId: z.uuid(),
@@ -878,6 +887,12 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
                 final: z.number().nullable(),
                 predicate: predicateEnum.nullable(),
                 belowKkm: z.boolean(),
+                source: z
+                  .literal('report')
+                  .optional()
+                  .describe(
+                    'Ada (`report`) bila final, predikat, kkm, dan belowKkm mapel ini dari snapshot rapor final; rincian komponen tetap dari konfigurasi efektif semester',
+                  ),
                 components: z.array(
                   z.object({ name: z.string(), weight: z.number().int(), average: z.number().nullable() }),
                 ),
@@ -911,6 +926,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
           semesters: await semestersWithYear(tx),
           kkm: grades?.kkm ?? null,
           average: grades?.average ?? null,
+          ...(grades?.source ? { source: grades.source } : {}),
           subjects: grades?.subjects ?? [],
           recentScores: await recentScoresFor(tx, request.params.studentId, 20),
         };

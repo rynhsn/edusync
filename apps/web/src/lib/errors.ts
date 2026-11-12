@@ -66,6 +66,7 @@ const KNOWN = [
   'score_exceeds_max',
   'invalid_score',
   'report_final',
+  'component_not_in_semester',
   'grades_incomplete',
   'overpay',
   'invoice_void',
@@ -176,13 +177,14 @@ const KNOWN = [
 type KnownCode = (typeof KNOWN)[number];
 
 /** Benda yang sedang diubah atau dihapus; membuat galat umum (`in_use`, `invalid_level`) menyebut penyebab yang tepat. */
-export type ErrorContext = 'level' | 'program' | 'subject' | 'class';
+export type ErrorContext = 'level' | 'program' | 'subject' | 'class' | 'semester';
 
 const IN_USE_KEY = {
   level: 'errors.in_use_level',
   program: 'errors.in_use_program',
   subject: 'errors.in_use_subject',
   class: 'errors.in_use_class',
+  semester: 'errors.in_use_semester',
 } as const satisfies Record<ErrorContext, string>;
 
 /**

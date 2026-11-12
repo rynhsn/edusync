@@ -1043,6 +1043,7 @@
     "score_exceeds_max": "Ada nilai yang lebih besar dari nilai maksimal yang baru.",
     "invalid_score": "Nilai harus antara 0 dan nilai maksimal penilaian.",
     "report_final": "Rapor sudah difinalisasi. Buka kembali dulu untuk mengubahnya.",
+    "component_not_in_semester": "Komponen ini belum berlaku pada semester ini karena aturan nilainya sudah tersimpan (beku) sebelum komponen dibuat. Pakai komponen yang berlaku, atau buka Pengaturan penilaian lalu pilih Samakan dengan aturan hari ini pada semester ini.",
     "grades_incomplete": "Nilai beberapa siswa belum lengkap.",
     "overpay": "Jumlah bayar melebihi sisa tagihan.",
     "invoice_void": "Tagihan ini sudah dibatalkan.",
@@ -1101,7 +1102,7 @@
     "in_use_level": "Tingkat ini masih dipakai kelas, tarif, periode SPMB, tingkat akhir jurusan, alokasi JP, versi kurikulum, ATP, atau KKTP. Lepaskan dulu pemakaiannya, baru hapus.",
     "in_use_program": "Jurusan ini masih dipakai kelas, alokasi JP kurikulum, atau KKTP. Pindahkan atau hapus dulu yang memakainya.",
     "in_use_subject": "Mata pelajaran ini masih dipakai: sudah ditugaskan ke guru, atau ada di alokasi JP kurikulum, CP, ATP, atau KKTP. Lepaskan dulu pemakaiannya.",
-    "in_use_class": "Kelas ini masih punya siswa, penugasan guru, atau keputusan kenaikan kelas. Pindahkan atau hapus dulu yang terkait.",
+    "in_use_class": "Kelas ini masih punya siswa, penugasan guru, keputusan kenaikan kelas, atau arsip rapor yang sudah terbit. Data rapor yang sudah terbit tidak boleh terhapus. Pindahkan atau hapus dulu data lain yang terkait.",
     "levels_not_configured": "Daftar tingkat sekolah masih kosong. Atur tingkat di Pengaturan sekolah sebelum menyalin kelas.",
     "promotion_applied": "Keputusan siswa itu sudah diterapkan ke tahun ajaran berikutnya dan tidak bisa diubah lagi.",
     "invalid_target": "Tahun ajaran tujuan tidak sah. Pilih tahun yang berbeda dan dimulai setelah tahun sumber.",
@@ -1135,7 +1136,8 @@
     "invalid_criteria": "Kriteria belum lengkap atau tidak konsisten. Periksa mode, ambang, dan levelnya.",
     "invalid_subject_group": "Kelompok mapel tidak dikenal. Pilih salah satu dari daftar kelompok yang tersedia.",
     "weights_sum_invalid": "Mode persentase mensyaratkan jumlah bobot komponen tepat 100. Sesuaikan bobot komponen lebih dulu.",
-    "level_unknown": "Tingkat kelas itu tidak ada di daftar tingkat sekolah, jadi tingkat berikutnya tidak diketahui. Pilih kelas tujuan atau perbaiki daftar tingkat."
+    "level_unknown": "Tingkat kelas itu tidak ada di daftar tingkat sekolah, jadi tingkat berikutnya tidak diketahui. Pilih kelas tujuan atau perbaiki daftar tingkat.",
+    "in_use_semester": "Semester ini masih punya data yang terhubung, misalnya penilaian, jadwal, atau arsip rapor yang sudah terbit. Data rapor yang sudah terbit tidak boleh terhapus, jadi semester ini tidak bisa dihapus."
   },
   "theme": {
     "label": "Tema",
@@ -2471,7 +2473,13 @@
     "issue_range_required": "Level {n}: nilai terendah dan tertinggi wajib diisi.",
     "issue_number_invalid": "Level {n}: nilai harus angka 0 sampai 100, paling banyak dua desimal.",
     "issue_range_order": "Level {n}: nilai terendah tidak boleh melebihi nilai tertinggi.",
-    "issue_overlap": "Rentang level {a} dan level {b} saling tumpang tindih."
+    "issue_overlap": "Rentang level {a} dan level {b} saling tumpang tindih.",
+    "syncedToActive": "Perubahan ini juga diterapkan ke aturan nilai semester aktif yang tersimpan.",
+    "frozenWriteNote": "Bila aturan nilai semester aktif sudah beku (tersimpan), perubahan kriteria di sini ikut diterapkan ke salinan itu supaya angka semester aktif tetap sejalan. Perubahan ditolak selama semester aktif masih punya rapor final; buka kembali rapornya lebih dulu.",
+    "previewSemester": "Semester",
+    "previewSemesterLive": "Aturan hari ini (tanpa semester)",
+    "previewFrozen": "Memakai aturan beku {semester}",
+    "previewLive": "Memakai aturan hari ini"
   },
   "semesters": {
     "title": "Semester",
@@ -3427,7 +3435,45 @@
       }
     },
     "calcModeWarning": "Mengubah cara menghitung memengaruhi rapor draf: nilai akhir semua siswa dihitung ulang dengan cara baru, jadi angka di rapor draf bisa berubah. Rapor yang sudah final tidak berubah dan menghalangi perubahan ini.",
-    "calcModeReportFinal": "Pengaturan penilaian tidak dapat diubah karena semester aktif sudah punya rapor final. Buka kembali rapor yang sudah final di menu Rapor, lalu simpan lagi."
+    "calcModeReportFinal": "Pengaturan penilaian tidak dapat diubah karena semester aktif sudah punya rapor final. Buka kembali rapor yang sudah final di menu Rapor, lalu simpan lagi.",
+    "syncedToActive": "Perubahan ini juga diterapkan ke aturan nilai semester aktif yang tersimpan.",
+    "writeThroughNote": "Semester aktif sudah punya salinan aturan nilai yang tersimpan. Perubahan yang Anda simpan di sini otomatis ikut diterapkan ke salinan itu selama semester aktif belum punya rapor final.",
+    "semCfgTitle": "Status konfigurasi semester",
+    "semCfgHint": "Aturan nilai tiap semester (KKM, predikat, cara menghitung, komponen, dan KKTP) disimpan per semester. Dengan begitu rapor yang sudah terbit tidak berubah bila aturan sekolah diubah kemudian.",
+    "semCfgNoSemester": "Belum ada semester.",
+    "semCfgActiveSuffix": "aktif",
+    "semCfgFrozen": "Beku",
+    "semCfgLive": "Hidup",
+    "semCfgSame": "Sama dengan aturan hari ini",
+    "semCfgDiffers": "Berbeda dari aturan hari ini",
+    "semCfgFinalCount": "{reports} rapor final di {classes} kelas",
+    "semCfgWhatFrozen": "Beku artinya aturan nilai semester ini tersimpan tersendiri. Rapor yang sudah terbit tidak berubah bila aturan nilai sekolah diubah kemudian, dan nilai di rekap serta portal wali untuk semester ini mengikuti aturan yang tersimpan itu.",
+    "semCfgWhatLive": "Semester ini masih mengikuti aturan nilai sekolah hari ini. Aturannya otomatis disimpan (dibekukan) saat rapor pertama difinalisasi atau saat semester ditinggalkan, supaya rapor yang terbit tidak berubah.",
+    "semCfgOrigin": "Asal pembekuan",
+    "semCfgFrozenAt": "Dibekukan pada",
+    "semCfgRules": "Aturan nilai",
+    "semCfgRulesValue": "KKM {kkm}, predikat A {a}, B {b}, C {c}",
+    "semCfgComponents": "Komponen nilai",
+    "semCfgCriteria": "{count} kriteria KKTP",
+    "freezeOrigin_finalize": "Rapor pertama difinalisasi",
+    "freezeOrigin_semester_closed": "Semester ditinggalkan (semester lain diaktifkan)",
+    "freezeOrigin_sync": "Disamakan dengan aturan sekolah",
+    "freezeOrigin_backfill": "Data lama, diisi dari aturan saat pembaruan",
+    "freezeOrigin_manual": "Dibekukan secara manual",
+    "freezeOrigin_unknown": "Tidak diketahui",
+    "semCfgDiffersTitle": "Aturan hari ini berbeda dari yang dipakai semester ini",
+    "semCfgDiffersBody": "Semester ini memakai aturan nilai yang tersimpan, sedangkan aturan sekolah hari ini sudah berubah. Rekap dan portal semester ini tetap memakai aturan yang tersimpan, dan rapor yang terbit tidak terpengaruh.",
+    "semCfgBlockedHint": "Aturan semester ini tidak bisa disamakan selama masih ada rapor final. Buka kembali rapor kelasnya di menu Rapor bila memang perlu menyamakan.",
+    "semCfgSyncButton": "Samakan dengan aturan hari ini",
+    "semCfgSyncConfirm": "Aturan nilai {semester} akan diganti dengan aturan sekolah hari ini. Nilai di rekap dan di portal wali untuk semester itu akan mengikuti aturan baru. Ditolak bila masih ada rapor final pada semester itu.",
+    "semCfgSyncConfirmButton": "Ya, samakan",
+    "syncDone": "Aturan nilai semester disamakan dengan aturan hari ini.",
+    "syncNoChange": "Aturan semester sudah sama dengan aturan hari ini.",
+    "syncBlockedFinal": "Aturan nilai semester ini tidak bisa disamakan karena masih ada rapor final di kelas: {classes}. Buka kembali rapor kelas tersebut di menu Rapor, lalu coba lagi.",
+    "syncBlockedFinalNoNames": "Aturan nilai semester ini tidak bisa disamakan karena masih ada rapor final pada semester ini. Buka kembali rapornya di menu Rapor, lalu coba lagi.",
+    "fromReportBadge": "Sesuai rapor terbit",
+    "fromReportNote": "Nilai akhir, predikat, dan KKM pada siswa yang bertanda ini diambil dari rapor yang sudah final, jadi sama dengan yang terbit dan tidak berubah oleh pengaturan nilai. Rata-rata tiap komponen tetap dihitung dari nilai yang ada saat ini.",
+    "semCfgGoLink": "Buka Pengaturan penilaian"
   },
   "reportCards": {
     "title": "Rapor",
@@ -5758,7 +5804,9 @@
       "fluent": "Lancar",
       "fair": "Cukup",
       "repeat": "Ulang"
-    }
+    },
+    "reportSourceBadge": "Sesuai rapor",
+    "reportSourceNote": "Nilai semester ini sama dengan yang tertulis di rapor yang sudah diterbitkan sekolah."
   },
   "roleWelcome": {
     "staffTitle": "Selamat datang! Ini yang bisa Anda kerjakan",

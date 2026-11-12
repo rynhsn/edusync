@@ -51,11 +51,23 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             tip: 'Gunakan jumlah siswa di bawah KKM untuk merencanakan remedial lebih awal.',
           },
           {
+            heading: 'Aturan nilai tersimpan per semester',
+            body: 'Aturan nilai (KKM, batas predikat, cara menghitung, komponen, dan KKTP) disimpan per semester. Saat rapor pertama sebuah semester difinalisasi, atau saat semester itu ditinggalkan karena semester lain diaktifkan, aturannya otomatis disimpan atau "dibekukan". Akibatnya rapor yang sudah terbit tidak berubah walau aturan sekolah diubah kemudian. Di Pengaturan penilaian ada kartu Status konfigurasi semester yang menunjukkan apakah sebuah semester Beku atau Hidup, sejak kapan, dan apakah aturannya masih sama dengan aturan hari ini. Bila berbeda, tombol Samakan dengan aturan hari ini mengganti aturan semester itu dengan aturan terbaru; tombol ini ditolak selama semester itu masih punya rapor final. Di rekap, siswa yang rapornya sudah final diberi tanda Sesuai rapor terbit, artinya nilai akhir, predikat, dan KKM-nya sama dengan yang tertulis di rapor dan tidak ikut berubah.',
+            href: '/grades/settings',
+            tip: 'Mengubah aturan di semester aktif yang sudah beku otomatis ikut diterapkan ke aturan tersimpan semester itu, selama belum ada rapor final.',
+            warning:
+              'Komponen yang dibuat setelah sebuah semester dibekukan belum berlaku di semester itu. Bila penilaian ditolak karena hal ini, buka Pengaturan penilaian lalu pilih Samakan dengan aturan hari ini pada semester tersebut.',
+          },
+          {
             heading: 'Siapa yang bisa melakukan apa',
             body: 'Guru hanya bisa melihat dan mengisi nilai untuk kelas dan mata pelajaran yang diampunya. Operator dan Admin sekolah bisa mengisi semua kelas. Kepala sekolah dan Kurikulum bisa melihat semua kelas dan mata pelajaran. Pengaturan penilaian (KKM, predikat, bobot) hanya bisa diubah oleh Kurikulum, Operator, dan Admin sekolah. Nilai dan rapor adalah satu modul. Ekstrakurikuler punya predikat sendiri di modul Ekstrakurikuler, dan predikat itu tampil di rapor.',
           },
         ],
         faq: [
+          {
+            q: 'Apa arti Beku pada status semester?',
+            a: 'Beku berarti aturan nilai semester itu tersimpan tersendiri. Rapor yang sudah terbit tidak berubah bila aturan sekolah diubah kemudian. Semester yang masih Hidup mengikuti aturan sekolah hari ini dan akan otomatis dibekukan saat rapor pertamanya difinalisasi.',
+          },
           {
             q: 'Kenapa mata pelajaran saya tidak muncul saat mengisi nilai?',
             a: 'Daftar hanya menampilkan kelas dan mata pelajaran yang Anda ampu. Pastikan semester yang dipilih benar. Bila tetap tidak ada, minta admin sekolah memeriksa jadwal pelajaran dan pengampu mata pelajaran di kelas itu.',
@@ -120,11 +132,23 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             tip: 'Use the number of students below the passing mark to plan remedial classes early.',
           },
           {
+            heading: 'Grading rules are saved per semester',
+            body: 'The grading rules (passing mark, predicate thresholds, calculation method, components, and KKTP) are saved per semester. When the first report card of a semester is finalized, or when that semester is left behind because another one is activated, its rules are saved automatically, which is called "frozen". As a result, report cards that were already issued do not change when the school rules are changed later. In Grading settings, the Semester configuration status card shows whether a semester is Frozen or Live, since when, and whether its rules still match today\'s rules. When they differ, the Match today\'s rules button replaces the rules of that semester with the latest ones; it is refused while that semester still has final report cards. In the recap, students whose report card is already final are marked Matches issued report card, meaning the final score, predicate, and KKM are the same as written on the report card and do not change.',
+            href: '/grades/settings',
+            tip: 'Changing the rules in an active semester that is already frozen is applied automatically to the saved rules of that semester, as long as there is no final report card.',
+            warning:
+              'A component created after a semester was frozen does not apply to that semester yet. If an assessment is refused because of this, open Grading settings and choose Match today\'s rules for that semester.',
+          },
+          {
             heading: 'Who can do what',
             body: 'Teachers can only view and fill in scores for the classes and subjects they teach. Operators and School admins can fill in every class. The Principal and Curriculum staff can view all classes and subjects. Grading settings (passing mark, predicates, weights) can only be changed by Curriculum staff, Operators, and School admins. Grades and report cards are one module. Extracurriculars have their own predicate in the Extracurricular module, and it appears on the report card.',
           },
         ],
         faq: [
+          {
+            q: 'What does Frozen mean in the semester status?',
+            a: 'Frozen means the grading rules of that semester are saved on their own. Report cards that were already issued do not change when the school rules are changed later. A semester that is still Live follows the school rules of today and is frozen automatically when its first report card is finalized.',
+          },
           {
             q: 'Why does my subject not appear when I enter scores?',
             a: 'The list only shows the classes and subjects you teach. Make sure the right semester is selected. If it still does not appear, ask the school admin to check the lesson schedule and the subject teacher for that class.',
@@ -189,11 +213,23 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             tip: 'Pake jumlah siswa di handap KKM kanggo ngarencanakeun remedial langkung awal.',
           },
           {
+            heading: 'Aturan nilai disimpen per semester',
+            body: 'Aturan nilai (KKM, wates predikat, cara ngitung, komponén, sareng KKTP) disimpen per semester. Nalika rapor kahiji sawatara semester difinalisasi, atanapi nalika semester éta ditinggalkeun margi semester sanés diaktipkeun, aturanna otomatis disimpen atanapi "dibekukeun". Hasilna rapor nu tos kaluar teu robih sanaos aturan sakola dirobih engké. Dina Pengaturan penilaian aya kartu Status konfigurasi semester nu nunjukkeun semester éta Beku atanapi Hirup, ti iraha, sareng aturanna masih sami sareng aturan ayeuna atanapi henteu. Upami béda, tombol Saruakeun jeung aturan ayeuna ngagentos aturan semester éta ku aturan pang anyarna; tombol ieu ditolak salami semester éta masih gaduh rapor final. Dina rekap, siswa nu raporna tos final diwenangan tanda Saluyu jeung rapor nu kaluar, hartosna nilai akhir, predikat, sareng KKM-na sami sareng nu aya dina rapor sarta teu robih.',
+            href: '/grades/settings',
+            tip: 'Ngarobih aturan dina semester aktip nu tos beku otomatis ogé diterapkeun ka aturan nu disimpen semester éta, salami can aya rapor final.',
+            warning:
+              'Komponén nu dijieun saatos semester dibekukeun can lumaku dina semester éta. Upami panilaian ditolak margi hal ieu, buka Pengaturan penilaian tuluy pilih Saruakeun jeung aturan ayeuna pikeun semester éta.',
+          },
+          {
             heading: 'Saha nu tiasa naon',
             body: 'Guru ngan tiasa ningali sareng ngeusian nilai kanggo kelas sareng mata pelajaran nu diampuna. Operator sareng Admin sekolah tiasa ngeusian sadaya kelas. Kepala sekolah sareng Kurikulum tiasa ningali sadaya kelas sareng mata pelajaran. Pengaturan penilaian (KKM, predikat, bobot) ngan tiasa dirobih ku Kurikulum, Operator, sareng Admin sekolah. Nilai sareng rapor téh hiji modul. Ékstrakurikuler gaduh predikat sorangan dina modul Ekstrakurikuler, tur predikatna muncul dina rapor.',
           },
         ],
         faq: [
+          {
+            q: 'Naon hartosna Beku dina status semester?',
+            a: 'Beku hartosna aturan nilai semester éta disimpen sorangan. Rapor nu tos kaluar teu robih upami aturan sakola dirobih engké. Semester nu masih Hirup nuturkeun aturan sakola ayeuna sarta otomatis dibekukeun nalika rapor kahijina difinalisasi.',
+          },
           {
             q: 'Naha mata pelajaran kuring teu muncul nalika ngeusian nilai?',
             a: 'Daptarna ngan nunjukkeun kelas sareng mata pelajaran nu anjeun ampu. Pastikeun semesterna bener. Upami tetep teu aya, hubungi admin sakola pikeun mariksa jadwal pelajaran sareng pangampu mata pelajaran di kelas éta.',
@@ -257,6 +293,13 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Rapor final terkunci: nilai, penilaian, nilai ujian yang dikirim, penilaian ekskul, pengaturan nilai (KKM dan bobot), dan koreksi absensi pada semester itu ditolak dengan pesan "Rapor sudah difinalisasi" sampai rapor dibuka kembali. Untuk mengubahnya, Kurikulum, Operator, atau Admin sekolah harus memakai Buka kembali, yang mengembalikan rapor satu kelas menjadi draf. Catatan wali kelas tetap tersimpan, dan setiap rapor yang pernah difinalkan tetap tersimpan di riwayat sehingga tidak hilang saat dibuka kembali.',
           },
           {
+            heading: 'Rapor terbit tidak berubah oleh pengaturan nilai',
+            body: 'Saat rapor pertama sebuah semester difinalisasi, aturan nilai semester itu (KKM, predikat, cara menghitung, komponen, dan KKTP) ikut tersimpan. Karena itu angka pada rapor final tetap sama walau KKM, bobot, atau cara menghitung diubah kemudian. Di menu Penilaian, rekap kelas yang sudah final menampilkan tanda Sesuai rapor terbit, dan wali murid melihat tanda Sesuai rapor di portal. Bila Anda perlu menerapkan aturan baru pada semester yang sudah punya rapor final, buka kembali rapor semua kelasnya, samakan aturan semester itu di Pengaturan penilaian, lalu finalisasi lagi.',
+            href: '/grades/settings',
+            warning:
+              'Semester yang masih punya rapor final tidak bisa disamakan dengan aturan baru. Semester atau kelas yang sudah punya rapor terbit juga tidak bisa dihapus, karena data rapor yang sudah terbit tidak boleh hilang.',
+          },
+          {
             heading: 'Mengunduh rapor',
             body: 'Rapor bisa diunduh sebagai PDF per siswa atau sekaligus satu kelas. Leger kelas, yaitu tabel nilai seluruh siswa, diunduh sebagai Excel. Rapor juga memuat ekstrakurikuler yang diikuti siswa beserta predikatnya, dan jumlah ketidakhadiran (sakit, izin, tanpa keterangan) dalam rentang semester.',
             steps: [
@@ -285,6 +328,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
         ],
         faq: [
+          {
+            q: 'Saya mengubah KKM atau bobot, tetapi nilai di rapor final tidak berubah. Apakah ada yang salah?',
+            a: 'Tidak. Rapor final memang tidak berubah oleh pengaturan nilai, supaya rapor yang sudah dibagikan selalu sama. Nilai di rekap kelas final juga mengikuti rapor dan diberi tanda Sesuai rapor terbit. Bila memang perlu dikoreksi, buka kembali rapor kelasnya, samakan aturan semester itu di Pengaturan penilaian, lalu finalisasi ulang.',
+          },
           {
             q: 'Bagaimana mengubah rapor yang sudah final?',
             a: 'Minta Kurikulum, Operator, atau Admin sekolah membuka halaman Rapor, memilih kelas itu, lalu klik Buka kembali. Setelah rapor menjadi draf, perbaiki nilai atau catatan, lalu finalisasi lagi.',
@@ -335,6 +382,13 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'A final report card is locked: scores, assessments, exam results already sent to the gradebook, extracurricular grades, grading settings (passing grade and weights), and attendance corrections for that semester are rejected with "The report card is finalized" until it is reopened. To change it, Curriculum staff, an Operator, or a School admin must use Reopen, which turns the whole class back into drafts. Homeroom notes are kept, and every report card that was ever finalized stays in the history, so nothing is lost when it is reopened.',
           },
           {
+            heading: 'Issued report cards do not change with grading settings',
+            body: 'When the first report card of a semester is finalized, the grading rules of that semester (passing mark, predicates, calculation method, components, and KKTP) are saved with it. That is why the figures on a final report card stay the same even if the passing mark, weights, or calculation method are changed later. In the Grading menu, the recap of a class that is already final shows the mark Matches issued report card, and parents see the mark As in report card in the portal. If you need to apply new rules to a semester that already has final report cards, reopen the report cards of all its classes, match the rules of that semester in Grading settings, then finalize again.',
+            href: '/grades/settings',
+            warning:
+              'A semester that still has final report cards cannot be matched to the new rules. A semester or class that has issued report cards also cannot be deleted, because the data of issued report cards must never be lost.',
+          },
+          {
             heading: 'Downloading report cards',
             body: 'Report cards can be downloaded as PDF per student or for the whole class at once. The class ledger, a table of all student scores, is downloaded as Excel. A report card also lists the extracurriculars the student joined with their predicates, and the number of absences (sick, excused, unexcused) within the semester range.',
             steps: [
@@ -363,6 +417,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
         ],
         faq: [
+          {
+            q: 'I changed the passing mark or weights, but the scores on the final report card did not change. Is something wrong?',
+            a: 'No. A final report card is not changed by grading settings on purpose, so a report card that was already handed out always stays the same. The scores in the recap of a final class also follow the report card and are marked Matches issued report card. If a correction is really needed, reopen the report cards of the class, match the rules of that semester in Grading settings, then finalize again.',
+          },
           {
             q: 'How do I change a report card that is already final?',
             a: 'Ask Curriculum staff, an Operator, or a School admin to open the Report cards page, pick that class, and click Reopen. Once the report cards are drafts, correct the scores or notes and finalize again.',
@@ -413,6 +471,13 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Rapor final dikonci: nilai, panilaian, hasil ujian nu geus dikirim, panilaian ekskul, setélan nilai (KKM jeung bobot), jeung koréksi absénsi dina semester éta ditolak ku pesen "Rapor geus difinalisasi" nepi ka rapor dibuka deui. Kanggo ngarobihna, Kurikulum, Operator, atanapi Admin sekolah kedah ngagunakeun Buka kembali, nu ngabalikeun rapor sakelas jadi draf. Catetan wali kelas tetep disimpen, sarta unggal rapor nu kungsi difinalkeun tetep aya dina riwayat sangkan teu leungit basa dibuka deui.',
           },
           {
+            heading: 'Rapor nu kaluar teu robih ku pangaturan nilai',
+            body: 'Nalika rapor kahiji sawatara semester difinalisasi, aturan nilai semester éta (KKM, predikat, cara ngitung, komponén, sareng KKTP) ogé disimpen. Ku kituna angka dina rapor final tetep sami sanaos KKM, bobot, atanapi cara ngitung dirobih engké. Dina menu Penilaian, rekap kelas nu tos final nunjukkeun tanda Saluyu jeung rapor nu kaluar, sareng wali murid ningali tanda Saluyu jeung rapor di portal. Upami anjeun kedah nerapkeun aturan anyar dina semester nu tos gaduh rapor final, buka deui rapor sadaya kelasna, saruakeun aturan semester éta dina Pengaturan penilaian, tuluy finalisasi deui.',
+            href: '/grades/settings',
+            warning:
+              'Semester nu masih gaduh rapor final teu tiasa disaruakeun jeung aturan anyar. Semester atanapi kelas nu tos gaduh rapor kaluar ogé teu tiasa dihapus, margi data rapor nu tos kaluar teu meunang leungit.',
+          },
+          {
             heading: 'Ngaunduh rapor',
             body: 'Rapor tiasa diunduh jadi PDF per siswa atanapi sakelas sakaligus. Leger kelas, nyaéta tabel nilai sadaya siswa, diunduh jadi Excel. Rapor ogé eusina ékstrakurikuler nu dilongok siswa sareng predikatna, ogé jumlah teu hadir (gering, idin, tanpa katerangan) dina rentang semester.',
             steps: [
@@ -441,6 +506,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
         ],
         faq: [
+          {
+            q: 'Kuring ngarobih KKM atanapi bobot, tapi nilai dina rapor final teu robih. Naha aya nu lepat?',
+            a: 'Henteu. Rapor final sengaja teu robih ku pangaturan nilai, supados rapor nu tos dibagikeun salawasna sami. Nilai dina rekap kelas final ogé nuturkeun rapor sarta ditandaan Saluyu jeung rapor nu kaluar. Upami leres-leres kedah dikoréksi, buka deui rapor kelasna, saruakeun aturan semester éta dina Pengaturan penilaian, tuluy finalisasi deui.',
+          },
           {
             q: 'Kumaha ngarobih rapor nu tos final?',
             a: 'Bantun Kurikulum, Operator, atanapi Admin sekolah muka kaca Rapor, pilih kelas éta, tuluy klik Buka kembali. Saatos rapor jadi draf, bénerkeun nilai atanapi catetan, tuluy finalisasi deui.',

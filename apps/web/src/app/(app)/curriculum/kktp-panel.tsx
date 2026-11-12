@@ -27,6 +27,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { EmptyPanel, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { ApiError, api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { invalidateGradingConfig, syncedSemesterIdOf } from '@/lib/grading-config';
 import {
   appliesTo,
   buildBody,
@@ -47,6 +48,7 @@ import {
   validateDraft,
 } from '@/lib/kktp';
 import { useSchoolLevels } from '@/lib/school-settings';
+import { semesterLabel } from '@/lib/semester-label';
 import { cn } from '@/lib/utils';
 
 const MODE_TONE = { numeric: 'teal', interval: 'sky', descriptor: 'violet', rubric: 'amber' } as const;
@@ -81,6 +83,18 @@ function useErrorText() {
   const t = useTranslations('kktp');
   return (e: unknown) =>
     e instanceof ApiError && e.code === 'report_final' ? t('reportFinal') : te(errorKey(e));
+}
+
+/**
+ * Toast sukses simpan/hapus KKTP. Bila server juga menulis-tembus ke aturan beku semester aktif (`syncedSemesterId`),
+ * toast menambahkan penjelasannya.
+ */
+function useSyncedToast() {
+  const t = useTranslations('kktp');
+  return (message: string, body: unknown) => {
+    if (syncedSemesterIdOf(body)) toast.success(message, { description: t('syncedToActive') });
+    else toast.success(message);
+  };
 }
 
 /** KKTP: kriteria ketuntasan per mapel/tingkat/jurusan, KKM efektif, dan pratinjau pemecah KKM. */
@@ -135,17 +149,15 @@ export function KktpPanel({ canWrite }: { canWrite: boolean }) {
   const programName = (id: string | null) =>
     id === null ? t('allPrograms') : (programList.find((p) => p.id === id)?.name ?? '-');
 
-  const refresh = () => {
-    queryClient.invalidateQueries({ queryKey: ['kktp'] });
-    // KKM efektif memengaruhi rekap nilai, portal, dan rapor.
-    queryClient.invalidateQueries({ queryKey: ['grading-recap', school.schoolId] });
-  };
+  // KKM efektif memengaruhi rekap nilai, portal, dan rapor; perubahan juga bisa tertulis ke aturan beku semester aktif.
+  const refresh = () => invalidateGradingConfig(queryClient, school.schoolId);
+  const toastWithSync = useSyncedToast();
 
   const remove = useMutation({
     mutationFn: async (id: string) =>
       unwrap(await api.DELETE('/v1/achievement-criteria/{id}', { params: { ...header, path: { id } } })),
-    onSuccess: () => {
-      toast.success(t('deleted'));
+    onSuccess: (removed) => {
+      toastWithSync(t('deleted'), removed);
       refresh();
     },
     onError: (e) => toast.error(errorText(e)),
@@ -187,6 +199,7 @@ export function KktpPanel({ canWrite }: { canWrite: boolean }) {
         <AlertDescription>
           <p>{t('fallbackBody')}</p>
           <p className="mt-1">{t('finalWarning')}</p>
+          <p className="mt-1">{t('frozenWriteNote')}</p>
           <p className="mt-1">
             <Link href="/grades/settings" className="underline underline-offset-2">
               {t('schoolKkmLink')}
@@ -375,9 +388,22 @@ function PreviewCard({
   const [programId, setProgramId] = useState('');
   const subjectId = subjects.some((s) => s.id === subjectChoice) ? subjectChoice : (subjects[0]?.id ?? '');
 
+  // Semester untuk pratinjau: bawaannya semester aktif; "aturan hari ini" (kosong) mengabaikan salinan beku.
+  const semesters = useQuery({
+    queryKey: ['semesters', school.schoolId, 'all'],
+    queryFn: async () => unwrap(await api.GET('/v1/semesters', { params: { ...header, query: {} } })),
+  });
+  const semesterList = semesters.data ?? [];
+  const [semesterChoice, setSemesterChoice] = useState<string | null>(null);
+  const semesterId =
+    semesterChoice !== null && (semesterChoice === '' || semesterList.some((s) => s.id === semesterChoice))
+      ? semesterChoice
+      : (semesterList.find((s) => s.isActive)?.id ?? '');
+  const semesterName = semesterList.find((s) => s.id === semesterId);
+
   const resolved = useQuery({
-    queryKey: ['kktp', 'resolve', school.schoolId, subjectId, levelCode, programId],
-    enabled: subjectId !== '',
+    queryKey: ['kktp', 'resolve', school.schoolId, subjectId, levelCode, programId, semesterId],
+    enabled: subjectId !== '' && !semesters.isPending,
     queryFn: async () =>
       unwrap(
         await api.GET('/v1/achievement-criteria/resolve', {
@@ -387,6 +413,7 @@ function PreviewCard({
               subjectId,
               ...(levelCode ? { levelCode } : {}),
               ...(programId ? { programId } : {}),
+              ...(semesterId ? { semesterId } : {}),
             },
           },
         }),
@@ -405,7 +432,23 @@ function PreviewCard({
           <p className="text-muted-foreground mt-1 text-sm">{t('previewHelp')}</p>
         </div>
       </div>
-      <div className="grid gap-3 sm:grid-cols-3">
+      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid content-start gap-2">
+          <Label htmlFor="kktp-p-semester">{t('previewSemester')}</Label>
+          <SelectField
+            id="kktp-p-semester"
+            className={TOUCH_SELECT}
+            value={semesterId}
+            onChange={(e) => setSemesterChoice(e.target.value)}
+          >
+            <option value="">{t('previewSemesterLive')}</option>
+            {semesterList.map((s) => (
+              <option key={s.id} value={s.id}>
+                {semesterLabel(s)}
+              </option>
+            ))}
+          </SelectField>
+        </div>
         <div className="grid content-start gap-2">
           <Label htmlFor="kktp-p-subject">{t('subject')}</Label>
           <SelectField
@@ -481,6 +524,11 @@ function PreviewCard({
                     {t(`mode_${r.mode}`)}
                   </ToneBadge>
                 )}
+                <ToneBadge tone={r.frozen ? 'sky' : 'slate'} dot={false}>
+                  {r.frozen && semesterName
+                    ? t('previewFrozen', { semester: semesterLabel(semesterName) })
+                    : t('previewLive')}
+                </ToneBadge>
               </p>
               <p className="text-muted-foreground">
                 {r.scope === 'settings'
@@ -546,6 +594,7 @@ function CriteriaForm({
 }) {
   const t = useTranslations('kktp');
   const errorText = useErrorText();
+  const toastWithSync = useSyncedToast();
   const issueText = useIssueText();
   const { school } = useSchool();
   const header = { header: schoolHeader(school.schoolId) };
@@ -597,8 +646,8 @@ function CriteriaForm({
       }
       return unwrap(await api.POST('/v1/achievement-criteria', { params: header, body: built.body }));
     },
-    onSuccess: () => {
-      toast.success(row ? t('updated') : t('created'));
+    onSuccess: (saved) => {
+      toastWithSync(row ? t('updated') : t('created'), saved);
       onSaved();
     },
     onError: (e) => {

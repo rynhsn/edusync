@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { withoutBlur } from '@/lib/area-rules';
-import { errorKey } from '@/lib/errors';
+import { errorKey, errorKeyIn } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { PERIOD_ORDER, type PeriodField, validatePeriod } from './academic-year-validation';
 
@@ -63,6 +63,10 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
     queryClient.invalidateQueries({ queryKey: ['academic-years', school.schoolId] });
     queryClient.invalidateQueries({ queryKey: ['classes', school.schoolId] });
     queryClient.invalidateQueries({ queryKey: ['students', school.schoolId] });
+    // Mengaktifkan semester membekukan aturan nilai semester yang ditinggalkan; status di Pengaturan penilaian ikut berubah.
+    queryClient.invalidateQueries({ queryKey: ['semesters', school.schoolId] });
+    queryClient.invalidateQueries({ queryKey: ['grading-semester-config', school.schoolId] });
+    queryClient.invalidateQueries({ queryKey: ['grading-settings', school.schoolId] });
   };
   const onError = (e: unknown) => toast.error(te(errorKey(e)));
 
@@ -125,7 +129,8 @@ export function SemestersPanel({ yearId }: { yearId: string }) {
       toast.success(t('deleted'));
       refresh();
     },
-    onError,
+    // Semester yang punya arsip rapor terbit tidak boleh dihapus: pesannya menyebut itu, bukan galat umum.
+    onError: (e) => toast.error(te(errorKeyIn(e, 'semester'))),
   });
 
   const show = (iso: string) => formatCalendarDate(locale, iso);

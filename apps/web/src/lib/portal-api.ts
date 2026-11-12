@@ -128,9 +128,13 @@ export interface PortalGrades {
   semesters: { id: string; name: string; academicYear: string; isActive: boolean }[];
   kkm: number | null;
   average: number | null;
+  /** Hanya ada (`report`) bila angka diambil dari rapor yang sudah final; tak ada pada angka berjalan. */
+  source?: 'report';
   subjects: {
     subjectId: string;
     name: string;
+    /** Sama seperti di atas, per mapel. */
+    source?: 'report';
     /** KKM efektif mapel ini (KKTP, boleh desimal); tidak ada bila server belum menghitungnya per mapel. */
     kkm?: number;
     final: number | null;

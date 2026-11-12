@@ -29,6 +29,20 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
   rapor final di semester aktif. Rekap nilai, rapor, dan portal memakai KKM per mapel. Migrasi 0091.
 - Rollover tahun ajaran kini juga menyalin struktur kurikulum (`copyCurriculum`) dan ATP terbit sebagai draf (`copyTeachingPlans`).
 
+### Ditambahkan (integritas nilai antar-semester)
+
+- **Aturan nilai tersimpan per semester**: bobot komponen, KKM, predikat, mode nilai akhir, dan kriteria ketercapaian dibekukan per
+  semester (saat rapor kelas pertama difinalkan atau saat semester ditinggalkan), sehingga mengubah aturan nilai tidak lagi
+  menggeser angka semester yang rapornya sudah terbit. Rekap dan portal wali untuk kelas yang rapornya final menampilkan angka
+  rapor terbit ("Sesuai rapor"). Pengaturan nilai memiliki kartu status per semester dan tombol "Samakan dengan aturan hari ini"
+  (ditolak selama ada rapor final). Perubahan aturan pada semester aktif yang sudah beku dan belum final ikut diterapkan ke
+  salinan bekunya. Data lama dibekukan otomatis saat migrasi (`pnpm --filter @edusync/db backfill:grading-config`; skrip
+  verifikasi baca-saja `verify:grading-config`). Migrasi 0094. Komponen yang dibuat sesudah pembekuan ditolak
+  (409 `component_not_in_semester`) sampai konfigurasi disinkronkan.
+- Arsip rapor final tidak lagi ikut terhapus saat kelas, siswa, atau semesternya dihapus; penghapusan ditolak (409 `in_use`).
+  Migrasi 0095.
+- Pengaturan KKTP kini mensyaratkan modul Nilai dan rapor.
+
 ### Diubah (koreksi hasil verifikasi regulasi, fase 2C)
 
 - **Kelompok mapel dari acuan**: batasan nilai tetap pada `subject_group` diganti tabel acuan `ref_subject_group` (label tiga bahasa,

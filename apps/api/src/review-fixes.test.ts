@@ -177,6 +177,7 @@ afterAll(async () => {
   for (const table of [
     'audit_log',
     'promotion_decision',
+    'report_card_snapshot',
     'report_card',
     'learning_flow_item',
     'learning_flow',

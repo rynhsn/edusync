@@ -1043,6 +1043,7 @@
     "score_exceeds_max": "Some scores are higher than the new maximum score.",
     "invalid_score": "A score must be between 0 and the assessment maximum.",
     "report_final": "The report card is finalized. Reopen it first to make changes.",
+    "component_not_in_semester": "This component does not apply to this semester because its grading rules were saved (frozen) before the component was created. Use a component that applies, or open Grading settings and choose Match today's rules for this semester.",
     "grades_incomplete": "Some students have incomplete grades.",
     "overpay": "The amount exceeds the remaining balance.",
     "invoice_void": "This invoice has been voided.",
@@ -1101,7 +1102,7 @@
     "in_use_level": "This grade is still used by classes, fees, admission periods, a program final grade, lesson-period allocations, curriculum versions, ATPs, or KKTPs. Release those first, then delete.",
     "in_use_program": "This program is still used by classes, curriculum lesson-period allocations, or KKTPs. Move or delete whatever uses it first.",
     "in_use_subject": "This subject is still in use: it is assigned to a teacher, or appears in curriculum lesson-period allocations, CPs, ATPs, or KKTPs. Release those first.",
-    "in_use_class": "This class still has students, teacher assignments, or promotion decisions. Move or delete those first.",
+    "in_use_class": "This class still has students, teacher assignments, promotion decisions, or the archive of issued report cards. Data of issued report cards must never be deleted. Move or delete the other related data first.",
     "levels_not_configured": "The school level list is empty. Set the levels in School settings before copying classes.",
     "promotion_applied": "That student decision was already applied to the next school year and cannot be changed anymore.",
     "invalid_target": "The target academic year is not valid. Pick a different year that starts after the source year.",
@@ -1135,7 +1136,8 @@
     "invalid_criteria": "The criterion is incomplete or inconsistent. Check the mode, threshold, and levels.",
     "invalid_subject_group": "Unknown subject group. Pick one from the available groups.",
     "weights_sum_invalid": "The percentage mode needs the component weights to add up to exactly 100. Adjust the component weights first.",
-    "level_unknown": "That class grade is not in the school grade list, so the next grade is unknown. Pick a target class or fix the grade list."
+    "level_unknown": "That class grade is not in the school grade list, so the next grade is unknown. Pick a target class or fix the grade list.",
+    "in_use_semester": "This semester still has linked data, such as assessments, schedules, or the archive of issued report cards. Data of issued report cards must never be deleted, so this semester cannot be deleted."
   },
   "theme": {
     "label": "Theme",
@@ -2471,7 +2473,13 @@
     "issue_range_required": "Level {n}: the lowest and highest scores are required.",
     "issue_number_invalid": "Level {n}: scores must be numbers from 0 to 100, with at most two decimals.",
     "issue_range_order": "Level {n}: the lowest score must not exceed the highest score.",
-    "issue_overlap": "The ranges of level {a} and level {b} overlap."
+    "issue_overlap": "The ranges of level {a} and level {b} overlap.",
+    "syncedToActive": "This change was also applied to the saved grading rules of the active semester.",
+    "frozenWriteNote": "If the grading rules of the active semester are already frozen (saved), criteria changes made here are applied to that saved copy too, so the active semester figures stay in line. Changes are refused while the active semester has final report cards; reopen them first.",
+    "previewSemester": "Semester",
+    "previewSemesterLive": "Today's rules (no semester)",
+    "previewFrozen": "Using the frozen rules of {semester}",
+    "previewLive": "Using today's rules"
   },
   "semesters": {
     "title": "Semesters",
@@ -3427,7 +3435,45 @@
       }
     },
     "calcModeWarning": "Changing the calculation affects draft report cards: every student's final grade is recalculated the new way, so the numbers on draft report cards may change. Finalized report cards do not change and block this change.",
-    "calcModeReportFinal": "Grading settings cannot be changed because the active semester has finalized report cards. Reopen the finalized report cards in the Report cards menu, then save again."
+    "calcModeReportFinal": "Grading settings cannot be changed because the active semester has finalized report cards. Reopen the finalized report cards in the Report cards menu, then save again.",
+    "syncedToActive": "This change was also applied to the saved grading rules of the active semester.",
+    "writeThroughNote": "The active semester already has a saved copy of its grading rules. Changes you save here are applied to that copy as well, as long as the active semester has no finalized report cards.",
+    "semCfgTitle": "Semester configuration status",
+    "semCfgHint": "The grading rules of each semester (passing mark, predicates, calculation method, components, and KKTP) are saved per semester. That way report cards that were already issued do not change when the school rules are changed later.",
+    "semCfgNoSemester": "There is no semester yet.",
+    "semCfgActiveSuffix": "active",
+    "semCfgFrozen": "Frozen",
+    "semCfgLive": "Live",
+    "semCfgSame": "Same as today's rules",
+    "semCfgDiffers": "Different from today's rules",
+    "semCfgFinalCount": "{reports} final report cards in {classes} classes",
+    "semCfgWhatFrozen": "Frozen means the grading rules of this semester are saved on their own. Report cards that were already issued do not change when the school grading rules are changed later, and the scores in the recap and the parent portal for this semester follow those saved rules.",
+    "semCfgWhatLive": "This semester still follows the school grading rules of today. The rules are saved (frozen) automatically when the first report card is finalized or when the semester is left behind, so issued report cards do not change.",
+    "semCfgOrigin": "Why it was frozen",
+    "semCfgFrozenAt": "Frozen on",
+    "semCfgRules": "Grading rules",
+    "semCfgRulesValue": "KKM {kkm}, predicate A {a}, B {b}, C {c}",
+    "semCfgComponents": "Score components",
+    "semCfgCriteria": "{count} KKTP criteria",
+    "freezeOrigin_finalize": "The first report card was finalized",
+    "freezeOrigin_semester_closed": "Semester left behind (another semester was activated)",
+    "freezeOrigin_sync": "Matched to the school rules",
+    "freezeOrigin_backfill": "Older data, filled from the rules at the time of the update",
+    "freezeOrigin_manual": "Frozen manually",
+    "freezeOrigin_unknown": "Unknown",
+    "semCfgDiffersTitle": "Today's rules differ from the ones this semester uses",
+    "semCfgDiffersBody": "This semester uses its saved grading rules, while the school rules of today have changed. The recap and the portal for this semester keep using the saved rules, and issued report cards are not affected.",
+    "semCfgBlockedHint": "The rules of this semester cannot be matched while final report cards exist. Reopen the class report cards in the Report cards menu if you really need to match them.",
+    "semCfgSyncButton": "Match today's rules",
+    "semCfgSyncConfirm": "The grading rules of {semester} will be replaced with the school rules of today. Scores in the recap and the parent portal for that semester will follow the new rules. This is refused while that semester still has final report cards.",
+    "semCfgSyncConfirmButton": "Yes, match",
+    "syncDone": "The semester grading rules now match today's rules.",
+    "syncNoChange": "The semester rules already match today's rules.",
+    "syncBlockedFinal": "The grading rules of this semester cannot be matched because there are still final report cards in: {classes}. Reopen the report cards of those classes in the Report cards menu, then try again.",
+    "syncBlockedFinalNoNames": "The grading rules of this semester cannot be matched because it still has final report cards. Reopen them in the Report cards menu, then try again.",
+    "fromReportBadge": "Matches issued report card",
+    "fromReportNote": "The final score, predicate, and KKM of students marked this way are taken from the finalized report card, so they match what was issued and do not change with the grading settings. The average of each component is still calculated from the current scores.",
+    "semCfgGoLink": "Open Grading settings"
   },
   "reportCards": {
     "title": "Report cards",
@@ -5758,7 +5804,9 @@
       "fluent": "Fluent",
       "fair": "Fair",
       "repeat": "Repeat"
-    }
+    },
+    "reportSourceBadge": "As in report card",
+    "reportSourceNote": "The scores for this semester are the same as those written in the report card issued by the school."
   },
   "roleWelcome": {
     "staffTitle": "Welcome! Here is what you can do",

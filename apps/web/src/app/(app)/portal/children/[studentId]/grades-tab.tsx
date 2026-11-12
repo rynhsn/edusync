@@ -2,9 +2,11 @@
 
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
+import { ReportSourceBadge } from '@/components/report-source-badge';
 import { SelectField } from '@/components/ui/select-field';
 import type { Locale } from '@/i18n/config';
 import { formatCalendarDate } from '@/lib/format-date';
+import { isFromReport } from '@/lib/grading-config';
 import { formatKkm } from '@/lib/kktp';
 import { PORTAL_PATHS, type PortalGrades } from '@/lib/portal-api';
 import { cn } from '@/lib/utils';
@@ -47,6 +49,15 @@ export function GradesTab({ studentId }: { studentId: string }) {
       )}
       {data?.available && data.subjects.length > 0 && (
         <>
+          {isFromReport(data) && (
+            <div
+              role="note"
+              className="flex items-start gap-2.5 rounded-xl bg-sky-100 p-3 text-sm text-sky-900 dark:bg-sky-500/15 dark:text-sky-100"
+            >
+              <ReportSourceBadge label={t('reportSourceBadge')} className="shrink-0" />
+              <p className="min-w-0">{t('reportSourceNote')}</p>
+            </div>
+          )}
           {data.average !== null && (
             <div className="from-primary/12 to-chart-2/15 flex items-center justify-between rounded-2xl bg-gradient-to-br p-4">
               <p className="text-muted-foreground text-sm">{t('average')}</p>
@@ -111,7 +122,12 @@ export function GradesTab({ studentId }: { studentId: string }) {
                       />
                     )}
                   </div>
-                  {s.belowKkm && <p className="text-chart-3 text-xs font-medium">{t('belowKkm')}</p>}
+                  {(s.belowKkm || isFromReport(s)) && (
+                    <div className="flex flex-wrap items-center gap-2">
+                      {s.belowKkm && <p className="text-chart-3 text-xs font-medium">{t('belowKkm')}</p>}
+                      {isFromReport(s) && <ReportSourceBadge label={t('reportSourceBadge')} />}
+                    </div>
+                  )}
                 </li>
               );
             })}

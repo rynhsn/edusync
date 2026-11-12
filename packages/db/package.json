@@ -9,6 +9,7 @@
   "scripts": {
     "generate": "drizzle-kit generate",
     "migrate": "tsx --env-file=../../.env src/migrate.ts",
+    "backfill:grading-config": "tsx --env-file=../../.env src/backfill-grading-config.ts",
     "typecheck": "tsc -p tsconfig.json",
     "test": "vitest run"
   },

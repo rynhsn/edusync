@@ -1,6 +1,7 @@
 import { migrate } from 'drizzle-orm/node-postgres/migrator';
 import { seedCatalog } from './catalog';
 import { createDb } from './client';
+import { backfillSemesterGradingConfigs } from './grading-backfill';
 import { syncSystemRolePermissions } from './roles';
 
 const url = process.env.DATABASE_OWNER_URL;
@@ -20,5 +21,16 @@ if (platformUrl) {
   const added = await syncSystemRolePermissions(platform.db);
   await platform.pool.end();
   if (added > 0) console.log(`Izin peran bawaan dilengkapi: ${added}`);
+  // Konfigurasi nilai beku untuk semester lama (tabel ber-RLS, jadi tidak bisa di SQL migrasi). Gagal KERAS bila koneksi
+  // ternyata tunduk RLS; idempoten (tidak menimpa salinan yang ada).
+  const frozen = await backfillSemesterGradingConfigs(platform.db);
+  console.log(
+    `Backfill konfigurasi nilai beku: ${frozen.created} dibuat (rapor final ${frozen.byReason.final}, lewat dan bernilai ${frozen.byReason.pastGraded}), ${frozen.alreadyFrozen} sudah ada, ${frozen.schools} sekolah`,
+  );
+} else {
+  console.warn(
+    'PERINGATAN: DATABASE_PLATFORM_URL kosong, sehingga sinkron izin peran dan backfill konfigurasi nilai beku DILEWATI. ' +
+      'Jalankan `pnpm --filter @edusync/db backfill:grading-config` dengan koneksi BYPASSRLS sebelum memakai rilis ini.',
+  );
 }
 console.log('Migrasi selesai');

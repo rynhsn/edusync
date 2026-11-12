@@ -309,6 +309,7 @@ afterAll(async () => {
     for (const table of [
       'audit_log',
       'promotion_decision',
+      'report_card_snapshot',
       'report_card',
       'homeroom_assignment_history',
       'teaching_assignment_history',

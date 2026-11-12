@@ -348,6 +348,7 @@ afterAll(async () => {
   for (const sid of [schoolId, noModuleId, otherId]) {
     for (const table of [
       'audit_log',
+      'report_card_snapshot',
       'report_card',
       'report_setting',
       'extracurricular_assessment',

@@ -25456,7 +25456,7 @@ export interface paths {
         };
         /**
          * Pengaturan penilaian
-         * @description Izin: `grade:read`; modul `grades`. KKM sekolah, batas predikat A/B/C, dan `calculationMode`. Sekolah yang belum mengaturnya mendapat nilai bawaan (KKM 75; A 90, B 80, C 70; `weighted_average`). KKM sekolah adalah jatuhan terakhir; mapel bisa punya KKM sendiri lewat KKTP (`/v1/achievement-criteria`). Jumlah bobot komponen (dari `GET /v1/grading/components`) harus 100 agar mode `percentage` bisa dipilih.
+         * @description Izin: `grade:read`; modul `grades`. KKM sekolah, batas predikat A/B/C, dan `calculationMode`. Sekolah yang belum mengaturnya mendapat nilai bawaan (KKM 75; A 90, B 80, C 70; `weighted_average`). KKM sekolah adalah jatuhan terakhir; mapel bisa punya KKM sendiri lewat KKTP (`/v1/achievement-criteria`). Jumlah bobot komponen (dari `GET /v1/grading/components`) harus 100 agar mode `percentage` bisa dipilih. Bila semester aktif punya salinan beku konfigurasi, respons membawa `activeSemesterConfig` (asal, waktu, `matchesLive`, `hasFinal`) supaya layar pengaturan dapat memperingatkan sebelum menyimpan; dihilangkan bila tidak ada salinan.
          */
         get: {
             parameters: {
@@ -25490,6 +25490,21 @@ export interface paths {
                              * @enum {string}
                              */
                             calculationMode?: "weighted_average" | "percentage" | "simple_average";
+                            /** @description Hanya ada bila semester aktif punya salinan beku konfigurasi nilai; dihilangkan selain itu */
+                            activeSemesterConfig?: {
+                                /** Format: uuid */
+                                semesterId: string;
+                                /** @enum {boolean} */
+                                frozen: true;
+                                /** @enum {string} */
+                                origin: "finalize" | "semester_closed" | "sync" | "backfill" | "manual";
+                                /** Format: date-time */
+                                frozenAt: string;
+                                /** @description Salinan beku sama isinya dengan konfigurasi hidup; false = perubahan berikutnya akan menimpa salinan */
+                                matchesLive: boolean;
+                                /** @description Semester aktif punya rapor final (perubahan konfigurasi ditolak 409 `report_final`) */
+                                hasFinal: boolean;
+                            };
                         };
                     };
                 };
@@ -25525,7 +25540,7 @@ export interface paths {
         };
         /**
          * Ubah pengaturan penilaian
-         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
+         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
          */
         put: {
             parameters: {
@@ -25573,6 +25588,11 @@ export interface paths {
                              * @enum {string}
                              */
                             calculationMode?: "weighted_average" | "percentage" | "simple_average";
+                            /**
+                             * Format: uuid
+                             * @description Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.
+                             */
+                            syncedSemesterId?: string;
                         };
                     };
                 };
@@ -25635,6 +25655,280 @@ export interface paths {
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/semesters/{id}/grading-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Status konfigurasi nilai beku satu semester
+         * @description Izin: `grade:read`; modul `grades`. Konfigurasi nilai (KKM, predikat, mode, komponen, KKTP) sebuah semester: `frozen` false berarti semester mengikuti konfigurasi hidup; true berarti semester memakai salinan beku (`origin`: `finalize` saat rapor pertama difinalkan, `semester_closed` saat semester ditinggalkan, `sync` sinkron ulang atau tulis-tembus, `backfill` data lama, `manual`). `matchesLive` membandingkan salinan dengan konfigurasi hidup saat ini. `finalClassCount`/`finalReportCount` = jumlah kelas dan rapor final semester itu. `settings` dan `components` adalah konfigurasi efektif semester. 404 `not_found` bila semester bukan milik sekolah ini.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            semesterId: string;
+                            /** @description Semester punya salinan beku; false = mengikuti konfigurasi hidup */
+                            frozen: boolean;
+                            /**
+                             * @description Asal salinan: finalize, semester_closed, sync, backfill, manual
+                             * @enum {string|null}
+                             */
+                            origin: "finalize" | "semester_closed" | "sync" | "backfill" | "manual" | null;
+                            /** Format: date-time */
+                            frozenAt: string | null;
+                            /** @description Salinan sama isinya dengan konfigurasi hidup; selalu true bila belum beku */
+                            matchesLive: boolean;
+                            /** @description Jumlah kelas yang rapornya final pada semester ini */
+                            finalClassCount: number;
+                            /** @description Jumlah rapor final (siswa) pada semester ini */
+                            finalReportCount: number;
+                            /** @description Pengaturan efektif semester (salinan beku, atau konfigurasi hidup bila belum beku) */
+                            settings: {
+                                /** @description Kriteria ketuntasan minimal; nilai akhir di bawahnya ditandai belum tuntas */
+                                kkm: number;
+                                /** @description Nilai minimal predikat A */
+                                predicateA: number;
+                                /** @description Nilai minimal predikat B */
+                                predicateB: number;
+                                /** @description Nilai minimal predikat C; di bawahnya predikat D */
+                                predicateC: number;
+                                /**
+                                 * @description Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan.
+                                 * @enum {string}
+                                 */
+                                calculationMode?: "weighted_average" | "percentage" | "simple_average";
+                            };
+                            components: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                weight: number;
+                                sort: number;
+                            }[];
+                            /** @description Jumlah KKTP dalam salinan; null bila semester belum beku */
+                            criteriaCount: number | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/semesters/{id}/grading-config/sync": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Terapkan pengaturan nilai terkini ke satu semester
+         * @description Izin: `grade:configure`; modul `grades`. Menimpa salinan beku semester dengan konfigurasi hidup saat ini (membuatnya bila belum ada; asal `sync`). Untuk mengoreksi semester lama: buka kembali rapor semua kelasnya, sinkronkan, lalu finalkan lagi. Ditolak 409 `report_final` selama semester itu masih punya rapor final (pesan menyebut kelasnya). Idempoten: bila salinan sudah sama dengan konfigurasi hidup tidak ada yang ditulis dan `changed` false. Diaudit (`grading_config.sync`) dan bergantian dengan finalisasi rapor per sekolah (kunci bersama). 404 `not_found` bila semester bukan milik sekolah ini. Respons sama dengan `GET /v1/semesters/{id}/grading-config` ditambah `changed`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            semesterId: string;
+                            /** @description Semester punya salinan beku; false = mengikuti konfigurasi hidup */
+                            frozen: boolean;
+                            /**
+                             * @description Asal salinan: finalize, semester_closed, sync, backfill, manual
+                             * @enum {string|null}
+                             */
+                            origin: "finalize" | "semester_closed" | "sync" | "backfill" | "manual" | null;
+                            /** Format: date-time */
+                            frozenAt: string | null;
+                            /** @description Salinan sama isinya dengan konfigurasi hidup; selalu true bila belum beku */
+                            matchesLive: boolean;
+                            /** @description Jumlah kelas yang rapornya final pada semester ini */
+                            finalClassCount: number;
+                            /** @description Jumlah rapor final (siswa) pada semester ini */
+                            finalReportCount: number;
+                            /** @description Pengaturan efektif semester (salinan beku, atau konfigurasi hidup bila belum beku) */
+                            settings: {
+                                /** @description Kriteria ketuntasan minimal; nilai akhir di bawahnya ditandai belum tuntas */
+                                kkm: number;
+                                /** @description Nilai minimal predikat A */
+                                predicateA: number;
+                                /** @description Nilai minimal predikat B */
+                                predicateB: number;
+                                /** @description Nilai minimal predikat C; di bawahnya predikat D */
+                                predicateC: number;
+                                /**
+                                 * @description Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan.
+                                 * @enum {string}
+                                 */
+                                calculationMode?: "weighted_average" | "percentage" | "simple_average";
+                            };
+                            components: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                weight: number;
+                                sort: number;
+                            }[];
+                            /** @description Jumlah KKTP dalam salinan; null bila semester belum beku */
+                            criteriaCount: number | null;
+                            /** @description Salinan ditulis (dibuat atau berubah isinya) */
+                            changed: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -25714,7 +26008,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah komponen penilaian
-         * @description Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `weight` 1..100. Jumlah bobot tidak harus 100 pada mode `weighted_average` (dinormalisasi saat nilai akhir dihitung) dan `simple_average` (bobot diabaikan), tetapi mode `percentage` mensyaratkan jumlah 100 (dicek saat memilih mode itu di `PUT /v1/grading/settings`; bobot yang diubah sesudahnya tidak diperiksa ulang, hasil `percentage` tetap dibatasi 0..100). `sort` bawaan: paling akhir.
+         * @description Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `weight` 1..100. Jumlah bobot tidak harus 100 pada mode `weighted_average` (dinormalisasi saat nilai akhir dihitung) dan `simple_average` (bobot diabaikan), tetapi mode `percentage` mensyaratkan jumlah 100 (dicek saat memilih mode itu di `PUT /v1/grading/settings`; bobot yang diubah sesudahnya tidak diperiksa ulang, hasil `percentage` tetap dibatasi 0..100). `sort` bawaan: paling akhir. Tidak dijaga `report_final` (komponen baru belum punya penilaian, jadi tidak mengubah angka yang ada). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
          */
         post: {
             parameters: {
@@ -25750,6 +26044,11 @@ export interface paths {
                             sort: number;
                             /** @description Jumlah penilaian yang memakai komponen ini */
                             assessmentCount: number;
+                            /**
+                             * Format: uuid
+                             * @description Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.
+                             */
+                            syncedSemesterId?: string;
                         };
                     };
                 };
@@ -25827,7 +26126,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah komponen penilaian
-         * @description Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 `report_final` selama semester aktif punya rapor final. Bobot tidak dinormalisasi pada mode `percentage`; jumlahnya diperiksa saat mode itu dipilih, bukan di sini.
+         * @description Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 `report_final` selama semester aktif punya rapor final. Bobot tidak dinormalisasi pada mode `percentage`; jumlahnya diperiksa saat mode itu dipilih, bukan di sini. Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
          */
         put: {
             parameters: {
@@ -25865,6 +26164,11 @@ export interface paths {
                             sort: number;
                             /** @description Jumlah penilaian yang memakai komponen ini */
                             assessmentCount: number;
+                            /**
+                             * Format: uuid
+                             * @description Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.
+                             */
+                            syncedSemesterId?: string;
                         };
                     };
                 };
@@ -25943,7 +26247,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus komponen penilaian
-         * @description Izin: `grade:configure`; modul `grades`. Ditolak 409 `in_use` bila sudah dipakai penilaian; 404 `not_found` bila tak ada.
+         * @description Izin: `grade:configure`; modul `grades`. Ditolak 409 `in_use` bila sudah dipakai penilaian; 404 `not_found` bila tak ada. Tidak dijaga `report_final` (komponen yang dipakai penilaian tak bisa dihapus). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
          */
         delete: {
             parameters: {
@@ -25968,6 +26272,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             ok: true;
+                            /**
+                             * Format: uuid
+                             * @description Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.
+                             */
+                            syncedSemesterId?: string;
                         };
                     };
                 };
@@ -26045,7 +26354,7 @@ export interface paths {
         put?: never;
         /**
          * Pasang komponen bawaan
-         * @description Izin: `grade:configure`; modul `grades`. Membuat Tugas (20), Ulangan Harian (30), UTS (20), dan UAS (30) hanya bila sekolah belum punya komponen; selain itu 409 `not_empty`.
+         * @description Izin: `grade:configure`; modul `grades`. Membuat Tugas (20), Ulangan Harian (30), UTS (20), dan UAS (30) hanya bila sekolah belum punya komponen; selain itu 409 `not_empty`. Tidak dijaga `report_final`. Bila aturan tulis-tembus berjalan (semester aktif beku tanpa rapor final), id semesternya dikirim di header respons `x-synced-semester-id` (badan respons berupa larik, jadi tidak ada tempat untuk `syncedSemesterId`).
          */
         post: {
             parameters: {
@@ -26299,7 +26608,7 @@ export interface paths {
         put?: never;
         /**
          * Buat penilaian
-         * @description Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.
+         * @description Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester itu sudah dibekukan dan komponennya tidak ada di salinan beku (mis. komponen yang dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah.
          */
         post: {
             parameters: {
@@ -26440,7 +26749,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah penilaian
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum. Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum. Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 `component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak diganti tidak diperiksa ulang).
          */
         put: {
             parameters: {
@@ -26913,7 +27222,7 @@ export interface paths {
         };
         /**
          * Rekap nilai kelas dan mapel
-         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403).
+         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Siswa yang rapornya FINAL pada kelas ini memakai angka snapshot rapor (`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat atas muncul bila ada yang demikian. Siswa tanpa rapor final dihitung dari konfigurasi efektif semester (salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`.
          */
         get: {
             parameters: {
@@ -26961,6 +27270,11 @@ export interface paths {
                                 name: string;
                                 weight: number;
                             }[];
+                            /**
+                             * @description Hanya ada (bernilai `report`) bila angka ini diambil dari snapshot rapor final (nilai akhir, predikat, KKM, `belowKkm` persis seperti yang terbit), bukan dihitung ulang; dihilangkan pada jalur hidup.
+                             * @enum {string}
+                             */
+                            source?: "report";
                             students: {
                                 /** Format: uuid */
                                 studentId: string;
@@ -26975,6 +27289,11 @@ export interface paths {
                                 /** @enum {string|null} */
                                 predicate: "A" | "B" | "C" | "D" | null;
                                 belowKkm: boolean;
+                                /**
+                                 * @description Hanya ada (bernilai `report`) bila angka ini diambil dari snapshot rapor final (nilai akhir, predikat, KKM, `belowKkm` persis seperti yang terbit), bukan dihitung ulang; dihilangkan pada jalur hidup.
+                                 * @enum {string}
+                                 */
+                                source?: "report";
                             }[];
                             stats: {
                                 average: number | null;
@@ -27048,7 +27367,7 @@ export interface paths {
         };
         /**
          * Rekap nilai satu kelas (leger)
-         * @description Izin: `grade:read`; modul `grades`. Matriks mapel x siswa berisi nilai akhir dan predikat, bahan rapor dan leger. Mapel yang ditampilkan: yang diampu di kelas itu atau yang sudah punya penilaian pada semester itu. Hanya pemegang `grade:configure`, kepala sekolah, kurikulum, atau guru yang mengajar di kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini (400 `invalid_reference`).
+         * @description Izin: `grade:read`; modul `grades`. Matriks mapel x siswa berisi nilai akhir dan predikat, bahan rapor dan leger. Mapel yang ditampilkan: yang diampu di kelas itu atau yang sudah punya penilaian pada semester itu. Hanya pemegang `grade:configure`, kepala sekolah, kurikulum, atau guru yang mengajar di kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini (400 `invalid_reference`). Siswa yang rapornya FINAL pada kelas ini memakai `final` dan `predicate` dari snapshot rapor dan diberi `source: report` (mapel yang tidak ada di snapshot siswa itu dihitung dari konfigurasi efektif); `source` di tingkat atas muncul bila ada yang demikian.
          */
         get: {
             parameters: {
@@ -27077,11 +27396,21 @@ export interface paths {
                                 id: string;
                                 name: string;
                             }[];
+                            /**
+                             * @description Hanya ada (bernilai `report`) bila angka ini diambil dari snapshot rapor final (nilai akhir, predikat, KKM, `belowKkm` persis seperti yang terbit), bukan dihitung ulang; dihilangkan pada jalur hidup.
+                             * @enum {string}
+                             */
+                            source?: "report";
                             students: {
                                 /** Format: uuid */
                                 studentId: string;
                                 name: string;
                                 nis: string | null;
+                                /**
+                                 * @description Hanya ada (bernilai `report`) bila angka ini diambil dari snapshot rapor final (nilai akhir, predikat, KKM, `belowKkm` persis seperti yang terbit), bukan dihitung ulang; dihilangkan pada jalur hidup.
+                                 * @enum {string}
+                                 */
+                                source?: "report";
                                 grades: {
                                     /** Format: uuid */
                                     subjectId: string;
@@ -27732,7 +28061,7 @@ export interface paths {
         put?: never;
         /**
          * Finalkan rapor satu kelas
-         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif kelas: dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif kelas: dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
          */
         post: {
             parameters: {
@@ -27846,7 +28175,7 @@ export interface paths {
         put?: never;
         /**
          * Buka kembali rapor satu kelas
-         * @description Izin: `report_card:manage`; modul `grades`. Mengembalikan rapor final kelas itu ke draft dan membuang snapshot aktifnya (snapshot yang pernah difinalkan tetap tersimpan di riwayat); catatan wali kelas tetap. `reopened` = jumlah rapor yang dibuka. Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
+         * @description Izin: `report_card:manage`; modul `grades`. Mengembalikan rapor final kelas itu ke draft dan membuang snapshot aktifnya (snapshot yang pernah difinalkan tetap tersimpan di riwayat); catatan wali kelas tetap. Salinan beku konfigurasi nilai semester itu tidak dihapus: draf dan finalisasi ulang memakai aturan hitung yang sama, jadi hanya perubahan skor, absensi, atau catatan yang tampak. `reopened` = jumlah rapor yang dibuka. Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
          */
         post: {
             parameters: {
@@ -49098,7 +49427,7 @@ export interface paths {
         put?: never;
         /**
          * Kirim hasil ujian ke buku nilai
-         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final.
+         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku.
          */
         post: {
             parameters: {
@@ -50719,7 +51048,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus semester
-         * @description Izin: `academic_year:manage`. Semester yang sedang aktif tidak dapat dihapus.
+         * @description Izin: `academic_year:manage`. Semester yang sedang aktif tidak dapat dihapus (409 `in_use`). Semester yang masih dirujuk rapor, penilaian, atau arsip potret rapor (`report_card_snapshot`) juga ditolak 409 `in_use`.
          */
         delete: {
             parameters: {
@@ -50820,7 +51149,7 @@ export interface paths {
         get?: never;
         /**
          * Jadikan semester aktif
-         * @description Izin: `academic_year:manage`. Hanya satu semester yang aktif di sekolah. Tahun ajaran semester itu ikut menjadi tahun ajaran aktif agar keduanya selalu konsisten.
+         * @description Izin: `academic_year:manage`. Hanya satu semester yang aktif di sekolah. Tahun ajaran semester itu ikut menjadi tahun ajaran aktif agar keduanya selalu konsisten. Semester yang ditinggalkan dan sudah punya penilaian atau rapor dibekukan konfigurasi nilainya (asal `semester_closed`, bila belum beku) supaya perubahan konfigurasi berikutnya tidak menggeser drafnya.
          */
         put: {
             parameters: {
@@ -54151,7 +54480,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah KKTP
-         * @description Izin: `curriculum:manage`. Satu kriteria per (mapel, `levelCode`, `programId`, `objectiveId`); kosongnya `levelCode`/`programId` berarti berlaku untuk semua. `mode` numeric: wajib `threshold` 0..100 dan tanpa `levels`. interval/rubric: wajib sedikitnya satu level dengan `minScore` dan `maxScore`. descriptor: level boleh tanpa angka. Level ditulis menurut urutan array; `isAchieved` menandai level yang tuntas. Nilai berdesimal paling banyak dua digit. 400 `invalid_criteria`: bentuk tak sah. 400 `overlapping_levels`: rentang level bertumpuk. 400 `invalid_level`: tingkat tak ada di daftar tingkat sekolah. 400 `invalid_reference`: mapel, jurusan, atau TP bukan milik sekolah ini. 409 `criteria_exists`: cakupan sudah punya kriteria. Mengubah KKM efektif memengaruhi rapor draf semua kelas, jadi ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
+         * @description Izin: `curriculum:manage`; modul `grades`. Satu kriteria per (mapel, `levelCode`, `programId`, `objectiveId`); kosongnya `levelCode`/`programId` berarti berlaku untuk semua. `mode` numeric: wajib `threshold` 0..100 dan tanpa `levels`. interval/rubric: wajib sedikitnya satu level dengan `minScore` dan `maxScore`. descriptor: level boleh tanpa angka. Level ditulis menurut urutan array; `isAchieved` menandai level yang tuntas. Nilai berdesimal paling banyak dua digit. 400 `invalid_criteria`: bentuk tak sah. 400 `overlapping_levels`: rentang level bertumpuk. 400 `invalid_level`: tingkat tak ada di daftar tingkat sekolah. 400 `invalid_reference`: mapel, jurusan, atau TP bukan milik sekolah ini. 409 `criteria_exists`: cakupan sudah punya kriteria. Mengubah KKM efektif memengaruhi rapor draf semua kelas, jadi ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Modul `grades` wajib aktif (403 `module_disabled`). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan KKTP.
          */
         post: {
             parameters: {
@@ -54229,6 +54558,11 @@ export interface paths {
                                 sortOrder: number;
                             }[];
                             updatedAt: string;
+                            /**
+                             * Format: uuid
+                             * @description Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.
+                             */
+                            syncedSemesterId?: string;
                         };
                     };
                 };
@@ -54305,7 +54639,7 @@ export interface paths {
         };
         /**
          * KKM efektif satu mapel (pratinjau pemecah KKTP)
-         * @description Izin: `subject:read`. KKM efektif mapel untuk `levelCode` dan `programId` (keduanya opsional) beserta sumbernya. Urutan: (tingkat, program) lalu (tingkat) lalu (semua tingkat, program) lalu (mapel saja) lalu `grading_setting.kkm`; hanya kriteria aktif tanpa TP, dan kriteria yang nilainya tak dapat dihitung dilewati. `scope` = tingkat yang menang (`settings` bila tak ada kriteria). 404 bila mapel tak ada.
+         * @description Izin: `subject:read`; modul `grades`. KKM efektif mapel untuk `levelCode` dan `programId` (keduanya opsional) beserta sumbernya. Urutan: (tingkat, program) lalu (tingkat) lalu (semua tingkat, program) lalu (mapel saja) lalu `grading_setting.kkm`; hanya kriteria aktif tanpa TP, dan kriteria yang nilainya tak dapat dihitung dilewati. `scope` = tingkat yang menang (`settings` bila tak ada kriteria). `semesterId` opsional: bila semester itu punya salinan beku konfigurasi nilai, pemecahan memakai salinan itu (respons membawa `frozen: true`); selain itu konfigurasi hidup. 404 `not_found` bila mapel atau `semesterId` bukan milik sekolah ini.
          */
         get: {
             parameters: {
@@ -54313,6 +54647,7 @@ export interface paths {
                     subjectId: string;
                     levelCode?: string;
                     programId?: string;
+                    semesterId?: string;
                 };
                 header: {
                     /** @description Sekolah yang sedang dipakai */
@@ -54344,6 +54679,11 @@ export interface paths {
                             mode: "numeric" | "interval" | "descriptor" | "rubric" | null;
                             /** @description KKM sekolah (jatuhan terakhir) */
                             schoolKkm: number;
+                            /**
+                             * @description Ada (true) hanya bila hasil dipecah dari salinan beku semester `semesterId`
+                             * @enum {boolean}
+                             */
+                            frozen?: true;
                         };
                     };
                 };
@@ -54409,7 +54749,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah KKTP
-         * @description Izin: `curriculum:manage`. Mengganti seluruh kriteria beserta seluruh level rubriknya (level yang tidak dikirim dihapus); aturan dan galat sama dengan POST. 404 `not_found` bila tak ada. Mengubah KKM efektif memengaruhi rapor draf semua kelas, jadi ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
+         * @description Izin: `curriculum:manage`; modul `grades`. Mengganti seluruh kriteria beserta seluruh level rubriknya (level yang tidak dikirim dihapus); aturan dan galat sama dengan POST. 404 `not_found` bila tak ada. Mengubah KKM efektif memengaruhi rapor draf semua kelas, jadi ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Modul `grades` wajib aktif (403 `module_disabled`). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan KKTP.
          */
         put: {
             parameters: {
@@ -54489,6 +54829,11 @@ export interface paths {
                                 sortOrder: number;
                             }[];
                             updatedAt: string;
+                            /**
+                             * Format: uuid
+                             * @description Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.
+                             */
+                            syncedSemesterId?: string;
                         };
                     };
                 };
@@ -54567,7 +54912,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus KKTP
-         * @description Izin: `curriculum:manage`. Menghapus kriteria beserta level rubriknya; KKM mapel itu kembali ke tingkat berikutnya atau KKM sekolah. 404 `not_found` bila tak ada. Mengubah KKM efektif memengaruhi rapor draf semua kelas, jadi ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).
+         * @description Izin: `curriculum:manage`; modul `grades`. Menghapus kriteria beserta level rubriknya; KKM mapel itu kembali ke tingkat berikutnya atau KKM sekolah. 404 `not_found` bila tak ada. Mengubah KKM efektif memengaruhi rapor draf semua kelas, jadi ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Modul `grades` wajib aktif (403 `module_disabled`). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan KKTP.
          */
         delete: {
             parameters: {
@@ -54592,6 +54937,11 @@ export interface paths {
                         "application/json": {
                             /** @enum {boolean} */
                             ok: true;
+                            /**
+                             * Format: uuid
+                             * @description Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.
+                             */
+                            syncedSemesterId?: string;
                         };
                     };
                 };
@@ -57246,7 +57596,7 @@ export interface paths {
         };
         /**
          * Nilai seorang anak
-         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `grades` (bila tidak aktif `available` false dan data kosong). Nilai akhir per mapel dihitung dengan rumus yang sama dengan rekap penilaian dan rapor, untuk semester `semesterId` (bawaan: semester aktif, atau yang terbaru). `semesters` memuat pilihan semester; `recentScores` adalah skor terbaru terlepas dari semester. 404 bila `semesterId` bukan milik sekolah ini.
+         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `grades` (bila tidak aktif `available` false dan data kosong). Nilai akhir per mapel dihitung dengan rumus yang sama dengan rekap penilaian dan rapor, untuk semester `semesterId` (bawaan: semester aktif, atau yang terbaru). `semesters` memuat pilihan semester; `recentScores` adalah skor terbaru terlepas dari semester. Bila rapor anak pada semester itu sudah FINAL, nilai akhir, predikat, KKM, dan `belowKkm` per mapel diambil dari snapshot rapor dan diberi `source: report` (sama persis dengan rapor terbit); rincian komponen dihitung dari konfigurasi efektif semester. 404 bila `semesterId` bukan milik sekolah ini.
          */
         get: {
             parameters: {
@@ -57287,6 +57637,11 @@ export interface paths {
                             }[];
                             kkm: number | null;
                             average: number | null;
+                            /**
+                             * @description Ada (`report`) bila ada mapel yang angkanya dari snapshot rapor final; dihilangkan selain itu
+                             * @enum {string}
+                             */
+                            source?: "report";
                             subjects: {
                                 /** Format: uuid */
                                 subjectId: string;
@@ -57297,6 +57652,11 @@ export interface paths {
                                 /** @enum {string|null} */
                                 predicate: "A" | "B" | "C" | "D" | null;
                                 belowKkm: boolean;
+                                /**
+                                 * @description Ada (`report`) bila final, predikat, kkm, dan belowKkm mapel ini dari snapshot rapor final; rincian komponen tetap dari konfigurasi efektif semester
+                                 * @enum {string}
+                                 */
+                                source?: "report";
                                 components: {
                                     name: string;
                                     weight: number;

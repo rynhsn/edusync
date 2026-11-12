@@ -46,10 +46,10 @@ import {
 } from '@edusync/db';
 import { todayInJakarta } from './attendance-lib';
 import { invoiceRows } from './finance-lib';
-import { assessedSubjects, computeGrades, loadComponents, loadSettings } from './grading-lib';
+import { finalSubjectRowsForStudent, kkmResolverForClass, loadGradingConfig } from './grading-config-lib';
+import { assessedSubjects, computeGrades } from './grading-lib';
 import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
-import { loadKktpResolverForClass } from './kktp-lib';
 import { documentSummary, type ReportDocument } from './report-card-lib';
 
 /** Kunci modul tiap bagian portal. Modul inti portal sendiri (`parent_portal`) dicek oleh gerbang route. */
@@ -335,14 +335,13 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
     .select({ classId: enrollment.classId })
     .from(enrollment)
     .where(and(eq(enrollment.studentId, studentId), eq(enrollment.academicYearId, sem.academicYearId)));
-  const settings = await loadSettings(tx);
-  const components = await loadComponents(tx);
+  const cfg = await loadGradingConfig(tx, sem.id);
+  const { settings, components } = cfg;
   if (!enr) return { kkm: settings.kkm, average: null as number | null, subjects: [] };
   const subjects = await assessedSubjects(tx, sem.id, enr.classId);
-  const kkmOf = await loadKktpResolverForClass(tx, {
+  const kkmOf = await kkmResolverForClass(tx, cfg, {
     classId: enr.classId,
     subjectIds: subjects.map((s) => s.id),
-    fallback: settings.kkm,
   });
   const grades = await computeGrades(tx, {
     semesterId: sem.id,
@@ -352,17 +351,22 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
     components,
     settings,
   });
+  // Rapor final siswa pada semester ini: nilai akhir, predikat, KKM, dan belowKkm dari snapshot (I3); rincian komponen
+  // tetap dihitung dari konfigurasi efektif (salinan beku bila ada).
+  const snapshot = await finalSubjectRowsForStudent(tx, studentId, sem.id);
   const rows = subjects.map((sub) => {
     const g = grades.get(sub.id)?.get(studentId);
-    const final = g?.final ?? null;
-    const kkm = kkmOf(sub.id);
+    const snap = snapshot?.find((r) => r.subjectId === sub.id);
+    const final = snap ? snap.final : (g?.final ?? null);
+    const kkm = snap ? snap.kkm : kkmOf(sub.id);
     return {
       subjectId: sub.id,
       name: sub.name,
       kkm,
       final,
-      predicate: g?.predicate ?? null,
-      belowKkm: final !== null && final < kkm,
+      predicate: snap ? snap.predicate : (g?.predicate ?? null),
+      belowKkm: snap ? snap.belowKkm : final !== null && final < kkm,
+      ...(snap ? { source: 'report' as const } : {}),
       components: components.map((c) => ({
         name: c.name,
         weight: c.weight,
@@ -370,7 +374,12 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
       })),
     };
   });
-  return { kkm: settings.kkm, average: averageOfFinals(rows.map((r) => r.final)), subjects: rows };
+  return {
+    kkm: settings.kkm,
+    average: averageOfFinals(rows.map((r) => r.final)),
+    ...(rows.some((r) => r.source === 'report') ? { source: 'report' as const } : {}),
+    subjects: rows,
+  };
 }
 
 /** Rapor yang sudah final (draft tidak pernah tampil di portal), terbaru dulu. */

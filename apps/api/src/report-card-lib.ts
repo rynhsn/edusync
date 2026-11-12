@@ -24,15 +24,9 @@ import {
   teacher,
 } from '@edusync/db';
 import { rosterOf } from './attendance-lib';
-import {
-  assessedSubjects,
-  computeGrades,
-  loadComponents,
-  loadSettings,
-  type StudentGrade,
-} from './grading-lib';
+import { loadGradingConfig } from './grading-config-lib';
+import { assessedSubjects, computeGrades, type StudentGrade } from './grading-lib';
 import { HttpError } from './http-error';
-import { loadKktpResolver } from './kktp-lib';
 
 /** Pengaturan rapor sekolah. Sekolah yang belum mengaturnya mendapat nilai bawaan. */
 export interface ReportSettings {
@@ -156,8 +150,7 @@ export async function loadClassContext(
     .select({ name: academicYear.name })
     .from(academicYear)
     .where(eq(academicYear.id, sem.academicYearId));
-  const settings = await loadSettings(tx);
-  const components = await loadComponents(tx);
+  const { settings, components, kkmResolver } = await loadGradingConfig(tx, sem.id);
   const reportSettings = await loadReportSettings(tx);
   const subjects = await assessedSubjects(tx, sem.id, cls.id);
   const studentIds = [...new Set([...roster.map((s) => s.id), ...extraStudentIds])];
@@ -169,11 +162,10 @@ export async function loadClassContext(
     components,
     settings,
   });
-  const kkmOf = await loadKktpResolver(tx, {
+  const kkmOf = await kkmResolver(tx, {
     levelCode: cls.level,
     programId: cls.programId,
     subjectIds: subjects.map((s) => s.id),
-    fallback: settings.kkm,
   });
   const averages = new Map(
     studentIds.map((id) => [

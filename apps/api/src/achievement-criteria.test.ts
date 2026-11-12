@@ -297,6 +297,7 @@ afterAll(async () => {
   for (const sid of [schoolId, otherId]) {
     for (const table of [
       'audit_log',
+      'report_card_snapshot',
       'report_card',
       'achievement_rubric_level',
       'achievement_criteria',
@@ -869,10 +870,10 @@ describe('penjaga rapor final', () => {
       ).json().error.code,
     ).toBe('report_final');
 
-    // Snapshot yang sudah beku dibaca apa adanya walau KKM efektif hidup kini 60.
-    expect((await recap(ids.class7A, ids.mat)).kkm).toBe(60);
+    // Semester ini beku saat finalisasi: rekap kelas final memakai KKM beku 75, bukan KKM hidup 60 yang disisipkan langsung ke DB.
+    expect((await recap(ids.class7A, ids.mat)).kkm).toBe(75);
     expect(stable(await reportDoc(ids.budi))).toEqual(frozenBudi);
-    // Kelas lain (rapor masih draf) mengikuti KKM baru.
-    expect(subjectRow(await reportDoc(ids.citra), ids.mat)).toMatchObject({ kkm: 60, belowKkm: false });
+    // Kelas lain pada semester yang sama (rapor masih draf) juga memakai salinan beku, bukan konfigurasi hidup.
+    expect(subjectRow(await reportDoc(ids.citra), ids.mat)).toMatchObject({ kkm: 75, belowKkm: true });
   });
 });

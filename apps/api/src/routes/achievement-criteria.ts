@@ -17,6 +17,7 @@ import {
   learningOutcome,
   program,
   schoolLevel,
+  semester,
   sql,
   subject,
   type Tx,
@@ -25,11 +26,15 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import {
+  assertLiveGradingConfigEditable,
+  loadGradingConfig,
+  syncActiveSemesterFreeze,
+} from '../grading-config-lib';
 import { loadSettings } from '../grading-lib';
 import { errorSchema, HttpError } from '../http-error';
-import { requirePermission, type TenantContext } from '../identity/guards';
+import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { loadKktpRows } from '../kktp-lib';
-import { assertNoFinalInActiveSemesters } from '../report-lock-lib';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 /**
@@ -105,11 +110,29 @@ const criteriaOut = z.object({
   updatedAt: z.string(),
 });
 
+const syncedSemesterId = z
+  .uuid()
+  .optional()
+  .describe(
+    'Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.',
+  );
+const criteriaWriteOut = criteriaOut.extend({ syncedSemesterId });
+const okSynced = ok.extend({ syncedSemesterId });
+
 const boolQuery = z.enum(['true', 'false']).optional();
 
 const writeNote =
   ' Mengubah KKM efektif memengaruhi rapor draf semua kelas, jadi ditolak 409 `report_final` selama semester aktif ' +
-  'punya rapor final (buka kembali rapornya lebih dulu).';
+  'punya rapor final (buka kembali rapornya lebih dulu). Modul `grades` wajib aktif (403 `module_disabled`). ' +
+  'Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, ' +
+  'salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons ' +
+  'membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah ' +
+  'oleh perubahan KKTP.';
+
+const gradesGate = (permission: Parameters<typeof requirePermission>[0]) => [
+  requirePermission(permission),
+  requireModule('grades'),
+];
 
 /* ---------- Akses data ---------- */
 
@@ -314,20 +337,23 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
   app.get(
     '/v1/achievement-criteria/resolve',
     {
-      onRequest: [requirePermission('subject:read')],
+      onRequest: gradesGate('subject:read'),
       schema: {
         tags: ['Curriculum'],
         summary: 'KKM efektif satu mapel (pratinjau pemecah KKTP)',
         description:
-          'Izin: `subject:read`. KKM efektif mapel untuk `levelCode` dan `programId` (keduanya opsional) beserta ' +
+          'Izin: `subject:read`; modul `grades`. KKM efektif mapel untuk `levelCode` dan `programId` (keduanya opsional) beserta ' +
           'sumbernya. Urutan: (tingkat, program) lalu (tingkat) lalu (semua tingkat, program) lalu (mapel saja) lalu ' +
           '`grading_setting.kkm`; hanya kriteria aktif tanpa TP, dan kriteria yang nilainya tak dapat dihitung dilewati. ' +
-          '`scope` = tingkat yang menang (`settings` bila tak ada kriteria). 404 bila mapel tak ada.',
+          '`scope` = tingkat yang menang (`settings` bila tak ada kriteria). `semesterId` opsional: bila semester itu punya salinan ' +
+          'beku konfigurasi nilai, pemecahan memakai salinan itu (respons membawa `frozen: true`); selain itu konfigurasi ' +
+          'hidup. 404 `not_found` bila mapel atau `semesterId` bukan milik sekolah ini.',
         headers: schoolHeader,
         querystring: z.object({
           subjectId: z.uuid(),
           levelCode: z.string().max(20).optional(),
           programId: z.uuid().optional(),
+          semesterId: z.uuid().optional(),
         }),
         response: {
           200: z.object({
@@ -345,6 +371,10 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
             criteriaId: z.uuid().nullable(),
             mode: z.enum(CRITERIA_MODES).nullable(),
             schoolKkm: z.number().int().describe('KKM sekolah (jatuhan terakhir)'),
+            frozen: z
+              .literal(true)
+              .optional()
+              .describe('Ada (true) hanya bila hasil dipecah dari salinan beku semester `semesterId`'),
           }),
           404: errorSchema,
           ...guarded,
@@ -358,8 +388,19 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
         const programId = request.query.programId ?? null;
         const [sub] = await tx.select({ id: subject.id }).from(subject).where(eq(subject.id, subjectId));
         if (!sub) throw notFound('Mata pelajaran');
-        const settings = await loadSettings(tx);
-        const rows = (await loadKktpRows(tx, [subjectId])).get(subjectId) ?? [];
+        const semesterId = request.query.semesterId;
+        if (semesterId) {
+          const [sem] = await tx
+            .select({ id: semester.id })
+            .from(semester)
+            .where(eq(semester.id, semesterId));
+          if (!sem) throw notFound('Semester');
+        }
+        const cfg = semesterId ? await loadGradingConfig(tx, semesterId) : null;
+        const settings = cfg ? cfg.settings : await loadSettings(tx);
+        const rows =
+          (cfg ? await cfg.kktpRows(tx, [subjectId]) : await loadKktpRows(tx, [subjectId])).get(subjectId) ??
+          [];
         const r = resolveKkm(rows, { levelCode, programId }, settings.kkm);
         return {
           subjectId,
@@ -370,6 +411,7 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
           criteriaId: r.criteriaId,
           mode: rows.find((x) => x.id === r.criteriaId)?.mode ?? null,
           schoolKkm: settings.kkm,
+          ...(cfg?.frozen ? { frozen: true as const } : {}),
         };
       }),
   );
@@ -377,12 +419,12 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
   app.post(
     '/v1/achievement-criteria',
     {
-      onRequest: [requirePermission('curriculum:manage')],
+      onRequest: gradesGate('curriculum:manage'),
       schema: {
         tags: ['Curriculum'],
         summary: 'Tambah KKTP',
         description:
-          'Izin: `curriculum:manage`. Satu kriteria per (mapel, `levelCode`, `programId`, `objectiveId`); kosongnya ' +
+          'Izin: `curriculum:manage`; modul `grades`. Satu kriteria per (mapel, `levelCode`, `programId`, `objectiveId`); kosongnya ' +
           '`levelCode`/`programId` berarti berlaku untuk semua. `mode` numeric: wajib `threshold` 0..100 dan tanpa ' +
           '`levels`. interval/rubric: wajib sedikitnya satu level dengan `minScore` dan `maxScore`. descriptor: level ' +
           'boleh tanpa angka. Level ditulis menurut urutan array; `isAchieved` menandai level yang tuntas. Nilai ' +
@@ -392,7 +434,7 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
           writeNote,
         headers: schoolHeader,
         body: criteriaBody,
-        response: { 201: criteriaOut, 400: errorSchema, 409: errorSchema, ...guarded },
+        response: { 201: criteriaWriteOut, 400: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request, reply) => {
@@ -402,7 +444,7 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
         tenant(request, async (tx) => {
           await validateBody(tx, b);
           await lockSubject(tx, b.subjectId);
-          await assertNoFinalInActiveSemesters(tx);
+          await assertLiveGradingConfigEditable(tx, ctx.schoolId);
           await assertScopeFree(tx, b);
           const [row] = await tx
             .insert(achievementCriteria)
@@ -416,7 +458,9 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
             objectiveId: b.objectiveId ?? null,
             mode: b.mode,
           });
-          return viewOf(tx, row!.id);
+          const synced = await syncActiveSemesterFreeze(tx, ctx);
+          const view = await viewOf(tx, row!.id);
+          return synced ? { ...view, syncedSemesterId: synced } : view;
         }),
       );
       return reply.code(201).send(out);
@@ -426,18 +470,18 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
   app.put(
     '/v1/achievement-criteria/:id',
     {
-      onRequest: [requirePermission('curriculum:manage')],
+      onRequest: gradesGate('curriculum:manage'),
       schema: {
         tags: ['Curriculum'],
         summary: 'Ubah KKTP',
         description:
-          'Izin: `curriculum:manage`. Mengganti seluruh kriteria beserta seluruh level rubriknya (level yang tidak ' +
+          'Izin: `curriculum:manage`; modul `grades`. Mengganti seluruh kriteria beserta seluruh level rubriknya (level yang tidak ' +
           'dikirim dihapus); aturan dan galat sama dengan POST. 404 `not_found` bila tak ada.' +
           writeNote,
         headers: schoolHeader,
         params: idParams,
         body: criteriaBody,
-        response: { 200: criteriaOut, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+        response: { 200: criteriaWriteOut, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
@@ -453,7 +497,7 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
           await validateBody(tx, b);
           // Kunci mapel lama dan baru (urut tetap) agar pemindahan cakupan tidak saling mengunci silang.
           for (const sid of [...new Set([current.subjectId, b.subjectId])].sort()) await lockSubject(tx, sid);
-          await assertNoFinalInActiveSemesters(tx);
+          await assertLiveGradingConfigEditable(tx, ctx.schoolId);
           await assertScopeFree(tx, b, current.id);
           await tx
             .update(achievementCriteria)
@@ -468,7 +512,9 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
             objectiveId: b.objectiveId ?? null,
             mode: b.mode,
           });
-          return viewOf(tx, current.id);
+          const synced = await syncActiveSemesterFreeze(tx, ctx);
+          const view = await viewOf(tx, current.id);
+          return synced ? { ...view, syncedSemesterId: synced } : view;
         }),
       );
     },
@@ -477,17 +523,17 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
   app.delete(
     '/v1/achievement-criteria/:id',
     {
-      onRequest: [requirePermission('curriculum:manage')],
+      onRequest: gradesGate('curriculum:manage'),
       schema: {
         tags: ['Curriculum'],
         summary: 'Hapus KKTP',
         description:
-          'Izin: `curriculum:manage`. Menghapus kriteria beserta level rubriknya; KKM mapel itu kembali ke tingkat ' +
+          'Izin: `curriculum:manage`; modul `grades`. Menghapus kriteria beserta level rubriknya; KKM mapel itu kembali ke tingkat ' +
           'berikutnya atau KKM sekolah. 404 `not_found` bila tak ada.' +
           writeNote,
         headers: schoolHeader,
         params: idParams,
-        response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
+        response: { 200: okSynced, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
@@ -499,12 +545,13 @@ export async function achievementCriteriaRoutes(instance: FastifyInstance) {
           .where(eq(achievementCriteria.id, request.params.id));
         if (!current) throw notFound('Kriteria');
         await lockSubject(tx, current.subjectId);
-        await assertNoFinalInActiveSemesters(tx);
+        await assertLiveGradingConfigEditable(tx, ctx.schoolId);
         await tx.delete(achievementCriteria).where(eq(achievementCriteria.id, current.id));
         await audit(tx, ctx, 'achievement_criteria.delete', 'achievement_criteria', current.id, {
           subjectId: current.subjectId,
         });
-        return { ok: true as const };
+        const synced = await syncActiveSemesterFreeze(tx, ctx);
+        return { ok: true as const, ...(synced ? { syncedSemesterId: synced } : {}) };
       });
     },
   );

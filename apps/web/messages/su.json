@@ -1043,6 +1043,7 @@
     "score_exceeds_max": "Aya nilai anu leuwih badag ti nilai maksimal anyar.",
     "invalid_score": "Nilai kudu antara 0 jeung nilai maksimal penilaian.",
     "report_final": "Rapor geus difinalisasi. Buka deui heula pikeun ngarobahna.",
+    "component_not_in_semester": "Komponén ieu can lumaku dina semester ieu margi aturan nilaina geus disimpen (beku) saméméh komponén dijieun. Paké komponén nu lumaku, atawa buka Pengaturan penilaian tuluy pilih Saruakeun jeung aturan ayeuna pikeun semester ieu.",
     "grades_incomplete": "Nilai sawatara murid can lengkep.",
     "overpay": "Jumlah bayar ngaleuwihan sésa tagihan.",
     "invoice_void": "Tagihan ieu geus dibolaykeun.",
@@ -1101,7 +1102,7 @@
     "in_use_level": "Tingkat ieu masih dipaké ku kelas, tarif, période SPMB, tingkat ahir jurusan, alokasi JP, vérsi kurikulum, ATP, atawa KKTP. Leupaskeun heula pamakéanana, kakara hapus.",
     "in_use_program": "Jurusan ieu masih dipaké ku kelas, alokasi JP kurikulum, atawa KKTP. Pindahkeun atawa hapus heula nu maké.",
     "in_use_subject": "Mata pelajaran ieu masih dipaké: geus ditugaskeun ka guru, atawa aya dina alokasi JP kurikulum, CP, ATP, atawa KKTP. Leupaskeun heula pamakéanana.",
-    "in_use_class": "Kelas ieu masih boga siswa, panugasan guru, atawa kaputusan naék kelas. Pindahkeun atawa hapus heula nu patali.",
+    "in_use_class": "Kelas ieu masih boga siswa, panugasan guru, kaputusan naék kelas, atawa arsip rapor nu geus kaluar. Data rapor nu geus kaluar teu meunang kahapus. Pindahkeun atawa hapus heula data séjén nu patali.",
     "levels_not_configured": "Daptar tingkat sakola masih kosong. Atur tingkat dina Setélan sakola saméméh nyalin kelas.",
     "promotion_applied": "Kaputusan siswa éta geus dilarapkeun ka taun pangajaran saterusna jeung teu bisa dirobah deui.",
     "invalid_target": "Taun pangajaran tujuan teu sah. Pilih taun séjén nu dimimitian sanggeus taun sumber.",
@@ -1135,7 +1136,8 @@
     "invalid_criteria": "Kriteria can lengkep atawa teu konsisten. Pariksa mode, ambang, jeung tingkatna.",
     "invalid_subject_group": "Kelompok mapel teu dikenal. Pilih salah sahiji tina daptar kelompok nu aya.",
     "weights_sum_invalid": "Mode persén merlukeun jumlah bobot komponén pas 100. Saluyukeun heula bobot komponénna.",
-    "level_unknown": "Tingkat kelas éta teu aya dina daptar tingkat sakola, jadi tingkat saterusna teu kanyahoan. Pilih kelas tujuan atawa bérés daptar tingkatna."
+    "level_unknown": "Tingkat kelas éta teu aya dina daptar tingkat sakola, jadi tingkat saterusna teu kanyahoan. Pilih kelas tujuan atawa bérés daptar tingkatna.",
+    "in_use_semester": "Semester ieu masih boga data nu patali, upamana panilaian, jadwal, atawa arsip rapor nu geus kaluar. Data rapor nu geus kaluar teu meunang kahapus, jadi semester ieu teu tiasa dihapus."
   },
   "theme": {
     "label": "Tema",
@@ -2471,7 +2473,13 @@
     "issue_range_required": "Tingkatan {n}: nilai panghandapna jeung pangluhurna kudu diisi.",
     "issue_number_invalid": "Tingkatan {n}: nilai kudu angka 0 nepi ka 100, paling loba dua désimal.",
     "issue_range_order": "Tingkatan {n}: nilai panghandapna teu meunang ngaleuwihan nilai pangluhurna.",
-    "issue_overlap": "Rentang tingkatan {a} jeung tingkatan {b} silih tumpang tindih."
+    "issue_overlap": "Rentang tingkatan {a} jeung tingkatan {b} silih tumpang tindih.",
+    "syncedToActive": "Parobahan ieu ogé diterapkeun ka aturan nilai semester aktif nu disimpen.",
+    "frozenWriteNote": "Upami aturan nilai semester aktif geus beku (disimpen), parobahan kriteria di dieu ogé diterapkeun ka salinan éta supados angka semester aktif tetep saluyu. Parobahan ditolak salami semester aktif masih boga rapor final; buka deui rapor heula.",
+    "previewSemester": "Semester",
+    "previewSemesterLive": "Aturan ayeuna (tanpa semester)",
+    "previewFrozen": "Maké aturan beku {semester}",
+    "previewLive": "Maké aturan ayeuna"
   },
   "semesters": {
     "title": "Semester",
@@ -3427,7 +3435,45 @@
       }
     },
     "calcModeWarning": "Ngarobah cara ngitung mangaruhan rapor rarancang: nilai ahir sakabéh siswa diitung deui ku cara anyar, jadi angka dina rapor rarancang bisa robah. Rapor nu geus final teu robah jeung ngahalangan parobahan ieu.",
-    "calcModeReportFinal": "Pangaturan penilaian teu tiasa dirobah sabab semester aktif geus boga rapor final. Buka deui rapor nu geus final di ménu Rapor, tuluy simpen deui."
+    "calcModeReportFinal": "Pangaturan penilaian teu tiasa dirobah sabab semester aktif geus boga rapor final. Buka deui rapor nu geus final di ménu Rapor, tuluy simpen deui.",
+    "syncedToActive": "Parobahan ieu ogé diterapkeun ka aturan nilai semester aktif nu disimpen.",
+    "writeThroughNote": "Semester aktif geus boga salinan aturan nilai nu disimpen. Parobahan nu anjeun simpen di dieu otomatis ogé diterapkeun ka salinan éta salami semester aktif can boga rapor final.",
+    "semCfgTitle": "Status konfigurasi semester",
+    "semCfgHint": "Aturan nilai unggal semester (KKM, predikat, cara ngitung, komponén, jeung KKTP) disimpen per semester. Ku kitu rapor nu geus kaluar teu robah upami aturan sakola dirobah engké.",
+    "semCfgNoSemester": "Can aya semester.",
+    "semCfgActiveSuffix": "aktip",
+    "semCfgFrozen": "Beku",
+    "semCfgLive": "Hirup",
+    "semCfgSame": "Sarua jeung aturan ayeuna",
+    "semCfgDiffers": "Béda ti aturan ayeuna",
+    "semCfgFinalCount": "{reports} rapor final di {classes} kelas",
+    "semCfgWhatFrozen": "Beku hartosna aturan nilai semester ieu disimpen sorangan. Rapor nu geus kaluar teu robah upami aturan nilai sakola dirobah engké, tur nilai dina rekap jeung portal wali pikeun semester ieu nuturkeun aturan nu disimpen éta.",
+    "semCfgWhatLive": "Semester ieu masih nuturkeun aturan nilai sakola ayeuna. Aturanna otomatis disimpen (dibekukeun) nalika rapor kahiji difinalisasi atawa nalika semester ditinggalkeun, supados rapor nu kaluar teu robah.",
+    "semCfgOrigin": "Asal pembekuan",
+    "semCfgFrozenAt": "Dibekukeun dina",
+    "semCfgRules": "Aturan nilai",
+    "semCfgRulesValue": "KKM {kkm}, predikat A {a}, B {b}, C {c}",
+    "semCfgComponents": "Komponén nilai",
+    "semCfgCriteria": "{count} kriteria KKTP",
+    "freezeOrigin_finalize": "Rapor kahiji difinalisasi",
+    "freezeOrigin_semester_closed": "Semester ditinggalkeun (semester sanés diaktipkeun)",
+    "freezeOrigin_sync": "Disaruakeun jeung aturan sakola",
+    "freezeOrigin_backfill": "Data heubeul, dieusian tina aturan nalika pembaruan",
+    "freezeOrigin_manual": "Dibekukeun sacara manual",
+    "freezeOrigin_unknown": "Teu kanyahoan",
+    "semCfgDiffersTitle": "Aturan ayeuna béda ti nu dipaké semester ieu",
+    "semCfgDiffersBody": "Semester ieu maké aturan nilai nu disimpen, sedengkeun aturan sakola ayeuna geus robah. Rekap jeung portal semester ieu tetep maké aturan nu disimpen, tur rapor nu kaluar teu kapangaruhan.",
+    "semCfgBlockedHint": "Aturan semester ieu teu tiasa disaruakeun salami masih aya rapor final. Buka deui rapor kelasna dina menu Rapor upami leres-leres kedah disaruakeun.",
+    "semCfgSyncButton": "Saruakeun jeung aturan ayeuna",
+    "semCfgSyncConfirm": "Aturan nilai {semester} bakal diganti ku aturan sakola ayeuna. Nilai dina rekap jeung portal wali pikeun semester éta bakal nuturkeun aturan anyar. Ditolak upami semester éta masih boga rapor final.",
+    "semCfgSyncConfirmButton": "Muhun, saruakeun",
+    "syncDone": "Aturan nilai semester geus disaruakeun jeung aturan ayeuna.",
+    "syncNoChange": "Aturan semester geus sarua jeung aturan ayeuna.",
+    "syncBlockedFinal": "Aturan nilai semester ieu teu tiasa disaruakeun margi masih aya rapor final di kelas: {classes}. Buka deui rapor kelas éta dina menu Rapor, tuluy cobian deui.",
+    "syncBlockedFinalNoNames": "Aturan nilai semester ieu teu tiasa disaruakeun margi masih aya rapor final dina semester ieu. Buka deui rapor dina menu Rapor, tuluy cobian deui.",
+    "fromReportBadge": "Saluyu jeung rapor nu kaluar",
+    "fromReportNote": "Nilai akhir, predikat, jeung KKM siswa nu ditandaan kitu dicokot tina rapor nu geus final, jadi sarua jeung nu kaluar tur teu robah ku pangaturan nilai. Rata-rata unggal komponén tetep diitung tina nilai nu aya ayeuna.",
+    "semCfgGoLink": "Buka Pengaturan penilaian"
   },
   "reportCards": {
     "title": "Rapor",
@@ -5758,7 +5804,9 @@
       "fluent": "Lancar",
       "fair": "Cekap",
       "repeat": "Ulang"
-    }
+    },
+    "reportSourceBadge": "Saluyu jeung rapor",
+    "reportSourceNote": "Nilai semester ieu sarua jeung nu aya dina rapor nu geus diterbitkeun ku sakola."
   },
   "roleWelcome": {
     "staffTitle": "Wilujeng sumping! Ieu anu tiasa dilakukeun",

@@ -162,6 +162,7 @@ const TABLES = [
   'fin_counter',
   'fin_invoice',
   'fin_fee_type',
+  'report_card_snapshot',
   'report_card',
   'lesson_attendance',
   'tap_event',

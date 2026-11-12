@@ -1,11 +1,23 @@
-import { academicYear, and, asc, eq, ne, semester, type Tx, withTenant } from '@edusync/db';
+import {
+  academicYear,
+  and,
+  asc,
+  assessment,
+  eq,
+  ne,
+  reportCard,
+  semester,
+  type Tx,
+  withTenant,
+} from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { ensureSemesterFrozen, lockGradingConfig } from '../grading-config-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
 import { loadSchoolSettings } from '../school-lib';
-import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
+import { audit, conflictAs409, guarded, idParams, isForeignKeyViolation, ok, schoolHeader } from './helpers';
 
 const semesterSchema = z.object({
   id: z.uuid(),
@@ -239,7 +251,9 @@ export async function semesterRoutes(instance: FastifyInstance) {
         summary: 'Jadikan semester aktif',
         description:
           'Izin: `academic_year:manage`. Hanya satu semester yang aktif di sekolah. Tahun ajaran semester itu ikut menjadi ' +
-          'tahun ajaran aktif agar keduanya selalu konsisten.',
+          'tahun ajaran aktif agar keduanya selalu konsisten. Semester yang ditinggalkan dan sudah punya penilaian atau rapor ' +
+          'dibekukan konfigurasi nilainya (asal `semester_closed`, bila belum beku) supaya perubahan konfigurasi berikutnya ' +
+          'tidak menggeser drafnya.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: semesterSchema, 404: errorSchema, ...guarded },
@@ -250,6 +264,24 @@ export async function semesterRoutes(instance: FastifyInstance) {
       return tenant(request, async (tx) => {
         const [target] = await tx.select().from(semester).where(eq(semester.id, request.params.id));
         if (!target) throw notFound('Semester');
+        await lockGradingConfig(tx, ctx.schoolId);
+        const leaving = await tx
+          .select({ id: semester.id })
+          .from(semester)
+          .where(and(eq(semester.isActive, true), ne(semester.id, target.id)));
+        for (const s of leaving) {
+          const [graded] = await tx
+            .select({ id: assessment.id })
+            .from(assessment)
+            .where(eq(assessment.semesterId, s.id))
+            .limit(1);
+          const [reported] = await tx
+            .select({ id: reportCard.id })
+            .from(reportCard)
+            .where(eq(reportCard.semesterId, s.id))
+            .limit(1);
+          if (graded || reported) await ensureSemesterFrozen(tx, ctx, s.id, 'semester_closed');
+        }
         await tx.update(semester).set({ isActive: false }).where(eq(semester.isActive, true));
         await tx.update(semester).set({ isActive: true }).where(eq(semester.id, target.id));
         await tx.update(academicYear).set({ isActive: false }).where(eq(academicYear.isActive, true));
@@ -270,7 +302,9 @@ export async function semesterRoutes(instance: FastifyInstance) {
       schema: {
         tags: ['Academic'],
         summary: 'Hapus semester',
-        description: 'Izin: `academic_year:manage`. Semester yang sedang aktif tidak dapat dihapus.',
+        description:
+          'Izin: `academic_year:manage`. Semester yang sedang aktif tidak dapat dihapus (409 `in_use`). Semester yang masih ' +
+          'dirujuk rapor, penilaian, atau arsip potret rapor (`report_card_snapshot`) juga ditolak 409 `in_use`.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
@@ -278,14 +312,29 @@ export async function semesterRoutes(instance: FastifyInstance) {
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      await tenant(request, async (tx) => {
-        const [s] = await tx.select().from(semester).where(eq(semester.id, request.params.id));
-        if (!s) throw notFound('Semester');
-        if (s.isActive)
-          throw new HttpError(409, 'in_use', 'Semester aktif tidak dapat dihapus. Aktifkan yang lain dulu.');
-        await tx.delete(semester).where(eq(semester.id, s.id));
-        await audit(tx, ctx, 'semester.delete', 'semester', s.id, { name: s.name });
-      });
+      try {
+        await tenant(request, async (tx) => {
+          const [s] = await tx.select().from(semester).where(eq(semester.id, request.params.id));
+          if (!s) throw notFound('Semester');
+          if (s.isActive)
+            throw new HttpError(
+              409,
+              'in_use',
+              'Semester aktif tidak dapat dihapus. Aktifkan yang lain dulu.',
+            );
+          await tx.delete(semester).where(eq(semester.id, s.id));
+          await audit(tx, ctx, 'semester.delete', 'semester', s.id, { name: s.name });
+        });
+      } catch (error) {
+        if (isForeignKeyViolation(error)) {
+          throw new HttpError(
+            409,
+            'in_use',
+            'Semester masih dipakai data lain (rapor, penilaian, atau arsip rapor), jadi tidak dapat dihapus.',
+          );
+        }
+        throw error;
+      }
       return { ok: true as const };
     },
   );

@@ -27,7 +27,7 @@ interface Props {
   /** Dipanggil saat formulir dikirim. Dialog menutup bila berhasil; lempar galat untuk membiarkannya terbuka. */
   onSubmit: () => Promise<unknown>;
   /** Pesan galat untuk ditampilkan di dalam dialog. */
-  error?: string | null;
+  error?: React.ReactNode;
   /** Mengosongkan isian setiap kali dialog dibuka atau ditutup. */
   onOpenChange?: (open: boolean) => void;
   /** Lebar dialog; formulir dengan banyak isian memakai "wide". */

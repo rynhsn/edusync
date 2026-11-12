@@ -659,6 +659,20 @@
       "when": 1796261400000,
       "tag": "0093_fk_restrict",
       "breakpoints": true
+    },
+    {
+      "idx": 94,
+      "version": "7",
+      "when": 1796347800000,
+      "tag": "0094_semester_grading_config",
+      "breakpoints": true
+    },
+    {
+      "idx": 95,
+      "version": "7",
+      "when": 1796434200000,
+      "tag": "0095_snapshot_fk_no_action",
+      "breakpoints": true
     }
   ]
 }

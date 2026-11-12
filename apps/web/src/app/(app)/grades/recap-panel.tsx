@@ -5,6 +5,7 @@ import { Download, Gauge, TrendingUp, TriangleAlert, Users } from 'lucide-react'
 import { useTranslations } from 'next-intl';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { ReportSourceBadge } from '@/components/report-source-badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -20,6 +21,7 @@ import {
 } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { isFromReport } from '@/lib/grading-config';
 import { formatKkm, isBelowKkm, pickKkm } from '@/lib/kktp';
 import { buildExport, saveBlob } from '@/lib/sheet';
 import { cn } from '@/lib/utils';
@@ -101,6 +103,15 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
 
   return (
     <div className="grid gap-4">
+      {isFromReport(data) && (
+        <div
+          role="note"
+          className={cn('flex items-start gap-3 rounded-xl border p-3 text-sm', TONES.sky.soft)}
+        >
+          <ReportSourceBadge label={t('fromReportBadge')} className="shrink-0" />
+          <p className="min-w-0">{t('fromReportNote')}</p>
+        </div>
+      )}
       <StatGrid className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
         <StatCard
           icon={Gauge}
@@ -234,6 +245,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                             {t('belowKkmBadge')}
                           </ToneBadge>
                         )}
+                        {isFromReport(s) && <ReportSourceBadge label={t('fromReportBadge')} />}
                       </div>
                     </td>
                   </tr>
@@ -260,10 +272,15 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                     )}
                   </div>
                 </div>
-                {s.belowKkm && (
-                  <ToneBadge tone="rose" dot={false} className="w-fit">
-                    {t('belowKkmBadge')}
-                  </ToneBadge>
+                {(s.belowKkm || isFromReport(s)) && (
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {s.belowKkm && (
+                      <ToneBadge tone="rose" dot={false} className="w-fit">
+                        {t('belowKkmBadge')}
+                      </ToneBadge>
+                    )}
+                    {isFromReport(s) && <ReportSourceBadge label={t('fromReportBadge')} />}
+                  </div>
                 )}
                 <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
                   {data.components.map((c) => {

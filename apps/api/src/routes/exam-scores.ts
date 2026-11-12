@@ -24,6 +24,7 @@ import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { examOrThrow, guardSubject } from '../exam-lib';
+import { assertComponentInSemester } from '../grading-config-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { assertClassesReportNotFinal } from '../report-lock-lib';
@@ -332,7 +333,8 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           'Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; ' +
           'komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 ' +
           '`essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor ' +
-          'salah satu kelas peserta pada semester ujian sudah final.',
+          'salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai ' +
+          'semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -364,6 +366,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           ex.semesterId,
           data.students.map((s) => s.classId),
         );
+        await assertComponentInSemester(tx, ex.semesterId, comp.id);
         if (data.maxTotal <= 0) throw new HttpError(400, 'no_questions', 'Ujian belum memiliki soal.');
         const pending = data.students.filter((s) => s.entered && !s.absent && s.essayPending).length;
         if (pending > 0 && !request.body.allowPending) {

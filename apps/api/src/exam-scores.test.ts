@@ -7,6 +7,7 @@ import {
   entitlement,
   eq,
   foundation,
+  freezeSemesterGradingConfig,
   gradeComponent,
   member,
   reportCard,
@@ -14,6 +15,7 @@ import {
   score,
   seedSchoolRoles,
   semester,
+  semesterGradingConfig,
   sql,
   student,
   subject,
@@ -492,6 +494,48 @@ describe('kirim ke buku nilai', () => {
     expect((await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId })).statusCode).toBe(
       200,
     );
+  });
+
+  it('semester beku: komponen yang dibuat sesudah pembekuan ditolak 409 component_not_in_semester', async () => {
+    const ex = await makeExam({ title: 'Komponen baru' });
+    const [q1, q2, q3] = ex.q;
+    await call('PUT', `/v1/exams/${ex.id}/scoresheet`, adminCookie, {
+      records: [
+        {
+          studentId: students.andi,
+          answers: [
+            { questionId: q1, answer: 'B' },
+            { questionId: q2, answer: 'C' },
+            { questionId: q3, score: 3 },
+          ],
+        },
+      ],
+    });
+    const db = app.platformDb;
+    await freezeSemesterGradingConfig(db, {
+      schoolId,
+      semesterId,
+      origin: 'manual',
+      actorId: null,
+      overwrite: true,
+    });
+    try {
+      const [late] = await db
+        .insert(gradeComponent)
+        .values({ schoolId, name: `Susulan ${Date.now()}`, weight: 10 })
+        .returning();
+      const rejected = await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, {
+        componentId: late!.id,
+      });
+      expect(rejected.statusCode).toBe(409);
+      expect(rejected.json().error.code).toBe('component_not_in_semester');
+      // Komponen yang ada di salinan beku tetap diterima.
+      expect((await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId })).statusCode).toBe(
+        200,
+      );
+    } finally {
+      await db.delete(semesterGradingConfig).where(eq(semesterGradingConfig.semesterId, semesterId));
+    }
   });
 
   it('ujian tanpa soal ditolak', async () => {

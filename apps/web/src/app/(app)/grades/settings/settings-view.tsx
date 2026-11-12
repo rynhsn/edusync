@@ -33,6 +33,7 @@ import {
   weightsTotal,
 } from '@/lib/calc-mode';
 import { errorKey } from '@/lib/errors';
+import { invalidateGradingConfig, syncedSemesterIdOf } from '@/lib/grading-config';
 import { cn } from '@/lib/utils';
 import { COMPONENT_TONES, predicateTone } from '../grade-ui';
 import {
@@ -43,11 +44,21 @@ import {
   validateComponent,
   validateThresholds,
 } from '../grade-validation';
+import { SemesterConfigCard } from './semester-config-card';
 
 const KEYS = ['kkm', 'predicateA', 'predicateB', 'predicateC'] as const;
 type Key = (typeof KEYS)[number];
 
 const num = (s: string) => (s.trim() === '' ? Number.NaN : Number(s.trim().replace(',', '.')));
+
+/**
+ * Toast sukses simpan. Bila server juga menulis-tembus perubahan ke aturan beku semester aktif (`syncedSemesterId`),
+ * pengguna diberi tahu supaya paham angka semester aktif ikut berubah.
+ */
+function toastSaved(message: string, syncedNote: string, body: unknown) {
+  if (syncedSemesterIdOf(body)) toast.success(message, { description: syncedNote });
+  else toast.success(message);
+}
 
 /** Kartu KKM dan batas predikat: A > B > C, semuanya 0..100. */
 function ThresholdsCard() {
@@ -122,13 +133,12 @@ function ThresholdsCard() {
           },
         }),
       ),
-    onSuccess: () => {
-      toast.success(t('settingsSaved'));
+    onSuccess: (saved) => {
+      toastSaved(t('settingsSaved'), t('syncedToActive'), saved);
       setSaveError(null);
       setDirty(false);
       validation.reset();
-      queryClient.invalidateQueries({ queryKey: key });
-      queryClient.invalidateQueries({ queryKey: ['grading-recap', school.schoolId] });
+      invalidateGradingConfig(queryClient, school.schoolId);
     },
     onError: (e) => {
       // Rapor final mengunci pengaturan: jelaskan penyebab dan jalan keluarnya, bukan hanya galat umum.
@@ -182,6 +192,9 @@ function ThresholdsCard() {
             {t('kktpLink')}
           </Link>
         </p>
+        {settings.data.activeSemesterConfig && (
+          <p className="text-muted-foreground text-sm">{t('writeThroughNote')}</p>
+        )}
         {bands && (
           <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {bands.map((b) => (
@@ -344,10 +357,7 @@ function ComponentsCard() {
   });
   const mode = modeOrDefault(modeQuery.data?.calculationMode);
 
-  const refresh = () => {
-    queryClient.invalidateQueries({ queryKey: key });
-    queryClient.invalidateQueries({ queryKey: ['grading-recap', school.schoolId] });
-  };
+  const refresh = () => invalidateGradingConfig(queryClient, school.schoolId);
 
   const weight = num(form.weight);
   const sort = form.sort.trim() === '' ? 0 : num(form.sort);
@@ -370,8 +380,8 @@ function ComponentsCard() {
       }
       return unwrap(await api.POST('/v1/grading/components', { params: header, body }));
     },
-    onSuccess: () => {
-      toast.success(editing ? t('componentUpdated') : t('componentCreated'));
+    onSuccess: (saved) => {
+      toastSaved(editing ? t('componentUpdated') : t('componentCreated'), t('syncedToActive'), saved);
       refresh();
     },
     onError: (e) => setFormError(te(errorKey(e))),
@@ -380,8 +390,8 @@ function ComponentsCard() {
   const remove = useMutation({
     mutationFn: async (id: string) =>
       unwrap(await api.DELETE('/v1/grading/components/{id}', { params: { ...header, path: { id } } })),
-    onSuccess: () => {
-      toast.success(t('componentDeleted'));
+    onSuccess: (removed) => {
+      toastSaved(t('componentDeleted'), t('syncedToActive'), removed);
       refresh();
     },
     onError: (e) => toast.error(te(errorKey(e))),
@@ -606,6 +616,7 @@ export function GradeSettingsView() {
         description={t('settingsSubtitle')}
         actions={<BackLink href="/grades" />}
       />
+      <SemesterConfigCard />
       <ThresholdsCard />
       <ComponentsCard />
     </PageBody>

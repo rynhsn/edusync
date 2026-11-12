@@ -17,6 +17,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { ensureSemesterFrozen } from '../grading-config-lib';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { notifyReportCards } from '../messaging-lib';
@@ -432,8 +433,10 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           'menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya ' +
           'penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada ' +
           'pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak ' +
-          'hilang bila rapor dibuka kembali. Semester/kelas harus milik sekolah ini dan satu tahun ajaran ' +
-          '(400 `invalid_reference`).',
+          'hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi ' +
+          'nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen ' +
+          'dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik ' +
+          'sekolah ini dan satu tahun ajaran (400 `invalid_reference`).',
         headers: schoolHeader,
         body: z.object({
           semesterId: z.uuid(),
@@ -454,6 +457,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
       return tenant(request, async (tx) => {
         const { sem, cls } = await requireSemesterClass(tx, semesterId, classId);
         if (!(await canWriteClass(tx, ctx, cls.homeroomTeacherId))) throw notAllowed();
+        await ensureSemesterFrozen(tx, ctx, semesterId, 'finalize');
         const c = await loadClassContext(tx, sem, cls);
         const incomplete = c.roster.filter((s) => {
           const { subjectsGraded, subjectsTotal } = liveSummary(c, s.id);
@@ -562,7 +566,9 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         summary: 'Buka kembali rapor satu kelas',
         description:
           'Izin: `report_card:manage`; modul `grades`. Mengembalikan rapor final kelas itu ke draft dan membuang ' +
-          'snapshot aktifnya (snapshot yang pernah difinalkan tetap tersimpan di riwayat); catatan wali kelas tetap. ' +
+          'snapshot aktifnya (snapshot yang pernah difinalkan tetap tersimpan di riwayat); catatan wali kelas tetap. Salinan beku konfigurasi nilai ' +
+          'semester itu tidak dihapus: draf dan finalisasi ulang memakai aturan hitung yang sama, jadi hanya perubahan skor, absensi, ' +
+          'atau catatan yang tampak. ' +
           '`reopened` = jumlah rapor yang dibuka. Semester/kelas harus milik sekolah ini dan satu tahun ajaran ' +
           '(400 `invalid_reference`).',
         headers: schoolHeader,

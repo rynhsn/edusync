@@ -74,26 +74,6 @@ export async function assertStudentsReportNotFinalOnDate(tx: Tx, studentIds: str
 }
 
 /**
- * Pengaturan nilai (KKM, predikat, bobot komponen) berlaku untuk semua kelas, jadi ditolak selama semester aktif
- * sudah punya kelas yang rapornya final: nilai hidup dan rapor terbit akan berbeda bila diubah.
- */
-export async function assertNoFinalInActiveSemesters(tx: Tx) {
-  const [hit] = await tx
-    .select({ id: reportCard.id })
-    .from(reportCard)
-    .innerJoin(semester, eq(semester.id, reportCard.semesterId))
-    .where(and(eq(semester.isActive, true), eq(reportCard.status, 'final')))
-    .limit(1);
-  if (hit) {
-    throw new HttpError(
-      409,
-      REPORT_FINAL_CODE,
-      'Pengaturan nilai tidak bisa diubah karena sudah ada rapor final pada semester aktif. Buka kembali rapor kelas tersebut lebih dulu.',
-    );
-  }
-}
-
-/**
  * Wali kelas dan guru pengampu boleh berganti di tengah tahun (rapor yang sudah final menyimpan nama saat itu), jadi
  * hanya ditolak bila setiap semester pada tahun ajaran kelas itu sudah final: tahun ajarannya sudah tertutup.
  */

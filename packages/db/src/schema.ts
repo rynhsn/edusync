@@ -1677,6 +1677,35 @@ export const gradingSetting = pgTable('grading_setting', {
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * Salinan beku konfigurasi nilai satu semester (migrasi 0094; rancangan: docs/rancangan-pembekuan-konfigurasi-nilai.md).
+ * Tidak ada baris = semester mengikuti konfigurasi hidup; ada baris = semester beku dan memakai salinan ini. `components` dan
+ * `criteria` berbentuk `FrozenComponent[]` dan `FrozenCriteria[]` (packages/contracts/src/grading-config.ts, `config_version` 1).
+ * FK komposit ke `semester(school_id, id)` ON DELETE CASCADE dan CHECK `calculation_mode`/`origin` hanya ada di migrasi.
+ */
+export const semesterGradingConfig = pgTable('semester_grading_config', {
+  semesterId: uuid('semester_id').primaryKey(),
+  schoolId: uuid('school_id')
+    .notNull()
+    .references(() => school.id),
+  kkm: integer('kkm').notNull(),
+  predicateA: integer('predicate_a').notNull(),
+  predicateB: integer('predicate_b').notNull(),
+  predicateC: integer('predicate_c').notNull(),
+  calculationMode: text('calculation_mode', {
+    enum: ['weighted_average', 'percentage', 'simple_average'],
+  }).notNull(),
+  components: jsonb('components').$type<unknown>().notNull(),
+  criteria: jsonb('criteria').$type<unknown>().notNull().default([]),
+  configVersion: integer('config_version').notNull().default(1),
+  origin: text('origin', {
+    enum: ['finalize', 'semester_closed', 'sync', 'backfill', 'manual'],
+  }).notNull(),
+  frozenBy: text('frozen_by'),
+  frozenAt: timestamp('frozen_at', { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+});
+
 /** Komponen penilaian berbobot (Tugas, Ulangan Harian, UTS, UAS, ...). Bobot dinormalisasi saat nilai akhir dihitung. */
 export const gradeComponent = pgTable(
   'grade_component',
@@ -1817,6 +1846,9 @@ export const reportCard = pgTable(
 /**
  * Riwayat finalisasi dan buka kembali rapor per siswa. Buka kembali menghapus `report_card.snapshot`, tetapi setiap snapshot
  * yang pernah difinalkan tetap tersimpan di sini (versi naik 1 tiap peristiwa).
+ *
+ * FK komposit ke semester, siswa, dan kelas (`report_card_snapshot_{semester,student,class}_fk`, SQL tangan 0087, diubah ke
+ * ON DELETE NO ACTION oleh 0095) menolak penghapusan induk selama arsip masih ada; Drizzle tidak memodelkan FK komposit ini.
  */
 export const reportCardSnapshot = pgTable(
   'report_card_snapshot',

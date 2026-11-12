@@ -2,6 +2,7 @@
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ClipboardList, Eye, Layers, ListChecks, Pencil, PenLine, Plus, Trash2 } from 'lucide-react';
+import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -26,7 +27,7 @@ import {
   ToneBadge,
 } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
-import { api, schoolHeader, unwrap } from '@/lib/api';
+import { ApiError, api, schoolHeader, unwrap } from '@/lib/api';
 import { withoutBlur } from '@/lib/area-rules';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
@@ -66,7 +67,7 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
   const [editing, setEditing] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<{ id: string; title: string } | null>(null);
   const [form, setForm] = useState<Form>(emptyForm());
-  const [formError, setFormError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<React.ReactNode>(null);
   const validation = useFormValidation<AssessmentField>({
     errors: validateAssessment(form),
     order: ASSESSMENT_ORDER,
@@ -123,7 +124,20 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
       toast.success(editing ? t('assessmentUpdated') : t('assessmentCreated'));
       invalidate();
     },
-    onError: (e) => setFormError(te(errorKey(e))),
+    onError: (e) =>
+      setFormError(
+        // Komponen dibuat setelah semester dibekukan: jelaskan jalan keluarnya dan tautkan ke Pengaturan penilaian.
+        e instanceof ApiError && e.code === 'component_not_in_semester' ? (
+          <>
+            {te(errorKey(e))}{' '}
+            <Link href="/grades/settings" className="font-medium underline underline-offset-2">
+              {t('semCfgGoLink')}
+            </Link>
+          </>
+        ) : (
+          te(errorKey(e))
+        ),
+      ),
   });
 
   const remove = useMutation({

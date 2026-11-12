@@ -434,6 +434,7 @@ afterAll(async () => {
       'portal_link',
       'portal_invite',
       'announcement',
+      'report_card_snapshot',
       'report_card',
       'score',
       'assessment',

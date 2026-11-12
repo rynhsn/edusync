@@ -39,7 +39,13 @@ melindungi data, yang kedua dibutuhkan sebelum akhir tahun ajaran (Juni 2027).
 | 2A. Rollover dan kenaikan kelas | Selesai, belum dirilis | `34148b9`, migrasi 0088 |
 | 2B. Struktur mapel, CP/TP/ATP, KKTP | Selesai, belum dirilis | `7477227`, migrasi 0089-0091 |
 | 2C. Koreksi hasil verifikasi regulasi (K1-K5, K7, C5) | Selesai, belum dirilis | migrasi 0092; K6 (istilah) hanya sebagian: "KKM" dan "KKTP" dieja lengkap, "siswa" belum diganti "murid" |
+| 2D. Pembekuan konfigurasi nilai per semester | Selesai, belum dirilis | migrasi 0094-0095; rancangan di `docs/rancangan-pembekuan-konfigurasi-nilai.md` |
 | 3-5 | Belum dimulai | lihat revisi di bawah |
+
+Tindak lanjut yang tercatat dari 2D: (1) lulusan (`student.status = graduated`) keluar dari roster rapor draf, rekap, dan portal
+tahun terakhirnya, sehingga rapor final mereka tidak tampil di rekap kelas; perlu keputusan apakah roster tahun sumber memuat siswa
+lulus; (2) pembatasan penulisan CP/TP guru per tahun ajaran; (3) perluasan izin rollover; (4) harga katalog di DB dev tidak sama
+dengan yang diasumsikan lima tes billing.
 
 Sisa 2C yang belum dikerjakan: tingkat akhir belum diturunkan otomatis dari lama studi (hanya dari tingkat akhir yang diisi);
 seed profil madrasah dan SMK menunggu pembacaan teks resmi.
