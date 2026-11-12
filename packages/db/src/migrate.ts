@@ -19,11 +19,15 @@ const platformUrl = process.env.DATABASE_PLATFORM_URL;
 if (platformUrl) {
   const platform = createDb(platformUrl);
   const added = await syncSystemRolePermissions(platform.db);
-  await platform.pool.end();
   if (added > 0) console.log(`Izin peran bawaan dilengkapi: ${added}`);
   // Konfigurasi nilai beku untuk semester lama (tabel ber-RLS, jadi tidak bisa di SQL migrasi). Gagal KERAS bila koneksi
-  // ternyata tunduk RLS; idempoten (tidak menimpa salinan yang ada).
-  const frozen = await backfillSemesterGradingConfigs(platform.db);
+  // ternyata tunduk RLS; idempoten (tidak menimpa salinan yang ada). Pool baru ditutup SESUDAH backfill.
+  let frozen: Awaited<ReturnType<typeof backfillSemesterGradingConfigs>>;
+  try {
+    frozen = await backfillSemesterGradingConfigs(platform.db);
+  } finally {
+    await platform.pool.end();
+  }
   console.log(
     `Backfill konfigurasi nilai beku: ${frozen.created} dibuat (rapor final ${frozen.byReason.final}, lewat dan bernilai ${frozen.byReason.pastGraded}), ${frozen.alreadyFrozen} sudah ada, ${frozen.schools} sekolah`,
   );
