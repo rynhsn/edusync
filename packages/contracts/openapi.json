@@ -28180,7 +28180,7 @@
         "tags": [
           "Academic"
         ],
-        "description": "Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` (kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, final_level_not_copied, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, event_class_skipped, event_out_of_year, flow_inactive_objectives) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.",
+        "description": "Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Selain `promotion:manage`, tiap bagian butuh izin spesifik pemanggil: kelas, wali kelas, dan penugasan guru butuh `class:manage`; kalender butuh `academic_year:manage`; kurikulum (alokasi dan versi) butuh `curriculum:manage`; ATP butuh `teaching_plan:write`. Bagian yang diminta (flag true, termasuk bawaan true) tetapi tidak diizinkan DILEWATI, bukan 403: hitungannya 0 dan `warningItems` memuat `part_skipped_no_permission` dengan params `part` (`classes`, `calendar`, `curriculum`, `teachingPlans`) dan `permission` (izin yang kurang); `dryRun` berperilaku sama. Pemanggil dengan semua izin (admin dan Kurikulum bawaan) tidak terpengaruh. Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` (kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, final_level_not_copied, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, event_class_skipped, event_out_of_year, flow_inactive_objectives, part_skipped_no_permission) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.",
         "requestBody": {
           "required": true,
           "content": {
@@ -119748,7 +119748,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Membuat CP versi 1 untuk mapel dan fase (A-F) itu.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). Membuat CP versi 1 untuk mapel dan fase (A-F) itu.",
         "requestBody": {
           "required": true,
           "content": {
@@ -120022,7 +120022,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus (berlaku juga untuk `active` true pada versi lama; aktifkan versi terbaru).",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus (berlaku juga untuk `active` true pada versi lama; aktifkan versi terbaru).",
         "requestBody": {
           "required": true,
           "content": {
@@ -120310,7 +120310,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). 409 `in_use`: CP masih punya TP atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). 409 `in_use`: CP masih punya TP atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.",
         "parameters": [
           {
             "schema": {
@@ -120709,7 +120709,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Membuat TP versi 1 di bawah CP itu; `sortOrder` yang dihilangkan diisi urutan berikutnya. 409 `outcome_inactive`: CP sudah dinonaktifkan atau diganti versi baru.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). Membuat TP versi 1 di bawah CP itu; `sortOrder` yang dihilangkan diisi urutan berikutnya. 409 `outcome_inactive`: CP sudah dinonaktifkan atau diganti versi baru.",
         "requestBody": {
           "required": true,
           "content": {
@@ -120964,7 +120964,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus; berlaku juga untuk `active` true pada versi lama (aktifkan versi terbaru).",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus; berlaku juga untuk `active` true pada versi lama (aktifkan versi terbaru).",
         "requestBody": {
           "required": true,
           "content": {
@@ -121231,7 +121231,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). 409 `in_use`: TP dirujuk item ATP (draf maupun terbit) atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). 409 `in_use`: TP dirujuk item ATP (draf maupun terbit) atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.",
         "parameters": [
           {
             "schema": {
@@ -121648,7 +121648,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Satu ATP milik satu mapel dan satu tahun ajaran; isinya urutan TP (maksimal 300) dengan minggu, JP, dan semester. Dibuat sebagai draf versi 1. `phase` yang dihilangkan diturunkan dari `levelCode` bila kode itu kelas 1-12 (angka atau Romawi). 400 `invalid_reference`: TP bukan milik mapel ATP, atau semester bukan milik tahun ajaran ATP. 400 `duplicate_entry`: TP yang sama dua kali. 400 `inactive_objective`: TP nonaktif. 400 `invalid_level`. 409 `conflict`: sudah ada ATP dengan mapel, tahun, nama, tingkat, dan versi yang sama.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). Satu ATP milik satu mapel dan satu tahun ajaran; isinya urutan TP (maksimal 300) dengan minggu, JP, dan semester. Dibuat sebagai draf versi 1. `phase` yang dihilangkan diturunkan dari `levelCode` bila kode itu kelas 1-12 (angka atau Romawi). 400 `invalid_reference`: TP bukan milik mapel ATP, atau semester bukan milik tahun ajaran ATP. 400 `duplicate_entry`: TP yang sama dua kali. 400 `inactive_objective`: TP nonaktif. 400 `invalid_level`. 409 `conflict`: sudah ada ATP dengan mapel, tahun, nama, tingkat, dan versi yang sama.",
         "requestBody": {
           "required": true,
           "content": {
@@ -122472,7 +122472,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Satu ATP milik satu mapel dan satu tahun ajaran; isinya urutan TP (maksimal 300) dengan minggu, JP, dan semester. Mengubah metadata (`name`, `levelCode`, `phase`; yang dihilangkan tidak berubah, null mengosongkan tingkat/fase) dan, bila `items` dikirim, mengganti SELURUH item sekaligus (urutan larik = urutan ATP; `items` dihilangkan = item tidak disentuh). Mapel dan tahun ajaran tidak bisa diubah. 409 `flow_published`: ATP sudah terbit dan terkunci. Validasi item seperti pada POST.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). Satu ATP milik satu mapel dan satu tahun ajaran; isinya urutan TP (maksimal 300) dengan minggu, JP, dan semester. Mengubah metadata (`name`, `levelCode`, `phase`; yang dihilangkan tidak berubah, null mengosongkan tingkat/fase) dan, bila `items` dikirim, mengganti SELURUH item sekaligus (urutan larik = urutan ATP; `items` dihilangkan = item tidak disentuh). Mapel dan tahun ajaran tidak bisa diubah. 409 `flow_published`: ATP sudah terbit dan terkunci. Validasi item seperti pada POST.",
         "requestBody": {
           "required": true,
           "content": {
@@ -122950,7 +122950,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Hanya draf; 409 `flow_published` bila sudah terbit.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). Hanya draf; 409 `flow_published` bila sudah terbit.",
         "parameters": [
           {
             "schema": {
@@ -123134,7 +123134,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Mengubah draf menjadi terbit dan mengunci isinya; revisi lewat `new-version`. 400 `flow_empty`: ATP tanpa item. 400 `inactive_objective`: ada item yang menunjuk TP nonaktif (daftar TP ada di pesan galat; ganti item itu dulu). 409 `flow_published`: sudah terbit.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). Mengubah draf menjadi terbit dan mengunci isinya; revisi lewat `new-version`. 400 `flow_empty`: ATP tanpa item. 400 `inactive_objective`: ada item yang menunjuk TP nonaktif (daftar TP ada di pesan galat; ganti item itu dulu). 409 `flow_published`: sudah terbit.",
         "parameters": [
           {
             "schema": {
@@ -123539,7 +123539,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`). Menyalin ATP terbit beserta item menjadi draf versi berikutnya (`supersedesId` = ATP asal); versi lama tetap utuh. Item yang menunjuk TP nonaktif ikut disalin dan dihitung di `inactiveItemCount` (peringatan; ganti sebelum menerbitkan, 400 `inactive_objective`). 409 `flow_not_published`: ATP asal masih draf. 409 `draft_exists`: ATP yang sama (mapel, tahun, nama, tingkat) sudah punya draf.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). Menyalin ATP terbit beserta item menjadi draf versi berikutnya (`supersedesId` = ATP asal); versi lama tetap utuh. Item yang menunjuk TP nonaktif ikut disalin dan dihitung di `inactiveItemCount` (peringatan; ganti sebelum menerbitkan, 400 `inactive_objective`). 409 `flow_not_published`: ATP asal masih draf. 409 `draft_exists`: ATP yang sama (mapel, tahun, nama, tingkat) sudah punya draf.",
         "parameters": [
           {
             "schema": {

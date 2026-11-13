@@ -865,3 +865,141 @@ describe('isolasi tenant', () => {
     }
   });
 });
+
+describe('batas tahun ajaran penulisan guru', () => {
+  const who = {} as Record<'lama' | 'depan' | 'berjalan', string>;
+  const ids: string[] = [];
+
+  beforeAll(async () => {
+    const [past] = await db()
+      .insert(academicYear)
+      .values({ schoolId, name: '2024/2025', startsOn: '2024-07-15', endsOn: '2025-06-30', isActive: false })
+      .returning();
+    const [pastCls] = await db()
+      .insert(classRoom)
+      .values({ schoolId, academicYearId: past!.id, name: '7Lama', level: '7' })
+      .returning();
+    const [futureCls] = await db()
+      .insert(classRoom)
+      .values({ schoolId, academicYearId: years.y2, name: '7Depan', level: '7' })
+      .returning();
+    const [currentCls] = await db()
+      .insert(classRoom)
+      .values({ schoolId, academicYearId: years.y1, name: '7Kini', level: '7' })
+      .returning();
+    for (const [key, cls] of [
+      ['lama', pastCls!.id],
+      ['depan', futureCls!.id],
+      ['berjalan', currentCls!.id],
+    ] as const) {
+      const m = await makeMember(`guru-${key}`, schoolId, ['teacher']);
+      who[key] = m.cookie;
+      const [t] = await db()
+        .insert(teacher)
+        .values({ schoolId, name: `Guru ${key}`, memberId: m.memberId })
+        .returning();
+      ids.push(t!.id);
+      await db()
+        .insert(teachingAssignment)
+        .values({ schoolId, classId: cls, subjectId: sub.mtk, teacherId: t!.id });
+    }
+  }, 60_000);
+
+  const cpBody = { phase: 'D', description: 'CP uji batas tahun' };
+
+  it('guru dengan penugasan hanya di tahun yang sudah berakhir ditolak untuk CP, TP, dan ATP', async () => {
+    const cp = await addOutcome(sub.mtk, cpBody, who.lama);
+    expect(cp.statusCode).toBe(403);
+    expect(cp.json().error.code).toBe('not_subject_teacher');
+    expect(cp.json().error.message).toContain('tahun ajaran berjalan atau yang akan datang');
+
+    const adminCp = await addOutcome(sub.mtk, { phase: 'E', description: 'CP admin uji batas' });
+    const adminTp = await addObjective(adminCp.json().id, { description: 'TP admin uji batas' });
+    const tp = await addObjective(adminCp.json().id, { description: 'x' }, who.lama);
+    expect(tp.statusCode).toBe(403);
+    expect(tp.json().error.code).toBe('not_subject_teacher');
+    const putTp = await call('PUT', `/v1/objectives/${adminTp.json().id}`, who.lama, { description: 'y' });
+    expect(putTp.statusCode).toBe(403);
+    const putCp = await call('PUT', `/v1/outcomes/${adminCp.json().id}`, who.lama, {
+      phase: 'E',
+      description: 'y',
+    });
+    expect(putCp.statusCode).toBe(403);
+
+    const atp = await addFlow({ subjectId: sub.mtk, academicYearId: years.y1, name: 'ATP lama' }, who.lama);
+    expect(atp.statusCode).toBe(403);
+    expect(atp.json().error.code).toBe('not_subject_teacher');
+    // ATP yang sudah ada juga ditolak (jalur mengunci ATP).
+    const existing = await addFlow({ subjectId: sub.mtk, academicYearId: years.y1, name: 'ATP milik admin' });
+    expect(existing.statusCode).toBe(201);
+    const del = await call('DELETE', `/v1/learning-flows/${existing.json().id}`, who.lama);
+    expect(del.statusCode).toBe(403);
+
+    await call('DELETE', `/v1/learning-flows/${existing.json().id}`, cookie.admin);
+    await call('DELETE', `/v1/objectives/${adminTp.json().id}`, cookie.admin);
+    await call('DELETE', `/v1/outcomes/${adminCp.json().id}`, cookie.admin);
+  });
+
+  it('guru dengan penugasan di tahun berjalan diterima untuk CP, TP, dan ATP tahun itu', async () => {
+    const cp = await addOutcome(sub.mtk, { phase: 'F', description: 'CP guru berjalan' }, who.berjalan);
+    expect(cp.statusCode).toBe(201);
+    const tp = await addObjective(cp.json().id, { description: 'TP guru berjalan' }, who.berjalan);
+    expect(tp.statusCode).toBe(201);
+    const atp = await addFlow(
+      { subjectId: sub.mtk, academicYearId: years.y1, name: 'ATP berjalan' },
+      who.berjalan,
+    );
+    expect(atp.statusCode).toBe(201);
+    // ATP tahun depan ditolak: penugasannya hanya di tahun berjalan.
+    const wrongYear = await addFlow(
+      { subjectId: sub.mtk, academicYearId: years.y2, name: 'ATP salah tahun' },
+      who.berjalan,
+    );
+    expect(wrongYear.statusCode).toBe(403);
+    expect(wrongYear.json().error.code).toBe('not_subject_teacher');
+    await call('DELETE', `/v1/learning-flows/${atp.json().id}`, cookie.admin);
+    await call('DELETE', `/v1/objectives/${tp.json().id}`, cookie.admin);
+    await call('DELETE', `/v1/outcomes/${cp.json().id}`, cookie.admin);
+  });
+
+  it('guru dengan penugasan di tahun depan (hasil rollover) diterima; ATP tahun lain ditolak', async () => {
+    const cp = await addOutcome(sub.mtk, { phase: 'A', description: 'CP guru depan' }, who.depan);
+    expect(cp.statusCode).toBe(201);
+    const tp = await addObjective(cp.json().id, { description: 'TP guru depan' }, who.depan);
+    expect(tp.statusCode).toBe(201);
+    const atp = await addFlow({ subjectId: sub.mtk, academicYearId: years.y2, name: 'ATP depan' }, who.depan);
+    expect(atp.statusCode).toBe(201);
+    // ATP tahun X ditolak untuk guru yang hanya punya penugasan di tahun Y.
+    const wrongYear = await addFlow(
+      { subjectId: sub.mtk, academicYearId: years.y1, name: 'ATP tahun berjalan' },
+      who.depan,
+    );
+    expect(wrongYear.statusCode).toBe(403);
+    expect(wrongYear.json().error.code).toBe('not_subject_teacher');
+    const otherYearFlow = await addFlow({
+      subjectId: sub.mtk,
+      academicYearId: years.y1,
+      name: 'ATP admin y1',
+    });
+    const editOther = await call('PUT', `/v1/learning-flows/${otherYearFlow.json().id}`, who.depan, {
+      name: 'dibajak',
+    });
+    expect(editOther.statusCode).toBe(403);
+    await call('DELETE', `/v1/learning-flows/${otherYearFlow.json().id}`, cookie.admin);
+    await call('DELETE', `/v1/learning-flows/${atp.json().id}`, cookie.admin);
+    await call('DELETE', `/v1/objectives/${tp.json().id}`, cookie.admin);
+    await call('DELETE', `/v1/outcomes/${cp.json().id}`, cookie.admin);
+  });
+
+  it('pemegang curriculum:manage tetap boleh untuk semua mapel dan tahun', async () => {
+    const cp = await addOutcome(sub.ipa, { phase: 'D', description: 'CP kurikulum' }, cookie.kurikulum);
+    expect(cp.statusCode).toBe(201);
+    const atp = await addFlow(
+      { subjectId: sub.ipa, academicYearId: years.y2, name: 'ATP kurikulum' },
+      cookie.kurikulum,
+    );
+    expect(atp.statusCode).toBe(201);
+    await call('DELETE', `/v1/learning-flows/${atp.json().id}`, cookie.admin);
+    await call('DELETE', `/v1/outcomes/${cp.json().id}`, cookie.admin);
+  });
+});

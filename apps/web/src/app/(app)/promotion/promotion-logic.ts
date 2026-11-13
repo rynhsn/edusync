@@ -383,7 +383,72 @@ export const ROLLOVER_WARNING_CODES = [
   'event_class_skipped',
   'event_out_of_year',
   'flow_inactive_objectives',
+  'part_skipped_no_permission',
 ] as const;
+
+/* ---------- Izin per bagian salinan tahun ajaran ---------- */
+
+/** Bagian salinan menurut API (`part` pada peringatan `part_skipped_no_permission`). */
+export type RolloverPart = 'classes' | 'calendar' | 'curriculum' | 'teachingPlans';
+
+export interface RolloverOptions {
+  copyClasses: boolean;
+  copyAssignments: boolean;
+  copyCalendar: boolean;
+  copyCurriculum: boolean;
+  copyTeachingPlans: boolean;
+}
+
+/** Izin spesifik tiap bagian (selain izin kenaikan kelas yang membuka layarnya); sama dengan yang diperiksa API. */
+export const ROLLOVER_PART_PERMISSION: Record<RolloverPart, string> = {
+  classes: 'class:manage',
+  calendar: 'academic_year:manage',
+  curriculum: 'curriculum:manage',
+  teachingPlans: 'teaching_plan:write',
+};
+
+/** Bagian milik tiap pilihan salin. */
+export const ROLLOVER_OPTION_PART: Record<keyof RolloverOptions, RolloverPart> = {
+  copyClasses: 'classes',
+  copyAssignments: 'classes',
+  copyCalendar: 'calendar',
+  copyCurriculum: 'curriculum',
+  copyTeachingPlans: 'teachingPlans',
+};
+
+/** Izin yang dibutuhkan sebuah pilihan salin. */
+export const permissionForOption = (option: keyof RolloverOptions): string =>
+  ROLLOVER_PART_PERMISSION[ROLLOVER_OPTION_PART[option]];
+
+/** Pilihan salin yang boleh dipakai pemanggil. */
+export function allowedRolloverOptions(
+  can: (permission: string) => boolean,
+): Record<keyof RolloverOptions, boolean> {
+  const out = {} as Record<keyof RolloverOptions, boolean>;
+  for (const key of Object.keys(ROLLOVER_OPTION_PART) as (keyof RolloverOptions)[]) {
+    out[key] = can(permissionForOption(key));
+  }
+  return out;
+}
+
+/** Pilihan yang benar-benar dikirim: yang tidak diizinkan dipaksa false (tidak pernah dikirim true). */
+export function sendableRolloverOptions(
+  options: RolloverOptions,
+  can: (permission: string) => boolean,
+): RolloverOptions {
+  const allowed = allowedRolloverOptions(can);
+  return {
+    copyClasses: options.copyClasses && allowed.copyClasses,
+    copyAssignments: options.copyAssignments && allowed.copyAssignments,
+    copyCalendar: options.copyCalendar && allowed.copyCalendar,
+    copyCurriculum: options.copyCurriculum && allowed.copyCurriculum,
+    copyTeachingPlans: options.copyTeachingPlans && allowed.copyTeachingPlans,
+  };
+}
+
+/** Bagian yang dikenal untuk diterjemahkan; selain itu peringatan memakai teks server. */
+export const isRolloverPart = (part: unknown): part is RolloverPart =>
+  typeof part === 'string' && part in ROLLOVER_PART_PERMISSION;
 
 /** Kode alasan siswa tak tertempatkan yang punya terjemahan (`promotion.unplacedReason.<kode>`). */
 export const UNPLACED_REASON_CODES = [

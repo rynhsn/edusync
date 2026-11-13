@@ -15,16 +15,18 @@ import { Label } from '@/components/ui/label';
 import { StatCard, StatGrid, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { cn } from '@/lib/utils';
-import { type RolloverWarningCode, rolloverWarnings } from './promotion-logic';
+import {
+  allowedRolloverOptions,
+  isRolloverPart,
+  permissionForOption,
+  type RolloverOptions,
+  type RolloverWarningCode,
+  rolloverWarnings,
+  sendableRolloverOptions,
+} from './promotion-logic';
 import { StepError } from './step-error';
 
-interface Options {
-  copyClasses: boolean;
-  copyAssignments: boolean;
-  copyCalendar: boolean;
-  copyCurriculum: boolean;
-  copyTeachingPlans: boolean;
-}
+type Options = RolloverOptions;
 
 export function RolloverStep({
   sourceId,
@@ -38,7 +40,8 @@ export function RolloverStep({
   targetName: string;
 }) {
   const t = useTranslations('promotion');
-  const { school } = useSchool();
+  const tp = useTranslations('permissions');
+  const { school, can } = useSchool();
   const queryClient = useQueryClient();
   const [options, setOptions] = useState<Options>({
     copyClasses: true,
@@ -48,12 +51,15 @@ export function RolloverStep({
     copyCurriculum: true,
     copyTeachingPlans: true,
   });
-  const anyOption =
-    options.copyClasses ||
-    options.copyAssignments ||
-    options.copyCalendar ||
-    options.copyCurriculum ||
-    options.copyTeachingPlans;
+  // Bagian tanpa izin spesifik dinonaktifkan dan tidak pernah dikirim true (API melewatinya dengan peringatan).
+  const allowed = allowedRolloverOptions(can);
+  const sent = sendableRolloverOptions(options, can);
+  const anyOption = Object.values(sent).some(Boolean);
+  const nothingAllowed = !Object.values(allowed).some(Boolean);
+  const permissionLabel = (permission: string) => {
+    const key = permission.replace(':', '_');
+    return tp.has(key as never) ? tp(key as never) : permission;
+  };
 
   const run = useMutation({
     mutationFn: async (dryRun: boolean) => ({
@@ -61,7 +67,7 @@ export function RolloverStep({
       data: unwrap(
         await api.POST('/v1/academic-years/{id}/rollover', {
           params: { header: schoolHeader(school.schoolId), path: { id: sourceId } },
-          body: { targetYearId: targetId, ...options, dryRun },
+          body: { targetYearId: targetId, ...sent, dryRun },
         }),
       ),
     }),
@@ -83,6 +89,16 @@ export function RolloverStep({
   });
   const result = run.data;
   const warnings = result ? rolloverWarnings(result.data) : [];
+
+  /** Parameter peringatan yang berupa ID teknis (bagian, izin) diganti nama yang mudah dibaca. */
+  function warningParams(code: string, params: Record<string, string | number>) {
+    if (code !== 'part_skipped_no_permission' || !isRolloverPart(params.part)) return params;
+    return {
+      ...params,
+      part: t(`rolloverPart.${params.part}`),
+      permission: permissionLabel(String(params.permission)),
+    };
+  }
 
   function toggle(key: keyof Options, value: boolean) {
     setOptions((o) => ({ ...o, [key]: value }));
@@ -110,20 +126,39 @@ export function RolloverStep({
 
       <fieldset className="bg-card grid gap-3 rounded-2xl border p-4">
         <legend className="sr-only">{t('rolloverOptions')}</legend>
-        {rows.map((r) => (
-          <div key={r.key} className="flex items-start gap-3">
-            <Checkbox
-              id={`promo-${r.key}`}
-              className="mt-1"
-              checked={options[r.key]}
-              onCheckedChange={(v) => toggle(r.key, v === true)}
-            />
-            <Label htmlFor={`promo-${r.key}`} className="grid min-h-11 cursor-pointer content-start gap-0.5">
-              <span className="text-sm font-medium">{r.label}</span>
-              <span className="text-muted-foreground text-xs font-normal">{r.hint}</span>
-            </Label>
-          </div>
-        ))}
+        {rows.map((r) => {
+          const ok = allowed[r.key];
+          return (
+            <div key={r.key} className="flex items-start gap-3">
+              <Checkbox
+                id={`promo-${r.key}`}
+                className="mt-1"
+                checked={sent[r.key]}
+                disabled={!ok}
+                aria-describedby={ok ? undefined : `promo-${r.key}-need`}
+                onCheckedChange={(v) => toggle(r.key, v === true)}
+              />
+              <Label
+                htmlFor={`promo-${r.key}`}
+                className={cn(
+                  'grid min-h-11 content-start gap-0.5',
+                  ok ? 'cursor-pointer' : 'cursor-not-allowed',
+                )}
+              >
+                <span className={cn('text-sm font-medium', !ok && 'opacity-70')}>{r.label}</span>
+                <span className="text-muted-foreground text-xs font-normal">{r.hint}</span>
+                {!ok && (
+                  <span
+                    id={`promo-${r.key}-need`}
+                    className="text-xs font-medium text-amber-700 dark:text-amber-400"
+                  >
+                    {t('needsPermission', { permission: permissionLabel(permissionForOption(r.key)) })}
+                  </span>
+                )}
+              </Label>
+            </div>
+          );
+        })}
       </fieldset>
 
       <div className="flex flex-wrap items-center gap-2">
@@ -148,7 +183,11 @@ export function RolloverStep({
             }
           }}
         />
-        {!anyOption && <p className="text-muted-foreground text-xs">{t('pickOne')}</p>}
+        {!anyOption && (
+          <p className="text-muted-foreground text-xs">
+            {nothingAllowed ? t('noPartPermission') : t('pickOne')}
+          </p>
+        )}
       </div>
 
       {run.isError && <StepError error={run.error} />}
@@ -173,7 +212,7 @@ export function RolloverStep({
               value={result.data.assignmentsCreated}
             />
             <StatCard icon={Copy} tone="sky" label={t('eventsCreated')} value={result.data.eventsCreated} />
-            {options.copyCurriculum && (
+            {sent.copyCurriculum && (
               <>
                 <StatCard
                   icon={Copy}
@@ -189,7 +228,7 @@ export function RolloverStep({
                 />
               </>
             )}
-            {options.copyTeachingPlans && (
+            {sent.copyTeachingPlans && (
               <StatCard
                 icon={Copy}
                 tone="rose"
@@ -206,7 +245,14 @@ export function RolloverStep({
                 <ul className="mt-1 list-disc space-y-1 pl-5">
                   {warnings.map((w) => (
                     <li key={`${w.code ?? 'text'}:${w.fallback}`}>
-                      {w.code ? t(`rolloverWarning.${w.code as RolloverWarningCode}`, w.params) : w.fallback}
+                      {w.code === 'part_skipped_no_permission' && !isRolloverPart(w.params.part)
+                        ? w.fallback
+                        : w.code
+                          ? t(
+                              `rolloverWarning.${w.code as RolloverWarningCode}`,
+                              warningParams(w.code, w.params),
+                            )
+                          : w.fallback}
                     </li>
                   ))}
                 </ul>

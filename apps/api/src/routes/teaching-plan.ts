@@ -3,6 +3,7 @@ import {
   academicYear,
   and,
   asc,
+  classRoom,
   count,
   desc,
   eq,
@@ -24,6 +25,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { todayInSchool } from '../attendance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
 import { audit, conflictAs409, guarded, idParams, isForeignKeyViolation, ok, schoolHeader } from './helpers';
@@ -52,23 +54,36 @@ async function requireSubject(tx: Tx, id: string) {
   if (!row) throw notFound('Mata pelajaran');
 }
 
-/** Pemegang `curriculum:manage` untuk semua mapel; selain itu hanya guru aktif yang punya penugasan pada mapel itu. */
-async function assertCanWrite(tx: Tx, ctx: TenantContext, subjectId: string) {
+/**
+ * Pemegang `curriculum:manage` untuk semua mapel; selain itu hanya guru aktif yang punya penugasan pada mapel itu di
+ * kelas yang tahun ajarannya belum berakhir (`ends_on` >= hari ini menurut zona waktu sekolah; tahun yang akan datang
+ * termasuk, karena rollover menyalin penugasan ke tahun baru sebelum diaktifkan). Untuk ATP (`academicYearId` diberikan)
+ * penugasan harus di kelas tahun ajaran ATP itu.
+ */
+async function assertCanWrite(tx: Tx, ctx: TenantContext, subjectId: string, academicYearId?: string) {
   if (ctx.permissions.has('curriculum:manage')) return;
+  const conditions = [
+    eq(teacher.memberId, ctx.memberId),
+    eq(teacher.status, 'active'),
+    eq(teachingAssignment.subjectId, subjectId),
+    sql`${academicYear.endsOn} >= ${todayInSchool()}`,
+  ];
+  if (academicYearId) conditions.push(eq(classRoom.academicYearId, academicYearId));
   const rows = await tx
     .select({ id: teachingAssignment.id })
     .from(teachingAssignment)
     .innerJoin(teacher, eq(teacher.id, teachingAssignment.teacherId))
-    .where(
-      and(
-        eq(teacher.memberId, ctx.memberId),
-        eq(teacher.status, 'active'),
-        eq(teachingAssignment.subjectId, subjectId),
-      ),
-    )
+    .innerJoin(classRoom, eq(classRoom.id, teachingAssignment.classId))
+    .innerJoin(academicYear, eq(academicYear.id, classRoom.academicYearId))
+    .where(and(...conditions))
     .limit(1);
   if (rows.length === 0) {
-    throw new HttpError(403, 'not_subject_teacher', 'Anda bukan guru pengampu mata pelajaran ini.');
+    throw new HttpError(
+      403,
+      'not_subject_teacher',
+      'Anda bukan guru pengampu mata pelajaran ini. Penugasan Anda harus pada tahun ajaran berjalan atau yang akan datang' +
+        (academicYearId ? ', dan pada tahun ajaran ATP ini.' : '.'),
+    );
   }
 }
 
@@ -326,7 +341,7 @@ async function flowDetailOf(tx: Tx, id: string) {
 async function loadFlowLocked(tx: Tx, ctx: TenantContext, id: string) {
   const [first] = await tx.select().from(learningFlow).where(eq(learningFlow.id, id));
   if (!first) throw notFound('ATP');
-  await assertCanWrite(tx, ctx, first.subjectId);
+  await assertCanWrite(tx, ctx, first.subjectId, first.academicYearId);
   await lockSubject(tx, first.subjectId);
   const [flow] = await tx.select().from(learningFlow).where(eq(learningFlow.id, id));
   if (!flow) throw notFound('ATP');
@@ -527,7 +542,9 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
     return withTenant(request.server.tenantDb, [ctx.schoolId], fn);
   };
   const writeNote =
-    ' Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu (403 `not_subject_teacher`).';
+    ' Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan ' +
+    'atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) ' +
+    '(403 `not_subject_teacher`).';
   const supersededMsg = 'Versi ini sudah digantikan versi yang lebih baru; ubah versi terbaru.';
 
   /* ---------- CP ---------- */
@@ -1141,7 +1158,7 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
         () =>
           tenant(request, async (tx) => {
             await requireSubject(tx, body.subjectId);
-            await assertCanWrite(tx, ctx, body.subjectId);
+            await assertCanWrite(tx, ctx, body.subjectId, body.academicYearId);
             const [year] = await tx
               .select({ id: academicYear.id })
               .from(academicYear)

@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  allowedRolloverOptions,
   buildSavePayload,
   COLLAPSE_ABOVE,
   chunk,
@@ -16,6 +17,7 @@ import {
   isBlocked,
   isClassOpen,
   isIsoDate,
+  isRolloverPart,
   levelUnknownClasses,
   missingByClass,
   missingFinalStudents,
@@ -24,9 +26,11 @@ import {
   optionsForStudent,
   type PromotionClass,
   pendingStudents,
+  permissionForOption,
   ROLLOVER_WARNING_CODES,
   rolloverWarnings,
   saveBlockers,
+  sendableRolloverOptions,
   setClassDecision,
   setClassMeetingDate,
   setDetail,
@@ -361,6 +365,62 @@ describe('peringatan salin tahun ajaran', () => {
       { code: null, params: {}, fallback: 'a' },
       { code: null, params: {}, fallback: 'b' },
     ]);
+  });
+});
+
+describe('izin per bagian salinan', () => {
+  const all = {
+    copyClasses: true,
+    copyAssignments: true,
+    copyCalendar: true,
+    copyCurriculum: true,
+    copyTeachingPlans: true,
+  };
+  const only =
+    (...granted: string[]) =>
+    (p: string) =>
+      granted.includes(p);
+
+  it('tiap pilihan memakai izin yang sama dengan API', () => {
+    expect(permissionForOption('copyClasses')).toBe('class:manage');
+    expect(permissionForOption('copyAssignments')).toBe('class:manage');
+    expect(permissionForOption('copyCalendar')).toBe('academic_year:manage');
+    expect(permissionForOption('copyCurriculum')).toBe('curriculum:manage');
+    expect(permissionForOption('copyTeachingPlans')).toBe('teaching_plan:write');
+  });
+  it('pemanggil dengan semua izin tidak berubah', () => {
+    const can = only('class:manage', 'academic_year:manage', 'curriculum:manage', 'teaching_plan:write');
+    expect(sendableRolloverOptions(all, can)).toEqual(all);
+    expect(Object.values(allowedRolloverOptions(can)).every(Boolean)).toBe(true);
+  });
+  it('tanpa izin spesifik tidak ada pilihan yang dikirim true', () => {
+    expect(Object.values(sendableRolloverOptions(all, only())).some(Boolean)).toBe(false);
+    expect(Object.values(allowedRolloverOptions(only())).some(Boolean)).toBe(false);
+  });
+  it('hanya bagian yang diizinkan yang tetap dikirim', () => {
+    expect(sendableRolloverOptions(all, only('class:manage'))).toEqual({
+      copyClasses: true,
+      copyAssignments: true,
+      copyCalendar: false,
+      copyCurriculum: false,
+      copyTeachingPlans: false,
+    });
+    expect(
+      sendableRolloverOptions({ ...all, copyCalendar: false }, only('academic_year:manage')).copyCalendar,
+    ).toBe(false);
+  });
+  it('mengenali bagian untuk terjemahan peringatan', () => {
+    expect(isRolloverPart('teachingPlans')).toBe(true);
+    expect(isRolloverPart('lain')).toBe(false);
+    expect(isRolloverPart(undefined)).toBe(false);
+    expect(
+      rolloverWarnings({
+        warnings: ['dilewati'],
+        warningItems: [
+          { code: 'part_skipped_no_permission', params: { part: 'classes', permission: 'class:manage' } },
+        ],
+      })[0],
+    ).toMatchObject({ code: 'part_skipped_no_permission', fallback: 'dilewati' });
   });
 });
 

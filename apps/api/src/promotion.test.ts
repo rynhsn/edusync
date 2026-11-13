@@ -3,14 +3,18 @@ import {
   assignRoles,
   calendarEvent,
   classRoom,
+  curriculumSubjectAllocation,
   enrollment,
   eq,
   foundation,
   homeroomAssignmentHistory,
+  learningFlow,
   member,
   promotionDecision,
+  refCurriculum,
   reportCard,
   school,
+  schoolCurriculumVersion,
   schoolLevel,
   seedSchoolRoles,
   semester,
@@ -756,5 +760,188 @@ describe('penerapan keputusan', () => {
     expect(await sourceSnapshot()).toBe(before);
     const [card] = await db().select().from(reportCard).where(eq(reportCard.schoolId, schoolId));
     expect(card).toMatchObject({ status: 'final', snapshot: { marker: 'beku' } });
+  });
+});
+
+describe('izin per bagian pada rollover', () => {
+  const who = {} as Record<'polos' | 'kelas' | 'tanpaKelas', string>;
+  const target = {} as Record<'a' | 'b' | 'c' | 'd', string>;
+  const partWarning = (part: string, permission: string) => ({
+    code: 'part_skipped_no_permission',
+    params: { part, permission },
+  });
+  const skipped = (json: { warningItems: { code: string; params: Record<string, string> }[] }) =>
+    json.warningItems.filter((w) => w.code === 'part_skipped_no_permission');
+
+  const customMember = async (key: string, permissions: string[]) => {
+    await db().execute(sql`insert into role (school_id, key, name) values (${schoolId}, ${key}, ${key})`);
+    await db().execute(
+      sql`insert into role_permission (role_id, school_id, permission)
+          select id, school_id, p from role, unnest(array[${sql.join(
+            permissions.map((p) => sql`${p}`),
+            sql`, `,
+          )}]::text[]) p
+          where school_id = ${schoolId} and key = ${key}`,
+    );
+    return member_(`peran-${key}`, schoolId, [key]);
+  };
+
+  beforeAll(async () => {
+    who.polos = await customMember('promo-saja', ['promotion:manage']);
+    who.kelas = await customMember('promo-kelas', ['promotion:manage', 'class:manage']);
+    who.tanpaKelas = await customMember('promo-tanpa-kelas', [
+      'promotion:manage',
+      'academic_year:manage',
+      'curriculum:manage',
+      'teaching_plan:write',
+    ]);
+    for (const [key, name, startsOn, endsOn] of [
+      ['a', '2031/2032', '2031-07-14', '2032-06-30'],
+      ['b', '2032/2033', '2032-07-12', '2033-06-30'],
+      ['c', '2033/2034', '2033-07-11', '2034-06-30'],
+      ['d', '2034/2035', '2034-07-10', '2035-06-30'],
+    ] as const) {
+      const [y] = await db()
+        .insert(academicYear)
+        .values({ schoolId, name, startsOn, endsOn, isActive: false })
+        .returning();
+      target[key] = y!.id;
+    }
+    const [curKey] = await db().select({ key: refCurriculum.key }).from(refCurriculum).limit(1);
+    await db()
+      .insert(curriculumSubjectAllocation)
+      .values({ schoolId, academicYearId: years.y1, levelCode: '7', subjectId: sub.mtk!, weeklyPeriods: 4 });
+    await db()
+      .insert(schoolCurriculumVersion)
+      .values({ schoolId, academicYearId: years.y1, levelCode: '7', curriculumKey: curKey!.key });
+    await db().insert(learningFlow).values({
+      schoolId,
+      subjectId: sub.mtk!,
+      academicYearId: years.y1,
+      levelCode: '7',
+      name: 'ATP uji izin',
+      status: 'published',
+      publishedAt: new Date(),
+    });
+  }, 60_000);
+
+  afterAll(async () => {
+    for (const table of [
+      'learning_flow_item',
+      'learning_flow',
+      'curriculum_subject_allocation',
+      'school_curriculum_version',
+      'role_permission',
+    ]) {
+      await db().execute(sql`delete from ${sql.identifier(table)} where school_id = ${schoolId}`);
+    }
+  });
+
+  const counts = async (yearId: string) => ({
+    classes: (await yearClasses(yearId)).length,
+    events: (await db().select().from(calendarEvent).where(eq(calendarEvent.academicYearId, yearId))).length,
+    allocations: (
+      await db()
+        .select()
+        .from(curriculumSubjectAllocation)
+        .where(eq(curriculumSubjectAllocation.academicYearId, yearId))
+    ).length,
+    versions: (
+      await db()
+        .select()
+        .from(schoolCurriculumVersion)
+        .where(eq(schoolCurriculumVersion.academicYearId, yearId))
+    ).length,
+    flows: (await db().select().from(learningFlow).where(eq(learningFlow.academicYearId, yearId))).length,
+  });
+
+  it('peran dengan promotion:manage saja: semua bagian dilewati dengan peringatan, tidak ada yang dibuat', async () => {
+    for (const dryRun of [true, false]) {
+      const res = await rollover(who.polos, years.y1, { targetYearId: target.a, copyCalendar: true, dryRun });
+      expect(res.statusCode).toBe(200);
+      const json = res.json();
+      expect(json).toMatchObject({
+        classesCreated: 0,
+        classesSkipped: 0,
+        assignmentsCreated: 0,
+        eventsCreated: 0,
+        allocationsCreated: 0,
+        versionsCreated: 0,
+        flowsCreated: 0,
+      });
+      expect(skipped(json)).toEqual([
+        partWarning('classes', 'class:manage'),
+        partWarning('calendar', 'academic_year:manage'),
+        partWarning('curriculum', 'curriculum:manage'),
+        partWarning('teachingPlans', 'teaching_plan:write'),
+      ]);
+      expect(json.warnings).toHaveLength(json.warningItems.length);
+    }
+    expect(await counts(target.a)).toEqual({ classes: 0, events: 0, allocations: 0, versions: 0, flows: 0 });
+    // Bagian yang tidak diminta tidak memunculkan peringatan.
+    const quiet = await rollover(who.polos, years.y1, {
+      targetYearId: target.a,
+      copyClasses: false,
+      copyAssignments: false,
+      copyCurriculum: false,
+      copyTeachingPlans: false,
+    });
+    expect(skipped(quiet.json())).toEqual([]);
+  });
+
+  it('promotion:manage + class:manage: hanya kelas dan penugasan yang dibuat', async () => {
+    const plan = (await rollover(adminCookie, years.y1, { targetYearId: target.b, dryRun: true })).json();
+    expect(plan.classesCreated).toBeGreaterThan(0);
+    expect(plan.assignmentsCreated).toBeGreaterThan(0);
+    const res = await rollover(who.kelas, years.y1, { targetYearId: target.b, copyCalendar: true });
+    expect(res.statusCode).toBe(200);
+    const json = res.json();
+    expect(json).toMatchObject({
+      classesCreated: plan.classesCreated,
+      assignmentsCreated: plan.assignmentsCreated,
+      eventsCreated: 0,
+      allocationsCreated: 0,
+      versionsCreated: 0,
+      flowsCreated: 0,
+    });
+    expect(skipped(json)).toEqual([
+      partWarning('calendar', 'academic_year:manage'),
+      partWarning('curriculum', 'curriculum:manage'),
+      partWarning('teachingPlans', 'teaching_plan:write'),
+    ]);
+    const c = await counts(target.b);
+    expect(c).toEqual({ classes: plan.classesCreated, events: 0, allocations: 0, versions: 0, flows: 0 });
+  });
+
+  it('tanpa class:manage: kalender, kurikulum, dan ATP tetap disalin; kelas dan penugasan dilewati', async () => {
+    const res = await rollover(who.tanpaKelas, years.y1, { targetYearId: target.c, copyCalendar: true });
+    expect(res.statusCode).toBe(200);
+    const json = res.json();
+    expect(json).toMatchObject({
+      classesCreated: 0,
+      assignmentsCreated: 0,
+      allocationsCreated: 1,
+      versionsCreated: 1,
+      flowsCreated: 1,
+    });
+    expect(json.eventsCreated).toBeGreaterThan(0);
+    expect(skipped(json)).toEqual([partWarning('classes', 'class:manage')]);
+    const c = await counts(target.c);
+    expect(c.classes).toBe(0);
+    expect(c).toMatchObject({ allocations: 1, versions: 1, flows: 1 });
+  });
+
+  it('admin penuh (dan peran Kurikulum bawaan) tidak melihat peringatan izin dan menyalin semuanya', async () => {
+    const res = await rollover(adminCookie, years.y1, { targetYearId: target.d, copyCalendar: true });
+    expect(res.statusCode).toBe(200);
+    const json = res.json();
+    expect(json.classesCreated).toBeGreaterThan(0);
+    expect(json.assignmentsCreated).toBeGreaterThan(0);
+    expect(json.eventsCreated).toBeGreaterThan(0);
+    expect(json).toMatchObject({ allocationsCreated: 1, versionsCreated: 1, flowsCreated: 1 });
+    expect(skipped(json)).toEqual([]);
+    const kur = await rollover(curriculumCookie, years.y1, { targetYearId: target.d, copyCalendar: true });
+    expect(kur.statusCode).toBe(200);
+    expect(skipped(kur.json())).toEqual([]);
   });
 });

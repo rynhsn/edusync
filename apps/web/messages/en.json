@@ -706,6 +706,14 @@
     "copyCalendar": "Academic calendar",
     "copyCalendarHint": "Event dates are shifted by one year; check them again before use. Calendars differ every year, so this option is off by default.",
     "pickOne": "Pick at least one thing to copy.",
+    "needsPermission": "Needs permission: {permission}",
+    "noPartPermission": "Your account has no permission to copy any part here. Ask the school administrator to add it.",
+    "rolloverPart": {
+      "classes": "classes, homerooms, and teaching assignments",
+      "calendar": "academic calendar",
+      "curriculum": "curriculum allocations and versions",
+      "teachingPlans": "teaching materials (ATP)"
+    },
     "runRollover": "Run the copy",
     "rolloverConfirmTitle": "Copy to the new school year?",
     "rolloverConfirmBody": "Classes, assignments, calendar, and the curriculum or teaching materials you chose, from {source} will be created in {target}. Data of {source} is not changed. If run again, what already exists is skipped.",
@@ -804,7 +812,8 @@
       "inactive_teacher_skipped": "{count} assignments of inactive teachers were not copied.",
       "event_class_skipped": "{count} class calendar events were skipped because their target class does not exist.",
       "event_out_of_year": "{count} calendar events were skipped because their dates fall outside the target school year.",
-      "flow_inactive_objectives": "{flows} copied ATPs contain {items} items that point to inactive TPs; replace them before publishing those ATPs."
+      "flow_inactive_objectives": "{flows} copied ATPs contain {items} items that point to inactive TPs; replace them before publishing those ATPs.",
+      "part_skipped_no_permission": "The part {part} was skipped because your account lacks the permission: {permission}."
     },
     "unplacedReason": {
       "student_missing": "The student was not found or has been deleted.",
@@ -1813,6 +1822,11 @@
     "title": "Roles and permissions",
     "subtitle": "A role is a set of permissions. Changes apply immediately to everyone who holds it.",
     "readOnly": "You can only view this list.",
+    "highImpact": {
+      "badge": "High impact",
+      "promotion_manage": "High impact: changes classes, teaching assignments, and student status",
+      "curriculum_manage": "High impact: changes the periods per subject and the curriculum versions of the whole school"
+    },
     "createTitle": "Create a custom role",
     "name": "Role name",
     "permissions": "Permissions",
@@ -1846,6 +1860,12 @@
     "deleteBody": "Members holding this role lose its permissions. This cannot be undone.",
     "lockedHint": "Always holds every permission.",
     "resource": {
+      "promotion": "Promotion",
+      "curriculum": "Curriculum",
+      "teaching_plan": "Teaching plans",
+      "exam": "Exams",
+      "school": "School",
+      "account": "Account",
       "member": "Members",
       "role": "Roles",
       "academic_year": "Academic years",

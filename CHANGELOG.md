@@ -9,6 +9,25 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+## [1.2.2] - 2026-11-13
+
+Dua pengetatan hak akses hasil audit.
+
+### Diubah
+
+- **Guru hanya bisa menyusun CP, TP, dan ATP untuk tahun ajaran yang berjalan atau akan datang.** Sebelumnya guru yang pernah
+  mengampu sebuah mata pelajaran di tahun ajaran mana pun, termasuk yang sudah lama berakhir, masih boleh mengubah perangkat
+  ajar mata pelajaran itu. Kini guru harus punya penugasan pada mata pelajaran itu di kelas yang tahun ajarannya belum
+  berakhir (tahun ajaran baru hasil salin tahun ajaran juga dihitung). Untuk ATP, penugasannya harus di kelas tahun ajaran ATP
+  itu. Pemegang izin kelola kurikulum tetap boleh untuk semua mata pelajaran. Bila ditolak, pesannya menjelaskan hal ini.
+- **Salin tahun ajaran kini mengikuti izin tiap bagian.** Selain izin kenaikan kelas, menyalin kelas, wali kelas, dan penugasan
+  guru butuh izin kelola kelas; kalender butuh izin kelola tahun ajaran; alokasi dan versi kurikulum butuh izin kelola
+  kurikulum; dan ATP butuh izin menyusun perangkat ajar. Bagian yang tidak diizinkan dilewati dengan peringatan (bukan ditolak),
+  dan di halaman Kenaikan kelas kotak centangnya mati disertai keterangan izin yang dibutuhkan. Admin dan peran Kurikulum
+  bawaan tidak terpengaruh.
+- Di halaman **Peran dan izin**, izin kenaikan kelas dan kelola kurikulum kini berlencana "Berdampak besar" beserta
+  keterangan apa yang bisa diubahnya, agar tidak diberikan sembarangan.
+
 ## [1.2.1] - 2026-11-13
 
 Perbaikan setelah v1.2.0.

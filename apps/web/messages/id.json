@@ -706,6 +706,14 @@
     "copyCalendar": "Kalender akademik",
     "copyCalendarHint": "Tanggal acara digeser satu tahun, periksa kembali sebelum dipakai. Kalender tiap tahun berbeda, jadi pilihan ini mati secara bawaan.",
     "pickOne": "Pilih minimal satu yang akan disalin.",
+    "needsPermission": "Butuh izin: {permission}",
+    "noPartPermission": "Akun Anda belum punya izin untuk menyalin bagian mana pun di sini. Minta pengelola sekolah menambahkannya.",
+    "rolloverPart": {
+      "classes": "kelas, wali kelas, dan penugasan guru",
+      "calendar": "kalender akademik",
+      "curriculum": "alokasi dan versi kurikulum",
+      "teachingPlans": "perangkat ajar (ATP)"
+    },
     "runRollover": "Jalankan penyalinan",
     "rolloverConfirmTitle": "Salin ke tahun ajaran baru?",
     "rolloverConfirmBody": "Kelas, penugasan, kalender, serta struktur kurikulum atau perangkat ajar yang Anda pilih, dari {source} akan dibuat di {target}. Data {source} tidak diubah. Bila dijalankan ulang, yang sudah ada dilewati.",
@@ -804,7 +812,8 @@
       "inactive_teacher_skipped": "{count} penugasan guru nonaktif tidak disalin.",
       "event_class_skipped": "{count} acara kalender kelas dilewati karena kelas tujuannya tidak ada.",
       "event_out_of_year": "{count} acara kalender dilewati karena tanggalnya jatuh di luar tahun ajaran tujuan.",
-      "flow_inactive_objectives": "{flows} ATP hasil salinan memuat {items} item TP nonaktif; ganti TP-nya sebelum menerbitkan ATP itu."
+      "flow_inactive_objectives": "{flows} ATP hasil salinan memuat {items} item TP nonaktif; ganti TP-nya sebelum menerbitkan ATP itu.",
+      "part_skipped_no_permission": "Bagian {part} dilewati karena akun Anda belum punya izin: {permission}."
     },
     "unplacedReason": {
       "student_missing": "Siswa tidak ditemukan atau sudah dihapus.",
@@ -1813,6 +1822,11 @@
     "title": "Peran dan izin",
     "subtitle": "Peran adalah kumpulan izin. Perubahan berlaku segera untuk semua pemegangnya.",
     "readOnly": "Anda hanya dapat melihat daftar ini.",
+    "highImpact": {
+      "badge": "Berdampak besar",
+      "promotion_manage": "Berdampak besar: mengubah kelas, penugasan, dan status siswa",
+      "curriculum_manage": "Berdampak besar: mengubah jam pelajaran dan versi kurikulum seluruh sekolah"
+    },
     "createTitle": "Buat peran kustom",
     "name": "Nama peran",
     "permissions": "Izin",
@@ -1846,6 +1860,12 @@
     "deleteBody": "Anggota yang memegang peran ini kehilangan izinnya. Tindakan ini tidak dapat dibatalkan.",
     "lockedHint": "Selalu memiliki semua izin.",
     "resource": {
+      "promotion": "Kenaikan kelas",
+      "curriculum": "Kurikulum",
+      "teaching_plan": "Perangkat ajar",
+      "exam": "Ujian",
+      "school": "Sekolah",
+      "account": "Akun",
       "member": "Anggota",
       "role": "Peran",
       "academic_year": "Tahun ajaran",

@@ -238,6 +238,16 @@ const applyResponse = z.object({
 /* ---------- Rollover ---------- */
 
 type ClassRow = typeof classRoom.$inferSelect;
+
+/** Izin spesifik tiap bagian salinan rollover (selain `promotion:manage` yang menjaga rutenya). */
+type RolloverPart = 'classes' | 'calendar' | 'curriculum' | 'teachingPlans';
+const PART_PERMISSION: Record<RolloverPart, string> = {
+  classes: 'class:manage',
+  calendar: 'academic_year:manage',
+  curriculum: 'curriculum:manage',
+  teachingPlans: 'teaching_plan:write',
+};
+
 interface Copy {
   id: string;
   isNew: boolean;
@@ -250,7 +260,7 @@ async function runRollover(
   ctx: TenantContext,
   source: YearRow,
   target: YearRow,
-  body: z.infer<typeof rolloverBody>,
+  requested: z.infer<typeof rolloverBody>,
 ) {
   const warnings: string[] = [];
   const warningItems: { code: string; params: Record<string, string | number> }[] = [];
@@ -258,6 +268,32 @@ async function runRollover(
     warnings.push(message);
     warningItems.push({ code, params });
   };
+  // Izin per bagian: bagian yang diminta tetapi tidak diizinkan dilewati (bukan 403) dengan peringatan.
+  const body = { ...requested };
+  const skipPart = (part: RolloverPart, permission: string, label: string) => {
+    warn(
+      'part_skipped_no_permission',
+      { part, permission },
+      `Bagian "${label}" dilewati karena akun Anda tidak punya izin ${permission}.`,
+    );
+  };
+  if ((body.copyClasses || body.copyAssignments) && !ctx.permissions.has(PART_PERMISSION.classes)) {
+    body.copyClasses = false;
+    body.copyAssignments = false;
+    skipPart('classes', PART_PERMISSION.classes, 'kelas, wali kelas, dan penugasan guru');
+  }
+  if (body.copyCalendar && !ctx.permissions.has(PART_PERMISSION.calendar)) {
+    body.copyCalendar = false;
+    skipPart('calendar', PART_PERMISSION.calendar, 'kalender akademik');
+  }
+  if ((body.copyCurriculum ?? true) && !ctx.permissions.has(PART_PERMISSION.curriculum)) {
+    body.copyCurriculum = false;
+    skipPart('curriculum', PART_PERMISSION.curriculum, 'alokasi dan versi kurikulum');
+  }
+  if ((body.copyTeachingPlans ?? true) && !ctx.permissions.has(PART_PERMISSION.teachingPlans)) {
+    body.copyTeachingPlans = false;
+    skipPart('teachingPlans', PART_PERMISSION.teachingPlans, 'perangkat ajar (ATP)');
+  }
   const out = {
     classesCreated: 0,
     classesSkipped: 0,
@@ -1228,6 +1264,11 @@ export async function promotionRoutes(instance: FastifyInstance) {
           'struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), ' +
           'dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi ' +
           'terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). ' +
+          'Selain `promotion:manage`, tiap bagian butuh izin spesifik pemanggil: kelas, wali kelas, dan penugasan guru butuh `class:manage`; ' +
+          'kalender butuh `academic_year:manage`; kurikulum (alokasi dan versi) butuh `curriculum:manage`; ATP butuh `teaching_plan:write`. ' +
+          'Bagian yang diminta (flag true, termasuk bawaan true) tetapi tidak diizinkan DILEWATI, bukan 403: hitungannya 0 dan ' +
+          '`warningItems` memuat `part_skipped_no_permission` dengan params `part` (`classes`, `calendar`, `curriculum`, `teachingPlans`) ' +
+          'dan `permission` (izin yang kurang); `dryRun` berperilaku sama. Pemanggil dengan semua izin (admin dan Kurikulum bawaan) tidak terpengaruh. ' +
           'Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), ' +
           'alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); ' +
           'yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. ' +
@@ -1235,7 +1276,7 @@ export async function promotionRoutes(instance: FastifyInstance) {
           '400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` ' +
           '(kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, ' +
           'final_level_not_copied, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, ' +
-          'event_class_skipped, event_out_of_year, flow_inactive_objectives) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.',
+          'event_class_skipped, event_out_of_year, flow_inactive_objectives, part_skipped_no_permission) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.',
         headers: schoolHeader,
         params: idParams,
         body: rolloverBody,

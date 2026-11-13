@@ -706,6 +706,14 @@
     "copyCalendar": "Kalénder akadémik",
     "copyCalendarHint": "Tanggal acara digeser sataun, pariksa deui samemeh dipaké. Kalénder unggal taun béda, ku kituna pilihan ieu pareum sacara baku.",
     "pickOne": "Pilih sahanteuna hiji nu rék disalin.",
+    "needsPermission": "Peryogi idin: {permission}",
+    "noPartPermission": "Akun anjeun can boga idin pikeun nyalin bagian nu mana waé di dieu. Pénta pangurus sakola nambahkeun.",
+    "rolloverPart": {
+      "classes": "kelas, wali kelas, jeung tugas ngajar guru",
+      "calendar": "kalénder akadémik",
+      "curriculum": "alokasi jeung vérsi kurikulum",
+      "teachingPlans": "parabot ngajar (ATP)"
+    },
     "runRollover": "Jalankeun panyalinan",
     "rolloverConfirmTitle": "Salin ka taun pangajaran anyar?",
     "rolloverConfirmBody": "Kelas, tugas, kalénder, jeung struktur kurikulum atawa parabot ngajar anu dipilih, tina {source} bakal dijieun di {target}. Data {source} teu dirobah. Lamun dijalankeun deui, nu geus aya diliwatan.",
@@ -804,7 +812,8 @@
       "inactive_teacher_skipped": "{count} panugasan guru nonaktif teu disalin.",
       "event_class_skipped": "{count} acara kalénder kelas dilangkungan sabab kelas tujuanana euweuh.",
       "event_out_of_year": "{count} acara kalénder dilangkungan sabab tanggalna aya di luar taun ajaran tujuan.",
-      "flow_inactive_objectives": "{flows} ATP salinan eusina {items} item TP nonaktif; ganti TP-na samemeh nerbitkeun ATP éta."
+      "flow_inactive_objectives": "{flows} ATP salinan eusina {items} item TP nonaktif; ganti TP-na samemeh nerbitkeun ATP éta.",
+      "part_skipped_no_permission": "Bagian {part} diliwatan sabab akun anjeun can boga idin: {permission}."
     },
     "unplacedReason": {
       "student_missing": "Siswa teu kapanggih atawa geus dihapus.",
@@ -1813,6 +1822,11 @@
     "title": "Peran jeung idin",
     "subtitle": "Peran nyaéta kumpulan idin. Parobahan lumaku langsung pikeun sakabéh nu nyekelna.",
     "readOnly": "Anjeun ngan tiasa ningali daptar ieu.",
+    "highImpact": {
+      "badge": "Pangaruhna gedé",
+      "promotion_manage": "Pangaruhna gedé: ngarobah kelas, tugas ngajar, jeung status siswa",
+      "curriculum_manage": "Pangaruhna gedé: ngarobah jam pelajaran jeung vérsi kurikulum sakumna sakola"
+    },
     "createTitle": "Jieun peran kustom",
     "name": "Ngaran peran",
     "permissions": "Idin",
@@ -1846,6 +1860,12 @@
     "deleteBody": "Anggota nu nyekel peran ieu leungit idinna. Tindakan ieu teu tiasa dibatalkeun.",
     "lockedHint": "Salawasna gaduh sadaya idin.",
     "resource": {
+      "promotion": "Kenaikan kelas",
+      "curriculum": "Kurikulum",
+      "teaching_plan": "Perangkat ngajar",
+      "exam": "Ujian",
+      "school": "Sakola",
+      "account": "Akun",
       "member": "Anggota",
       "role": "Peran",
       "academic_year": "Taun pangajaran",

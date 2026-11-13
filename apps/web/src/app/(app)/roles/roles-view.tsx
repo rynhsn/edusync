@@ -36,6 +36,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, IconTile, MODULE_TONE, StatCard, StatGrid, TONES, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { highImpactKey } from '@/lib/high-impact-permissions';
 import { cn } from '@/lib/utils';
 import { ROLE_ORDER, type RoleField, validateRole } from './roles-validation';
 
@@ -151,10 +152,23 @@ function RoleForm({
                         }
                       />
                       {labels.action(a)}
+                      {highImpactKey(p) && (
+                        <ToneBadge tone="amber" dot={false} className="px-2 py-0.5">
+                          {t('highImpact.badge')}
+                        </ToneBadge>
+                      )}
                     </label>
                   );
                 })}
               </div>
+              {g.actions.map((a) => {
+                const key = highImpactKey(`${g.resource}:${a}`);
+                return key ? (
+                  <p key={key} className="mt-2 text-xs text-amber-700 dark:text-amber-400">
+                    {t(`highImpact.${key}` as never)}
+                  </p>
+                ) : null;
+              })}
             </div>
           ))}
         </div>
