@@ -13,15 +13,14 @@ import {
   Lock,
   LockOpen,
   MessageSquare,
+  MessagesSquare,
   ScrollText,
   Users,
 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
-import { FormDialog } from '@/components/form-dialog';
-import { FieldError, useFormValidation } from '@/components/form-field-error';
 import { PageBody, PageHeader } from '@/components/page-header';
 import { RowMenu } from '@/components/row-menu';
 import { Alert, AlertDescription } from '@/components/ui/alert';
@@ -34,7 +33,6 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
@@ -49,17 +47,24 @@ import {
 } from '@/components/ui-kit';
 import { ApiError, api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import {
+  completenessPercent,
+  completeCount as countComplete,
+  isComplete,
+  missingCount,
+} from '@/lib/report-v2';
 import { semesterLabel } from '@/lib/semester-label';
 import { cn } from '@/lib/utils';
+import { NarrativesPanel } from './narratives-panel';
+import { NotesDialog } from './notes-dialog';
 import { downloadClassReportCardsPdf, downloadReportCardPdf, exportLedgerExcel } from './pdf/download';
 import { slugify } from './pdf/format';
 import type { ReportCardDoc } from './pdf/types';
 import { useSignLabels } from './pdf/use-sign-labels';
 import { ReportCardPreview } from './preview';
-import { validateHomeroomNote } from './report-card-validation';
-import { Textarea } from './textarea';
+import { reportSettingsKey, useReportCard, useReportDisplay } from './report-data';
+import { ResponsesDialog } from './responses-dialog';
 
-const NOTE_MAX = 500;
 /** Jumlah permintaan rapor yang berjalan bersamaan saat mengunduh satu kelas. */
 const CONCURRENCY = 3;
 
@@ -110,25 +115,6 @@ function ConfirmDialog({
   );
 }
 
-/** Rapor sehari-hari satu siswa; dipakai pratinjau dan dialog catatan. */
-function useReportCard(semesterId: string, studentId: string | null) {
-  const { school } = useSchool();
-  return useQuery({
-    queryKey: ['report-card', school.schoolId, semesterId, studentId],
-    enabled: !!studentId,
-    queryFn: async (): Promise<ReportCardDoc> =>
-      unwrap(
-        await api.GET('/v1/report-cards/{studentId}', {
-          params: {
-            header: schoolHeader(school.schoolId),
-            path: { studentId: studentId ?? '' },
-            query: { semesterId },
-          },
-        }),
-      ),
-  });
-}
-
 function PreviewDialog({
   semesterId,
   target,
@@ -142,13 +128,14 @@ function PreviewDialog({
   const te = useTranslations();
   const doc = useReportCard(semesterId, target?.studentId ?? null);
   const signLabels = useSignLabels();
+  const display = useReportDisplay();
   const [busy, setBusy] = useState(false);
 
   async function download() {
     if (!doc.data) return;
     setBusy(true);
     try {
-      await downloadReportCardPdf(doc.data, signLabels);
+      await downloadReportCardPdf(doc.data, signLabels, display);
     } catch {
       toast.error(t('pdfError'));
     } finally {
@@ -169,7 +156,7 @@ function PreviewDialog({
             <AlertDescription>{te(errorKey(doc.error))}</AlertDescription>
           </Alert>
         )}
-        {doc.data && <ReportCardPreview doc={doc.data} />}
+        {doc.data && <ReportCardPreview doc={doc.data} display={display} />}
         <DialogFooter>
           <Button variant="outline" disabled={!doc.data || busy} onClick={download}>
             <Download className="size-4" /> {t('downloadPdf')}
@@ -177,86 +164,6 @@ function PreviewDialog({
         </DialogFooter>
       </DialogContent>
     </Dialog>
-  );
-}
-
-function NoteDialog({
-  semesterId,
-  target,
-  onClose,
-}: {
-  semesterId: string;
-  target: Target | null;
-  onClose: () => void;
-}) {
-  const t = useTranslations('reportCards');
-  const te = useTranslations();
-  const { school } = useSchool();
-  const queryClient = useQueryClient();
-  const doc = useReportCard(semesterId, target?.studentId ?? null);
-  const [note, setNote] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const loaded = doc.data;
-  const validation = useFormValidation<'note'>({
-    errors: validateHomeroomNote(note),
-    order: ['note'],
-    idPrefix: 'rc',
-  });
-
-  // Isi awal diambil dari rapor yang sudah ada; ulang setiap kali dialog dibuka untuk siswa lain.
-  useEffect(() => {
-    if (target) {
-      setNote(loaded?.homeroomNote ?? '');
-      setError(null);
-    }
-  }, [target, loaded]);
-
-  const save = useMutation({
-    mutationFn: async () =>
-      unwrap(
-        await api.PUT('/v1/report-cards/note', {
-          params: { header: schoolHeader(school.schoolId) },
-          body: { semesterId, studentId: target?.studentId ?? '', note: note.trim() },
-        }),
-      ),
-    onSuccess: () => {
-      toast.success(t('noteSaved'));
-      queryClient.invalidateQueries({ queryKey: ['report-cards', school.schoolId] });
-      queryClient.invalidateQueries({ queryKey: ['report-card', school.schoolId, semesterId] });
-    },
-    onError: (e) => setError(te(errorKey(e))),
-  });
-
-  return (
-    <FormDialog
-      open={!!target}
-      title={t('noteTitle')}
-      description={target?.name}
-      submitLabel={t('save')}
-      error={error}
-      validation={validation}
-      disabled={!loaded || save.isPending}
-      onOpenChange={(o) => {
-        if (!o) onClose();
-      }}
-      onSubmit={() => save.mutateAsync()}
-    >
-      <div className="grid content-start gap-2">
-        <Label htmlFor={validation.idOf('note')}>{t('homeroomNote')}</Label>
-        <Textarea
-          {...validation.fieldProps('note')}
-          rows={6}
-          maxLength={NOTE_MAX}
-          disabled={!loaded}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-        />
-        <FieldError id={validation.idOf('note')} issue={validation.issue('note')} />
-        <p className="text-muted-foreground text-right text-xs tabular-nums">
-          {note.length}/{NOTE_MAX}
-        </p>
-      </div>
-    </FormDialog>
   );
 }
 
@@ -273,6 +180,7 @@ export function ReportCardsView() {
   const [classChoice, setClassChoice] = useState('');
   const [preview, setPreview] = useState<Target | null>(null);
   const [noteFor, setNoteFor] = useState<Target | null>(null);
+  const [responsesFor, setResponsesFor] = useState<Target | null>(null);
   const [dialog, setDialog] = useState<'finalize' | 'incomplete' | 'reopen' | null>(null);
   const [progress, setProgress] = useState<{ done: number; total: number } | null>(null);
   const [ledgerBusy, setLedgerBusy] = useState(false);
@@ -313,10 +221,16 @@ export function ReportCardsView() {
   const rows = list.data ?? [];
   const finalCount = rows.filter((r) => r.status === 'final').length;
   const allFinal = rows.length > 0 && finalCount === rows.length;
+  // Mode rapor kelas dan daftar mapelnya dibaca dari rapor siswa pertama (daftar rapor tidak membawanya).
+  const sample = useReportCard(semesterId, rows[0]?.studentId ?? null);
+  const descriptive = sample.data?.reportMode === 'descriptive';
+  const classSubjects = (sample.data?.subjects ?? []).map((s) => ({ subjectId: s.subjectId, name: s.name }));
 
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: ['report-cards', school.schoolId] });
     queryClient.invalidateQueries({ queryKey: ['report-card', school.schoolId] });
+    queryClient.invalidateQueries({ queryKey: ['report-card-narratives', school.schoolId] });
+    queryClient.invalidateQueries({ queryKey: ['report-card-responses', school.schoolId] });
   };
 
   const finalize = useMutation({
@@ -365,10 +279,19 @@ export function ReportCardsView() {
         ),
     });
 
+  /** Bendera tampilan PDF; menunggu pengaturan termuat supaya hasil unduhan konsisten. */
+  const loadDisplay = async () => {
+    const d = await queryClient.fetchQuery({
+      queryKey: reportSettingsKey(school.schoolId),
+      queryFn: async () => unwrap(await api.GET('/v1/report-cards/settings', { params: header })),
+    });
+    return { showCocurricular: d.showCocurricular, showGuardianResponse: d.showGuardianResponse };
+  };
+
   async function downloadOne(studentId: string) {
     setBusyStudent(studentId);
     try {
-      await downloadReportCardPdf(await fetchDoc(studentId), signLabels);
+      await downloadReportCardPdf(await fetchDoc(studentId), signLabels, await loadDisplay());
     } catch (e) {
       toast.error(e instanceof ApiError ? te(errorKey(e)) : t('pdfError'));
     } finally {
@@ -396,6 +319,7 @@ export function ReportCardsView() {
         docs,
         `rapor-${slugify(className)}-${slugify(semester?.name ?? '')}.pdf`,
         signLabels,
+        await loadDisplay(),
       );
     } catch (e) {
       toast.error(e instanceof ApiError ? te(errorKey(e)) : t('pdfError'));
@@ -428,7 +352,7 @@ export function ReportCardsView() {
   const classAverage = averages.length
     ? Math.round((averages.reduce((a, b) => a + b, 0) / averages.length) * 100) / 100
     : null;
-  const completeCount = rows.filter((r) => r.subjectsTotal > 0 && r.subjectsGraded >= r.subjectsTotal).length;
+  const completeCount = countComplete(rows);
   const pctOf = (n: number) => (rows.length ? (n / rows.length) * 100 : 0);
 
   return (
@@ -564,27 +488,50 @@ export function ReportCardsView() {
             <StatCard
               icon={ListChecks}
               tone={completeCount === rows.length ? 'emerald' : 'amber'}
-              label={t('statComplete')}
+              label={descriptive ? t('statCompleteDescriptive') : t('statComplete')}
               value={`${completeCount}/${rows.length}`}
               progress={pctOf(completeCount)}
             />
             <StatCard icon={Gauge} tone="sky" label={t('average')} value={fmt(classAverage)} />
           </StatGrid>
 
+          {descriptive && (
+            <Alert>
+              <AlertDescription>{t('descriptiveBanner')}</AlertDescription>
+            </Alert>
+          )}
+          {allFinal && (
+            <Alert>
+              <Lock aria-hidden className="size-4" />
+              <AlertDescription>{t('allFinalNotice')}</AlertDescription>
+            </Alert>
+          )}
+
+          <NarrativesPanel
+            key={`${semesterId}-${classId}-${descriptive}`}
+            semesterId={semesterId}
+            classId={classId}
+            subjects={classSubjects}
+            descriptive={descriptive}
+          />
+
           <ul className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {rows.map((r, i) => {
               const target = { studentId: r.studentId, name: r.name };
               const isFinal = r.status === 'final';
-              const complete = r.subjectsGraded >= r.subjectsTotal;
+              const complete = isComplete(r);
+              const missing = missingCount(r);
               return (
                 <li
                   key={r.studentId}
                   style={{ animationDelay: `${Math.min(i, 9) * 30}ms` }}
-                  className="bg-card hover:border-foreground/20 grid min-w-0 gap-3.5 rounded-2xl border p-4 transition-colors motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:fill-mode-both motion-safe:duration-300"
+                  className="bg-card hover:border-foreground/20 grid min-w-0 grid-cols-[minmax(0,1fr)] gap-3.5 rounded-2xl border p-4 transition-colors motion-safe:animate-in motion-safe:fade-in motion-safe:slide-in-from-bottom-1 motion-safe:fill-mode-both motion-safe:duration-300"
                 >
                   <div className="flex items-start justify-between gap-3">
-                    <PersonCell name={r.name} sub={r.nis} />
-                    <ToneBadge tone={isFinal ? 'emerald' : 'amber'}>
+                    <div className="min-w-0">
+                      <PersonCell name={r.name} sub={r.nis} />
+                    </div>
+                    <ToneBadge tone={isFinal ? 'emerald' : 'amber'} className="shrink-0">
                       {isFinal && <Lock aria-hidden className="size-3" />}
                       {t(isFinal ? 'statusFinal' : 'statusDraft')}
                     </ToneBadge>
@@ -604,7 +551,8 @@ export function ReportCardsView() {
                           complete ? 'text-muted-foreground' : TONES.amber.text,
                         )}
                       >
-                        {t('subjectsFilled')} {r.subjectsGraded}/{r.subjectsTotal}
+                        {descriptive ? t('descriptionsFilled') : t('subjectsFilled')} {r.subjectsGraded}/
+                        {r.subjectsTotal}
                       </p>
                       <div className="bg-muted h-1.5 overflow-hidden rounded-full">
                         <div
@@ -612,11 +560,14 @@ export function ReportCardsView() {
                             'h-full rounded-full transition-[width] duration-500',
                             complete ? TONES.emerald.bar : TONES.amber.bar,
                           )}
-                          style={{
-                            width: `${r.subjectsTotal ? Math.min(100, (r.subjectsGraded / r.subjectsTotal) * 100) : 0}%`,
-                          }}
+                          style={{ width: `${completenessPercent(r)}%` }}
                         />
                       </div>
+                      {descriptive && missing > 0 && (
+                        <p className={cn('text-xs font-medium', TONES.amber.text)}>
+                          {t('descriptionsMissing', { count: missing })}
+                        </p>
+                      )}
                     </div>
                   </div>
 
@@ -634,11 +585,21 @@ export function ReportCardsView() {
                         items={[
                           {
                             key: 'note',
-                            label: isFinal ? `${t('noteTitle')} (${t('noteLocked')})` : t('noteTitle'),
+                            label: isFinal ? `${t('notesTitle')} (${t('noteLocked')})` : t('notesTitle'),
                             icon: MessageSquare,
                             disabled: isFinal,
                             onSelect: () => setNoteFor(target),
                           },
+                          ...(isFinal
+                            ? [
+                                {
+                                  key: 'responses',
+                                  label: t('responsesTitle'),
+                                  icon: MessagesSquare,
+                                  onSelect: () => setResponsesFor(target),
+                                },
+                              ]
+                            : []),
                           {
                             key: 'pdf',
                             label: t('downloadPdf'),
@@ -658,7 +619,8 @@ export function ReportCardsView() {
       )}
 
       <PreviewDialog semesterId={semesterId} target={preview} onClose={() => setPreview(null)} />
-      <NoteDialog semesterId={semesterId} target={noteFor} onClose={() => setNoteFor(null)} />
+      <NotesDialog semesterId={semesterId} target={noteFor} onClose={() => setNoteFor(null)} />
+      <ResponsesDialog semesterId={semesterId} target={responsesFor} onClose={() => setResponsesFor(null)} />
 
       <ConfirmDialog
         open={dialog === 'finalize'}
@@ -671,8 +633,8 @@ export function ReportCardsView() {
       />
       <ConfirmDialog
         open={dialog === 'incomplete'}
-        title={t('incompleteTitle')}
-        description={t('incompleteBody')}
+        title={descriptive ? t('incompleteTitleDescriptive') : t('incompleteTitle')}
+        description={descriptive ? t('incompleteBodyDescriptive') : t('incompleteBody')}
         confirmLabel={t('finalizeAnyway')}
         pending={finalize.isPending}
         onConfirm={() => finalize.mutate(true)}

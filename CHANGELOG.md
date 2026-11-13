@@ -9,6 +9,35 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+Fase 3 (asesmen dan rapor), tahap 3.2: komponen rapor tambahan dan tanggapan orang tua. Rapor sekolah yang tidak memakai
+bagian baru tetap sama persis dengan sebelumnya (bentuk data versi 1); bagian baru hanya muncul untuk siswa yang memakainya.
+
+### Ditambahkan
+
+- **Deskripsi kokurikuler dan catatan perkembangan** per siswa per semester (maksimal 1.000 karakter), diisi oleh wali kelas
+  atau pengelola rapor selama rapor masih draf. Catatan perkembangan dipakai pada rapor deskriptif Fase A.
+- **Mode rapor deskriptif (Fase A)** per tingkat kelas di pengaturan tingkat. Angka tetap dihitung dan disimpan untuk
+  keperluan internal (leger, verifikasi, kenaikan kelas), tetapi tidak ditampilkan di portal wali: dokumen, predikat, KKM,
+  peringkat, dan rata-rata disembunyikan. Rapor baru dapat difinalkan bila setiap mata pelajaran sudah punya deskripsi.
+- **Nilai di portal disembunyikan untuk kelas bermode deskriptif**: tab nilai dan ikhtisar portal wali tidak lagi memuat angka
+  (nilai akhir, predikat, KKM, rata-rata, rata-rata komponen, umpan balik formatif, skor terbaru) bagi anak di tingkat bermode
+  deskriptif, dan daftar rapor staf di mode itu menghitung kelengkapan dari deskripsi per mata pelajaran, bukan nilai akhir.
+- **Deskripsi capaian manual per mata pelajaran** yang ditulis guru pengampu (atau pengelola rapor), menggantikan deskripsi
+  otomatis menurut predikat pada rapor siswa itu. Tetap tersimpan saat rapor dibuka kembali.
+- **Tanggapan orang tua/wali atas rapor final** lewat portal (izin baru `portal:respond`, hanya peran Wali, bukan Siswa).
+  Satu tanggapan per wali per anak per semester, teks polos maksimal 1.000 karakter, dapat ditulis selama 30 hari sejak rapor
+  difinalkan (dapat diatur atau tanpa batas). Hanya terlihat oleh penulisnya, wali kelas, dan pengelola rapor; wali lain tidak
+  melihatnya. Staf dapat menyalin tanggapan dari rapor kertas atas nama wali. Bila rapor dibuka kembali dan difinalkan ulang,
+  tanggapan lama tetap ada dan ditandai berasal dari versi sebelumnya. Wali yang sudah punya tanggapan tidak dapat dihapus.
+- **Pengaturan rapor**: bendera tampilan bagian kokurikuler dan tanggapan wali pada PDF (bawaan mati) dan lama jendela tanggapan.
+
+### Catatan rollback
+
+- Kembali ke versi sebelum tahap ini aman: tabel dan kolom baru dibiarkan dan tidak diubah. Bagian baru rapor (kokurikuler,
+  perkembangan, deskripsi manual, mode deskriptif) tidak tampil di versi lama, tetapi snapshot rapor final tetap utuh dan
+  tampil kembali setelah maju lagi. Tanggapan wali tidak dapat ditulis selama rollback. Rapor draf di tingkat bermode
+  deskriptif kembali menampilkan angka dan predikat selama rollback.
+
 ## [1.3.0] - 2026-11-13
 
 Fase 3 (asesmen dan rapor), tahap 3.0 dan 3.1: persiapan internal dan kategori asesmen. Sekolah yang tidak memakai komponen

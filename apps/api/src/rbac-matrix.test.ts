@@ -379,9 +379,23 @@ describe('kebijakan peran bawaan', () => {
     expect([...perms('teacher')].filter(writeLike).sort()).toEqual(['attendance:manage', 'grade:input']);
   });
 
-  it('wali dan siswa hanya punya portal:read', () => {
-    expect([...perms('guardian')]).toEqual(['portal:read']);
+  it('wali hanya punya portal:read dan portal:respond; siswa hanya portal:read', () => {
+    expect([...perms('guardian')].sort()).toEqual(['portal:read', 'portal:respond']);
     expect([...perms('student')]).toEqual(['portal:read']);
+  });
+
+  it('portal:respond hanya di peran wali (dan admin sekolah yang memegang semua izin), tidak di siswa atau staf lain', () => {
+    const holders = roleKeys.filter((r) => perms(r).has('portal:respond')).sort();
+    expect(holders).toEqual(['guardian', 'school_admin']);
+  });
+
+  it('rute tulis tanggapan wali di portal memasang portal:respond dan modul parent_portal', () => {
+    const put = eps.find((e) => e.method === 'PUT' && e.url.endsWith('/report-cards/:semesterId/response'));
+    expect(put?.perms).toEqual(['portal:respond']);
+    expect(put?.modules).toContain('parent_portal');
+    expect(put?.modules).toContain('grades');
+    const get = eps.find((e) => e.method === 'GET' && e.url.endsWith('/report-cards/:semesterId/response'));
+    expect(get?.perms).toEqual(['portal:read']);
   });
 
   it('hanya admin sekolah yang mengelola peran dan anggota', () => {

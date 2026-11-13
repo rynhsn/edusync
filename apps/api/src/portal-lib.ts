@@ -6,6 +6,8 @@ import {
   coverageMask,
   juzProgressFromMask,
   nextAyah,
+  projectDescriptiveForPortal,
+  type ReportDocumentV2,
   rangeAyahCount,
   uniqueAyahCount,
 } from '@edusync/contracts';
@@ -37,6 +39,7 @@ import {
   or,
   portalLink,
   reportCard,
+  schoolLevel,
   score,
   semester,
   sql,
@@ -51,7 +54,8 @@ import { finalSubjectRowsForStudent, kkmResolverForClass, loadGradingConfig } fr
 import { assessedSubjects, computeGrades, notCountedComponentIds } from './grading-lib';
 import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
-import { documentSummary, type ReportDocument } from './report-card-lib';
+import { documentSummary } from './report-card-lib';
+import { withResponses } from './report-response-lib';
 
 /** Kunci modul tiap bagian portal. Modul inti portal sendiri (`parent_portal`) dicek oleh gerbang route. */
 export const PORTAL_SECTIONS = {
@@ -309,7 +313,25 @@ export async function semestersWithYear(tx: Tx) {
     .orderBy(desc(semester.startsOn));
 }
 
-/** Skor terbaru siswa yang sudah diisi (terbaru dulu). */
+/**
+ * Mode rapor deskriptif (Fase A, K10) untuk kelas siswa pada tahun ajaran semester itu: angka nilai tidak ditampilkan di
+ * portal. Tingkat yang belum diatur atau bermode numerik = false (respons sama seperti sebelumnya).
+ */
+export async function isDescriptiveFor(tx: Tx, studentId: string, sem: typeof semester.$inferSelect) {
+  const [row] = await tx
+    .select({ mode: schoolLevel.reportMode })
+    .from(enrollment)
+    .innerJoin(classRoom, eq(classRoom.id, enrollment.classId))
+    .innerJoin(schoolLevel, eq(schoolLevel.code, classRoom.level))
+    .where(and(eq(enrollment.studentId, studentId), eq(enrollment.academicYearId, sem.academicYearId)))
+    .limit(1);
+  return row?.mode === 'descriptive';
+}
+
+/**
+ * Skor terbaru siswa yang sudah diisi (terbaru dulu). Skor dari kelas yang tingkatnya bermode rapor deskriptif tidak
+ * pernah disertakan (angka disembunyikan dari wali, K10).
+ */
 export async function recentScoresFor(tx: Tx, studentId: string, limit: number) {
   const rows = await tx
     .select({
@@ -326,7 +348,17 @@ export async function recentScoresFor(tx: Tx, studentId: string, limit: number) 
     .innerJoin(assessment, eq(assessment.id, score.assessmentId))
     .innerJoin(subject, eq(subject.id, assessment.subjectId))
     .innerJoin(gradeComponent, eq(gradeComponent.id, assessment.componentId))
-    .where(and(eq(score.studentId, studentId), sql`${score.value} is not null`))
+    .where(
+      and(
+        eq(score.studentId, studentId),
+        sql`${score.value} is not null`,
+        sql`not exists (
+          select 1 from ${classRoom}
+          inner join ${schoolLevel} on ${schoolLevel.code} = ${classRoom.level} and ${schoolLevel.schoolId} = ${classRoom.schoolId}
+          where ${classRoom.id} = ${assessment.classId} and ${schoolLevel.reportMode} = 'descriptive'
+        )`,
+      ),
+    )
     .orderBy(desc(assessment.date), desc(score.updatedAt))
     .limit(limit);
   // Penanda hanya bila bukan bawaan (sumatif dan ikut nilai akhir): respons sekolah tanpa formatif tidak berubah.
@@ -344,6 +376,18 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
     .select({ classId: enrollment.classId })
     .from(enrollment)
     .where(and(eq(enrollment.studentId, studentId), eq(enrollment.academicYearId, sem.academicYearId)));
+  // Mode deskriptif (K10): tanpa angka apa pun (nilai akhir, predikat, KKM, rata-rata, komponen, formatif); hanya penanda mode.
+  if (enr && (await isDescriptiveFor(tx, studentId, sem))) {
+    return {
+      reportMode: 'descriptive' as const,
+      kkm: null as number | null,
+      average: null as number | null,
+      subjects: [],
+      // Selalu tanpa sumber rapor dan tanpa umpan balik formatif (hanya agar bentuk hasil sama dengan cabang numerik).
+      source: undefined,
+      formative: undefined,
+    };
+  }
   const cfg = await loadGradingConfig(tx, sem.id);
   const { settings, components } = cfg;
   if (!enr) return { kkm: settings.kkm, average: null as number | null, subjects: [] };
@@ -426,7 +470,7 @@ export async function finalReportCards(tx: Tx, studentId: string) {
   return rows
     .filter((r) => r.snapshot)
     .map((r) => {
-      const doc = r.snapshot as ReportDocument;
+      const doc = r.snapshot as ReportDocumentV2;
       const summary = documentSummary(doc);
       return {
         semesterId: r.semesterId,
@@ -434,17 +478,27 @@ export async function finalReportCards(tx: Tx, studentId: string) {
         academicYear: r.academicYear,
         className: doc.student.className,
         finalizedAt: r.finalizedAt ? r.finalizedAt.toISOString() : null,
-        average: summary.average,
+        // Mode deskriptif (Fase A, K10): rata-rata angka tidak ditampilkan di portal.
+        average: doc.reportMode === 'descriptive' ? null : summary.average,
         subjectsGraded: summary.subjectsGraded,
         subjectsTotal: summary.subjectsTotal,
       };
     });
 }
 
-/** Dokumen rapor beku satu semester; null bila belum final. */
-export async function finalReportDocument(tx: Tx, studentId: string, semesterId: string) {
+/**
+ * Dokumen rapor beku satu semester; null bila belum final. Mode deskriptif diproyeksikan tanpa final/predikat/KKM/peringkat
+ * (K10). `schemaVersion` hanya bila 2. Tanggapan: hanya milik wali pemanggil (`guardianId`), tidak pernah milik wali lain;
+ * tautan siswa tidak membawa `guardianId` sehingga tidak melihat tanggapan.
+ */
+export async function finalReportDocument(
+  tx: Tx,
+  studentId: string,
+  semesterId: string,
+  guardianId: string | null = null,
+) {
   const [row] = await tx
-    .select({ snapshot: reportCard.snapshot })
+    .select({ snapshot: reportCard.snapshot, schemaVersion: reportCard.schemaVersion })
     .from(reportCard)
     .where(
       and(
@@ -454,7 +508,12 @@ export async function finalReportDocument(tx: Tx, studentId: string, semesterId:
       ),
     );
   if (!row?.snapshot) return null;
-  return { ...(row.snapshot as ReportDocument), status: 'final' as const };
+  const doc = projectDescriptiveForPortal({
+    ...(row.snapshot as ReportDocumentV2),
+    status: 'final' as const,
+    ...(row.schemaVersion === 2 ? { schemaVersion: 2 as const } : {}),
+  });
+  return guardianId ? withResponses(tx, doc, semesterId, studentId, guardianId) : doc;
 }
 
 /* ---------- Tahfidz ---------- */

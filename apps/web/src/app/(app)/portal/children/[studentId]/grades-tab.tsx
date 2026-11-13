@@ -1,5 +1,7 @@
 'use client';
 
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { ReportSourceBadge } from '@/components/report-source-badge';
@@ -27,6 +29,9 @@ export function GradesTab({ studentId }: { studentId: string }) {
   );
   const data = q.data;
   const feedback = data?.formative ?? [];
+  const pathname = usePathname();
+  // Mode rapor deskriptif (mis. Fase A): server tidak mengirim angka; capaian dibaca dari rapor.
+  const descriptive = data?.reportMode === 'descriptive';
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
@@ -45,7 +50,23 @@ export function GradesTab({ studentId }: { studentId: string }) {
         </SelectField>
       )}
       <TabState query={q} available={data?.available ?? true} />
-      {data?.available && data.subjects.length === 0 && feedback.length === 0 && (
+      {data?.available && descriptive && (
+        <div
+          role="note"
+          className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border bg-sky-100 p-4 text-sm text-sky-900 dark:bg-sky-500/15 dark:text-sky-100"
+        >
+          <p className="min-w-0 flex-1 basis-56">{t('descriptiveGrades')}</p>
+          <Link
+            href={`${pathname}?tab=reports`}
+            replace
+            scroll={false}
+            className="inline-flex min-h-11 items-center font-medium underline underline-offset-4"
+          >
+            {t('descriptiveGradesLink')}
+          </Link>
+        </div>
+      )}
+      {data?.available && !descriptive && data.subjects.length === 0 && feedback.length === 0 && (
         <EmptyState title={t('gradesEmptyTitle')} body={t('gradesEmptyBody')} />
       )}
       {data?.available && (data.subjects.length > 0 || feedback.length > 0) && (

@@ -1,12 +1,17 @@
 import type { DocumentProps } from '@react-pdf/renderer';
 import { createElement, type ReactElement } from 'react';
+import type { ReportDisplayOptions } from '@/lib/report-v2';
 import { buildExport, saveBlob } from '@/lib/sheet';
 import { buildLedgerRows, ledgerWidths, reportCardFileName, safeSheetName } from './format';
 import type { SignLabels } from './report-card-pdf';
 import type { RecapClass, ReportCardDoc } from './types';
 
 /** Buat blob PDF dari satu atau banyak rapor. react-pdf dimuat saat dipakai agar tidak membebani bundel awal. */
-async function renderPdf(docs: ReportCardDoc[], labels?: SignLabels): Promise<Blob> {
+async function renderPdf(
+  docs: ReportCardDoc[],
+  labels?: SignLabels,
+  display?: ReportDisplayOptions,
+): Promise<Blob> {
   const [{ pdf }, { ReportCardDocument }] = await Promise.all([
     import('@react-pdf/renderer'),
     import('./report-card-pdf'),
@@ -15,13 +20,18 @@ async function renderPdf(docs: ReportCardDoc[], labels?: SignLabels): Promise<Bl
   const element = createElement(ReportCardDocument, {
     docs,
     labels,
+    display,
   }) as unknown as ReactElement<DocumentProps>;
   return pdf(element).toBlob();
 }
 
 /** Unduh rapor satu siswa: rapor-{nama-siswa}-{semester}.pdf. */
-export async function downloadReportCardPdf(doc: ReportCardDoc, labels?: SignLabels): Promise<void> {
-  saveBlob(await renderPdf([doc], labels), reportCardFileName(doc.student.name, doc.semester.name));
+export async function downloadReportCardPdf(
+  doc: ReportCardDoc,
+  labels?: SignLabels,
+  display?: ReportDisplayOptions,
+): Promise<void> {
+  saveBlob(await renderPdf([doc], labels, display), reportCardFileName(doc.student.name, doc.semester.name));
 }
 
 /** Unduh satu PDF berisi rapor banyak siswa, urutan halaman sesuai `docs`. */
@@ -29,9 +39,10 @@ export async function downloadClassReportCardsPdf(
   docs: ReportCardDoc[],
   fileName: string,
   labels?: SignLabels,
+  display?: ReportDisplayOptions,
 ): Promise<void> {
   if (docs.length === 0) return;
-  saveBlob(await renderPdf(docs, labels), fileName);
+  saveBlob(await renderPdf(docs, labels, display), fileName);
 }
 
 /** Unduh leger Excel: No, Nama, NIS, nilai akhir tiap mapel, Rata-rata. */

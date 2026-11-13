@@ -3,6 +3,7 @@ import {
   DEFAULT_PREDICATE_DESCRIPTIONS,
   descriptionOf,
   type ReportDocument,
+  type ReportDocumentV2,
   rankPositions,
 } from '@edusync/contracts';
 import {
@@ -17,8 +18,11 @@ import {
   extracurricularAssessment,
   gte,
   lte,
+  reportCardSection,
   reportSetting,
+  reportSubjectNarrative,
   school,
+  schoolLevel,
   semester,
   type Tx,
   teacher,
@@ -39,6 +43,12 @@ export interface ReportSettings {
   descC: string;
   descD: string;
   showRank: boolean;
+  /** Tampilkan bagian deskripsi kokurikuler pada PDF (bawaan mati; K12). */
+  showCocurricular: boolean;
+  /** Tampilkan bagian tanggapan orang tua/wali pada PDF (bawaan mati; K12). */
+  showGuardianResponse: boolean;
+  /** Jendela tanggapan wali sejak finalisasi, dalam hari; null = tanpa batas (bawaan 30; K9). */
+  responseWindowDays: number | null;
 }
 
 export const DEFAULT_REPORT_SETTINGS: ReportSettings = {
@@ -48,6 +58,9 @@ export const DEFAULT_REPORT_SETTINGS: ReportSettings = {
   address: null,
   ...DEFAULT_PREDICATE_DESCRIPTIONS,
   showRank: false,
+  showCocurricular: false,
+  showGuardianResponse: false,
+  responseWindowDays: 30,
 };
 
 export async function loadReportSettings(tx: Tx): Promise<ReportSettings> {
@@ -63,6 +76,9 @@ export async function loadReportSettings(tx: Tx): Promise<ReportSettings> {
     descC: s.descC,
     descD: s.descD,
     showRank: s.showRank,
+    showCocurricular: s.showCocurricular,
+    showGuardianResponse: s.showGuardianResponse,
+    responseWindowDays: s.responseWindowDays,
   };
 }
 
@@ -212,13 +228,97 @@ async function attendanceCounts(tx: Tx, studentId: string, startsOn: string, end
   return { sick: n('sick'), excused: n('excused'), absent: n('absent'), late: n('late') };
 }
 
-/** Dokumen rapor (versi hidup, belum beku) untuk satu siswa dari konteks kelas. */
+/** Mode rapor tingkat kelas: 'descriptive' (Fase A, K10) atau null (numerik; juga bila tingkat belum diatur). */
+export type ReportMode = 'descriptive' | null;
+
+/** Bahan bagian v2 untuk seluruh kelas: mode rapor dan deskripsi manual per mapel (2 kueri, tidak bergantung jumlah siswa). */
+export interface ReportExtras {
+  reportMode: ReportMode;
+  /** siswa -> mapel -> deskripsi manual. */
+  narratives: Map<string, Map<string, string>>;
+}
+
+export async function loadReportExtras(tx: Tx, c: Pick<ClassContext, 'sem' | 'cls'>): Promise<ReportExtras> {
+  const [[level], rows] = await Promise.all([
+    tx
+      .select({ mode: schoolLevel.reportMode })
+      .from(schoolLevel)
+      .where(eq(schoolLevel.code, c.cls.level))
+      .limit(1),
+    tx
+      .select({
+        studentId: reportSubjectNarrative.studentId,
+        subjectId: reportSubjectNarrative.subjectId,
+        text: reportSubjectNarrative.text,
+      })
+      .from(reportSubjectNarrative)
+      .where(
+        and(eq(reportSubjectNarrative.semesterId, c.sem.id), eq(reportSubjectNarrative.classId, c.cls.id)),
+      ),
+  ]);
+  const narratives = new Map<string, Map<string, string>>();
+  for (const r of rows) {
+    const m = narratives.get(r.studentId) ?? new Map<string, string>();
+    m.set(r.subjectId, r.text);
+    narratives.set(r.studentId, m);
+  }
+  return { reportMode: level?.mode === 'descriptive' ? 'descriptive' : null, narratives };
+}
+
+/**
+ * Kelengkapan satu siswa untuk finalisasi. Mode numerik: mapel yang sudah punya nilai akhir (sama dengan `liveSummary`).
+ * Mode deskriptif: mapel yang sudah punya deskripsi manual (nilai akhir tidak dipersyaratkan; angka tetap dihitung dan disimpan).
+ */
+export function completenessOf(c: ClassContext, extras: ReportExtras, studentId: string) {
+  if (extras.reportMode !== 'descriptive') {
+    const { subjectsGraded, subjectsTotal } = liveSummary(c, studentId);
+    return { subjectsGraded, subjectsTotal };
+  }
+  const mine = extras.narratives.get(studentId);
+  return {
+    subjectsGraded: c.subjects.filter((sub) => mine?.has(sub.id)).length,
+    subjectsTotal: c.subjects.length,
+  };
+}
+
+/** Deskripsi kokurikuler dan catatan perkembangan per siswa pada semester itu (satu kueri; `studentIds` kosong = semua). */
+export async function loadSectionNotes(tx: Tx, semesterId: string) {
+  const rows = await tx
+    .select({
+      studentId: reportCardSection.studentId,
+      cocurricularNote: reportCardSection.cocurricularNote,
+      developmentNote: reportCardSection.developmentNote,
+    })
+    .from(reportCardSection)
+    .where(eq(reportCardSection.semesterId, semesterId));
+  return new Map(rows.map((r) => [r.studentId, r]));
+}
+
+/** Isian bagian v2 satu siswa. Semua opsional: tanpa isian, dokumen persis v1. */
+export interface StudentV2Input {
+  reportMode?: ReportMode;
+  /** mapel -> deskripsi manual siswa ini. */
+  narratives?: Map<string, string> | undefined;
+  cocurricularNote?: string | null;
+  developmentNote?: string | null;
+}
+
+/**
+ * Dokumen rapor (versi hidup, belum beku) untuk satu siswa dari konteks kelas.
+ *
+ * Bagian v2 ditulis SPARSE (rancangan 3.3): kunci hanya ada bila dipakai. `reportMode` hanya bila 'descriptive';
+ * `cocurricularNote` bila terisi; `developmentNote` hanya di mode deskriptif dan terisi (K11); `descriptionSource: 'manual'`
+ * dan `description` dari teks manual bila ada deskripsi manual untuk mapel itu. Di mode deskriptif deskripsi TIDAK jatuh ke
+ * teks per predikat (itu membocorkan predikat): tanpa deskripsi manual, `description` = null.
+ */
 export async function buildDocument(
   tx: Tx,
   c: ClassContext,
   stu: { id: string; name: string; nis: string | null; nisn: string | null },
   homeroomNote: string | null,
-): Promise<ReportDocument> {
+  v2: StudentV2Input = {},
+): Promise<ReportDocumentV2> {
+  const descriptive = v2.reportMode === 'descriptive';
   const d = c.reportSettings;
   const ekskul = await tx
     .select({
@@ -252,14 +352,16 @@ export async function buildDocument(
       const final = g?.final ?? null;
       const predicate = g?.predicate ?? null;
       const kkm = c.kkmBySubject.get(sub.id) ?? c.kkm;
+      const manual = v2.narratives?.get(sub.id);
       return {
         subjectId: sub.id,
         name: sub.name,
         kkm,
         final,
         predicate,
-        description: predicate ? descriptionOf(predicate, d) : null,
+        description: manual ?? (predicate && !descriptive ? descriptionOf(predicate, d) : null),
         belowKkm: final !== null && final < kkm,
+        ...(manual ? { descriptionSource: 'manual' as const } : {}),
       };
     }),
     extracurriculars: ekskul,
@@ -268,6 +370,9 @@ export async function buildDocument(
     homeroomTeacher: c.homeroomTeacher,
     principal: d.principalName ? { name: d.principalName, nip: d.principalNip } : null,
     rank: d.showRank ? (c.ranks.get(stu.id) ?? null) : null,
+    ...(descriptive ? { reportMode: 'descriptive' as const } : {}),
+    ...(v2.cocurricularNote ? { cocurricularNote: v2.cocurricularNote } : {}),
+    ...(descriptive && v2.developmentNote ? { developmentNote: v2.developmentNote } : {}),
     generatedAt: new Date().toISOString(),
   };
 }

@@ -680,6 +680,13 @@
       "when": 1796520600000,
       "tag": "0096_assessment_category",
       "breakpoints": true
+    },
+    {
+      "idx": 97,
+      "version": "7",
+      "when": 1796607000000,
+      "tag": "0097_report_v2_sections",
+      "breakpoints": true
     }
   ]
 }

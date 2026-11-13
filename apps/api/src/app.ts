@@ -81,6 +81,8 @@ import { portalPublicRoutes } from './routes/portal-public';
 import { promotionRoutes } from './routes/promotion';
 import { recoveryRoutes } from './routes/recovery';
 import { reportCardRoutes } from './routes/report-card';
+import { reportCardNarrativeRoutes } from './routes/report-card-narratives';
+import { reportCardResponseRoutes } from './routes/report-card-responses';
 import { roleRoutes } from './routes/roles';
 import { scheduleRoutes } from './routes/schedule';
 import { lookupVerifiedHost, schoolDomainRoutes } from './routes/school-domains';
@@ -292,6 +294,8 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(extracurricularCategoryRoutes);
   await app.register(gradingRoutes);
   await app.register(reportCardRoutes);
+  await app.register(reportCardNarrativeRoutes);
+  await app.register(reportCardResponseRoutes);
   await app.register(financeRoutes);
   await app.register(financeDiscountRoutes);
   await app.register(financeLateFeeRoutes);

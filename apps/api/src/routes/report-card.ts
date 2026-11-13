@@ -1,35 +1,48 @@
-import { type ReportDocument, reportDocumentSchema } from '@edusync/contracts';
+import {
+  type ReportDocumentV2,
+  reportDocumentResponseSchema,
+  reportDocumentSchemaVersion,
+} from '@edusync/contracts';
 import {
   and,
-  enrollment,
   eq,
   inArray,
-  isNull,
   max,
   reportCard,
+  reportCardSection,
   reportCardSnapshot,
   reportSetting,
   semester,
   student,
   type Tx,
-  teacher,
   withTenant,
 } from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { ensureSemesterFrozen } from '../grading-config-lib';
-import { errorSchema, forbidden, HttpError } from '../http-error';
+import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { notifyReportCards } from '../messaging-lib';
 import {
+  canViewClass,
+  canWriteClass,
+  reportNotAllowed as notAllowed,
+  resolveReportStudent as resolveStudent,
+} from '../report-card-access-lib';
+import {
   buildDocument,
+  completenessOf,
   documentSummary,
   liveSummary,
   loadClassContext,
+  loadReportExtras,
   loadReportSettings,
+  loadSectionNotes,
   requireSemesterClass,
 } from '../report-card-lib';
+import { assertStudentsReportNotFinal } from '../report-lock-lib';
+import { withResponses } from '../report-response-lib';
 import { audit, guarded, schoolHeader } from './helpers';
 
 const tag = ['Report cards'];
@@ -47,6 +60,17 @@ const settingsSchema = z.object({
   descC: z.string(),
   descD: z.string(),
   showRank: z.boolean().describe('Tampilkan peringkat kelas pada rapor'),
+  showCocurricular: z
+    .boolean()
+    .describe('Tampilkan bagian deskripsi kokurikuler pada PDF rapor (bawaan mati)'),
+  showGuardianResponse: z
+    .boolean()
+    .describe('Tampilkan bagian tanggapan orang tua/wali pada PDF rapor (bawaan mati)'),
+  responseWindowDays: z
+    .number()
+    .int()
+    .nullable()
+    .describe('Jendela tanggapan wali sejak finalisasi, dalam hari (1-365); null = tanpa batas. Bawaan 30'),
 });
 
 const optionalText = (max: number) =>
@@ -69,18 +93,29 @@ const settingsBody = z.object({
   descC: descText,
   descD: descText,
   showRank: z.boolean().default(false),
+  showCocurricular: z.boolean().optional().describe('Dihilangkan = tidak berubah'),
+  showGuardianResponse: z.boolean().optional().describe('Dihilangkan = tidak berubah'),
+  responseWindowDays: z
+    .number()
+    .int()
+    .min(1)
+    .max(365)
+    .nullable()
+    .optional()
+    .describe('Dihilangkan = tidak berubah; null = tanpa batas'),
 });
+
+const sectionText = z
+  .string()
+  .trim()
+  .max(1000)
+  .nullable()
+  .optional()
+  .transform((v) => (v === '' ? null : v));
 
 const semesterQuery = z.object({ semesterId: z.uuid() });
 const listQuery = z.object({ semesterId: z.uuid(), classId: z.uuid() });
 const studentParams = z.object({ studentId: z.uuid() });
-
-const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
-const notAllowed = () =>
-  forbidden('Anda hanya boleh mengakses rapor kelas yang Anda walikan, kecuali pemegang izin kelola rapor.');
-
-/** Versi bentuk `ReportDocument` yang dibekukan (1 = bentuk awal). Naikkan bila bagian baru ditambahkan. */
-const REPORT_SCHEMA_VERSION = 1;
 
 /** Versi riwayat terakhir per siswa pada semester itu, untuk menomori peristiwa berikutnya. */
 async function latestSnapshotVersions(tx: Tx, semesterId: string) {
@@ -97,50 +132,6 @@ export async function reportCardRoutes(instance: FastifyInstance) {
   const app = instance.withTypeProvider<ZodTypeProvider>();
   const tenant = <T>(request: { ctx?: TenantContext; server: FastifyInstance }, fn: (tx: Tx) => Promise<T>) =>
     withTenant(request.server.tenantDb, [(request.ctx as TenantContext).schoolId], fn);
-
-  /* ---------- Otorisasi ---------- */
-
-  const isWide = (ctx: TenantContext) =>
-    ctx.permissions.has('report_card:manage') || ctx.permissions.has('report_card:read_all');
-
-  async function isHomeroom(tx: Tx, ctx: TenantContext, homeroomTeacherId: string | null) {
-    if (!homeroomTeacherId) return false;
-    const [t] = await tx
-      .select({ memberId: teacher.memberId })
-      .from(teacher)
-      .where(eq(teacher.id, homeroomTeacherId));
-    return t?.memberId === ctx.memberId;
-  }
-
-  /** Melihat rapor kelas: pemegang kelola, kepala sekolah, kurikulum, atau wali kelas itu. */
-  async function canViewClass(tx: Tx, ctx: TenantContext, homeroomTeacherId: string | null) {
-    return isWide(ctx) || (await isHomeroom(tx, ctx, homeroomTeacherId));
-  }
-
-  /** Mengubah catatan dan memfinalkan: pemegang kelola atau wali kelas itu. */
-  async function canWriteClass(tx: Tx, ctx: TenantContext, homeroomTeacherId: string | null) {
-    return ctx.permissions.has('report_card:manage') || (await isHomeroom(tx, ctx, homeroomTeacherId));
-  }
-
-  /** Kelas siswa itu pada tahun ajaran semester: rapor final mengikuti kelas saat difinalkan. */
-  async function resolveStudent(tx: Tx, sem: typeof semester.$inferSelect, studentId: string) {
-    const [stu] = await tx
-      .select()
-      .from(student)
-      .where(and(eq(student.id, studentId), isNull(student.deletedAt)));
-    if (!stu) throw notFound('Siswa');
-    const [row] = await tx
-      .select()
-      .from(reportCard)
-      .where(and(eq(reportCard.semesterId, sem.id), eq(reportCard.studentId, studentId)));
-    const [enr] = await tx
-      .select({ classId: enrollment.classId })
-      .from(enrollment)
-      .where(and(eq(enrollment.studentId, studentId), eq(enrollment.academicYearId, sem.academicYearId)));
-    const classId = row?.status === 'final' ? row.classId : (enr?.classId ?? row?.classId);
-    if (!classId) throw notFound('Siswa di kelas pada semester itu');
-    return { stu, row: row ?? null, classId };
-  }
 
   async function requireSemester(tx: Tx, semesterId: string) {
     const [sem] = await tx.select().from(semester).where(eq(semester.id, semesterId));
@@ -177,7 +168,10 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         summary: 'Ubah pengaturan rapor',
         description:
           'Izin: `report_card:manage`; modul `grades`. Mengganti seluruh pengaturan. Teks kosong pada nama, NIP, ' +
-          'kota, dan alamat disimpan sebagai kosong (null); deskripsi capaian wajib terisi (400 galat validasi).',
+          'kota, dan alamat disimpan sebagai kosong (null); deskripsi capaian wajib terisi (400 galat validasi). ' +
+          '`showCocurricular`, `showGuardianResponse` (bendera bagian PDF, bawaan mati) dan `responseWindowDays` (1-365 hari ' +
+          'atau null = tanpa batas, bawaan 30) bersifat opsional: dihilangkan = tidak berubah. Tidak dijaga `report_final` ' +
+          '(tidak mengubah angka; rapor final dibaca dari snapshot).',
         headers: schoolHeader,
         body: settingsBody,
         response: { 200: settingsSchema, 400: errorSchema, ...guarded },
@@ -186,15 +180,23 @@ export async function reportCardRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
+        // Bagian opsional yang dihilangkan tidak ikut ditulis: sisipan pertama memakai bawaan kolom, pembaruan membiarkannya.
+        const { showCocurricular, showGuardianResponse, responseWindowDays, ...core } = request.body;
+        const optional = {
+          ...(showCocurricular !== undefined ? { showCocurricular } : {}),
+          ...(showGuardianResponse !== undefined ? { showGuardianResponse } : {}),
+          ...(responseWindowDays !== undefined ? { responseWindowDays } : {}),
+        };
         await tx
           .insert(reportSetting)
-          .values({ schoolId: ctx.schoolId, ...request.body })
+          .values({ schoolId: ctx.schoolId, ...core, ...optional })
           .onConflictDoUpdate({
             target: reportSetting.schoolId,
-            set: { ...request.body, updatedAt: new Date() },
+            set: { ...core, ...optional, updatedAt: new Date() },
           });
         await audit(tx, ctx, 'report_card.settings_update', 'report_setting', ctx.schoolId, {
           showRank: request.body.showRank,
+          ...optional,
         });
         return loadReportSettings(tx);
       });
@@ -257,16 +259,32 @@ export async function reportCardRoutes(instance: FastifyInstance) {
                 ),
               )
           : [];
+        const extras = await loadReportExtras(tx, c);
         return c.roster.map((s) => {
           const row = rows.find((r) => r.studentId === s.id);
-          const frozen = row?.status === 'final' && row.snapshot ? (row.snapshot as ReportDocument) : null;
+          const frozen = row?.status === 'final' && row.snapshot ? (row.snapshot as ReportDocumentV2) : null;
+          const base = frozen ? documentSummary(frozen) : liveSummary(c, s.id);
+          // Mode deskriptif (K10): kelengkapan = deskripsi per mapel (sama dengan finalisasi), bukan nilai akhir; rata-rata tetap
+          // angka (staf). Dokumen beku memakai mode saat dibekukan; draf memakai mode tingkat kelas sekarang.
+          const descriptive = frozen
+            ? frozen.reportMode === 'descriptive'
+            : extras.reportMode === 'descriptive';
+          const completeness = !descriptive
+            ? {}
+            : frozen
+              ? {
+                  subjectsGraded: frozen.subjects.filter((sub) => sub.descriptionSource === 'manual').length,
+                  subjectsTotal: frozen.subjects.length,
+                }
+              : completenessOf(c, extras, s.id);
           return {
             studentId: s.id,
             name: s.name,
             nis: s.nis,
             status: row?.status ?? ('draft' as const),
             hasNote: Boolean(row?.homeroomNote),
-            ...(frozen ? documentSummary(frozen) : liveSummary(c, s.id)),
+            ...base,
+            ...completeness,
           };
         });
       });
@@ -289,11 +307,16 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           'menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila ' +
           'pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, ' +
           'kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ' +
-          'ada atau tidak terdaftar di kelas pada tahun ajaran semester itu.',
+          'ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): ' +
+          '`schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` ' +
+          '(`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, ' +
+          '`developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual) dan ' +
+          '`guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan ' +
+          'persis seperti dulu.',
         headers: schoolHeader,
         params: studentParams,
         querystring: semesterQuery,
-        response: { 200: reportDocumentSchema, 400: errorSchema, 404: errorSchema, ...guarded },
+        response: { 200: reportDocumentResponseSchema, 400: errorSchema, 404: errorSchema, ...guarded },
       },
     },
     async (request) => {
@@ -304,10 +327,23 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         const { cls } = await requireSemesterClass(tx, sem.id, classId);
         if (!(await canViewClass(tx, ctx, cls.homeroomTeacherId))) throw notAllowed();
         if (row?.status === 'final' && row.snapshot) {
-          return { ...(row.snapshot as ReportDocument), status: 'final' as const };
+          const frozen = {
+            ...(row.snapshot as ReportDocumentV2),
+            status: 'final' as const,
+            ...(row.schemaVersion === 2 ? { schemaVersion: 2 as const } : {}),
+          };
+          return withResponses(tx, frozen, sem.id, stu.id);
         }
         const c = await loadClassContext(tx, sem, cls, [stu.id]);
-        return buildDocument(tx, c, stu, row?.homeroomNote ?? null);
+        const extras = await loadReportExtras(tx, c);
+        const notes = await loadSectionNotes(tx, sem.id);
+        const doc = await buildDocument(tx, c, stu, row?.homeroomNote ?? null, {
+          reportMode: extras.reportMode,
+          narratives: extras.narratives.get(stu.id),
+          ...notes.get(stu.id),
+        });
+        const live = reportDocumentSchemaVersion(doc) === 2 ? { ...doc, schemaVersion: 2 as const } : doc;
+        return withResponses(tx, live, sem.id, stu.id);
       });
     },
   );
@@ -374,6 +410,77 @@ export async function reportCardRoutes(instance: FastifyInstance) {
     },
   );
 
+  /* ---------- Catatan kokurikuler dan perkembangan (bagian v2) ---------- */
+
+  app.put(
+    '/v1/report-cards/sections',
+    {
+      onRequest: readGate,
+      schema: {
+        tags: tag,
+        summary: 'Simpan deskripsi kokurikuler dan catatan perkembangan',
+        description:
+          'Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas siswa itu (selain itu 403). ' +
+          '`cocurricularNote` (deskripsi kokurikuler) dan `developmentNote` (catatan perkembangan Fase A, tampil di mode ' +
+          'deskriptif) maksimal 1.000 karakter; dihilangkan = tidak berubah, null atau teks kosong menghapus. Setidaknya ' +
+          'satu harus ada (400 galat validasi). Bila terisi, rapor siswa itu berversi snapshot 2 saat difinalkan. Ditolak ' +
+          '409 `report_final` bila rapor siswa itu sudah final (buka kembali dulu). 404 `not_found` bila siswa tidak ' +
+          'terdaftar di kelas pada tahun ajaran semester itu.',
+        headers: schoolHeader,
+        body: z
+          .object({
+            semesterId: z.uuid(),
+            studentId: z.uuid(),
+            cocurricularNote: sectionText,
+            developmentNote: sectionText,
+          })
+          .refine((b) => b.cocurricularNote !== undefined || b.developmentNote !== undefined, {
+            message: 'Isi cocurricularNote atau developmentNote.',
+          }),
+        response: {
+          200: z.object({
+            ok: z.literal(true),
+            cocurricularNote: z.string().nullable(),
+            developmentNote: z.string().nullable(),
+          }),
+          400: errorSchema,
+          404: errorSchema,
+          409: errorSchema,
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const { semesterId, studentId, cocurricularNote, developmentNote } = request.body;
+      return tenant(request, async (tx) => {
+        const sem = await requireSemester(tx, semesterId);
+        const { classId } = await resolveStudent(tx, sem, studentId);
+        const { cls } = await requireSemesterClass(tx, sem.id, classId);
+        if (!(await canWriteClass(tx, ctx, cls.homeroomTeacherId))) throw notAllowed();
+        await assertStudentsReportNotFinal(tx, semesterId, [studentId]);
+        const fields = {
+          ...(cocurricularNote !== undefined ? { cocurricularNote } : {}),
+          ...(developmentNote !== undefined ? { developmentNote } : {}),
+        };
+        const [row] = await tx
+          .insert(reportCardSection)
+          .values({ schoolId: ctx.schoolId, semesterId, studentId, updatedBy: ctx.userId, ...fields })
+          .onConflictDoUpdate({
+            target: [reportCardSection.semesterId, reportCardSection.studentId],
+            set: { ...fields, updatedBy: ctx.userId, updatedAt: new Date() },
+          })
+          .returning({ c: reportCardSection.cocurricularNote, d: reportCardSection.developmentNote });
+        await audit(tx, ctx, 'report_card.sections', 'report_card', studentId, {
+          semesterId,
+          ...(cocurricularNote !== undefined ? { cocurricular: cocurricularNote !== null } : {}),
+          ...(developmentNote !== undefined ? { development: developmentNote !== null } : {}),
+        });
+        return { ok: true as const, cocurricularNote: row?.c ?? null, developmentNote: row?.d ?? null };
+      });
+    },
+  );
+
   /* ---------- Finalisasi ---------- */
 
   app.post(
@@ -392,7 +499,11 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           'hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi ' +
           'nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen ' +
           'dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik ' +
-          'sekolah ini dan satu tahun ajaran (400 `invalid_reference`).',
+          'sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Tiap siswa memakai bagian v2 hanya bila punya ' +
+          'deskripsi kokurikuler/perkembangan, deskripsi manual mapel, atau tingkat kelasnya bermode deskriptif: snapshot dan ' +
+          '`schema_version` siswa itu menjadi 2; siswa lain (juga di kelas yang sama) tetap v1 persis. Mode deskriptif ' +
+          '(`school_level.report_mode`): kelengkapan = setiap mapel punya deskripsi manual (bukan nilai akhir; angka tetap dihitung ' +
+          'dan disimpan) dan pesan `grades_incomplete` menyebut "deskripsi".',
         headers: schoolHeader,
         body: z.object({
           semesterId: z.uuid(),
@@ -415,16 +526,22 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         if (!(await canWriteClass(tx, ctx, cls.homeroomTeacherId))) throw notAllowed();
         await ensureSemesterFrozen(tx, ctx, semesterId, 'finalize');
         const c = await loadClassContext(tx, sem, cls);
+        const extras = await loadReportExtras(tx, c);
+        const notes = await loadSectionNotes(tx, semesterId);
+        const descriptive = extras.reportMode === 'descriptive';
         const incomplete = c.roster.filter((s) => {
-          const { subjectsGraded, subjectsTotal } = liveSummary(c, s.id);
+          const { subjectsGraded, subjectsTotal } = completenessOf(c, extras, s.id);
           return subjectsTotal === 0 || subjectsGraded < subjectsTotal;
         });
         if (incomplete.length > 0 && !force) {
           throw new HttpError(
             409,
             'grades_incomplete',
-            `${incomplete.length} siswa belum punya nilai akhir pada sebagian mata pelajaran. ` +
-              'Lengkapi nilainya atau finalkan dengan force.',
+            descriptive
+              ? `${incomplete.length} siswa belum punya deskripsi capaian pada sebagian mata pelajaran. ` +
+                  'Lengkapi deskripsinya atau finalkan dengan force.'
+              : `${incomplete.length} siswa belum punya nilai akhir pada sebagian mata pelajaran. ` +
+                  'Lengkapi nilainya atau finalkan dengan force.',
           );
         }
         const [stuRows, existing] = await Promise.all([
@@ -450,12 +567,19 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         for (const s of c.roster) {
           const stu = stuRows.find((r) => r.id === s.id);
           if (!stu) continue;
-          const note = existing.find((r) => r.studentId === s.id)?.note ?? null;
-          const doc: ReportDocument = {
-            ...(await buildDocument(tx, c, stu, note)),
+          const prior = existing.find((r) => r.studentId === s.id);
+          const note = prior?.note ?? null;
+          const doc: ReportDocumentV2 = {
+            ...(await buildDocument(tx, c, stu, note, {
+              reportMode: extras.reportMode,
+              narratives: extras.narratives.get(s.id),
+              ...notes.get(s.id),
+            })),
             status: 'final',
             generatedAt: now.toISOString(),
           };
+          // Snapshot berversi 2 HANYA bila dokumen ini memakai minimal satu bagian v2 (sparse); selain itu persis v1.
+          const schemaVersion = reportDocumentSchemaVersion(doc);
           await tx
             .insert(reportCard)
             .values({
@@ -468,7 +592,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
               finalizedAt: now,
               finalizedBy: ctx.userId,
               snapshot: doc,
-              schemaVersion: REPORT_SCHEMA_VERSION,
+              schemaVersion,
             })
             .onConflictDoUpdate({
               target: [reportCard.semesterId, reportCard.studentId],
@@ -478,7 +602,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
                 finalizedAt: now,
                 finalizedBy: ctx.userId,
                 snapshot: doc,
-                schemaVersion: REPORT_SCHEMA_VERSION,
+                schemaVersion,
                 updatedAt: now,
               },
             });
@@ -489,7 +613,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
             classId,
             version: (lastVersion.get(s.id) ?? 0) + 1,
             kind: 'finalized',
-            schemaVersion: REPORT_SCHEMA_VERSION,
+            schemaVersion,
             snapshot: doc,
             actorId: ctx.userId,
           });

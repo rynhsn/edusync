@@ -1540,6 +1540,17 @@ export const SERVICE_DOCS: DocArticle[] = [
             body: 'Wali melihat anak yang tertaut pada datanya, sedangkan siswa hanya melihat dirinya sendiri. Beranda memuat kelas, kehadiran 30 hari terakhir, tunggakan, nilai terbaru, dan pengumuman untuk portal. Rincian per anak punya tab Absensi, Nilai, Tagihan (beserta kwitansi), Rapor yang sudah final, Tahfidz, dan Kabar. Bagian tertentu hanya muncul bila modulnya aktif di sekolah.',
           },
           {
+            heading: 'Melihat rapor dan menulis tanggapan',
+            body: 'Di tab Rapor, klik Lihat rapor untuk membaca rapor final anak, termasuk catatan kokurikuler dan deskripsi tiap mata pelajaran. Di bawahnya ada kotak Tanggapan orang tua/wali. Wali dapat menulis, mengubah, dan menyimpan satu tanggapan selama waktu menanggapi masih terbuka; tanggalnya tertulis di bawah kotak. Tanggapan hanya dapat dilihat Anda, wali kelas, dan pihak sekolah. Pada tingkat yang memakai rapor deskriptif (mis. Fase A), nilai angka tidak ditampilkan di portal; capaian dibaca dari rapor.',
+            steps: [
+              'Buka rincian anak, lalu tab Rapor.',
+              'Klik Lihat rapor pada semester yang diinginkan.',
+              'Tulis tanggapan, lalu klik Kirim tanggapan.',
+            ],
+            href: '/portal',
+            tip: 'Tanggapan dapat diubah lagi selama waktu menanggapi belum ditutup.',
+          },
+          {
             heading: 'Mencabut undangan atau akun portal',
             body: 'Halaman Akun portal menampilkan Undangan (Menunggu, Dipakai, Kedaluwarsa, Dicabut) dan Akun aktif. Undangan yang belum dipakai dapat dicabut, dan akun yang sudah jadi dapat dicabut aksesnya.',
             steps: [
@@ -1609,6 +1620,17 @@ export const SERVICE_DOCS: DocArticle[] = [
             body: 'A guardian sees the children linked to their record, while a student sees only themselves. The home page shows the class, the last 30 days of attendance, arrears, the latest grades, and announcements for the portal. Each child has tabs for Attendance, Grades, Invoices (with receipts), finalized Report cards, Tahfidz, and News. Some parts only appear when their module is active at the school.',
           },
           {
+            heading: 'Viewing the report card and writing a response',
+            body: 'In the Report cards tab, click View report card to read the final report card of the child, including the co-curricular note and the description of each subject. Below it is the Parent/guardian response box. A guardian can write, change, and save one response while the response period is open; the date is shown under the box. Only you, the homeroom teacher, and the school can see the response. For levels that use a descriptive report card (for example Phase A), numeric scores are not shown in the portal; achievements are read from the report card.',
+            steps: [
+              'Open the child details, then the Report cards tab.',
+              'Click View report card for the semester you want.',
+              'Write the response, then click Send response.',
+            ],
+            href: '/portal',
+            tip: 'The response can be changed again until the response period closes.',
+          },
+          {
             heading: 'Revoking an invitation or portal account',
             body: 'The Portal accounts page shows Invitations (Pending, Used, Expired, Revoked) and Active accounts. An unused invitation can be revoked, and an existing account can have its access revoked.',
             steps: [
@@ -1676,6 +1698,17 @@ export const SERVICE_DOCS: DocArticle[] = [
           {
             heading: 'Terang naon nu katingali ku wali jeung siswa',
             body: 'Wali ningali anak nu tertaut kana datana, sedengkeun siswa ngan ningali dirina sorangan. Béréndang ngandung kelas, kahadiran 30 poé katukang, tunggakan, nilai pangahirna, jeung pengumuman pikeun portal. Rincian per anak gaduh tab Absénsi, Nilai, Tagihan (jeung kwitansi), Rapor nu parantos final, Tahfidz, jeung Warta. Bagian tangtu ngan mucunghul upami modulna aktif di sakola.',
+          },
+          {
+            heading: 'Ningali rapor jeung nulis tanggapan',
+            body: 'Dina tab Rapor, klik Tingali rapor pikeun maca rapor final anak, kaasup catetan kokurikuler jeung déskripsi unggal mata pelajaran. Di handapna aya kotak Tanggapan kolot/wali. Wali bisa nulis, ngarobah, jeung nyimpen hiji tanggapan salila waktu méré tanggapan kénéh muka; tanggalna ditulis di handap kotak. Tanggapan ngan bisa ditempo ku anjeun, wali kelas, jeung pihak sakola. Dina tingkat nu maké rapor déskriptif (upama Fase A), nilai angka teu ditémbongkeun di portal; capaian dibaca tina rapor.',
+            steps: [
+              'Buka rincian anak, tuluy tab Rapor.',
+              'Klik Tingali rapor dina semester nu dipikahayang.',
+              'Tulis tanggapan, tuluy klik Kirim tanggapan.',
+            ],
+            href: '/portal',
+            tip: 'Tanggapan bisa dirobah deui salila waktu méré tanggapan can ditutup.',
           },
           {
             heading: 'Nyabut uleman atawa akun portal',

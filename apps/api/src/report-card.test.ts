@@ -439,8 +439,15 @@ describe('pengaturan', () => {
     };
     const put = await call('PUT', '/v1/report-cards/settings', curriculumCookie, body);
     expect(put.statusCode).toBe(200);
-    expect(put.json()).toEqual(body);
-    expect((await call('GET', '/v1/report-cards/settings', waliCookie)).json()).toEqual(body);
+    // Tahap 3.2: tiga field aditif dengan nilai bawaan (bendera PDF mati, jendela tanggapan 30 hari).
+    const withDefaults = {
+      ...body,
+      showCocurricular: false,
+      showGuardianResponse: false,
+      responseWindowDays: 30,
+    };
+    expect(put.json()).toEqual(withDefaults);
+    expect((await call('GET', '/v1/report-cards/settings', waliCookie)).json()).toEqual(withDefaults);
 
     const cleared = await call('PUT', '/v1/report-cards/settings', adminCookie, {
       ...body,

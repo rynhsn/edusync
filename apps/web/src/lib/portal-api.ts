@@ -132,6 +132,11 @@ export interface PortalGrades {
   semesters: { id: string; name: string; academicYear: string; isActive: boolean }[];
   kkm: number | null;
   average: number | null;
+  /**
+   * Ada (`descriptive`) bila tingkat kelas anak bermode rapor deskriptif (Fase A): tidak ada angka di respons ini
+   * (`kkm` dan `average` null, `subjects` kosong); capaian dibaca dari rapor final.
+   */
+  reportMode?: 'descriptive';
   /** Hanya ada (`report`) bila angka diambil dari rapor yang sudah final; tak ada pada angka berjalan. */
   source?: 'report';
   subjects: {
@@ -232,7 +237,7 @@ export interface PortalOverview {
     overdueTotal: number;
     upcoming: PortalInvoice[];
   };
-  grades: { available: boolean; recentScores: RecentScore[] };
+  grades: { available: boolean; reportMode?: 'descriptive'; recentScores: RecentScore[] };
   reportCards: { available: boolean; items: PortalReportCardItem[] };
   tahfidz: {
     available: boolean;
@@ -247,7 +252,23 @@ export interface PortalOverview {
   announcements: { available: boolean; items: PortalAnnouncement[] };
 }
 
-/** Dokumen rapor final satu semester (sama dengan rapor staf ditambah jumlah terlambat). */
+/** Tanggapan wali yang ditumpangkan ke dokumen rapor; portal hanya memuat tanggapan wali yang sedang masuk. */
+export interface PortalGuardianResponse {
+  id: string;
+  guardianId: string;
+  guardianName: string;
+  text: string;
+  recordedByKind: 'guardian' | 'staff';
+  snapshotVersion: number | null;
+  /** true bila rapor difinalkan ulang sesudah tanggapan ditulis. */
+  outdated: boolean;
+  updatedAt: string;
+}
+
+/**
+ * Dokumen rapor final satu semester (sama dengan rapor staf ditambah jumlah terlambat). Bagian v2 semuanya opsional.
+ * Mode deskriptif (Fase A) tidak memuat `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tidak memuat `rank`.
+ */
 export interface PortalReportDocument {
   status: 'draft' | 'final';
   school: { name: string; address: string | null; city: string | null };
@@ -263,19 +284,35 @@ export interface PortalReportDocument {
   subjects: {
     subjectId: string;
     name: string;
-    kkm: number;
-    final: number | null;
-    predicate: Predicate | null;
+    kkm?: number;
+    final?: number | null;
+    predicate?: Predicate | null;
     description: string | null;
-    belowKkm: boolean;
+    belowKkm?: boolean;
+    descriptionSource?: 'manual' | 'objectives';
   }[];
   extracurriculars: { name: string; predicate: Predicate | null; note: string | null }[];
   attendance: { sick: number; excused: number; absent: number; late: number };
   homeroomNote: string | null;
   homeroomTeacher: { name: string; nip: string | null } | null;
   principal: { name: string; nip: string | null } | null;
-  rank: { position: number; of: number } | null;
+  rank?: { position: number; of: number } | null;
   generatedAt: string;
+  schemaVersion?: 2;
+  reportMode?: 'descriptive';
+  cocurricularNote?: string | null;
+  developmentNote?: string | null;
+  guardianResponses?: PortalGuardianResponse[];
+}
+
+/** Status jendela tanggapan wali atas rapor final seorang anak, beserta tanggapan milik sendiri. */
+export interface PortalResponseState {
+  final: boolean;
+  finalizedAt: string | null;
+  closesAt: string | null;
+  open: boolean;
+  windowDays: number | null;
+  response: PortalGuardianResponse | null;
 }
 
 export interface PortalInviteRow {
@@ -333,6 +370,8 @@ export const PORTAL_PATHS = {
   invoices: (id: string) => `/v1/portal/children/${id}/invoices`,
   reportCards: (id: string) => `/v1/portal/children/${id}/report-cards`,
   reportCard: (id: string, semesterId: string) => `/v1/portal/children/${id}/report-cards/${semesterId}`,
+  reportResponse: (id: string, semesterId: string) =>
+    `/v1/portal/children/${id}/report-cards/${semesterId}/response`,
   tahfidz: (id: string) => `/v1/portal/children/${id}/tahfidz`,
   invites: '/v1/portal/invites',
   invite: (id: string) => `/v1/portal/invites/${id}`,
@@ -344,7 +383,7 @@ export const PORTAL_PATHS = {
 
 /** Permintaan ke API dengan bentuk galat yang sama seperti `unwrap`. `schoolId` mengisi x-school-id. */
 export async function portalRequest<T>(
-  method: 'GET' | 'POST' | 'DELETE',
+  method: 'GET' | 'POST' | 'PUT' | 'DELETE',
   path: string,
   options: { schoolId?: string; body?: unknown } = {},
 ): Promise<T> {

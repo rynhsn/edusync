@@ -1125,6 +1125,8 @@ export const guardian = pgTable(
     createdAt: createdAt(),
   },
   (t) => [
+    /** Sasaran FK komposit `report_card_response_guardian_fk` (SQL tangan 0097). */
+    unique('guardian_school_id_uq').on(t.schoolId, t.id),
     index('guardian_school_name_idx').on(t.schoolId, t.name),
     uniqueIndex('guardian_school_nik_uq').on(t.schoolId, t.nik).where(sql`${t.nik} is not null`),
     check('guardian_nik_ck', sql`${t.nik} is null or ${t.nik} ~ '^[0-9]{16}$'`),
@@ -1823,6 +1825,12 @@ export const reportSetting = pgTable('report_setting', {
     .notNull()
     .default('Perlu bimbingan lebih lanjut untuk mencapai capaian pembelajaran.'),
   showRank: boolean('show_rank').notNull().default(false),
+  /** Tampilkan bagian deskripsi kokurikuler pada PDF rapor (bawaan mati; K12). */
+  showCocurricular: boolean('show_cocurricular').notNull().default(false),
+  /** Tampilkan bagian tanggapan orang tua/wali pada PDF rapor (bawaan mati; K12). */
+  showGuardianResponse: boolean('show_guardian_response').notNull().default(false),
+  /** Jendela tanggapan wali sejak finalisasi, dalam hari (1..365); NULL = tanpa batas (K9). */
+  responseWindowDays: integer('response_window_days').default(30),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -1859,6 +1867,109 @@ export const reportCard = pgTable(
   (t) => [
     unique('report_card_semester_student_uq').on(t.semesterId, t.studentId),
     index('report_card_class_idx').on(t.classId, t.semesterId),
+  ],
+);
+
+/**
+ * Deskripsi kokurikuler dan catatan perkembangan Fase A per siswa per semester (bagian v2 snapshot, tahap 3.2). Tabel terpisah
+ * dari `report_card` supaya baris `report_card` sekolah lama tidak berubah bentuk. Bertahan lewat buka kembali.
+ * FK komposit ke semester dan siswa (SQL tangan 0097, NO ACTION).
+ */
+export const reportCardSection = pgTable(
+  'report_card_section',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    cocurricularNote: text('cocurricular_note'),
+    developmentNote: text('development_note'),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('report_card_section_uq').on(t.semesterId, t.studentId),
+    index('report_card_section_student_idx').on(t.schoolId, t.studentId),
+  ],
+);
+
+/**
+ * Deskripsi capaian manual per siswa-mapel-semester (tahap 3.2; narasi otomatis dari TP = tahap 3.4). Teks manual menang atas
+ * deskripsi dari predikat saat dokumen disusun. Bertahan lewat buka kembali. `generated_hash` dicadangkan untuk tahap 3.4.
+ *
+ * FK komposit ke semester, kelas, mapel, dan siswa (`report_subject_narrative_*_fk`, SQL tangan 0097, NO ACTION); Drizzle tidak
+ * memodelkan FK komposit ini.
+ */
+export const reportSubjectNarrative = pgTable(
+  'report_subject_narrative',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+    subjectId: uuid('subject_id')
+      .notNull()
+      .references(() => subject.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    text: text('text').notNull(),
+    generatedHash: text('generated_hash'),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('report_subject_narrative_uq').on(t.semesterId, t.studentId, t.subjectId),
+    index('report_subject_narrative_class_idx').on(t.schoolId, t.semesterId, t.classId, t.subjectId),
+  ],
+);
+
+/**
+ * Tanggapan orang tua/wali atas rapor FINAL (tahap 3.2). Bukan bagian snapshot: ditumpangkan saat baca. `snapshot_version` =
+ * versi riwayat `report_card_snapshot` (peristiwa `finalized` terakhir) saat ditulis; setelah buka kembali dan finalisasi ulang
+ * tanggapan itu ditandai berasal dari versi lama. Tidak dihapus oleh buka kembali.
+ *
+ * FK komposit ke semester, siswa, dan wali (`report_card_response_*_fk`, SQL tangan 0097, NO ACTION): wali yang punya tanggapan
+ * tidak dapat dihapus.
+ */
+export const reportCardResponse = pgTable(
+  'report_card_response',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    guardianId: uuid('guardian_id')
+      .notNull()
+      .references(() => guardian.id),
+    text: text('text').notNull(),
+    snapshotVersion: integer('snapshot_version'),
+    recordedBy: text('recorded_by').notNull(),
+    recordedByKind: text('recorded_by_kind', { enum: ['guardian', 'staff'] }).notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('report_card_response_uq').on(t.semesterId, t.studentId, t.guardianId),
+    index('report_card_response_student_idx').on(t.schoolId, t.studentId, t.semesterId),
   ],
 );
 
@@ -3161,6 +3272,8 @@ export const schoolLevel = pgTable(
     /** Menit per JP dan jumlah minggu efektif per tingkat (konfigurasi sekolah; kosong = belum diatur). */
     periodMinutes: integer('period_minutes'),
     effectiveWeeks: integer('effective_weeks'),
+    /** Mode rapor tingkat ini: NULL/'numeric' = angka dan predikat; 'descriptive' = deskriptif Fase A (angka tetap disimpan di snapshot, disembunyikan). */
+    reportMode: text('report_mode', { enum: ['numeric', 'descriptive'] }),
     createdAt: createdAt(),
   },
   (t) => [unique('school_level_uq').on(t.schoolId, t.code)],

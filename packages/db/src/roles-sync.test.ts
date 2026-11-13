@@ -65,3 +65,28 @@ describe('sinkron izin peran bawaan', () => {
     expect(await syncSystemRolePermissions(platform.db)).toBe(0);
   });
 });
+
+describe('sinkron izin portal:respond', () => {
+  it('menyebar ke peran wali sekolah lama, tidak ke peran siswa', async () => {
+    const [g] = await platform.db
+      .select({ id: role.id })
+      .from(role)
+      .where(and(eq(role.schoolId, schoolId), eq(role.key, 'guardian')));
+    const [st] = await platform.db
+      .select({ id: role.id })
+      .from(role)
+      .where(and(eq(role.schoolId, schoolId), eq(role.key, 'student')));
+    const has = async (roleId: string) =>
+      (await platform.db.select().from(rolePermission).where(eq(rolePermission.roleId, roleId))).some(
+        (r) => r.permission === 'portal:respond',
+      );
+    // Meniru sekolah lama yang dibuat sebelum izin ada.
+    await platform.db
+      .delete(rolePermission)
+      .where(and(eq(rolePermission.roleId, g!.id), eq(rolePermission.permission, 'portal:respond')));
+    expect(await has(g!.id)).toBe(false);
+    await syncSystemRolePermissions(platform.db);
+    expect(await has(g!.id)).toBe(true);
+    expect(await has(st!.id)).toBe(false);
+  });
+});

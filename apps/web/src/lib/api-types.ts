@@ -9877,7 +9877,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
                     };
                 };
             };
@@ -10413,7 +10413,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
                     };
                 };
             };
@@ -27722,6 +27722,12 @@ export interface paths {
                             descD: string;
                             /** @description Tampilkan peringkat kelas pada rapor */
                             showRank: boolean;
+                            /** @description Tampilkan bagian deskripsi kokurikuler pada PDF rapor (bawaan mati) */
+                            showCocurricular: boolean;
+                            /** @description Tampilkan bagian tanggapan orang tua/wali pada PDF rapor (bawaan mati) */
+                            showGuardianResponse: boolean;
+                            /** @description Jendela tanggapan wali sejak finalisasi, dalam hari (1-365); null = tanpa batas. Bawaan 30 */
+                            responseWindowDays: number | null;
                         };
                     };
                 };
@@ -27757,7 +27763,7 @@ export interface paths {
         };
         /**
          * Ubah pengaturan rapor
-         * @description Izin: `report_card:manage`; modul `grades`. Mengganti seluruh pengaturan. Teks kosong pada nama, NIP, kota, dan alamat disimpan sebagai kosong (null); deskripsi capaian wajib terisi (400 galat validasi).
+         * @description Izin: `report_card:manage`; modul `grades`. Mengganti seluruh pengaturan. Teks kosong pada nama, NIP, kota, dan alamat disimpan sebagai kosong (null); deskripsi capaian wajib terisi (400 galat validasi). `showCocurricular`, `showGuardianResponse` (bendera bagian PDF, bawaan mati) dan `responseWindowDays` (1-365 hari atau null = tanpa batas, bawaan 30) bersifat opsional: dihilangkan = tidak berubah. Tidak dijaga `report_final` (tidak mengubah angka; rapor final dibaca dari snapshot).
          */
         put: {
             parameters: {
@@ -27786,6 +27792,12 @@ export interface paths {
                         descD: string;
                         /** @default false */
                         showRank?: boolean;
+                        /** @description Dihilangkan = tidak berubah */
+                        showCocurricular?: boolean;
+                        /** @description Dihilangkan = tidak berubah */
+                        showGuardianResponse?: boolean;
+                        /** @description Dihilangkan = tidak berubah; null = tanpa batas */
+                        responseWindowDays?: number | null;
                     };
                 };
             };
@@ -27811,6 +27823,12 @@ export interface paths {
                             descD: string;
                             /** @description Tampilkan peringkat kelas pada rapor */
                             showRank: boolean;
+                            /** @description Tampilkan bagian deskripsi kokurikuler pada PDF rapor (bawaan mati) */
+                            showCocurricular: boolean;
+                            /** @description Tampilkan bagian tanggapan orang tua/wali pada PDF rapor (bawaan mati) */
+                            showGuardianResponse: boolean;
+                            /** @description Jendela tanggapan wali sejak finalisasi, dalam hari (1-365); null = tanpa batas. Bawaan 30 */
+                            responseWindowDays: number | null;
                         };
                     };
                 };
@@ -27972,7 +27990,7 @@ export interface paths {
         };
         /**
          * Dokumen rapor satu siswa
-         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu.
+         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
          */
         get: {
             parameters: {
@@ -28030,6 +28048,24 @@ export interface paths {
                                 /** @description Deskripsi capaian otomatis menurut predikat */
                                 description: string | null;
                                 belowKkm: boolean;
+                                /** @enum {string} */
+                                descriptionSource?: "manual" | "objectives";
+                                objectives?: {
+                                    assessed: number;
+                                    achieved: number;
+                                    high: {
+                                        /** Format: uuid */
+                                        id: string;
+                                        code: string | null;
+                                        text: string;
+                                    }[];
+                                    low: {
+                                        /** Format: uuid */
+                                        id: string;
+                                        code: string | null;
+                                        text: string;
+                                    }[];
+                                };
                             }[];
                             extracurriculars: {
                                 name: string;
@@ -28059,6 +28095,34 @@ export interface paths {
                             } | null;
                             /** @description Waktu dokumen disusun (saat final: waktu finalisasi) */
                             generatedAt: string;
+                            /** @enum {string} */
+                            reportMode?: "descriptive";
+                            cocurricularNote?: string;
+                            developmentNote?: string;
+                            /**
+                             * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
+                             * @enum {number}
+                             */
+                            schemaVersion?: 2;
+                            /** @description Hanya ada bila ada tanggapan yang boleh dilihat pembaca ini */
+                            guardianResponses?: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                guardianId: string;
+                                guardianName: string;
+                                text: string;
+                                /**
+                                 * @description guardian = ditulis wali lewat portal; staff = disalin staf dari rapor kertas
+                                 * @enum {string}
+                                 */
+                                recordedByKind: "guardian" | "staff";
+                                /** @description Versi riwayat snapshot (finalisasi) saat tanggapan ditulis */
+                                snapshotVersion: number | null;
+                                /** @description true bila rapor sudah difinalkan ulang sesudah tanggapan ini ditulis (tanggapan atas versi sebelumnya) */
+                                outdated: boolean;
+                                updatedAt: string;
+                            }[];
                         };
                     };
                 };
@@ -28254,6 +28318,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/report-cards/sections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Simpan deskripsi kokurikuler dan catatan perkembangan
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas siswa itu (selain itu 403). `cocurricularNote` (deskripsi kokurikuler) dan `developmentNote` (catatan perkembangan Fase A, tampil di mode deskriptif) maksimal 1.000 karakter; dihilangkan = tidak berubah, null atau teks kosong menghapus. Setidaknya satu harus ada (400 galat validasi). Bila terisi, rapor siswa itu berversi snapshot 2 saat difinalkan. Ditolak 409 `report_final` bila rapor siswa itu sudah final (buka kembali dulu). 404 `not_found` bila siswa tidak terdaftar di kelas pada tahun ajaran semester itu.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        studentId: string;
+                        cocurricularNote?: string | null;
+                        developmentNote?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                            cocurricularNote: string | null;
+                            developmentNote: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/report-cards/finalize": {
         parameters: {
             query?: never;
@@ -28265,7 +28457,7 @@ export interface paths {
         put?: never;
         /**
          * Finalkan rapor satu kelas
-         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif dan lulusan kelas (tahun ajaran kelas itu): dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif dan lulusan kelas (tahun ajaran kelas itu): dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Tiap siswa memakai bagian v2 hanya bila punya deskripsi kokurikuler/perkembangan, deskripsi manual mapel, atau tingkat kelasnya bermode deskriptif: snapshot dan `schema_version` siswa itu menjadi 2; siswa lain (juga di kelas yang sama) tetap v1 persis. Mode deskriptif (`school_level.report_mode`): kelengkapan = setiap mapel punya deskripsi manual (bukan nilai akhir; angka tetap dihitung dan disimpan) dan pesan `grades_incomplete` menyebut "deskripsi".
          */
         post: {
             parameters: {
@@ -28457,6 +28649,487 @@ export interface paths {
                 };
             };
         };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/report-cards/narratives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Deskripsi capaian per mata pelajaran satu kelas
+         * @description Izin: `report_card:read`; modul `grades`. Daftar siswa kelas itu untuk satu mapel dengan deskripsi otomatis (menurut predikat), deskripsi manual, dan teks efektif yang dipakai rapor. Boleh dibaca pemegang `report_card:manage`/`report_card:read_all`, wali kelas, `grade:configure`, atau guru pengampu mapel itu di kelas itu (selain itu 403). Di mode deskriptif (Fase A) deskripsi otomatis kosong: hanya deskripsi manual yang memenuhi kelengkapan. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    classId: string;
+                    subjectId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            reportMode: "numeric" | "descriptive";
+                            subject: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            };
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /**
+                                 * @description final = deskripsi tidak dapat diubah sampai rapor dibuka kembali
+                                 * @enum {string}
+                                 */
+                                reportStatus: "draft" | "final";
+                                final: number | null;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                                /** @description Deskripsi otomatis menurut predikat (tahap 3.2); null di mode deskriptif atau bila belum ada predikat */
+                                generated: string | null;
+                                manual: string | null;
+                                /** @description Teks yang dipakai rapor: manual bila ada, selain itu otomatis */
+                                effective: string | null;
+                                /** @enum {string|null} */
+                                source: "manual" | "predicate" | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan deskripsi capaian manual satu mapel (batch)
+         * @description Izin: `report_card:read`, dan guru pengampu mapel itu di kelas itu (`grade:input` + penugasan), pemegang `grade:configure`, atau pemegang `report_card:manage` (selain itu 403; wali kelas yang bukan pengampu hanya membaca). Menulis deskripsi manual per siswa untuk satu kelas-mapel-semester (1-200 siswa, teks maksimal 1.000 karakter; null atau kosong menghapus suntingan). Deskripsi manual menang atas deskripsi otomatis dan membuat rapor siswa itu berversi snapshot 2 saat difinalkan. Ditolak seluruhnya 409 `report_final` bila rapor salah satu siswa pada semester itu sudah final (buka kembali dulu). 400 `invalid_reference` bila semester/kelas/mapel tidak milik sekolah ini atau siswa bukan anggota kelas itu pada tahun ajarannya. Bertahan lewat buka kembali.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        classId: string;
+                        /** Format: uuid */
+                        subjectId: string;
+                        items: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** @description Teks deskripsi capaian; null atau kosong menghapus suntingan manual */
+                            text: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                            saved: number;
+                            removed: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/report-cards/responses": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tanggapan orang tua/wali atas rapor satu siswa
+         * @description Izin: `report_card:read`; modul `grades`. Hanya pemegang `report_card:manage`/`report_card:read_all` atau wali kelas siswa itu (selain itu 403). Mengembalikan status jendela tanggapan, wali yang terhubung ke siswa, dan semua tanggapan siswa itu pada semester itu (`outdated` true bila rapor sudah difinalkan ulang sesudah tanggapan ditulis). Wali lain tidak pernah melihat tanggapan wali yang berbeda. 404 `not_found` bila siswa tidak terdaftar di kelas.
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    studentId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Rapor siswa itu berstatus final (syarat tanggapan) */
+                            final: boolean;
+                            finalizedAt: string | null;
+                            /** @description Akhir jendela tanggapan; null = tanpa batas atau belum final */
+                            closesAt: string | null;
+                            /** @description true bila rapor final dan jendela tanggapan belum lewat */
+                            open: boolean;
+                            /** @description Panjang jendela (hari); null = tanpa batas */
+                            windowDays: number | null;
+                            guardians: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                relation: string;
+                            }[];
+                            responses: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                guardianId: string;
+                                guardianName: string;
+                                text: string;
+                                /**
+                                 * @description guardian = ditulis wali lewat portal; staff = disalin staf dari rapor kertas
+                                 * @enum {string}
+                                 */
+                                recordedByKind: "guardian" | "staff";
+                                /** @description Versi riwayat snapshot (finalisasi) saat tanggapan ditulis */
+                                snapshotVersion: number | null;
+                                /** @description true bila rapor sudah difinalkan ulang sesudah tanggapan ini ditulis (tanggapan atas versi sebelumnya) */
+                                outdated: boolean;
+                                updatedAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Salin tanggapan wali dari rapor kertas
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas siswa itu (selain itu 403). Staf menyalin tanggapan yang ditulis wali di rapor kertas atas nama wali itu (`recordedByKind` staff). Teks polos 1-1.000 karakter. Hanya untuk rapor FINAL (409 `report_not_final`) dan selama jendela tanggapan (409 `response_closed`). Wali harus terhubung ke siswa itu (400 `invalid_reference`). 409 `guardian_response_exists` bila wali itu sudah menulis tanggapannya sendiri lewat portal (staf tidak menimpanya). Tidak menyentuh snapshot dan tidak dijaga `report_final`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        studentId: string;
+                        /** Format: uuid */
+                        guardianId: string;
+                        text: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            guardianId: string;
+                            guardianName: string;
+                            text: string;
+                            /**
+                             * @description guardian = ditulis wali lewat portal; staff = disalin staf dari rapor kertas
+                             * @enum {string}
+                             */
+                            recordedByKind: "guardian" | "staff";
+                            /** @description Versi riwayat snapshot (finalisasi) saat tanggapan ditulis */
+                            snapshotVersion: number | null;
+                            /** @description true bila rapor sudah difinalkan ulang sesudah tanggapan ini ditulis (tanggapan atas versi sebelumnya) */
+                            outdated: boolean;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -45336,6 +46009,11 @@ export interface paths {
                             periodMinutes?: number | null;
                             /** @description Minggu efektif per tahun pada tingkat ini */
                             effectiveWeeks?: number | null;
+                            /**
+                             * @description Mode rapor tingkat ini; dihilangkan = numerik (angka dan predikat). `descriptive` = rapor deskriptif Fase A (angka tetap dihitung dan disimpan di snapshot tetapi tidak ditampilkan; portal tidak menerimanya)
+                             * @enum {string}
+                             */
+                            reportMode?: "numeric" | "descriptive";
                         }[];
                     };
                 };
@@ -45393,6 +46071,8 @@ export interface paths {
                         sort?: number;
                         periodMinutes?: number | null;
                         effectiveWeeks?: number | null;
+                        /** @enum {string|null} */
+                        reportMode?: "numeric" | "descriptive" | null;
                     };
                 };
             };
@@ -45413,6 +46093,11 @@ export interface paths {
                             periodMinutes?: number | null;
                             /** @description Minggu efektif per tahun pada tingkat ini */
                             effectiveWeeks?: number | null;
+                            /**
+                             * @description Mode rapor tingkat ini; dihilangkan = numerik (angka dan predikat). `descriptive` = rapor deskriptif Fase A (angka tetap dihitung dan disimpan di snapshot tetapi tidak ditampilkan; portal tidak menerimanya)
+                             * @enum {string}
+                             */
+                            reportMode?: "numeric" | "descriptive";
                         };
                     };
                 };
@@ -45514,6 +46199,11 @@ export interface paths {
                             periodMinutes?: number | null;
                             /** @description Minggu efektif per tahun pada tingkat ini */
                             effectiveWeeks?: number | null;
+                            /**
+                             * @description Mode rapor tingkat ini; dihilangkan = numerik (angka dan predikat). `descriptive` = rapor deskriptif Fase A (angka tetap dihitung dan disimpan di snapshot tetapi tidak ditampilkan; portal tidak menerimanya)
+                             * @enum {string}
+                             */
+                            reportMode?: "numeric" | "descriptive";
                         }[];
                     };
                 };
@@ -45577,7 +46267,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah tingkat kelas
-         * @description Izin: `school:manage`. Nama tampilan, urutan, serta konfigurasi `periodMinutes` (menit per JP) dan `effectiveWeeks` (minggu efektif) yang dihilangkan tidak berubah; kode tetap. 404 `not_found` bila tak ada.
+         * @description Izin: `school:manage`. Nama tampilan, urutan, serta konfigurasi `periodMinutes` (menit per JP), `effectiveWeeks` (minggu efektif), dan `reportMode` (`numeric` atau `descriptive`; mode rapor deskriptif Fase A; null kembali ke numerik) yang dihilangkan tidak berubah; kode tetap. `reportMode` tidak mengubah angka dan tidak dijaga `report_final`: rapor final dibaca dari snapshot, rapor yang difinalkan sesudahnya memakai mode yang berlaku saat itu. 404 `not_found` bila tak ada.
          */
         put: {
             parameters: {
@@ -45600,6 +46290,11 @@ export interface paths {
                         periodMinutes?: number | null;
                         /** @description Minggu efektif; dihilangkan = tidak berubah, null mengosongkan */
                         effectiveWeeks?: number | null;
+                        /**
+                         * @description Mode rapor tingkat; dihilangkan = tidak berubah, null mengembalikan ke numerik
+                         * @enum {string|null}
+                         */
+                        reportMode?: "numeric" | "descriptive" | null;
                     };
                 };
             };
@@ -45620,6 +46315,11 @@ export interface paths {
                             periodMinutes?: number | null;
                             /** @description Minggu efektif per tahun pada tingkat ini */
                             effectiveWeeks?: number | null;
+                            /**
+                             * @description Mode rapor tingkat ini; dihilangkan = numerik (angka dan predikat). `descriptive` = rapor deskriptif Fase A (angka tetap dihitung dan disimpan di snapshot tetapi tidak ditampilkan; portal tidak menerimanya)
+                             * @enum {string}
+                             */
+                            reportMode?: "numeric" | "descriptive";
                         };
                     };
                 };
@@ -57567,6 +58267,11 @@ export interface paths {
                             grades: {
                                 /** @description false bila modul sekolah untuk bagian ini tidak aktif */
                                 available: boolean;
+                                /**
+                                 * @description Ada (`descriptive`) bila kelas anak pada semester bawaan bermode rapor deskriptif; skor kelas deskriptif tidak pernah disertakan. Dihilangkan pada mode numerik
+                                 * @enum {string}
+                                 */
+                                reportMode?: "descriptive";
                                 recentScores: {
                                     subject: string;
                                     title: string;
@@ -57864,6 +58569,11 @@ export interface paths {
                                 academicYear: string;
                                 isActive: boolean;
                             }[];
+                            /**
+                             * @description Ada (`descriptive`) bila tingkat kelas anak pada semester itu bermode rapor deskriptif (Fase A, K10): TIDAK ada angka nilai di respons ini (`kkm` dan `average` null, `subjects` dan `formative` kosong/hilang, `recentScores` tanpa skor kelas deskriptif); capaian dibaca dari rapor final. Dihilangkan pada mode numerik.
+                             * @enum {string}
+                             */
+                            reportMode?: "descriptive";
                             kkm: number | null;
                             average: number | null;
                             /**
@@ -58222,7 +58932,7 @@ export interface paths {
         };
         /**
          * Dokumen rapor final satu semester
-         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif.
+         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.
          */
         get: {
             parameters: {
@@ -58272,13 +58982,31 @@ export interface paths {
                                 /** Format: uuid */
                                 subjectId: string;
                                 name: string;
-                                kkm: number;
-                                final: number | null;
+                                kkm?: number;
+                                final?: number | null;
                                 /** @enum {string|null} */
-                                predicate: "A" | "B" | "C" | "D" | null;
+                                predicate?: "A" | "B" | "C" | "D" | null;
                                 /** @description Deskripsi capaian otomatis menurut predikat */
                                 description: string | null;
-                                belowKkm: boolean;
+                                belowKkm?: boolean;
+                                /** @enum {string} */
+                                descriptionSource?: "manual" | "objectives";
+                                objectives?: {
+                                    assessed: number;
+                                    achieved: number;
+                                    high: {
+                                        /** Format: uuid */
+                                        id: string;
+                                        code: string | null;
+                                        text: string;
+                                    }[];
+                                    low: {
+                                        /** Format: uuid */
+                                        id: string;
+                                        code: string | null;
+                                        text: string;
+                                    }[];
+                                };
                             }[];
                             extracurriculars: {
                                 name: string;
@@ -58302,12 +59030,40 @@ export interface paths {
                                 nip: string | null;
                             } | null;
                             /** @description Hanya bila pengaturan menampilkan peringkat */
-                            rank: {
+                            rank?: {
                                 position: number;
                                 of: number;
                             } | null;
                             /** @description Waktu dokumen disusun (saat final: waktu finalisasi) */
                             generatedAt: string;
+                            /** @enum {string} */
+                            reportMode?: "descriptive";
+                            cocurricularNote?: string;
+                            developmentNote?: string;
+                            /**
+                             * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
+                             * @enum {number}
+                             */
+                            schemaVersion?: 2;
+                            /** @description Hanya ada bila ada tanggapan yang boleh dilihat pembaca ini */
+                            guardianResponses?: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                guardianId: string;
+                                guardianName: string;
+                                text: string;
+                                /**
+                                 * @description guardian = ditulis wali lewat portal; staff = disalin staf dari rapor kertas
+                                 * @enum {string}
+                                 */
+                                recordedByKind: "guardian" | "staff";
+                                /** @description Versi riwayat snapshot (finalisasi) saat tanggapan ditulis */
+                                snapshotVersion: number | null;
+                                /** @description true bila rapor sudah difinalkan ulang sesudah tanggapan ini ditulis (tanggapan atas versi sebelumnya) */
+                                outdated: boolean;
+                                updatedAt: string;
+                            }[];
                         };
                     };
                 };
@@ -58356,6 +59112,229 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/portal/children/{studentId}/report-cards/{semesterId}/response": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Tanggapan wali atas rapor final seorang anak
+         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan siswa). Mengembalikan status jendela tanggapan dan tanggapan MILIK SENDIRI (`response`, null bila belum). Tanggapan wali lain dari anak yang sama tidak pernah tampil. `open` true bila rapor final dan jendela (`windowDays` sejak finalisasi) belum lewat. 404 `not_found` bila anak bukan milik akun ini.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                    semesterId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Rapor anak pada semester ini sudah final (syarat menulis tanggapan) */
+                            final: boolean;
+                            finalizedAt: string | null;
+                            /** @description Akhir jendela tanggapan; null = tanpa batas atau belum final */
+                            closesAt: string | null;
+                            /** @description true bila rapor final dan jendela tanggapan belum lewat */
+                            open: boolean;
+                            windowDays: number | null;
+                            /** @description Tanggapan wali pemanggil; null bila belum menulis */
+                            response: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                guardianId: string;
+                                guardianName: string;
+                                text: string;
+                                /**
+                                 * @description guardian = ditulis wali lewat portal; staff = disalin staf dari rapor kertas
+                                 * @enum {string}
+                                 */
+                                recordedByKind: "guardian" | "staff";
+                                /** @description Versi riwayat snapshot (finalisasi) saat tanggapan ditulis */
+                                snapshotVersion: number | null;
+                                /** @description true bila rapor sudah difinalkan ulang sesudah tanggapan ini ditulis (tanggapan atas versi sebelumnya) */
+                                outdated: boolean;
+                                updatedAt: string;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Tulis atau ubah tanggapan wali atas rapor final
+         * @description Izin: `portal:respond`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan siswa) dan hanya untuk anak yang terhubung lewat data wali (selain itu 404 `not_found`). Satu tanggapan per wali per anak per semester (menulis lagi mengubahnya). Teks polos 1-1.000 karakter, tanpa lampiran. 409 `report_not_final` bila rapor belum final; 409 `response_closed` sesudah jendela tanggapan (bawaan 30 hari sejak finalisasi). Tanggapan menyimpan versi finalisasi saat ditulis, tidak menyentuh snapshot, dan tidak hilang bila rapor dibuka kembali. Hanya terlihat oleh penulisnya, wali kelas, dan pemegang izin kelola/lihat semua rapor. Dibatasi 30 permintaan per menit.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    studentId: string;
+                    semesterId: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        text: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            guardianId: string;
+                            guardianName: string;
+                            text: string;
+                            /**
+                             * @description guardian = ditulis wali lewat portal; staff = disalin staf dari rapor kertas
+                             * @enum {string}
+                             */
+                            recordedByKind: "guardian" | "staff";
+                            /** @description Versi riwayat snapshot (finalisasi) saat tanggapan ditulis */
+                            snapshotVersion: number | null;
+                            /** @description true bila rapor sudah difinalkan ulang sesudah tanggapan ini ditulis (tanggapan atas versi sebelumnya) */
+                            outdated: boolean;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;

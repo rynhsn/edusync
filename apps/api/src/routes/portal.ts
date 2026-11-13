@@ -1,5 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { reportDocumentSchema } from '@edusync/contracts';
+import { portalReportDocumentSchema, reportGuardianResponseSchema } from '@edusync/contracts';
 import {
   and,
   asc,
@@ -42,8 +42,10 @@ import {
   finalReportDocument,
   gradesFor,
   invoicesFor,
+  isDescriptiveFor,
   loadLink,
   notFoundChild,
+  type PortalLinkRow,
   portalAnnouncements,
   receiptsFor,
   recentScoresFor,
@@ -54,6 +56,7 @@ import {
   semestersWithYear,
   tahfidzFor,
 } from '../portal-lib';
+import { loadResponses, RESPONSE_TEXT_MAX, responseWindow, saveResponse } from '../report-response-lib';
 import { audit, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const MODULE = 'parent_portal';
@@ -576,7 +579,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
   async function forChild<T>(
     request: { ctx?: TenantContext; server: FastifyInstance },
     studentId: string,
-    fn: (tx: Tx, child: ChildProfile, flags: SectionFlags) => Promise<T>,
+    fn: (tx: Tx, child: ChildProfile, flags: SectionFlags, link: PortalLinkRow) => Promise<T>,
   ) {
     const ctx = request.ctx as TenantContext;
     return tenant(request, async (tx) => {
@@ -586,7 +589,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
       if (!allowed.includes(studentId)) throw notFoundChild();
       const [child] = await childProfiles(tx, [studentId]);
       if (!child) throw notFoundChild();
-      return fn(tx, child, await sectionFlags(tx));
+      return fn(tx, child, await sectionFlags(tx), link);
     });
   }
 
@@ -702,6 +705,12 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
             }),
             grades: z.object({
               available: unavailable,
+              reportMode: z
+                .literal('descriptive')
+                .optional()
+                .describe(
+                  'Ada (`descriptive`) bila kelas anak pada semester bawaan bermode rapor deskriptif; skor kelas deskriptif tidak pernah disertakan. Dihilangkan pada mode numerik',
+                ),
               recentScores: z.array(recentScoreSchema),
             }),
             reportCards: z.object({ available: unavailable, items: z.array(reportCardItemSchema) }),
@@ -730,6 +739,8 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
         const att = flags.attendance ? await attendanceFor(tx, studentId, range.from, range.to) : null;
         const inv = flags.finance ? await invoicesFor(tx, studentId) : null;
         const scores = flags.grades ? await recentScoresFor(tx, studentId, 5) : [];
+        const defaultSem = flags.grades ? await resolveSemester(tx, undefined) : null;
+        const descriptive = defaultSem ? await isDescriptiveFor(tx, studentId, defaultSem) : false;
         const cards = flags.grades ? await finalReportCards(tx, studentId) : [];
         const tah = flags.tahfidz ? await tahfidzFor(tx, studentId, today) : null;
         const news = flags.announcements ? await portalAnnouncements(tx, 5) : [];
@@ -751,7 +762,11 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
             overdueTotal: inv?.overdueTotal ?? 0,
             upcoming: inv ? inv.invoices.filter((i) => i.outstanding > 0).slice(0, 5) : [],
           },
-          grades: { available: flags.grades, recentScores: scores },
+          grades: {
+            available: flags.grades,
+            ...(descriptive ? { reportMode: 'descriptive' as const } : {}),
+            recentScores: scores,
+          },
           reportCards: { available: flags.grades, items: cards },
           tahfidz: {
             available: flags.tahfidz,
@@ -845,6 +860,14 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
             semesters: z.array(
               z.object({ id: z.uuid(), name: z.string(), academicYear: z.string(), isActive: z.boolean() }),
             ),
+            reportMode: z
+              .literal('descriptive')
+              .optional()
+              .describe(
+                'Ada (`descriptive`) bila tingkat kelas anak pada semester itu bermode rapor deskriptif (Fase A, K10): ' +
+                  'TIDAK ada angka nilai di respons ini (`kkm` dan `average` null, `subjects` dan `formative` kosong/hilang, ' +
+                  '`recentScores` tanpa skor kelas deskriptif); capaian dibaca dari rapor final. Dihilangkan pada mode numerik.',
+              ),
             kkm: z.number().int().nullable(),
             average: z.number().nullable(),
             source: z
@@ -918,6 +941,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
           available: true,
           semester: sem ? { id: sem.id, name: sem.name } : null,
           semesters: await semestersWithYear(tx),
+          ...(grades?.reportMode ? { reportMode: grades.reportMode } : {}),
           kkm: grades?.kkm ?? null,
           average: grades?.average ?? null,
           ...(grades?.source ? { source: grades.source } : {}),
@@ -1041,21 +1065,123 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
         description:
           'Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 ' +
           '`not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul ' +
-          '`grades` tidak aktif.',
+          '`grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, ' +
+          '`cocurricularNote`, `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN ' +
+          'dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat ' +
+          'tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.',
         headers: schoolHeader,
         params: z.object({ studentId: z.uuid(), semesterId: z.uuid() }),
-        response: { 200: reportDocumentSchema, 404: errorSchema, ...guarded },
+        response: { 200: portalReportDocumentSchema, 404: errorSchema, ...guarded },
       },
     },
     async (request) =>
-      forChild(request, request.params.studentId, async (tx, _child, flags) => {
+      forChild(request, request.params.studentId, async (tx, _child, flags, link) => {
         if (!flags.grades) {
           throw new HttpError(403, 'module_disabled', 'Modul ini belum aktif untuk sekolah Anda.');
         }
-        const doc = await finalReportDocument(tx, request.params.studentId, request.params.semesterId);
+        const doc = await finalReportDocument(
+          tx,
+          request.params.studentId,
+          request.params.semesterId,
+          link.kind === 'guardian' ? link.guardianId : null,
+        );
         if (!doc) throw notFound('Rapor');
         return doc;
       }),
+  );
+
+  /* ---------- Tanggapan wali atas rapor final ---------- */
+
+  const respondGate = [requirePermission('portal:respond'), requireModule(MODULE), requireModule('grades')];
+  const responseReadGate = [requirePermission('portal:read'), requireModule(MODULE), requireModule('grades')];
+  const responseParams = z.object({ studentId: z.uuid(), semesterId: z.uuid() });
+  const responseState = z.object({
+    final: z.boolean().describe('Rapor anak pada semester ini sudah final (syarat menulis tanggapan)'),
+    finalizedAt: z.string().nullable(),
+    closesAt: z.string().nullable().describe('Akhir jendela tanggapan; null = tanpa batas atau belum final'),
+    open: z.boolean().describe('true bila rapor final dan jendela tanggapan belum lewat'),
+    windowDays: z.number().int().nullable(),
+    response: reportGuardianResponseSchema
+      .nullable()
+      .describe('Tanggapan wali pemanggil; null bila belum menulis'),
+  });
+
+  /** Hanya tautan wali yang menulis/membaca tanggapan: tautan siswa ditolak 403 `not_guardian`. */
+  const guardianIdOf = (link: PortalLinkRow) => {
+    if (link.kind !== 'guardian' || !link.guardianId) {
+      throw new HttpError(403, 'not_guardian', 'Hanya akun wali yang dapat menanggapi rapor.');
+    }
+    return link.guardianId;
+  };
+
+  app.get(
+    '/v1/portal/children/:studentId/report-cards/:semesterId/response',
+    {
+      onRequest: responseReadGate,
+      schema: {
+        tags: tagPortal,
+        summary: 'Tanggapan wali atas rapor final seorang anak',
+        description:
+          'Izin: `portal:read`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan siswa). ' +
+          'Mengembalikan status jendela tanggapan dan tanggapan MILIK SENDIRI (`response`, null bila belum). Tanggapan wali ' +
+          'lain dari anak yang sama tidak pernah tampil. `open` true bila rapor final dan jendela (`windowDays` sejak ' +
+          'finalisasi) belum lewat. 404 `not_found` bila anak bukan milik akun ini.',
+        headers: schoolHeader,
+        params: responseParams,
+        response: { 200: responseState, 404: errorSchema, ...guarded },
+      },
+    },
+    async (request) =>
+      forChild(request, request.params.studentId, async (tx, _child, _flags, link) => {
+        const guardianId = guardianIdOf(link);
+        const { studentId, semesterId } = request.params;
+        const [mine] = await loadResponses(tx, semesterId, studentId, guardianId);
+        return { ...(await responseWindow(tx, semesterId, studentId)), response: mine ?? null };
+      }),
+  );
+
+  app.put(
+    '/v1/portal/children/:studentId/report-cards/:semesterId/response',
+    {
+      onRequest: respondGate,
+      config: { rateLimit: { max: 30, timeWindow: '1 minute' } },
+      schema: {
+        tags: tagPortal,
+        summary: 'Tulis atau ubah tanggapan wali atas rapor final',
+        description:
+          'Izin: `portal:respond`; modul `parent_portal` dan `grades`; hanya tautan wali (403 `not_guardian` untuk tautan ' +
+          'siswa) dan hanya untuk anak yang terhubung lewat data wali (selain itu 404 `not_found`). Satu tanggapan per wali per ' +
+          'anak per semester (menulis lagi mengubahnya). Teks polos 1-1.000 karakter, tanpa lampiran. 409 `report_not_final` ' +
+          'bila rapor belum final; 409 `response_closed` sesudah jendela tanggapan (bawaan 30 hari sejak finalisasi). ' +
+          'Tanggapan menyimpan versi finalisasi saat ditulis, tidak menyentuh snapshot, dan tidak hilang bila rapor dibuka ' +
+          'kembali. Hanya terlihat oleh penulisnya, wali kelas, dan pemegang izin kelola/lihat semua rapor. Dibatasi ' +
+          '30 permintaan per menit.',
+        headers: schoolHeader,
+        params: responseParams,
+        body: z.object({ text: z.string().trim().min(1).max(RESPONSE_TEXT_MAX) }),
+        response: { 200: reportGuardianResponseSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const { studentId, semesterId } = request.params;
+      return forChild(request, studentId, async (tx, _child, _flags, link) => {
+        const guardianId = guardianIdOf(link);
+        const view = await saveResponse(tx, ctx, {
+          semesterId,
+          studentId,
+          guardianId,
+          text: request.body.text,
+          kind: 'guardian',
+        });
+        await audit(tx, ctx, 'report_card.response', 'report_card', studentId, {
+          semesterId,
+          guardianId,
+          kind: 'guardian',
+        });
+        return view;
+      });
+    },
   );
 
   app.get(

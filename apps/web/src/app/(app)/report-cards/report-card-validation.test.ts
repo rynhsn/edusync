@@ -3,6 +3,8 @@ import {
   REPORT_SETTINGS_ORDER,
   validateHomeroomNote,
   validateReportSettings,
+  validateResponseText,
+  validateSections,
 } from './report-card-validation';
 
 const ok = {
@@ -65,5 +67,46 @@ describe('validateReportSettings', () => {
     const e = validateReportSettings({ ...ok, descA: '', city: 'x'.repeat(81) });
     expect(Object.keys(e).sort()).toEqual(['city', 'descA']);
     expect(REPORT_SETTINGS_ORDER.indexOf('city')).toBeLessThan(REPORT_SETTINGS_ORDER.indexOf('descA'));
+  });
+});
+
+describe('validateReportSettings: lama jendela tanggapan', () => {
+  it('kosong berarti tanpa batas; 1 sampai 365 diterima', () => {
+    for (const v of ['', ' ', '1', '30', '365']) {
+      expect(validateReportSettings({ ...ok, responseWindowDays: v }).responseWindowDays, v).toBeUndefined();
+    }
+  });
+  it('menolak 0, di atas 365, dan bukan bilangan bulat', () => {
+    expect(validateReportSettings({ ...ok, responseWindowDays: '0' }).responseWindowDays).toEqual({
+      code: 'range',
+      min: 1,
+      max: 365,
+    });
+    expect(validateReportSettings({ ...ok, responseWindowDays: '366' }).responseWindowDays?.code).toBe(
+      'range',
+    );
+    expect(validateReportSettings({ ...ok, responseWindowDays: '3,5' }).responseWindowDays).toEqual({
+      code: 'intInvalid',
+    });
+  });
+});
+
+describe('validateSections', () => {
+  it('catatan kokurikuler dan perkembangan opsional, maksimal 1.000', () => {
+    expect(validateSections({ cocurricularNote: '', developmentNote: '' })).toEqual({});
+    expect(
+      validateSections({ cocurricularNote: 'x'.repeat(1000), developmentNote: 'x'.repeat(1000) }),
+    ).toEqual({});
+    const e = validateSections({ cocurricularNote: 'x'.repeat(1001), developmentNote: 'x'.repeat(1001) });
+    expect(e.cocurricularNote).toEqual({ code: 'tooLong', max: 1000 });
+    expect(e.developmentNote).toEqual({ code: 'tooLong', max: 1000 });
+  });
+});
+
+describe('validateResponseText', () => {
+  it('wajib dan maksimal 1.000', () => {
+    expect(validateResponseText('  ').text).toEqual({ code: 'required' });
+    expect(validateResponseText('Terima kasih')).toEqual({});
+    expect(validateResponseText('x'.repeat(1001)).text).toEqual({ code: 'tooLong', max: 1000 });
   });
 });

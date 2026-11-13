@@ -85,7 +85,7 @@ export function ChildView({ studentId }: { studentId: string }) {
       <div
         role="tablist"
         aria-label={t('sections')}
-        className="bg-muted hidden gap-1 rounded-2xl p-1 md:flex"
+        className="bg-muted hidden gap-1 overflow-x-auto rounded-2xl p-1 md:flex"
       >
         {TABS.map(({ key, icon: Icon }) => (
           <button

@@ -70,6 +70,13 @@ const levelSchema = z.object({
     .nullable()
     .optional()
     .describe('Minggu efektif per tahun pada tingkat ini'),
+  reportMode: z
+    .enum(['numeric', 'descriptive'])
+    .optional()
+    .describe(
+      'Mode rapor tingkat ini; dihilangkan = numerik (angka dan predikat). `descriptive` = rapor deskriptif Fase A (angka ' +
+        'tetap dihitung dan disimpan di snapshot tetapi tidak ditampilkan; portal tidak menerimanya)',
+    ),
 });
 const levelCode = z
   .string()
@@ -79,6 +86,7 @@ const levelCode = z
   .regex(/^[A-Za-z0-9._-]+$/, 'Hanya huruf, angka, titik, garis bawah, dan tanda hubung.');
 const periodMinutes = z.number().int().min(1).max(300).nullable();
 const effectiveWeeks = z.number().int().min(1).max(60).nullable();
+const reportMode = z.enum(['numeric', 'descriptive']).nullable();
 const levelCreate = z.object({
   code: levelCode,
   label: z.string().trim().min(1).max(60),
@@ -91,6 +99,7 @@ const levelCreate = z.object({
     .describe('Urutan; bila dihilangkan, ditaruh paling akhir'),
   periodMinutes: periodMinutes.optional(),
   effectiveWeeks: effectiveWeeks.optional(),
+  reportMode: reportMode.optional(),
 });
 const levelUpdate = z.object({
   label: z.string().trim().min(1).max(60),
@@ -101,6 +110,9 @@ const levelUpdate = z.object({
   effectiveWeeks: effectiveWeeks
     .optional()
     .describe('Minggu efektif; dihilangkan = tidak berubah, null mengosongkan'),
+  reportMode: reportMode
+    .optional()
+    .describe('Mode rapor tingkat; dihilangkan = tidak berubah, null mengembalikan ke numerik'),
 });
 
 const tags = ['School'];
@@ -174,6 +186,12 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
 
   /* ---------- Tingkat kelas ---------- */
 
+  /** `reportMode` null (numerik, bawaan) tidak ditampilkan, supaya respons sekolah yang tidak memakainya sama seperti dulu. */
+  const levelView = <T extends { reportMode: 'numeric' | 'descriptive' | null }>(row: T) => {
+    const { reportMode: mode, ...rest } = row;
+    return mode ? { ...rest, reportMode: mode } : rest;
+  };
+
   const listLevels = (tx: Tx) =>
     tx
       .select({
@@ -183,9 +201,11 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
         sort: schoolLevel.sort,
         periodMinutes: schoolLevel.periodMinutes,
         effectiveWeeks: schoolLevel.effectiveWeeks,
+        reportMode: schoolLevel.reportMode,
       })
       .from(schoolLevel)
-      .orderBy(asc(schoolLevel.sort), asc(schoolLevel.code));
+      .orderBy(asc(schoolLevel.sort), asc(schoolLevel.code))
+      .then((rows) => rows.map(levelView));
 
   app.get(
     '/v1/school/levels',
@@ -237,6 +257,7 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
               sort,
               periodMinutes: request.body.periodMinutes ?? null,
               effectiveWeeks: request.body.effectiveWeeks ?? null,
+              reportMode: request.body.reportMode ?? null,
             })
             .returning({
               id: schoolLevel.id,
@@ -245,9 +266,10 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
               sort: schoolLevel.sort,
               periodMinutes: schoolLevel.periodMinutes,
               effectiveWeeks: schoolLevel.effectiveWeeks,
+              reportMode: schoolLevel.reportMode,
             });
           await audit(tx, ctx, 'school.level_create', 'school_level', r!.id, request.body);
-          return r!;
+          return levelView(r!);
         }),
       );
       return reply.code(201).send(created);
@@ -326,8 +348,10 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
         tags,
         summary: 'Ubah tingkat kelas',
         description:
-          'Izin: `school:manage`. Nama tampilan, urutan, serta konfigurasi `periodMinutes` (menit per JP) dan `effectiveWeeks` ' +
-          '(minggu efektif) yang dihilangkan tidak berubah; kode tetap. 404 `not_found` bila tak ada.',
+          'Izin: `school:manage`. Nama tampilan, urutan, serta konfigurasi `periodMinutes` (menit per JP), `effectiveWeeks` ' +
+          '(minggu efektif), dan `reportMode` (`numeric` atau `descriptive`; mode rapor deskriptif Fase A; null kembali ke numerik) ' +
+          'yang dihilangkan tidak berubah; kode tetap. `reportMode` tidak mengubah angka dan tidak dijaga `report_final`: ' +
+          'rapor final dibaca dari snapshot, rapor yang difinalkan sesudahnya memakai mode yang berlaku saat itu. 404 `not_found` bila tak ada.',
         headers: schoolHeader,
         params: idParams,
         body: levelUpdate,
@@ -348,11 +372,12 @@ export async function schoolSettingsRoutes(instance: FastifyInstance) {
             sort: schoolLevel.sort,
             periodMinutes: schoolLevel.periodMinutes,
             effectiveWeeks: schoolLevel.effectiveWeeks,
+            reportMode: schoolLevel.reportMode,
           });
         const r = rows[0];
         if (!r) throw new HttpError(404, 'not_found', 'Tingkat tidak ditemukan.');
         await audit(tx, ctx, 'school.level_update', 'school_level', r.id, request.body);
-        return r;
+        return levelView(r);
       });
     },
   );

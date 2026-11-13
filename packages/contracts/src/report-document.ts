@@ -9,10 +9,14 @@ import { z } from 'zod';
  * yang tidak dideklarasikan pada skema respons, jadi bagian dokumen yang tidak ada di skema ini hilang diam-diam dari API.
  * Karena itu bagian baru HARUS ditambahkan di sini (satu tempat), bukan di salah satu rute.
  *
- * - `reportDocumentSchema` / `ReportDocument`: bentuk v1 (`schema_version` = 1). Dipakai kedua rute dan pembuat dokumen.
+ * - `reportDocumentSchema` / `ReportDocument`: bentuk v1 (`schema_version` = 1). Dipakai pembuat dokumen dan menjadi dasar v2.
  * - `reportDocumentV2Schema`: v1 ditambah bagian v2 yang semuanya OPSIONAL dan ditulis jarang (sparse): kunci yang tidak
- *   dipakai tidak ada sama sekali, sehingga dokumen tanpa fitur baru tetap sama persis dengan v1. Belum dipakai rute di tahap
- *   3.0 (respons API tidak berubah); tahap 3.2 mengganti skema respons ke sini bersama bagian v2 pertama.
+ *   dipakai tidak ada sama sekali, sehingga dokumen tanpa fitur baru tetap sama persis dengan v1. Inilah bentuk yang disimpan
+ *   sebagai snapshot jsonb.
+ * - `reportDocumentResponseSchema`: skema RESPONS staf (`GET /v1/report-cards/:studentId`): v2 ditambah `schemaVersion` (hanya
+ *   bila 2) dan `guardianResponses` (field respons, BUKAN isi jsonb; hanya bila ada tanggapan). Sejak tahap 3.2 rute staf memakai ini.
+ * - `portalReportDocumentSchema`: skema respons portal. Sama dengan di atas, tetapi `final`, `predicate`, `kkm`, `belowKkm` per mapel
+ *   dan `rank` opsional karena mode deskriptif Fase A memproyeksikan dokumen tanpa angka (keputusan K10).
  */
 
 export const REPORT_PREDICATES = ['A', 'B', 'C', 'D'] as const;
@@ -93,6 +97,54 @@ export const reportDocumentV2Schema = reportDocumentSchema.extend({
 export type ReportSubjectV2 = z.infer<typeof reportSubjectV2Schema>;
 export type ReportDocumentV2 = z.infer<typeof reportDocumentV2Schema>;
 
+/** Tanggapan orang tua/wali atas rapor final. Field respons, tidak pernah masuk snapshot. */
+export const reportGuardianResponseSchema = z.object({
+  id: z.uuid(),
+  guardianId: z.uuid(),
+  guardianName: z.string(),
+  text: z.string(),
+  recordedByKind: z
+    .enum(['guardian', 'staff'])
+    .describe('guardian = ditulis wali lewat portal; staff = disalin staf dari rapor kertas'),
+  snapshotVersion: z
+    .number()
+    .int()
+    .nullable()
+    .describe('Versi riwayat snapshot (finalisasi) saat tanggapan ditulis'),
+  outdated: z
+    .boolean()
+    .describe(
+      'true bila rapor sudah difinalkan ulang sesudah tanggapan ini ditulis (tanggapan atas versi sebelumnya)',
+    ),
+  updatedAt: z.string(),
+});
+
+const responseExtras = {
+  schemaVersion: z.literal(2).optional().describe('Hanya ada bila dokumen berbentuk v2; dihilangkan = v1'),
+  guardianResponses: z
+    .array(reportGuardianResponseSchema)
+    .optional()
+    .describe('Hanya ada bila ada tanggapan yang boleh dilihat pembaca ini'),
+};
+
+/** Respons dokumen rapor staf: v2 + `schemaVersion` + `guardianResponses`. */
+export const reportDocumentResponseSchema = reportDocumentV2Schema.extend(responseExtras);
+export type ReportDocumentResponse = z.infer<typeof reportDocumentResponseSchema>;
+
+/** Respons dokumen rapor portal: mode deskriptif membuang angka, predikat, dan peringkat. */
+export const portalReportSubjectSchema = reportSubjectV2Schema.extend({
+  kkm: z.number().optional(),
+  final: z.number().nullable().optional(),
+  predicate: predicateEnum.nullable().optional(),
+  belowKkm: z.boolean().optional(),
+});
+export const portalReportDocumentSchema = reportDocumentV2Schema.extend({
+  ...responseExtras,
+  subjects: z.array(portalReportSubjectSchema),
+  rank: reportDocumentSchema.shape.rank.optional(),
+});
+export type PortalReportDocument = z.infer<typeof portalReportDocumentSchema>;
+
 /** Kunci bagian v2 tingkat dokumen dan tingkat mapel. Satu daftar supaya deteksi dan tes memakai sumber yang sama. */
 export const REPORT_V2_DOCUMENT_KEYS = ['reportMode', 'cocurricularNote', 'developmentNote'] as const;
 export const REPORT_V2_SUBJECT_KEYS = ['descriptionSource', 'objectives'] as const;
@@ -109,4 +161,20 @@ export function reportDocumentSchemaVersion(doc: {
   if (REPORT_V2_DOCUMENT_KEYS.some((k) => has(doc, k))) return 2;
   const subjects = doc.subjects ?? [];
   return subjects.some((s) => REPORT_V2_SUBJECT_KEYS.some((k) => has(s, k))) ? 2 : 1;
+}
+
+/**
+ * Proyeksi portal untuk mode deskriptif (Fase A, K10): buang `final`, `predicate`, `kkm`, `belowKkm` tiap mapel dan `rank`.
+ * Angka tetap ada di snapshot (leger, verifikasi, promosi); hanya tampilan portal yang tidak boleh memuatnya.
+ */
+export function projectDescriptiveForPortal<
+  T extends { reportMode?: 'descriptive' | undefined; subjects: readonly object[] },
+>(doc: T): T {
+  if (doc.reportMode !== 'descriptive') return doc;
+  const { rank: _rank, ...rest } = doc as T & { rank?: unknown };
+  const subjects = doc.subjects.map((s) => {
+    const { final: _f, predicate: _p, kkm: _k, belowKkm: _b, ...keep } = s as Record<string, unknown>;
+    return keep;
+  });
+  return { ...rest, subjects } as unknown as T;
 }

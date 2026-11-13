@@ -40,7 +40,7 @@ import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { TimeField } from '@/components/ui/time-field';
-import { EmptyPanel, IconTile, TONES, type Tone } from '@/components/ui-kit';
+import { EmptyPanel, IconTile, TONES, type Tone, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey, errorKeyIn } from '@/lib/errors';
 import {
@@ -51,6 +51,14 @@ import {
   type LevelSuggestion,
   levelConfigPatch,
 } from '@/lib/level-config';
+import {
+  phaseOfLevel,
+  type ReportMode,
+  reportModeForCreate,
+  reportModeOf,
+  reportModePatch,
+  suggestedReportMode,
+} from '@/lib/report-v2';
 import { cn } from '@/lib/utils';
 import { IdentityPanel } from './identity-panel';
 import {
@@ -510,6 +518,49 @@ interface Level {
   sort: number;
   periodMinutes?: number | null;
   effectiveWeeks?: number | null;
+  reportMode?: ReportMode | null;
+}
+
+/**
+ * Pilihan mode rapor sebuah tingkat: angka atau deskriptif (tanpa angka, mis. Fase A). Saran deskriptif untuk tingkat
+ * berfase A hanya mengisi pilihan bila tombol "Pakai saran" ditekan; tidak pernah otomatis.
+ */
+function LevelReportModeField({
+  value,
+  onChange,
+  phase,
+  idPrefix,
+}: {
+  value: ReportMode;
+  onChange: (next: ReportMode) => void;
+  phase: string | null;
+  idPrefix: string;
+}) {
+  const t = useTranslations('schoolSettings');
+  const id = `${idPrefix}-report-mode`;
+  const suggested = suggestedReportMode(phase);
+  return (
+    <div className="grid content-start gap-2 sm:col-span-2">
+      <Label htmlFor={id}>{t('reportMode')}</Label>
+      <SelectField id={id} value={value} onChange={(e) => onChange(e.target.value as ReportMode)}>
+        <option value="numeric">{t('reportModeNumeric')}</option>
+        <option value="descriptive">{t('reportModeDescriptive')}</option>
+      </SelectField>
+      <p className="text-muted-foreground text-xs">
+        {value === 'descriptive' ? t('reportModeDescriptiveHint') : t('reportModeNumericHint')}
+      </p>
+      {suggested && value !== suggested && (
+        <div className="bg-muted/50 flex flex-wrap items-center justify-between gap-3 rounded-xl border p-3">
+          <p className="text-muted-foreground min-w-0 flex-1 basis-56 text-xs">
+            {t('reportModeSuggestion', { phase: phase ?? '' })}
+          </p>
+          <Button type="button" variant="outline" onClick={() => onChange(suggested)}>
+            {t('useSuggestion')}
+          </Button>
+        </div>
+      )}
+    </div>
+  );
 }
 
 /**
@@ -608,10 +659,23 @@ function LevelsPanel() {
     ? nameOf(school.educationProfile.key, school.educationProfile.name)
     : '';
 
-  const emptyCreate = { code: '', label: '', sort: '', periodMinutes: '', effectiveWeeks: '' };
+  const emptyCreate = {
+    code: '',
+    label: '',
+    sort: '',
+    periodMinutes: '',
+    effectiveWeeks: '',
+    reportMode: 'numeric' as ReportMode,
+  };
   const [createForm, setCreateForm] = useState(emptyCreate);
   const [editing, setEditing] = useState<Level | null>(null);
-  const [editForm, setEditForm] = useState({ label: '', sort: '0', periodMinutes: '', effectiveWeeks: '' });
+  const [editForm, setEditForm] = useState({
+    label: '',
+    sort: '0',
+    periodMinutes: '',
+    effectiveWeeks: '',
+    reportMode: 'numeric' as ReportMode,
+  });
   const [deleting, setDeleting] = useState<Level | null>(null);
   const [stage, setStage] = useState<(typeof STAGES)[number]>('smp');
   const [error, setError] = useState<string | null>(null);
@@ -636,6 +700,7 @@ function LevelsPanel() {
             label: createForm.label.trim(),
             ...(createForm.sort.trim() !== '' ? { sort: Number(createForm.sort) } : {}),
             ...levelConfigPatch({}, createForm).body,
+            ...reportModeForCreate(createForm.reportMode),
           },
         }),
       ),
@@ -657,6 +722,7 @@ function LevelsPanel() {
             label: editForm.label.trim(),
             sort: Number(editForm.sort),
             ...levelConfigPatch(editing as Level, editForm).body,
+            ...reportModePatch((editing as Level).reportMode, editForm.reportMode),
           },
         }),
       ),
@@ -772,6 +838,12 @@ function LevelsPanel() {
                 suggestion={suggestion}
                 profileName={profileName}
               />
+              <LevelReportModeField
+                idPrefix="level"
+                value={createForm.reportMode}
+                onChange={(reportMode) => setCreateForm({ ...createForm, reportMode })}
+                phase={phaseOfLevel(profile?.levels, createForm.code.trim())}
+              />
             </div>
           </FormDialog>
         )}
@@ -843,6 +915,13 @@ function LevelsPanel() {
                         : t('levelPeriodWeeksOnly', { weeks: l.effectiveWeeks ?? '-' })}
                   </p>
                 )}
+                {l.reportMode === 'descriptive' && (
+                  <p className="mt-0.5">
+                    <ToneBadge tone="violet" dot={false}>
+                      {t('reportModeBadge')}
+                    </ToneBadge>
+                  </p>
+                )}
               </div>
               {canManage && (
                 <ActionMenu
@@ -855,7 +934,12 @@ function LevelsPanel() {
                         setError(null);
                         editValidation.reset();
                         setEditing(l);
-                        setEditForm({ label: l.label, sort: String(l.sort), ...configToDraft(l) });
+                        setEditForm({
+                          label: l.label,
+                          sort: String(l.sort),
+                          ...configToDraft(l),
+                          reportMode: reportModeOf(l.reportMode),
+                        });
                       },
                     },
                     {
@@ -916,6 +1000,12 @@ function LevelsPanel() {
             v={editValidation}
             suggestion={suggestion}
             profileName={profileName}
+          />
+          <LevelReportModeField
+            idPrefix="edit-level"
+            value={editForm.reportMode}
+            onChange={(reportMode) => setEditForm({ ...editForm, reportMode })}
+            phase={phaseOfLevel(profile?.levels, editing?.code ?? '')}
           />
         </div>
       </FormDialog>

@@ -314,6 +314,96 @@ describe('PDF rapor', () => {
       3,
     );
   });
+
+  it('dokumen v1 tanpa bendera dirender sama dengan sebelum bagian v2 ada', async () => {
+    const plain = await render('rapor-v1-polos', <ReportCardDocument docs={[base]} />);
+    const withEmptyFlags = await render(
+      'rapor-v1-bendera',
+      <ReportCardDocument docs={[base]} display={{}} />,
+    );
+    expect(withEmptyFlags.length).toBe(plain.length);
+  });
+
+  it('merender rapor v2: kokurikuler, deskripsi manual, dan kotak tanggapan terisi', async () => {
+    const doc: ReportCardDoc = {
+      ...base,
+      schemaVersion: 2,
+      cocurricularNote: 'Aktif dalam kegiatan proyek penguatan profil pelajar dan kerja bakti.',
+      subjects: base.subjects.map((s, i) => (i === 0 ? { ...s, descriptionSource: 'manual' as const } : s)),
+      guardianResponses: [
+        {
+          id: 'r1',
+          guardianId: 'g1',
+          guardianName: 'Ibu Siti',
+          text: 'Terima kasih, kami akan mendampingi belajar di rumah.',
+          recordedByKind: 'guardian',
+          snapshotVersion: 1,
+          outdated: false,
+          updatedAt: '2026-12-20T02:00:00.000Z',
+        },
+      ],
+    };
+    const buf = await render(
+      'rapor-v2',
+      <ReportCardDocument docs={[doc]} display={{ showCocurricular: true, showGuardianResponse: true }} />,
+    );
+    expect(pageCount(buf)).toBeGreaterThanOrEqual(1);
+    // Bagian tambahan membuat dokumen lebih besar daripada rapor v1 yang sama.
+    const v1 = await render('rapor-v1-banding', <ReportCardDocument docs={[base]} />);
+    expect(buf.length).toBeGreaterThan(v1.length);
+  });
+
+  it('merender kotak tanggapan kosong untuk tulisan tangan dan kokurikuler kosong bila bendera menyala', async () => {
+    const buf = await render(
+      'rapor-v2-kosong',
+      <ReportCardDocument docs={[base]} display={{ showCocurricular: true, showGuardianResponse: true }} />,
+    );
+    const plain = await render('rapor-v1-banding2', <ReportCardDocument docs={[base]} />);
+    expect(buf.length).toBeGreaterThan(plain.length);
+  });
+
+  it('merender rapor deskriptif tanpa kolom angka, predikat, KKM, dan peringkat', async () => {
+    // Dokumen portal mode deskriptif tidak memuat angka sama sekali.
+    const descriptive: ReportCardDoc = {
+      ...base,
+      schemaVersion: 2,
+      reportMode: 'descriptive',
+      rank: undefined,
+      developmentNote: 'Ananda tumbuh percaya diri dan senang bekerja sama dengan teman.',
+      subjects: Array.from({ length: 8 }, (_, i) => ({
+        subjectId: `d${i}`,
+        name: `Mata Pelajaran ${i + 1}`,
+        description: 'Ananda sudah mampu mengenal huruf dan membaca kalimat sederhana dengan lancar.',
+        descriptionSource: 'manual' as const,
+      })),
+    };
+    const buf = await render('rapor-deskriptif', <ReportCardDocument docs={[descriptive]} />);
+    expect(pageCount(buf)).toBeGreaterThanOrEqual(1);
+    // Dokumen dengan angka yang sama (mode angka) lebih besar karena ada kolom nilai dan predikat.
+    const numeric = await render(
+      'rapor-deskriptif-banding',
+      <ReportCardDocument docs={[{ ...descriptive, reportMode: undefined }]} />,
+    );
+    expect(buf.length).not.toBe(numeric.length);
+  });
+
+  it('merender rapor deskriptif dengan 40 mapel dan data kosong tanpa galat', async () => {
+    const many: ReportCardDoc = {
+      ...base,
+      reportMode: 'descriptive',
+      rank: null,
+      subjects: Array.from({ length: 40 }, (_, i) => ({
+        subjectId: `m${i}`,
+        name: `Mapel ${i + 1}`,
+        description: i % 3 === 0 ? null : 'Capaian baik dan terus berkembang.',
+      })),
+      homeroomNote: null,
+      extracurriculars: [],
+    };
+    expect(
+      pageCount(await render('rapor-deskriptif-banyak', <ReportCardDocument docs={[many]} />)),
+    ).toBeGreaterThanOrEqual(2);
+  });
 });
 
 describe('PDF rekap presensi', () => {

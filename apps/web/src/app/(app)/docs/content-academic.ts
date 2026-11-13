@@ -377,6 +377,41 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             tip: 'Isi pengaturan ini sebelum mencetak rapor pertama supaya tidak perlu mencetak ulang.',
           },
           {
+            heading: 'Mengisi catatan kokurikuler, perkembangan, dan deskripsi per mata pelajaran',
+            body: 'Selain catatan wali kelas, tiap murid dapat diberi catatan kokurikuler (kegiatan di luar pelajaran) dan, untuk kelas yang memakai rapor deskriptif, catatan perkembangan. Keduanya diisi dari menu aksi pada kartu murid, lewat Catatan rapor, maksimal 1.000 karakter. Guru juga bisa menulis deskripsi capaian sendiri untuk satu mata pelajaran sekaligus untuk seluruh murid lewat panel Deskripsi per mata pelajaran. Deskripsi yang dikosongkan memakai deskripsi otomatis menurut predikat.',
+            steps: [
+              'Buka menu Rapor, lalu pilih semester dan kelas.',
+              'Untuk catatan satu murid, buka menu aksi pada kartu murid dan pilih Catatan rapor.',
+              'Untuk deskripsi, buka panel Deskripsi per mata pelajaran, pilih mata pelajaran, tulis deskripsi tiap murid, lalu klik Simpan deskripsi.',
+            ],
+            href: '/report-cards',
+            tip: 'Gunakan kotak Hanya yang belum diisi untuk cepat menemukan murid yang masih kosong.',
+            warning:
+              'Setelah rapor final, semua catatan dan deskripsi terkunci. Buka kembali rapor kelas bila perlu mengubahnya.',
+          },
+          {
+            heading: 'Rapor deskriptif untuk Fase A',
+            body: 'Tingkat tertentu, misalnya kelas 1 dan 2 (Fase A), dapat memakai rapor deskriptif. Pada mode ini rapor hanya memuat deskripsi capaian dan catatan perkembangan, tanpa angka, predikat, KKM, dan peringkat, baik di pratinjau maupun di PDF. Angka tetap tersimpan di sekolah tetapi tidak ditampilkan, dan portal orang tua tidak memuatnya. Sebelum finalisasi, setiap murid wajib punya deskripsi untuk tiap mata pelajaran; kartu murid menampilkan Kurang berapa deskripsi.',
+            steps: [
+              'Buka Pengaturan sekolah, lalu bagian Tingkat kelas.',
+              'Ubah tingkat yang dimaksud dan pilih Mode rapor: Deskriptif.',
+              'Isi deskripsi tiap mata pelajaran, lalu finalisasi kelas seperti biasa.',
+            ],
+            href: '/school-settings',
+            warning:
+              'Mengganti mode tidak mengubah rapor yang sudah final. Rapor yang difinalisasi sesudahnya memakai mode yang berlaku saat itu.',
+          },
+          {
+            heading: 'Tanggapan orang tua',
+            body: 'Setelah rapor final, orang tua atau wali dapat menulis tanggapan lewat portal selama waktu menanggapi masih terbuka (bawaannya 30 hari sejak finalisasi). Bila tanggapan ditulis di rapor kertas, petugas dapat menyalinnya: buka menu aksi pada kartu murid, pilih Tanggapan orang tua, pilih wali, lalu Salin dari rapor kertas. Tanggapan yang ditulis wali sendiri tidak bisa diganti oleh petugas. Tanda Atas versi rapor sebelumnya muncul bila rapor difinalisasi ulang setelah tanggapan ditulis.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Bagian tambahan di PDF rapor',
+            body: 'Di Pengaturan rapor ada tiga pilihan baru. Tampilkan bagian kokurikuler di PDF mencetak bagian kokurikuler, Tampilkan kotak tanggapan orang tua di PDF mencetak kotak tanggapan (kosong bila belum ada, supaya bisa ditulis tangan), dan Lama orang tua dapat menanggapi mengatur batas hari sejak finalisasi (kosongkan bila tanpa batas). Kedua pilihan cetak bawaannya mati agar PDF sekolah lama tidak berubah; menyalakannya membantu memenuhi komponen minimal rapor.',
+            href: '/report-cards/settings',
+          },
+          {
             heading: 'Siapa yang bisa melakukan apa',
             body: 'Melihat daftar, pratinjau, dan mengunduh rapor satu kelas bisa dilakukan wali kelas kelas itu, Kurikulum, Operator, Kepala sekolah, dan Admin sekolah. Mengisi catatan dan memfinalisasi kelas bisa dilakukan wali kelas kelas itu, Kurikulum, Operator, dan Admin sekolah. Membuka kembali rapor final dan mengubah Pengaturan rapor hanya bisa dilakukan Kurikulum, Operator, dan Admin sekolah. Rapor memerlukan modul Nilai dan rapor aktif di sekolah Anda.',
           },
@@ -466,6 +501,41 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             tip: 'Fill in these settings before printing the first report card so you do not have to reprint.',
           },
           {
+            heading: 'Writing co-curricular notes, development notes, and descriptions per subject',
+            body: 'Besides the homeroom note, each student can get a co-curricular note (activities outside lessons) and, for classes that use a descriptive report card, a development note. Both are written from the action menu on the student card, under Report card notes, up to 1,000 characters. Teachers can also write their own achievement description for one subject for the whole class from the Description per subject panel. A description left empty uses the automatic description for the grade.',
+            steps: [
+              'Open the Report cards menu, then pick the semester and class.',
+              'For one student note, open the action menu on the student card and choose Report card notes.',
+              'For descriptions, open the Description per subject panel, pick a subject, write each student description, then click Save descriptions.',
+            ],
+            href: '/report-cards',
+            tip: 'Use the Only those not filled in box to quickly find students that are still empty.',
+            warning:
+              'Once the report cards are final, all notes and descriptions are locked. Reopen the class report cards if you need to change them.',
+          },
+          {
+            heading: 'Descriptive report cards for Phase A',
+            body: 'Some levels, for example grades 1 and 2 (Phase A), can use a descriptive report card. In this mode the report card only holds achievement descriptions and the development note, with no scores, grades, passing marks, or rankings, in both the preview and the PDF. Scores are still kept by the school but not shown, and the parent portal does not load them. Before finalizing, every student needs a description for each subject; the student card shows how many descriptions are missing.',
+            steps: [
+              'Open School settings, then the Class levels section.',
+              'Edit the level in question and set Report card mode to Descriptive.',
+              'Fill in the description for each subject, then finalize the class as usual.',
+            ],
+            href: '/school-settings',
+            warning:
+              'Changing the mode does not change report cards that are already final. Report cards finalized afterwards use the mode in effect at that time.',
+          },
+          {
+            heading: 'Parent and guardian responses',
+            body: 'Once a report card is final, a parent or guardian can write a response in the portal while the response period is open (30 days after finalizing by default). If a response was written on the paper report card, staff can copy it in: open the action menu on the student card, choose Guardian responses, pick the guardian, then Copy from paper report card. A response the guardian wrote themselves cannot be replaced by staff. The mark About an earlier version of the report card appears if the report card was finalized again after the response was written.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Extra sections on the report card PDF',
+            body: 'Report card settings has three new options. Show the co-curricular section on the PDF prints the co-curricular section, Show the guardian response box on the PDF prints the response box (empty when there is no response yet, so it can be filled in by hand), and How long guardians can respond sets the number of days after finalizing (leave empty for no limit). Both print options are off by default so existing school PDFs do not change; turning them on helps meet the minimum report card components.',
+            href: '/report-cards/settings',
+          },
+          {
             heading: 'Who can do what',
             body: 'Viewing the list, previewing, and downloading the report cards of a class can be done by that class homeroom teacher, Curriculum staff, Operators, the Principal, and School admins. Writing notes and finalizing a class can be done by that class homeroom teacher, Curriculum staff, Operators, and School admins. Reopening a final report card and changing Report card settings can only be done by Curriculum staff, Operators, and School admins. Report cards need the Grades and report cards module to be active at your school.',
           },
@@ -553,6 +623,41 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             ],
             href: '/report-cards/settings',
             tip: 'Eusian pengaturan ieu sateuacan nyitak rapor kahiji supados teu kedah nyitak deui.',
+          },
+          {
+            heading: 'Ngeusian catetan kokurikuler, kamekaran, jeung déskripsi per mata pelajaran',
+            body: 'Salian ti catetan wali kelas, unggal murid bisa dibéré catetan kokurikuler (kagiatan di luar pelajaran) jeung, keur kelas nu maké rapor déskriptif, catetan kamekaran. Duanana diéusian tina ménu aksi dina kartu murid, lewat Catetan rapor, pangpangna 1.000 karakter. Guru ogé bisa nulis déskripsi capaian sorangan keur hiji mata pelajaran pikeun sakabéh murid lewat panel Déskripsi per mata pelajaran. Déskripsi nu dikosongkeun maké déskripsi otomatis numutkeun prédikat.',
+            steps: [
+              'Buka ménu Rapor, tuluy pilih semester jeung kelas.',
+              'Keur catetan hiji murid, buka ménu aksi dina kartu murid tuluy pilih Catetan rapor.',
+              'Keur déskripsi, buka panel Déskripsi per mata pelajaran, pilih mata pelajaran, tulis déskripsi unggal murid, tuluy klik Simpen déskripsi.',
+            ],
+            href: '/report-cards',
+            tip: 'Anggo kotak Nu acan kaeusi wungkul pikeun gancang manggihan murid nu kénéh kosong.',
+            warning:
+              'Sanggeus rapor final, kabéh catetan jeung déskripsi dikonci. Buka deui rapor kelas lamun kudu dirobah.',
+          },
+          {
+            heading: 'Rapor déskriptif keur Fase A',
+            body: 'Tingkat tangtu, upamana kelas 1 jeung 2 (Fase A), bisa maké rapor déskriptif. Dina mode ieu rapor ngan ngandung déskripsi capaian jeung catetan kamekaran, tanpa angka, prédikat, KKM, jeung pangkat, boh di pratinjau boh di PDF. Angka tetep disimpen ku sakola tapi teu ditémbongkeun, jeung portal kolot teu ngamuat. Samemeh finalisasi, unggal murid kudu boga déskripsi keur tiap mata pelajaran; kartu murid nembongkeun kurang sabaraha déskripsi.',
+            steps: [
+              'Buka Pangaturan sakola, tuluy bagian Tingkat kelas.',
+              'Robah tingkat nu dimaksud tuluy pilih Mode rapor: Déskriptif.',
+              'Eusian déskripsi unggal mata pelajaran, tuluy finalisasi kelas saperti biasa.',
+            ],
+            href: '/school-settings',
+            warning:
+              'Ngarobah mode teu ngarobah rapor nu geus final. Rapor nu difinalisasi sanggeusna maké mode nu berlaku harita.',
+          },
+          {
+            heading: 'Tanggapan kolot',
+            body: 'Sanggeus rapor final, kolot atawa wali bisa nulis tanggapan lewat portal salila waktu méré tanggapan kénéh muka (biasana 30 poé ti saprak finalisasi). Lamun tanggapan ditulis dina rapor kertas, petugas bisa nyalinna: buka ménu aksi dina kartu murid, pilih Tanggapan kolot, pilih wali, tuluy Salin tina rapor kertas. Tanggapan nu ditulis ku wali sorangan teu bisa diganti ku petugas. Tanda Kana vérsi rapor saméméhna muncul lamun rapor difinalisasi deui sanggeus tanggapan ditulis.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Bagian tambahan dina PDF rapor',
+            body: 'Dina Pangaturan rapor aya tilu pilihan anyar. Témbongkeun bagian kokurikuler dina PDF nyitak bagian kokurikuler, Témbongkeun kotak tanggapan kolot dina PDF nyitak kotak tanggapan (kosong lamun acan aya, sangkan bisa ditulis leungeun), jeung Sabaraha lila kolot bisa méré tanggapan nangtukeun wates poé ti saprak finalisasi (kosongkeun lamun taya wates). Dua pilihan citak biasana pareum sangkan PDF sakola lila teu robah; ngahurungkeunana mantuan minuhan komponén minimal rapor.',
+            href: '/report-cards/settings',
           },
           {
             heading: 'Saha nu tiasa naon',

@@ -92,7 +92,13 @@ function ChildCard({ child }: { child: PortalMe['children'][number] }) {
           <Stat
             icon={Star}
             label={t('latestGrade')}
-            value={score ? `${Math.round((score.value / score.maxScore) * 100)} · ${score.subject}` : '–'}
+            value={
+              o?.grades.reportMode === 'descriptive'
+                ? t('seeReport')
+                : score
+                  ? `${Math.round((score.value / score.maxScore) * 100)} · ${score.subject}`
+                  : '–'
+            }
           />
           <Stat
             icon={BookHeart}

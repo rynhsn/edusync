@@ -1206,6 +1206,17 @@ export const CORE_DOCS: DocArticle[] = [
             warning:
               'Kode tingkat tidak bisa diubah setelah dibuat, dan tingkat yang masih dipakai kelas, tarif, atau periode pendaftaran tidak bisa dihapus.',
           },
+          {
+            heading: 'Memilih mode rapor per tingkat',
+            body: 'Setiap tingkat punya Mode rapor: Angka (nilai, predikat, dan deskripsi) atau Deskriptif (hanya deskripsi, tanpa angka). Layar menyarankan Deskriptif untuk tingkat yang berada di Fase A, tetapi pilihan baru berlaku setelah Anda menekan Pakai saran dan menyimpan. Pada mode deskriptif, angka tetap tersimpan di sekolah tetapi tidak ditampilkan di rapor, dan portal orang tua tidak memuatnya.',
+            steps: [
+              'Klik Ubah pada tingkat yang dimaksud.',
+              'Pilih Mode rapor.',
+              'Simpan.',
+            ],
+            warning:
+              'Mengganti mode tidak mengubah rapor yang sudah final.',
+          },
         ],
         faq: [
           {
@@ -1268,6 +1279,17 @@ export const CORE_DOCS: DocArticle[] = [
             warning:
               'A level code cannot be changed once created, and a level still used by classes, rates, or admission periods cannot be deleted.',
           },
+          {
+            heading: 'Choosing the report card mode per level',
+            body: 'Each level has a Report card mode: Scores (scores, grades, and descriptions) or Descriptive (descriptions only, no scores). The screen suggests Descriptive for levels in Phase A, but the choice only applies after you press Use suggestion and save. In descriptive mode, scores are still kept by the school but not shown on the report card, and the parent portal does not load them.',
+            steps: [
+              'Click Edit on the level in question.',
+              'Choose the Report card mode.',
+              'Save.',
+            ],
+            warning:
+              'Changing the mode does not change report cards that are already final.',
+          },
         ],
         faq: [
           {
@@ -1329,6 +1351,17 @@ export const CORE_DOCS: DocArticle[] = [
             ],
             warning:
               'Kode tingkat teu bisa dirobah sanggeus dijieun, sarta tingkat nu masih dipaké ku kelas, tarif, atawa périodeu pendaptaran teu bisa dipupus.',
+          },
+          {
+            heading: 'Milih mode rapor per tingkat',
+            body: 'Unggal tingkat boga Mode rapor: Angka (nilai, prédikat, jeung déskripsi) atawa Déskriptif (déskripsi wungkul, tanpa angka). Layar nyarankeun Déskriptif keur tingkat nu aya di Fase A, tapi pilihanana karék berlaku sanggeus anjeun mencét Anggo saran tuluy nyimpen. Dina mode déskriptif, angka tetep disimpen ku sakola tapi teu ditémbongkeun dina rapor, jeung portal kolot teu ngamuat.',
+            steps: [
+              'Klik Robah dina tingkat nu dimaksud.',
+              'Pilih Mode rapor.',
+              'Simpen.',
+            ],
+            warning:
+              'Ngarobah mode teu ngarobah rapor nu geus final.',
           },
         ],
         faq: [

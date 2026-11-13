@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  portalReportDocumentSchema,
+  projectDescriptiveForPortal,
   REPORT_V2_DOCUMENT_KEYS,
   REPORT_V2_SUBJECT_KEYS,
+  reportDocumentResponseSchema,
   reportDocumentSchema,
   reportDocumentSchemaVersion,
   reportDocumentV2Schema,
@@ -114,5 +117,50 @@ describe('reportDocumentSchemaVersion (snapshot sparse)', () => {
         reportDocumentSchemaVersion({ ...v1, subjects: [v1.subjects[0]!, { ...v1.subjects[1]!, [k]: 'x' }] }),
       ).toBe(2);
     }
+  });
+});
+
+describe('skema respons dan proyeksi portal (tahap 3.2)', () => {
+  const guardianResponse = {
+    id: uuid('e'),
+    guardianId: uuid('f'),
+    guardianName: 'Wali Ani',
+    text: 'Terima kasih.',
+    recordedByKind: 'guardian' as const,
+    snapshotVersion: 1,
+    outdated: false,
+    updatedAt: '2026-11-13T00:00:00.000Z',
+  };
+  const v2 = {
+    ...v1,
+    reportMode: 'descriptive' as const,
+    cocurricularNote: 'Aktif.',
+    developmentNote: 'Baik.',
+    schemaVersion: 2 as const,
+    guardianResponses: [guardianResponse],
+  };
+
+  it('skema respons staf mempertahankan semua kunci v2 (serializer tidak membuangnya)', () => {
+    expect(reportDocumentResponseSchema.parse(v2)).toEqual(v2);
+    expect(reportDocumentResponseSchema.parse(v1)).toEqual(v1);
+    expect(reportDocumentResponseSchema.parse(v1)).not.toHaveProperty('schemaVersion');
+  });
+
+  it('skema portal menerima dokumen tanpa angka dan mempertahankan kunci v2', () => {
+    const projected = projectDescriptiveForPortal(v2);
+    expect(portalReportDocumentSchema.parse(projected)).toEqual(projected);
+    expect(portalReportDocumentSchema.parse(v1)).toEqual(v1);
+  });
+
+  it('proyeksi deskriptif membuang final, predikat, kkm, belowKkm, dan peringkat; mode numerik tidak berubah', () => {
+    const projected = projectDescriptiveForPortal(v2);
+    expect(projected).not.toHaveProperty('rank');
+    for (const s of projected.subjects) {
+      for (const k of ['final', 'predicate', 'kkm', 'belowKkm']) expect(s).not.toHaveProperty(k);
+      expect(s).toHaveProperty('name');
+    }
+    expect(projected.reportMode).toBe('descriptive');
+    expect(v2.subjects[0]).toHaveProperty('final');
+    expect(projectDescriptiveForPortal(v1)).toBe(v1);
   });
 });

@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { PenLine, Settings2, Signature } from 'lucide-react';
+import { FileText, PenLine, Settings2, Signature } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -19,6 +19,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { IconTile, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { parseWindowDays } from '@/lib/report-v2';
 import { predicateTone } from '../../grades/grade-ui';
 import {
   REPORT_SETTINGS_ORDER,
@@ -40,6 +41,10 @@ interface Form {
   descC: string;
   descD: string;
   showRank: boolean;
+  showCocurricular: boolean;
+  showGuardianResponse: boolean;
+  /** Teks apa adanya; kosong = tanpa batas. */
+  responseWindowDays: string;
 }
 
 const EMPTY: Form = {
@@ -52,6 +57,9 @@ const EMPTY: Form = {
   descC: '',
   descD: '',
   showRank: false,
+  showCocurricular: false,
+  showGuardianResponse: false,
+  responseWindowDays: '30',
 };
 
 /** Pengaturan rapor: identitas penandatangan, deskripsi capaian per predikat, dan tampilan peringkat. */
@@ -90,6 +98,9 @@ export function ReportCardSettingsView() {
       descC: d.descC ?? '',
       descD: d.descD ?? '',
       showRank: d.showRank,
+      showCocurricular: d.showCocurricular,
+      showGuardianResponse: d.showGuardianResponse,
+      responseWindowDays: d.responseWindowDays === null ? '' : String(d.responseWindowDays),
     });
     setDirty(false);
   }, [settings.data]);
@@ -114,6 +125,9 @@ export function ReportCardSettingsView() {
             descC: form.descC.trim(),
             descD: form.descD.trim(),
             showRank: form.showRank,
+            showCocurricular: form.showCocurricular,
+            showGuardianResponse: form.showGuardianResponse,
+            responseWindowDays: parseWindowDays(form.responseWindowDays) as number | null,
           },
         }),
       ),
@@ -230,6 +244,56 @@ export function ReportCardSettingsView() {
                 <Label htmlFor="rc-showRank">{t('showRank')}</Label>
                 <p className="text-muted-foreground text-sm">{t('showRankHint')}</p>
               </div>
+            </div>
+          </Card>
+
+          <Card className="gap-4 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+            <div className="flex items-start gap-3">
+              <IconTile icon={FileText} tone="sky" />
+              <div>
+                <h2 className="font-heading text-lg font-semibold">{t('extraTitle')}</h2>
+                <p className="text-muted-foreground text-sm">{t('extraHint')}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="rc-showCocurricular"
+                checked={form.showCocurricular}
+                onCheckedChange={(v) => patch({ showCocurricular: v === true })}
+              />
+              <div className="grid gap-0.5">
+                <Label htmlFor="rc-showCocurricular">{t('showCocurricular')}</Label>
+                <p className="text-muted-foreground text-sm">{t('showCocurricularHint')}</p>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <Checkbox
+                id="rc-showGuardianResponse"
+                checked={form.showGuardianResponse}
+                onCheckedChange={(v) => patch({ showGuardianResponse: v === true })}
+              />
+              <div className="grid gap-0.5">
+                <Label htmlFor="rc-showGuardianResponse">{t('showGuardianResponse')}</Label>
+                <p className="text-muted-foreground text-sm">{t('showGuardianResponseHint')}</p>
+              </div>
+            </div>
+            <div className="grid max-w-xs content-start gap-2">
+              <Label htmlFor={validation.idOf('responseWindowDays')}>{t('responseWindowDays')}</Label>
+              <Input
+                {...validation.fieldProps('responseWindowDays')}
+                className={TOUCH_INPUT}
+                inputMode="numeric"
+                autoComplete="off"
+                maxLength={3}
+                placeholder={t('responseWindowPlaceholder')}
+                value={form.responseWindowDays}
+                onChange={(e) => patch({ responseWindowDays: e.target.value })}
+              />
+              <FieldError
+                id={validation.idOf('responseWindowDays')}
+                issue={validation.issue('responseWindowDays')}
+              />
+              <p className="text-muted-foreground text-sm">{t('responseWindowHint')}</p>
             </div>
           </Card>
 

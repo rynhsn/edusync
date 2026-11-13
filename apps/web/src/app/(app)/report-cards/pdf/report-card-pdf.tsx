@@ -1,4 +1,5 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import { type ReportDisplayOptions, reportView } from '../../../../lib/report-v2';
 import { formatGrade, formatIdDate } from './format';
 import type { ReportCardDoc } from './types';
 
@@ -52,6 +53,8 @@ const styles = StyleSheet.create({
   small: { fontSize: 7.5, color: MUTED, marginTop: 3 },
   attendance: { flexDirection: 'row', gap: 24 },
   note: { borderWidth: 0.75, borderColor: LINE, padding: 6, minHeight: 36 },
+  responseBox: { borderWidth: 0.75, borderColor: LINE, padding: 6, minHeight: 54 },
+  responseName: { fontFamily: 'Helvetica-Bold', marginBottom: 1 },
   sign: { flexDirection: 'row', marginTop: 14 },
   signCol: { flex: 1, alignItems: 'center' },
   signSpace: { height: 48 },
@@ -96,13 +99,16 @@ const DEFAULT_SIGN_LABELS: SignLabels = {
 export function ReportCardPage({
   doc,
   labels = DEFAULT_SIGN_LABELS,
+  display,
 }: {
   doc: ReportCardDoc;
   labels?: SignLabels;
+  /** Bendera pengaturan rapor (kokurikuler, kotak tanggapan). Dokumen v1 tanpa bendera tetap berwujud v1. */
+  display?: ReportDisplayOptions;
 }) {
   const { school, semester, student, attendance } = doc;
   const place = [school.city, formatIdDate(doc.generatedAt)].filter(Boolean).join(', ');
-  const anyBelow = doc.subjects.some((s) => s.belowKkm);
+  const view = reportView(doc, display);
   return (
     <Page size="A4" style={styles.page}>
       {doc.status === 'draft' ? (
@@ -146,29 +152,39 @@ export function ReportCardPage({
         </View>
       </View>
 
-      <Text style={styles.section}>Nilai Mata Pelajaran</Text>
+      <Text style={styles.section}>
+        {view.descriptive ? 'Capaian Mata Pelajaran' : 'Nilai Mata Pelajaran'}
+      </Text>
       {/* Header tabel dibungkus agar hanya diulang di halaman yang memuat baris nilai. */}
       <View>
         <View style={styles.head} fixed>
           <Text style={[styles.cell, styles.bold, styles.center, { width: W.no }]}>No</Text>
           <Text style={[styles.cell, styles.bold, { flex: 3 }]}>Mata Pelajaran</Text>
-          <Text style={[styles.cell, styles.bold, styles.center, { width: W.grade }]}>Nilai</Text>
-          <Text style={[styles.cell, styles.bold, styles.center, { width: W.pred }]}>Predikat</Text>
+          {view.showNumbers ? (
+            <>
+              <Text style={[styles.cell, styles.bold, styles.center, { width: W.grade }]}>Nilai</Text>
+              <Text style={[styles.cell, styles.bold, styles.center, { width: W.pred }]}>Predikat</Text>
+            </>
+          ) : null}
           <Text style={[styles.cell, styles.bold, { flex: 4 }]}>Deskripsi Capaian</Text>
         </View>
         {doc.subjects.map((s, i) => (
           <View key={s.subjectId} style={styles.row} wrap={false}>
             <Text style={[styles.cell, styles.center, { width: W.no }]}>{i + 1}</Text>
             <Text style={[styles.cell, { flex: 3 }]}>{s.name}</Text>
-            <Text style={[styles.cell, styles.center, s.belowKkm ? styles.bold : {}, { width: W.grade }]}>
-              {s.final === null ? '-' : `${formatGrade(s.final)}${s.belowKkm ? '*' : ''}`}
-            </Text>
-            <Text style={[styles.cell, styles.center, { width: W.pred }]}>{s.predicate ?? '-'}</Text>
+            {view.showNumbers ? (
+              <>
+                <Text style={[styles.cell, styles.center, s.belowKkm ? styles.bold : {}, { width: W.grade }]}>
+                  {s.final == null ? '-' : `${formatGrade(s.final)}${s.belowKkm ? '*' : ''}`}
+                </Text>
+                <Text style={[styles.cell, styles.center, { width: W.pred }]}>{s.predicate ?? '-'}</Text>
+              </>
+            ) : null}
             <Text style={[styles.cell, { flex: 4 }]}>{s.description || '-'}</Text>
           </View>
         ))}
       </View>
-      {anyBelow ? (
+      {view.showBelowKkmNote ? (
         <Text style={styles.small}>* Nilai di bawah KKM (Kriteria Ketuntasan Minimal).</Text>
       ) : null}
 
@@ -199,6 +215,15 @@ export function ReportCardPage({
         )}
       </View>
 
+      {view.cocurricular.show ? (
+        <View wrap={false}>
+          <Text style={styles.section}>Kokurikuler</Text>
+          <View style={styles.note}>
+            <Text>{view.cocurricular.text || '-'}</Text>
+          </View>
+        </View>
+      ) : null}
+
       <View wrap={false}>
         <Text style={styles.section}>Ketidakhadiran</Text>
         <View style={styles.attendance}>
@@ -213,12 +238,36 @@ export function ReportCardPage({
         <View style={styles.note}>
           <Text>{doc.homeroomNote || '-'}</Text>
         </View>
-        {doc.rank ? (
+        {view.showRank && doc.rank ? (
           <Text style={{ marginTop: 6 }}>
             Peringkat: <Text style={styles.bold}>{doc.rank.position}</Text> dari {doc.rank.of} siswa
           </Text>
         ) : null}
       </View>
+
+      {view.development.show ? (
+        <View wrap={false}>
+          <Text style={styles.section}>Catatan Perkembangan</Text>
+          <View style={styles.note}>
+            <Text>{view.development.text || '-'}</Text>
+          </View>
+        </View>
+      ) : null}
+
+      {view.responseBox.show ? (
+        <View wrap={false}>
+          <Text style={styles.section}>Tanggapan Orang Tua / Wali</Text>
+          {/* Dibiarkan kosong bila belum ada tanggapan, supaya dapat ditulis tangan pada rapor cetak. */}
+          <View style={styles.responseBox}>
+            {view.responseBox.items.map((r) => (
+              <View key={`${r.guardianName}-${r.text}`} style={{ marginBottom: 3 }}>
+                <Text style={styles.responseName}>{r.guardianName}</Text>
+                <Text>{r.text}</Text>
+              </View>
+            ))}
+          </View>
+        </View>
+      ) : null}
 
       <View wrap={false}>
         <Text style={{ textAlign: 'right', marginTop: 12 }}>{place}</Text>
@@ -237,13 +286,21 @@ export function ReportCardPage({
 }
 
 /** Satu PDF berisi rapor satu atau banyak siswa, urutan halaman sesuai `docs`. */
-export function ReportCardDocument({ docs, labels }: { docs: ReportCardDoc[]; labels?: SignLabels }) {
+export function ReportCardDocument({
+  docs,
+  labels,
+  display,
+}: {
+  docs: ReportCardDoc[];
+  labels?: SignLabels;
+  display?: ReportDisplayOptions;
+}) {
   const first = docs[0];
   const title = first && docs.length === 1 ? `Rapor ${first.student.name}` : 'Rapor';
   return (
     <Document title={title} author="Edusync">
       {docs.map((d) => (
-        <ReportCardPage key={d.student.id} doc={d} labels={labels} />
+        <ReportCardPage key={d.student.id} doc={d} labels={labels} display={display} />
       ))}
     </Document>
   );

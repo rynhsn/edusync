@@ -52,6 +52,7 @@ export const PERMISSIONS = [
   'admission:manage',
   'school:manage',
   'portal:read',
+  'portal:respond',
   'announcement:read',
   'announcement:manage',
   'audit:read',
@@ -211,7 +212,7 @@ export const SYSTEM_ROLES = {
       'announcement:read',
     ],
   },
-  guardian: { name: 'Wali', permissions: ['portal:read'] },
+  guardian: { name: 'Wali', permissions: ['portal:read', 'portal:respond'] },
   student: { name: 'Siswa', permissions: ['portal:read'] },
 } as const satisfies Record<string, SystemRole>;
 

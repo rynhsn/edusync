@@ -74,3 +74,19 @@ describe('izin pesan', () => {
     }
   });
 });
+
+describe('izin tanggapan portal', () => {
+  const has = (role: keyof typeof SYSTEM_ROLES, p: string) =>
+    (SYSTEM_ROLES[role].permissions as readonly string[]).includes(p);
+  it('hanya wali (dan admin sekolah) yang memegang portal:respond, siswa tidak', () => {
+    expect(isPermission('portal:respond')).toBe(true);
+    expect(has('guardian', 'portal:respond')).toBe(true);
+    expect(has('guardian', 'portal:read')).toBe(true);
+    expect(has('student', 'portal:respond')).toBe(false);
+    expect(has('student', 'portal:read')).toBe(true);
+    for (const role of ['principal', 'curriculum', 'operator', 'treasurer', 'teacher'] as const) {
+      expect(has(role, 'portal:respond')).toBe(false);
+    }
+    expect(has('school_admin', 'portal:respond')).toBe(true);
+  });
+});

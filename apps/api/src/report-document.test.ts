@@ -352,7 +352,7 @@ describe('rute sungguhan membuang kunci snapshot yang tidak ada di skema respons
     expect(reportDocumentSchema.parse(snapshot)).toEqual(snapshot);
   });
 
-  it('kunci uji ditambahkan ke snapshot: rute staf dan portal membuangnya (perilaku sebenarnya)', async () => {
+  it('kunci uji ditambahkan ke snapshot: kunci v2 bertahan di rute staf dan portal, kunci tak dikenal dibuang', async () => {
     const [row] = await app.platformDb.select().from(reportCard).where(eq(reportCard.studentId, ids.ani));
     const original = row!.snapshot as { subjects: Record<string, unknown>[] } & Record<string, unknown>;
     const tampered = {
@@ -378,12 +378,17 @@ describe('rute sungguhan membuang kunci snapshot yang tidak ada di skema respons
       const staff = (await call('GET', staffUrl(), adminCookie)).json();
       const portal = (await call('GET', portalUrl(), guardianCookie)).json();
       for (const body of [staff, portal]) {
-        // Skema v1 saat ini (rute memakai `reportDocumentSchema`): semua kunci tambahan hilang diam-diam.
-        expect(body.cocurricularNote).toBeUndefined();
+        // Sejak tahap 3.2 rute memakai skema yang mendeklarasikan bagian v2: kunci v2 BERTAHAN, kunci yang tidak
+        // dideklarasikan tetap dibuang diam-diam oleh serializer.
+        expect(body.cocurricularNote).toBe('Kunci uji tingkat dokumen');
+        expect(body.subjects[0].descriptionSource).toBe('manual');
         expect(body.kunciUji).toBeUndefined();
-        expect(body.subjects[0].descriptionSource).toBeUndefined();
         expect(body.subjects[0].kunciUjiMapel).toBeUndefined();
-        expect(body).toEqual(original);
+        expect(body).toEqual({
+          ...original,
+          cocurricularNote: 'Kunci uji tingkat dokumen',
+          subjects: original.subjects.map((s) => ({ ...s, descriptionSource: 'manual' })),
+        });
       }
     } finally {
       await app.platformDb
