@@ -15,14 +15,14 @@ keputusan produk di bagian 10.
 
 ### 1.1 Masalah
 
-| # | Masalah | Bukti (terverifikasi) | Dasar regulasi |
-|---|---|---|---|
-| P1 | Tidak ada jenis asesmen. Semua skor masuk nilai akhir, jadi asesmen formatif (umpan balik) yang dicatat di Edusync ikut menjadi nilai rapor. | `assessment` dan `grade_component` tanpa kategori (`packages/db/src/schema.ts:1710-1757`); `computeGrades` memakai semua penilaian kelas-mapel-semester (`apps/api/src/grading-lib.ts:79-148`). | A1, A4, A5: hanya formatif dan sumatif; formatif tidak dipakai untuk rapor, kenaikan, kelulusan; tidak digabung dengan sumatif. |
-| P2 | Penilaian tidak terhubung ke TP, jadi ketercapaian TP per murid tidak dapat dihitung, padahal CP/TP/ATP berversi dan KKTP per TP (`achievement_criteria.objective_id`) sudah ada. | `assessment` tanpa kaitan TP; pemecah KKM membuang baris ber-TP (`packages/contracts/src/kktp.ts:152`, `apps/api/src/kktp-lib.ts:32`); DB dev: 3 TP, 0 kriteria ber-TP. | A1 (dibandingkan dengan kriteria ketercapaian TP), A3. |
-| P3 | Deskripsi capaian rapor hanya teks per predikat (`report_setting.desc_a..d`), sama untuk semua murid berpredikat sama. | `buildDocument` (`apps/api/src/report-card-lib.ts:286`). | R1 butir 7 "deskripsi capaian kompetensi". |
-| P4 | Komponen rapor minimal belum lengkap: tidak ada tanggapan orang tua/wali, deskripsi kokurikuler, mode rapor deskriptif Fase A, catatan perkembangan Fase A. | `ReportDocument` (`report-card-lib.ts:70-98`) hanya punya `homeroomNote`. | R1 butir 8 dan 12, R2, R3; celah C3 (P0). |
-| P5 | Remedial tidak tercatat. Guru menimpa skor asli; riwayat dan bentuk pendampingan hilang. | `score.value` satu angka (`schema.ts:1760-1779`); dorong nilai ujian menimpa skor (`routes/exam-scores.ts:424-436`). | A8: remedial = pendampingan; tidak ada aturan nasional nilai remedial; celah C16. |
-| P6 | Perencanaan pembelajaran, jurnal, dan penilaian proses pembelajaran tidak ada. | F11 (grep nol). | Tidak wajib nasional (jurnal); C12 wajib minimal 1 kali per semester (1/2026 Pasal 15-19). |
+| #   | Masalah                                                                                                                                                                           | Bukti (terverifikasi)                                                                                                                                                                           | Dasar regulasi                                                                                                                  |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| P1  | Tidak ada jenis asesmen. Semua skor masuk nilai akhir, jadi asesmen formatif (umpan balik) yang dicatat di Edusync ikut menjadi nilai rapor.                                      | `assessment` dan `grade_component` tanpa kategori (`packages/db/src/schema.ts:1710-1757`); `computeGrades` memakai semua penilaian kelas-mapel-semester (`apps/api/src/grading-lib.ts:79-148`). | A1, A4, A5: hanya formatif dan sumatif; formatif tidak dipakai untuk rapor, kenaikan, kelulusan; tidak digabung dengan sumatif. |
+| P2  | Penilaian tidak terhubung ke TP, jadi ketercapaian TP per murid tidak dapat dihitung, padahal CP/TP/ATP berversi dan KKTP per TP (`achievement_criteria.objective_id`) sudah ada. | `assessment` tanpa kaitan TP; pemecah KKM membuang baris ber-TP (`packages/contracts/src/kktp.ts:152`, `apps/api/src/kktp-lib.ts:32`); DB dev: 3 TP, 0 kriteria ber-TP.                         | A1 (dibandingkan dengan kriteria ketercapaian TP), A3.                                                                          |
+| P3  | Deskripsi capaian rapor hanya teks per predikat (`report_setting.desc_a..d`), sama untuk semua murid berpredikat sama.                                                            | `buildDocument` (`apps/api/src/report-card-lib.ts:286`).                                                                                                                                        | R1 butir 7 "deskripsi capaian kompetensi".                                                                                      |
+| P4  | Komponen rapor minimal belum lengkap: tidak ada tanggapan orang tua/wali, deskripsi kokurikuler, mode rapor deskriptif Fase A, catatan perkembangan Fase A.                       | `ReportDocument` (`report-card-lib.ts:70-98`) hanya punya `homeroomNote`.                                                                                                                       | R1 butir 8 dan 12, R2, R3; celah C3 (P0).                                                                                       |
+| P5  | Remedial tidak tercatat. Guru menimpa skor asli; riwayat dan bentuk pendampingan hilang.                                                                                          | `score.value` satu angka (`schema.ts:1760-1779`); dorong nilai ujian menimpa skor (`routes/exam-scores.ts:424-436`).                                                                            | A8: remedial = pendampingan; tidak ada aturan nasional nilai remedial; celah C16.                                               |
+| P6  | Perencanaan pembelajaran, jurnal, dan penilaian proses pembelajaran tidak ada.                                                                                                    | F11 (grep nol).                                                                                                                                                                                 | Tidak wajib nasional (jurnal); C12 wajib minimal 1 kali per semester (1/2026 Pasal 15-19).                                      |
 
 ### 1.2 Kriteria keberhasilan
 
@@ -86,14 +86,14 @@ keputusan produk di bagian 10.
 
 **Opsi**
 
-| | A. Kategori di `grade_component` | B. Kategori di `assessment` | C. Keduanya (komponen bawaan, penilaian menimpa) |
-|---|---|---|---|
-| Tempat pengecualian | Saring komponen sebelum `finalGrade`; rumus tidak berubah | Saring skor di dalam rata-rata komponen | Keduanya |
-| Mode `percentage` | Komponen formatif tidak ikut bobot; aman | Komponen yang semua penilaiannya formatif menjadi kosong dan **menyumbang 0**, menarik nilai turun | Sama buruknya dengan B |
-| Konsistensi | Satu sumber; tidak ada penilaian "formatif di dalam komponen sumatif" | Bobot komponen bisa berarti setengah formatif | Dua sumber kebenaran; UI membingungkan |
-| Pembekuan | Sudah ikut salinan `components` (cukup tambah dua kunci) | Kategori melekat di baris penilaian (data, bukan konfigurasi); tidak perlu salinan, tetapi kategori bisa diubah di semester beku | Keduanya |
-| Ujian CBT | Guru memilih komponen formatif atau sumatif saat dorong nilai; tidak ada parameter baru | Butuh parameter kategori baru di dorong nilai | Keduanya |
-| Kebiasaan sekolah | Cocok dengan praktik "komponen Formatif / Sumatif Lingkup Materi / Sumatif Akhir Semester" | Lebih luwes per penilaian | Paling luwes |
+|                     | A. Kategori di `grade_component`                                                           | B. Kategori di `assessment`                                                                                                      | C. Keduanya (komponen bawaan, penilaian menimpa) |
+| ------------------- | ------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------ |
+| Tempat pengecualian | Saring komponen sebelum `finalGrade`; rumus tidak berubah                                  | Saring skor di dalam rata-rata komponen                                                                                          | Keduanya                                         |
+| Mode `percentage`   | Komponen formatif tidak ikut bobot; aman                                                   | Komponen yang semua penilaiannya formatif menjadi kosong dan **menyumbang 0**, menarik nilai turun                               | Sama buruknya dengan B                           |
+| Konsistensi         | Satu sumber; tidak ada penilaian "formatif di dalam komponen sumatif"                      | Bobot komponen bisa berarti setengah formatif                                                                                    | Dua sumber kebenaran; UI membingungkan           |
+| Pembekuan           | Sudah ikut salinan `components` (cukup tambah dua kunci)                                   | Kategori melekat di baris penilaian (data, bukan konfigurasi); tidak perlu salinan, tetapi kategori bisa diubah di semester beku | Keduanya                                         |
+| Ujian CBT           | Guru memilih komponen formatif atau sumatif saat dorong nilai; tidak ada parameter baru    | Butuh parameter kategori baru di dorong nilai                                                                                    | Keduanya                                         |
+| Kebiasaan sekolah   | Cocok dengan praktik "komponen Formatif / Sumatif Lingkup Materi / Sumatif Akhir Semester" | Lebih luwes per penilaian                                                                                                        | Paling luwes                                     |
 
 **Rekomendasi: A, ditambah tanda (bukan jenis) pada penilaian.**
 
@@ -157,11 +157,11 @@ atau hasil kebijakan remedial (3.6).
 
 **Penyimpanan: dihitung saat baca + override guru + beku di snapshot.**
 
-| | Dihitung saat baca (direkomendasikan) | Tabel materialisasi yang diperbarui setiap tulis skor | Tabel yang dibekukan saat finalisasi |
-|---|---|---|---|
-| Kebenaran | Selalu konsisten dengan skor dan salinan beku | Butuh invalidasi di setiap jalur tulis skor, ujian, remedial, kaitan TP, KKTP; ditolak di rancangan pembekuan (opsi F) | Hanya berlaku sesudah final; draf tetap perlu hitung |
-| Biaya | +3 kueri batch per kelas (kaitan, TP, override); kriteria TP dari salinan beku tanpa kueri | Murah dibaca, mahal dijaga | Duplikasi dengan snapshot |
-| Arsip | Snapshot v2 menyimpan ringkasan TP dan narasi yang dipakai | - | - |
+|           | Dihitung saat baca (direkomendasikan)                                                      | Tabel materialisasi yang diperbarui setiap tulis skor                                                                  | Tabel yang dibekukan saat finalisasi                 |
+| --------- | ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| Kebenaran | Selalu konsisten dengan skor dan salinan beku                                              | Butuh invalidasi di setiap jalur tulis skor, ujian, remedial, kaitan TP, KKTP; ditolak di rancangan pembekuan (opsi F) | Hanya berlaku sesudah final; draf tetap perlu hitung |
+| Biaya     | +3 kueri batch per kelas (kaitan, TP, override); kriteria TP dari salinan beku tanpa kueri | Murah dibaca, mahal dijaga                                                                                             | Duplikasi dengan snapshot                            |
+| Arsip     | Snapshot v2 menyimpan ringkasan TP dan narasi yang dipakai                                 | -                                                                                                                      | -                                                    |
 
 Jadi `student_objective_achievement` **hanya** menyimpan keputusan guru (override atau isian untuk TP tanpa angka, mis. observasi
 dengan rubrik deskriptor), bukan hasil hitung. Nilai efektif = override bila ada, selain itu hitungan. Nama tabel mengikuti roadmap.
@@ -192,13 +192,15 @@ Bagian v2 (semua opsional di `ReportDocument`; tipe dan zod dipindah ke satu tem
 
 ```ts
 interface ReportDocumentV2Extras {
-  reportMode?: 'descriptive';                       // hanya bila tingkat kelas bermode deskriptif (Fase A, keputusan K10)
-  cocurricularNote?: string;                        // deskripsi kokurikuler teks bebas per murid (3.4 butir d)
-  developmentNote?: string;                         // catatan perkembangan Fase A (K11)
+  reportMode?: 'descriptive'; // hanya bila tingkat kelas bermode deskriptif (Fase A, keputusan K10)
+  cocurricularNote?: string; // deskripsi kokurikuler teks bebas per murid (3.4 butir d)
+  developmentNote?: string; // catatan perkembangan Fase A (K11)
   subjects: (V1Subject & {
-    descriptionSource?: 'manual' | 'objectives';    // absen = dari predikat (v1)
-    objectives?: {                                  // absen bila mapel tanpa TP terkait
-      assessed: number; achieved: number;
+    descriptionSource?: 'manual' | 'objectives'; // absen = dari predikat (v1)
+    objectives?: {
+      // absen bila mapel tanpa TP terkait
+      assessed: number;
+      achieved: number;
       high: { id: string; code: string | null; text: string }[];
       low: { id: string; code: string | null; text: string }[];
     };
@@ -207,7 +209,7 @@ interface ReportDocumentV2Extras {
 ```
 
 - **Mode deskriptif Fase A.** Angka tetap dihitung dan disimpan di snapshot (`final`, `predicate`, `kkm`) agar leger, verifikasi, penumpang
-  angka, dan promosi konsisten; semua *renderer* (pratinjau, PDF, portal) menyembunyikan kolom angka, predikat, dan peringkat bila
+  angka, dan promosi konsisten; semua _renderer_ (pratinjau, PDF, portal) menyembunyikan kolom angka, predikat, dan peringkat bila
   `reportMode = 'descriptive'`, dan endpoint portal **memproyeksikan** dokumen tanpa `final`/`predicate`/`rank`. Kelengkapan finalisasi
   (`grades_incomplete`) untuk mode deskriptif = setiap mapel punya deskripsi (manual atau dari TP), bukan nilai akhir. Alternatif "tidak
   menghitung angka sama sekali" dicatat di K10.
@@ -222,14 +224,14 @@ interface ReportDocumentV2Extras {
 
 **Siapa membaca apa**
 
-| Pembaca | `schema_version` | Perubahan |
-|---|---|---|
-| `GET /v1/report-cards/:studentId` | Ya (sparse) | Skema respons dari kontrak bersama; menambah `guardianResponses` (staf) |
-| `GET /v1/portal/children/:id/report-cards/:semesterId` | Ya | Proyeksi deskriptif; `guardianResponses` hanya milik wali itu (K9) |
-| Daftar rapor, `finalReportCards` (`documentSummary`) | Tidak | Mode deskriptif: `average` disembunyikan di portal saja |
-| `finalSubjectRows` (rekap, matriks, portal nilai) | Tidak | Hanya membaca `subjects[].final/predicate/kkm/belowKkm`, yang stabil di v1 dan v2 |
-| `grading-verify-lib.ts` | Tidak | Membandingkan angka; tidak terdampak |
-| Web `preview.tsx`, `pdf/report-card-pdf.tsx`, `reports-tab.tsx` | Ya | Bagian kokurikuler, catatan perkembangan, tanggapan wali, mode deskriptif |
+| Pembaca                                                         | `schema_version` | Perubahan                                                                         |
+| --------------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------- |
+| `GET /v1/report-cards/:studentId`                               | Ya (sparse)      | Skema respons dari kontrak bersama; menambah `guardianResponses` (staf)           |
+| `GET /v1/portal/children/:id/report-cards/:semesterId`          | Ya               | Proyeksi deskriptif; `guardianResponses` hanya milik wali itu (K9)                |
+| Daftar rapor, `finalReportCards` (`documentSummary`)            | Tidak            | Mode deskriptif: `average` disembunyikan di portal saja                           |
+| `finalSubjectRows` (rekap, matriks, portal nilai)               | Tidak            | Hanya membaca `subjects[].final/predicate/kkm/belowKkm`, yang stabil di v1 dan v2 |
+| `grading-verify-lib.ts`                                         | Tidak            | Membandingkan angka; tidak terdampak                                              |
+| Web `preview.tsx`, `pdf/report-card-pdf.tsx`, `reports-tab.tsx` | Ya               | Bagian kokurikuler, catatan perkembangan, tanggapan wali, mode deskriptif         |
 
 **`template_key`.** Tetap tidak dipakai di fase 3 (ditulis `NULL`). `schema_version` = bentuk data; `template_key` disimpan untuk tata letak
 per jenjang (madrasah, SMK) di fase 4-5. Memakai `template_key = 'descriptive'` untuk Fase A ditolak: mode adalah isi dokumen, dan rapor
@@ -291,13 +293,13 @@ teks otomatis dihitung ulang dari data terkini; finalisasi ulang membekukan lagi
 
 **Kebijakan nilai** (`grading_setting.remedial_policy`, ikut salinan beku sebagai kolom `remedial_policy` di `semester_grading_config`):
 
-| Nilai | Skor efektif untuk nilai akhir dan ketercapaian TP |
-|---|---|
-| `NULL` / `record_only` (bawaan) | Skor asli; remedial hanya dicatat. Hasil hitung identik dengan sebelum fase 3. |
-| `replace_latest` | Percobaan terakhir yang berisi nilai |
-| `max` | Maksimum skor asli dan semua percobaan |
-| `cap_at_criteria` | Seperti `max`, dibatasi ambang ketuntasan mapel (KKM efektif mapel, persen dari `max_score`). Tersedia sebagai pilihan, **bukan bawaan** (A8: tidak ada aturan nasional). |
-| `mean_with_original` | Rata-rata skor asli dan percobaan terakhir |
+| Nilai                           | Skor efektif untuk nilai akhir dan ketercapaian TP                                                                                                                        |
+| ------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `NULL` / `record_only` (bawaan) | Skor asli; remedial hanya dicatat. Hasil hitung identik dengan sebelum fase 3.                                                                                            |
+| `replace_latest`                | Percobaan terakhir yang berisi nilai                                                                                                                                      |
+| `max`                           | Maksimum skor asli dan semua percobaan                                                                                                                                    |
+| `cap_at_criteria`               | Seperti `max`, dibatasi ambang ketuntasan mapel (KKM efektif mapel, persen dari `max_score`). Tersedia sebagai pilihan, **bukan bawaan** (A8: tidak ada aturan nasional). |
+| `mean_with_original`            | Rata-rata skor asli dan percobaan terakhir                                                                                                                                |
 
 `computeGrades` memuat percobaan hanya bila kebijakan efektif bukan `record_only` (1 kueri batch). Penulisan percobaan dijaga
 `assertClassReportNotFinal`. Hapus penilaian ikut menghapus percobaannya secara eksplisit di rute (seperti skor), dengan jumlah di audit;
@@ -536,34 +538,34 @@ Rinci saat tahap ini disetujui; semua opsional dan bernama netral.
 Semua field baru opsional pada body; pada respons, field baru di **API** boleh selalu ada (aditif), tetapi isi **jsonb tersimpan**
 (snapshot, salinan beku) wajib sparse. Izin dan modul ditulis di deskripsi OpenAPI; `rbac-matrix` diperbarui untuk setiap rute baru.
 
-| Tahap | Endpoint | Izin / modul | Perubahan | Galat baru |
-|---|---|---|---|---|
-| 3.1 | `GET/POST/PUT /v1/grading/components` | tetap | `category`, `includeInFinal` (body opsional, bawaan sumatif/true); `weight` 0 untuk formatif | 400 `invalid_component_category` |
-| 3.1 | `PUT /v1/grading/settings` | tetap | `weights_sum_invalid` menjumlah komponen yang dihitung saja | - |
-| 3.1 | `POST/PUT /v1/assessments`, `GET /v1/assessments` | tetap | `purpose`, `summativeScope`, `technique`; respons + `category` turunan | 400 `initial_requires_formative`, `scope_requires_summative` |
-| 3.1 | `GET /v1/grading/recap` | tetap | `components[].category`, `includeInFinal` | - |
-| 3.1 | `GET /v1/portal/children/:id/grades`, ringkasan skor portal | tetap | `components[].category`; skor terbaru + `category` | - |
-| 3.1 | `POST /v1/exams/:id/grades` | tetap | `technique` opsional (hanya saat dibuat); dorong ulang tidak menyentuh tanda dan kaitan TP | - |
-| 3.2 | `GET /v1/report-cards/:studentId` | tetap | Skema dari kontrak bersama; `schemaVersion?`, bagian v2, `guardianResponses?` | - |
-| 3.2 | `PUT /v1/report-cards/sections` (baru) | `report_card:read` + wali kelas atau `report_card:manage`; modul `grades` | `cocurricularNote?`, `developmentNote?` (undefined = tetap, null = hapus) | 409 `report_final` |
-| 3.2 | `GET/PUT /v1/report-cards/narratives` (baru) | `report_card:read` (baca) / pengampu atau `report_card:manage` (tulis); `grades` | daftar per siswa: `generated`, `manual`, `effective`, `stale`; tulis batch | 409 `report_final`, 403 |
-| 3.2 | `GET/PUT /v1/report-cards/responses` (baru) | baca: hak lihat kelas; tulis (salin kertas): wali kelas atau `manage`; `grades` | tanggapan per wali | 409 `report_not_final`, `response_closed` |
-| 3.2 | `GET/PUT /v1/portal/children/:id/report-cards/:semesterId/response` (baru) | `portal:respond`; `parent_portal` + `grades`; hanya tautan wali | baca/tulis tanggapan sendiri | 403 `not_guardian`, 409 `report_not_final`, `response_closed`, 404 |
-| 3.2 | `PUT /v1/report-cards/settings` | tetap | `showCocurricular`, `showGuardianResponse`, `responseWindowDays` (opsional) | - |
-| 3.2 | `GET/POST/PUT /v1/school/levels` | tetap | `reportMode` | - |
-| 3.2 | `POST /v1/report-cards/finalize` | tetap | kelengkapan deskriptif; tulis `schema_version` 2 bila ada bagian v2 | pesan `grades_incomplete` menyebut "deskripsi" untuk mode deskriptif |
-| 3.3 | `PUT /v1/assessments/:id/objectives` (baru) dan `objectiveIds?` di POST/PUT penilaian | `grade:input` + pengampu; `grades` | ganti himpunan TP | 400 `objective_subject_mismatch`, `objective_inactive`, `too_many_objectives`; 409 `report_final` |
-| 3.3 | `GET /v1/grading/objective-achievement` (baru) | `grade:read` + hak baca pasangan; `grades` | matriks TP x siswa: `percent`, `achieved`, `levelLabel`, `source` (`computed`/`override`), `scope` | - |
-| 3.3 | `PUT /v1/grading/objective-achievement` (baru) | `grade:input` + pengampu; `grades` | override batch | 409 `report_final` |
-| 3.3 | `GET /v1/semesters/:id/grading-config` | tetap | + `objectiveCriteria`, `objectiveAggregation` | - |
-| 3.3 | `PUT /v1/grading/settings` | tetap | `objectiveAggregation?` | - |
-| 3.3 | `PUT /v1/objectives/:id` | tetap | versi baru bila TP dipakai penilaian | - |
-| 3.4 | `GET /v1/report-cards/narratives` | tetap | `generated` dari TP; `stale` | - |
-| 3.4 | `PUT /v1/report-cards/settings` | tetap | `narrativeMaxItems`, templat | 400 templat tanpa `{tp}` |
-| 3.5 | `GET/POST /v1/learning-supports`, `PUT/DELETE /v1/learning-supports/:id`, `PUT /v1/learning-supports/:id/participants` (baru) | `grade:input` + pengampu; `grades` | pendampingan dan peserta | 409 `report_final` |
-| 3.5 | `GET/POST /v1/assessments/:id/remedial-attempts`, `DELETE /v1/remedial-attempts/:id` (baru) | `grade:input` + pengampu; `grades` | percobaan | 400 `score_out_of_range`; 409 `report_final` |
-| 3.5 | `PUT /v1/grading/settings` | tetap | `remedialPolicy?` | - |
-| 3.5 | `GET /v1/grading/recap` | tetap | per siswa `remedial?: { attempts, effectiveSource }` (hanya bila ada) | - |
+| Tahap | Endpoint                                                                                                                      | Izin / modul                                                                     | Perubahan                                                                                          | Galat baru                                                                                        |
+| ----- | ----------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- |
+| 3.1   | `GET/POST/PUT /v1/grading/components`                                                                                         | tetap                                                                            | `category`, `includeInFinal` (body opsional, bawaan sumatif/true); `weight` 0 untuk formatif       | 400 `invalid_component_category`                                                                  |
+| 3.1   | `PUT /v1/grading/settings`                                                                                                    | tetap                                                                            | `weights_sum_invalid` menjumlah komponen yang dihitung saja                                        | -                                                                                                 |
+| 3.1   | `POST/PUT /v1/assessments`, `GET /v1/assessments`                                                                             | tetap                                                                            | `purpose`, `summativeScope`, `technique`; respons + `category` turunan                             | 400 `initial_requires_formative`, `scope_requires_summative`                                      |
+| 3.1   | `GET /v1/grading/recap`                                                                                                       | tetap                                                                            | `components[].category`, `includeInFinal`                                                          | -                                                                                                 |
+| 3.1   | `GET /v1/portal/children/:id/grades`, ringkasan skor portal                                                                   | tetap                                                                            | `components[].category`; skor terbaru + `category`                                                 | -                                                                                                 |
+| 3.1   | `POST /v1/exams/:id/grades`                                                                                                   | tetap                                                                            | `technique` opsional (hanya saat dibuat); dorong ulang tidak menyentuh tanda dan kaitan TP         | -                                                                                                 |
+| 3.2   | `GET /v1/report-cards/:studentId`                                                                                             | tetap                                                                            | Skema dari kontrak bersama; `schemaVersion?`, bagian v2, `guardianResponses?`                      | -                                                                                                 |
+| 3.2   | `PUT /v1/report-cards/sections` (baru)                                                                                        | `report_card:read` + wali kelas atau `report_card:manage`; modul `grades`        | `cocurricularNote?`, `developmentNote?` (undefined = tetap, null = hapus)                          | 409 `report_final`                                                                                |
+| 3.2   | `GET/PUT /v1/report-cards/narratives` (baru)                                                                                  | `report_card:read` (baca) / pengampu atau `report_card:manage` (tulis); `grades` | daftar per siswa: `generated`, `manual`, `effective`, `stale`; tulis batch                         | 409 `report_final`, 403                                                                           |
+| 3.2   | `GET/PUT /v1/report-cards/responses` (baru)                                                                                   | baca: hak lihat kelas; tulis (salin kertas): wali kelas atau `manage`; `grades`  | tanggapan per wali                                                                                 | 409 `report_not_final`, `response_closed`                                                         |
+| 3.2   | `GET/PUT /v1/portal/children/:id/report-cards/:semesterId/response` (baru)                                                    | `portal:respond`; `parent_portal` + `grades`; hanya tautan wali                  | baca/tulis tanggapan sendiri                                                                       | 403 `not_guardian`, 409 `report_not_final`, `response_closed`, 404                                |
+| 3.2   | `PUT /v1/report-cards/settings`                                                                                               | tetap                                                                            | `showCocurricular`, `showGuardianResponse`, `responseWindowDays` (opsional)                        | -                                                                                                 |
+| 3.2   | `GET/POST/PUT /v1/school/levels`                                                                                              | tetap                                                                            | `reportMode`                                                                                       | -                                                                                                 |
+| 3.2   | `POST /v1/report-cards/finalize`                                                                                              | tetap                                                                            | kelengkapan deskriptif; tulis `schema_version` 2 bila ada bagian v2                                | pesan `grades_incomplete` menyebut "deskripsi" untuk mode deskriptif                              |
+| 3.3   | `PUT /v1/assessments/:id/objectives` (baru) dan `objectiveIds?` di POST/PUT penilaian                                         | `grade:input` + pengampu; `grades`                                               | ganti himpunan TP                                                                                  | 400 `objective_subject_mismatch`, `objective_inactive`, `too_many_objectives`; 409 `report_final` |
+| 3.3   | `GET /v1/grading/objective-achievement` (baru)                                                                                | `grade:read` + hak baca pasangan; `grades`                                       | matriks TP x siswa: `percent`, `achieved`, `levelLabel`, `source` (`computed`/`override`), `scope` | -                                                                                                 |
+| 3.3   | `PUT /v1/grading/objective-achievement` (baru)                                                                                | `grade:input` + pengampu; `grades`                                               | override batch                                                                                     | 409 `report_final`                                                                                |
+| 3.3   | `GET /v1/semesters/:id/grading-config`                                                                                        | tetap                                                                            | + `objectiveCriteria`, `objectiveAggregation`                                                      | -                                                                                                 |
+| 3.3   | `PUT /v1/grading/settings`                                                                                                    | tetap                                                                            | `objectiveAggregation?`                                                                            | -                                                                                                 |
+| 3.3   | `PUT /v1/objectives/:id`                                                                                                      | tetap                                                                            | versi baru bila TP dipakai penilaian                                                               | -                                                                                                 |
+| 3.4   | `GET /v1/report-cards/narratives`                                                                                             | tetap                                                                            | `generated` dari TP; `stale`                                                                       | -                                                                                                 |
+| 3.4   | `PUT /v1/report-cards/settings`                                                                                               | tetap                                                                            | `narrativeMaxItems`, templat                                                                       | 400 templat tanpa `{tp}`                                                                          |
+| 3.5   | `GET/POST /v1/learning-supports`, `PUT/DELETE /v1/learning-supports/:id`, `PUT /v1/learning-supports/:id/participants` (baru) | `grade:input` + pengampu; `grades`                                               | pendampingan dan peserta                                                                           | 409 `report_final`                                                                                |
+| 3.5   | `GET/POST /v1/assessments/:id/remedial-attempts`, `DELETE /v1/remedial-attempts/:id` (baru)                                   | `grade:input` + pengampu; `grades`                                               | percobaan                                                                                          | 400 `score_out_of_range`; 409 `report_final`                                                      |
+| 3.5   | `PUT /v1/grading/settings`                                                                                                    | tetap                                                                            | `remedialPolicy?`                                                                                  | -                                                                                                 |
+| 3.5   | `GET /v1/grading/recap`                                                                                                       | tetap                                                                            | per siswa `remedial?: { attempts, effectiveSource }` (hanya bila ada)                              | -                                                                                                 |
 
 Izin baru: **`portal:respond`** (peran `guardian`). Tidak ada izin baru untuk narasi, remedial, atau TP (memakai `grade:input` dan hak
 kontekstual yang ada). Modul: semua di `grades`; rute tanggapan portal juga `parent_portal`. Catatan: rute CP/TP (`routes/teaching-plan.ts`)
@@ -571,17 +573,17 @@ tidak memakai `requireModule` (terverifikasi); di luar cakupan, tetapi rute kait
 
 ### 4.7 Perubahan guard `report_final`
 
-| Jalur | Guard |
-|---|---|
-| Ubah `category`/`include_in_final` komponen, `objective_aggregation`, `remedial_policy`, KKTP ber-TP | `assertLiveGradingConfigEditable` + aturan W (sama dengan bobot/KKM) |
-| Tanda penilaian (`purpose`, `summative_scope`, `technique`), kaitan TP | `assertClassReportNotFinal` (penilaian sudah dijaga) |
-| Override ketercapaian TP, percobaan remedial, peserta pendampingan | `assertClassReportNotFinal` (kelas-semester) |
-| `learning_support` (buat/ubah/hapus) | `assertClassReportNotFinal` (data penyusun narasi dan nilai efektif) |
-| Narasi manual, `cocurricular_note`, `development_note` | `assertStudentsReportNotFinal` per siswa (seperti catatan wali) |
-| `school_level.report_mode`, pengaturan narasi dan bendera rapor | Tidak dijaga (tidak mengubah angka; final dibaca dari snapshot), sama dengan `report_setting` hari ini |
-| Teks TP | Tidak dijaga; versi baru bila dipakai penilaian; snapshot menyimpan teks |
-| Tanggapan wali | **Kebalikan:** mensyaratkan final (409 `report_not_final`) |
-| Reopen | Tidak menghapus narasi manual, override, remedial, tanggapan; salinan beku tetap |
+| Jalur                                                                                                | Guard                                                                                                  |
+| ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| Ubah `category`/`include_in_final` komponen, `objective_aggregation`, `remedial_policy`, KKTP ber-TP | `assertLiveGradingConfigEditable` + aturan W (sama dengan bobot/KKM)                                   |
+| Tanda penilaian (`purpose`, `summative_scope`, `technique`), kaitan TP                               | `assertClassReportNotFinal` (penilaian sudah dijaga)                                                   |
+| Override ketercapaian TP, percobaan remedial, peserta pendampingan                                   | `assertClassReportNotFinal` (kelas-semester)                                                           |
+| `learning_support` (buat/ubah/hapus)                                                                 | `assertClassReportNotFinal` (data penyusun narasi dan nilai efektif)                                   |
+| Narasi manual, `cocurricular_note`, `development_note`                                               | `assertStudentsReportNotFinal` per siswa (seperti catatan wali)                                        |
+| `school_level.report_mode`, pengaturan narasi dan bendera rapor                                      | Tidak dijaga (tidak mengubah angka; final dibaca dari snapshot), sama dengan `report_setting` hari ini |
+| Teks TP                                                                                              | Tidak dijaga; versi baru bila dipakai penilaian; snapshot menyimpan teks                               |
+| Tanggapan wali                                                                                       | **Kebalikan:** mensyaratkan final (409 `report_not_final`)                                             |
+| Reopen                                                                                               | Tidak menghapus narasi manual, override, remedial, tanggapan; salinan beku tetap                       |
 
 Pesan galat baru id/en/su di `messages/*.json` web; pesan API tetap bahasa Indonesia seperti sekarang.
 
@@ -589,16 +591,16 @@ Pesan galat baru id/en/su di `messages/*.json` web; pesan API tetap bahasa Indon
 
 ## 5. Dampak per modul dan berkas
 
-| Modul | Dampak |
-|---|---|
-| Penilaian | Kategori komponen, tanda penilaian, saring komponen di `computeGrades`, `assessedSubjects` rapor, kaitan TP, matriks ketercapaian, remedial, kebijakan |
-| Pembekuan | `FrozenComponent` sparse, `objective_criteria`, `objective_aggregation`, `remedial_policy`; `readLiveGradingConfig`, `matchesLive`, pembaca versi 1/2 |
-| Rapor | Kontrak dokumen bersama, bagian v2 sparse, narasi, mode deskriptif, kelengkapan, tanggapan, `schema_version` 2 |
-| Portal | Label kategori, proyeksi deskriptif, tanggapan wali, izin `portal:respond` |
-| Ujian | Dorong nilai mempertahankan tanda dan kaitan TP; komponen formatif boleh |
-| Kurikulum/TP | Versi TP bila dipakai penilaian |
-| Pengaturan sekolah | `school_level.report_mode` |
-| Promosi/rollover | Tidak berubah (hanya memeriksa keberadaan rapor final); rollover **tidak** menyalin narasi, override, remedial |
+| Modul              | Dampak                                                                                                                                                 |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Penilaian          | Kategori komponen, tanda penilaian, saring komponen di `computeGrades`, `assessedSubjects` rapor, kaitan TP, matriks ketercapaian, remedial, kebijakan |
+| Pembekuan          | `FrozenComponent` sparse, `objective_criteria`, `objective_aggregation`, `remedial_policy`; `readLiveGradingConfig`, `matchesLive`, pembaca versi 1/2  |
+| Rapor              | Kontrak dokumen bersama, bagian v2 sparse, narasi, mode deskriptif, kelengkapan, tanggapan, `schema_version` 2                                         |
+| Portal             | Label kategori, proyeksi deskriptif, tanggapan wali, izin `portal:respond`                                                                             |
+| Ujian              | Dorong nilai mempertahankan tanda dan kaitan TP; komponen formatif boleh                                                                               |
+| Kurikulum/TP       | Versi TP bila dipakai penilaian                                                                                                                        |
+| Pengaturan sekolah | `school_level.report_mode`                                                                                                                             |
+| Promosi/rollover   | Tidak berubah (hanya memeriksa keberadaan rapor final); rollover **tidak** menyalin narasi, override, remedial                                         |
 
 Berkas (baru ditandai +):
 
@@ -627,38 +629,38 @@ Daftar berkas web adalah perkiraan terbaik; saya hanya membaca nama berkas dan p
 
 ### 6.1 Skenario regresi wajib
 
-| # | Skenario | Suite |
-|---|---|---|
-| T1 | **Hasil lama identik.** Garis dasar dibekukan sebelum 3.1 (fixture JSON): rekap, matriks, dokumen draf, daftar rapor, nilai portal untuk tiga mode dan empat cakupan KKTP; sesudah tiap tahap respons sama persis (kecuali field API aditif yang didaftar eksplisit). | `phase3-baseline.test.ts` + |
-| T2 | **Snapshot emas v1.** Finalisasi sekolah tanpa fitur baru: `schema_version = 1`, jsonb snapshot sama persis dengan fixture (kecuali `generatedAt`); salinan beku tetap `config_version = 1` dan `matchesLive = true`. | `report-card`, `grading-freeze` |
-| T3 | **Formatif tidak memengaruhi.** Tambah komponen formatif berbobot apa pun + skor ekstrem (0 dan 100) pada tiga mode: `final`, `predicate`, rata-rata, peringkat, `grades_incomplete`, mapel rapor, keputusan promosi tidak berubah; `perComponent` memuat rata-rata formatif. Penilaian `purpose = initial` di komponen sumatif (dimasukkan langsung di DB) juga diabaikan. | `assessment-category.test.ts` +, `promotion` |
-| T4 | **Mode persentase.** Komponen formatif tidak ikut jumlah 100; mengubah sumatif menjadi formatif tidak membuat nilai turun karena "menyumbang 0". | idem |
-| T5 | **Pembekuan kategori.** Bekukan, ubah kategori komponen hidup lewat DB: semester beku tetap; aturan W menyinkronkan semester aktif tanpa final; salinan v2 dibaca; salinan v1 dibaca sebagai sumatif. | `grading-freeze` |
-| T6 | **Ujian CBT.** Dorong ke komponen formatif: penilaian formatif, tidak masuk nilai akhir. Dorong ulang tidak mengubah `technique`, `purpose`, kaitan TP; skor asli berubah tetapi percobaan remedial tetap. | `exam-scores` |
-| T7 | **Rapor v1 tidak berubah.** Rapor final v1 (dibuat sebelum migrasi, fixture) dibaca lewat semua pembaca sesudah setiap tahap: respons sama persis; renderer web dites dengan fixture v1 (uji komponen). | `report-card`, `portal` |
-| T8 | **Snapshot v2.** Satu murid dengan catatan kokurikuler: `schema_version = 2` untuk murid itu saja; murid lain di kelas sama tetap v1. Mode deskriptif: portal tidak memuat angka; staf memuatnya; kelengkapan memakai deskripsi. | `report-card-v2.test.ts` + |
-| T9 | **Reopen dan finalisasi ulang.** Narasi manual, override, remedial, tanggapan bertahan; tanggapan diberi tanda versi lama; finalisasi ulang tanpa perubahan data menghasilkan snapshot sama (kecuali `generatedAt`). | idem |
-| T10 | **Guard.** Setiap jalur baru di tabel 4.7 ditolak 409 `report_final` saat final dan diterima sesudah reopen; tanggapan wali ditolak sebelum final. | `report-lock.test.ts` / suite tahap |
-| T11 | **Ketercapaian TP.** Empat mode kriteria per TP x empat jenjang cakupan, fallback ke KKM mapel lalu KKM sekolah; tiga agregasi; override menang; formatif tidak dihitung; jumlah kueri tetap untuk 40 murid x 10 TP. | `objective-achievement.test.ts` + |
-| T12 | **Narasi.** Urutan tinggi/rendah, seri, batas item, semua tercapai, tanpa kandidat = teks v1 persis; sunting manual, `stale`, hapus suntingan. | `report-narrative.test.ts` + |
-| T13 | **Remedial.** Lima kebijakan pada tiga mode; `record_only` identik dengan tanpa percobaan; `cap_at_criteria` memakai KKM efektif; kebijakan beku per semester; hapus penilaian menghapus percobaan. | `remedial.test.ts` + |
-| T14 | **Multi-tenant.** Sekolah B tidak dapat membaca/menulis kaitan TP, override, narasi, tanggapan, pendampingan sekolah A (404); FK komposit menolak TP/penilaian/wali sekolah lain; tabel baru ikut `tenant-isolation`. Backfill/pembekuan lewat koneksi BYPASSRLS tidak mencampur `objective_criteria` antar sekolah. | `tenant-isolation`, suite tahap, `packages/db/src/grading-freeze.test.ts` |
-| T15 | **Portal.** Wali hanya anaknya; tautan siswa ditolak menulis tanggapan; wali lain tidak melihat tanggapan; jendela tanggapan; modul nonaktif. | `portal` |
-| T16 | **RBAC.** Semua rute baru di `rbac-matrix` (izin + modul); `portal:respond` hanya di peran guardian; sinkron peran menambahkannya ke sekolah lama. | `rbac-matrix`, `roles-sync` |
-| T17 | **Versi TP.** Ubah teks TP yang dipakai penilaian: versi baru; snapshot final menampilkan teks lama; hapus TP terpakai 409 `in_use`. | `teaching-plan` |
+| #   | Skenario                                                                                                                                                                                                                                                                                                                                                                    | Suite                                                                     |
+| --- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| T1  | **Hasil lama identik.** Garis dasar dibekukan sebelum 3.1 (fixture JSON): rekap, matriks, dokumen draf, daftar rapor, nilai portal untuk tiga mode dan empat cakupan KKTP; sesudah tiap tahap respons sama persis (kecuali field API aditif yang didaftar eksplisit).                                                                                                       | `phase3-baseline.test.ts` +                                               |
+| T2  | **Snapshot emas v1.** Finalisasi sekolah tanpa fitur baru: `schema_version = 1`, jsonb snapshot sama persis dengan fixture (kecuali `generatedAt`); salinan beku tetap `config_version = 1` dan `matchesLive = true`.                                                                                                                                                       | `report-card`, `grading-freeze`                                           |
+| T3  | **Formatif tidak memengaruhi.** Tambah komponen formatif berbobot apa pun + skor ekstrem (0 dan 100) pada tiga mode: `final`, `predicate`, rata-rata, peringkat, `grades_incomplete`, mapel rapor, keputusan promosi tidak berubah; `perComponent` memuat rata-rata formatif. Penilaian `purpose = initial` di komponen sumatif (dimasukkan langsung di DB) juga diabaikan. | `assessment-category.test.ts` +, `promotion`                              |
+| T4  | **Mode persentase.** Komponen formatif tidak ikut jumlah 100; mengubah sumatif menjadi formatif tidak membuat nilai turun karena "menyumbang 0".                                                                                                                                                                                                                            | idem                                                                      |
+| T5  | **Pembekuan kategori.** Bekukan, ubah kategori komponen hidup lewat DB: semester beku tetap; aturan W menyinkronkan semester aktif tanpa final; salinan v2 dibaca; salinan v1 dibaca sebagai sumatif.                                                                                                                                                                       | `grading-freeze`                                                          |
+| T6  | **Ujian CBT.** Dorong ke komponen formatif: penilaian formatif, tidak masuk nilai akhir. Dorong ulang tidak mengubah `technique`, `purpose`, kaitan TP; skor asli berubah tetapi percobaan remedial tetap.                                                                                                                                                                  | `exam-scores`                                                             |
+| T7  | **Rapor v1 tidak berubah.** Rapor final v1 (dibuat sebelum migrasi, fixture) dibaca lewat semua pembaca sesudah setiap tahap: respons sama persis; renderer web dites dengan fixture v1 (uji komponen).                                                                                                                                                                     | `report-card`, `portal`                                                   |
+| T8  | **Snapshot v2.** Satu murid dengan catatan kokurikuler: `schema_version = 2` untuk murid itu saja; murid lain di kelas sama tetap v1. Mode deskriptif: portal tidak memuat angka; staf memuatnya; kelengkapan memakai deskripsi.                                                                                                                                            | `report-card-v2.test.ts` +                                                |
+| T9  | **Reopen dan finalisasi ulang.** Narasi manual, override, remedial, tanggapan bertahan; tanggapan diberi tanda versi lama; finalisasi ulang tanpa perubahan data menghasilkan snapshot sama (kecuali `generatedAt`).                                                                                                                                                        | idem                                                                      |
+| T10 | **Guard.** Setiap jalur baru di tabel 4.7 ditolak 409 `report_final` saat final dan diterima sesudah reopen; tanggapan wali ditolak sebelum final.                                                                                                                                                                                                                          | `report-lock.test.ts` / suite tahap                                       |
+| T11 | **Ketercapaian TP.** Empat mode kriteria per TP x empat jenjang cakupan, fallback ke KKM mapel lalu KKM sekolah; tiga agregasi; override menang; formatif tidak dihitung; jumlah kueri tetap untuk 40 murid x 10 TP.                                                                                                                                                        | `objective-achievement.test.ts` +                                         |
+| T12 | **Narasi.** Urutan tinggi/rendah, seri, batas item, semua tercapai, tanpa kandidat = teks v1 persis; sunting manual, `stale`, hapus suntingan.                                                                                                                                                                                                                              | `report-narrative.test.ts` +                                              |
+| T13 | **Remedial.** Lima kebijakan pada tiga mode; `record_only` identik dengan tanpa percobaan; `cap_at_criteria` memakai KKM efektif; kebijakan beku per semester; hapus penilaian menghapus percobaan.                                                                                                                                                                         | `remedial.test.ts` +                                                      |
+| T14 | **Multi-tenant.** Sekolah B tidak dapat membaca/menulis kaitan TP, override, narasi, tanggapan, pendampingan sekolah A (404); FK komposit menolak TP/penilaian/wali sekolah lain; tabel baru ikut `tenant-isolation`. Backfill/pembekuan lewat koneksi BYPASSRLS tidak mencampur `objective_criteria` antar sekolah.                                                        | `tenant-isolation`, suite tahap, `packages/db/src/grading-freeze.test.ts` |
+| T15 | **Portal.** Wali hanya anaknya; tautan siswa ditolak menulis tanggapan; wali lain tidak melihat tanggapan; jendela tanggapan; modul nonaktif.                                                                                                                                                                                                                               | `portal`                                                                  |
+| T16 | **RBAC.** Semua rute baru di `rbac-matrix` (izin + modul); `portal:respond` hanya di peran guardian; sinkron peran menambahkannya ke sekolah lama.                                                                                                                                                                                                                          | `rbac-matrix`, `roles-sync`                                               |
+| T17 | **Versi TP.** Ubah teks TP yang dipakai penilaian: versi baru; snapshot final menampilkan teks lama; hapus TP terpakai 409 `in_use`.                                                                                                                                                                                                                                        | `teaching-plan`                                                           |
 
 ### 6.2 Tes lama yang pasti atau mungkin berubah
 
-| Berkas | Perubahan |
-|---|---|
-| `grading.test.ts` | Pasti: validasi `weight` (0 untuk formatif), `weights_sum_invalid` hanya komponen dihitung. Mungkin: asersi `toEqual` atas daftar komponen/penilaian bila ada (field `category` baru). Belum dibaca penuh. |
-| `rbac-matrix.test.ts` | Pasti: rute baru. |
-| `report-card.test.ts` | Tidak diharapkan berubah berkat sparse (`:1114` tetap `schemaVersion: 1`). Tambahan untuk v2. |
-| `portal.test.ts` | Mungkin: `components[].category` pada nilai portal bila diasersikan dengan `toEqual`. |
-| `exam-scores.test.ts` | Tambahan (T6); yang lama tetap. |
-| `grading-freeze.test.ts`, `grading-backfill.test.ts` | Tidak diharapkan berubah (sparse, `config_version` 1); tambahan untuk v2. |
-| `teaching-plan.test.ts` | Pasti bila ada tes "ubah TP di tempat" untuk TP yang kemudian dikaitkan penilaian (tidak ada sekarang karena kaitannya baru). |
-| `packages/contracts/src/permissions.test.ts` | Pasti: `portal:respond` di guardian, tidak di student. |
+| Berkas                                               | Perubahan                                                                                                                                                                                                  |
+| ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `grading.test.ts`                                    | Pasti: validasi `weight` (0 untuk formatif), `weights_sum_invalid` hanya komponen dihitung. Mungkin: asersi `toEqual` atas daftar komponen/penilaian bila ada (field `category` baru). Belum dibaca penuh. |
+| `rbac-matrix.test.ts`                                | Pasti: rute baru.                                                                                                                                                                                          |
+| `report-card.test.ts`                                | Tidak diharapkan berubah berkat sparse (`:1114` tetap `schemaVersion: 1`). Tambahan untuk v2.                                                                                                              |
+| `portal.test.ts`                                     | Mungkin: `components[].category` pada nilai portal bila diasersikan dengan `toEqual`.                                                                                                                      |
+| `exam-scores.test.ts`                                | Tambahan (T6); yang lama tetap.                                                                                                                                                                            |
+| `grading-freeze.test.ts`, `grading-backfill.test.ts` | Tidak diharapkan berubah (sparse, `config_version` 1); tambahan untuk v2.                                                                                                                                  |
+| `teaching-plan.test.ts`                              | Pasti bila ada tes "ubah TP di tempat" untuk TP yang kemudian dikaitkan penilaian (tidak ada sekarang karena kaitannya baru).                                                                              |
+| `packages/contracts/src/permissions.test.ts`         | Pasti: `portal:respond` di guardian, tidak di student.                                                                                                                                                     |
 
 ---
 
@@ -695,15 +697,15 @@ dan semua renderer teruji dengan risiko rendah sebelum narasi otomatis yang lebi
 manual per mapel, yang sekaligus menjadi fondasi narasi. Tiap tahap: backend dulu (migrasi, kontrak, API, tes, OpenAPI), lalu web; masing-masing
 dirilis sebagai MINOR sendiri (perkiraan v1.3.0 sampai v1.8.0) dan dapat dibatalkan lewat tag.
 
-| Tahap | Isi | Selesai bila | Tes wajib tambahan |
-|---|---|---|---|
-| **3.0 Fondasi (PATCH, tanpa perubahan perilaku)** | Fixture garis dasar T1 dan snapshot emas T2 dari v1.2.2; pindahkan skema dokumen ke `contracts/report-document.ts` dan pakai di kedua rute; pembaca salinan beku menerima `config_version` 1 dan 2. | Semua suite hijau **tanpa mengubah satu tes pun**; `openapi.json` tidak berubah secara semantik. | T1, T2 sebagai tes baru |
-| **3.1 Kategori asesmen** | Migrasi 0096; kategori komponen, tanda penilaian, saring di `computeGrades`, `assessedSubjects` rapor, validasi bobot, salinan sparse, aturan dorong ujian; web: pengaturan komponen, formulir penilaian, rekap (formatif terpisah, label "tidak masuk nilai rapor"), portal. | T1-T6 hijau; sekolah lama identik; dokumentasi dalam aplikasi. | T3-T6, T10 (tanda), T14, T16 |
-| **3.2 Snapshot v2 dan komponen rapor** | Migrasi 0097; `cocurricular_note`, `development_note`, `report_mode`, deskripsi manual per mapel (`report_subject_narrative` tanpa otomatis), tanggapan wali (staf + portal, `portal:respond`), bendera tampilan, `schema_version` 2 sparse, kelengkapan deskriptif, proyeksi portal; web: pratinjau, PDF, portal, panel narasi manual, pengaturan tingkat. | T2, T7-T10, T15 hijau; rapor tanpa bagian baru tetap v1. | T7-T10, T14-T16 |
-| **3.3 Kaitan TP dan ketercapaian** | Migrasi 0098 (tanpa kolom narasi bila dipisah); `assessment_objective`, pemecah kriteria TP, agregasi, override, pembekuan `objective_criteria`, versi TP; web: pilih TP di penilaian, tab **Ketercapaian TP**. Rapor **belum** berubah. | T11, T14, T17 hijau; jumlah kueri tetap; rapor identik. | T11, T14, T17 |
-| **3.4 Narasi rapor dari TP** | Generator, templat, `stale`, `objectives` di snapshot, `descriptionSource = objectives`; web: panel narasi menampilkan otomatis vs suntingan, pengaturan templat. | T12 dan T1 hijau (tanpa TP = teks v1 persis). | T12, T9 |
-| **3.5 Remedial dan pengayaan** | Migrasi 0099; pendampingan, peserta, percobaan, kebijakan + beku, nilai efektif di hitung dan ketercapaian TP; web: tab **Remedial dan pengayaan**, kebijakan di pengaturan, penanda di rekap. | T13 hijau; `record_only` identik. | T13, T6, T10, T14 |
-| **3.6 Opsional** | Perencanaan pembelajaran, jurnal di layar Absensi per jam, penilaian proses pembelajaran (C12); dapat dimatikan per sekolah. | Rancangan rinci disetujui lebih dulu. | suite sendiri, `tenant-isolation` |
+| Tahap                                             | Isi                                                                                                                                                                                                                                                                                                                                                         | Selesai bila                                                                                     | Tes wajib tambahan                |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | --------------------------------- |
+| **3.0 Fondasi (PATCH, tanpa perubahan perilaku)** | Fixture garis dasar T1 dan snapshot emas T2 dari v1.2.2; pindahkan skema dokumen ke `contracts/report-document.ts` dan pakai di kedua rute; pembaca salinan beku menerima `config_version` 1 dan 2.                                                                                                                                                         | Semua suite hijau **tanpa mengubah satu tes pun**; `openapi.json` tidak berubah secara semantik. | T1, T2 sebagai tes baru           |
+| **3.1 Kategori asesmen**                          | Migrasi 0096; kategori komponen, tanda penilaian, saring di `computeGrades`, `assessedSubjects` rapor, validasi bobot, salinan sparse, aturan dorong ujian; web: pengaturan komponen, formulir penilaian, rekap (formatif terpisah, label "tidak masuk nilai rapor"), portal.                                                                               | T1-T6 hijau; sekolah lama identik; dokumentasi dalam aplikasi.                                   | T3-T6, T10 (tanda), T14, T16      |
+| **3.2 Snapshot v2 dan komponen rapor**            | Migrasi 0097; `cocurricular_note`, `development_note`, `report_mode`, deskripsi manual per mapel (`report_subject_narrative` tanpa otomatis), tanggapan wali (staf + portal, `portal:respond`), bendera tampilan, `schema_version` 2 sparse, kelengkapan deskriptif, proyeksi portal; web: pratinjau, PDF, portal, panel narasi manual, pengaturan tingkat. | T2, T7-T10, T15 hijau; rapor tanpa bagian baru tetap v1.                                         | T7-T10, T14-T16                   |
+| **3.3 Kaitan TP dan ketercapaian**                | Migrasi 0098 (tanpa kolom narasi bila dipisah); `assessment_objective`, pemecah kriteria TP, agregasi, override, pembekuan `objective_criteria`, versi TP; web: pilih TP di penilaian, tab **Ketercapaian TP**. Rapor **belum** berubah.                                                                                                                    | T11, T14, T17 hijau; jumlah kueri tetap; rapor identik.                                          | T11, T14, T17                     |
+| **3.4 Narasi rapor dari TP**                      | Generator, templat, `stale`, `objectives` di snapshot, `descriptionSource = objectives`; web: panel narasi menampilkan otomatis vs suntingan, pengaturan templat.                                                                                                                                                                                           | T12 dan T1 hijau (tanpa TP = teks v1 persis).                                                    | T12, T9                           |
+| **3.5 Remedial dan pengayaan**                    | Migrasi 0099; pendampingan, peserta, percobaan, kebijakan + beku, nilai efektif di hitung dan ketercapaian TP; web: tab **Remedial dan pengayaan**, kebijakan di pengaturan, penanda di rekap.                                                                                                                                                              | T13 hijau; `record_only` identik.                                                                | T13, T6, T10, T14                 |
+| **3.6 Opsional**                                  | Perencanaan pembelajaran, jurnal di layar Absensi per jam, penilaian proses pembelajaran (C12); dapat dimatikan per sekolah.                                                                                                                                                                                                                                | Rancangan rinci disetujui lebih dulu.                                                            | suite sendiri, `tenant-isolation` |
 
 Setiap tahap mengulang suite wajib (bagian 1.2 butir 9) sebelum tag, plus uji peramban sesuai standar tampilan.
 
@@ -711,23 +713,23 @@ Setiap tahap mengulang suite wajib (bagian 1.2 butir 9) sebelum tag, plus uji pe
 
 ## 9. Risiko dan mitigasi
 
-| # | Risiko | Dampak | Mitigasi |
-|---|---|---|---|
-| R1 | Satu jalur hitung lupa menyaring formatif (rekap, matriks, portal, rapor, verifikasi) | Formatif bocor ke nilai | Penyaringan di dalam `computeGrades` (satu tempat), bukan di pemanggil; T3 memeriksa semua permukaan |
-| R2 | Mode `percentage` dan komponen formatif berbobot | Nilai turun | Bobot formatif 0 dan diabaikan; validasi jumlah hanya komponen dihitung; T4 |
-| R3 | Field sparse tidak sengaja selalu ditulis | `matchesLive` false massal, snapshot lama/baru beda, tes lama merah | Tes emas T2; pembuat jsonb memakai helper `omitDefaults` yang diuji |
-| R4 | Bagian v2 dibuang serializer karena skema respons tidak diperbarui | Data hilang diam-diam dari API | Skema dokumen tunggal di kontrak (3.0); tes membaca respons, bukan DB |
-| R5 | Rollback setelah formatif/remedial dipakai | Angka draf berubah | Catatan rilis; rapor final aman; rollback disarankan hanya sebelum sekolah memakai fitur |
-| R6 | Beban input guru (TP per penilaian, override, narasi) | Fitur tidak dipakai | Semua opsional; tanpa TP rapor tetap seperti v1; pilih TP massal; override hanya untuk pengecualian |
-| R7 | Narasi manual usang setelah skor diubah | Rapor tidak cocok dengan data | `generated_hash` + penanda `stale` + peringatan saat finalisasi (jumlah narasi usang) |
-| R8 | Privasi tanggapan wali | Kebocoran antar wali | Hanya penulis + staf; tes T15; teks polos, batas panjang, audit |
-| R9 | `ADD CONSTRAINT UNIQUE (school_id, id)` pada `assessment`/`guardian` produksi | Kunci tabel saat membangun indeks | Ukur jumlah baris produksi dulu; bila besar, `CREATE UNIQUE INDEX CONCURRENTLY` di luar transaksi lalu `ADD CONSTRAINT ... USING INDEX` (perlu cek apakah migrator Drizzle menjalankan berkas dalam transaksi) |
-| R10 | Kinerja ketercapaian TP satu kelas besar | Halaman lambat | Kueri batch tetap; indeks cakupan; ambang jumlah kueri di T11 |
-| R11 | Kebingungan versi TP (teks berubah setelah penilaian) | Narasi draf memakai teks lama | Versi baru, tautan ke versi terbaru di UI; snapshot menyimpan teks |
-| R12 | Fase A: sekolah salah set mode, atau angka tetap tersimpan padahal "tanpa nilai" | Ketidaksesuaian harapan | Mode per tingkat dengan saran dari profil; K10 meminta keputusan eksplisit soal penyimpanan angka |
-| R13 | Dorong ujian menimpa skor asli setelah ada remedial | Riwayat tidak konsisten | Percobaan terpisah; T6; dorong ulang mencatat audit jumlah skor yang berubah |
-| R14 | Kata "diagnostik" di UI | Tidak sesuai regulasi | Label "asesmen awal (diagnostik)" sebagai tujuan, bukan jenis |
-| R15 | Tanggapan wali menghalangi hapus wali (FK NO ACTION) | Operasi admin gagal | Cek `guardian-remove`; bila perlu SET NULL (K9) |
+| #   | Risiko                                                                                | Dampak                                                              | Mitigasi                                                                                                                                                                                                       |
+| --- | ------------------------------------------------------------------------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Satu jalur hitung lupa menyaring formatif (rekap, matriks, portal, rapor, verifikasi) | Formatif bocor ke nilai                                             | Penyaringan di dalam `computeGrades` (satu tempat), bukan di pemanggil; T3 memeriksa semua permukaan                                                                                                           |
+| R2  | Mode `percentage` dan komponen formatif berbobot                                      | Nilai turun                                                         | Bobot formatif 0 dan diabaikan; validasi jumlah hanya komponen dihitung; T4                                                                                                                                    |
+| R3  | Field sparse tidak sengaja selalu ditulis                                             | `matchesLive` false massal, snapshot lama/baru beda, tes lama merah | Tes emas T2; pembuat jsonb memakai helper `omitDefaults` yang diuji                                                                                                                                            |
+| R4  | Bagian v2 dibuang serializer karena skema respons tidak diperbarui                    | Data hilang diam-diam dari API                                      | Skema dokumen tunggal di kontrak (3.0); tes membaca respons, bukan DB                                                                                                                                          |
+| R5  | Rollback setelah formatif/remedial dipakai                                            | Angka draf berubah                                                  | Catatan rilis; rapor final aman; rollback disarankan hanya sebelum sekolah memakai fitur                                                                                                                       |
+| R6  | Beban input guru (TP per penilaian, override, narasi)                                 | Fitur tidak dipakai                                                 | Semua opsional; tanpa TP rapor tetap seperti v1; pilih TP massal; override hanya untuk pengecualian                                                                                                            |
+| R7  | Narasi manual usang setelah skor diubah                                               | Rapor tidak cocok dengan data                                       | `generated_hash` + penanda `stale` + peringatan saat finalisasi (jumlah narasi usang)                                                                                                                          |
+| R8  | Privasi tanggapan wali                                                                | Kebocoran antar wali                                                | Hanya penulis + staf; tes T15; teks polos, batas panjang, audit                                                                                                                                                |
+| R9  | `ADD CONSTRAINT UNIQUE (school_id, id)` pada `assessment`/`guardian` produksi         | Kunci tabel saat membangun indeks                                   | Ukur jumlah baris produksi dulu; bila besar, `CREATE UNIQUE INDEX CONCURRENTLY` di luar transaksi lalu `ADD CONSTRAINT ... USING INDEX` (perlu cek apakah migrator Drizzle menjalankan berkas dalam transaksi) |
+| R10 | Kinerja ketercapaian TP satu kelas besar                                              | Halaman lambat                                                      | Kueri batch tetap; indeks cakupan; ambang jumlah kueri di T11                                                                                                                                                  |
+| R11 | Kebingungan versi TP (teks berubah setelah penilaian)                                 | Narasi draf memakai teks lama                                       | Versi baru, tautan ke versi terbaru di UI; snapshot menyimpan teks                                                                                                                                             |
+| R12 | Fase A: sekolah salah set mode, atau angka tetap tersimpan padahal "tanpa nilai"      | Ketidaksesuaian harapan                                             | Mode per tingkat dengan saran dari profil; K10 meminta keputusan eksplisit soal penyimpanan angka                                                                                                              |
+| R13 | Dorong ujian menimpa skor asli setelah ada remedial                                   | Riwayat tidak konsisten                                             | Percobaan terpisah; T6; dorong ulang mencatat audit jumlah skor yang berubah                                                                                                                                   |
+| R14 | Kata "diagnostik" di UI                                                               | Tidak sesuai regulasi                                               | Label "asesmen awal (diagnostik)" sebagai tujuan, bukan jenis                                                                                                                                                  |
+| R15 | Tanggapan wali menghalangi hapus wali (FK NO ACTION)                                  | Operasi admin gagal                                                 | Cek `guardian-remove`; bila perlu SET NULL (K9)                                                                                                                                                                |
 
 ---
 
@@ -735,25 +737,25 @@ Setiap tahap mengulang suite wajib (bagian 1.2 butir 9) sebelum tag, plus uji pe
 
 Usulan bawaan dicetak miring; dipakai bila tidak ada jawaban.
 
-| # | Keputusan | Usulan bawaan | Alasan |
-|---|---|---|---|
-| K1 | Letak kategori: komponen, penilaian, atau keduanya | _Komponen; penilaian hanya membawa tanda tujuan, lingkup sumatif, teknik_ | Satu sumber, aman di mode persentase, sudah ikut pembekuan |
-| K2 | Formatif terlihat di portal wali | _Ya, terpisah dan berlabel "umpan balik, tidak masuk nilai rapor"_ | Formatif berguna bagi orang tua; tidak digabung dengan sumatif (A4) |
-| K3 | Formatif ikut ketercapaian TP untuk rapor | _Tidak; tampil sebagai kemajuan di tab guru_ | A4: formatif tidak dipakai untuk rapor |
-| K4 | Agregasi ketercapaian TP | _Rata-rata (`mean`), dapat diganti `latest`/`max` per sekolah_ | A6 menyerahkan cara olah ke sekolah |
-| K5 | Satu skor berlaku untuk semua TP penilaian itu | _Ya; skor per TP ditunda_ | Beban input; guru bisa membuat penilaian per TP |
-| K6 | Jumlah TP di narasi dan perlakuan "semua tercapai" | _2 per sisi; kalimat "perlu bimbingan" dihilangkan bila semua tercapai_ | Narasi ringkas; templat dapat diubah sekolah |
-| K7 | Siapa menyunting narasi mapel | _Guru pengampu dan `report_card:manage`; wali kelas hanya membaca_ | Penilai mapel yang bertanggung jawab atas deskripsinya |
-| K8 | Kebijakan remedial bawaan | _`record_only`; pilihan lain termasuk `cap_at_criteria` tersedia, tidak dikunci_ | A8; hasil lama identik; menggantikan usulan roadmap "batas = KKTP" |
-| K9 | Tanggapan wali: jendela, visibilitas, salinan staf, hapus wali | _30 hari, hanya penulis + staf, staf boleh menyalin dari kertas, hapus wali ditolak bila ada tanggapan_ | Privasi keluarga; banyak wali tanpa portal |
-| K10 | Fase A: simpan angka di snapshot tetapi disembunyikan, atau tidak menghitung angka | _Simpan, sembunyikan di semua tampilan, proyeksikan keluar dari portal_ | Konsistensi leger/promosi; sekolah tetap bisa berpindah mode |
-| K11 | Catatan perkembangan Fase A terpisah dari catatan wali | _Ya, kolom sendiri, tampil hanya di mode deskriptif_ | R2/C3 menyebutnya sebagai komponen; struktur rinci ditunda |
-| K12 | Bagian kokurikuler dan tanggapan di PDF | _Bendera bawaan mati untuk sekolah lama; layar pengaturan menyarankan menyalakan_ | PDF lama tidak berubah tanpa diminta; kepatuhan 12 komponen tetap mudah |
-| K13 | Urutan tahap (komponen rapor sebelum TP) | _Ya, seperti bagian 8_ | P0 dulu, risiko rendah dulu |
-| K14 | TP yang dipakai penilaian diubah: versi atau di tempat | _Versi baru_ | Konsisten dengan ATP terbit; arsip jelas |
-| K15 | `template_key` | _Tetap tidak dipakai sampai fase 4/5_ | Bentuk data cukup diwakili `schema_version` |
-| K16 | Tahap 3.6 (perencanaan, jurnal, penilaian proses) di fase 3 atau ditunda | _Dikerjakan terakhir, opsional, rancangan rinci terpisah_ | Tidak wajib nasional kecuali C12; nilai pakai lebih rendah dari C3 |
-| K17 | Penomoran rilis | _Satu MINOR per tahap 3.1-3.5, 3.0 sebagai PATCH_ | Sesuai prinsip "beberapa MINOR kecil" |
+| #   | Keputusan                                                                          | Usulan bawaan                                                                                           | Alasan                                                                  |
+| --- | ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| K1  | Letak kategori: komponen, penilaian, atau keduanya                                 | _Komponen; penilaian hanya membawa tanda tujuan, lingkup sumatif, teknik_                               | Satu sumber, aman di mode persentase, sudah ikut pembekuan              |
+| K2  | Formatif terlihat di portal wali                                                   | _Ya, terpisah dan berlabel "umpan balik, tidak masuk nilai rapor"_                                      | Formatif berguna bagi orang tua; tidak digabung dengan sumatif (A4)     |
+| K3  | Formatif ikut ketercapaian TP untuk rapor                                          | _Tidak; tampil sebagai kemajuan di tab guru_                                                            | A4: formatif tidak dipakai untuk rapor                                  |
+| K4  | Agregasi ketercapaian TP                                                           | _Rata-rata (`mean`), dapat diganti `latest`/`max` per sekolah_                                          | A6 menyerahkan cara olah ke sekolah                                     |
+| K5  | Satu skor berlaku untuk semua TP penilaian itu                                     | _Ya; skor per TP ditunda_                                                                               | Beban input; guru bisa membuat penilaian per TP                         |
+| K6  | Jumlah TP di narasi dan perlakuan "semua tercapai"                                 | _2 per sisi; kalimat "perlu bimbingan" dihilangkan bila semua tercapai_                                 | Narasi ringkas; templat dapat diubah sekolah                            |
+| K7  | Siapa menyunting narasi mapel                                                      | _Guru pengampu dan `report_card:manage`; wali kelas hanya membaca_                                      | Penilai mapel yang bertanggung jawab atas deskripsinya                  |
+| K8  | Kebijakan remedial bawaan                                                          | _`record_only`; pilihan lain termasuk `cap_at_criteria` tersedia, tidak dikunci_                        | A8; hasil lama identik; menggantikan usulan roadmap "batas = KKTP"      |
+| K9  | Tanggapan wali: jendela, visibilitas, salinan staf, hapus wali                     | _30 hari, hanya penulis + staf, staf boleh menyalin dari kertas, hapus wali ditolak bila ada tanggapan_ | Privasi keluarga; banyak wali tanpa portal                              |
+| K10 | Fase A: simpan angka di snapshot tetapi disembunyikan, atau tidak menghitung angka | _Simpan, sembunyikan di semua tampilan, proyeksikan keluar dari portal_                                 | Konsistensi leger/promosi; sekolah tetap bisa berpindah mode            |
+| K11 | Catatan perkembangan Fase A terpisah dari catatan wali                             | _Ya, kolom sendiri, tampil hanya di mode deskriptif_                                                    | R2/C3 menyebutnya sebagai komponen; struktur rinci ditunda              |
+| K12 | Bagian kokurikuler dan tanggapan di PDF                                            | _Bendera bawaan mati untuk sekolah lama; layar pengaturan menyarankan menyalakan_                       | PDF lama tidak berubah tanpa diminta; kepatuhan 12 komponen tetap mudah |
+| K13 | Urutan tahap (komponen rapor sebelum TP)                                           | _Ya, seperti bagian 8_                                                                                  | P0 dulu, risiko rendah dulu                                             |
+| K14 | TP yang dipakai penilaian diubah: versi atau di tempat                             | _Versi baru_                                                                                            | Konsisten dengan ATP terbit; arsip jelas                                |
+| K15 | `template_key`                                                                     | _Tetap tidak dipakai sampai fase 4/5_                                                                   | Bentuk data cukup diwakili `schema_version`                             |
+| K16 | Tahap 3.6 (perencanaan, jurnal, penilaian proses) di fase 3 atau ditunda           | _Dikerjakan terakhir, opsional, rancangan rinci terpisah_                                               | Tidak wajib nasional kecuali C12; nilai pakai lebih rendah dari C3      |
+| K17 | Penomoran rilis                                                                    | _Satu MINOR per tahap 3.1-3.5, 3.0 sebagai PATCH_                                                       | Sesuai prinsip "beberapa MINOR kecil"                                   |
 
 ---
 
