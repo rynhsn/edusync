@@ -29,11 +29,11 @@ import {
   type Tx,
   teacher,
 } from '@edusync/db';
-import { historicalRosterOf } from './attendance-lib';
 import { type EffectiveGradingConfig, loadGradingConfig, remedialContextFor } from './grading-config-lib';
 import { assessedSubjects, computeGrades, notCountedComponentIds, type StudentGrade } from './grading-lib';
 import { HttpError } from './http-error';
 import { isNarrativeStale, loadObjectiveNarratives, type ObjectiveNarratives } from './report-narrative-lib';
+import { semesterRosterOf } from './student-mobility-lib';
 
 /** Pengaturan rapor sekolah. Sekolah yang belum mengaturnya mendapat nilai bawaan. */
 export interface ReportSettings {
@@ -143,7 +143,8 @@ export interface ClassContext {
 
 /**
  * Hitung nilai seluruh siswa kelas. Rumus nilai akhir dan predikat sama dengan rekap penilaian (`computeGrades`).
- * Roster memakai `historicalRosterOf` (aktif dan lulusan yang terdaftar di tahun kelas ini).
+ * Roster memakai `semesterRosterOf`: `historicalRosterOf` (aktif dan lulusan yang terdaftar di tahun kelas ini) ditambah murid yang
+ * keluar setelah semester berakhir dan diluruskan menurut riwayat rombel (sama persis bila tidak ada mutasi atau perpindahan).
  * `extraStudentIds` menambahkan siswa di luar roster itu (mis. siswa pindah yang kini nonaktif) agar nilainya ikut dihitung.
  */
 export async function loadClassContext(
@@ -152,7 +153,7 @@ export async function loadClassContext(
   clsInput: ClassRow,
   extraStudentIds: string[] = [],
 ): Promise<ClassContext> {
-  const { cls, rows: roster } = await historicalRosterOf(tx, clsInput.id);
+  const { cls, rows: roster } = await semesterRosterOf(tx, clsInput.id, sem);
   const [sch] = await tx.select({ name: school.name }).from(school);
   const [year] = await tx
     .select({ name: academicYear.name })

@@ -70,6 +70,29 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
 - Rekap nilai membawa `remedial` (jumlah percobaan dan sumber nilai) per murid hanya bila ada percobaan, dan `remedialPolicy`
   hanya bila kebijakan bukan bawaan; nilai portal membawa penanda yang sama per mata pelajaran. Kode galat baru:
   `score_out_of_range`, `too_many_attempts`, `invalid_dates` (terjemahan id, en, su).
+- **Mutasi murid dan riwayat rombel.** Sekolah dapat mencatat murid pindah atau putus sekolah (tanggal efektif, alasan, sekolah
+  tujuan beserta NPSN, nomor dan tanggal surat) dan murid pindahan masuk (membuat murid, penempatan kelas, dan sekolah asal).
+  Murid yang keluar mempertahankan penempatannya, dan keterangan nilai dari rapor draf semester berjalan dibekukan saat ia keluar.
+  Mutasi dapat diubah keterangannya dan mutasi keluar dapat dibatalkan (status kembali aktif). Murid berstatus pindah lama yang
+  belum tercatat dapat dilengkapi catatannya. Halaman riwayat akademik murid menampilkan rombel per tahun ajaran beserta
+  perpindahannya, keputusan kenaikan, status rapor, dan mutasi.
+- **Rapor final murid pindah tidak lagi hilang dari daftar kelas.** Murid yang keluar sesudah suatu semester berakhir tetap tampil
+  di daftar rapor kelas semester itu, dan ikut bila rapor kelas dibuka kembali lalu difinalkan ulang. Murid yang pindah rombel
+  setelah semester berakhir tetap tercatat di rombel lamanya untuk semester itu. Sekolah tanpa mutasi atau perpindahan rombel
+  melihat daftar yang sama persis seperti sebelumnya.
+- **Larangan mutasi pada semester genap tingkat akhir.** Pindah sekolah (keluar atau masuk) pada semester terakhir tahun ajaran
+  untuk kelas tingkat akhir ditolak (`transfer_final_level_even_semester`). Admin dengan izin kelola sekolah dapat menimpanya
+  dengan alasan tertulis yang tercatat pada mutasi dan audit; tanpa izin itu galatnya `exception_requires_school_manage`. Putus
+  sekolah tidak terkena larangan.
+- Kode galat baru: `transfer_final_level_even_semester`, `exception_requires_school_manage`, `student_not_active`,
+  `transfer_not_cancellable`, `student_status_changed`, `transfer_superseded` (terjemahan id, en, su).
+
+### Diubah
+
+- **Pindah kelas siswa** (`PUT /v1/students/{id}/class`) kini mencatat riwayat rombel (tanggal efektif dan alasan opsional) dan
+  ditolak (`report_final`) bila rapor siswa itu, atau rapor kelas lama atau barunya, sudah final pada semester tahun itu yang
+  memuat hari ini atau tanggal efektif; buka kembali rapornya lebih dulu. Sebelumnya pindah kelas selalu diterima dan
+  menimpa penempatan tanpa jejak. Sekolah tanpa rapor final tidak melihat perbedaan selain adanya riwayat.
 
 ### Catatan rollback
 
@@ -86,6 +109,12 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   rekap, leger, portal, dan ketercapaian TP); rapor final aman karena dibaca dari snapshot. Sekolah dengan kebijakan bawaan
   tidak terpengaruh. Pendampingan, peserta, dan percobaan remedial dibiarkan di database dan tampil lagi setelah maju; kolom
   kebijakan di konfigurasi beku diabaikan versi lama. Disarankan rollback hanya sebelum sekolah memakai kebijakan lain.
+- Mutasi murid dan riwayat rombel (tahap 3C.1): tabel `student_transfer` dan `enrollment_change` dibiarkan di database dan
+  tampil lagi setelah maju. Setelah kembali ke versi sebelumnya, murid berstatus pindah kembali dikecualikan dari daftar rapor
+  kelas (rapor final mereka tetap aman di snapshot dan tetap terbaca lewat dokumen tunggal), dan membuka kembali lalu
+  memfinalkan ulang rapor kelas tidak lagi menyertakan mereka; pindah kelas kembali menimpa penempatan tanpa riwayat dan tanpa
+  penjaga `report_final`; larangan semester genap tingkat akhir tidak berlaku (hanya berlaku lewat halaman mutasi). Status murid
+  yang diubah lewat mutasi tetap pada nilainya.
 
 ## [1.4.0] - 2026-11-13
 

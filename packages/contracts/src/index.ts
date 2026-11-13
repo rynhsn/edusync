@@ -32,3 +32,4 @@ export * from './site-assets';
 export * from './site-content';
 export * from './teaching-plan';
 export * from './timezone';
+export * from './transfer';

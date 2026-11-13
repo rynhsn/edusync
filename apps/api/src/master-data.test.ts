@@ -122,6 +122,7 @@ afterAll(async () => {
       'calendar_event',
       'student_guardian',
       'guardian',
+      'enrollment_change',
       'enrollment',
       'student',
       'teacher',

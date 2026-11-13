@@ -708,6 +708,13 @@
       "when": 1796866200000,
       "tag": "0100_learning_support",
       "breakpoints": true
+    },
+    {
+      "idx": 101,
+      "version": "7",
+      "when": 1796952600000,
+      "tag": "0101_student_mobility",
+      "breakpoints": true
     }
   ]
 }

@@ -15,6 +15,7 @@ const spec = JSON.parse(
 const PRIMARY: Record<string, string> = {
   '/students': 'GET /v1/students',
   '/guardians': 'GET /v1/guardians/directory',
+  '/transfers': 'GET /v1/student-transfers',
   '/cards': 'GET /v1/cards/templates',
   '/teachers': 'GET /v1/teachers',
   '/classes': 'GET /v1/classes',

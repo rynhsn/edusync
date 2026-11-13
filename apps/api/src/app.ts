@@ -91,6 +91,7 @@ import { schoolIdentityRoutes } from './routes/school-identity';
 import { schoolSettingsRoutes } from './routes/school-settings';
 import { semesterRoutes } from './routes/semesters';
 import { studentImportRoutes } from './routes/student-import';
+import { studentTransferRoutes } from './routes/student-transfer';
 import { supportRoutes } from './routes/support';
 import { tahfidzRoutes } from './routes/tahfidz';
 import { teacherImportRoutes } from './routes/teacher-import';
@@ -282,6 +283,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(academicStructureRoutes);
   await app.register(promotionRoutes);
   await app.register(peopleRoutes);
+  await app.register(studentTransferRoutes);
   await app.register(scheduleRoutes);
   await app.register(attendanceReportRoutes);
   await app.register(gateRoutes);

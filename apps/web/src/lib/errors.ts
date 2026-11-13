@@ -185,6 +185,12 @@ const KNOWN = [
   'initial_requires_formative',
   'scope_requires_summative',
   'level_unknown',
+  'transfer_final_level_even_semester',
+  'exception_requires_school_manage',
+  'student_not_active',
+  'transfer_not_cancellable',
+  'student_status_changed',
+  'transfer_superseded',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

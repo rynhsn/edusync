@@ -24,6 +24,7 @@ export type IssueCode =
   | 'timeOrder'
   | 'dateOrder'
   | 'hostInvalid'
+  | 'npsn'
   | 'custom';
 
 export interface FieldIssue {
@@ -61,7 +62,7 @@ export function todayIso(now: Date = new Date()): string {
   return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
-function isRealDate(iso: string): boolean {
+export function isRealDate(iso: string): boolean {
   const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso);
   if (!m) return false;
   const [y, mo, d] = [Number(m[1]), Number(m[2]), Number(m[3])];

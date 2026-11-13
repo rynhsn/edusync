@@ -17,6 +17,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { todayInSchool } from '../attendance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
 import {
@@ -28,6 +29,7 @@ import {
   nuptkOut,
   nuptkView,
 } from '../person-fields';
+import { assertEnrollmentMoveAllowed, recordEnrollmentChange } from '../student-mobility-lib';
 import { normalizePhone } from './guardians';
 import {
   audit,
@@ -163,7 +165,7 @@ const studentProfileOut = {
   phone: z.string().nullable(),
   email: z.string().nullable(),
 };
-const studentSchema = z.object({
+export const studentSchema = z.object({
   ...studentProfileOut,
   id: z.uuid(),
   name: z.string(),
@@ -175,7 +177,7 @@ const studentSchema = z.object({
   classId: z.uuid().nullable().describe('Kelas pada tahun ajaran aktif'),
   className: z.string().nullable(),
 });
-const studentBody = z.object({
+export const studentBody = z.object({
   name: personName,
   nis: optionalId,
   nisn: optionalId,
@@ -213,18 +215,48 @@ async function currentClasses(tx: Tx, studentIds: string[]) {
   return new Map(rows.map((r) => [r.studentId, { classId: r.classId, className: r.className }]));
 }
 
-/** Tempatkan siswa di kelas (pada tahun ajaran kelas itu) atau cabut dari kelas tahun ajaran aktif. */
-export async function placeStudent(tx: Tx, ctx: TenantContext, studentId: string, classId: string | null) {
+/**
+ * Tempatkan siswa di kelas (pada tahun ajaran kelas itu) atau cabut dari kelas tahun ajaran aktif. Memindahkan siswa yang sudah
+ * punya enrollment tahun itu mencatat riwayat (`enrollment_change`; penempatan pertama bukan perpindahan) dan ditolak 409
+ * `report_final` bila rapornya final pada semester tahun itu yang memuat hari ini atau tanggal efektif (rapor final tidak boleh
+ * berubah rosternya). Sekolah tanpa rapor final tidak melihat perbedaan selain riwayat.
+ */
+export async function placeStudent(
+  tx: Tx,
+  ctx: TenantContext,
+  studentId: string,
+  classId: string | null,
+  opts: { effectiveOn?: string | undefined; reason?: string | null | undefined } = {},
+) {
+  const effectiveOn = opts.effectiveOn ?? todayInSchool();
   if (classId === null) {
     const [active] = await tx
       .select({ id: academicYear.id })
       .from(academicYear)
       .where(eq(academicYear.isActive, true));
-    if (active) {
-      await tx
-        .delete(enrollment)
-        .where(and(eq(enrollment.studentId, studentId), eq(enrollment.academicYearId, active.id)));
-    }
+    if (!active) return;
+    const [current] = await tx
+      .select({ classId: enrollment.classId })
+      .from(enrollment)
+      .where(and(eq(enrollment.studentId, studentId), eq(enrollment.academicYearId, active.id)));
+    if (!current) return;
+    await assertEnrollmentMoveAllowed(tx, {
+      studentId,
+      academicYearId: active.id,
+      classIds: [current.classId],
+      dates: [todayInSchool(), effectiveOn],
+    });
+    await tx
+      .delete(enrollment)
+      .where(and(eq(enrollment.studentId, studentId), eq(enrollment.academicYearId, active.id)));
+    await recordEnrollmentChange(tx, ctx, {
+      studentId,
+      academicYearId: active.id,
+      fromClassId: current.classId,
+      toClassId: null,
+      effectiveOn,
+      reason: opts.reason,
+    });
     return;
   }
   const [c] = await tx
@@ -232,13 +264,36 @@ export async function placeStudent(tx: Tx, ctx: TenantContext, studentId: string
     .from(classRoom)
     .where(eq(classRoom.id, classId));
   if (!c) throw new HttpError(400, 'invalid_reference', 'Kelas tidak ditemukan.');
+  const [current] = await tx
+    .select({ classId: enrollment.classId })
+    .from(enrollment)
+    .where(and(eq(enrollment.studentId, studentId), eq(enrollment.academicYearId, c.academicYearId)));
+  if (current && current.classId === classId) return;
+  if (current) {
+    await assertEnrollmentMoveAllowed(tx, {
+      studentId,
+      academicYearId: c.academicYearId,
+      classIds: [current.classId, classId],
+      dates: [todayInSchool(), effectiveOn],
+    });
+  }
   await tx
     .insert(enrollment)
     .values({ schoolId: ctx.schoolId, studentId, classId, academicYearId: c.academicYearId })
     .onConflictDoUpdate({ target: [enrollment.studentId, enrollment.academicYearId], set: { classId } });
+  if (current) {
+    await recordEnrollmentChange(tx, ctx, {
+      studentId,
+      academicYearId: c.academicYearId,
+      fromClassId: current.classId,
+      toClassId: classId,
+      effectiveOn,
+      reason: opts.reason,
+    });
+  }
 }
 
-async function studentRow(tx: Tx, id: string, canManage: boolean) {
+export async function studentRow(tx: Tx, id: string, canManage: boolean) {
   const [s] = await tx
     .select()
     .from(student)
@@ -660,18 +715,38 @@ export async function peopleRoutes(instance: FastifyInstance) {
         summary: 'Tempatkan atau pindahkan siswa ke kelas',
         description:
           'Izin: `student:manage`. Siswa duduk di satu kelas per tahun ajaran; menempatkan ulang pada tahun ajaran ' +
-          'yang sama memindahkannya. `classId: null` mencabut dari kelas pada tahun ajaran aktif.',
+          'yang sama memindahkannya. `classId: null` mencabut dari kelas pada tahun ajaran aktif. Perpindahan nyata tercatat di ' +
+          'riwayat rombel (`effectiveOn` dan `reason` opsional; lihat `GET /v1/students/{id}/academic-history`). Ditolak 409 ' +
+          '`report_final` bila rapor siswa atau kelas (lama atau baru) sudah final pada semester tahun itu yang memuat hari ini atau ' +
+          '`effectiveOn`: buka kembali rapornya lebih dulu.',
         headers: schoolHeader,
         params: idParams,
-        body: z.object({ classId: z.uuid().nullable() }),
-        response: { 200: studentSchema, 400: errorSchema, 404: errorSchema, ...guarded },
+        body: z.object({
+          classId: z.uuid().nullable(),
+          effectiveOn: z.iso
+            .date()
+            .optional()
+            .describe(
+              'Tanggal efektif perpindahan untuk riwayat rombel (bawaan hari ini menurut zona waktu sekolah).',
+            ),
+          reason: z
+            .string()
+            .trim()
+            .max(500)
+            .optional()
+            .describe('Alasan perpindahan untuk riwayat rombel (maksimal 500).'),
+        }),
+        response: { 200: studentSchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
         await studentRow(tx, request.params.id, true);
-        await placeStudent(tx, ctx, request.params.id, request.body.classId);
+        await placeStudent(tx, ctx, request.params.id, request.body.classId, {
+          effectiveOn: request.body.effectiveOn,
+          reason: request.body.reason,
+        });
         await audit(tx, ctx, 'student.place', 'student', request.params.id, {
           classId: request.body.classId,
         });

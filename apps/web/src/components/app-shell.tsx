@@ -2,6 +2,7 @@
 
 import { useQuery } from '@tanstack/react-query';
 import {
+  ArrowRightLeft,
   Award,
   BookHeart,
   BookMarked,
@@ -133,6 +134,7 @@ export const NAV_GROUPS = [
     items: [
       { href: '/students', labelKey: 'students', icon: GraduationCap, permission: 'student:read' },
       { href: '/guardians', labelKey: 'guardians', icon: Users, permission: 'student:read' },
+      { href: '/transfers', labelKey: 'transfers', icon: ArrowRightLeft, permission: 'student:read' },
       { href: '/cards', labelKey: 'cards', icon: IdCard, permission: 'student:read' },
       { href: '/teachers', labelKey: 'teachers', icon: UserRound, permission: 'teacher:read' },
       { href: '/classes', labelKey: 'classes', icon: School, permission: 'class:read' },

@@ -672,6 +672,78 @@ export const enrollment = pgTable(
   ],
 );
 
+/**
+ * Mutasi murid (tahap 3C.1). `direction`: 'in' | 'out'; `kind`: 'transfer' | 'dropped' ('dropped' hanya untuk 'out'); CHECK di
+ * migrasi 0101. Murid keluar mempertahankan `enrollment`; `departureDocument` = salinan dokumen rapor draf saat keluar.
+ * FK komposit ke murid, tahun ajaran, dan kelas di SQL tangan 0101 (NO ACTION).
+ */
+export const studentTransfer = pgTable(
+  'student_transfer',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id').notNull(),
+    direction: text('direction', { enum: ['in', 'out'] }).notNull(),
+    kind: text('kind', { enum: ['transfer', 'dropped'] })
+      .notNull()
+      .default('transfer'),
+    effectiveOn: date('effective_on').notNull(),
+    academicYearId: uuid('academic_year_id').notNull(),
+    /** Rombel saat keluar, atau rombel penempatan saat masuk. */
+    classId: uuid('class_id'),
+    /** Kode alasan (daftar di kontrak, tanpa CHECK enum). */
+    reason: text('reason').notNull(),
+    reasonNote: text('reason_note'),
+    counterpartSchoolName: text('counterpart_school_name'),
+    counterpartNpsn: text('counterpart_npsn'),
+    letterNumber: text('letter_number'),
+    letterDate: date('letter_date'),
+    /** Disiapkan untuk lampiran surat pindah; belum dipakai API. */
+    documentFileId: uuid('document_file_id').references(() => schoolFile.id, { onDelete: 'set null' }),
+    departureDocument: jsonb('departure_document'),
+    /** Alasan penimpaan larangan semester genap tingkat akhir (hanya pemegang school:manage). */
+    exceptionReason: text('exception_reason'),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('student_transfer_school_id_uq').on(t.schoolId, t.id),
+    index('student_transfer_student_idx').on(t.schoolId, t.studentId),
+    index('student_transfer_year_direction_idx').on(t.schoolId, t.academicYearId, t.direction),
+  ],
+);
+
+/**
+ * Riwayat pindah rombel dalam satu tahun ajaran (tahap 3C.1). `enrollment.class_id` hanya menyimpan rombel kini. Baris hanya
+ * untuk perpindahan nyata (rombel lama -> baru, atau dicabut = `toClassId` null), bukan penempatan pertama.
+ */
+export const enrollmentChange = pgTable(
+  'enrollment_change',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id').notNull(),
+    academicYearId: uuid('academic_year_id').notNull(),
+    fromClassId: uuid('from_class_id'),
+    toClassId: uuid('to_class_id'),
+    effectiveOn: date('effective_on').notNull(),
+    reason: text('reason'),
+    actorId: text('actor_id'),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('enrollment_change_school_id_uq').on(t.schoolId, t.id),
+    index('enrollment_change_from_idx').on(t.schoolId, t.academicYearId, t.fromClassId),
+    index('enrollment_change_to_idx').on(t.schoolId, t.academicYearId, t.toClassId),
+    index('enrollment_change_student_idx').on(t.schoolId, t.studentId),
+  ],
+);
+
 export const subject = pgTable(
   'subject',
   {

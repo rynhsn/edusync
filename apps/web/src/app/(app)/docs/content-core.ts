@@ -465,6 +465,275 @@ export const CORE_DOCS: DocArticle[] = [
     },
   },
   {
+    slug: 'student-transfers',
+    icon: 'history',
+    tone: 'amber',
+    group: 'master',
+    text: {
+      id: {
+        title: 'Mutasi murid: pindah masuk atau keluar sekolah',
+        summary:
+          'Catat murid yang pindah dari atau ke sekolah lain, lihat riwayat murid dari tahun ke tahun, dan batalkan bila salah catat.',
+        forWho:
+          'Admin sekolah dan operator TU yang mengurus data siswa; guru dan Kepala sekolah hanya bisa melihat.',
+        sections: [
+          {
+            heading: 'Apa itu mutasi murid',
+            body: 'Mutasi adalah perpindahan murid masuk ke sekolah ini atau keluar dari sekolah ini. Mutasi keluar berarti murid pindah ke sekolah lain atau putus sekolah. Mutasi masuk berarti murid pindahan dari sekolah lain. Semuanya tercatat di menu Mutasi murid, lengkap dengan tanggal, alasan, sekolah asal atau tujuan, dan nomor surat.',
+            href: '/transfers',
+          },
+          {
+            heading: 'Mencatat mutasi keluar',
+            body: 'Setelah dicatat, status murid berubah menjadi Pindah atau Keluar. Riwayat kelas dan rapor yang sudah final tetap tersimpan. Rapor semester berjalan yang masih draf disimpan sebagai keterangan nilai saat pindah, supaya bisa diberikan kepada sekolah baru.',
+            steps: [
+              'Buka menu Mutasi murid di kelompok Data induk, lalu klik Catat mutasi keluar.',
+              'Cari murid dengan nama, NIS, atau NISN, lalu pilih orangnya. Hanya murid yang berstatus Aktif yang muncul.',
+              'Isi tanggal mutasi, jenis (pindah sekolah atau putus sekolah), dan alasan.',
+              'Isi sekolah tujuan, NPSN sekolah (8 angka, boleh dikosongkan), serta nomor dan tanggal surat pindah bila ada.',
+              'Klik Catat mutasi.',
+            ],
+            tip: 'Anda juga bisa mulai dari menu Siswa: klik menu baris murid, lalu pilih Catat mutasi keluar.',
+            warning:
+              'Keterangan nilai saat pindah hanya salinan rapor sementara. Itu bukan rapor final dan tidak menggantikan rapor resmi.',
+            href: '/transfers',
+          },
+          {
+            heading: 'Aturan semester genap di tingkat akhir',
+            body: 'Murid tingkat akhir (misalnya kelas XII) tidak boleh pindah sekolah pada semester genap. Bila Anda mencobanya, muncul penjelasan dan mutasi belum dicatat. Putus sekolah tidak terkena aturan ini. Admin dengan hak kelola sekolah dapat mengecualikan aturan ini dengan menuliskan alasannya; alasan itu tersimpan pada catatan mutasi.',
+            steps: [
+              'Baca penjelasan yang muncul di dalam formulir.',
+              'Bila Anda berhak, isi kolom Alasan pengecualian.',
+              'Klik Catat dengan pengecualian.',
+            ],
+            warning:
+              'Gunakan pengecualian hanya bila benar-benar perlu. Alasannya tersimpan dan bisa dilihat kemudian di detail mutasi.',
+          },
+          {
+            heading: 'Mencatat mutasi masuk',
+            body: 'Murid baru dibuat berstatus Aktif dan langsung ditempatkan di kelas yang dipilih. Nilai dari sekolah asal tidak ikut dipindahkan.',
+            steps: [
+              'Di menu Mutasi murid, klik Catat mutasi masuk.',
+              'Isi data murid. Yang wajib hanya nama dan jenis kelamin; data lain boleh menyusul.',
+              'Pilih Kelas tujuan. Kelas yang tampil adalah kelas pada tahun ajaran aktif.',
+              'Isi tanggal mutasi, alasan, sekolah asal, NPSN, serta nomor dan tanggal surat bila ada.',
+              'Klik Catat mutasi.',
+            ],
+            href: '/transfers',
+          },
+          {
+            heading: 'Mengubah atau membatalkan mutasi',
+            body: 'Keterangan (alasan, sekolah, NPSN, nomor dan tanggal surat) bisa diubah lewat menu baris, pilihan Ubah keterangan. Tanggal, arah, dan kelas tidak bisa diubah di sini; bila keliru, batalkan lalu catat ulang. Hanya mutasi keluar yang bisa dibatalkan: catatan mutasi dihapus dan murid kembali berstatus Aktif.',
+            warning:
+              'Pembatalan ditolak bila status murid sudah diubah setelah mutasi dicatat, atau bila ada mutasi yang lebih baru. Mutasi masuk tidak bisa dibatalkan; ubah status murid bila perlu.',
+          },
+          {
+            heading: 'Melihat riwayat murid',
+            body: 'Riwayat murid menampilkan perjalanan seorang murid per tahun ajaran: kelas, perpindahan kelas beserta tanggal dan alasannya, keputusan kenaikan atau kelulusan, status rapor tiap semester, dan mutasi.',
+            steps: ['Buka menu Siswa dan cari muridnya.', 'Klik menu baris murid, lalu pilih Riwayat murid.'],
+            href: '/students',
+          },
+          {
+            heading: 'Pindah kelas dengan tanggal dan alasan',
+            body: 'Saat memindahkan murid ke kelas lain lewat Ubah di menu Siswa, Anda bisa mengisi tanggal berlaku dan alasan. Keduanya boleh dikosongkan; bila tanggal kosong, yang dipakai adalah hari ini. Keduanya masuk ke riwayat murid.',
+            warning:
+              'Bila rapor semester itu sudah final, perpindahan kelas ditolak. Buka kembali rapornya atau tunggu semester berikutnya.',
+            href: '/students',
+          },
+        ],
+        faq: [
+          {
+            q: 'Apa bedanya mutasi dengan mengubah status murid menjadi Pindah?',
+            a: 'Mutasi mencatat tanggal, alasan, sekolah tujuan, dan nomor surat, serta menyimpan keterangan nilai saat pindah. Mengubah status saja tidak menyimpan hal-hal itu. Gunakan mutasi untuk murid yang benar-benar pindah atau berhenti.',
+          },
+          {
+            q: 'Murid yang saya cari tidak muncul di formulir mutasi keluar.',
+            a: 'Hanya murid berstatus Aktif yang bisa dimutasi keluar. Periksa dulu statusnya di menu Siswa.',
+          },
+          {
+            q: 'Saya salah mengisi tanggal mutasi keluar. Bagaimana?',
+            a: 'Batalkan mutasi keluar itu, lalu catat ulang dengan tanggal yang benar. Mutasi masuk tidak bisa dibatalkan; Anda hanya bisa mengubah keterangannya.',
+          },
+        ],
+      },
+      en: {
+        title: 'Student transfers: moving in or out of the school',
+        summary:
+          'Record students who move from or to another school, see a student history year by year, and cancel a transfer that was recorded by mistake.',
+        forWho:
+          'School admins and administration staff who manage student data; teachers and the principal can only view.',
+        sections: [
+          {
+            heading: 'What a student transfer is',
+            body: 'A transfer is a student moving into this school or out of it. An outgoing transfer means the student moves to another school or drops out. An incoming transfer means a student arrives from another school. Everything is kept in the Student transfers menu, with the date, reason, the other school, and the letter number.',
+            href: '/transfers',
+          },
+          {
+            heading: 'Recording a transfer out',
+            body: 'Once recorded, the student status changes to Transferred or Dropped out. The class history and any final report cards stay saved. The current semester report card, if it is still a draft, is saved as a grade statement at departure so it can be given to the new school.',
+            steps: [
+              'Open the Student transfers menu in the Master data group, then click Record transfer out.',
+              'Search by name, NIS, or NISN and choose the student. Only students with the Active status appear.',
+              'Enter the transfer date, the type (moved to another school or dropped out), and the reason.',
+              'Enter the new school, the school NPSN (8 digits, may be left empty), and the transfer letter number and date if you have them.',
+              'Click Record transfer.',
+            ],
+            tip: 'You can also start from the Students menu: open the student row menu and choose Record transfer out.',
+            warning:
+              'The grade statement at departure is only a temporary copy of the report card. It is not a final report card and does not replace the official one.',
+            href: '/transfers',
+          },
+          {
+            heading: 'The even-semester rule for the final grade',
+            body: 'Final-grade students (for example grade 12) may not change schools in the even semester. If you try, an explanation appears and the transfer is not recorded. Dropping out is not covered by this rule. A school admin with the school management permission can make an exception by writing the reason; the reason is saved with the transfer.',
+            steps: [
+              'Read the explanation shown in the form.',
+              'If you are allowed to, fill in the Reason for the exception field.',
+              'Click Record with exception.',
+            ],
+            warning:
+              'Use the exception only when it is really needed. The reason is saved and can be seen later in the transfer details.',
+          },
+          {
+            heading: 'Recording a transfer in',
+            body: 'The new student is created as Active and placed straight into the chosen class. Grades from the previous school are not carried over.',
+            steps: [
+              'In the Student transfers menu, click Record transfer in.',
+              'Fill in the student details. Only the name and gender are required; the rest can come later.',
+              'Choose the class. The classes shown belong to the active academic year.',
+              'Enter the transfer date, reason, previous school, NPSN, and the letter number and date if you have them.',
+              'Click Record transfer.',
+            ],
+            href: '/transfers',
+          },
+          {
+            heading: 'Editing or cancelling a transfer',
+            body: 'The details (reason, school, NPSN, letter number and date) can be edited from the row menu with Edit details. The date, direction, and class cannot be changed here; if they are wrong, cancel the transfer and record it again. Only outgoing transfers can be cancelled: the transfer record is deleted and the student becomes Active again.',
+            warning:
+              'A cancellation is refused if the student status was changed after the transfer was recorded, or if there is a newer transfer. Incoming transfers cannot be cancelled; change the student status if needed.',
+          },
+          {
+            heading: 'Viewing a student history',
+            body: 'The student history shows a student year by year: class, class changes with their date and reason, the promotion or graduation decision, the report card status of each semester, and transfers.',
+            steps: [
+              'Open the Students menu and find the student.',
+              'Open the student row menu and choose Student history.',
+            ],
+            href: '/students',
+          },
+          {
+            heading: 'Changing class with a date and reason',
+            body: 'When you move a student to another class with Edit in the Students menu, you can fill in the effective date and a reason. Both are optional; if the date is empty, today is used. Both appear in the student history.',
+            warning:
+              'If the report card of that semester is already final, the class change is refused. Reopen the report card or wait for the next semester.',
+            href: '/students',
+          },
+        ],
+        faq: [
+          {
+            q: 'What is the difference between a transfer and changing the student status to Transferred?',
+            a: 'A transfer records the date, reason, new school, and letter number, and saves the grade statement at departure. Changing only the status does not keep any of that. Use a transfer for students who really move or stop.',
+          },
+          {
+            q: 'The student I am looking for does not appear in the transfer out form.',
+            a: 'Only students with the Active status can be transferred out. Check the status in the Students menu first.',
+          },
+          {
+            q: 'I entered the wrong date for a transfer out. What now?',
+            a: 'Cancel that transfer out, then record it again with the right date. Incoming transfers cannot be cancelled; you can only edit their details.',
+          },
+        ],
+      },
+      su: {
+        title: 'Mutasi murid: pindah lebet atawa kaluar sakola',
+        summary:
+          'Catet murid anu pindah ti atawa ka sakola sejen, tempo riwayat murid ti taun ka taun, jeung batalkeun upami lepat nyatet.',
+        forWho:
+          'Admin sakola jeung operator TU anu ngurus data siswa; guru jeung Kepala sakola ngan bisa nempo.',
+        sections: [
+          {
+            heading: 'Naon éta mutasi murid',
+            body: 'Mutasi nyaéta murid pindah lebet ka sakola ieu atawa kaluar ti sakola ieu. Mutasi kaluar hartosna murid pindah ka sakola sejen atawa eureun sakola. Mutasi lebet hartosna murid pindahan ti sakola sejen. Sadayana kacatet dina ménu Mutasi murid, lengkep jeung tanggal, alesan, sakola asal atawa tujuan, jeung nomer surat.',
+            href: '/transfers',
+          },
+          {
+            heading: 'Nyatet mutasi kaluar',
+            body: 'Sanggeus dicatet, status murid robih jadi Pindah atawa Kaluar. Riwayat kelas jeung rapor anu parantos final tetep disimpen. Rapor semester anu keur jalan, upami masih draf, disimpen salaku katerangan nilai nalika pindah, supados bisa dipasihkeun ka sakola anyar.',
+            steps: [
+              'Buka ménu Mutasi murid dina kelompok Data induk, terus klik Catet mutasi kaluar.',
+              'Golédag murid maké ngaran, NIS, atawa NISN, terus pilih jalmana. Ngan murid status Aktif anu muncul.',
+              'Eusian tanggal mutasi, jinis (pindah sakola atawa eureun sakola), jeung alesan.',
+              'Eusian sakola tujuan, NPSN sakola (8 angka, tiasa dikosongkeun), jeung nomer sarta tanggal surat pindah upami aya.',
+              'Klik Catet mutasi.',
+            ],
+            tip: 'Anjeun ogé bisa ngamimitian ti ménu Siswa: klik ménu baris murid, terus pilih Catet mutasi kaluar.',
+            warning:
+              'Katerangan nilai nalika pindah ngan salinan rapor samentara. Éta lain rapor final jeung teu ngagentos rapor resmi.',
+            href: '/transfers',
+          },
+          {
+            heading: 'Aturan semester genap di tingkat tungtung',
+            body: 'Murid tingkat tungtung (upamana kelas XII) teu meunang pindah sakola dina semester genap. Upami dicoba, aya katerangan sarta mutasi can dicatet. Eureun sakola teu kaasup aturan ieu. Admin anu boga hak ngurus sakola bisa ngaiwalkeun aturan ieu ku nuliskeun alesanna; alesan éta disimpen dina catetan mutasi.',
+            steps: [
+              'Baca katerangan anu muncul dina formulir.',
+              'Upami Anjeun boga hak, eusian kolom Alesan iwal.',
+              'Klik Catet kalayan iwal.',
+            ],
+            warning:
+              'Paké iwal ngan upami bener-bener perlu. Alesanna disimpen sarta bisa ditempo engké dina rincian mutasi.',
+          },
+          {
+            heading: 'Nyatet mutasi lebet',
+            body: 'Murid anyar dijieun status Aktif sarta langsung ditempatkeun di kelas anu dipilih. Nilai ti sakola asal teu milu dipindahkeun.',
+            steps: [
+              'Dina ménu Mutasi murid, klik Catet mutasi lebet.',
+              'Eusian data murid. Anu wajib ngan ngaran jeung jenis kelamin; data sejenna tiasa nyusul.',
+              'Pilih Kelas tujuan. Kelas anu muncul nyaéta kelas dina taun ajaran aktif.',
+              'Eusian tanggal mutasi, alesan, sakola asal, NPSN, jeung nomer sarta tanggal surat upami aya.',
+              'Klik Catet mutasi.',
+            ],
+            href: '/transfers',
+          },
+          {
+            heading: 'Ngarobih atawa ngabatalkeun mutasi',
+            body: 'Katerangan (alesan, sakola, NPSN, nomer jeung tanggal surat) bisa dirobah ngaliwatan ménu baris, pilihan Robih katerangan. Tanggal, arah, jeung kelas teu tiasa dirobah di dieu; upami lepat, batalkeun terus catet deui. Ngan mutasi kaluar anu bisa dibatalkeun: catetan mutasi dihapus sarta murid status Aktif deui.',
+            warning:
+              'Pembatalan ditolak upami status murid parantos dirobah sanggeus mutasi dicatet, atawa upami aya mutasi anu leuwih anyar. Mutasi lebet teu tiasa dibatalkeun; robih status murid upami perlu.',
+          },
+          {
+            heading: 'Nempo riwayat murid',
+            body: 'Riwayat murid mintonkeun lalampahan hiji murid per taun ajaran: kelas, pindah kelas kalayan tanggal jeung alesanna, kaputusan naék kelas atawa lulus, status rapor unggal semester, jeung mutasi.',
+            steps: [
+              'Buka ménu Siswa terus golédag muridna.',
+              'Klik ménu baris murid, terus pilih Riwayat murid.',
+            ],
+            href: '/students',
+          },
+          {
+            heading: 'Pindah kelas kalayan tanggal jeung alesan',
+            body: 'Upami mindahkeun murid ka kelas sejen ngaliwatan Robih dina ménu Siswa, Anjeun bisa ngeusian tanggal berlaku jeung alesan. Dua-duana opsional; upami tanggal kosong, anu dipaké nyaéta dinten ieu. Dua-duana asup kana riwayat murid.',
+            warning:
+              'Upami rapor semester éta parantos final, pindah kelas ditolak. Buka deui raporna atawa antosan semester salajengna.',
+            href: '/students',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naon bédana mutasi jeung ngarobih status murid jadi Pindah?',
+            a: 'Mutasi nyatet tanggal, alesan, sakola tujuan, jeung nomer surat, sarta nyimpen katerangan nilai nalika pindah. Ngarobih status wungkul teu nyimpen éta kabéh. Paké mutasi pikeun murid anu sabenerna pindah atawa eureun.',
+          },
+          {
+            q: 'Murid anu dipilarian teu muncul dina formulir mutasi kaluar.',
+            a: 'Ngan murid status Aktif anu bisa dimutasi kaluar. Parios heula statusna dina ménu Siswa.',
+          },
+          {
+            q: 'Kuring lepat ngeusian tanggal mutasi kaluar. Kumaha?',
+            a: 'Batalkeun mutasi kaluar éta, terus catet deui kalayan tanggal anu bener. Mutasi lebet teu tiasa dibatalkeun; ngan katerangannana anu bisa dirobah.',
+          },
+        ],
+      },
+    },
+  },
+  {
     slug: 'teachers',
     icon: 'users',
     tone: 'violet',

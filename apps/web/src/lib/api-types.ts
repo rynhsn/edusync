@@ -13986,7 +13986,7 @@ export interface paths {
         get?: never;
         /**
          * Tempatkan atau pindahkan siswa ke kelas
-         * @description Izin: `student:manage`. Siswa duduk di satu kelas per tahun ajaran; menempatkan ulang pada tahun ajaran yang sama memindahkannya. `classId: null` mencabut dari kelas pada tahun ajaran aktif.
+         * @description Izin: `student:manage`. Siswa duduk di satu kelas per tahun ajaran; menempatkan ulang pada tahun ajaran yang sama memindahkannya. `classId: null` mencabut dari kelas pada tahun ajaran aktif. Perpindahan nyata tercatat di riwayat rombel (`effectiveOn` dan `reason` opsional; lihat `GET /v1/students/{id}/academic-history`). Ditolak 409 `report_final` bila rapor siswa atau kelas (lama atau baru) sudah final pada semester tahun itu yang memuat hari ini atau `effectiveOn`: buka kembali rapornya lebih dulu.
          */
         put: {
             parameters: {
@@ -14005,6 +14005,13 @@ export interface paths {
                     "application/json": {
                         /** Format: uuid */
                         classId: string | null;
+                        /**
+                         * Format: date
+                         * @description Tanggal efektif perpindahan untuk riwayat rombel (bawaan hari ini menurut zona waktu sekolah).
+                         */
+                        effectiveOn?: string;
+                        /** @description Alasan perpindahan untuk riwayat rombel (maksimal 500). */
+                        reason?: string;
                     };
                 };
             };
@@ -14102,8 +14109,1217 @@ export interface paths {
                         };
                     };
                 };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
             };
         };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/students/{id}/transfer-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Catat mutasi keluar (pindah atau putus sekolah)
+         * @description Izin: `student:manage`. Dalam satu transaksi: mencatat mutasi, mengubah status siswa menjadi `transferred` (`kind: transfer`) atau `dropped` (`kind: dropped`), dan membekukan dokumen rapor draf semester berjalan sebagai keterangan nilai saat pindah (`departureDocument`, hanya bila modul `grades` aktif dan rapornya belum final). Enrollment tidak dihapus: rapor final siswa tetap tampil di daftar rapor kelas semester yang berakhir sebelum tanggal efektif. Siswa harus aktif (409 `student_not_active`); siswa berstatus pindah/keluar tanpa catatan mutasi boleh dilengkapi (tanpa dokumen keberangkatan dan tanpa larangan). Pindah sekolah pada semester genap tingkat akhir ditolak 409 `transfer_final_level_even_semester`; pemegang `school:manage` dapat menimpanya dengan `exceptionReason` (tanpa izin itu 403 `exception_requires_school_manage`); putus sekolah tidak terkena larangan.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: date
+                         * @description Tanggal efektif mutasi
+                         */
+                        effectiveOn: string;
+                        /** @enum {string} */
+                        reason: "parent_relocation" | "school_choice" | "dropped" | "other";
+                        reasonNote?: string | null;
+                        /** @description Sekolah tujuan (keluar) atau asal (masuk) */
+                        counterpartSchoolName?: string | null;
+                        /** @description NPSN sekolah tujuan/asal, 8 angka, opsional */
+                        counterpartNpsn?: string | null;
+                        /** @description Nomor surat pindah/persetujuan */
+                        letterNumber?: string | null;
+                        /**
+                         * Format: date
+                         * @default null
+                         */
+                        letterDate?: string | null;
+                        /** @description Hanya bila mutasi jatuh pada semester genap tingkat akhir (dilarang bawaan): alasan penimpaan. Hanya pemegang `school:manage`; dicatat di audit dan pada mutasi. */
+                        exceptionReason?: string;
+                        /**
+                         * @default transfer
+                         * @enum {string}
+                         */
+                        kind?: "transfer" | "dropped";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            studentName: string;
+                            /** @enum {string} */
+                            direction: "in" | "out";
+                            /** @enum {string} */
+                            kind: "transfer" | "dropped";
+                            /** Format: date */
+                            effectiveOn: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /**
+                             * Format: uuid
+                             * @description Rombel saat keluar, atau rombel penempatan saat masuk
+                             */
+                            classId: string | null;
+                            className: string | null;
+                            reason: string;
+                            reasonNote: string | null;
+                            counterpartSchoolName: string | null;
+                            counterpartNpsn: string | null;
+                            letterNumber: string | null;
+                            /** Format: date */
+                            letterDate: string | null;
+                            /** @description Ada keterangan nilai (dokumen rapor draf) yang dibekukan saat murid keluar */
+                            hasDepartureDocument: boolean;
+                            /** @description Terisi bila larangan semester genap tingkat akhir ditimpa */
+                            exceptionReason: string | null;
+                            createdBy: string;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/students/transfer-in": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Catat mutasi masuk (siswa pindahan)
+         * @description Izin: `student:manage`. Membuat siswa baru (status aktif) beserta penempatan di `classId` (pada tahun ajaran kelas itu) dan catatan mutasi masuk dengan sekolah asal. Nilai sekolah asal tidak diimpor. Aturan NIS/NISN/NIK sama dengan `POST /v1/students` (409 `nik_taken`/`conflict`). Penempatan di kelas tingkat akhir pada semester genap ditolak 409 `transfer_final_level_even_semester`; pemegang `school:manage` dapat menimpanya dengan `exceptionReason` (tanpa izin itu 403 `exception_requires_school_manage`). Respons memuat mutasi dan siswa.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        nis?: string | null;
+                        nisn?: string | null;
+                        /** @enum {string} */
+                        gender: "L" | "P";
+                        /**
+                         * Format: date
+                         * @default null
+                         */
+                        birthDate?: string | null;
+                        birthPlace?: string | null;
+                        /** @default null */
+                        nik?: string | null;
+                        /**
+                         * @default null
+                         * @enum {string|null}
+                         */
+                        religion?: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                        address?: string | null;
+                        /** @default null */
+                        phone?: string | null;
+                        /** @default null */
+                        email?: ("" | string) | null;
+                        /**
+                         * Format: date
+                         * @description Tanggal efektif mutasi
+                         */
+                        effectiveOn: string;
+                        /** @enum {string} */
+                        reason: "parent_relocation" | "school_choice" | "dropped" | "other";
+                        reasonNote?: string | null;
+                        /** @description Sekolah tujuan (keluar) atau asal (masuk) */
+                        counterpartSchoolName?: string | null;
+                        /** @description NPSN sekolah tujuan/asal, 8 angka, opsional */
+                        counterpartNpsn?: string | null;
+                        /** @description Nomor surat pindah/persetujuan */
+                        letterNumber?: string | null;
+                        /**
+                         * Format: date
+                         * @default null
+                         */
+                        letterDate?: string | null;
+                        /** @description Hanya bila mutasi jatuh pada semester genap tingkat akhir (dilarang bawaan): alasan penimpaan. Hanya pemegang `school:manage`; dicatat di audit dan pada mutasi. */
+                        exceptionReason?: string;
+                        /**
+                         * Format: uuid
+                         * @description Rombel penempatan
+                         */
+                        classId: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            transfer: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                studentId: string;
+                                studentName: string;
+                                /** @enum {string} */
+                                direction: "in" | "out";
+                                /** @enum {string} */
+                                kind: "transfer" | "dropped";
+                                /** Format: date */
+                                effectiveOn: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                /**
+                                 * Format: uuid
+                                 * @description Rombel saat keluar, atau rombel penempatan saat masuk
+                                 */
+                                classId: string | null;
+                                className: string | null;
+                                reason: string;
+                                reasonNote: string | null;
+                                counterpartSchoolName: string | null;
+                                counterpartNpsn: string | null;
+                                letterNumber: string | null;
+                                /** Format: date */
+                                letterDate: string | null;
+                                /** @description Ada keterangan nilai (dokumen rapor draf) yang dibekukan saat murid keluar */
+                                hasDepartureDocument: boolean;
+                                /** @description Terisi bila larangan semester genap tingkat akhir ditimpa */
+                                exceptionReason: string | null;
+                                createdBy: string;
+                                createdAt: string;
+                            };
+                            student: {
+                                birthPlace: string | null;
+                                /** @description NIK utuh; null bila tidak punya izin kelola atau belum diisi */
+                                nik: string | null;
+                                /** @description NIK tersamar (empat digit terakhir); null bila belum diisi */
+                                nikMasked: string | null;
+                                /** @enum {string|null} */
+                                religion: "islam" | "christian" | "catholic" | "hindu" | "buddhist" | "confucian" | "other" | null;
+                                address: string | null;
+                                phone: string | null;
+                                email: string | null;
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                nis: string | null;
+                                nisn: string | null;
+                                /** @enum {string} */
+                                gender: "L" | "P";
+                                /** Format: date */
+                                birthDate: string | null;
+                                /** @enum {string} */
+                                status: "active" | "graduated" | "transferred" | "dropped";
+                                /**
+                                 * Format: uuid
+                                 * @description Kelas pada tahun ajaran aktif
+                                 */
+                                classId: string | null;
+                                className: string | null;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/student-transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar mutasi siswa
+         * @description Izin: `student:read`. Terbaru dulu (tanggal efektif). Filter opsional `academicYearId`, `direction` (`in`/`out`), `studentId`. `departureDocument` hanya ada di detail (`GET /v1/student-transfers/{id}`).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    academicYearId?: string;
+                    direction?: "in" | "out";
+                    studentId?: string;
+                    limit?: number;
+                    offset?: number;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            total: number;
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                studentId: string;
+                                studentName: string;
+                                /** @enum {string} */
+                                direction: "in" | "out";
+                                /** @enum {string} */
+                                kind: "transfer" | "dropped";
+                                /** Format: date */
+                                effectiveOn: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                /**
+                                 * Format: uuid
+                                 * @description Rombel saat keluar, atau rombel penempatan saat masuk
+                                 */
+                                classId: string | null;
+                                className: string | null;
+                                reason: string;
+                                reasonNote: string | null;
+                                counterpartSchoolName: string | null;
+                                counterpartNpsn: string | null;
+                                letterNumber: string | null;
+                                /** Format: date */
+                                letterDate: string | null;
+                                /** @description Ada keterangan nilai (dokumen rapor draf) yang dibekukan saat murid keluar */
+                                hasDepartureDocument: boolean;
+                                /** @description Terisi bila larangan semester genap tingkat akhir ditimpa */
+                                exceptionReason: string | null;
+                                createdBy: string;
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/student-transfers/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail mutasi (dengan keterangan nilai saat pindah)
+         * @description Izin: `student:read`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            studentName: string;
+                            /** @enum {string} */
+                            direction: "in" | "out";
+                            /** @enum {string} */
+                            kind: "transfer" | "dropped";
+                            /** Format: date */
+                            effectiveOn: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /**
+                             * Format: uuid
+                             * @description Rombel saat keluar, atau rombel penempatan saat masuk
+                             */
+                            classId: string | null;
+                            className: string | null;
+                            reason: string;
+                            reasonNote: string | null;
+                            counterpartSchoolName: string | null;
+                            counterpartNpsn: string | null;
+                            letterNumber: string | null;
+                            /** Format: date */
+                            letterDate: string | null;
+                            /** @description Ada keterangan nilai (dokumen rapor draf) yang dibekukan saat murid keluar */
+                            hasDepartureDocument: boolean;
+                            /** @description Terisi bila larangan semester genap tingkat akhir ditimpa */
+                            exceptionReason: string | null;
+                            createdBy: string;
+                            createdAt: string;
+                            /** @description Salinan dokumen rapor DRAF saat keluar (keterangan nilai saat pindah; bukan rapor final). Bentuk sama dengan dokumen rapor. */
+                            departureDocument: {
+                                /** @enum {string} */
+                                status: "draft" | "final";
+                                school: {
+                                    name: string;
+                                    address: string | null;
+                                    city: string | null;
+                                };
+                                semester: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    name: string;
+                                    academicYear: string;
+                                };
+                                student: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    name: string;
+                                    nis: string | null;
+                                    nisn: string | null;
+                                    className: string;
+                                    level: string;
+                                };
+                                subjects: {
+                                    /** Format: uuid */
+                                    subjectId: string;
+                                    name: string;
+                                    kkm: number;
+                                    final: number | null;
+                                    /** @enum {string|null} */
+                                    predicate: "A" | "B" | "C" | "D" | null;
+                                    /** @description Deskripsi capaian otomatis menurut predikat */
+                                    description: string | null;
+                                    belowKkm: boolean;
+                                    /** @enum {string} */
+                                    descriptionSource?: "manual" | "objectives";
+                                    objectives?: {
+                                        assessed: number;
+                                        achieved: number;
+                                        high: {
+                                            /** Format: uuid */
+                                            id: string;
+                                            code: string | null;
+                                            text: string;
+                                        }[];
+                                        low: {
+                                            /** Format: uuid */
+                                            id: string;
+                                            code: string | null;
+                                            text: string;
+                                        }[];
+                                    };
+                                }[];
+                                extracurriculars: {
+                                    name: string;
+                                    /** @enum {string|null} */
+                                    predicate: "A" | "B" | "C" | "D" | null;
+                                    note: string | null;
+                                }[];
+                                attendance: {
+                                    sick: number;
+                                    excused: number;
+                                    absent: number;
+                                    late: number;
+                                };
+                                homeroomNote: string | null;
+                                homeroomTeacher: {
+                                    name: string;
+                                    nip: string | null;
+                                } | null;
+                                principal: {
+                                    name: string;
+                                    nip: string | null;
+                                } | null;
+                                /** @description Hanya bila pengaturan menampilkan peringkat */
+                                rank: {
+                                    position: number;
+                                    of: number;
+                                } | null;
+                                /** @description Waktu dokumen disusun (saat final: waktu finalisasi) */
+                                generatedAt: string;
+                                /** @enum {string} */
+                                reportMode?: "descriptive";
+                                cocurricularNote?: string;
+                                developmentNote?: string;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah keterangan mutasi
+         * @description Izin: `student:manage`. Mengganti alasan, catatan, sekolah tujuan/asal, NPSN, dan nomor/tanggal surat. Arah, jenis, tanggal efektif, rombel, dan keterangan nilai saat pindah tidak berubah (batalkan lalu catat ulang bila keliru).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @enum {string} */
+                        reason: "parent_relocation" | "school_choice" | "dropped" | "other";
+                        reasonNote?: string | null;
+                        /** @description Sekolah tujuan (keluar) atau asal (masuk) */
+                        counterpartSchoolName?: string | null;
+                        /** @description NPSN sekolah tujuan/asal, 8 angka, opsional */
+                        counterpartNpsn?: string | null;
+                        /** @description Nomor surat pindah/persetujuan */
+                        letterNumber?: string | null;
+                        /**
+                         * Format: date
+                         * @default null
+                         */
+                        letterDate?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            studentName: string;
+                            /** @enum {string} */
+                            direction: "in" | "out";
+                            /** @enum {string} */
+                            kind: "transfer" | "dropped";
+                            /** Format: date */
+                            effectiveOn: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /**
+                             * Format: uuid
+                             * @description Rombel saat keluar, atau rombel penempatan saat masuk
+                             */
+                            classId: string | null;
+                            className: string | null;
+                            reason: string;
+                            reasonNote: string | null;
+                            counterpartSchoolName: string | null;
+                            counterpartNpsn: string | null;
+                            letterNumber: string | null;
+                            /** Format: date */
+                            letterDate: string | null;
+                            /** @description Ada keterangan nilai (dokumen rapor draf) yang dibekukan saat murid keluar */
+                            hasDepartureDocument: boolean;
+                            /** @description Terisi bila larangan semester genap tingkat akhir ditimpa */
+                            exceptionReason: string | null;
+                            createdBy: string;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Batalkan mutasi keluar
+         * @description Izin: `student:manage`. Menghapus catatan mutasi keluar dan mengembalikan status siswa menjadi aktif. Hanya mutasi keluar terbaru milik siswa yang statusnya masih sesuai: 409 `student_status_changed` bila status siswa sudah diubah, 409 `transfer_superseded` bila ada mutasi yang lebih baru. Mutasi masuk tidak dapat dibatalkan (409 `transfer_not_cancellable`); ubah status siswa bila perlu.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/students/{id}/transfers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mutasi satu siswa
+         * @description Izin: `student:read`. Terbaru dulu. 404 `not_found` bila siswa tidak ada.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            studentName: string;
+                            /** @enum {string} */
+                            direction: "in" | "out";
+                            /** @enum {string} */
+                            kind: "transfer" | "dropped";
+                            /** Format: date */
+                            effectiveOn: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /**
+                             * Format: uuid
+                             * @description Rombel saat keluar, atau rombel penempatan saat masuk
+                             */
+                            classId: string | null;
+                            className: string | null;
+                            reason: string;
+                            reasonNote: string | null;
+                            counterpartSchoolName: string | null;
+                            counterpartNpsn: string | null;
+                            letterNumber: string | null;
+                            /** Format: date */
+                            letterDate: string | null;
+                            /** @description Ada keterangan nilai (dokumen rapor draf) yang dibekukan saat murid keluar */
+                            hasDepartureDocument: boolean;
+                            /** @description Terisi bila larangan semester genap tingkat akhir ditimpa */
+                            exceptionReason: string | null;
+                            createdBy: string;
+                            createdAt: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/students/{id}/academic-history": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Riwayat akademik siswa (rombel, keputusan, rapor, mutasi)
+         * @description Izin: `student:read`. Per tahun ajaran (terlama dulu) yang menyentuh siswa ini: rombel kini (`class`), perpindahan rombel (`classChanges`, dari `enrollment_change`), keputusan kenaikan/kelulusan (`decision`), status rapor per semester (`reports`), dan mutasi (`transfers`). Hanya tahun yang punya salah satunya.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            studentId: string;
+                            name: string;
+                            /** @enum {string} */
+                            status: "active" | "graduated" | "transferred" | "dropped";
+                            years: {
+                                /** Format: uuid */
+                                academicYearId: string;
+                                academicYearName: string;
+                                /** Format: date */
+                                startsOn: string;
+                                /** Format: date */
+                                endsOn: string;
+                                class: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    name: string;
+                                    level: string;
+                                } | null;
+                                classChanges: {
+                                    /** Format: date */
+                                    effectiveOn: string;
+                                    /** Format: uuid */
+                                    fromClassId: string | null;
+                                    fromClassName: string | null;
+                                    /** Format: uuid */
+                                    toClassId: string | null;
+                                    toClassName: string | null;
+                                    reason: string | null;
+                                }[];
+                                decision: {
+                                    /** @enum {string} */
+                                    decision: "promote" | "retain" | "graduate";
+                                    /** Format: uuid */
+                                    fromClassId: string;
+                                    fromClassName: string | null;
+                                    /** Format: uuid */
+                                    toClassId: string | null;
+                                    toClassName: string | null;
+                                    reason: string | null;
+                                    followUp: string | null;
+                                    /** Format: date */
+                                    meetingDate: string | null;
+                                    applied: boolean;
+                                } | null;
+                                reports: {
+                                    /** Format: uuid */
+                                    semesterId: string;
+                                    semesterName: string;
+                                    /** Format: uuid */
+                                    classId: string;
+                                    className: string | null;
+                                    /** @enum {string} */
+                                    status: "draft" | "final";
+                                }[];
+                                transfers: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    /** @enum {string} */
+                                    direction: "in" | "out";
+                                    /** @enum {string} */
+                                    kind: "transfer" | "dropped";
+                                    /** Format: date */
+                                    effectiveOn: string;
+                                    reason: string;
+                                    counterpartSchoolName: string | null;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
