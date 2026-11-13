@@ -15,6 +15,7 @@
       "!apps/web/components.json",
       "!apps/web/src/app/globals.css",
       "!Planning",
+      "!docs/rancangan-*.md",
       "!.claude",
       "!graphify-out",
       "!**/.wa-sessions",
