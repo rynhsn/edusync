@@ -9,8 +9,10 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
-Persiapan internal fase 3 (asesmen dan rapor). Tidak ada perubahan perilaku bagi sekolah: nilai, predikat, rekap, rapor, dan
-portal sama persis dengan v1.2.2.
+## [1.3.0] - 2026-11-13
+
+Fase 3 (asesmen dan rapor), tahap 3.0 dan 3.1: persiapan internal dan kategori asesmen. Sekolah yang tidak memakai komponen
+formatif tidak merasakan perubahan: nilai, predikat, rekap, rapor, dan portal sama persis dengan v1.2.2.
 
 ### Diubah
 
