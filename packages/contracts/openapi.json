@@ -132302,6 +132302,7 @@
                           },
                           "description": {
                             "nullable": true,
+                            "description": "Deskripsi capaian otomatis menurut predikat",
                             "type": "string"
                           },
                           "belowKkm": {
@@ -132425,6 +132426,7 @@
                     },
                     "rank": {
                       "nullable": true,
+                      "description": "Hanya bila pengaturan menampilkan peringkat",
                       "type": "object",
                       "properties": {
                         "position": {
@@ -132445,7 +132447,8 @@
                       "additionalProperties": false
                     },
                     "generatedAt": {
-                      "type": "string"
+                      "type": "string",
+                      "description": "Waktu dokumen disusun (saat final: waktu finalisasi)"
                     }
                   },
                   "required": [

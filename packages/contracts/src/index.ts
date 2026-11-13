@@ -22,6 +22,7 @@ export * from './pkl';
 export * from './promotion';
 export * from './quran';
 export * from './report-card';
+export * from './report-document';
 export * from './school-domain';
 export * from './school-settings';
 export * from './site-assets';

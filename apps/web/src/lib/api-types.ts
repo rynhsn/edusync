@@ -58045,6 +58045,7 @@ export interface paths {
                                 final: number | null;
                                 /** @enum {string|null} */
                                 predicate: "A" | "B" | "C" | "D" | null;
+                                /** @description Deskripsi capaian otomatis menurut predikat */
                                 description: string | null;
                                 belowKkm: boolean;
                             }[];
@@ -58069,10 +58070,12 @@ export interface paths {
                                 name: string;
                                 nip: string | null;
                             } | null;
+                            /** @description Hanya bila pengaturan menampilkan peringkat */
                             rank: {
                                 position: number;
                                 of: number;
                             } | null;
+                            /** @description Waktu dokumen disusun (saat final: waktu finalisasi) */
                             generatedAt: string;
                         };
                     };

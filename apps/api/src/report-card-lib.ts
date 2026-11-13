@@ -2,7 +2,7 @@ import {
   averageOfFinals,
   DEFAULT_PREDICATE_DESCRIPTIONS,
   descriptionOf,
-  type Predicate,
+  type ReportDocument,
   rankPositions,
 } from '@edusync/contracts';
 import {
@@ -66,36 +66,11 @@ export async function loadReportSettings(tx: Tx): Promise<ReportSettings> {
   };
 }
 
-/** Dokumen rapor satu siswa. Bentuk yang sama dikembalikan API dan disimpan sebagai snapshot saat final. */
-export interface ReportDocument {
-  status: 'draft' | 'final';
-  school: { name: string; address: string | null; city: string | null };
-  semester: { id: string; name: string; academicYear: string };
-  student: {
-    id: string;
-    name: string;
-    nis: string | null;
-    nisn: string | null;
-    className: string;
-    level: string;
-  };
-  subjects: {
-    subjectId: string;
-    name: string;
-    kkm: number;
-    final: number | null;
-    predicate: Predicate | null;
-    description: string | null;
-    belowKkm: boolean;
-  }[];
-  extracurriculars: { name: string; predicate: Predicate | null; note: string | null }[];
-  attendance: { sick: number; excused: number; absent: number; late: number };
-  homeroomNote: string | null;
-  homeroomTeacher: { name: string; nip: string | null } | null;
-  principal: { name: string; nip: string | null } | null;
-  rank: { position: number; of: number } | null;
-  generatedAt: string;
-}
+/**
+ * Dokumen rapor satu siswa. Bentuk yang sama dikembalikan API dan disimpan sebagai snapshot saat final.
+ * Tipe dan skema zod-nya satu tempat di kontrak (`report-document.ts`), dipakai juga oleh rute rapor dan portal.
+ */
+export type { ReportDocument };
 
 const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', message);
 

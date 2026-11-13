@@ -9,6 +9,23 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+## [1.2.3] - 2026-11-13
+
+Persiapan internal fase 3 (asesmen dan rapor). Tidak ada perubahan perilaku bagi sekolah: nilai, predikat, rekap, rapor, dan
+portal sama persis dengan v1.2.2.
+
+### Diubah
+
+- **Skema dokumen rapor kini satu tempat** (`packages/contracts`), dipakai bersama oleh rute rapor staf, rute portal, dan
+  pembuat dokumen, tidak lagi diduplikasi di dua rute. Bentuk respons tidak berubah; deskripsi bidang pada dokumen portal di
+  dokumentasi API kini sama dengan rute rapor staf.
+- **Pembaca salinan beku konfigurasi nilai mengenal `config_version` 1 dan 2.** Kunci yang tidak ada ditafsirkan sebagai nilai
+  bawaan (sumatif, tanpa kriteria per TP, rata-rata, hanya dicatat). Salinan yang ditulis tetap berversi 1 dan isinya tidak
+  berubah. Tidak ada tabel, kolom, atau migrasi baru.
+- **Tes garis dasar** untuk tiga mode nilai dan empat cakupan KKTP (rekap, matriks, rapor draf dan final, daftar rapor, nilai
+  portal, snapshot, salinan beku) dan tes yang membuktikan bahwa respons API membuang kunci dokumen rapor yang tidak
+  dideklarasikan di skema, sebagai jaring pengaman tahap berikutnya.
+
 ## [1.2.2] - 2026-11-13
 
 Dua pengetatan hak akses hasil audit.

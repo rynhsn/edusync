@@ -1,8 +1,8 @@
 import {
   type FreezeOrigin,
   frozenComponentsSchema,
-  frozenCriteriaListSchema,
   type KktpRow,
+  resolveFrozenGradingConfig,
 } from '@edusync/contracts';
 import {
   and,
@@ -85,9 +85,12 @@ export async function loadGradingConfig(
     predicateC: row.predicateC,
     calculationMode: row.calculationMode,
   };
-  const components = frozenComponentsSchema.parse(row.components);
+  // Pembaca lintas versi (config_version 1 dan 2). Tahap 3.0 tidak memakai field v2 (kategori, kriteria TP, remedial), jadi
+  // komponen dikembalikan dalam bentuk v1 persis seperti sebelumnya.
+  const resolved = resolveFrozenGradingConfig(row);
+  const components = resolved.components.map(({ id, name, weight, sort }) => ({ id, name, weight, sort }));
   const bySubject = new Map<string, KktpRow[]>();
-  for (const c of frozenCriteriaListSchema.parse(row.criteria)) {
+  for (const c of resolved.criteria) {
     const list = bySubject.get(c.subjectId) ?? [];
     list.push(c);
     bySubject.set(c.subjectId, list);

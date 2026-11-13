@@ -1,4 +1,5 @@
 import { createHash, randomBytes } from 'node:crypto';
+import { reportDocumentSchema } from '@edusync/contracts';
 import {
   and,
   asc,
@@ -199,45 +200,6 @@ const reportCardItemSchema = z.object({
   average: z.number().nullable(),
   subjectsGraded: z.number().int(),
   subjectsTotal: z.number().int(),
-});
-
-const reportDocumentSchema = z.object({
-  status: z.enum(['draft', 'final']),
-  school: z.object({ name: z.string(), address: z.string().nullable(), city: z.string().nullable() }),
-  semester: z.object({ id: z.uuid(), name: z.string(), academicYear: z.string() }),
-  student: z.object({
-    id: z.uuid(),
-    name: z.string(),
-    nis: z.string().nullable(),
-    nisn: z.string().nullable(),
-    className: z.string(),
-    level: z.string(),
-  }),
-  subjects: z.array(
-    z.object({
-      subjectId: z.uuid(),
-      name: z.string(),
-      kkm: z.number(),
-      final: z.number().nullable(),
-      predicate: predicateEnum.nullable(),
-      description: z.string().nullable(),
-      belowKkm: z.boolean(),
-    }),
-  ),
-  extracurriculars: z.array(
-    z.object({ name: z.string(), predicate: predicateEnum.nullable(), note: z.string().nullable() }),
-  ),
-  attendance: z.object({
-    sick: z.number().int(),
-    excused: z.number().int(),
-    absent: z.number().int(),
-    late: z.number().int(),
-  }),
-  homeroomNote: z.string().nullable(),
-  homeroomTeacher: z.object({ name: z.string(), nip: z.string().nullable() }).nullable(),
-  principal: z.object({ name: z.string(), nip: z.string().nullable() }).nullable(),
-  rank: z.object({ position: z.number().int(), of: z.number().int() }).nullable(),
-  generatedAt: z.string(),
 });
 
 const announcementSchema = z.object({

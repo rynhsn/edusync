@@ -5,6 +5,8 @@ import {
   type FrozenComponent,
   type FrozenCriteria,
   GRADING_CONFIG_VERSION,
+  type ResolvedFrozenGradingConfig,
+  resolveFrozenGradingConfig,
 } from '@edusync/contracts';
 import { and, asc, eq, inArray } from 'drizzle-orm';
 import type { Db, Tx } from './client';
@@ -102,6 +104,26 @@ export async function readLiveGradingConfig(ex: Executor, schoolId: string) {
     components,
     criteria,
   };
+}
+
+/**
+ * Baca salinan beku sebuah semester lewat pembaca lintas versi (`config_version` 1 dan 2; kunci yang hilang = nilai bawaan).
+ * Null bila semester belum beku. Memfilter `school_id` sendiri, jadi aman di koneksi BYPASSRLS. Salinan versi tak dikenal
+ * melempar galat jelas. Kolom v2 (`objective_criteria`, `objective_aggregation`, `remedial_policy`) belum ada di tabel pada tahap
+ * 3.0, jadi hasilnya selalu bernilai bawaan sampai migrasi fase 3 menambahkannya.
+ */
+export async function readFrozenGradingConfig(
+  ex: Executor,
+  schoolId: string,
+  semesterId: string,
+): Promise<ResolvedFrozenGradingConfig | null> {
+  const [row] = await ex
+    .select()
+    .from(semesterGradingConfig)
+    .where(
+      and(eq(semesterGradingConfig.schoolId, schoolId), eq(semesterGradingConfig.semesterId, semesterId)),
+    );
+  return row ? resolveFrozenGradingConfig(row) : null;
 }
 
 /**

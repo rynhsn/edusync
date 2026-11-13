@@ -1,3 +1,4 @@
+import { type ReportDocument, reportDocumentSchema } from '@edusync/contracts';
 import {
   and,
   enrollment,
@@ -27,7 +28,6 @@ import {
   liveSummary,
   loadClassContext,
   loadReportSettings,
-  type ReportDocument,
   requireSemesterClass,
 } from '../report-card-lib';
 import { audit, guarded, schoolHeader } from './helpers';
@@ -36,8 +36,6 @@ const tag = ['Report cards'];
 const MODULE = 'grades';
 
 const readGate = [requirePermission('report_card:read'), requireModule(MODULE)];
-
-const predicateEnum = z.enum(['A', 'B', 'C', 'D']);
 
 const settingsSchema = z.object({
   principalName: z.string().nullable().describe('Nama kepala sekolah untuk tanda tangan'),
@@ -71,48 +69,6 @@ const settingsBody = z.object({
   descC: descText,
   descD: descText,
   showRank: z.boolean().default(false),
-});
-
-const documentSchema = z.object({
-  status: z.enum(['draft', 'final']),
-  school: z.object({ name: z.string(), address: z.string().nullable(), city: z.string().nullable() }),
-  semester: z.object({ id: z.uuid(), name: z.string(), academicYear: z.string() }),
-  student: z.object({
-    id: z.uuid(),
-    name: z.string(),
-    nis: z.string().nullable(),
-    nisn: z.string().nullable(),
-    className: z.string(),
-    level: z.string(),
-  }),
-  subjects: z.array(
-    z.object({
-      subjectId: z.uuid(),
-      name: z.string(),
-      kkm: z.number(),
-      final: z.number().nullable(),
-      predicate: predicateEnum.nullable(),
-      description: z.string().nullable().describe('Deskripsi capaian otomatis menurut predikat'),
-      belowKkm: z.boolean(),
-    }),
-  ),
-  extracurriculars: z.array(
-    z.object({ name: z.string(), predicate: predicateEnum.nullable(), note: z.string().nullable() }),
-  ),
-  attendance: z.object({
-    sick: z.number().int(),
-    excused: z.number().int(),
-    absent: z.number().int(),
-    late: z.number().int(),
-  }),
-  homeroomNote: z.string().nullable(),
-  homeroomTeacher: z.object({ name: z.string(), nip: z.string().nullable() }).nullable(),
-  principal: z.object({ name: z.string(), nip: z.string().nullable() }).nullable(),
-  rank: z
-    .object({ position: z.number().int(), of: z.number().int() })
-    .nullable()
-    .describe('Hanya bila pengaturan menampilkan peringkat'),
-  generatedAt: z.string().describe('Waktu dokumen disusun (saat final: waktu finalisasi)'),
 });
 
 const semesterQuery = z.object({ semesterId: z.uuid() });
@@ -337,7 +293,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         headers: schoolHeader,
         params: studentParams,
         querystring: semesterQuery,
-        response: { 200: documentSchema, 400: errorSchema, 404: errorSchema, ...guarded },
+        response: { 200: reportDocumentSchema, 400: errorSchema, 404: errorSchema, ...guarded },
       },
     },
     async (request) => {
