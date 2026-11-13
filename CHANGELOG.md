@@ -9,6 +9,8 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+## [1.4.0] - 2026-11-13
+
 Fase 3 (asesmen dan rapor), tahap 3.2: komponen rapor tambahan dan tanggapan orang tua. Rapor sekolah yang tidak memakai
 bagian baru tetap sama persis dengan sebelumnya (bentuk data versi 1); bagian baru hanya muncul untuk siswa yang memakainya.
 
