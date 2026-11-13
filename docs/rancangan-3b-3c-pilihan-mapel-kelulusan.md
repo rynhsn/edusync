@@ -21,22 +21,22 @@ Cara membaca: "terverifikasi" = dibaca sendiri di kode atau DB dev; "asumsi" = b
 
 ### 1.1 Masalah 3B (pilihan mapel per murid)
 
-| #   | Masalah | Bukti (terverifikasi) | Dasar |
-| --- | ------- | --------------------- | ----- |
+| #   | Masalah                                                                                                                                                                                                                                                                    | Bukti (terverifikasi)                                                                                                                                                                                           | Dasar                                                    |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------- |
 | B1  | Semua murid satu rombel dianggap mengambil semua mapel rombel. Murid SMA XI-XII yang memilih 4-5 dari minimal 7 mapel pilihan, murid beragama berbeda, dan murid yang memilih satu cabang seni/prakarya mendapat nilai kosong, rapor "belum lengkap", dan peringkat salah. | Penilaian, roster, rapor diikat ke rombel (bagian 2). `subject.kind` dan `subject.religion_variant` hanya metadata 2C, tidak dibaca perilaku apa pun (grep: hanya `academic-structure.ts`, tes, dan web Mapel). | K10 (13/2025 Lampiran II bagian D), regulasi-madrasah G1 |
-| B2  | Jadwal tidak bisa menyatakan "blok pilihan": satu slot rombel hanya satu mapel; guru yang sama mengajar gabungan dua rombel pada slot yang sama ditolak `teacher_busy`. | Indeks unik `schedule_class_slot_year_uq (class_id, weekday, period_id)` dan pemeriksaan `teacher_busy` (`routes/schedule.ts:425-447`). | K10 (20-25 JP/minggu pilihan) |
-| B3  | Rapor final yang memuat mapel yang tidak diambil murid tidak bisa dibetulkan tanpa membuka kembali; kelengkapan finalisasi (`grades_incomplete`) memaksa `force` untuk kelas campuran. | `completenessOf`/`liveSummary` menghitung semua `assessedSubjects` kelas (`report-card-lib.ts:216-227, 354`). | R1 |
+| B2  | Jadwal tidak bisa menyatakan "blok pilihan": satu slot rombel hanya satu mapel; guru yang sama mengajar gabungan dua rombel pada slot yang sama ditolak `teacher_busy`.                                                                                                    | Indeks unik `schedule_class_slot_year_uq (class_id, weekday, period_id)` dan pemeriksaan `teacher_busy` (`routes/schedule.ts:425-447`).                                                                         | K10 (20-25 JP/minggu pilihan)                            |
+| B3  | Rapor final yang memuat mapel yang tidak diambil murid tidak bisa dibetulkan tanpa membuka kembali; kelengkapan finalisasi (`grades_incomplete`) memaksa `force` untuk kelas campuran.                                                                                     | `completenessOf`/`liveSummary` menghitung semua `assessedSubjects` kelas (`report-card-lib.ts:216-227, 354`).                                                                                                   | R1                                                       |
 
 ### 1.2 Masalah 3C
 
-| #   | Masalah | Bukti (terverifikasi) | Dasar |
-| --- | ------- | --------------------- | ----- |
-| C-a | Kelulusan = keputusan kenaikan `graduate` yang langsung mengubah `student.status` saat penerapan. Tidak ada ujian satuan pendidikan, komponen/bobot, penetapan, tanggal lulus, SKL, nomor ijazah, transkrip, atau "tidak lulus". | `applyDecisions` `routes/promotion.ts:754-776, 943-953`; tabel `promotion_decision` tanpa kolom kelulusan (`schema.ts:799-832`). | R6, regulasi bagian 4 butir 2A ("keliru bila otomatis"), G7 |
-| C-b | Mutasi tidak tercatat. Status `transferred` diubah bebas lewat `PUT /v1/students/:id` tanpa tanggal, alasan, sekolah tujuan. Pindah rombel dalam tahun **menimpa** `enrollment.class_id` (riwayat hilang) dan **tidak dijaga** `report_final`. | `placeStudent` `routes/people.ts:217-239` (`onConflictDoUpdate set classId`); tidak ada panggilan `assert*ReportNotFinal` di `people.ts`. | S4 (3/2025 Pasal 55-58) |
-| C-c | Rapor final murid yang sudah pindah keluar hilang dari daftar rapor kelas, dan bila rapor kelas dibuka kembali lalu difinalkan ulang, murid itu tidak ikut (roster mengecualikan `transferred`/`dropped`). | `historicalRosterOf` (`attendance-lib.ts:75-92`) dan daftar rapor iterasi `c.roster` (`routes/report-card.ts:306-322`). Dokumen tunggal tetap terbaca lewat `resolveReportStudent` (`report-card-access-lib.ts:61`). | integritas arsip |
-| C-d | Tidak ada legger kelas dan berita acara musyawarah dewan pendidik; `promotion_decision` hanya punya `reason`, `follow_up`, `meeting_date` per murid. | `schema.ts:816-821`. | R5, regulasi C4/C5 |
-| C-e | Tidak ada ekspor data akademik untuk dilaporkan ke e-Rapor/Dapodik/EMIS; pekerjaan ganda. | grep: tidak ada rute ekspor akademik. | A9, G9 (sekunder) |
-| C-f | Tinggal kelas di tingkat akhir tidak punya kelas tujuan: rollover tidak menyalin kelas tingkat akhir, jadi `retain` tingkat akhir selalu `unplaced: no_target_class`. Riwayat rombel per murid tidak punya tampilan. | Deskripsi rollover `routes/promotion.ts:1261-1262`; `pickClass` `:722-733`. | R5, C5 |
+| #   | Masalah                                                                                                                                                                                                                                        | Bukti (terverifikasi)                                                                                                                                                                                                | Dasar                                                       |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| C-a | Kelulusan = keputusan kenaikan `graduate` yang langsung mengubah `student.status` saat penerapan. Tidak ada ujian satuan pendidikan, komponen/bobot, penetapan, tanggal lulus, SKL, nomor ijazah, transkrip, atau "tidak lulus".               | `applyDecisions` `routes/promotion.ts:754-776, 943-953`; tabel `promotion_decision` tanpa kolom kelulusan (`schema.ts:799-832`).                                                                                     | R6, regulasi bagian 4 butir 2A ("keliru bila otomatis"), G7 |
+| C-b | Mutasi tidak tercatat. Status `transferred` diubah bebas lewat `PUT /v1/students/:id` tanpa tanggal, alasan, sekolah tujuan. Pindah rombel dalam tahun **menimpa** `enrollment.class_id` (riwayat hilang) dan **tidak dijaga** `report_final`. | `placeStudent` `routes/people.ts:217-239` (`onConflictDoUpdate set classId`); tidak ada panggilan `assert*ReportNotFinal` di `people.ts`.                                                                            | S4 (3/2025 Pasal 55-58)                                     |
+| C-c | Rapor final murid yang sudah pindah keluar hilang dari daftar rapor kelas, dan bila rapor kelas dibuka kembali lalu difinalkan ulang, murid itu tidak ikut (roster mengecualikan `transferred`/`dropped`).                                     | `historicalRosterOf` (`attendance-lib.ts:75-92`) dan daftar rapor iterasi `c.roster` (`routes/report-card.ts:306-322`). Dokumen tunggal tetap terbaca lewat `resolveReportStudent` (`report-card-access-lib.ts:61`). | integritas arsip                                            |
+| C-d | Tidak ada legger kelas dan berita acara musyawarah dewan pendidik; `promotion_decision` hanya punya `reason`, `follow_up`, `meeting_date` per murid.                                                                                           | `schema.ts:816-821`.                                                                                                                                                                                                 | R5, regulasi C4/C5                                          |
+| C-e | Tidak ada ekspor data akademik untuk dilaporkan ke e-Rapor/Dapodik/EMIS; pekerjaan ganda.                                                                                                                                                      | grep: tidak ada rute ekspor akademik.                                                                                                                                                                                | A9, G9 (sekunder)                                           |
+| C-f | Tinggal kelas di tingkat akhir tidak punya kelas tujuan: rollover tidak menyalin kelas tingkat akhir, jadi `retain` tingkat akhir selalu `unplaced: no_target_class`. Riwayat rombel per murid tidak punya tampilan.                           | Deskripsi rollover `routes/promotion.ts:1261-1262`; `pickClass` `:722-733`.                                                                                                                                          | R5, C5                                                      |
 
 ### 1.3 Kriteria keberhasilan (keduanya)
 
@@ -65,20 +65,20 @@ Cara membaca: "terverifikasi" = dibaca sendiri di kode atau DB dev; "asumsi" = b
 
 **Asumsi "satu rombel = satu himpunan mapel untuk semua murid" ada di setiap lapisan:**
 
-| Lapisan | Perilaku sekarang | Rujukan |
-| ------- | ----------------- | ------- |
-| Penempatan | `enrollment` UNIQUE `(student_id, academic_year_id)`: satu rombel per tahun. Pindah = UPDATE `class_id`. | `schema.ts:651-673`, `people.ts:217-239` |
-| Penugasan guru | `teaching_assignment` UNIQUE `(class_id, subject_id)`, satu guru; tanpa `UNIQUE (school_id, id)`. | `schema.ts:1087-1106` |
-| Jadwal | Sel per `(class, weekday, period)` (+ semester); guru otomatis dari penugasan; `teacher_busy` lintas kelas. | `schema.ts:1298-1340`, `schedule.ts:367-490` |
-| Absensi per jam | Roster = `rosterOf(entry.classId)`, semua murid aktif rombel. | `lesson-attendance.ts:211, 298` |
-| Penilaian | `assessment.class_id` + `subject_id`; skor ditolak bila murid bukan anggota aktif rombel (`rosterOf`). | `grading.ts:1385-1394` |
-| Hitung nilai | `computeGrades` menghitung SETIAP `(mapel, murid)` dari daftar `studentIds`. | `grading-lib.ts:116-232` |
-| Mapel rapor | `assessedSubjects(sem, class)` = mapel yang punya penilaian dihitung, **sama untuk semua murid**. | `grading-lib.ts:240-268` |
-| Rapor | `loadClassContext` memakai `historicalRosterOf` (aktif + lulus); rata-rata dan peringkat atas mapel kelas; kelengkapan finalisasi atas mapel kelas. | `report-card-lib.ts:149-213, 354` |
-| Portal | `gradesFor` = `assessedSubjects` rombel murid. | `portal-lib.ts` (`gradesFor`) |
-| Kenaikan | Keputusan per murid; `graduate` hanya tingkat akhir (`isFinalLevel`, `program.final_level_code`); penerapan menempatkan murid dan mengubah status `graduated`. Rollover tidak menyalin kelas tingkat akhir. | `promotion.ts:640-964, 1066-1265` |
-| Status murid | `student.status` enum `active/graduated/transferred/dropped`, bebas diubah lewat `PUT /v1/students/:id` (`student:manage`). | `schema.ts:632`, `people.ts:619-652` |
-| Penjaga final | Per kelas (satu baris final mengunci kelas) atau per murid; `assertClassYearNotClosed` untuk penugasan/wali. Pindah rombel tidak dijaga. | `report-lock-lib.ts` |
+| Lapisan         | Perilaku sekarang                                                                                                                                                                                           | Rujukan                                      |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------- |
+| Penempatan      | `enrollment` UNIQUE `(student_id, academic_year_id)`: satu rombel per tahun. Pindah = UPDATE `class_id`.                                                                                                    | `schema.ts:651-673`, `people.ts:217-239`     |
+| Penugasan guru  | `teaching_assignment` UNIQUE `(class_id, subject_id)`, satu guru; tanpa `UNIQUE (school_id, id)`.                                                                                                           | `schema.ts:1087-1106`                        |
+| Jadwal          | Sel per `(class, weekday, period)` (+ semester); guru otomatis dari penugasan; `teacher_busy` lintas kelas.                                                                                                 | `schema.ts:1298-1340`, `schedule.ts:367-490` |
+| Absensi per jam | Roster = `rosterOf(entry.classId)`, semua murid aktif rombel.                                                                                                                                               | `lesson-attendance.ts:211, 298`              |
+| Penilaian       | `assessment.class_id` + `subject_id`; skor ditolak bila murid bukan anggota aktif rombel (`rosterOf`).                                                                                                      | `grading.ts:1385-1394`                       |
+| Hitung nilai    | `computeGrades` menghitung SETIAP `(mapel, murid)` dari daftar `studentIds`.                                                                                                                                | `grading-lib.ts:116-232`                     |
+| Mapel rapor     | `assessedSubjects(sem, class)` = mapel yang punya penilaian dihitung, **sama untuk semua murid**.                                                                                                           | `grading-lib.ts:240-268`                     |
+| Rapor           | `loadClassContext` memakai `historicalRosterOf` (aktif + lulus); rata-rata dan peringkat atas mapel kelas; kelengkapan finalisasi atas mapel kelas.                                                         | `report-card-lib.ts:149-213, 354`            |
+| Portal          | `gradesFor` = `assessedSubjects` rombel murid.                                                                                                                                                              | `portal-lib.ts` (`gradesFor`)                |
+| Kenaikan        | Keputusan per murid; `graduate` hanya tingkat akhir (`isFinalLevel`, `program.final_level_code`); penerapan menempatkan murid dan mengubah status `graduated`. Rollover tidak menyalin kelas tingkat akhir. | `promotion.ts:640-964, 1066-1265`            |
+| Status murid    | `student.status` enum `active/graduated/transferred/dropped`, bebas diubah lewat `PUT /v1/students/:id` (`student:manage`).                                                                                 | `schema.ts:632`, `people.ts:619-652`         |
+| Penjaga final   | Per kelas (satu baris final mengunci kelas) atau per murid; `assertClassYearNotClosed` untuk penugasan/wali. Pindah rombel tidak dijaga.                                                                    | `report-lock-lib.ts`                         |
 
 **Data DB dev (14 Nov):** 10 sekolah (1 berprofil `smk`, 9 `null`); murid 153 aktif, 5 lulus, 2 pindah, 2 keluar; 30 mapel semua
 `compulsory`, 0 bervarian agama; 251 enrollment; 108 penugasan; 306 sel jadwal; 2.560 absensi per jam; 0 keputusan kenaikan; rapor 32
@@ -99,12 +99,12 @@ draf, 4 final; 0 program dengan `duration_years`. `UNIQUE (school_id, id)` sudah
 
 **Opsi**
 
-| | A. Baris per murid untuk semua mapel | B. Mode partisipasi per (rombel, mapel) + baris hanya untuk mapel bermode pilihan | C. Turunkan dari data lain (agama murid, ada-tidaknya baris) |
-| --- | --- | --- | --- |
-| Sekolah lama | Wajib backfill semua murid x mapel (tabel ber-RLS: migrator TS) dan setiap penempatan baru harus menulis baris | **Tanpa baris; identik** | Tanpa baris |
-| Kebenaran | Eksplisit | Eksplisit di tempat yang perlu | Rapuh: baris pertama yang dibuat langsung menyembunyikan mapel dari murid lain; `other` vs `belief` ambigu; mengubah agama murid mengubah draf rapor diam-diam |
-| Biaya hitung | Join untuk semua mapel | 1 kueri batch, kosong untuk sekolah lama | Sama dengan B |
-| Rollover | Salin semua baris | Salin mode + pilihan | - |
+|              | A. Baris per murid untuk semua mapel                                                                           | B. Mode partisipasi per (rombel, mapel) + baris hanya untuk mapel bermode pilihan | C. Turunkan dari data lain (agama murid, ada-tidaknya baris)                                                                                                   |
+| ------------ | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Sekolah lama | Wajib backfill semua murid x mapel (tabel ber-RLS: migrator TS) dan setiap penempatan baru harus menulis baris | **Tanpa baris; identik**                                                          | Tanpa baris                                                                                                                                                    |
+| Kebenaran    | Eksplisit                                                                                                      | Eksplisit di tempat yang perlu                                                    | Rapuh: baris pertama yang dibuat langsung menyembunyikan mapel dari murid lain; `other` vs `belief` ambigu; mengubah agama murid mengubah draf rapor diam-diam |
+| Biaya hitung | Join untuk semua mapel                                                                                         | 1 kueri batch, kosong untuk sekolah lama                                          | Sama dengan B                                                                                                                                                  |
+| Rollover     | Salin semua baris                                                                                              | Salin mode + pilihan                                                              | -                                                                                                                                                              |
 
 **Keputusan: B.**
 
@@ -177,11 +177,11 @@ aman: tolak bila ada semester final pada tahun rombel; pesan menyarankan buka ke
 
 **Jadwal: blok pilihan dan kelas gabungan.**
 
-| | A. Kelompok belajar sebagai entitas baru (penilaian, jadwal, absensi per kelompok) | B. Tetap per rombel + jalur paralel dan kunci gabungan | C. Rombel tambahan per mapel pilihan (murid ter-enroll di banyak kelas) |
-| --- | --- | --- | --- |
-| Perubahan | Besar: `assessment.class_id`, rapor per rombel, penjaga final per kelas semua harus mengenal kelompok | Kecil: 2 kolom di `schedule_entry`, satu indeks diganti, satu pengecualian `teacher_busy` | Melanggar `enrollment_student_year_uq`; semua roster kacau |
-| Rapor/wali kelas | Harus memetakan kelompok ke rombel | Tetap per rombel | Rusak |
-| Risiko regresi | Tinggi | Rendah | Sangat tinggi |
+|                  | A. Kelompok belajar sebagai entitas baru (penilaian, jadwal, absensi per kelompok)                    | B. Tetap per rombel + jalur paralel dan kunci gabungan                                    | C. Rombel tambahan per mapel pilihan (murid ter-enroll di banyak kelas) |
+| ---------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Perubahan        | Besar: `assessment.class_id`, rapor per rombel, penjaga final per kelas semua harus mengenal kelompok | Kecil: 2 kolom di `schedule_entry`, satu indeks diganti, satu pengecualian `teacher_busy` | Melanggar `enrollment_student_year_uq`; semua roster kacau              |
+| Rapor/wali kelas | Harus memetakan kelompok ke rombel                                                                    | Tetap per rombel                                                                          | Rusak                                                                   |
+| Risiko regresi   | Tinggi                                                                                                | Rendah                                                                                    | Sangat tinggi                                                           |
 
 **Keputusan: B.**
 - `schedule_entry.lane smallint NOT NULL DEFAULT 0`: satu slot rombel boleh punya beberapa sel pada `lane` berbeda **hanya bila** semua mapel
@@ -335,17 +335,17 @@ Sudah ada: keputusan `retain` per murid, alasan, tindak lanjut, tanggal rapat, e
 
 ### 3.9 (ix) Yang sengaja ditunda
 
-| Butir | Alasan |
-| ----- | ------ |
-| Pengajuan pilihan mapel oleh murid/wali di portal dengan persetujuan | Permukaan tulis portal baru; alur kertas sudah lazim; perlu data pemakaian 3B dulu |
-| Kelompok belajar lintas rombel sebagai entitas penuh (penilaian dan rapor per kelompok) | Perombakan besar; opsi B cukup |
-| Penempatan otomatis rombel dari paket pilihan | Menebak; berisiko |
-| Impor nilai angka dari sekolah asal | Format sumber tidak seragam |
-| Pencetakan ijazah, verifikasi ijazah daring, pembangkit nomor seri | Format resmi belum diriset |
-| Sinkron langsung e-Rapor/Dapodik/EMIS/RDM, impor Dapodik | Skema belum terverifikasi |
-| TKA sebagai data murid (regulasi C19) | P3 |
-| Penjurusan SMA | Kebijakan belum final (K16) |
-| FK komposit pada tabel lama tanpa `UNIQUE (school_id, id)` (`enrollment`, `teaching_assignment`, `report_card`, `promotion_decision`) | Prinsip roadmap; tabel baru merujuk lewat `student`/`class_room`/`subject`/`academic_year`/`semester` |
+| Butir                                                                                                                                  | Alasan                                                                                                |
+| -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Pengajuan pilihan mapel oleh murid/wali di portal dengan persetujuan                                                                   | Permukaan tulis portal baru; alur kertas sudah lazim; perlu data pemakaian 3B dulu                    |
+| Kelompok belajar lintas rombel sebagai entitas penuh (penilaian dan rapor per kelompok)                                                | Perombakan besar; opsi B cukup                                                                        |
+| Penempatan otomatis rombel dari paket pilihan                                                                                          | Menebak; berisiko                                                                                     |
+| Impor nilai angka dari sekolah asal                                                                                                    | Format sumber tidak seragam                                                                           |
+| Pencetakan ijazah, verifikasi ijazah daring, pembangkit nomor seri                                                                     | Format resmi belum diriset                                                                            |
+| Sinkron langsung e-Rapor/Dapodik/EMIS/RDM, impor Dapodik                                                                               | Skema belum terverifikasi                                                                             |
+| TKA sebagai data murid (regulasi C19)                                                                                                  | P3                                                                                                    |
+| Penjurusan SMA                                                                                                                         | Kebijakan belum final (K16)                                                                           |
+| FK komposit pada tabel lama tanpa `UNIQUE (school_id, id)` (`enrollment`, `teaching_assignment`, `report_card`, `promotion_decision`)  | Prinsip roadmap; tabel baru merujuk lewat `student`/`class_room`/`subject`/`academic_year`/`semester` |
 
 ---
 
@@ -491,12 +491,12 @@ graduation_decision
 
 ### 4.6 Izin, modul, peran bawaan
 
-| Izin baru | Arti | Peran bawaan |
-| --------- | ---- | ------------ |
-| `subject_choice:manage` | Mode partisipasi, pilihan murid, aturan pilihan | `school_admin`, `curriculum`, `operator` (wali kelas: hak kontekstual tanpa izin ini, hanya rombelnya) |
-| `graduation:manage` | Kebijakan, ujian satuan pendidikan, nilai ujian, penetapan, SKL | `school_admin`, `curriculum` |
-| `graduation:read` | Baca kelulusan, transkrip | `school_admin`, `curriculum`, `principal`, `operator` |
-| `data_export:run` | Ekspor akademik | `school_admin`, `curriculum`, `operator` |
+| Izin baru               | Arti                                                            | Peran bawaan                                                                                           |
+| ----------------------- | --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------ |
+| `subject_choice:manage` | Mode partisipasi, pilihan murid, aturan pilihan                 | `school_admin`, `curriculum`, `operator` (wali kelas: hak kontekstual tanpa izin ini, hanya rombelnya) |
+| `graduation:manage`     | Kebijakan, ujian satuan pendidikan, nilai ujian, penetapan, SKL | `school_admin`, `curriculum`                                                                           |
+| `graduation:read`       | Baca kelulusan, transkrip                                       | `school_admin`, `curriculum`, `principal`, `operator`                                                  |
+| `data_export:run`       | Ekspor akademik                                                 | `school_admin`, `curriculum`, `operator`                                                               |
 
 Mutasi memakai `student:manage` (sudah: admin, operator); riwayat akademik `student:read`; berita acara memakai `promotion:manage` (tulis)
 dan `report_card:read_all` (baca, termasuk kepala sekolah); legger memakai hak daftar rapor. Modul: kelulusan, legger, nilai ujian, ekspor
@@ -505,64 +505,64 @@ Izin baru masuk `PERMISSIONS` dan `SYSTEM_ROLES`, sampai ke sekolah lama lewat `
 
 ### 4.7 Perubahan kontrak API
 
-| Tahap | Endpoint | Izin; modul | Perubahan | Galat baru |
-| ----- | -------- | ----------- | --------- | ---------- |
-| 3B.1 | `GET/PUT /v1/classes/:id/subject-participation` (baru) | `class:read` / `subject_choice:manage` atau wali kelas | daftar mapel rombel + `mode`; tulis batch | 409 `report_final` |
-| 3B.1 | `GET/PUT /v1/classes/:id/subject-choices` (baru) | sama | matriks murid x mapel bermode pilihan; tulis batch (`semesterId?`, `source`) | 400 `subject_not_selected_mode`, `choice_rule_violation` (hanya bila `enforce`), `scope_overlap`; 409 `report_final`, `choice_locked` |
-| 3B.1 | `POST /v1/classes/:id/subject-choices/from-religion` (baru) | sama | isi dari agama murid; hasil `created`, `unmatched[]` | - |
-| 3B.1 | `GET/POST/PUT/DELETE /v1/subject-choice-rules` (baru) | `subject:read` / `subject_choice:manage` | aturan + mapel anggota | 400 `invalid_reference` |
-| 3B.2 | `PUT /v1/assessments/:id/scores` | tetap | murid tak mengambil ditolak | 400 `student_not_taking_subject` |
-| 3B.2 | `GET /v1/assessments/:id/scores`, `/v1/grading/recap`, `/v1/grading/objective-achievement`, narasi, pendampingan | tetap | roster = pengambil | - |
-| 3B.2 | `GET /v1/grading/recap/class` | tetap | sel `notTaken?: true` (sparse) | - |
-| 3B.2 | `GET /v1/report-cards`, `/:studentId`, `POST /finalize` | tetap | mapel, rata-rata, kelengkapan per murid | - |
-| 3B.2 | `POST /v1/exams/:id/grades` | tetap | `skippedNotTaking?` (sparse) | - |
-| 3B.2 | Portal ringkasan anak dan nilai | tetap | mapel yang diambil; `chosenSubjects?` | - |
-| 3B.3 | `PUT /v1/schedule/cell` | tetap | `lane?` (0..9, bawaan 0), `combinedKey?` | 400 `parallel_requires_selected`, `combined_mismatch` |
-| 3B.3 | `GET /v1/schedule…` | tetap | `lane`, `combinedKey` hanya bila bukan bawaan (sparse) | - |
-| 3B.4 | `GET/PUT /v1/lesson-attendance/combined` (baru) | `attendance:read`/`attendance:manage` + pengampu; `attendance` | roster gabungan, tulis ke sel masing-masing | 409 `report_final` |
-| 3B.4 | rute absensi per jam lama | tetap | roster = pengambil | - |
-| 3B.4 | `POST /v1/academic-years/:id/rollover`, `/promotions/apply` | tetap | `copySubjectChoices?` (bawaan true); hasil `choicesCopied?`, `choicesDropped?` | - |
-| 3C.1 | `POST /v1/students/:id/transfer-out`, `POST /v1/students/transfer-in`, `GET /v1/students/:id/transfers` (baru) | `student:manage` / `student:read` | mutasi | 409 `transfer_final_level_even_semester`, `student_not_active`; 403 `exception_requires_school_manage` |
-| 3C.1 | `PUT /v1/students/:id/class` | tetap | `effectiveOn?`, `reason?`; tulis riwayat | **409 `report_final`** (perilaku baru) |
-| 3C.1 | `GET /v1/students/:id/academic-history` (baru) | `student:read` | riwayat rombel, keputusan, rapor, mutasi | - |
-| 3C.1 | `GET /v1/report-cards` | tetap | roster = `semesterRosterOf` | - |
-| 3C.2 | `GET /v1/report-cards/ledger` (baru) | `report_card:read` + hak lihat kelas; `grades` | legger | 400 `invalid_reference` |
-| 3C.3 | `GET/POST/PUT /v1/council-meetings`, `POST /:id/finalize`, `POST /:id/reopen` (baru) | `promotion:manage` / `report_card:read_all` | berita acara | 409 `meeting_final` |
-| 3C.3 | `PUT /v1/academic-years/:id/promotions` | tetap | `meetingId?` per baris | 409 `meeting_final`; 400 `invalid_reference` |
-| 3C.3 | `POST /v1/academic-years/:id/rollover` | tetap | `copyFinalLevelForRetained?` (bawaan true) | - |
-| 3C.4 | `GET/PUT /v1/academic-years/:id/graduation-policy`, `…/school-exams` (CRUD), `PUT /v1/school-exams/:id/scores` (baru) | `graduation:read`/`graduation:manage`; `grades` | kebijakan, ujian, nilai | 409 `graduation_final` |
-| 3C.4 | `GET /v1/academic-years/:id/graduations`, `PUT …/graduations` (draf), `POST …/graduations/finalize`, `POST …/graduations/reopen` (baru) | sama | saran angka, penetapan, transkrip beku, menulis keputusan kenaikan | 409 `report_not_final` (tanpa `force`), `promotion_applied`, `graduation_final`; 400 `not_final_level` |
-| 3C.4 | `PUT /v1/academic-years/:id/promotions` | tetap | bila ada kebijakan kelulusan | 409 `graduation_not_determined` |
-| 3C.5 | `GET /v1/exports/academic` (baru) | `data_export:run` (+ `grades` untuk dataset nilai) | CSV/JSON | 400 `dataset_requires_module` |
+| Tahap | Endpoint                                                                                                                                | Izin; modul                                                    | Perubahan                                                                      | Galat baru                                                                                                                            |
+| ----- | --------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- |
+| 3B.1  | `GET/PUT /v1/classes/:id/subject-participation` (baru)                                                                                  | `class:read` / `subject_choice:manage` atau wali kelas         | daftar mapel rombel + `mode`; tulis batch                                      | 409 `report_final`                                                                                                                    |
+| 3B.1  | `GET/PUT /v1/classes/:id/subject-choices` (baru)                                                                                        | sama                                                           | matriks murid x mapel bermode pilihan; tulis batch (`semesterId?`, `source`)   | 400 `subject_not_selected_mode`, `choice_rule_violation` (hanya bila `enforce`), `scope_overlap`; 409 `report_final`, `choice_locked` |
+| 3B.1  | `POST /v1/classes/:id/subject-choices/from-religion` (baru)                                                                             | sama                                                           | isi dari agama murid; hasil `created`, `unmatched[]`                           | -                                                                                                                                     |
+| 3B.1  | `GET/POST/PUT/DELETE /v1/subject-choice-rules` (baru)                                                                                   | `subject:read` / `subject_choice:manage`                       | aturan + mapel anggota                                                         | 400 `invalid_reference`                                                                                                               |
+| 3B.2  | `PUT /v1/assessments/:id/scores`                                                                                                        | tetap                                                          | murid tak mengambil ditolak                                                    | 400 `student_not_taking_subject`                                                                                                      |
+| 3B.2  | `GET /v1/assessments/:id/scores`, `/v1/grading/recap`, `/v1/grading/objective-achievement`, narasi, pendampingan                        | tetap                                                          | roster = pengambil                                                             | -                                                                                                                                     |
+| 3B.2  | `GET /v1/grading/recap/class`                                                                                                           | tetap                                                          | sel `notTaken?: true` (sparse)                                                 | -                                                                                                                                     |
+| 3B.2  | `GET /v1/report-cards`, `/:studentId`, `POST /finalize`                                                                                 | tetap                                                          | mapel, rata-rata, kelengkapan per murid                                        | -                                                                                                                                     |
+| 3B.2  | `POST /v1/exams/:id/grades`                                                                                                             | tetap                                                          | `skippedNotTaking?` (sparse)                                                   | -                                                                                                                                     |
+| 3B.2  | Portal ringkasan anak dan nilai                                                                                                         | tetap                                                          | mapel yang diambil; `chosenSubjects?`                                          | -                                                                                                                                     |
+| 3B.3  | `PUT /v1/schedule/cell`                                                                                                                 | tetap                                                          | `lane?` (0..9, bawaan 0), `combinedKey?`                                       | 400 `parallel_requires_selected`, `combined_mismatch`                                                                                 |
+| 3B.3  | `GET /v1/schedule…`                                                                                                                     | tetap                                                          | `lane`, `combinedKey` hanya bila bukan bawaan (sparse)                         | -                                                                                                                                     |
+| 3B.4  | `GET/PUT /v1/lesson-attendance/combined` (baru)                                                                                         | `attendance:read`/`attendance:manage` + pengampu; `attendance` | roster gabungan, tulis ke sel masing-masing                                    | 409 `report_final`                                                                                                                    |
+| 3B.4  | rute absensi per jam lama                                                                                                               | tetap                                                          | roster = pengambil                                                             | -                                                                                                                                     |
+| 3B.4  | `POST /v1/academic-years/:id/rollover`, `/promotions/apply`                                                                             | tetap                                                          | `copySubjectChoices?` (bawaan true); hasil `choicesCopied?`, `choicesDropped?` | -                                                                                                                                     |
+| 3C.1  | `POST /v1/students/:id/transfer-out`, `POST /v1/students/transfer-in`, `GET /v1/students/:id/transfers` (baru)                          | `student:manage` / `student:read`                              | mutasi                                                                         | 409 `transfer_final_level_even_semester`, `student_not_active`; 403 `exception_requires_school_manage`                                |
+| 3C.1  | `PUT /v1/students/:id/class`                                                                                                            | tetap                                                          | `effectiveOn?`, `reason?`; tulis riwayat                                       | **409 `report_final`** (perilaku baru)                                                                                                |
+| 3C.1  | `GET /v1/students/:id/academic-history` (baru)                                                                                          | `student:read`                                                 | riwayat rombel, keputusan, rapor, mutasi                                       | -                                                                                                                                     |
+| 3C.1  | `GET /v1/report-cards`                                                                                                                  | tetap                                                          | roster = `semesterRosterOf`                                                    | -                                                                                                                                     |
+| 3C.2  | `GET /v1/report-cards/ledger` (baru)                                                                                                    | `report_card:read` + hak lihat kelas; `grades`                 | legger                                                                         | 400 `invalid_reference`                                                                                                               |
+| 3C.3  | `GET/POST/PUT /v1/council-meetings`, `POST /:id/finalize`, `POST /:id/reopen` (baru)                                                    | `promotion:manage` / `report_card:read_all`                    | berita acara                                                                   | 409 `meeting_final`                                                                                                                   |
+| 3C.3  | `PUT /v1/academic-years/:id/promotions`                                                                                                 | tetap                                                          | `meetingId?` per baris                                                         | 409 `meeting_final`; 400 `invalid_reference`                                                                                          |
+| 3C.3  | `POST /v1/academic-years/:id/rollover`                                                                                                  | tetap                                                          | `copyFinalLevelForRetained?` (bawaan true)                                     | -                                                                                                                                     |
+| 3C.4  | `GET/PUT /v1/academic-years/:id/graduation-policy`, `…/school-exams` (CRUD), `PUT /v1/school-exams/:id/scores` (baru)                   | `graduation:read`/`graduation:manage`; `grades`                | kebijakan, ujian, nilai                                                        | 409 `graduation_final`                                                                                                                |
+| 3C.4  | `GET /v1/academic-years/:id/graduations`, `PUT …/graduations` (draf), `POST …/graduations/finalize`, `POST …/graduations/reopen` (baru) | sama                                                           | saran angka, penetapan, transkrip beku, menulis keputusan kenaikan             | 409 `report_not_final` (tanpa `force`), `promotion_applied`, `graduation_final`; 400 `not_final_level`                                |
+| 3C.4  | `PUT /v1/academic-years/:id/promotions`                                                                                                 | tetap                                                          | bila ada kebijakan kelulusan                                                   | 409 `graduation_not_determined`                                                                                                       |
+| 3C.5  | `GET /v1/exports/academic` (baru)                                                                                                       | `data_export:run` (+ `grades` untuk dataset nilai)             | CSV/JSON                                                                       | 400 `dataset_requires_module`                                                                                                         |
 
 Semua respons lama: field baru sparse (absen bila fitur tak dipakai), sehingga `phase3-baseline` tidak perlu `ADDITIVE_KEYS`.
 
 ### 4.8 Perubahan guard
 
-| Guard | Di mana | Aturan |
-| ----- | ------- | ------ |
-| `assertStudentsReportNotFinal` | tulis pilihan murid | per semester cakupan (setahun = semua semester tahun itu) |
-| `assertClassYearHasNoFinal` (baru, di `report-lock-lib.ts`) | tulis mode partisipasi rombel | tolak bila ada semester tahun rombel yang final untuk rombel itu |
-| `assertStudentsReportNotFinal` (semester berjalan) | `PUT /v1/students/:id/class` | rombel lama dan baru |
-| `assertStudentsReportNotFinalOnDate` | absensi gabungan | sama dengan absensi per jam sekarang |
-| `assertGraduationNotFinal` (baru) | nilai ujian satuan pendidikan, kebijakan | 409 `graduation_final` bila ada penetapan final tahun itu |
-| `assertMeetingNotFinal` (baru) | keputusan kenaikan/kelulusan tertaut | 409 `meeting_final` |
-| `promotion_applied` (ada) | buka kembali kelulusan | sudah diterapkan → tolak |
+| Guard                                                        | Di mana                                  | Aturan                                                           |
+| ------------------------------------------------------------ | ---------------------------------------- | ---------------------------------------------------------------- |
+| `assertStudentsReportNotFinal`                               | tulis pilihan murid                      | per semester cakupan (setahun = semua semester tahun itu)        |
+| `assertClassYearHasNoFinal` (baru, di `report-lock-lib.ts`)  | tulis mode partisipasi rombel            | tolak bila ada semester tahun rombel yang final untuk rombel itu |
+| `assertStudentsReportNotFinal` (semester berjalan)           | `PUT /v1/students/:id/class`             | rombel lama dan baru                                             |
+| `assertStudentsReportNotFinalOnDate`                         | absensi gabungan                         | sama dengan absensi per jam sekarang                             |
+| `assertGraduationNotFinal` (baru)                            | nilai ujian satuan pendidikan, kebijakan | 409 `graduation_final` bila ada penetapan final tahun itu        |
+| `assertMeetingNotFinal` (baru)                               | keputusan kenaikan/kelulusan tertaut     | 409 `meeting_final`                                              |
+| `promotion_applied` (ada)                                    | buka kembali kelulusan                   | sudah diterapkan → tolak                                         |
 
 ---
 
 ## 5. Dampak per modul dan daftar berkas
 
-| Modul | Dampak |
-| ----- | ------ |
-| Struktur akademik | Tab mapel dan peserta per rombel; aturan pilihan; salinan mode pada rollover |
-| Penilaian | Roster per mapel di semua jalur tulis/baca nilai; `takers` di `computeGrades` |
-| Rapor | Mapel per murid; `semesterRosterOf`; legger; snapshot tidak berubah bentuk |
-| Jadwal/absensi per jam | `lane`, `combinedKey`, roster pengambil, sesi gabungan |
-| Kenaikan | Salin pilihan; kelas tingkat akhir untuk yang mengulang; `meetingId`; integrasi kelulusan |
-| Murid | Mutasi, riwayat rombel, penjaga pindah rombel |
-| Portal | Mapel yang diambil; tanpa tulis baru |
-| Ujian CBT | Lewati non-pengambil saat dorong nilai |
+| Modul                  | Dampak                                                                                    |
+| ---------------------- | ----------------------------------------------------------------------------------------- |
+| Struktur akademik      | Tab mapel dan peserta per rombel; aturan pilihan; salinan mode pada rollover              |
+| Penilaian              | Roster per mapel di semua jalur tulis/baca nilai; `takers` di `computeGrades`             |
+| Rapor                  | Mapel per murid; `semesterRosterOf`; legger; snapshot tidak berubah bentuk                |
+| Jadwal/absensi per jam | `lane`, `combinedKey`, roster pengambil, sesi gabungan                                    |
+| Kenaikan               | Salin pilihan; kelas tingkat akhir untuk yang mengulang; `meetingId`; integrasi kelulusan |
+| Murid                  | Mutasi, riwayat rombel, penjaga pindah rombel                                             |
+| Portal                 | Mapel yang diambil; tanpa tulis baru                                                      |
+| Ujian CBT              | Lewati non-pengambil saat dorong nilai                                                    |
 
 **Berkas (perkiraan, untuk agen `developer`):**
 - DB: `packages/db/src/schema.ts`, `packages/db/drizzle/0101..0105_*.sql`, `meta/_journal.json`, `packages/db/src/index.ts` (ekspor).
@@ -587,38 +587,38 @@ Semua respons lama: field baru sparse (absen bila fitur tak dipakai), sehingga `
 
 ### 6.1 Skenario regresi wajib
 
-| #   | Skenario | Tes |
-| --- | -------- | --- |
-| T1  | **Garis dasar utuh**: `phase3-baseline.test.ts` tanpa perubahan berkas dan fixture, hijau setelah setiap tahap | yang ada |
-| T2  | Sekolah tanpa pilihan: kueri tambahan `takersOf` mengembalikan `null`; rekap, matriks, rapor, portal sama; jadwal dan absensi per jam sama | `subject-choice.test.ts` (perbandingan sebelum/sesudah menyalakan lalu mematikan mode) |
-| T3  | Roster per mapel: skor non-pengambil 400; rekap hanya pengambil; matriks `notTaken`; rapor murid tanpa mapel itu; kelengkapan finalisasi tanpa `force`; peringkat atas mapel sendiri | `subject-choice.test.ts` |
-| T4  | Pilihan per semester: ganti di semester 2; rapor semester 1 final tidak berubah; tulis semester final 409 | idem |
-| T5  | Agama: isi dari agama murid, `unmatched` | idem |
-| T6  | Jadwal: lajur paralel hanya mapel `selected`; gabungan lintas rombel lolos `teacher_busy`, tanpa kunci tetap 409; tes jadwal lama hijau | `schedule-parallel.test.ts`, `schedule.test.ts` |
-| T7  | Absensi gabungan menulis ke sel masing-masing; penjaga final per murid | `lesson-attendance` |
-| T8  | Rollover dan penerapan: mode tersalin, pilihan setahun berlanjut, `copySubjectChoices=false`; tes rollover lama hijau | `promotion.test.ts` + baru |
-| T9  | Mutasi keluar: status, dokumen keberangkatan, rapor final semester lalu tetap di daftar kelas dan bisa difinalkan ulang setelah buka kembali; larangan semester genap tingkat akhir dan pengecualian `school:manage` | `transfer.test.ts`, `graduate-roster.test.ts` tetap hijau |
-| T10 | Pindah rombel: riwayat tercatat, 409 saat final semester berjalan, rapor semester lalu tetap di rombel lama | `transfer.test.ts` |
-| T11 | Kelulusan: tanpa kebijakan = alur lama; dengan kebijakan: saran angka dari snapshot final, `report_not_final`, finalisasi membekukan transkrip dan menulis keputusan kenaikan, `graduation_not_determined`, buka kembali setelah diterapkan 409, nomor SKL/ijazah unik | `graduation.test.ts`, `promotion.test.ts` |
-| T12 | Tinggal kelas tingkat akhir: rollover membuat kelas tingkat akhir hanya bila ada `retain`; penerapan menempatkan | `promotion.test.ts` |
-| T13 | Berita acara: final membekukan `minutes`, keputusan tertaut terkunci, buka kembali | `council-meeting.test.ts` |
-| T14 | Legger: nilai dari snapshot bila final; kolom tidak diambil | `ledger.test.ts` |
-| T15 | Ekspor: tanpa NIK bawaan, nilai hanya final, kamus kolom stabil, modul | `export.test.ts` |
-| T16 | Multi-tenant: setiap tabel baru di `tenant-isolation.test.ts`; FK komposit menolak id sekolah lain | yang ada + daftar |
-| T17 | RBAC: setiap rute baru di matriks; wali kelas hanya rombelnya; guru tanpa izin 403 | `rbac-matrix` |
-| T18 | Portal: anak melihat mapel yang diambil; wali tidak bisa menulis pilihan | `portal.test.ts` |
-| T19 | Suite wajib roadmap: `grading`, `report-card`, `schedule`, `pkl`, `rbac-matrix`, `tenant-isolation`, `promotion`, `grading-freeze`, `portal`, `exam-scores` | yang ada |
-| T20 | UI: 375 px dan 768 px, mode gelap, tiga bahasa, untuk tab peserta, jadwal lajur, mutasi, legger, kelulusan | uji peramban manual + tangkapan |
+| #   | Skenario                                                                                                                                                                                                                                                               | Tes                                                                                    |
+| --- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| T1  | **Garis dasar utuh**: `phase3-baseline.test.ts` tanpa perubahan berkas dan fixture, hijau setelah setiap tahap                                                                                                                                                         | yang ada                                                                               |
+| T2  | Sekolah tanpa pilihan: kueri tambahan `takersOf` mengembalikan `null`; rekap, matriks, rapor, portal sama; jadwal dan absensi per jam sama                                                                                                                             | `subject-choice.test.ts` (perbandingan sebelum/sesudah menyalakan lalu mematikan mode) |
+| T3  | Roster per mapel: skor non-pengambil 400; rekap hanya pengambil; matriks `notTaken`; rapor murid tanpa mapel itu; kelengkapan finalisasi tanpa `force`; peringkat atas mapel sendiri                                                                                   | `subject-choice.test.ts`                                                               |
+| T4  | Pilihan per semester: ganti di semester 2; rapor semester 1 final tidak berubah; tulis semester final 409                                                                                                                                                              | idem                                                                                   |
+| T5  | Agama: isi dari agama murid, `unmatched`                                                                                                                                                                                                                               | idem                                                                                   |
+| T6  | Jadwal: lajur paralel hanya mapel `selected`; gabungan lintas rombel lolos `teacher_busy`, tanpa kunci tetap 409; tes jadwal lama hijau                                                                                                                                | `schedule-parallel.test.ts`, `schedule.test.ts`                                        |
+| T7  | Absensi gabungan menulis ke sel masing-masing; penjaga final per murid                                                                                                                                                                                                 | `lesson-attendance`                                                                    |
+| T8  | Rollover dan penerapan: mode tersalin, pilihan setahun berlanjut, `copySubjectChoices=false`; tes rollover lama hijau                                                                                                                                                  | `promotion.test.ts` + baru                                                             |
+| T9  | Mutasi keluar: status, dokumen keberangkatan, rapor final semester lalu tetap di daftar kelas dan bisa difinalkan ulang setelah buka kembali; larangan semester genap tingkat akhir dan pengecualian `school:manage`                                                   | `transfer.test.ts`, `graduate-roster.test.ts` tetap hijau                              |
+| T10 | Pindah rombel: riwayat tercatat, 409 saat final semester berjalan, rapor semester lalu tetap di rombel lama                                                                                                                                                            | `transfer.test.ts`                                                                     |
+| T11 | Kelulusan: tanpa kebijakan = alur lama; dengan kebijakan: saran angka dari snapshot final, `report_not_final`, finalisasi membekukan transkrip dan menulis keputusan kenaikan, `graduation_not_determined`, buka kembali setelah diterapkan 409, nomor SKL/ijazah unik | `graduation.test.ts`, `promotion.test.ts`                                              |
+| T12 | Tinggal kelas tingkat akhir: rollover membuat kelas tingkat akhir hanya bila ada `retain`; penerapan menempatkan                                                                                                                                                       | `promotion.test.ts`                                                                    |
+| T13 | Berita acara: final membekukan `minutes`, keputusan tertaut terkunci, buka kembali                                                                                                                                                                                     | `council-meeting.test.ts`                                                              |
+| T14 | Legger: nilai dari snapshot bila final; kolom tidak diambil                                                                                                                                                                                                            | `ledger.test.ts`                                                                       |
+| T15 | Ekspor: tanpa NIK bawaan, nilai hanya final, kamus kolom stabil, modul                                                                                                                                                                                                 | `export.test.ts`                                                                       |
+| T16 | Multi-tenant: setiap tabel baru di `tenant-isolation.test.ts`; FK komposit menolak id sekolah lain                                                                                                                                                                     | yang ada + daftar                                                                      |
+| T17 | RBAC: setiap rute baru di matriks; wali kelas hanya rombelnya; guru tanpa izin 403                                                                                                                                                                                     | `rbac-matrix`                                                                          |
+| T18 | Portal: anak melihat mapel yang diambil; wali tidak bisa menulis pilihan                                                                                                                                                                                               | `portal.test.ts`                                                                       |
+| T19 | Suite wajib roadmap: `grading`, `report-card`, `schedule`, `pkl`, `rbac-matrix`, `tenant-isolation`, `promotion`, `grading-freeze`, `portal`, `exam-scores`                                                                                                            | yang ada                                                                               |
+| T20 | UI: 375 px dan 768 px, mode gelap, tiga bahasa, untuk tab peserta, jadwal lajur, mutasi, legger, kelulusan                                                                                                                                                             | uji peramban manual + tangkapan                                                        |
 
 ### 6.2 Tes lama yang berubah
 
-| Tes | Perubahan |
-| --- | --------- |
-| Tes yang menegaskan `PUT /v1/students/:id/class` diterima saat rapor final (bila ada) | Kini 409 `report_final`; perbarui dengan alasan CHANGELOG |
-| Tes indeks/bentrok jadwal | Tidak diharapkan berubah (lane 0); periksa pesan galat yang menyebut nama indeks |
-| `rbac-matrix` | Tambahan rute dan izin |
-| Tes rollover | Tidak diharapkan berubah (kelas tingkat akhir hanya bila ada `retain`) kecuali tes yang memuat `retain` tingkat akhir dan menegaskan `no_target_class`: kini ditempatkan; perbarui |
-| `phase3-baseline.test.ts` | **Tidak boleh berubah** |
+| Tes                                                                                   | Perubahan                                                                                                                                                                          |
+| ------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Tes yang menegaskan `PUT /v1/students/:id/class` diterima saat rapor final (bila ada) | Kini 409 `report_final`; perbarui dengan alasan CHANGELOG                                                                                                                          |
+| Tes indeks/bentrok jadwal                                                             | Tidak diharapkan berubah (lane 0); periksa pesan galat yang menyebut nama indeks                                                                                                   |
+| `rbac-matrix`                                                                         | Tambahan rute dan izin                                                                                                                                                             |
+| Tes rollover                                                                          | Tidak diharapkan berubah (kelas tingkat akhir hanya bila ada `retain`) kecuali tes yang memuat `retain` tingkat akhir dan menegaskan `no_target_class`: kini ditempatkan; perbarui |
+| `phase3-baseline.test.ts`                                                             | **Tidak boleh berubah**                                                                                                                                                            |
 
 ---
 
@@ -644,18 +644,18 @@ Urutan menurut risiko dan nilai: kerusakan data (mutasi, riwayat) dan kebutuhan 
 (P0 SMA) sebelum jadwal paralel. Tiap tahap: backend + tes → web → uji ponsel 375 px/768 px/gelap → bantuan id/en/su → CHANGELOG. Tiap tahap
 diakhiri suite wajib + `phase3-baseline` hijau.
 
-| Tahap | Isi | Migrasi | Selesai bila |
-| ----- | --- | ------- | ------------ |
-| **3C.1** Mutasi dan riwayat rombel | `student_transfer`, `enrollment_change`, keluar/masuk, larangan, dokumen keberangkatan, `semesterRosterOf` di daftar/finalisasi rapor, penjaga pindah rombel, `academic-history`, halaman Mutasi + linimasa profil | 0103 | T9, T10, T16-T19; garis dasar hijau; murid pindah tak hilang dari arsip |
-| **3B.1** Data pilihan mapel | tiga tabel + aturan, `takersOf`, API tulis/baca, isi dari agama, tab peserta + aturan pilihan (web) | 0101 | T4, T5 (bagian data), T16, T17; belum memengaruhi nilai (flag dibaca hanya oleh layar pilihan) |
-| **3B.2** Pilihan memengaruhi nilai dan rapor | `subjectRosterOf` di semua jalur, `computeGrades.takers`, rapor per murid, matriks `notTaken`, portal, CBT | - | T2, T3, T18, T19; garis dasar hijau |
-| **3C.2** Legger | endpoint + unduhan XLSX/CSV/PDF klien | - | T14; kartu di ponsel, tabel gulir horizontal di desktop |
-| **3C.3** Berita acara + tinggal kelas tingkat akhir | `council_meeting`, `meeting_id`, PDF berita acara, `copyFinalLevelForRetained` | 0104 | T12, T13 |
-| **3C.4** Kelulusan | kebijakan, ujian satuan pendidikan, nilai, saran, penetapan, transkrip, SKL PDF, integrasi wizard kenaikan | 0105 | T11; tanpa kebijakan alur lama identik |
-| **3B.3** Jadwal paralel dan gabungan | `lane`, `combined_key`, indeks, validasi, kisi jadwal berlajur | 0102 | T6; tes jadwal lama hijau |
-| **3B.4** Absensi gabungan + salin pilihan saat rollover | endpoint gabungan, roster pengambil di absensi per jam, `copySubjectChoices` | - | T7, T8 |
-| **3C.5** Ekspor generik | `GET /v1/exports/academic`, kamus kolom | - | T15 |
-| **3B.5** (opsional) Penilaian serentak lintas rombel | buat penilaian kembar per rombel bersama | mungkin | ditentukan setelah pemakaian 3B |
+| Tahap                                                   | Isi                                                                                                                                                                                                                | Migrasi | Selesai bila                                                                                   |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------- | ---------------------------------------------------------------------------------------------- |
+| **3C.1** Mutasi dan riwayat rombel                      | `student_transfer`, `enrollment_change`, keluar/masuk, larangan, dokumen keberangkatan, `semesterRosterOf` di daftar/finalisasi rapor, penjaga pindah rombel, `academic-history`, halaman Mutasi + linimasa profil | 0103    | T9, T10, T16-T19; garis dasar hijau; murid pindah tak hilang dari arsip                        |
+| **3B.1** Data pilihan mapel                             | tiga tabel + aturan, `takersOf`, API tulis/baca, isi dari agama, tab peserta + aturan pilihan (web)                                                                                                                | 0101    | T4, T5 (bagian data), T16, T17; belum memengaruhi nilai (flag dibaca hanya oleh layar pilihan) |
+| **3B.2** Pilihan memengaruhi nilai dan rapor            | `subjectRosterOf` di semua jalur, `computeGrades.takers`, rapor per murid, matriks `notTaken`, portal, CBT                                                                                                         | -       | T2, T3, T18, T19; garis dasar hijau                                                            |
+| **3C.2** Legger                                         | endpoint + unduhan XLSX/CSV/PDF klien                                                                                                                                                                              | -       | T14; kartu di ponsel, tabel gulir horizontal di desktop                                        |
+| **3C.3** Berita acara + tinggal kelas tingkat akhir     | `council_meeting`, `meeting_id`, PDF berita acara, `copyFinalLevelForRetained`                                                                                                                                     | 0104    | T12, T13                                                                                       |
+| **3C.4** Kelulusan                                      | kebijakan, ujian satuan pendidikan, nilai, saran, penetapan, transkrip, SKL PDF, integrasi wizard kenaikan                                                                                                         | 0105    | T11; tanpa kebijakan alur lama identik                                                         |
+| **3B.3** Jadwal paralel dan gabungan                    | `lane`, `combined_key`, indeks, validasi, kisi jadwal berlajur                                                                                                                                                     | 0102    | T6; tes jadwal lama hijau                                                                      |
+| **3B.4** Absensi gabungan + salin pilihan saat rollover | endpoint gabungan, roster pengambil di absensi per jam, `copySubjectChoices`                                                                                                                                       | -       | T7, T8                                                                                         |
+| **3C.5** Ekspor generik                                 | `GET /v1/exports/academic`, kamus kolom                                                                                                                                                                            | -       | T15                                                                                            |
+| **3B.5** (opsional) Penilaian serentak lintas rombel    | buat penilaian kembar per rombel bersama                                                                                                                                                                           | mungkin | ditentukan setelah pemakaian 3B                                                                |
 
 Catatan urutan: 3C.1 pertama karena memperbaiki kehilangan data yang sedang terjadi (C-b, C-c) dan karena `semesterRosterOf` dipakai 3B.2 dan
 3C.2. 3B.1 dan 3B.2 dipisah supaya data bisa diisi dan diperiksa sebelum memengaruhi angka. 3C.4 harus selesai sebelum Mei 2027.
@@ -664,20 +664,20 @@ Catatan urutan: 3C.1 pertama karena memperbaiki kehilangan data yang sedang terj
 
 ## 9. Risiko dan mitigasi
 
-| #  | Risiko | Dampak | Mitigasi |
-| -- | ------ | ------ | -------- |
-| R1 | Filter pengambil terlupa di salah satu jalur (rekap vs rapor vs portal beda) | Angka berbeda antar layar | Satu fungsi `takersOf`/`subjectRosterOf`; tes konsistensi T3 membandingkan rekap, matriks, rapor, portal untuk murid yang sama |
-| R2 | Field baru tidak sparse | Garis dasar merah | Garis dasar tak boleh diubah; tinjau tiap respons; pembuat field memakai pola `...(x ? {x} : {})` |
-| R3 | Menyalakan mode `selected` setelah nilai diisi menyembunyikan skor murid yang belum didaftarkan | "Nilai hilang" | Skor tidak pernah dihapus; layar mode menampilkan jumlah murid berskor yang akan tersembunyi dan meminta konfirmasi; mematikan mode memulihkan |
-| R4 | Penggantian indeks jadwal | Bentrok lama lolos | Indeks baru dibuat sebelum yang lama dihapus; tes bentrok lama; lane 0 = keunikan lama |
-| R5 | `semesterRosterOf` salah memasukkan/mengeluarkan murid | Rapor hilang/ganda | Tanpa baris mutasi = `historicalRosterOf` (uji emas); kasus tepi tanggal (efektif = akhir semester) diuji |
-| R6 | Penjaga baru pindah rombel mengganggu operator | Keluhan | Hanya semester berjalan yang final; pesan jelas; CHANGELOG |
-| R7 | Kelulusan dan kenaikan menjadi dua sumber kebenaran | Status lulus tidak konsisten | Kelulusan hanya memasok `promotion_decision`; status diubah satu tempat |
-| R8 | Peringkat lintas pilihan dianggap tidak adil | Keluhan | Dokumentasi; `show_rank` sudah ada |
-| R9 | Ekspor dianggap "kompatibel e-Rapor" | Salah harap | Label "format generik Edusync, bukan format impor resmi" di UI, OpenAPI, bantuan |
-| R10 | Kebocoran data pribadi lewat ekspor | Privasi | Tanpa NIK bawaan; izin khusus; audit |
-| R11 | Performa matriks pilihan rombel besar (40 murid x 12 mapel) | Lambat di ponsel | Satu kueri; kartu per murid di ponsel; simpan batch |
-| R12 | Asimetri `other`/`belief` | Pemetaan agama salah | Tidak menebak; `unmatched` |
+| #   | Risiko                                                                                          | Dampak                       | Mitigasi                                                                                                                                       |
+| --- | ----------------------------------------------------------------------------------------------- | ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| R1  | Filter pengambil terlupa di salah satu jalur (rekap vs rapor vs portal beda)                    | Angka berbeda antar layar    | Satu fungsi `takersOf`/`subjectRosterOf`; tes konsistensi T3 membandingkan rekap, matriks, rapor, portal untuk murid yang sama                 |
+| R2  | Field baru tidak sparse                                                                         | Garis dasar merah            | Garis dasar tak boleh diubah; tinjau tiap respons; pembuat field memakai pola `...(x ? {x} : {})`                                              |
+| R3  | Menyalakan mode `selected` setelah nilai diisi menyembunyikan skor murid yang belum didaftarkan | "Nilai hilang"               | Skor tidak pernah dihapus; layar mode menampilkan jumlah murid berskor yang akan tersembunyi dan meminta konfirmasi; mematikan mode memulihkan |
+| R4  | Penggantian indeks jadwal                                                                       | Bentrok lama lolos           | Indeks baru dibuat sebelum yang lama dihapus; tes bentrok lama; lane 0 = keunikan lama                                                         |
+| R5  | `semesterRosterOf` salah memasukkan/mengeluarkan murid                                          | Rapor hilang/ganda           | Tanpa baris mutasi = `historicalRosterOf` (uji emas); kasus tepi tanggal (efektif = akhir semester) diuji                                      |
+| R6  | Penjaga baru pindah rombel mengganggu operator                                                  | Keluhan                      | Hanya semester berjalan yang final; pesan jelas; CHANGELOG                                                                                     |
+| R7  | Kelulusan dan kenaikan menjadi dua sumber kebenaran                                             | Status lulus tidak konsisten | Kelulusan hanya memasok `promotion_decision`; status diubah satu tempat                                                                        |
+| R8  | Peringkat lintas pilihan dianggap tidak adil                                                    | Keluhan                      | Dokumentasi; `show_rank` sudah ada                                                                                                             |
+| R9  | Ekspor dianggap "kompatibel e-Rapor"                                                            | Salah harap                  | Label "format generik Edusync, bukan format impor resmi" di UI, OpenAPI, bantuan                                                               |
+| R10 | Kebocoran data pribadi lewat ekspor                                                             | Privasi                      | Tanpa NIK bawaan; izin khusus; audit                                                                                                           |
+| R11 | Performa matriks pilihan rombel besar (40 murid x 12 mapel)                                     | Lambat di ponsel             | Satu kueri; kartu per murid di ponsel; simpan batch                                                                                            |
+| R12 | Asimetri `other`/`belief`                                                                       | Pemetaan agama salah         | Tidak menebak; `unmatched`                                                                                                                     |
 
 ---
 
@@ -685,38 +685,38 @@ Catatan urutan: 3C.1 pertama karena memperbaiki kehilangan data yang sedang terj
 
 ### 10.1 Ditetapkan (bawaan tegas, dipakai implementasi)
 
-| # | Keputusan | Bawaan |
-| - | --------- | ------ |
-| D1 | Model pilihan | Mode per (rombel, mapel) sparse + baris pilihan hanya untuk mapel bermode pilihan (3.1 B) |
-| D2 | Pemicu perilaku | Hanya `class_subject_participation`; `subject.kind`/`religion_variant` sekadar saran UI |
-| D3 | Cakupan pilihan | Setahun, atau per semester (pola jadwal) |
-| D4 | Aturan 4-5 dari 7, seni satu, agama satu | Data aturan per sekolah, seed saran, **peringatan** (`enforce` bawaan false) |
-| D5 | Batas ganti pilihan | Hanya penjaga `report_final` + `locked_from_semester_id` opsional |
-| D6 | Agama per murid | Mapel per varian, baris eksplisit, isi dari agama tanpa menebak |
-| D7 | Siapa memilih | Admin/kurikulum/wali kelas; portal baca-saja |
-| D8 | Peringkat | Rata-rata mapel yang diambil masing-masing; tanpa pengaturan baru |
-| D9 | Snapshot rapor | Bentuk tidak berubah, tanpa `schema_version` baru |
-| D10 | Kelas gabungan | Tetap per rombel; `lane` + `combined_key` di jadwal |
-| D11 | Rollover pilihan | Mode tersalin; pilihan setahun berlanjut bila rombel tujuan bermode sama (`copySubjectChoices` true) |
-| D12 | Kelulusan | Formal hanya bila ada `graduation_policy` tahun itu; nilai rapor dari snapshot final; status lulus tetap diubah penerapan kenaikan |
-| D13 | Nomor ijazah | Teks diketik, unik per sekolah, tanpa format/pembangkit; ijazah tidak dicetak |
-| D14 | SKL/transkrip | PDF klien dari transkrip beku; templat nomor SKL per kebijakan |
-| D15 | Rapor murid pindah semester berjalan | Dokumen keberangkatan beku di `student_transfer`, bukan finalisasi `report_card` |
-| D16 | Nilai sekolah asal | Lampiran berkas, tanpa impor angka |
-| D17 | Pindah rombel | Riwayat `enrollment_change`; penjaga final semester berjalan |
-| D18 | Berita acara | Tabel sendiri, `meeting_id` nullable, final membekukan isi dan mengunci keputusan tertaut |
-| D19 | Ekspor | CSV/JSON generik `edusync-academic-v1`, nilai hanya final, tanpa klaim kompatibilitas |
-| D20 | Tinggal kelas tingkat akhir | Rollover membuat kelas tingkat akhir hanya bila ada `retain` |
-| D21 | Izin | `subject_choice:manage`, `graduation:manage`, `graduation:read`, `data_export:run` dengan peta peran di 4.6 |
-| D22 | Urutan tahap | 3C.1 → 3B.1 → 3B.2 → 3C.2 → 3C.3 → 3C.4 → 3B.3 → 3B.4 → 3C.5 (→ 3B.5) |
+| #   | Keputusan                                | Bawaan                                                                                                                             |
+| --- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| D1  | Model pilihan                            | Mode per (rombel, mapel) sparse + baris pilihan hanya untuk mapel bermode pilihan (3.1 B)                                          |
+| D2  | Pemicu perilaku                          | Hanya `class_subject_participation`; `subject.kind`/`religion_variant` sekadar saran UI                                            |
+| D3  | Cakupan pilihan                          | Setahun, atau per semester (pola jadwal)                                                                                           |
+| D4  | Aturan 4-5 dari 7, seni satu, agama satu | Data aturan per sekolah, seed saran, **peringatan** (`enforce` bawaan false)                                                       |
+| D5  | Batas ganti pilihan                      | Hanya penjaga `report_final` + `locked_from_semester_id` opsional                                                                  |
+| D6  | Agama per murid                          | Mapel per varian, baris eksplisit, isi dari agama tanpa menebak                                                                    |
+| D7  | Siapa memilih                            | Admin/kurikulum/wali kelas; portal baca-saja                                                                                       |
+| D8  | Peringkat                                | Rata-rata mapel yang diambil masing-masing; tanpa pengaturan baru                                                                  |
+| D9  | Snapshot rapor                           | Bentuk tidak berubah, tanpa `schema_version` baru                                                                                  |
+| D10 | Kelas gabungan                           | Tetap per rombel; `lane` + `combined_key` di jadwal                                                                                |
+| D11 | Rollover pilihan                         | Mode tersalin; pilihan setahun berlanjut bila rombel tujuan bermode sama (`copySubjectChoices` true)                               |
+| D12 | Kelulusan                                | Formal hanya bila ada `graduation_policy` tahun itu; nilai rapor dari snapshot final; status lulus tetap diubah penerapan kenaikan |
+| D13 | Nomor ijazah                             | Teks diketik, unik per sekolah, tanpa format/pembangkit; ijazah tidak dicetak                                                      |
+| D14 | SKL/transkrip                            | PDF klien dari transkrip beku; templat nomor SKL per kebijakan                                                                     |
+| D15 | Rapor murid pindah semester berjalan     | Dokumen keberangkatan beku di `student_transfer`, bukan finalisasi `report_card`                                                   |
+| D16 | Nilai sekolah asal                       | Lampiran berkas, tanpa impor angka                                                                                                 |
+| D17 | Pindah rombel                            | Riwayat `enrollment_change`; penjaga final semester berjalan                                                                       |
+| D18 | Berita acara                             | Tabel sendiri, `meeting_id` nullable, final membekukan isi dan mengunci keputusan tertaut                                          |
+| D19 | Ekspor                                   | CSV/JSON generik `edusync-academic-v1`, nilai hanya final, tanpa klaim kompatibilitas                                              |
+| D20 | Tinggal kelas tingkat akhir              | Rollover membuat kelas tingkat akhir hanya bila ada `retain`                                                                       |
+| D21 | Izin                                     | `subject_choice:manage`, `graduation:manage`, `graduation:read`, `data_export:run` dengan peta peran di 4.6                        |
+| D22 | Urutan tahap                             | 3C.1 → 3B.1 → 3B.2 → 3C.2 → 3C.3 → 3C.4 → 3B.3 → 3B.4 → 3C.5 (→ 3B.5)                                                              |
 
 ### 10.2 Perlu konfirmasi pemilik (bawaan aman berlaku sampai dijawab)
 
-| # | Hal | Kenapa tidak boleh diputuskan sendiri | Bawaan aman |
-| - | --- | ------------------------------------- | ----------- |
-| K1 | Pengecualian larangan mutasi semester genap tingkat akhir | Regulasi (S4) menyatakan mekanisme pindahan tidak berlaku; membuka pengecualian berarti Edusync mengizinkan sesuatu di luar ketentuan | Ditolak; pengecualian hanya `school:manage` dengan alasan wajib dan audit. Bila pemilik menolak pengecualian sama sekali, cukup menghapus jalur override (tanpa migrasi) |
-| K2 | NIK dalam ekspor | Data pribadi sensitif keluar dari sistem | Tidak disertakan; opsi `includeNik` hanya `student:manage` + audit. Alternatif paling aman: hapus opsi |
-| K3 | Format berkas yang benar-benar diterima e-Rapor/Dapodik/EMIS | Tidak dapat diverifikasi dari sumber yang dibaca | Ekspor generik tanpa klaim; pemilik/sekolah perlu menyediakan contoh berkas impor resmi sebelum format khusus dibuat |
+| #   | Hal                                                          | Kenapa tidak boleh diputuskan sendiri                                                                                                 | Bawaan aman                                                                                                                                                              |
+| --- | ------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| K1  | Pengecualian larangan mutasi semester genap tingkat akhir    | Regulasi (S4) menyatakan mekanisme pindahan tidak berlaku; membuka pengecualian berarti Edusync mengizinkan sesuatu di luar ketentuan | Ditolak; pengecualian hanya `school:manage` dengan alasan wajib dan audit. Bila pemilik menolak pengecualian sama sekali, cukup menghapus jalur override (tanpa migrasi) |
+| K2  | NIK dalam ekspor                                             | Data pribadi sensitif keluar dari sistem                                                                                              | Tidak disertakan; opsi `includeNik` hanya `student:manage` + audit. Alternatif paling aman: hapus opsi                                                                   |
+| K3  | Format berkas yang benar-benar diterima e-Rapor/Dapodik/EMIS | Tidak dapat diverifikasi dari sumber yang dibaca                                                                                      | Ekspor generik tanpa klaim; pemilik/sekolah perlu menyediakan contoh berkas impor resmi sebelum format khusus dibuat                                                     |
 
 Tidak ada tindakan destruktif terhadap data dalam rancangan ini (satu-satunya DROP adalah penggantian indeks jadwal dengan keunikan lama terjaga).
 
