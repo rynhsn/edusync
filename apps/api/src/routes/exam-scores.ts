@@ -14,6 +14,7 @@ import {
   gradeComponent,
   inArray,
   type QuestionOption,
+  scoreRemedialAttempt,
   score as scoreTable,
   semester,
   student,
@@ -353,7 +354,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           'semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: ' +
           'dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai ' +
           'hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, ' +
-          'atau kaitan tujuan pembelajaran (TP, `PUT /v1/assessments/{id}/objectives`) yang sudah diatur guru; kaitan TP bertahan walau nilai didorong ulang. Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian ' +
+          'atau kaitan tujuan pembelajaran (TP, `PUT /v1/assessments/{id}/objectives`) yang sudah diatur guru; kaitan TP bertahan walau nilai didorong ulang. Dorong ulang hanya mengubah skor ASLI; percobaan remedial (`POST /v1/assessments/{id}/remedial-attempts`) tidak tersentuh, dan audit mencatat jumlah skor yang berubah (`scoresChanged`) serta percobaan yang dipertahankan (`remedialAttemptsKept`). Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian ' +
           '(mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau ' +
           '`scope_requires_summative`.',
         headers: schoolHeader,
@@ -404,6 +405,9 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         const date = request.body.date ?? ex.examDate ?? new Date().toISOString().slice(0, 10);
 
         let scores = 0;
+        // R13: dorong ulang hanya mengubah skor ASLI; percobaan remedial (tabel terpisah) tetap. Jumlah skor yang berubah dan
+        // percobaan yang dipertahankan dicatat di audit.
+        let changed = 0;
         const classIds = [...new Set(data.students.map((s) => s.classId))];
         for (const classId of classIds) {
           const values = {
@@ -445,8 +449,17 @@ export async function examScoreRoutes(instance: FastifyInstance) {
               )[0]!.id;
           if (existing) await tx.update(assessment).set(values).where(eq(assessment.id, existing.id));
 
+          const before = new Map(
+            (
+              await tx
+                .select({ studentId: scoreTable.studentId, value: scoreTable.value })
+                .from(scoreTable)
+                .where(eq(scoreTable.assessmentId, assessmentId))
+            ).map((r) => [r.studentId, r.value]),
+          );
           for (const s of data.students.filter((x) => x.classId === classId && x.entered)) {
             const value = s.absent ? null : round2((s.total / data.maxTotal) * 100);
+            if (existing && (before.get(s.studentId) ?? null) !== value) changed += 1;
             await tx
               .insert(scoreTable)
               .values({
@@ -463,7 +476,21 @@ export async function examScoreRoutes(instance: FastifyInstance) {
             scores += 1;
           }
         }
-        await audit(tx, ctx, 'exam.grades_push', 'exam', ex.id, { assessments: classIds.length, scores });
+        const kept = classIds.length
+          ? (
+              await tx
+                .select({ id: scoreRemedialAttempt.id })
+                .from(scoreRemedialAttempt)
+                .innerJoin(assessment, eq(assessment.id, scoreRemedialAttempt.assessmentId))
+                .where(eq(assessment.examId, ex.id))
+            ).length
+          : 0;
+        await audit(tx, ctx, 'exam.grades_push', 'exam', ex.id, {
+          assessments: classIds.length,
+          scores,
+          ...(changed > 0 ? { scoresChanged: changed } : {}),
+          ...(kept > 0 ? { remedialAttemptsKept: kept } : {}),
+        });
         return { assessments: classIds.length, scores };
       });
     },

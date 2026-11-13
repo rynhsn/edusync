@@ -1678,6 +1678,8 @@ export const gradingSetting = pgTable('grading_setting', {
     .default('weighted_average'),
   /** Aturan agregasi ketercapaian TP (K4): NULL (= mean) | 'mean' | 'latest' | 'max'. CHECK di migrasi 0098. */
   objectiveAggregation: text('objective_aggregation'),
+  /** Kebijakan nilai remedial (K8): NULL (= record_only) | 'record_only' | 'replace_latest' | 'max' | 'cap_at_criteria' | 'mean_with_original'. CHECK di migrasi 0100. */
+  remedialPolicy: text('remedial_policy'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -1705,6 +1707,8 @@ export const semesterGradingConfig = pgTable('semester_grading_config', {
   objectiveCriteria: jsonb('objective_criteria').$type<unknown>().notNull().default([]),
   /** Aturan agregasi TP beku; NULL = 'mean'. */
   objectiveAggregation: text('objective_aggregation'),
+  /** Kebijakan nilai remedial beku (tahap 3.5); NULL = 'record_only'. Sparse: hanya terisi bila bukan bawaan. */
+  remedialPolicy: text('remedial_policy'),
   configVersion: integer('config_version').notNull().default(1),
   origin: text('origin', {
     enum: ['finalize', 'semester_closed', 'sync', 'backfill', 'manual'],
@@ -1856,6 +1860,102 @@ export const studentObjectiveAchievement = pgTable(
       'student_objective_achievement_some_ck',
       sql`${t.achieved} is not null or ${t.levelLabel} is not null or ${t.note} is not null`,
     ),
+  ],
+);
+
+/**
+ * Pendampingan belajar (tahap 3.5): satu kegiatan remedial atau pengayaan pada kelas-mapel-semester. FK komposit ke semester,
+ * kelas, mapel, dan guru di SQL tangan 0100 (NO ACTION). Pengayaan tidak menghasilkan skor yang memengaruhi nilai.
+ */
+export const learningSupport = pgTable(
+  'learning_support',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id').notNull(),
+    classId: uuid('class_id').notNull(),
+    subjectId: uuid('subject_id').notNull(),
+    /** 'remedial' | 'enrichment' (CHECK di migrasi). */
+    kind: text('kind').notNull(),
+    title: text('title').notNull(),
+    description: text('description'),
+    startsOn: date('starts_on'),
+    endsOn: date('ends_on'),
+    teacherId: uuid('teacher_id'),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('learning_support_school_id_uq').on(t.schoolId, t.id),
+    index('learning_support_scope_idx').on(t.schoolId, t.semesterId, t.classId, t.subjectId),
+  ],
+);
+
+/** TP sasaran pendampingan (many-to-many). FK komposit di SQL tangan 0100: ke pendampingan CASCADE, ke TP NO ACTION. */
+export const learningSupportObjective = pgTable(
+  'learning_support_objective',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    supportId: uuid('support_id').notNull(),
+    objectiveId: uuid('objective_id').notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.supportId, t.objectiveId], name: 'learning_support_objective_pk' }),
+    index('learning_support_objective_objective_idx').on(t.schoolId, t.objectiveId),
+  ],
+);
+
+/** Murid peserta pendampingan. `status`: planned | in_progress | completed | cancelled (CHECK di migrasi). */
+export const learningSupportParticipant = pgTable(
+  'learning_support_participant',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    supportId: uuid('support_id').notNull(),
+    studentId: uuid('student_id').notNull(),
+    status: text('status').notNull().default('planned'),
+    outcomeNote: text('outcome_note'),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('learning_support_participant_uq').on(t.supportId, t.studentId),
+    index('learning_support_participant_student_idx').on(t.schoolId, t.studentId),
+  ],
+);
+
+/**
+ * Percobaan remedial per (penilaian, murid, percobaan ke-n). Skor ASLI di `score.value` tidak pernah ditimpa; dorong nilai ujian
+ * mengubah skor asli saja dan percobaan tetap. FK komposit di SQL tangan 0100: penilaian dan murid NO ACTION (rute hapus penilaian
+ * menghapus percobaannya secara eksplisit), pendampingan SET NULL pada `support_id`.
+ */
+export const scoreRemedialAttempt = pgTable(
+  'score_remedial_attempt',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    assessmentId: uuid('assessment_id').notNull(),
+    studentId: uuid('student_id').notNull(),
+    supportId: uuid('support_id'),
+    attemptNo: integer('attempt_no').notNull(),
+    value: numeric('value', { precision: 6, scale: 2, mode: 'number' }),
+    takenOn: date('taken_on').notNull(),
+    note: text('note'),
+    recordedBy: text('recorded_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('score_remedial_attempt_uq').on(t.assessmentId, t.studentId, t.attemptNo),
+    index('score_remedial_attempt_assessment_idx').on(t.schoolId, t.assessmentId),
   ],
 );
 

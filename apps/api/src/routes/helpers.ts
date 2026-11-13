@@ -8,6 +8,24 @@ export const guarded = { 401: errorSchema, 403: errorSchema };
 export const idParams = z.object({ id: z.uuid() });
 export const ok = z.object({ ok: z.literal(true) });
 
+/**
+ * Penanda remedial (tahap 3.5), SPARSE: hanya ada bila siswa punya percobaan remedial pada mapel itu. Dipakai rekap nilai dan
+ * nilai portal; bentuk respons sekolah tanpa percobaan tidak berubah.
+ */
+export const remedialMarkSchema = z
+  .object({
+    attempts: z.number().int().describe('Jumlah percobaan remedial siswa pada mapel ini (semua penilaian)'),
+    effectiveSource: z
+      .enum(['original', 'remedial'])
+      .describe(
+        '`remedial` = ada nilai efektif yang berbeda dari skor asli menurut kebijakan remedial sekolah; `original` = skor asli dipakai (mis. kebijakan hanya mencatat)',
+      ),
+  })
+  .optional()
+  .describe(
+    'Penanda remedial; ada hanya bila ada percobaan. Skor asli tidak pernah ditimpa; nilai akhir memakai nilai efektif menurut kebijakan sekolah.',
+  );
+
 /** Pelanggaran unique (kode Postgres 23505), termasuk yang dibungkus oleh driver/ORM. */
 export function isUniqueViolation(error: unknown): boolean {
   const e = error as { code?: string; cause?: { code?: string } };

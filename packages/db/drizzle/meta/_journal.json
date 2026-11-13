@@ -701,6 +701,13 @@
       "when": 1796779800000,
       "tag": "0099_report_narrative_settings",
       "breakpoints": true
+    },
+    {
+      "idx": 100,
+      "version": "7",
+      "when": 1796866200000,
+      "tag": "0100_learning_support",
+      "breakpoints": true
     }
   ]
 }

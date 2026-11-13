@@ -9,6 +9,7 @@ import {
   normalizeComponentInput,
   OBJECTIVE_AGGREGATIONS,
   OBJECTIVE_STATUS_SCOPES,
+  REMEDIAL_POLICIES,
   SUMMATIVE_SCOPES,
   summarizeObjective,
   validateAssessmentTags,
@@ -29,6 +30,7 @@ import {
   isNull,
   reportCard,
   score,
+  scoreRemedialAttempt,
   semester,
   sql,
   student,
@@ -44,6 +46,16 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { historicalRosterOf, rosterOf } from '../attendance-lib';
 import {
+  canInputPair,
+  canReadPair,
+  isWide,
+  myAssignments,
+  myTeacherId,
+  notAllowed,
+  requirePairRefs,
+  teaches,
+} from '../grading-access-lib';
+import {
   activeSemesterConfig,
   assertComponentInSemester,
   assertLiveGradingConfigEditable,
@@ -52,12 +64,13 @@ import {
   kkmResolverForClass,
   loadGradingConfig,
   lockGradingConfig,
+  remedialContextFor,
   semesterGradingStatus,
   syncActiveSemesterFreeze,
   syncSemesterGradingConfig,
 } from '../grading-config-lib';
 import { computeGrades, loadComponents, loadSettings, round2 } from '../grading-lib';
-import { errorSchema, forbidden, HttpError } from '../http-error';
+import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import {
   assertObjectivesForSubject,
@@ -67,7 +80,7 @@ import {
   replaceAssessmentObjectives,
 } from '../objective-achievement-lib';
 import { assertClassReportNotFinal, assertStudentsReportNotFinal } from '../report-lock-lib';
-import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
+import { audit, conflictAs409, guarded, idParams, ok, remedialMarkSchema, schoolHeader } from './helpers';
 
 const tag = ['Grading'];
 const MODULE = 'grades';
@@ -138,7 +151,21 @@ const objectiveAggregationSchema = z
       '(penilaian terbaru menurut tanggal), `max` (persen tertinggi).',
   );
 
+const remedialPolicySchema = z
+  .enum(REMEDIAL_POLICIES)
+  .describe(
+    'Kebijakan nilai remedial: `record_only` (bawaan; remedial hanya dicatat, nilai akhir dari skor asli), `replace_latest` ' +
+      '(percobaan terakhir yang berisi nilai), `max` (tertinggi dari skor asli dan percobaan), `cap_at_criteria` (seperti `max`, ' +
+      'remedial paling tinggi menaikkan ke KKM efektif mapel; skor asli di atas KKM tidak diturunkan), `mean_with_original` ' +
+      '(rata-rata skor asli dan percobaan terakhir). Skor asli di buku nilai tidak pernah ditimpa.',
+  );
+
 const settingsReadSchema = settingsSchema.extend({
+  remedialPolicy: remedialPolicySchema
+    .optional()
+    .describe(
+      'Kebijakan nilai remedial. Ada hanya bila bukan bawaan (bukan `record_only`); dihilangkan = `record_only`.',
+    ),
   objectiveAggregation: objectiveAggregationSchema
     .optional()
     .describe(
@@ -211,6 +238,11 @@ const semesterGradingStatusSchema = z.object({
   objectiveAggregation: objectiveAggregationSchema
     .optional()
     .describe('Aturan agregasi TP semester ini; ada hanya bila bukan bawaan (`mean`)'),
+  remedialPolicy: remedialPolicySchema
+    .optional()
+    .describe(
+      'Kebijakan remedial semester ini (salinan beku bila ada); ada hanya bila bukan bawaan (`record_only`)',
+    ),
 });
 
 const formativeSummary = z
@@ -245,6 +277,9 @@ const settingsBody = z
     objectiveAggregation: objectiveAggregationSchema
       .optional()
       .describe('Dihilangkan: aturan yang ada dipertahankan. `mean` mengembalikan ke bawaan.'),
+    remedialPolicy: remedialPolicySchema
+      .optional()
+      .describe('Dihilangkan: kebijakan yang ada dipertahankan. `record_only` mengembalikan ke bawaan.'),
   })
   .refine((b) => b.predicateA > b.predicateB && b.predicateB > b.predicateC && b.predicateC > 0, {
     message: 'Batas predikat harus berurutan: A > B > C > 0.',
@@ -416,49 +451,6 @@ export async function gradingRoutes(instance: FastifyInstance) {
   const tenant = <T>(request: { ctx?: TenantContext; server: FastifyInstance }, fn: (tx: Tx) => Promise<T>) =>
     withTenant(request.server.tenantDb, [(request.ctx as TenantContext).schoolId], fn);
 
-  /* ---------- Otorisasi ---------- */
-
-  /** Pemegang `grade:configure`, kepala sekolah, dan kurikulum melihat semua kelas dan mapel. */
-  const isWide = (ctx: TenantContext) =>
-    ctx.permissions.has('grade:configure') || ctx.permissions.has('grade:read_all');
-
-  /** Pasangan (kelas, mapel) yang diampu pengguna ini (guru dengan `teacher.memberId` = anggota ini). */
-  function myAssignments(tx: Tx, ctx: TenantContext) {
-    return tx
-      .select({ classId: teachingAssignment.classId, subjectId: teachingAssignment.subjectId })
-      .from(teachingAssignment)
-      .innerJoin(teacher, eq(teacher.id, teachingAssignment.teacherId))
-      .where(eq(teacher.memberId, ctx.memberId));
-  }
-
-  type Assignment = Awaited<ReturnType<typeof myAssignments>>[number];
-  const teaches = (mine: Assignment[], classId: string, subjectId: string) =>
-    mine.some((a) => a.classId === classId && a.subjectId === subjectId);
-
-  /** Boleh membaca nilai kelas+mapel itu. */
-  async function canReadPair(tx: Tx, ctx: TenantContext, classId: string, subjectId: string) {
-    if (isWide(ctx)) return true;
-    return teaches(await myAssignments(tx, ctx), classId, subjectId);
-  }
-
-  /** Boleh mengelola penilaian dan skor kelas+mapel itu: pemegang configure, atau guru pengampu dengan `grade:input`. */
-  async function canInputPair(tx: Tx, ctx: TenantContext, classId: string, subjectId: string) {
-    if (ctx.permissions.has('grade:configure')) return true;
-    if (!ctx.permissions.has('grade:input')) return false;
-    return teaches(await myAssignments(tx, ctx), classId, subjectId);
-  }
-
-  async function myTeacherId(tx: Tx, ctx: TenantContext) {
-    const [mine] = await tx
-      .select({ id: teacher.id })
-      .from(teacher)
-      .where(eq(teacher.memberId, ctx.memberId));
-    return mine?.id ?? null;
-  }
-
-  const notAllowed = () =>
-    forbidden('Anda hanya boleh mengakses penilaian untuk kelas dan mata pelajaran yang Anda ampu.');
-
   /* ---------- Rujukan ---------- */
 
   async function requireComponent(tx: Tx, componentId: string) {
@@ -501,19 +493,6 @@ export async function gradingRoutes(instance: FastifyInstance) {
     const [sub] = await tx.select({ id: subject.id }).from(subject).where(eq(subject.id, refs.subjectId));
     if (!sub) throw invalidRef('Mata pelajaran tidak ditemukan.');
     await requireComponent(tx, refs.componentId);
-  }
-
-  /** Semester, kelas, dan mapel milik sekolah ini; semester dan kelas satu tahun ajaran (400 `invalid_reference`). */
-  async function requirePairRefs(tx: Tx, refs: { semesterId: string; classId: string; subjectId: string }) {
-    const [sem] = await tx.select().from(semester).where(eq(semester.id, refs.semesterId));
-    if (!sem) throw invalidRef('Semester tidak ditemukan.');
-    const [cls] = await tx.select().from(classRoom).where(eq(classRoom.id, refs.classId));
-    if (!cls) throw invalidRef('Kelas tidak ditemukan.');
-    if (cls.academicYearId !== sem.academicYearId) {
-      throw invalidRef('Semester dan kelas harus berada pada tahun ajaran yang sama.');
-    }
-    const [sub] = await tx.select({ id: subject.id }).from(subject).where(eq(subject.id, refs.subjectId));
-    if (!sub) throw invalidRef('Mata pelajaran tidak ditemukan.');
   }
 
   async function loadAssessment(tx: Tx, id: string) {
@@ -645,11 +624,20 @@ export async function gradingRoutes(instance: FastifyInstance) {
     }));
   }
 
-  /** Aturan agregasi TP hidup sekolah sebagai penanda sparse: hanya bila bukan bawaan, supaya respons lama tidak berubah. */
+  /**
+   * Aturan agregasi TP dan kebijakan remedial hidup sekolah sebagai penanda sparse: hanya bila bukan bawaan, supaya respons lama
+   * tidak berubah.
+   */
   async function aggregationMark(tx: Tx) {
-    const [s] = await tx.select({ v: gradingSetting.objectiveAggregation }).from(gradingSetting);
+    const [s] = await tx
+      .select({ v: gradingSetting.objectiveAggregation, r: gradingSetting.remedialPolicy })
+      .from(gradingSetting);
     const v = s?.v;
-    return v === 'latest' || v === 'max' ? { objectiveAggregation: v as 'latest' | 'max' } : {};
+    const r = s?.r;
+    return {
+      ...(v === 'latest' || v === 'max' ? { objectiveAggregation: v as 'latest' | 'max' } : {}),
+      ...(r && r !== 'record_only' ? { remedialPolicy: r as (typeof REMEDIAL_POLICIES)[number] } : {}),
+    };
   }
 
   /* ---------- Pengaturan ---------- */
@@ -690,6 +678,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
     const st = await semesterGradingStatus(tx, schoolId, semesterId);
     const cfg = await loadGradingConfig(tx, semesterId);
     const aggregation = await cfg.objectiveAggregation(tx);
+    const remedialPolicy = await cfg.remedialPolicy(tx);
     return {
       semesterId,
       frozen: st.frozen,
@@ -709,6 +698,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         ? { objectiveCriteriaCount: st.row.objectiveCriteria.length }
         : {}),
       ...(aggregation !== 'mean' ? { objectiveAggregation: aggregation } : {}),
+      ...(remedialPolicy !== 'record_only' ? { remedialPolicy } : {}),
     };
   }
 
@@ -802,7 +792,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
           '`syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. ' +
           'Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama). `objectiveAggregation` opsional ' +
           '(`mean` bawaan, `latest`, `max`) mengatur agregasi ketercapaian TP dari beberapa penilaian sumatif; dihilangkan = ' +
-          'tetap; ikut salinan beku semester (semester beku tidak berubah) dan dijaga `report_final` seperti bobot dan KKM.',
+          'tetap; ikut salinan beku semester (semester beku tidak berubah) dan dijaga `report_final` seperti bobot dan KKM. ' +
+          '`remedialPolicy` opsional (`record_only` bawaan, `replace_latest`, `max`, `cap_at_criteria`, `mean_with_original`) mengatur ' +
+          'nilai efektif remedial untuk nilai akhir dan ketercapaian TP (skor asli tidak pernah ditimpa); dihilangkan = tetap; ' +
+          'ikut salinan beku semester dan dijaga `report_final` dengan aturan yang sama.',
         headers: schoolHeader,
         body: settingsBody,
         response: { 200: settingsWriteSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -1261,7 +1254,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Hapus penilaian',
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain ' +
-          'itu 403). Seluruh skor dan kaitan TP penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada ' +
+          'itu 403). Seluruh skor, percobaan remedial, dan kaitan TP penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada ' +
           'semester itu sudah final.',
         headers: schoolHeader,
         params: idParams,
@@ -1275,10 +1268,18 @@ export async function gradingRoutes(instance: FastifyInstance) {
         if (!(await canInputPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
         await assertClassReportNotFinal(tx, current.semesterId, current.classId);
         await tx.delete(score).where(eq(score.assessmentId, current.id));
+        // Percobaan remedial ikut terhapus secara eksplisit (FK NO ACTION hanya jaring pengaman); jumlahnya masuk audit.
+        const removedAttempts = await tx
+          .delete(scoreRemedialAttempt)
+          .where(eq(scoreRemedialAttempt.assessmentId, current.id))
+          .returning({ id: scoreRemedialAttempt.id });
         // Kaitan TP hanya tautan: ikut terhapus bersama penilaian (FK juga CASCADE).
         await tx.delete(assessmentObjective).where(eq(assessmentObjective.assessmentId, current.id));
         await tx.delete(assessment).where(eq(assessment.id, current.id));
-        await audit(tx, ctx, 'assessment.delete', 'assessment', current.id, { title: current.title });
+        await audit(tx, ctx, 'assessment.delete', 'assessment', current.id, {
+          title: current.title,
+          ...(removedAttempts.length > 0 ? { remedialAttempts: removedAttempts.length } : {}),
+        });
         return { ok: true as const };
       });
     },
@@ -1437,7 +1438,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'kelas+mapel yang ia ampu (403). Siswa yang rapornya FINAL pada kelas ini memakai angka snapshot rapor ' +
           '(`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat ' +
           'atas muncul bila ada yang demikian. Siswa tanpa rapor final dihitung dari konfigurasi efektif semester ' +
-          '(salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`.',
+          '(salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`. ' +
+          'Nilai akhir memakai nilai EFEKTIF remedial menurut kebijakan sekolah (`remedialPolicy`, ada hanya bila bukan ' +
+          '`record_only`); `remedial` per siswa (`attempts`, `effectiveSource`) ada hanya bila siswa punya percobaan remedial. ' +
+          'Skor asli tidak pernah ditimpa; angka rapor final tetap dari snapshot.',
         headers: schoolHeader,
         querystring: scopeQuery,
         response: {
@@ -1457,6 +1461,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
               }),
             ),
             source: reportSource,
+            remedialPolicy: remedialPolicySchema
+              .optional()
+              .describe('Kebijakan remedial sekolah pada semester ini; ada hanya bila bukan `record_only`'),
             students: z.array(
               z.object({
                 studentId: z.uuid(),
@@ -1464,6 +1471,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
                 nis: z.string().nullable(),
                 perComponent: z.array(z.object({ componentId: z.uuid(), average: z.number().nullable() })),
                 formative: formativeSummary,
+                remedial: remedialMarkSchema,
                 final: z.number().nullable(),
                 predicate: predicateEnum.nullable(),
                 belowKkm: z.boolean(),
@@ -1505,6 +1513,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
           studentIds: rows.map((s) => s.id),
           components,
           settings,
+          // Nilai efektif remedial menurut kebijakan semester; penanda percobaan juga di bawah `record_only`.
+          remedial: await remedialContextFor(tx, cfg, { classId, subjectIds: [subjectId], markers: true }),
         });
         const bySubject = grades.get(subjectId)!;
         const liveKkm = (await kkmResolverForClass(tx, cfg, { classId, subjectIds: [subjectId] }))(subjectId);
@@ -1522,6 +1532,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
               nis: s.nis,
               perComponent: g.perComponent,
               ...(g.formative ? { formative: g.formative } : {}),
+              ...(g.remedial ? { remedial: g.remedial } : {}),
               final: snap.final,
               predicate: snap.predicate,
               belowKkm: snap.belowKkm,
@@ -1534,17 +1545,20 @@ export async function gradingRoutes(instance: FastifyInstance) {
             nis: s.nis,
             perComponent: g.perComponent,
             ...(g.formative ? { formative: g.formative } : {}),
+            ...(g.remedial ? { remedial: g.remedial } : {}),
             final: g.final,
             predicate: g.predicate,
             belowKkm: g.final !== null && g.final < liveKkm,
           };
         });
         const kkm = reportKkm ?? liveKkm;
+        const policy = await cfg.remedialPolicy(tx);
         const finals = students.flatMap((s) => (s.final === null ? [] : [s.final]));
         return {
           settings,
           kkm,
           ...(reportKkm !== null ? { source: 'report' as const } : {}),
+          ...(policy !== 'record_only' ? { remedialPolicy: policy } : {}),
           components: components.map((c) => ({
             id: c.id,
             name: c.name,
@@ -1636,7 +1650,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
               .orderBy(asc(subject.name))
           : [];
 
-        const { settings, components } = await loadGradingConfig(tx, semesterId);
+        const cfg = await loadGradingConfig(tx, semesterId);
+        const { settings, components } = cfg;
         const { rows } = await historicalRosterOf(tx, classId);
         const grades = await computeGrades(tx, {
           semesterId,
@@ -1645,6 +1660,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
           studentIds: rows.map((s) => s.id),
           components,
           settings,
+          remedial: await remedialContextFor(tx, cfg, { classId, subjectIds: subjects.map((s) => s.id) }),
         });
         const snapshots = await finalSubjectRows(tx, semesterId, classId);
         const students = rows.map((s) => {

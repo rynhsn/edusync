@@ -3,12 +3,14 @@ import {
   type ComponentCategory,
   type CriteriaMode,
   DEFAULT_OBJECTIVE_AGGREGATION,
+  DEFAULT_REMEDIAL_POLICY,
   type FreezeOrigin,
   type FrozenComponent,
   type FrozenCriteria,
   type FrozenObjectiveCriteria,
   gradingConfigVersionOf,
   type ObjectiveAggregation,
+  type RemedialPolicy,
   type ResolvedFrozenGradingConfig,
   resolveFrozenGradingConfig,
   sparseFrozenComponent,
@@ -111,6 +113,7 @@ export async function readLiveGradingConfig(ex: Executor, schoolId: string) {
     r.objectiveId === null ? [] : [{ ...frozenRow(r), objectiveId: r.objectiveId }],
   );
   const aggregation = (setting?.objectiveAggregation ?? null) as ObjectiveAggregation | null;
+  const remedialPolicy = (setting?.remedialPolicy ?? null) as RemedialPolicy | null;
   return {
     kkm: setting?.kkm ?? DEFAULT_SETTINGS.kkm,
     predicateA: setting?.predicateA ?? DEFAULT_SETTINGS.predicateA,
@@ -125,6 +128,8 @@ export async function readLiveGradingConfig(ex: Executor, schoolId: string) {
     ...(aggregation !== null && aggregation !== DEFAULT_OBJECTIVE_AGGREGATION
       ? { objectiveAggregation: aggregation }
       : {}),
+    // Tahap 3.5: kebijakan remedial juga SPARSE (hanya bila bukan record_only), kunci terpisah.
+    ...(remedialPolicy !== null && remedialPolicy !== DEFAULT_REMEDIAL_POLICY ? { remedialPolicy } : {}),
   };
 }
 
@@ -132,7 +137,7 @@ export async function readLiveGradingConfig(ex: Executor, schoolId: string) {
  * Baca salinan beku sebuah semester lewat pembaca lintas versi (`config_version` 1 dan 2; kunci yang hilang = nilai bawaan).
  * Null bila semester belum beku. Memfilter `school_id` sendiri, jadi aman di koneksi BYPASSRLS. Salinan versi tak dikenal
  * melempar galat jelas. Kolom tahap 3.3 (`objective_criteria`, `objective_aggregation`) dibaca bila ada; kolom
- * `remedial_policy` (tahap 3.5) belum ada di tabel, jadi bernilai bawaan sampai migrasi tahap itu menambahkannya.
+ * `remedial_policy` (tahap 3.5) dibaca juga; salinan lama (NULL) terbaca sebagai `record_only`.
  */
 export async function readFrozenGradingConfig(
   ex: Executor,
@@ -162,8 +167,10 @@ export async function freezeSemesterGradingConfig(ex: Executor, p: FreezeParams)
   const v2 = {
     objectiveCriteria: live.objectiveCriteria ?? [],
     objectiveAggregation: live.objectiveAggregation ?? null,
+    // Tahap 3.5: ditulis eksplisit supaya menimpa salinan lama yang memuatnya.
+    remedialPolicy: live.remedialPolicy ?? null,
   };
-  const { objectiveCriteria: _oc, objectiveAggregation: _oa, ...base } = live;
+  const { objectiveCriteria: _oc, objectiveAggregation: _oa, remedialPolicy: _rp, ...base } = live;
   const values = {
     schoolId: p.schoolId,
     semesterId: p.semesterId,

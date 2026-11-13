@@ -25501,6 +25501,11 @@ export interface paths {
                              */
                             calculationMode?: "weighted_average" | "percentage" | "simple_average";
                             /**
+                             * @description Kebijakan nilai remedial. Ada hanya bila bukan bawaan (bukan `record_only`); dihilangkan = `record_only`.
+                             * @enum {string}
+                             */
+                            remedialPolicy?: "record_only" | "replace_latest" | "max" | "cap_at_criteria" | "mean_with_original";
+                            /**
                              * @description Aturan agregasi ketercapaian TP. Ada hanya bila bukan bawaan (`latest` atau `max`); dihilangkan = `mean`.
                              * @enum {string}
                              */
@@ -25555,7 +25560,7 @@ export interface paths {
         };
         /**
          * Ubah pengaturan penilaian
-         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen yang dihitung (sumatif dan ikut nilai akhir; komponen formatif tidak ikut) bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama). `objectiveAggregation` opsional (`mean` bawaan, `latest`, `max`) mengatur agregasi ketercapaian TP dari beberapa penilaian sumatif; dihilangkan = tetap; ikut salinan beku semester (semester beku tidak berubah) dan dijaga `report_final` seperti bobot dan KKM.
+         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen yang dihitung (sumatif dan ikut nilai akhir; komponen formatif tidak ikut) bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama). `objectiveAggregation` opsional (`mean` bawaan, `latest`, `max`) mengatur agregasi ketercapaian TP dari beberapa penilaian sumatif; dihilangkan = tetap; ikut salinan beku semester (semester beku tidak berubah) dan dijaga `report_final` seperti bobot dan KKM. `remedialPolicy` opsional (`record_only` bawaan, `replace_latest`, `max`, `cap_at_criteria`, `mean_with_original`) mengatur nilai efektif remedial untuk nilai akhir dan ketercapaian TP (skor asli tidak pernah ditimpa); dihilangkan = tetap; ikut salinan beku semester dan dijaga `report_final` dengan aturan yang sama.
          */
         put: {
             parameters: {
@@ -25584,6 +25589,11 @@ export interface paths {
                          * @enum {string}
                          */
                         objectiveAggregation?: "mean" | "latest" | "max";
+                        /**
+                         * @description Dihilangkan: kebijakan yang ada dipertahankan. `record_only` mengembalikan ke bawaan.
+                         * @enum {string}
+                         */
+                        remedialPolicy?: "record_only" | "replace_latest" | "max" | "cap_at_criteria" | "mean_with_original";
                     };
                 };
             };
@@ -25608,6 +25618,11 @@ export interface paths {
                              * @enum {string}
                              */
                             calculationMode?: "weighted_average" | "percentage" | "simple_average";
+                            /**
+                             * @description Kebijakan nilai remedial. Ada hanya bila bukan bawaan (bukan `record_only`); dihilangkan = `record_only`.
+                             * @enum {string}
+                             */
+                            remedialPolicy?: "record_only" | "replace_latest" | "max" | "cap_at_criteria" | "mean_with_original";
                             /**
                              * @description Aturan agregasi ketercapaian TP. Ada hanya bila bukan bawaan (`latest` atau `max`); dihilangkan = `mean`.
                              * @enum {string}
@@ -25777,6 +25792,11 @@ export interface paths {
                              * @enum {string}
                              */
                             objectiveAggregation?: "mean" | "latest" | "max";
+                            /**
+                             * @description Kebijakan remedial semester ini (salinan beku bila ada); ada hanya bila bukan bawaan (`record_only`)
+                             * @enum {string}
+                             */
+                            remedialPolicy?: "record_only" | "replace_latest" | "max" | "cap_at_criteria" | "mean_with_original";
                         };
                     };
                 };
@@ -25925,6 +25945,11 @@ export interface paths {
                              * @enum {string}
                              */
                             objectiveAggregation?: "mean" | "latest" | "max";
+                            /**
+                             * @description Kebijakan remedial semester ini (salinan beku bila ada); ada hanya bila bukan bawaan (`record_only`)
+                             * @enum {string}
+                             */
+                            remedialPolicy?: "record_only" | "replace_latest" | "max" | "cap_at_criteria" | "mean_with_original";
                             /** @description Salinan ditulis (dibuat atau berubah isinya) */
                             changed: boolean;
                         };
@@ -27108,7 +27133,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus penilaian
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Seluruh skor dan kaitan TP penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Seluruh skor, percobaan remedial, dan kaitan TP penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.
          */
         delete: {
             parameters: {
@@ -27471,7 +27496,7 @@ export interface paths {
         };
         /**
          * Rekap nilai kelas dan mapel
-         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. Komponen formatif (atau yang dikeluarkan dari nilai akhir) tetap tampil di `components`/`perComponent` (ditandai `category`/`includeInFinal`) dan ringkasannya di `formative` per siswa, tetapi TIDAK memengaruhi nilai akhir, predikat, `belowKkm`, atau `stats`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Siswa yang rapornya FINAL pada kelas ini memakai angka snapshot rapor (`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat atas muncul bila ada yang demikian. Siswa tanpa rapor final dihitung dari konfigurasi efektif semester (salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`.
+         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. Komponen formatif (atau yang dikeluarkan dari nilai akhir) tetap tampil di `components`/`perComponent` (ditandai `category`/`includeInFinal`) dan ringkasannya di `formative` per siswa, tetapi TIDAK memengaruhi nilai akhir, predikat, `belowKkm`, atau `stats`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Siswa yang rapornya FINAL pada kelas ini memakai angka snapshot rapor (`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat atas muncul bila ada yang demikian. Siswa tanpa rapor final dihitung dari konfigurasi efektif semester (salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`. Nilai akhir memakai nilai EFEKTIF remedial menurut kebijakan sekolah (`remedialPolicy`, ada hanya bila bukan `record_only`); `remedial` per siswa (`attempts`, `effectiveSource`) ada hanya bila siswa punya percobaan remedial. Skor asli tidak pernah ditimpa; angka rapor final tetap dari snapshot.
          */
         get: {
             parameters: {
@@ -27534,6 +27559,11 @@ export interface paths {
                              * @enum {string}
                              */
                             source?: "report";
+                            /**
+                             * @description Kebijakan remedial sekolah pada semester ini; ada hanya bila bukan `record_only`
+                             * @enum {string}
+                             */
+                            remedialPolicy?: "record_only" | "replace_latest" | "max" | "cap_at_criteria" | "mean_with_original";
                             students: {
                                 /** Format: uuid */
                                 studentId: string;
@@ -27550,6 +27580,16 @@ export interface paths {
                                     average: number;
                                     /** @description Jumlah skor formatif yang terisi */
                                     count: number;
+                                };
+                                /** @description Penanda remedial; ada hanya bila ada percobaan. Skor asli tidak pernah ditimpa; nilai akhir memakai nilai efektif menurut kebijakan sekolah. */
+                                remedial?: {
+                                    /** @description Jumlah percobaan remedial siswa pada mapel ini (semua penilaian) */
+                                    attempts: number;
+                                    /**
+                                     * @description `remedial` = ada nilai efektif yang berbeda dari skor asli menurut kebijakan remedial sekolah; `original` = skor asli dipakai (mis. kebijakan hanya mencatat)
+                                     * @enum {string}
+                                     */
+                                    effectiveSource: "original" | "remedial";
                                 };
                                 final: number | null;
                                 /** @enum {string|null} */
@@ -28189,6 +28229,1225 @@ export interface paths {
                 };
             };
         };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-supports": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar pendampingan belajar (remedial dan pengayaan)
+         * @description Izin: `grade:read`; modul `grades`. Pendampingan pada satu kelas, mapel, dan semester (`semesterId`, `classId`, `subjectId` wajib; `kind` opsional: `remedial` atau `enrichment`), terbaru dulu, beserta TP sasaran dan peserta. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    classId: string;
+                    subjectId: string;
+                    kind?: "remedial" | "enrichment";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            /** Format: uuid */
+                            classId: string;
+                            className: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            /** @enum {string} */
+                            kind: "remedial" | "enrichment";
+                            title: string;
+                            description: string | null;
+                            startsOn: string | null;
+                            endsOn: string | null;
+                            /** Format: uuid */
+                            teacherId: string | null;
+                            teacherName: string | null;
+                            /** @description TP sasaran; kosong = tanpa TP */
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                /** @description false = TP sudah diganti versi baru atau dinonaktifkan */
+                                active: boolean;
+                            }[];
+                            participants: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** @enum {string} */
+                                status: "planned" | "in_progress" | "completed" | "cancelled";
+                                outcomeNote: string | null;
+                            }[];
+                            /** @description Pengguna ini boleh mengubah pendampingan ini */
+                            canInput: boolean;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat pendampingan belajar
+         * @description Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). `kind` `remedial` atau `enrichment` (pengayaan tidak menghasilkan skor yang memengaruhi nilai). Semester, kelas, dan mapel harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`); `endsOn` tidak boleh sebelum `startsOn` (400 `invalid_dates`). `objectiveIds` (TP sasaran) dan `participants` opsional. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Diaudit (`learning_support.create`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        classId: string;
+                        /** Format: uuid */
+                        subjectId: string;
+                        /** @enum {string} */
+                        kind: "remedial" | "enrichment";
+                        title: string;
+                        description?: string | null;
+                        /** Format: date */
+                        startsOn?: string | null;
+                        /** Format: date */
+                        endsOn?: string | null;
+                        /** @description TP sasaran, maksimal 20 (400 `too_many_objectives`); harus milik mapel pendampingan (400 `objective_subject_mismatch`) dan aktif (400 `objective_inactive`). Pada PUT: dihilangkan = tetap, larik = ganti himpunan. */
+                        objectiveIds?: string[];
+                        /** @description Peserta awal (anggota aktif kelas); dapat diganti lewat `PUT /v1/learning-supports/{id}/participants`. */
+                        participants?: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /**
+                             * @default planned
+                             * @enum {string}
+                             */
+                            status?: "planned" | "in_progress" | "completed" | "cancelled";
+                            outcomeNote?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            /** Format: uuid */
+                            classId: string;
+                            className: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            /** @enum {string} */
+                            kind: "remedial" | "enrichment";
+                            title: string;
+                            description: string | null;
+                            startsOn: string | null;
+                            endsOn: string | null;
+                            /** Format: uuid */
+                            teacherId: string | null;
+                            teacherName: string | null;
+                            /** @description TP sasaran; kosong = tanpa TP */
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                /** @description false = TP sudah diganti versi baru atau dinonaktifkan */
+                                active: boolean;
+                            }[];
+                            participants: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** @enum {string} */
+                                status: "planned" | "in_progress" | "completed" | "cancelled";
+                                outcomeNote: string | null;
+                            }[];
+                            /** @description Pengguna ini boleh mengubah pendampingan ini */
+                            canInput: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-supports/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah pendampingan belajar
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel pendampingan itu (selain itu 403); modul `grades`. Yang bisa diubah: judul, keterangan, tanggal, dan TP sasaran (`objectiveIds` dihilangkan = tetap, larik = ganti himpunan; TP yang sudah terkait boleh tetap walau sudah nonaktif). Jenis, kelas, mapel, dan semester tidak berubah. `endsOn` tidak boleh sebelum `startsOn` (400 `invalid_dates`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. 404 `not_found` bila tidak ada. Diaudit (`learning_support.update`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title: string;
+                        description?: string | null;
+                        /** Format: date */
+                        startsOn?: string | null;
+                        /** Format: date */
+                        endsOn?: string | null;
+                        /** @description TP sasaran, maksimal 20 (400 `too_many_objectives`); harus milik mapel pendampingan (400 `objective_subject_mismatch`) dan aktif (400 `objective_inactive`). Pada PUT: dihilangkan = tetap, larik = ganti himpunan. */
+                        objectiveIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            /** Format: uuid */
+                            classId: string;
+                            className: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            /** @enum {string} */
+                            kind: "remedial" | "enrichment";
+                            title: string;
+                            description: string | null;
+                            startsOn: string | null;
+                            endsOn: string | null;
+                            /** Format: uuid */
+                            teacherId: string | null;
+                            teacherName: string | null;
+                            /** @description TP sasaran; kosong = tanpa TP */
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                /** @description false = TP sudah diganti versi baru atau dinonaktifkan */
+                                active: boolean;
+                            }[];
+                            participants: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** @enum {string} */
+                                status: "planned" | "in_progress" | "completed" | "cancelled";
+                                outcomeNote: string | null;
+                            }[];
+                            /** @description Pengguna ini boleh mengubah pendampingan ini */
+                            canInput: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus pendampingan belajar
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel pendampingan itu (selain itu 403); modul `grades`. Peserta dan TP sasaran ikut terhapus. Percobaan remedial yang menunjuk pendampingan ini TIDAK terhapus (hanya tautannya dilepas), jadi nilai efektif tidak berubah. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Diaudit (`learning_support.delete`).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/learning-supports/{id}/participants": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ganti peserta pendampingan belajar
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel pendampingan itu (selain itu 403); modul `grades`. MENGGANTI seluruh himpunan peserta (larik kosong = kosongkan): murid yang tidak disebut dikeluarkan. `status` `planned` (bawaan), `in_progress`, `completed`, atau `cancelled`; `outcomeNote` catatan hasil (maks 1000). Murid harus anggota aktif kelas pendampingan (400 `invalid_reference`); murid yang dikirim dua kali: yang terakhir berlaku. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Diaudit (`learning_support.participants`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        participants: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /**
+                             * @default planned
+                             * @enum {string}
+                             */
+                            status?: "planned" | "in_progress" | "completed" | "cancelled";
+                            outcomeNote?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            /** Format: uuid */
+                            classId: string;
+                            className: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            /** @enum {string} */
+                            kind: "remedial" | "enrichment";
+                            title: string;
+                            description: string | null;
+                            startsOn: string | null;
+                            endsOn: string | null;
+                            /** Format: uuid */
+                            teacherId: string | null;
+                            teacherName: string | null;
+                            /** @description TP sasaran; kosong = tanpa TP */
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                /** @description false = TP sudah diganti versi baru atau dinonaktifkan */
+                                active: boolean;
+                            }[];
+                            participants: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** @enum {string} */
+                                status: "planned" | "in_progress" | "completed" | "cancelled";
+                                outcomeNote: string | null;
+                            }[];
+                            /** @description Pengguna ini boleh mengubah pendampingan ini */
+                            canInput: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/assessments/{id}/remedial-attempts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Percobaan remedial satu penilaian
+         * @description Izin: `grade:read`; modul `grades`. Roster siswa aktif dan lulusan kelas penilaian dengan skor asli, percobaan remedial (urut `attemptNo`), dan nilai efektif menurut kebijakan remedial semester (`policy`). `needsRemedial` = skor asli di bawah KKM efektif mapel (`kkm`, persen). Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). 404 `not_found` bila penilaian tidak ada.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            assessment: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                semesterId: string;
+                                /** Format: uuid */
+                                classId: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                                title: string;
+                                date: string;
+                                maxScore: number;
+                            };
+                            /**
+                             * @description Kebijakan remedial efektif semester ini (salinan beku bila ada)
+                             * @enum {string}
+                             */
+                            policy: "record_only" | "replace_latest" | "max" | "cap_at_criteria" | "mean_with_original";
+                            /** @description KKM efektif mapel (persen dari skor maksimum) yang dipakai `needsRemedial` dan `cap_at_criteria` */
+                            kkm: number;
+                            canInput: boolean;
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** @description Skor asli (`score.value`); tidak pernah ditimpa percobaan */
+                                original: number | null;
+                                /** @description Skor asli sebagai persen skor maksimum */
+                                percent: number | null;
+                                /** @description Skor asli di bawah KKM efektif mapel */
+                                needsRemedial: boolean;
+                                /** @description Nilai efektif menurut kebijakan (sama dengan `original` bila `record_only` atau tanpa percobaan berisi nilai) */
+                                effective: number | null;
+                                /** @enum {string} */
+                                effectiveSource: "original" | "remedial";
+                                /** @description Percobaan remedial, urut `attemptNo` */
+                                attempts: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    attemptNo: number;
+                                    value: number | null;
+                                    takenOn: string;
+                                    note: string | null;
+                                    /** Format: uuid */
+                                    supportId: string | null;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Catat percobaan remedial
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403); modul `grades`. Menambah percobaan baru (nomor berikutnya per siswa) untuk 1..200 catatan; siswa yang sama dikirim dua kali menghasilkan dua percobaan berurutan. `value` 0..skor maksimum penilaian (400 `score_out_of_range`) atau null (percobaan tanpa nilai: tercatat tetapi tidak dipakai nilai efektif). `takenOn` bawaan hari ini. `supportId` opsional menautkan ke pendampingan remedial pada kelas, mapel, dan semester yang sama (400 `invalid_reference`). Siswa harus anggota aktif kelas (400 `invalid_reference`). Maksimal 20 percobaan per siswa dan penilaian (400 `too_many_attempts`). Skor asli TIDAK berubah. Pengaruhnya pada nilai akhir dan ketercapaian TP mengikuti kebijakan remedial sekolah (`record_only` hanya mencatat). Ditolak 409 `report_final` bila rapor salah satu siswa itu pada semester tersebut sudah final. Diaudit (`remedial_attempt.save`). Respons sama dengan GET.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        records: {
+                            /** Format: uuid */
+                            studentId: string;
+                            value: number | null;
+                            /** Format: date */
+                            takenOn?: string;
+                            note?: string | null;
+                            /** Format: uuid */
+                            supportId?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            assessment: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                semesterId: string;
+                                /** Format: uuid */
+                                classId: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                                title: string;
+                                date: string;
+                                maxScore: number;
+                            };
+                            /**
+                             * @description Kebijakan remedial efektif semester ini (salinan beku bila ada)
+                             * @enum {string}
+                             */
+                            policy: "record_only" | "replace_latest" | "max" | "cap_at_criteria" | "mean_with_original";
+                            /** @description KKM efektif mapel (persen dari skor maksimum) yang dipakai `needsRemedial` dan `cap_at_criteria` */
+                            kkm: number;
+                            canInput: boolean;
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** @description Skor asli (`score.value`); tidak pernah ditimpa percobaan */
+                                original: number | null;
+                                /** @description Skor asli sebagai persen skor maksimum */
+                                percent: number | null;
+                                /** @description Skor asli di bawah KKM efektif mapel */
+                                needsRemedial: boolean;
+                                /** @description Nilai efektif menurut kebijakan (sama dengan `original` bila `record_only` atau tanpa percobaan berisi nilai) */
+                                effective: number | null;
+                                /** @enum {string} */
+                                effectiveSource: "original" | "remedial";
+                                /** @description Percobaan remedial, urut `attemptNo` */
+                                attempts: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    attemptNo: number;
+                                    value: number | null;
+                                    takenOn: string;
+                                    note: string | null;
+                                    /** Format: uuid */
+                                    supportId: string | null;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/remedial-attempts/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Hapus percobaan remedial
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian percobaan itu (selain itu 403); modul `grades`. Menghapus satu percobaan; nomor percobaan lain tidak berubah. Skor asli tidak tersentuh. Ditolak 409 `report_final` bila rapor siswa itu pada semester tersebut sudah final. 404 `not_found` bila tidak ada. Diaudit (`remedial_attempt.delete`).
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/grading/remedial-candidates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Murid yang perlu remedial
+         * @description Izin: `grade:read`; modul `grades`. Murid dengan skor asli di bawah KKM efektif mapel (`kkm`, persen skor maksimum) pada penilaian SUMATIF yang ikut nilai akhir (formatif dan asesmen awal tidak dihitung) untuk satu kelas, mapel, dan semester. Per penilaian: skor asli, persen, jumlah percobaan, nilai efektif menurut kebijakan remedial semester (`policy`), dan `stillBelow` (nilai efektif masih di bawah KKM). Hanya murid yang punya paling sedikit satu penilaian di bawah KKM yang tampil. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    classId: string;
+                    subjectId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            policy: "record_only" | "replace_latest" | "max" | "cap_at_criteria" | "mean_with_original";
+                            /** @description KKM efektif mapel (persen) */
+                            kkm: number;
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                items: {
+                                    /** Format: uuid */
+                                    assessmentId: string;
+                                    title: string;
+                                    date: string;
+                                    componentName: string;
+                                    maxScore: number;
+                                    original: number;
+                                    percent: number;
+                                    attempts: number;
+                                    effective: number | null;
+                                    effectivePercent: number | null;
+                                    stillBelow: boolean;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;
@@ -50909,7 +52168,7 @@ export interface paths {
         put?: never;
         /**
          * Kirim hasil ujian ke buku nilai
-         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, atau kaitan tujuan pembelajaran (TP, `PUT /v1/assessments/{id}/objectives`) yang sudah diatur guru; kaitan TP bertahan walau nilai didorong ulang. Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian (mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau `scope_requires_summative`.
+         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, atau kaitan tujuan pembelajaran (TP, `PUT /v1/assessments/{id}/objectives`) yang sudah diatur guru; kaitan TP bertahan walau nilai didorong ulang. Dorong ulang hanya mengubah skor ASLI; percobaan remedial (`POST /v1/assessments/{id}/remedial-attempts`) tidak tersentuh, dan audit mencatat jumlah skor yang berubah (`scoresChanged`) serta percobaan yang dipertahankan (`remedialAttemptsKept`). Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian (mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau `scope_requires_summative`.
          */
         post: {
             parameters: {
@@ -59098,7 +60357,7 @@ export interface paths {
         };
         /**
          * Nilai seorang anak
-         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `grades` (bila tidak aktif `available` false dan data kosong). Nilai akhir per mapel dihitung dengan rumus yang sama dengan rekap penilaian dan rapor, untuk semester `semesterId` (bawaan: semester aktif, atau yang terbaru). `semesters` memuat pilihan semester; `recentScores` adalah skor terbaru terlepas dari semester. Bila rapor anak pada semester itu sudah FINAL, nilai akhir, predikat, KKM, dan `belowKkm` per mapel diambil dari snapshot rapor dan diberi `source: report` (sama persis dengan rapor terbit); rincian komponen dihitung dari konfigurasi efektif semester. 404 bila `semesterId` bukan milik sekolah ini.
+         * @description Izin: `portal:read`; modul `parent_portal`; bagian ini butuh modul `grades` (bila tidak aktif `available` false dan data kosong). Nilai akhir per mapel dihitung dengan rumus yang sama dengan rekap penilaian dan rapor, untuk semester `semesterId` (bawaan: semester aktif, atau yang terbaru). `semesters` memuat pilihan semester; `recentScores` adalah skor terbaru terlepas dari semester. Bila rapor anak pada semester itu sudah FINAL, nilai akhir, predikat, KKM, dan `belowKkm` per mapel diambil dari snapshot rapor dan diberi `source: report` (sama persis dengan rapor terbit); rincian komponen dihitung dari konfigurasi efektif semester. Nilai akhir memakai nilai efektif remedial menurut kebijakan sekolah (skor asli tidak ditimpa); `subjects[].remedial` (`attempts`, `effectiveSource`) ada hanya bila anak punya percobaan remedial pada mapel itu. 404 bila `semesterId` bukan milik sekolah ini.
          */
         get: {
             parameters: {
@@ -59164,6 +60423,16 @@ export interface paths {
                                  * @enum {string}
                                  */
                                 source?: "report";
+                                /** @description Penanda remedial; ada hanya bila ada percobaan. Skor asli tidak pernah ditimpa; nilai akhir memakai nilai efektif menurut kebijakan sekolah. */
+                                remedial?: {
+                                    /** @description Jumlah percobaan remedial siswa pada mapel ini (semua penilaian) */
+                                    attempts: number;
+                                    /**
+                                     * @description `remedial` = ada nilai efektif yang berbeda dari skor asli menurut kebijakan remedial sekolah; `original` = skor asli dipakai (mis. kebijakan hanya mencatat)
+                                     * @enum {string}
+                                     */
+                                    effectiveSource: "original" | "remedial";
+                                };
                                 components: {
                                     name: string;
                                     weight: number;

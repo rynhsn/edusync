@@ -24,6 +24,7 @@ import { belowKkmApplies, splitComponents } from '@/lib/assessment-category';
 import { errorKey } from '@/lib/errors';
 import { isFromReport } from '@/lib/grading-config';
 import { formatKkm, pickKkm } from '@/lib/kktp';
+import { policyOrDefault, type RemedialMark, remedialMarkState } from '@/lib/remedial';
 import { buildExport, saveBlob } from '@/lib/sheet';
 import { cn } from '@/lib/utils';
 import { PREDICATES, PredicateBadge, predicateTone, ScoreChip } from './grade-ui';
@@ -35,6 +36,25 @@ interface Props {
 }
 
 const fmt = (n: number | null | undefined) => (n === null || n === undefined ? '-' : String(n));
+
+/** Penanda remedial pada nilai murid: lencana kecil dan keterangan sumber nilai (asli atau remedial). */
+function RemedialBadge({ mark, detail }: { mark: RemedialMark | undefined; detail?: boolean }) {
+  const t = useTranslations('grades');
+  const state = remedialMarkState(mark);
+  if (!mark || !state) return null;
+  return (
+    <>
+      <ToneBadge tone={state === 'used' ? 'amber' : 'slate'} dot={false}>
+        {state === 'used' ? t('rmRecapUsed') : t('rmRecapRecorded')}
+      </ToneBadge>
+      {detail && (
+        <span className="text-muted-foreground basis-full text-xs">
+          {t(state === 'used' ? 'rmRecapDetail_used' : 'rmRecapDetail_recorded', { count: mark.attempts })}
+        </span>
+      )}
+    </>
+  );
+}
 
 /** Rekap nilai satu mata pelajaran: rata-rata per komponen, nilai akhir berbobot, predikat, dan penanda di bawah KKM. */
 export function RecapPanel({ semesterId, classId, subjectId }: Props) {
@@ -118,6 +138,11 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
           <ReportSourceBadge label={t('fromReportBadge')} className="shrink-0" />
           <p className="min-w-0">{t('fromReportNote')}</p>
         </div>
+      )}
+      {(data.remedialPolicy !== undefined || data.students.some((s) => remedialMarkState(s.remedial))) && (
+        <p role="note" className="text-muted-foreground text-xs">
+          {t('rmRecapNote', { policy: t(`rmPolicyTitle_${policyOrDefault(data.remedialPolicy)}`) })}
+        </p>
       )}
       <StatGrid className="motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
         <StatCard
@@ -273,6 +298,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                           </ToneBadge>
                         )}
                         {isFromReport(s) && <ReportSourceBadge label={t('fromReportBadge')} />}
+                        <RemedialBadge mark={s.remedial} detail />
                       </div>
                     </td>
                     {feedback.map((c, k) => {
@@ -325,7 +351,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                     )}
                   </div>
                 </div>
-                {(s.belowKkm || isFromReport(s)) && (
+                {(s.belowKkm || isFromReport(s) || remedialMarkState(s.remedial)) && (
                   <div className="flex flex-wrap items-center gap-1.5">
                     {s.belowKkm && (
                       <ToneBadge tone="rose" dot={false} className="w-fit">
@@ -333,6 +359,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                       </ToneBadge>
                     )}
                     {isFromReport(s) && <ReportSourceBadge label={t('fromReportBadge')} />}
+                    <RemedialBadge mark={s.remedial} detail />
                   </div>
                 )}
                 <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">

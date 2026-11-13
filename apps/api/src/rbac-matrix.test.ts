@@ -415,6 +415,43 @@ describe('kebijakan peran bawaan', () => {
     for (const r of ['guardian', 'student', 'principal'] as const) expect(allows(r, write!), r).toBe(false);
   });
 
+  it('rute pendampingan dan percobaan remedial (tahap 3.5) memasang izin dan modul grades yang benar', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const reads = [
+      find('GET', '/v1/learning-supports'),
+      find('GET', '/v1/assessments/:id/remedial-attempts'),
+      find('GET', '/v1/grading/remedial-candidates'),
+    ];
+    const writes = [
+      find('POST', '/v1/learning-supports'),
+      find('PUT', '/v1/learning-supports/:id'),
+      find('DELETE', '/v1/learning-supports/:id'),
+      find('PUT', '/v1/learning-supports/:id/participants'),
+      find('POST', '/v1/assessments/:id/remedial-attempts'),
+      find('DELETE', '/v1/remedial-attempts/:id'),
+    ];
+    for (const e of reads) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['grade:read'], ['grades']]);
+      expect(e?.description).toContain('Izin: `grade:read`');
+    }
+    for (const e of writes) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['grade:input'], ['grades']]);
+      expect(e?.description).toContain('Izin: `grade:input`');
+    }
+    // Peran tanpa izin nilai tidak dapat menulis; yang hanya membaca tidak dapat mencatat remedial.
+    for (const r of roleKeys) {
+      const holds = (p: string) => perms(r).has(p as never);
+      for (const e of reads) expect(allows(r, e!), `${r} ${e?.url}`).toBe(holds('grade:read'));
+      for (const e of writes) expect(allows(r, e!), `${r} ${e?.url}`).toBe(holds('grade:input'));
+    }
+    for (const r of ['guardian', 'student', 'principal'] as const) {
+      for (const e of writes) expect(allows(r, e!), `${r} ${e?.url}`).toBe(false);
+    }
+    // Kebijakan remedial berubah lewat rute pengaturan yang sama (grade:configure).
+    const settings = find('PUT', '/v1/grading/settings');
+    expect([settings?.perms, settings?.modules]).toEqual([['grade:configure'], ['grades']]);
+  });
+
   it('hanya admin sekolah yang mengelola peran dan anggota', () => {
     for (const r of roleKeys.filter((k) => k !== 'school_admin')) {
       expect(perms(r).has('role:manage'), r).toBe(false);

@@ -30,7 +30,7 @@ import {
   teacher,
 } from '@edusync/db';
 import { historicalRosterOf } from './attendance-lib';
-import { type EffectiveGradingConfig, loadGradingConfig } from './grading-config-lib';
+import { type EffectiveGradingConfig, loadGradingConfig, remedialContextFor } from './grading-config-lib';
 import { assessedSubjects, computeGrades, notCountedComponentIds, type StudentGrade } from './grading-lib';
 import { HttpError } from './http-error';
 import { isNarrativeStale, loadObjectiveNarratives, type ObjectiveNarratives } from './report-narrative-lib';
@@ -170,6 +170,8 @@ export async function loadClassContext(
     studentIds,
     components,
     settings,
+    // Nilai efektif remedial menurut kebijakan semester (undefined = record_only: tanpa kueri tambahan, hasil identik).
+    remedial: await remedialContextFor(tx, cfg, { classId: cls.id, subjectIds: subjects.map((s) => s.id) }),
   });
   const kkmOf = await kkmResolver(tx, {
     levelCode: cls.level,

@@ -3,6 +3,7 @@ import {
   assessment,
   assessmentObjective,
   assignRoles,
+  auditLog,
   classRoom,
   enrollment,
   entitlement,
@@ -16,6 +17,7 @@ import {
   reportCard,
   school,
   score,
+  scoreRemedialAttempt,
   seedSchoolRoles,
   semester,
   semesterGradingConfig,
@@ -231,6 +233,7 @@ afterAll(async () => {
   const db = app.platformDb;
   for (const table of [
     'audit_log',
+    'score_remedial_attempt',
     'score',
     'assessment',
     'exam_answer',
@@ -720,5 +723,52 @@ describe('kategori asesmen (fase 3, T6)', () => {
     expect(sc!.value).toBe(100);
     const [still] = await db.select().from(assessment).where(eq(assessment.id, target.id));
     expect(still!.id).toBe(target.id);
+  });
+  it('dorong ulang mengubah skor asli tetapi percobaan remedial tetap (T6 tahap 3.5, R13)', async () => {
+    const db = app.platformDb;
+    const ex = await makeExam({ title: 'Ujian dengan remedial' });
+    expect((await sheetFor(ex.id, ex.q, 3)).statusCode).toBe(200);
+    expect((await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId })).statusCode).toBe(
+      200,
+    );
+    const target = (await db.select().from(assessment).where(eq(assessment.examId, ex.id))).find(
+      (a) => a.classId === classA,
+    )!;
+    const before = await db.select().from(score).where(eq(score.assessmentId, target.id));
+    const first = before.find((b) => b.value !== null)!;
+    await db.insert(scoreRemedialAttempt).values({
+      schoolId,
+      assessmentId: target.id,
+      studentId: first.studentId,
+      attemptNo: 1,
+      value: 88,
+      takenOn: '2026-12-10',
+      recordedBy: 'uji',
+    });
+
+    // Skor asli berubah lalu dorong ulang: skor asli tertimpa, percobaan remedial tetap utuh.
+    expect((await sheetFor(ex.id, ex.q, 6)).statusCode).toBe(200);
+    expect((await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId })).statusCode).toBe(
+      200,
+    );
+    const [after] = await db
+      .select()
+      .from(score)
+      .where(sql`${score.assessmentId} = ${target.id} and ${score.studentId} = ${first.studentId}`);
+    expect(after!.value).not.toBe(first.value);
+    const attempts = await db
+      .select()
+      .from(scoreRemedialAttempt)
+      .where(eq(scoreRemedialAttempt.assessmentId, target.id));
+    expect(attempts).toHaveLength(1);
+    expect(attempts[0]).toMatchObject({ attemptNo: 1, value: 88, studentId: first.studentId });
+    // Audit dorong ulang memuat jumlah skor yang berubah dan percobaan yang dipertahankan (R13).
+    const pushes = await db
+      .select()
+      .from(auditLog)
+      .where(sql`${auditLog.action} = 'exam.grades_push' and ${auditLog.entityId} = ${ex.id}`);
+    const last = pushes.map((p) => p.details as Record<string, number>).find((d) => d.scoresChanged);
+    expect(last?.scoresChanged).toBeGreaterThan(0);
+    expect(last?.remedialAttemptsKept).toBe(1);
   });
 });

@@ -57,7 +57,7 @@ import {
   tahfidzFor,
 } from '../portal-lib';
 import { loadResponses, RESPONSE_TEXT_MAX, responseWindow, saveResponse } from '../report-response-lib';
-import { audit, guarded, idParams, ok, schoolHeader } from './helpers';
+import { audit, guarded, idParams, ok, remedialMarkSchema, schoolHeader } from './helpers';
 
 const MODULE = 'parent_portal';
 const INVITE_DAYS = 14;
@@ -849,6 +849,8 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
           'semester; `recentScores` adalah skor terbaru terlepas dari semester. Bila rapor anak pada semester itu sudah FINAL, ' +
           'nilai akhir, predikat, KKM, dan `belowKkm` per mapel diambil dari snapshot rapor dan diberi `source: report` ' +
           '(sama persis dengan rapor terbit); rincian komponen dihitung dari konfigurasi efektif semester. ' +
+          'Nilai akhir memakai nilai efektif remedial menurut kebijakan sekolah (skor asli tidak ditimpa); `subjects[].remedial` ' +
+          '(`attempts`, `effectiveSource`) ada hanya bila anak punya percobaan remedial pada mapel itu. ' +
           '404 bila `semesterId` bukan milik sekolah ini.',
         headers: schoolHeader,
         params: studentParams,
@@ -890,6 +892,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
                   .describe(
                     'Ada (`report`) bila final, predikat, kkm, dan belowKkm mapel ini dari snapshot rapor final; rincian komponen tetap dari konfigurasi efektif semester',
                   ),
+                remedial: remedialMarkSchema,
                 components: z.array(
                   z.object({ name: z.string(), weight: z.number().int(), average: z.number().nullable() }),
                 ),

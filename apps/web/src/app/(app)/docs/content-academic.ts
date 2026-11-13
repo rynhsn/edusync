@@ -91,6 +91,22 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             warning:
               'TP versi lama (sudah diganti atau dinonaktifkan) tetap tampil pada penilaian yang sudah memakainya, tetapi tidak bisa ditambahkan ke penilaian lain. Keputusan guru tidak bisa diubah untuk siswa yang rapornya sudah final.',
           },
+          {
+            heading: 'Remedial dan pengayaan',
+            body: 'Tab Remedial dan pengayaan membantu guru menangani murid yang belum tuntas dan yang sudah tuntas. Bagian Murid yang perlu remedial menampilkan murid yang nilai aslinya di bawah KKM pada penilaian sumatif yang dihitung ke nilai akhir, lengkap dengan nilai asli, batas KKM, dan nilai yang sedang dipakai. Guru mencatat hasil remedial (penilaian ulang) dengan tombol Catat hasil remedial. Nilai asli murid tidak pernah diubah: hasil remedial disimpan terpisah sebagai percobaan, paling banyak 20 percobaan per murid untuk satu penilaian. Pengaruhnya pada nilai akhir mengikuti Kebijakan nilai remedial di Pengaturan penilaian. Bawaannya hanya dicatat, jadi nilai akhir tetap dari nilai asli. Bagian Sesi pendampingan dipakai untuk mencatat sesi remedial (pendampingan bagi yang belum tuntas) dan sesi pengayaan (pendalaman bagi yang sudah tuntas), beserta pesertanya dan tujuan pembelajaran yang disasar. Pengayaan tidak mengubah nilai. Di tab Rekap, murid yang punya remedial diberi penanda, dan wali murid melihat keterangan yang lembut pada mata pelajaran terkait.',
+            steps: [
+              'Buka menu Penilaian, pilih semester, kelas, dan mata pelajaran, lalu buka tab Remedial dan pengayaan.',
+              'Pada Murid yang perlu remedial, klik Catat hasil remedial di penilaian yang dimaksud. Isi nilai (antara 0 dan nilai maksimal), tanggal, dan catatan bila perlu, lalu simpan.',
+              'Untuk membatalkan sebuah percobaan, buka lagi Catat hasil remedial untuk murid itu dan klik Hapus pada percobaan tersebut.',
+              'Pada Sesi pendampingan, klik Sesi baru, pilih Remedial atau Pengayaan, isi judul dan tanggal, lalu pilih tujuan pembelajaran bila perlu.',
+              'Setelah sesi dibuat, pilih peserta. Tombol usulan membantu memilih murid yang perlu remedial atau yang sudah tuntas, dan Anda bebas mengubah pilihannya.',
+              'Untuk mengubah cara hasil remedial dipakai, buka Pengaturan penilaian dan pilih Kebijakan nilai remedial.',
+            ],
+            href: '/grades',
+            tip: 'Mulailah dengan kebijakan bawaan (hanya dicatat). Pilih kebijakan lain setelah sekolah sepakat bagaimana hasil remedial boleh memengaruhi nilai akhir.',
+            warning:
+              'Mengubah kebijakan nilai remedial memengaruhi rapor draf, bukan rapor yang sudah final. Selama rapor kelas sudah final, remedial dan sesi pendampingan tidak bisa diubah; buka kembali rapornya lebih dulu.',
+          },
         ],
         faq: [
           {
@@ -124,6 +140,14 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Mengapa status TP seorang siswa masih kosong?',
             a: 'Status baru muncul bila siswa punya skor pada penilaian sumatif yang dikaitkan ke TP itu, atau bila guru sudah membuat keputusan. Penilaian formatif hanya tampil sebagai kemajuan dan tidak menentukan status.',
+          },
+          {
+            q: 'Apakah remedial mengubah nilai asli murid?',
+            a: 'Tidak. Nilai asli tidak pernah diubah. Hasil remedial disimpan terpisah, dan sekolah memilih di Pengaturan penilaian apakah hasil itu hanya dicatat atau ikut dipakai untuk nilai akhir.',
+          },
+          {
+            q: 'Mengapa tombol remedial tidak aktif dan muncul keterangan rapor sudah final?',
+            a: 'Rapor kelas itu pada semester ini sudah final, sehingga remedial dan sesi pendampingan dikunci. Minta Kurikulum atau Admin sekolah membuka kembali rapornya, lalu coba lagi.',
           },
         ],
       },
@@ -209,6 +233,22 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             warning:
               'An old-version TP (replaced or deactivated) still shows on the assessments that already use it, but it cannot be added to other assessments. A teacher decision cannot be changed for a student whose report card is already final.',
           },
+          {
+            heading: 'Remedial and enrichment',
+            body: 'The Remedial and enrichment tab helps teachers look after students who have not reached the passing mark and those who have. The Students who need remedial part lists students whose original score is below the passing mark (KKM) on summative assessments that count toward the final grade, together with the original score, the passing mark, and the score currently in use. Teachers record a remedial result (a retest) with the Record remedial result button. The original score of a student is never changed: the remedial result is stored separately as an attempt, up to 20 attempts per student for one assessment. Its effect on the final grade follows the Remedial score policy in Grading settings. By default results are only recorded, so the final grade still comes from the original score. The Support sessions part records remedial sessions (extra help for those who have not reached the passing mark) and enrichment sessions (going deeper for those who have), with the participants and the learning objectives aimed at. Enrichment does not change any score. In the Recap tab, students who have remedial are marked, and parents see a gentle note on the related subject.',
+            steps: [
+              'Open the Grades menu, pick the semester, class, and subject, then open the Remedial and enrichment tab.',
+              'Under Students who need remedial, click Record remedial result on the assessment concerned. Enter the score (between 0 and the maximum), the date, and a note if needed, then save.',
+              'To cancel an attempt, open Record remedial result for that student again and click Delete on that attempt.',
+              'Under Support sessions, click New session, choose Remedial or Enrichment, fill in the title and dates, and pick learning objectives if needed.',
+              'After the session is created, choose the participants. The suggestion button helps pick students who need remedial or who have reached the passing mark, and you are free to change the selection.',
+              'To change how remedial results are used, open Grading settings and choose the Remedial score policy.',
+            ],
+            href: '/grades',
+            tip: 'Start with the default policy (only recorded). Choose another policy once the school agrees on how remedial results may affect the final grade.',
+            warning:
+              'Changing the remedial score policy affects draft report cards, not report cards that are already final. While the report cards of a class are final, remedial and support sessions cannot be changed; reopen the report cards first.',
+          },
         ],
         faq: [
           {
@@ -242,6 +282,14 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Why is a student status for a TP still empty?',
             a: 'A status appears once the student has a score on a summative assessment linked to that TP, or once a teacher has made a decision. Formative assessments only show as progress and do not decide the status.',
+          },
+          {
+            q: 'Does remedial change the original score of a student?',
+            a: 'No. The original score is never changed. Remedial results are stored separately, and the school chooses in Grading settings whether they are only recorded or also used for the final grade.',
+          },
+          {
+            q: 'Why are the remedial buttons disabled with a note that the report card is final?',
+            a: 'The report card of that class is already final for this semester, so remedial and support sessions are locked. Ask Curriculum staff or the School admin to reopen the report card, then try again.',
           },
         ],
       },
@@ -327,6 +375,22 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             warning:
               'TP vérsi heubeul (geus diganti atawa dipareuman) tetep muncul dina panilaian nu geus migunakeunana, tapi teu tiasa ditambahkeun kana panilaian séjén. Kaputusan guru teu tiasa dirobah pikeun siswa nu raporna geus final.',
           },
+          {
+            heading: 'Remedial jeung pengayaan',
+            body: 'Tab Remedial jeung pengayaan ngabantu guru ngurus murid nu acan tuntas jeung nu geus tuntas. Bagian Murid nu peryogi remedial nembongkeun murid nu nilai aslina handapeun KKM dina panilaian sumatif nu diitung kana nilai ahir, lengkep jeung nilai asli, wates KKM, jeung nilai nu keur dipaké. Guru nyatet hasil remedial (panilaian deui) ku tombol Catet hasil remedial. Nilai asli murid teu pernah dirobah: hasil remedial disimpen misah minangka percobaan, paling loba 20 percobaan per murid pikeun hiji panilaian. Pangaruhna kana nilai ahir nuturkeun Kawijakan nilai remedial dina Pengaturan penilaian. Bawaanna ngan dicatet, jadi nilai ahir tetep tina nilai asli. Bagian Sési pendampingan dipaké pikeun nyatet sési remedial (pendampingan pikeun nu acan tuntas) jeung sési pengayaan (pendalaman pikeun nu geus tuntas), sareng pamilonna jeung tujuan pangajaran nu diudag. Pengayaan teu ngarobah nilai. Dina tab Rekap, murid nu boga remedial dipasihan tanda, jeung kolot murid ningali katerangan nu lemah lembut dina mata pelajaran nu patali.',
+            steps: [
+              'Buka ménu Panilaian, pilih semester, kelas, jeung mata pelajaran, tuluy buka tab Remedial jeung pengayaan.',
+              'Dina Murid nu peryogi remedial, klik Catet hasil remedial dina panilaian nu dimaksud. Eusian nilai (antara 0 jeung nilai maksimal), tanggal, jeung catetan upami perlu, tuluy simpen.',
+              'Pikeun ngabatalkeun hiji percobaan, buka deui Catet hasil remedial pikeun murid éta tuluy klik Pupus dina percobaan éta.',
+              'Dina Sési pendampingan, klik Sési anyar, pilih Remedial atawa Pengayaan, eusian judul jeung tanggal, tuluy pilih tujuan pangajaran upami perlu.',
+              'Sanggeus sési dijieun, pilih pamilon. Tombol usulan ngabantu milih murid nu peryogi remedial atawa nu geus tuntas, jeung Anjeun bébas ngarobah pilihanana.',
+              'Pikeun ngarobah cara hasil remedial dipaké, buka Pengaturan penilaian tuluy pilih Kawijakan nilai remedial.',
+            ],
+            href: '/grades',
+            tip: 'Mimitian ku kawijakan bawaan (ngan dicatet). Pilih kawijakan séjén sanggeus sakola sapuk kumaha hasil remedial meunang mangaruhan nilai ahir.',
+            warning:
+              'Ngarobah kawijakan nilai remedial mangaruhan rapor rarancang, lain rapor nu geus final. Salila rapor kelas geus final, remedial jeung sési pendampingan teu bisa dirobah; buka deui rapor heula.',
+          },
         ],
         faq: [
           {
@@ -360,6 +424,14 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Naha status TP hiji siswa masih kosong?',
             a: 'Status karék muncul upami siswa boga skor dina panilaian sumatif nu dikaitkeun ka TP éta, atawa upami guru geus nyieun kaputusan. Panilaian formatif ngan muncul minangka kamajuan jeung teu nangtukeun status.',
+          },
+          {
+            q: 'Naha remedial ngarobah nilai asli murid?',
+            a: 'Henteu. Nilai asli teu pernah dirobah. Hasil remedial disimpen misah, jeung sakola milih dina Pengaturan penilaian naha hasilna ngan dicatet atawa milu dipaké pikeun nilai ahir.',
+          },
+          {
+            q: 'Naha tombol remedial teu aktip jeung aya katerangan rapor geus final?',
+            a: 'Rapor kelas éta dina semester ieu geus final, jadi remedial jeung sési pendampingan dikonci. Bantun Kurikulum atawa Admin sakola muka deui rapor, tuluy cobaan deui.',
           },
         ],
       },

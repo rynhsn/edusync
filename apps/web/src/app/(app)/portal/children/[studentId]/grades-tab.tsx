@@ -11,6 +11,7 @@ import { formatCalendarDate } from '@/lib/format-date';
 import { isFromReport } from '@/lib/grading-config';
 import { formatKkm } from '@/lib/kktp';
 import { PORTAL_PATHS, type PortalGrades } from '@/lib/portal-api';
+import { remedialMarkState } from '@/lib/remedial';
 import { cn } from '@/lib/utils';
 import { gradeTone, subjectKkm } from '../../logic';
 import { usePortalDetail } from '../../queries';
@@ -144,6 +145,16 @@ export function GradesTab({ studentId }: { studentId: string }) {
                       />
                     )}
                   </div>
+                  {remedialMarkState(s.remedial) && s.remedial && (
+                    <div className="grid gap-1.5 rounded-xl bg-amber-100 p-2.5 text-xs text-amber-900 dark:bg-amber-500/15 dark:text-amber-100">
+                      <p className="font-medium">{t('remedialBadge')}</p>
+                      <p>
+                        {t(remedialMarkState(s.remedial) === 'used' ? 'remedialUsed' : 'remedialRecorded', {
+                          count: s.remedial.attempts,
+                        })}
+                      </p>
+                    </div>
+                  )}
                   {(s.belowKkm || isFromReport(s)) && (
                     <div className="flex flex-wrap items-center gap-2">
                       {s.belowKkm && <p className="text-chart-3 text-xs font-medium">{t('belowKkm')}</p>}

@@ -24,6 +24,7 @@ import {
   subject,
   type Tx,
 } from '@edusync/db';
+import { applyRemedialScores, loadAttempts, type RemedialContext, remedialMark } from './remedial-lib';
 
 /** Pustaka perhitungan nilai bersama: dipakai rute penilaian dan rapor agar rumusnya tunggal. */
 
@@ -101,6 +102,11 @@ export interface StudentGrade {
    * bila siswa punya skor semacam itu; tidak pernah memengaruhi `final`, `predicate`, atau peringkat.
    */
   formative?: { average: number; count: number };
+  /**
+   * Penanda remedial (tahap 3.5): ada hanya bila siswa punya percobaan remedial pada mapel ini DAN penghitung diberi konteks
+   * remedial. `effectiveSource` = `remedial` bila ada nilai efektif yang berbeda dari skor asli menurut kebijakan.
+   */
+  remedial?: { attempts: number; effectiveSource: 'original' | 'remedial' };
 }
 
 /**
@@ -116,6 +122,12 @@ export async function computeGrades(
     studentIds: string[];
     components: { id: string; weight: number; category?: ComponentCategory; includeInFinal?: boolean }[];
     settings: GradingSettings;
+    /**
+     * Konteks remedial (tahap 3.5). Tanpa ini penghitung tidak memuat percobaan sama sekali (persis sebelum tahap 3.5). Dengan ini,
+     * 1 kueri batch memuat percobaan dan skor yang punya percobaan diganti nilai efektif menurut kebijakan; di bawah `record_only`
+     * nilai tidak berubah dan konteks hanya menghasilkan penanda `remedial`.
+     */
+    remedial?: RemedialContext | undefined;
   },
 ) {
   const assessments = p.subjectIds.length
@@ -147,7 +159,21 @@ export async function computeGrades(
           ),
         )
     : [];
-  const scoreOf = new Map(scores.map((s) => [`${s.assessmentId}:${s.studentId}`, s.value]));
+  const scoreOf = new Map<string, number | null>(
+    scores.map((s) => [`${s.assessmentId}:${s.studentId}`, s.value]),
+  );
+  const assessmentById = new Map(assessments.map((a) => [a.id, a]));
+  const applied = p.remedial
+    ? applyRemedialScores(
+        scoreOf,
+        (id) => assessmentById.get(id),
+        await loadAttempts(
+          tx,
+          assessments.map((a) => a.id),
+        ),
+        p.remedial,
+      )
+    : [];
 
   const gradeOf = (subjectId: string, studentId: string): StudentGrade => {
     // Penyaringan kategori di SATU tempat ini (rancangan fase 3, risiko R1): hanya komponen yang dihitung (sumatif dan
@@ -172,6 +198,9 @@ export async function computeGrades(
     );
     const formativeScores = groups.filter((g) => !g.counts).flatMap((g) => g.scores);
     const formativeAverage = componentAverage(formativeScores);
+    const remedial = remedialMark(
+      applied.filter((r) => r.subjectId === subjectId && r.studentId === studentId),
+    );
     return {
       perComponent: groups.map((g) => {
         const avg = componentAverage(g.scores);
@@ -187,6 +216,7 @@ export async function computeGrades(
               count: formativeScores.filter((s) => s.value !== null).length,
             },
           }),
+      ...(remedial ? { remedial } : {}),
     };
   };
 

@@ -5,6 +5,7 @@ import {
   CalendarRange,
   ClipboardCheck,
   ClipboardList,
+  HandHeart,
   ListFilter,
   Settings2,
   Table2,
@@ -25,10 +26,16 @@ import { cn } from '@/lib/utils';
 import { AssessmentsPanel } from './assessments-panel';
 import { ObjectiveAchievementPanel } from './objective-achievement-panel';
 import { RecapPanel } from './recap-panel';
+import { RemedialPanel } from './remedial-panel';
 
-type Mode = 'assessments' | 'recap' | 'objectives';
-const MODES = ['assessments', 'recap', 'objectives'] as const satisfies readonly Mode[];
-const MODE_ICONS = { assessments: ClipboardList, recap: Table2, objectives: Target } as const;
+type Mode = 'assessments' | 'recap' | 'objectives' | 'remedial';
+const MODES = ['assessments', 'recap', 'objectives', 'remedial'] as const satisfies readonly Mode[];
+const MODE_ICONS = {
+  assessments: ClipboardList,
+  recap: Table2,
+  objectives: Target,
+  remedial: HandHeart,
+} as const;
 
 /** Modul penilaian: filter semester, kelas, dan mata pelajaran, lalu tampilan daftar penilaian atau rekap nilai. */
 export function GradesView() {
@@ -161,7 +168,6 @@ export function GradesView() {
               onClick={() => setMode(m)}
               className={cn(
                 'focus-visible:ring-ring/60 inline-flex items-center justify-center gap-1.5 rounded-[10px] px-3 py-1.5 text-center text-sm font-medium outline-none transition-colors focus-visible:ring-2 max-lg:min-h-11 lg:whitespace-nowrap',
-                m === 'objectives' && 'max-lg:col-span-2',
                 mode === m
                   ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground',
@@ -198,6 +204,8 @@ export function GradesView() {
             <AssessmentsPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
           ) : mode === 'recap' ? (
             <RecapPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
+          ) : mode === 'remedial' ? (
+            <RemedialPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
           ) : (
             <ObjectiveAchievementPanel
               semesterId={semesterId}

@@ -1,5 +1,5 @@
 import { classRoom, eq, reportCard, semester, sql, type Tx } from '@edusync/db';
-import { kkmResolverForClass, loadGradingConfig } from './grading-config-lib';
+import { kkmResolverForClass, loadGradingConfig, remedialContextFor } from './grading-config-lib';
 import { computeGrades } from './grading-lib';
 import type { ReportDocument } from './report-card-lib';
 
@@ -62,6 +62,8 @@ export async function verifyFinalReports(tx: Tx): Promise<VerifyClassResult[]> {
         studentIds: withSnapshot.map((m) => m.studentId),
         components: cfg.components,
         settings: cfg.settings,
+        // Konfigurasi HIDUP termasuk kebijakan remedialnya: yang dibandingkan dengan snapshot adalah hasil finalisasi ulang hari ini.
+        remedial: await remedialContextFor(tx, cfg, { classId, subjectIds }),
       });
       const kkmOf = await kkmResolverForClass(tx, cfg, { classId, subjectIds });
       for (const m of withSnapshot) {

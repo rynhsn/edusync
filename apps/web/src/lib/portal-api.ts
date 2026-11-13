@@ -150,6 +150,8 @@ export interface PortalGrades {
     predicate: Predicate | null;
     belowKkm: boolean;
     components: { name: string; weight: number; average: number | null }[];
+    /** Ada hanya bila anak punya percobaan remedial pada mapel ini; skor asli tidak pernah ditimpa. */
+    remedial?: { attempts: number; effectiveSource: 'original' | 'remedial' };
   }[];
   /**
    * Umpan balik formatif per mapel, TERPISAH dari `subjects` dan tidak memengaruhi nilai akhir, predikat, atau rata-rata.

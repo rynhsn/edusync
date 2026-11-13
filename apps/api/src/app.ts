@@ -55,6 +55,7 @@ import { gradingRoutes } from './routes/grading';
 import { guardianRoutes } from './routes/guardians';
 import { identityCodeRoutes } from './routes/identity-code';
 import { invitationRoutes } from './routes/invitations';
+import { learningSupportRoutes } from './routes/learning-support';
 import { lessonAttendanceRoutes } from './routes/lesson-attendance';
 import { letterRoutes } from './routes/letters';
 import { liveRoutes } from './routes/live';
@@ -293,6 +294,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(extracurricularRoutes);
   await app.register(extracurricularCategoryRoutes);
   await app.register(gradingRoutes);
+  await app.register(learningSupportRoutes);
   await app.register(reportCardRoutes);
   await app.register(reportCardNarrativeRoutes);
   await app.register(reportCardResponseRoutes);

@@ -30,6 +30,7 @@ import {
 import type { EffectiveGradingConfig } from './grading-config-lib';
 import { round2 } from './grading-lib';
 import { HttpError } from './http-error';
+import { applyRemedialScores, loadAttempts } from './remedial-lib';
 
 /**
  * Ketercapaian tujuan pembelajaran (TP) per murid untuk satu kelas-mapel-semester (rancangan fase 3, bagian 3.2). DIHITUNG saat
@@ -153,11 +154,27 @@ export async function computeObjectiveAchievement(
         .from(score)
         .where(inArray(score.assessmentId, linkedAssessmentIds))
     : [];
-  const scoreOf = new Map(scores.map((s) => [`${s.assessmentId}:${s.studentId}`, s.value]));
+  const scoreOf = new Map<string, number | null>(
+    scores.map((s) => [`${s.assessmentId}:${s.studentId}`, s.value]),
+  );
 
   const criteriaByObjective = await cfg.objectiveKktpRows(tx, objectiveIds);
   const kkmDetail = (await cfg.kkmResolver(tx, { ...target, subjectIds: [p.subjectId] })).detail(p.subjectId);
   const aggregation = await cfg.objectiveAggregation(tx);
+  // Nilai efektif remedial (tahap 3.5): hanya bila kebijakan bukan record_only; skor asli tidak pernah ditimpa di database.
+  const remedialPolicy = await cfg.remedialPolicy(tx);
+  if (remedialPolicy !== 'record_only' && linkedAssessmentIds.length > 0) {
+    const byId = new Map(assessments.map((a) => [a.id, a]));
+    applyRemedialScores(
+      scoreOf,
+      (id) => byId.get(id) && { subjectId: p.subjectId, maxScore: byId.get(id)!.maxScore },
+      await loadAttempts(tx, linkedAssessmentIds),
+      {
+        policy: remedialPolicy,
+        kkmOf: () => kkmDetail.kkm,
+      },
+    );
+  }
   const componentOf = new Map(cfg.components.map((c) => [c.id, c]));
   const overrideOf = new Map(overrides.map((o) => [`${o.studentId}:${o.objectiveId}`, o]));
 

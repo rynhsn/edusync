@@ -50,7 +50,12 @@ import {
 } from '@edusync/db';
 import { todayInJakarta } from './attendance-lib';
 import { invoiceRows } from './finance-lib';
-import { finalSubjectRowsForStudent, kkmResolverForClass, loadGradingConfig } from './grading-config-lib';
+import {
+  finalSubjectRowsForStudent,
+  kkmResolverForClass,
+  loadGradingConfig,
+  remedialContextFor,
+} from './grading-config-lib';
 import { assessedSubjects, computeGrades, notCountedComponentIds } from './grading-lib';
 import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
@@ -407,6 +412,12 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
     studentIds: [studentId],
     components,
     settings,
+    // Nilai efektif remedial sama dengan rapor draf dan rekap; `markers` hanya untuk penanda percobaan (field opsional).
+    remedial: await remedialContextFor(tx, cfg, {
+      classId: enr.classId,
+      subjectIds: withFeedback.map((s) => s.id),
+      markers: true,
+    }),
   });
   // Rapor final siswa pada semester ini: nilai akhir, predikat, KKM, dan belowKkm dari snapshot (I3); rincian komponen
   // tetap dihitung dari konfigurasi efektif (salinan beku bila ada).
@@ -425,6 +436,7 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
       predicate: snap ? snap.predicate : (g?.predicate ?? null),
       belowKkm: snap ? snap.belowKkm : final !== null && final < kkm,
       ...(snap ? { source: 'report' as const } : {}),
+      ...(g?.remedial ? { remedial: g.remedial } : {}),
       components: counted.map((c) => ({
         name: c.name,
         weight: c.weight,

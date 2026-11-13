@@ -1,6 +1,6 @@
 'use client';
 
-import type { CalculationMode, ObjectiveAggregation } from '@edusync/contracts';
+import type { CalculationMode, ObjectiveAggregation, RemedialPolicy } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Layers, Pencil, Plus, SlidersHorizontal, Target, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -43,6 +43,13 @@ import {
 import { errorKey } from '@/lib/errors';
 import { invalidateGradingConfig, syncedSemesterIdOf } from '@/lib/grading-config';
 import { AGGREGATION_KEYS, aggregationChange, aggregationOrDefault } from '@/lib/objective-achievement';
+import {
+  policyChange,
+  policyOrDefault,
+  REMEDIAL_EXAMPLE,
+  REMEDIAL_POLICY_KEYS,
+  remedialExampleResult,
+} from '@/lib/remedial';
 import { cn } from '@/lib/utils';
 import { COMPONENT_TONES, predicateTone } from '../grade-ui';
 import {
@@ -86,6 +93,7 @@ function ThresholdsCard() {
   const [dirty, setDirty] = useState(false);
   const [mode, setMode] = useState<CalculationMode>('weighted_average');
   const [aggregation, setAggregation] = useState<ObjectiveAggregation>('mean');
+  const [remedial, setRemedial] = useState<RemedialPolicy>('record_only');
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const key = ['grading-settings', school.schoolId];
@@ -103,6 +111,7 @@ function ThresholdsCard() {
     });
     setMode(modeOrDefault(settings.data.calculationMode));
     setAggregation(aggregationOrDefault(settings.data.objectiveAggregation));
+    setRemedial(policyOrDefault(settings.data.remedialPolicy));
     setDirty(false);
   }, [settings.data]);
 
@@ -142,6 +151,7 @@ function ThresholdsCard() {
             predicateC: n.c,
             ...modeChange(settings.data?.calculationMode, mode),
             ...aggregationChange(settings.data?.objectiveAggregation, aggregation),
+            ...policyChange(settings.data?.remedialPolicy, remedial),
           },
         }),
       ),
@@ -348,6 +358,52 @@ function ThresholdsCard() {
           {aggregation !== aggregationOrDefault(settings.data.objectiveAggregation) && (
             <Alert>
               <AlertDescription>{t('oaAggWarning')}</AlertDescription>
+            </Alert>
+          )}
+        </fieldset>
+        <fieldset className="grid gap-3">
+          <legend className="font-heading text-base font-semibold">{t('rmPolicyLabel')}</legend>
+          <p className="text-muted-foreground text-sm">
+            {t('rmPolicyHelp', {
+              original: REMEDIAL_EXAMPLE.original,
+              attempt: REMEDIAL_EXAMPLE.attempt,
+              kkm: REMEDIAL_EXAMPLE.kkm,
+            })}
+          </p>
+          <div className="grid gap-2 lg:grid-cols-3">
+            {REMEDIAL_POLICY_KEYS.map((m) => (
+              <label
+                key={m}
+                htmlFor={`rm-policy-${m}`}
+                className={cn(
+                  'has-[:focus-visible]:ring-ring/50 flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors has-[:focus-visible]:ring-[3px]',
+                  remedial === m ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+                )}
+              >
+                <input
+                  id={`rm-policy-${m}`}
+                  type="radio"
+                  name="rm-policy"
+                  className="accent-primary mt-1 size-4 shrink-0"
+                  checked={remedial === m}
+                  onChange={() => {
+                    setRemedial(m);
+                    setDirty(true);
+                  }}
+                />
+                <span className="grid gap-1">
+                  <span className="text-sm font-medium">{t(`rmPolicyTitle_${m}`)}</span>
+                  <span className="text-muted-foreground text-xs">{t(`rmPolicyDesc_${m}`)}</span>
+                  <span className="text-xs font-medium tabular-nums">
+                    {t('rmPolicyExample', { result: remedialExampleResult(m) })}
+                  </span>
+                </span>
+              </label>
+            ))}
+          </div>
+          {remedial !== policyOrDefault(settings.data.remedialPolicy) && (
+            <Alert>
+              <AlertDescription>{t('rmPolicyWarning')}</AlertDescription>
             </Alert>
           )}
         </fieldset>

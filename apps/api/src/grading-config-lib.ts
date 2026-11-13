@@ -1,11 +1,14 @@
 import {
   type ComponentCategory,
   DEFAULT_OBJECTIVE_AGGREGATION,
+  DEFAULT_REMEDIAL_POLICY,
   type FreezeOrigin,
   frozenComponentsSchema,
   type KktpRow,
+  normalizeRemedialPolicy,
   OBJECTIVE_AGGREGATIONS,
   type ObjectiveAggregation,
+  type RemedialPolicy,
   resolveFrozenGradingConfig,
 } from '@edusync/contracts';
 import {
@@ -34,6 +37,7 @@ import {
   loadObjectiveKktpRows,
   makeKktpResolver,
 } from './kktp-lib';
+import type { RemedialContext } from './remedial-lib';
 import type { ReportDocument } from './report-card-lib';
 import { REPORT_FINAL_CODE } from './report-lock-lib';
 import { audit } from './routes/helpers';
@@ -66,6 +70,8 @@ export interface EffectiveGradingConfig {
   objectiveAggregation(tx: Tx): Promise<ObjectiveAggregation>;
   /** Kriteria per TP (aktif) per id TP; dari salinan (`objective_criteria`, tanpa kueri) atau dari tabel hidup (dua kueri). */
   objectiveKktpRows(tx: Tx, objectiveIds: string[]): Promise<Map<string, KktpRow[]>>;
+  /** Kebijakan nilai remedial (K8); dari salinan (tanpa kueri; salinan lama = `record_only`) atau dari `grading_setting` hidup (satu kueri). */
+  remedialPolicy(tx: Tx): Promise<RemedialPolicy>;
 }
 
 /** Aturan agregasi TP sekolah (konfigurasi hidup); nilai tak dikenal atau kosong = bawaan. */
@@ -74,6 +80,12 @@ async function loadLiveObjectiveAggregation(tx: Tx): Promise<ObjectiveAggregatio
   return (OBJECTIVE_AGGREGATIONS as readonly string[]).includes(s?.v ?? '')
     ? (s?.v as ObjectiveAggregation)
     : DEFAULT_OBJECTIVE_AGGREGATION;
+}
+
+/** Kebijakan remedial sekolah (konfigurasi hidup); kosong atau tak dikenal = `record_only`. */
+async function loadLiveRemedialPolicy(tx: Tx): Promise<RemedialPolicy> {
+  const [s] = await tx.select({ v: gradingSetting.remedialPolicy }).from(gradingSetting);
+  return normalizeRemedialPolicy(s?.v);
 }
 
 /**
@@ -101,6 +113,7 @@ export async function loadGradingConfig(
       kktpRows: (t, subjectIds) => loadKktpRows(t, subjectIds),
       objectiveAggregation: (t) => loadLiveObjectiveAggregation(t),
       objectiveKktpRows: (t, objectiveIds) => loadObjectiveKktpRows(t, objectiveIds),
+      remedialPolicy: (t) => loadLiveRemedialPolicy(t),
     };
   }
   const settings: GradingSettings = {
@@ -137,6 +150,7 @@ export async function loadGradingConfig(
     kktpRows: async (_tx, subjectIds) => new Map(subjectIds.map((id) => [id, bySubject.get(id) ?? []])),
     // Salinan v1 (tanpa kolom tahap 3.3) terbaca sebagai tanpa kriteria TP dan agregasi `mean`.
     objectiveAggregation: async () => resolved.objectiveAggregation,
+    remedialPolicy: async () => resolved.remedialPolicy,
     objectiveKktpRows: async (_tx, objectiveIds) => {
       const wanted = new Set(objectiveIds);
       const byObjective = new Map<string, KktpRow[]>();
@@ -180,6 +194,24 @@ export async function kkmResolverForClass(
     programId: cls?.programId ?? null,
     subjectIds: p.subjectIds,
   });
+}
+
+/**
+ * Konteks remedial untuk `computeGrades` dan ketercapaian TP, atau undefined bila tidak perlu: kebijakan `record_only` tanpa `markers`
+ * tidak memuat apa pun dari tabel percobaan (hasil dan jumlah kueri sama persis dengan sebelum tahap 3.5). `markers` true (rekap dan
+ * portal) meminta konteks juga di bawah `record_only` hanya untuk penanda percobaan. KKM efektif mapel hanya dimuat untuk
+ * `cap_at_criteria`.
+ */
+export async function remedialContextFor(
+  tx: Tx,
+  cfg: EffectiveGradingConfig,
+  p: { classId: string; subjectIds: string[]; markers?: boolean },
+): Promise<RemedialContext | undefined> {
+  const policy = await cfg.remedialPolicy(tx);
+  if (policy === DEFAULT_REMEDIAL_POLICY && !p.markers) return undefined;
+  if (policy !== 'cap_at_criteria') return { policy, kkmOf: () => undefined };
+  const kkmOf = await kkmResolverForClass(tx, cfg, { classId: p.classId, subjectIds: p.subjectIds });
+  return { policy, kkmOf: (subjectId) => kkmOf(subjectId) };
 }
 
 /* ---------- Pembekuan, kunci, dan guard (tahap A, L3) ---------- */
@@ -244,6 +276,7 @@ const summarize = (r: typeof semesterGradingConfig.$inferSelect) => ({
     ? { objectiveCriteria: r.objectiveCriteria.length }
     : {}),
   ...(r.objectiveAggregation ? { objectiveAggregation: r.objectiveAggregation } : {}),
+  ...(r.remedialPolicy ? { remedialPolicy: r.remedialPolicy } : {}),
 });
 
 /**
@@ -403,6 +436,10 @@ export async function matchesLive(
         : {}),
       ...(row.objectiveAggregation && row.objectiveAggregation !== DEFAULT_OBJECTIVE_AGGREGATION
         ? { objectiveAggregation: row.objectiveAggregation }
+        : {}),
+      // Kolom tahap 3.5, sparse juga (hanya bila bukan record_only).
+      ...(row.remedialPolicy && row.remedialPolicy !== DEFAULT_REMEDIAL_POLICY
+        ? { remedialPolicy: row.remedialPolicy }
         : {}),
     }) === canonical(live)
   );

@@ -9,8 +9,9 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
-Fase 3 (asesmen dan rapor), tahap 3.3 dan 3.4: kaitan tujuan pembelajaran (TP), ketercapaian TP per murid, dan narasi rapor dari
-TP. Nilai akhir, predikat, rekap, dan portal nilai tidak berubah. Rapor murid yang belum punya status TP sama persis dengan
+Fase 3 (asesmen dan rapor), tahap 3.3 sampai 3.5: kaitan tujuan pembelajaran (TP), ketercapaian TP per murid, narasi rapor dari
+TP, serta remedial dan pengayaan. Nilai akhir, predikat, rekap, dan portal nilai tidak berubah selama sekolah tidak memilih
+kebijakan nilai remedial selain "hanya mencatat" (bawaan). Rapor murid yang belum punya status TP sama persis dengan
 v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran yang punya ketercapaian TP mendapat narasi baru.
 
 ### Ditambahkan
@@ -49,6 +50,26 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
 - **Pengaturan narasi sekolah** di pengaturan rapor: jumlah TP per sisi (1-5, bawaan 2) dan templat kalimat kekuatan dan
   bimbingan (harus memuat `{tp}`, maksimal 300 karakter; kosong = templat bawaan). Templat berlaku per sekolah, bukan per
   bahasa tampilan. Di kelas bermode deskriptif (Fase A) narasi dari TP juga memenuhi syarat kelengkapan deskripsi.
+- **Remedial dan pengayaan.** Guru mencatat kegiatan pendampingan (remedial atau pengayaan) per kelas, mata pelajaran, dan
+  semester: judul, keterangan, tanggal, TP sasaran, dan murid peserta beserta status (direncanakan, berjalan, selesai, batal) dan
+  catatan hasil. Pengayaan hanya dicatat dan tidak memengaruhi nilai.
+- **Percobaan remedial.** Hasil asesmen ulang dicatat per penilaian dan murid (percobaan ke-1, ke-2, dan seterusnya, maksimal 20)
+  dengan nilai, tanggal, catatan, dan pendampingan terkait. Nilai asli di buku nilai tidak pernah ditimpa. Nilai remedial tidak
+  boleh melebihi skor maksimum penilaian (`score_out_of_range`). Mengirim ulang nilai ujian CBT hanya mengubah skor asli;
+  percobaan remedial tetap, dan audit mencatat jumlah skor yang berubah.
+- **Kebijakan nilai remedial** di pengaturan nilai (pemegang izin konfigurasi nilai): hanya mencatat (`record_only`, bawaan:
+  nilai akhir tetap dari skor asli), memakai percobaan terakhir (`replace_latest`), nilai tertinggi (`max`), tertinggi dengan
+  batas KKM efektif mata pelajaran (`cap_at_criteria`: remedial paling tinggi menaikkan ke KKM, skor asli yang sudah di atas
+  KKM tidak diturunkan), atau rata-rata skor asli dan percobaan terakhir (`mean_with_original`). Tidak ada aturan nasional,
+  jadi kebijakan diserahkan ke sekolah dan tidak dikunci. Nilai efektif dipakai nilai akhir (rekap, leger, rapor draf, portal)
+  dan ketercapaian TP. Kebijakan ikut disalin ke konfigurasi beku semester (semester yang sudah dibekukan tidak berubah bila
+  kebijakan diubah; salinan lama dibaca sebagai hanya mencatat) dan ditolak (`report_final`) bila semester aktif sudah punya
+  rapor final. Rapor final tetap dari snapshot dan tidak berubah oleh hasil remedial.
+- **Daftar murid yang perlu remedial** per kelas, mata pelajaran, dan semester: murid dengan skor asli di bawah KKM efektif pada
+  penilaian sumatif, beserta nilai efektif dan apakah masih di bawah KKM.
+- Rekap nilai membawa `remedial` (jumlah percobaan dan sumber nilai) per murid hanya bila ada percobaan, dan `remedialPolicy`
+  hanya bila kebijakan bukan bawaan; nilai portal membawa penanda yang sama per mata pelajaran. Kode galat baru:
+  `score_out_of_range`, `too_many_attempts`, `invalid_dates` (terjemahan id, en, su).
 
 ### Catatan rollback
 
@@ -60,6 +81,11 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
 - Narasi rapor dari TP (tahap 3.4): tidak berefek pada angka. Setelah kembali ke versi sebelumnya, deskripsi capaian rapor DRAF
   kembali dari predikat (suntingan guru tetap tampil); rapor final aman karena dibaca dari snapshot (teks dan ringkasan TP
   tampil lagi setelah maju). Kolom pengaturan narasi dibiarkan dan diabaikan versi lama.
+- Remedial dan pengayaan (tahap 3.5): kebijakan nilai remedial diabaikan setelah kembali ke versi sebelumnya (kembali ke hanya
+  mencatat). Sekolah yang memakai kebijakan selain hanya mencatat akan melihat angka DRAF kembali ke skor asli (nilai akhir,
+  rekap, leger, portal, dan ketercapaian TP); rapor final aman karena dibaca dari snapshot. Sekolah dengan kebijakan bawaan
+  tidak terpengaruh. Pendampingan, peserta, dan percobaan remedial dibiarkan di database dan tampil lagi setelah maju; kolom
+  kebijakan di konfigurasi beku diabaikan versi lama. Disarankan rollback hanya sebelum sekolah memakai kebijakan lain.
 
 ## [1.4.0] - 2026-11-13
 
