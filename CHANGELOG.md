@@ -9,6 +9,10 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+## [1.2.1] - 2026-11-13
+
+Perbaikan setelah v1.2.0.
+
 ### Diperbaiki
 
 - **Status WhatsApp sekolah bisa salah** bila dua peristiwa klien datang berdekatan (mis. "siap" menimpa "terputus"): penulisan
