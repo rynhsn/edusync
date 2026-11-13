@@ -25,7 +25,7 @@ import {
 } from '@edusync/db';
 import { historicalRosterOf } from './attendance-lib';
 import { loadGradingConfig } from './grading-config-lib';
-import { assessedSubjects, computeGrades, type StudentGrade } from './grading-lib';
+import { assessedSubjects, computeGrades, notCountedComponentIds, type StudentGrade } from './grading-lib';
 import { HttpError } from './http-error';
 
 /** Pengaturan rapor sekolah. Sekolah yang belum mengaturnya mendapat nilai bawaan. */
@@ -128,7 +128,7 @@ export async function loadClassContext(
     .where(eq(academicYear.id, sem.academicYearId));
   const { settings, components, kkmResolver } = await loadGradingConfig(tx, sem.id);
   const reportSettings = await loadReportSettings(tx);
-  const subjects = await assessedSubjects(tx, sem.id, cls.id);
+  const subjects = await assessedSubjects(tx, sem.id, cls.id, notCountedComponentIds(components));
   const studentIds = [...new Set([...roster.map((s) => s.id), ...extraStudentIds])];
   const grades = await computeGrades(tx, {
     semesterId: sem.id,

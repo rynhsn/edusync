@@ -1717,9 +1717,17 @@ export const gradeComponent = pgTable(
     name: text('name').notNull(),
     weight: integer('weight').notNull(),
     sort: integer('sort').notNull().default(0),
+    /** 'summative' (bawaan) | 'formative'. Formatif tidak pernah masuk nilai akhir (rancangan fase 3, bagian 3.1). */
+    category: text('category').notNull().default('summative'),
+    /** Bawaan true; CHECK mengunci komponen formatif ke false. Komponen sumatif boleh dikeluarkan dari nilai akhir. */
+    includeInFinal: boolean('include_in_final').notNull().default(true),
     createdAt: createdAt(),
   },
-  (t) => [unique('grade_component_school_name_uq').on(t.schoolId, t.name)],
+  (t) => [
+    unique('grade_component_school_name_uq').on(t.schoolId, t.name),
+    check('grade_component_category_ck', sql`${t.category} in ('formative', 'summative')`),
+    check('grade_component_final_ck', sql`${t.category} = 'summative' or ${t.includeInFinal} = false`),
+  ],
 );
 
 /** Satu penilaian (ulangan, tugas, ...) untuk satu kelas dan mapel pada satu semester. */
@@ -1748,11 +1756,22 @@ export const assessment = pgTable(
     maxScore: integer('max_score').notNull().default(100),
     /** Ujian asal bila penilaian ini dikirim dari modul ujian (satu penilaian per kelas peserta). */
     examId: uuid('exam_id').references(() => exam.id, { onDelete: 'set null' }),
+    /** NULL | 'initial' (asesmen awal/diagnostik). Penilaian 'initial' tidak pernah masuk nilai akhir. */
+    purpose: text('purpose'),
+    /** NULL | 'material' | 'end_of_semester'; hanya bermakna pada komponen sumatif. */
+    summativeScope: text('summative_scope'),
+    /** Teknik asesmen dari daftar kontrak; tanpa CHECK di DB (daftar acuan bisa berubah). */
+    technique: text('technique'),
     createdAt: createdAt(),
   },
   (t) => [
     index('assessment_scope_idx').on(t.classId, t.subjectId, t.semesterId),
     uniqueIndex('assessment_exam_class_uq').on(t.examId, t.classId).where(sql`${t.examId} is not null`),
+    check('assessment_purpose_ck', sql`${t.purpose} is null or ${t.purpose} = 'initial'`),
+    check(
+      'assessment_scope_ck',
+      sql`${t.summativeScope} is null or ${t.summativeScope} in ('material', 'end_of_semester')`,
+    ),
   ],
 );
 

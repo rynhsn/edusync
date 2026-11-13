@@ -19,8 +19,15 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
-import { EmptyPanel, ToneBadge } from '@/components/ui-kit';
+import { EmptyPanel, TONES, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import {
+  categoryOf,
+  TECHNIQUE_OPTIONS,
+  type TechniqueValue,
+  techniqueKey,
+  techniqueValue,
+} from '@/lib/assessment-category';
 import { errorKey } from '@/lib/errors';
 import type { FieldIssue } from '@/lib/form-validation';
 import {
@@ -86,6 +93,7 @@ export function ScoresView({ id }: { id: string }) {
   const locale = useLocale();
   const te = useTranslations();
   const tv = useTranslations('formValidation');
+  const tg = useTranslations('grades');
   const { school, can } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
@@ -97,6 +105,7 @@ export function ScoresView({ id }: { id: string }) {
   const [sendOpen, setSendOpen] = useState(false);
   const [componentId, setComponentId] = useState('');
   const [sendDate, setSendDate] = useState('');
+  const [technique, setTechnique] = useState<TechniqueValue>('');
   const [allowPending, setAllowPending] = useState(false);
   const [reading, setReading] = useState<{ s: Student; qid: string; n: number } | null>(null);
   // Sel skor yang sudah ditinggalkan (blur) dan apakah simpan sudah dicoba: galat sel baru tampil setelah itu.
@@ -224,7 +233,12 @@ export function ScoresView({ id }: { id: string }) {
       unwrap(
         await api.POST('/v1/exams/{id}/grades', {
           params: { ...header, path: { id } },
-          body: { componentId, allowPending, ...(sendDate ? { date: sendDate } : {}) },
+          body: {
+            componentId,
+            allowPending,
+            ...(sendDate ? { date: sendDate } : {}),
+            ...(technique ? { technique } : {}),
+          },
         }),
       ),
     onSuccess: (r) => {
@@ -278,6 +292,7 @@ export function ScoresView({ id }: { id: string }) {
   const loading = sheet.isPending || exam.isPending;
   const ex = exam.data;
   const componentList = components.data ?? [];
+  const pickedComponent = componentList.find((c) => c.id === componentId);
   const canSend = author && !dirty && students.some((s) => !isReadOnlyRow(s) && s.entered);
   const sendValidation = useFormValidation<SendField>({
     errors: validateSend({ componentId, pendingEssays, allowPending }),
@@ -629,13 +644,25 @@ export function ScoresView({ id }: { id: string }) {
             >
               {componentList.map((c) => (
                 <option key={c.id} value={c.id}>
-                  {c.name}
+                  {categoryOf(c) === 'formative' ? `${c.name} (${tg('categoryFormativeShort')})` : c.name}
                 </option>
               ))}
             </SelectField>
             <FieldError id={sendValidation.idOf('componentId')} issue={sendValidation.issue('componentId')} />
             {componentList.length === 0 && (
               <p className="text-muted-foreground text-xs">{t('noComponents')}</p>
+            )}
+            {pickedComponent && (
+              <p
+                className={cn(
+                  'rounded-lg px-2.5 py-1.5 text-xs',
+                  categoryOf(pickedComponent) === 'formative' ? TONES.slate.soft : TONES.sky.soft,
+                )}
+              >
+                {categoryOf(pickedComponent) === 'formative'
+                  ? t('sendCategoryFormative')
+                  : tg('categoryNoteSummative')}
+              </p>
             )}
           </div>
           {pendingEssays > 0 && (
@@ -664,6 +691,23 @@ export function ScoresView({ id }: { id: string }) {
               />
             </div>
           )}
+          <div className="grid content-start gap-2">
+            <Label htmlFor="send-technique">{tg('techniqueLabel')}</Label>
+            <SelectField
+              id="send-technique"
+              className={TOUCH_SELECT}
+              value={technique}
+              onChange={(e) => setTechnique(techniqueValue(e.target.value))}
+            >
+              <option value="">{t('sendTechniqueDefault')}</option>
+              {TECHNIQUE_OPTIONS.map((tq) => (
+                <option key={tq} value={tq}>
+                  {tg(techniqueKey(tq))}
+                </option>
+              ))}
+            </SelectField>
+            <p className="text-muted-foreground text-xs">{t('sendTechniqueHint')}</p>
+          </div>
           <div className="grid content-start gap-2">
             <Label htmlFor="send-date">{t('date')}</Label>
             <DatePicker id="send-date" value={sendDate} onChange={setSendDate} clearable />

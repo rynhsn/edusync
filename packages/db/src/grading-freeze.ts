@@ -1,12 +1,14 @@
 import {
   type CalculationMode,
+  type ComponentCategory,
   type CriteriaMode,
   type FreezeOrigin,
   type FrozenComponent,
   type FrozenCriteria,
-  GRADING_CONFIG_VERSION,
+  gradingConfigVersionOf,
   type ResolvedFrozenGradingConfig,
   resolveFrozenGradingConfig,
+  sparseFrozenComponent,
 } from '@edusync/contracts';
 import { and, asc, eq, inArray } from 'drizzle-orm';
 import type { Db, Tx } from './client';
@@ -42,16 +44,22 @@ export interface FreezeParams {
 /** Konfigurasi HIDUP sekolah dalam bentuk salinan. Setiap kueri memfilter `school_id` sendiri, jadi aman di koneksi BYPASSRLS. */
 export async function readLiveGradingConfig(ex: Executor, schoolId: string) {
   const [setting] = await ex.select().from(gradingSetting).where(eq(gradingSetting.schoolId, schoolId));
-  const components: FrozenComponent[] = await ex
-    .select({
-      id: gradeComponent.id,
-      name: gradeComponent.name,
-      weight: gradeComponent.weight,
-      sort: gradeComponent.sort,
-    })
-    .from(gradeComponent)
-    .where(eq(gradeComponent.schoolId, schoolId))
-    .orderBy(asc(gradeComponent.sort), asc(gradeComponent.name));
+  // Field kategori ditulis SPARSE (hanya bila bukan bawaan): sekolah tanpa komponen formatif tetap menghasilkan jsonb v1
+  // byte demi byte, jadi `matchesLive` dan salinan lama tidak bergeser (rancangan fase 3, risiko R3).
+  const components: FrozenComponent[] = (
+    await ex
+      .select({
+        id: gradeComponent.id,
+        name: gradeComponent.name,
+        weight: gradeComponent.weight,
+        sort: gradeComponent.sort,
+        category: gradeComponent.category,
+        includeInFinal: gradeComponent.includeInFinal,
+      })
+      .from(gradeComponent)
+      .where(eq(gradeComponent.schoolId, schoolId))
+      .orderBy(asc(gradeComponent.sort), asc(gradeComponent.name))
+  ).map((c) => sparseFrozenComponent({ ...c, category: c.category as ComponentCategory }));
 
   // Hanya kriteria aktif tingkat mapel (tanpa TP): satu-satunya yang dipakai pemecah KKM.
   const rows = (
@@ -133,11 +141,13 @@ export async function readFrozenGradingConfig(
  */
 export async function freezeSemesterGradingConfig(ex: Executor, p: FreezeParams): Promise<boolean> {
   const live = await readLiveGradingConfig(ex, p.schoolId);
+  // Versi 2 hanya bila ada komponen yang memuat field kategori; selain itu v1 seperti sebelum fase 3.
+  const configVersion = gradingConfigVersionOf(live.components);
   const values = {
     schoolId: p.schoolId,
     semesterId: p.semesterId,
     ...live,
-    configVersion: GRADING_CONFIG_VERSION,
+    configVersion,
     origin: p.origin,
     frozenBy: p.actorId,
   };
@@ -148,7 +158,7 @@ export async function freezeSemesterGradingConfig(ex: Executor, p: FreezeParams)
           target: semesterGradingConfig.semesterId,
           set: {
             ...live,
-            configVersion: GRADING_CONFIG_VERSION,
+            configVersion,
             origin: p.origin,
             frozenBy: p.actorId,
             frozenAt: new Date(),

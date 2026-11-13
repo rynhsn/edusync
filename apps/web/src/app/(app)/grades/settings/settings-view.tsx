@@ -23,6 +23,14 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { EmptyPanel, IconTile, MODULE_TONE, TONES, ToneBadge } from '@/components/ui-kit';
 import { ApiError, api, schoolHeader, unwrap } from '@/lib/api';
 import {
+  type Category,
+  categoryOf,
+  componentBadgeKind,
+  componentBody,
+  componentFormFrom,
+  weightInputDisabled,
+} from '@/lib/assessment-category';
+import {
   CALC_EXAMPLE,
   CALC_MODE_KEYS,
   calcExampleResult,
@@ -329,7 +337,10 @@ interface Form {
   name: string;
   weight: string;
   sort: string;
+  category: Category;
 }
+
+const CATEGORIES: readonly Category[] = ['summative', 'formative'];
 
 /** Kartu komponen nilai (tugas, UH, UTS, UAS, dst.) beserta bobotnya; total bobot idealnya 100. */
 function ComponentsCard() {
@@ -340,7 +351,7 @@ function ComponentsCard() {
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
   const [editing, setEditing] = useState<string | null>(null);
-  const [form, setForm] = useState<Form>({ name: '', weight: '', sort: '' });
+  const [form, setForm] = useState<Form>({ name: '', weight: '', sort: '', category: 'summative' });
   const [formError, setFormError] = useState<string | null>(null);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
 
@@ -369,7 +380,7 @@ function ComponentsCard() {
 
   const submit = useMutation({
     mutationFn: async () => {
-      const body = { name: form.name.trim(), weight, sort };
+      const body = componentBody({ name: form.name, category: form.category, weight, sort });
       if (editing) {
         return unwrap(
           await api.PUT('/v1/grading/components/{id}', {
@@ -384,7 +395,13 @@ function ComponentsCard() {
       toastSaved(editing ? t('componentUpdated') : t('componentCreated'), t('syncedToActive'), saved);
       refresh();
     },
-    onError: (e) => setFormError(te(errorKey(e))),
+    onError: (e) =>
+      // Rapor final mengunci kategori sama seperti bobot: jelaskan jalan keluarnya.
+      setFormError(
+        e instanceof ApiError && e.code === 'report_final' && editing
+          ? t('categoryReportFinal')
+          : te(errorKey(e)),
+      ),
   });
 
   const remove = useMutation({
@@ -428,7 +445,12 @@ function ComponentsCard() {
         </div>
         <Button
           onClick={() =>
-            openDialog('', { name: '', weight: '', sort: String(items.length > 0 ? items.length + 1 : 1) })
+            openDialog('', {
+              name: '',
+              weight: '',
+              sort: String(items.length > 0 ? items.length + 1 : 1),
+              category: 'summative',
+            })
           }
         >
           <Plus className="size-4" /> {t('addComponent')}
@@ -475,8 +497,11 @@ function ComponentsCard() {
                 total === 100 ? TONES.emerald.text : TONES.rose.text,
               )}
             >
-              {t('totalWeight')}: {total}%
+              {t('totalWeightCounted')}: {total}%
             </p>
+            {items.some((c) => categoryOf(c) === 'formative') && (
+              <p className="text-muted-foreground text-xs">{t('totalWeightNote')}</p>
+            )}
           </div>
           <ul className="divide-y rounded-xl border">
             {items.map((c, i) => (
@@ -493,14 +518,25 @@ function ComponentsCard() {
                   <p className="text-muted-foreground text-xs">
                     {t('sort')} {c.sort}
                   </p>
+                  {componentBadgeKind(c) === 'formative' && (
+                    <p className="text-muted-foreground mt-0.5 text-xs">{t('formativeNotInFinal')}</p>
+                  )}
                 </div>
-                <ToneBadge
-                  tone={COMPONENT_TONES[i % COMPONENT_TONES.length]}
-                  dot={false}
-                  className="tabular-nums"
-                >
-                  {c.weight}%
-                </ToneBadge>
+                {componentBadgeKind(c) === 'summative' ? (
+                  <ToneBadge
+                    tone={COMPONENT_TONES[i % COMPONENT_TONES.length]}
+                    dot={false}
+                    className="tabular-nums"
+                  >
+                    {c.weight}%
+                  </ToneBadge>
+                ) : (
+                  <ToneBadge tone="slate" dot={false}>
+                    {componentBadgeKind(c) === 'formative'
+                      ? t('categoryFormativeShort')
+                      : t('excludedFromFinal')}
+                  </ToneBadge>
+                )}
                 <RowMenu
                   label={`${t('rowActions')}: ${c.name}`}
                   items={[
@@ -509,7 +545,11 @@ function ComponentsCard() {
                       label: t('edit'),
                       icon: Pencil,
                       onSelect: () =>
-                        openDialog(c.id, { name: c.name, weight: String(c.weight), sort: String(c.sort) }),
+                        openDialog(c.id, {
+                          name: c.name,
+                          sort: String(c.sort),
+                          ...componentFormFrom(c),
+                        }),
                     },
                     {
                       key: 'delete',
@@ -572,19 +612,51 @@ function ComponentsCard() {
           />
           <FieldError id={componentV.idOf('name')} issue={componentV.issue('name')} />
         </div>
+        <fieldset className="grid gap-2">
+          <legend className="text-sm font-medium">{t('categoryLabel')}</legend>
+          <div className="grid gap-2 sm:grid-cols-2">
+            {CATEGORIES.map((cat) => (
+              <label
+                key={cat}
+                htmlFor={`component-category-${cat}`}
+                className={cn(
+                  'has-[:focus-visible]:ring-ring/50 flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors has-[:focus-visible]:ring-[3px]',
+                  form.category === cat ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+                )}
+              >
+                <input
+                  id={`component-category-${cat}`}
+                  type="radio"
+                  name="component-category"
+                  className="accent-primary mt-1 size-4 shrink-0"
+                  checked={form.category === cat}
+                  onChange={() => setForm((f) => ({ ...f, category: cat }))}
+                />
+                <span className="grid gap-0.5">
+                  <span className="text-sm font-medium">{t(`category_${cat}`)}</span>
+                  <span className="text-muted-foreground text-xs">{t(`categoryDesc_${cat}`)}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+        </fieldset>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid content-start gap-2">
             <Label htmlFor={componentV.idOf('weight')}>{t('weightPercent')}</Label>
             <Input
               {...componentV.fieldProps('weight')}
               className={TOUCH_INPUT}
-              aria-required="true"
+              aria-required={!weightInputDisabled(form.category)}
               inputMode="numeric"
               autoComplete="off"
-              value={form.weight}
+              disabled={weightInputDisabled(form.category)}
+              value={weightInputDisabled(form.category) ? '0' : form.weight}
               onChange={(e) => setForm((f) => ({ ...f, weight: e.target.value }))}
             />
             <FieldError id={componentV.idOf('weight')} issue={componentV.issue('weight')} />
+            {weightInputDisabled(form.category) && (
+              <p className="text-muted-foreground text-xs">{t('formativeNoWeight')}</p>
+            )}
           </div>
           <div className="grid content-start gap-2">
             <Label htmlFor={componentV.idOf('sort')}>{t('sort')}</Label>

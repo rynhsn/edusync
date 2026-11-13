@@ -73,3 +73,22 @@ describe('validateThresholds', () => {
     expect(validateThresholds({ ...ok, predicateB: 'x' }).predicateA).toBeUndefined();
   });
 });
+
+describe('validateComponent: kategori', () => {
+  it('formatif tidak memeriksa bobot (bobotnya 0 dan tidak dikirim)', () => {
+    const base = { name: 'Kuis', sort: '1', category: 'formative' as const };
+    expect(validateComponent({ ...base, weight: '' })).toEqual({});
+    expect(validateComponent({ ...base, weight: '0' })).toEqual({});
+  });
+  it('sumatif tetap mewajibkan bobot 1..100', () => {
+    const base = { name: 'UTS', sort: '1', category: 'summative' as const };
+    expect(validateComponent({ ...base, weight: '' }).weight).toEqual({ code: 'required' });
+    expect(validateComponent({ ...base, weight: '0' }).weight).toMatchObject({ code: 'range' });
+    expect(validateComponent({ ...base, weight: '100' })).toEqual({});
+  });
+  it('formatif tetap memeriksa nama', () => {
+    expect(validateComponent({ name: '', weight: '', sort: '', category: 'formative' }).name).toEqual({
+      code: 'required',
+    });
+  });
+});

@@ -1,3 +1,4 @@
+import { ASSESSMENT_TECHNIQUES, EXAM_DEFAULT_TECHNIQUE, validateAssessmentTags } from '@edusync/contracts';
 import {
   academicYear,
   and,
@@ -25,7 +26,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { rosterStudentStatus } from '../attendance-lib';
 import { examOrThrow, guardSubject } from '../exam-lib';
-import { assertComponentInSemester } from '../grading-config-lib';
+import { assertComponentInSemester, effectiveComponent } from '../grading-config-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { assertClassesReportNotFinal } from '../report-lock-lib';
@@ -349,13 +350,22 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           'komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 ' +
           '`essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor ' +
           'salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai ' +
-          'semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku.',
+          'semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: ' +
+          'dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai ' +
+          'hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, ' +
+          'atau kaitan lain yang sudah diatur guru. Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian ' +
+          '(mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau ' +
+          '`scope_requires_summative`.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
           componentId: z.uuid(),
           date: z.iso.date().optional(),
           allowPending: z.boolean().default(false),
+          technique: z
+            .enum(ASSESSMENT_TECHNIQUES)
+            .optional()
+            .describe('Teknik asesmen penilaian baru (bawaan `test`); diabaikan bila penilaian sudah ada'),
         }),
         response: {
           200: z.object({ assessments: z.number().int(), scores: z.number().int() }),
@@ -406,15 +416,31 @@ export async function examScoreRoutes(instance: FastifyInstance) {
             maxScore: 100,
           };
           const [existing] = await tx
-            .select({ id: assessment.id })
+            .select({
+              id: assessment.id,
+              purpose: assessment.purpose,
+              summativeScope: assessment.summativeScope,
+            })
             .from(assessment)
             .where(and(eq(assessment.examId, ex.id), eq(assessment.classId, classId)));
+          if (existing) {
+            // Tanda yang sudah diatur guru dipertahankan; komponen baru tidak boleh bertentangan dengannya.
+            const eff = await effectiveComponent(tx, ex.semesterId, comp.id);
+            const err = eff ? validateAssessmentTags(existing, eff.category) : null;
+            if (err) throw new HttpError(400, err.code, err.message);
+          }
           const assessmentId = existing
             ? existing.id
             : (
                 await tx
                   .insert(assessment)
-                  .values({ ...values, schoolId: ctx.schoolId, classId, examId: ex.id })
+                  .values({
+                    ...values,
+                    schoolId: ctx.schoolId,
+                    classId,
+                    examId: ex.id,
+                    technique: request.body.technique ?? EXAM_DEFAULT_TECHNIQUE,
+                  })
                   .returning({ id: assessment.id })
               )[0]!.id;
           if (existing) await tx.update(assessment).set(values).where(eq(assessment.id, existing.id));

@@ -1,5 +1,6 @@
 export * from './account-recovery';
 export * from './admission';
+export * from './assessment-category';
 export * from './auto-billing';
 export * from './billing-settings';
 export * from './calendar';

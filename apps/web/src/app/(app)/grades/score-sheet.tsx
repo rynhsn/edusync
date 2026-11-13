@@ -130,6 +130,19 @@ export function ScoreSheet({ assessmentId, onClose }: { assessmentId: string; on
               <div className="text-muted-foreground text-sm">
                 {formatCalendarDate(locale, assessment.date)} · {t('maxScore')}: {assessment.maxScore}
               </div>
+              {assessment.category === 'formative' && (
+                <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                  <ToneBadge tone="slate" dot={false}>
+                    {t('categoryFormativeShort')}
+                  </ToneBadge>
+                  {assessment.purpose === 'initial' && (
+                    <ToneBadge tone="violet" dot={false}>
+                      {t('purposeInitial')}
+                    </ToneBadge>
+                  )}
+                  <span className="text-muted-foreground text-xs">{t('formativeNotInFinal')}</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="flex items-center gap-2">

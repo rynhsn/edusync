@@ -12,6 +12,7 @@ import { FormDialog } from '@/components/form-dialog';
 import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
 import { RowMenu } from '@/components/row-menu';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { DatePicker } from '@/components/ui/date-picker';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -29,6 +30,18 @@ import {
 import type { Locale } from '@/i18n/config';
 import { ApiError, api, schoolHeader, unwrap } from '@/lib/api';
 import { withoutBlur } from '@/lib/area-rules';
+import {
+  assessmentTags,
+  categoryOf,
+  SCOPE_OPTIONS,
+  type ScopeValue,
+  scopeKey,
+  scopeValue,
+  TECHNIQUE_OPTIONS,
+  type TechniqueValue,
+  techniqueKey,
+  techniqueValue,
+} from '@/lib/assessment-category';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
 import { todayIso } from '@/lib/school-time';
@@ -48,9 +61,22 @@ interface Form {
   title: string;
   date: string;
   maxScore: string;
+  /** Asesmen awal (diagnostik): hanya untuk komponen formatif. */
+  initial: boolean;
+  /** Lingkup sumatif: hanya untuk komponen sumatif. */
+  scope: ScopeValue;
+  technique: TechniqueValue;
 }
 
-const emptyForm = (componentId = ''): Form => ({ componentId, title: '', date: todayIso(), maxScore: '100' });
+const emptyForm = (componentId = ''): Form => ({
+  componentId,
+  title: '',
+  date: todayIso(),
+  maxScore: '100',
+  initial: false,
+  scope: '',
+  technique: '',
+});
 
 /** Daftar penilaian untuk satu semester, kelas, dan mata pelajaran; membuka lembar input nilai. */
 export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
@@ -94,6 +120,9 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
   };
 
   const maxNumber = Number(form.maxScore.trim().replace(',', '.'));
+  // Kategori penilaian diturunkan dari komponen yang dipilih (tidak disimpan di penilaian).
+  const pickedComponent = components.data?.find((c) => c.id === form.componentId);
+  const pickedCategory = pickedComponent ? categoryOf(pickedComponent) : 'summative';
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['assessments', school.schoolId] });
@@ -107,6 +136,12 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
         title: form.title.trim(),
         date: form.date,
         maxScore: maxNumber,
+        ...assessmentTags({
+          category: pickedCategory,
+          initial: form.initial,
+          scope: form.scope,
+          technique: form.technique,
+        }),
       };
       if (editing) {
         return unwrap(
@@ -283,8 +318,26 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
                     </button>
                   </div>
                   <div className="col-start-1 flex flex-wrap items-center gap-2 md:contents">
-                    <span className="md:order-none">
+                    <span className="flex flex-wrap items-center gap-1.5 md:order-none">
                       <ToneBadge tone={ct}>{componentName(a.componentId)}</ToneBadge>
+                      {a.category === 'formative' && (
+                        <ToneBadge tone="slate" dot={false}>
+                          {t('categoryFormativeShort')}
+                        </ToneBadge>
+                      )}
+                      {a.purpose === 'initial' && (
+                        <ToneBadge tone="violet" dot={false}>
+                          {t('purposeInitial')}
+                        </ToneBadge>
+                      )}
+                      {a.summativeScope && (
+                        <ToneBadge tone="sky" dot={false}>
+                          {t(scopeKey(a.summativeScope))}
+                        </ToneBadge>
+                      )}
+                      {a.technique && (
+                        <span className="text-muted-foreground text-xs">{t(techniqueKey(a.technique))}</span>
+                      )}
                     </span>
                     <span className="text-muted-foreground text-sm md:text-foreground">
                       {formatCalendarDate(locale, a.date)}
@@ -334,6 +387,9 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
                                 title: a.title,
                                 date: a.date,
                                 maxScore: String(a.maxScore),
+                                initial: a.purpose === 'initial',
+                                scope: scopeValue(a.summativeScope),
+                                technique: techniqueValue(a.technique),
                               }),
                           },
                           {
@@ -391,11 +447,21 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
           >
             {components.data?.map((c) => (
               <option key={c.id} value={c.id}>
-                {c.name} ({c.weight}%)
+                {`${c.name} (${categoryOf(c) === 'formative' ? t('categoryFormativeShort') : `${c.weight}%`})`}
               </option>
             ))}
           </SelectField>
           <FieldError id={validation.idOf('componentId')} issue={validation.issue('componentId')} />
+          {pickedComponent && (
+            <p
+              className={cn(
+                'rounded-lg px-2.5 py-1.5 text-xs',
+                pickedCategory === 'formative' ? TONES.slate.soft : TONES.sky.soft,
+              )}
+            >
+              {pickedCategory === 'formative' ? t('categoryNoteFormative') : t('categoryNoteSummative')}
+            </p>
+          )}
         </div>
         <div className="grid content-start gap-2">
           <Label htmlFor={validation.idOf('title')}>{t('assessmentTitle')}</Label>
@@ -437,6 +503,57 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
             />
             <FieldError id={validation.idOf('maxScore')} issue={validation.issue('maxScore')} />
           </div>
+        </div>
+        {pickedComponent && pickedCategory === 'formative' && (
+          <label
+            htmlFor="assessment-initial"
+            className="flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border p-3"
+          >
+            <Checkbox
+              id="assessment-initial"
+              className="mt-0.5"
+              checked={form.initial}
+              onCheckedChange={(v) => setForm((f) => ({ ...f, initial: v === true }))}
+            />
+            <span className="grid gap-0.5">
+              <span className="text-sm font-medium">{t('purposeInitial')}</span>
+              <span className="text-muted-foreground text-xs">{t('purposeInitialHint')}</span>
+            </span>
+          </label>
+        )}
+        {pickedComponent && pickedCategory === 'summative' && (
+          <div className="grid content-start gap-2">
+            <Label htmlFor="assessment-scope">{t('scopeLabel')}</Label>
+            <SelectField
+              id="assessment-scope"
+              className={TOUCH_SELECT}
+              value={form.scope}
+              onChange={(e) => setForm((f) => ({ ...f, scope: scopeValue(e.target.value) }))}
+            >
+              <option value="">{t('scopeNone')}</option>
+              {SCOPE_OPTIONS.map((sc) => (
+                <option key={sc} value={sc}>
+                  {t(scopeKey(sc))}
+                </option>
+              ))}
+            </SelectField>
+          </div>
+        )}
+        <div className="grid content-start gap-2">
+          <Label htmlFor="assessment-technique">{t('techniqueLabel')}</Label>
+          <SelectField
+            id="assessment-technique"
+            className={TOUCH_SELECT}
+            value={form.technique}
+            onChange={(e) => setForm((f) => ({ ...f, technique: techniqueValue(e.target.value) }))}
+          >
+            <option value="">{t('techniqueNone')}</option>
+            {TECHNIQUE_OPTIONS.map((tq) => (
+              <option key={tq} value={tq}>
+                {t(techniqueKey(tq))}
+              </option>
+            ))}
+          </SelectField>
         </div>
       </FormDialog>
     </div>

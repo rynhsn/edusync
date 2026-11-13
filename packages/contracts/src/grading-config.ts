@@ -227,3 +227,13 @@ export function resolveFrozenGradingConfig(row: FrozenConfigRowInput): ResolvedF
         .parse(row.remedialPolicy ?? null) ?? DEFAULT_REMEDIAL_POLICY,
   };
 }
+
+/**
+ * Versi yang ditulis untuk sebuah salinan: 2 bila ada komponen yang memuat field kategori (sparse: hanya bila bukan bawaan),
+ * selain itu `GRADING_CONFIG_VERSION` (1). Sekolah yang tidak memakai kategori tetap menghasilkan salinan v1 byte demi byte.
+ */
+export function gradingConfigVersionOf(components: readonly FrozenComponent[]): number {
+  return components.some((c) => c.category !== undefined || c.includeInFinal !== undefined)
+    ? 2
+    : GRADING_CONFIG_VERSION;
+}

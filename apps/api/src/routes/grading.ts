@@ -1,4 +1,15 @@
-import { CALCULATION_MODES, FREEZE_ORIGINS } from '@edusync/contracts';
+import {
+  ASSESSMENT_PURPOSES,
+  ASSESSMENT_TECHNIQUES,
+  CALCULATION_MODES,
+  COMPONENT_CATEGORIES,
+  type ComponentCategory,
+  countedWeightSum,
+  FREEZE_ORIGINS,
+  normalizeComponentInput,
+  SUMMATIVE_SCOPES,
+  validateAssessmentTags,
+} from '@edusync/contracts';
 import {
   and,
   asc,
@@ -30,6 +41,7 @@ import {
   activeSemesterConfig,
   assertComponentInSemester,
   assertLiveGradingConfigEditable,
+  effectiveComponent,
   finalSubjectRows,
   kkmResolverForClass,
   loadGradingConfig,
@@ -112,6 +124,29 @@ const settingsReadSchema = settingsSchema.extend({
     .describe('Hanya ada bila semester aktif punya salinan beku konfigurasi nilai; dihilangkan selain itu'),
 });
 
+const formativeMark = z
+  .literal('formative')
+  .optional()
+  .describe(
+    'Ada (`formative`) hanya pada komponen formatif; dihilangkan = sumatif. Formatif TIDAK masuk nilai akhir.',
+  );
+const notInFinalMark = z
+  .literal(false)
+  .optional()
+  .describe(
+    'Ada (false) hanya pada komponen yang tidak ikut nilai akhir (formatif, atau sumatif yang dikeluarkan); dihilangkan = ikut.',
+  );
+
+/** Penanda kategori yang hanya ada bila bukan bawaan, supaya respons sekolah tanpa formatif tidak berubah. */
+const categoryMarks = (c: { category: ComponentCategory; includeInFinal: boolean }) => ({
+  ...(c.category !== 'summative' ? { category: c.category } : {}),
+  ...(c.includeInFinal === false ? { includeInFinal: false as const } : {}),
+});
+
+const categoryDescription =
+  'Kategori komponen: `summative` (bawaan, ikut nilai akhir) atau `formative` (umpan balik; TIDAK pernah masuk nilai akhir, ' +
+  'predikat, peringkat, kelengkapan rapor, atau kenaikan; bobot diabaikan dan disimpan 0).';
+
 const semesterGradingStatusSchema = z.object({
   semesterId: z.uuid(),
   frozen: z.boolean().describe('Semester punya salinan beku; false = mengikuti konfigurasi hidup'),
@@ -129,7 +164,14 @@ const semesterGradingStatusSchema = z.object({
     'Pengaturan efektif semester (salinan beku, atau konfigurasi hidup bila belum beku)',
   ),
   components: z.array(
-    z.object({ id: z.uuid(), name: z.string(), weight: z.number().int(), sort: z.number().int() }),
+    z.object({
+      id: z.uuid(),
+      name: z.string(),
+      weight: z.number().int(),
+      sort: z.number().int(),
+      category: formativeMark,
+      includeInFinal: notInFinalMark,
+    }),
   ),
   criteriaCount: z
     .number()
@@ -137,6 +179,17 @@ const semesterGradingStatusSchema = z.object({
     .nullable()
     .describe('Jumlah KKTP dalam salinan; null bila semester belum beku'),
 });
+
+const formativeSummary = z
+  .object({
+    average: z.number().describe('Rata-rata persen semua skor formatif siswa pada mapel ini'),
+    count: z.number().int().describe('Jumlah skor formatif yang terisi'),
+  })
+  .optional()
+  .describe(
+    'Umpan balik formatif, TERPISAH dari nilai akhir (tidak memengaruhi `final`, `predicate`, `belowKkm`, atau peringkat). ' +
+      'Ada hanya bila siswa punya skor di komponen formatif.',
+  );
 
 const syncedSemesterId = z
   .uuid()
@@ -165,6 +218,13 @@ const componentSchema = z.object({
   name: z.string(),
   weight: z.number().int(),
   sort: z.number().int(),
+  category: z.enum(COMPONENT_CATEGORIES).optional().describe(categoryDescription),
+  includeInFinal: z
+    .boolean()
+    .optional()
+    .describe(
+      'Ikut nilai akhir. Selalu false pada komponen formatif; komponen sumatif boleh dikeluarkan (false).',
+    ),
   assessmentCount: z.number().int().describe('Jumlah penilaian yang memakai komponen ini'),
 });
 
@@ -173,8 +233,27 @@ const okSynced = ok.extend({ syncedSemesterId });
 
 const componentBody = z.object({
   name: z.string().trim().min(1).max(60),
-  weight: z.number().int().min(1).max(100),
+  weight: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .optional()
+    .describe(
+      'Bobot 1..100 untuk komponen sumatif yang ikut nilai akhir (wajib; selain itu 400 `invalid_component_category`). ' +
+        'Diabaikan dan disimpan 0 pada komponen formatif.',
+    ),
   sort: z.number().int().min(0).max(1000).optional(),
+  category: z
+    .enum(COMPONENT_CATEGORIES)
+    .optional()
+    .describe(categoryDescription + ' Dihilangkan: bawaan sumatif (POST) atau tetap (PUT).'),
+  includeInFinal: z
+    .boolean()
+    .optional()
+    .describe(
+      'Ikut nilai akhir (bawaan true). Dipaksa false pada komponen formatif. Dihilangkan pada PUT: tetap.',
+    ),
 });
 
 const assessmentSchema = z.object({
@@ -186,6 +265,34 @@ const assessmentSchema = z.object({
   subjectName: z.string(),
   componentId: z.uuid(),
   componentName: z.string(),
+  category: z
+    .enum(COMPONENT_CATEGORIES)
+    .optional()
+    .describe(
+      'Kategori diturunkan dari komponen (konfigurasi efektif semester), tidak disimpan di penilaian.',
+    ),
+  includeInFinal: z.boolean().optional().describe('Komponen penilaian ini ikut nilai akhir (diturunkan).'),
+  purpose: z
+    .enum(ASSESSMENT_PURPOSES)
+    .nullable()
+    .optional()
+    .describe(
+      '`initial` = asesmen awal (diagnostik); hanya pada komponen formatif; tidak pernah masuk nilai akhir. null = biasa.',
+    ),
+  summativeScope: z
+    .enum(SUMMATIVE_SCOPES)
+    .nullable()
+    .optional()
+    .describe(
+      'Lingkup sumatif (`material` atau `end_of_semester`); hanya pada komponen sumatif. null = tidak ditandai.',
+    ),
+  technique: z
+    .string()
+    .nullable()
+    .optional()
+    .describe(
+      'Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat.',
+    ),
   teacherId: z.uuid().nullable(),
   teacherName: z.string().nullable(),
   title: z.string(),
@@ -207,6 +314,25 @@ const assessmentBody = z.object({
   title: z.string().trim().min(1).max(120),
   date: z.iso.date(),
   maxScore: z.number().int().min(1).max(1000).default(100),
+  purpose: z
+    .enum(ASSESSMENT_PURPOSES)
+    .nullable()
+    .optional()
+    .describe(
+      '`initial` (asesmen awal/diagnostik) hanya pada komponen formatif (400 `initial_requires_formative`).',
+    ),
+  summativeScope: z
+    .enum(SUMMATIVE_SCOPES)
+    .nullable()
+    .optional()
+    .describe(
+      '`material` atau `end_of_semester`, hanya pada komponen sumatif (400 `scope_requires_summative`).',
+    ),
+  technique: z
+    .enum(ASSESSMENT_TECHNIQUES)
+    .nullable()
+    .optional()
+    .describe('Teknik asesmen; tanpa batasan komponen.'),
 });
 
 const assessmentUpdateBody = assessmentBody.pick({
@@ -214,6 +340,9 @@ const assessmentUpdateBody = assessmentBody.pick({
   title: true,
   date: true,
   maxScore: true,
+  purpose: true,
+  summativeScope: true,
+  technique: true,
 });
 
 const scopeQuery = z.object({ semesterId: z.uuid(), classId: z.uuid(), subjectId: z.uuid() });
@@ -279,6 +408,23 @@ export async function gradingRoutes(instance: FastifyInstance) {
     if (!c) throw invalidRef('Komponen penilaian tidak ditemukan.');
   }
 
+  /**
+   * Periksa tanda penilaian (`purpose`, `summativeScope`) terhadap kategori EFEKTIF komponen pada semester itu (salinan beku bila
+   * ada). 400 `initial_requires_formative` / `scope_requires_summative`.
+   */
+  async function assertTags(
+    tx: Tx,
+    semesterId: string,
+    componentId: string,
+    tags: { purpose?: string | null | undefined; summativeScope?: string | null | undefined },
+  ) {
+    if (!tags.purpose && !tags.summativeScope) return;
+    const eff = await effectiveComponent(tx, semesterId, componentId);
+    if (!eff) return;
+    const err = validateAssessmentTags(tags, eff.category);
+    if (err) throw new HttpError(400, err.code, err.message);
+  }
+
   /** Rujukan ke baris sekolah lain tidak ditolak FK; pencarian di transaksi tenant hanya melihat sekolah ini. */
   async function requireRefs(
     tx: Tx,
@@ -326,6 +472,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
         className: classRoom.name,
         subjectName: subject.name,
         componentName: gradeComponent.name,
+        componentCategory: gradeComponent.category,
+        componentInFinal: gradeComponent.includeInFinal,
         teacherName: teacher.name,
       })
       .from(assessment)
@@ -380,6 +528,14 @@ export async function gradingRoutes(instance: FastifyInstance) {
       )
       .groupBy(score.assessmentId);
 
+    // Kategori diturunkan dari konfigurasi EFEKTIF semester (salinan beku bila ada), sama dengan yang dipakai penghitung.
+    const effective = new Map<
+      string,
+      Map<string, { category: ComponentCategory; includeInFinal: boolean }>
+    >();
+    for (const semId of new Set(visible.map((r) => r.a.semesterId))) {
+      effective.set(semId, new Map((await loadGradingConfig(tx, semId)).components.map((c) => [c.id, c])));
+    }
     const configure = ctx.permissions.has('grade:configure');
     const input = ctx.permissions.has('grade:input');
     return visible.map((r) => ({
@@ -391,6 +547,14 @@ export async function gradingRoutes(instance: FastifyInstance) {
       subjectName: r.subjectName,
       componentId: r.a.componentId,
       componentName: r.componentName,
+      category:
+        effective.get(r.a.semesterId)?.get(r.a.componentId)?.category ??
+        (r.componentCategory as ComponentCategory),
+      includeInFinal:
+        effective.get(r.a.semesterId)?.get(r.a.componentId)?.includeInFinal ?? r.componentInFinal,
+      purpose: r.a.purpose as 'initial' | null,
+      summativeScope: r.a.summativeScope as 'material' | 'end_of_semester' | null,
+      technique: r.a.technique,
       teacherId: r.a.teacherId,
       teacherName: r.teacherName,
       title: r.a.title,
@@ -448,7 +612,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
       finalClassCount: st.finalClassCount,
       finalReportCount: st.finalReportCount,
       settings: cfg.settings,
-      components: cfg.components,
+      components: cfg.components.map(({ category, includeInFinal, ...c }) => ({
+        ...c,
+        ...categoryMarks({ category, includeInFinal }),
+      })),
       criteriaCount: st.row && Array.isArray(st.row.criteria) ? st.row.criteria.length : null,
     };
   }
@@ -534,7 +701,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat ' +
           'KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu ' +
           '400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada ' +
-          'dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen bukan 100 (mode lain tidak ' +
+          'dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen yang dihitung (sumatif dan ikut ' +
+          'nilai akhir; komponen formatif tidak ikut) bukan 100 (mode lain tidak ' +
           'memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). ' +
           'Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu).' +
           ' Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, ' +
@@ -551,12 +719,13 @@ export async function gradingRoutes(instance: FastifyInstance) {
       return tenant(request, async (tx) => {
         await lockGradingConfig(tx, ctx.schoolId);
         if (request.body.calculationMode === 'percentage') {
-          const sum = (await loadComponents(tx)).reduce((n, c) => n + c.weight, 0);
+          // Hanya komponen yang dihitung (sumatif dan ikut nilai akhir); komponen formatif tidak ikut jumlah.
+          const sum = countedWeightSum(await loadComponents(tx));
           if (sum !== 100) {
             throw new HttpError(
               400,
               'weights_sum_invalid',
-              `Mode persentase mensyaratkan jumlah bobot komponen tepat 100 (sekarang ${sum}). Sesuaikan bobot komponen lebih dulu.`,
+              `Mode persentase mensyaratkan jumlah bobot komponen sumatif tepat 100 (sekarang ${sum}). Sesuaikan bobot komponen lebih dulu.`,
             );
           }
         }
@@ -586,6 +755,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
     return rows.map((c) => ({ ...c, assessmentCount: counts.find((x) => x.id === c.id)?.n ?? 0 }));
   }
 
+  const invalidCategory = (e: { code: string; message: string }) => new HttpError(400, e.code, e.message);
+
   app.get(
     '/v1/grading/components',
     {
@@ -612,7 +783,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Tambah komponen penilaian',
         description:
-          'Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `weight` 1..100. Jumlah bobot ' +
+          'Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `category` `summative` (bawaan) atau ' +
+          '`formative` (umpan balik, tidak pernah masuk nilai akhir; `includeInFinal` dipaksa false dan bobot diabaikan, disimpan 0). ' +
+          '`weight` 1..100 wajib untuk komponen sumatif yang ikut nilai akhir (selain itu 400 `invalid_component_category`). Jumlah bobot ' +
           'tidak harus 100 pada mode `weighted_average` (dinormalisasi saat nilai akhir dihitung) dan `simple_average` (bobot ' +
           'diabaikan), tetapi mode `percentage` mensyaratkan jumlah 100 (dicek saat memilih mode itu di `PUT /v1/grading/settings`; ' +
           'bobot yang diubah sesudahnya tidak diperiksa ulang, hasil `percentage` tetap dibatasi 0..100). ' +
@@ -631,15 +804,17 @@ export async function gradingRoutes(instance: FastifyInstance) {
       const created = await conflictAs409('Nama komponen itu sudah ada.', () =>
         tenant(request, async (tx) => {
           await lockGradingConfig(tx, ctx.schoolId);
+          const norm = normalizeComponentInput(request.body);
+          if (!norm.ok) throw invalidCategory(norm.error);
           const existing = await loadComponents(tx);
           const sort = request.body.sort ?? Math.max(-1, ...existing.map((c) => c.sort)) + 1;
           const [row] = await tx
             .insert(gradeComponent)
-            .values({ schoolId: ctx.schoolId, name: request.body.name, weight: request.body.weight, sort })
+            .values({ schoolId: ctx.schoolId, name: request.body.name, ...norm.value, sort })
             .returning({ id: gradeComponent.id });
           await audit(tx, ctx, 'grading.component_create', 'grade_component', row!.id, {
             name: request.body.name,
-            weight: request.body.weight,
+            ...norm.value,
           });
           const synced = await syncActiveSemesterFreeze(tx, ctx);
           const view = (await componentViews(tx)).find((c) => c.id === row!.id)!;
@@ -659,8 +834,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Ubah komponen penilaian',
         description:
           'Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. ' +
-          'Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 ' +
-          '`report_final` selama semester aktif punya rapor final. Bobot tidak dinormalisasi pada mode `percentage`; jumlahnya ' +
+          'Mengubah bobot atau kategori (`category`, `includeInFinal`) langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ' +
+          'ditolak 409 `report_final` selama semester aktif punya rapor final. Kunci `category`/`includeInFinal`/`weight` yang ' +
+          'dihilangkan dipertahankan; komponen formatif memaksa `includeInFinal` false dan bobot 0; bobot sumatif yang ikut nilai ' +
+          'akhir 1..100 (400 `invalid_component_category`). Bobot tidak dinormalisasi pada mode `percentage`; jumlahnya ' +
           'diperiksa saat mode itu dipilih, bukan di sini.' +
           ' Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, ' +
           'salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa ' +
@@ -687,18 +864,25 @@ export async function gradingRoutes(instance: FastifyInstance) {
             .from(gradeComponent)
             .where(eq(gradeComponent.id, request.params.id));
           if (!current) throw notFound('Komponen');
+          const norm = normalizeComponentInput(request.body, {
+            category: current.category as ComponentCategory,
+            includeInFinal: current.includeInFinal,
+            weight: current.weight,
+          });
+          if (!norm.ok) throw invalidCategory(norm.error);
+          // Mengubah kategori atau bobot mengubah nilai akhir yang ada: dijaga report_final seperti bobot.
           await assertLiveGradingConfigEditable(tx, ctx.schoolId);
           await tx
             .update(gradeComponent)
             .set({
               name: request.body.name,
-              weight: request.body.weight,
+              ...norm.value,
               sort: request.body.sort ?? current.sort,
             })
             .where(eq(gradeComponent.id, request.params.id));
           await audit(tx, ctx, 'grading.component_update', 'grade_component', request.params.id, {
             name: request.body.name,
-            weight: request.body.weight,
+            ...norm.value,
           });
           const synced = await syncActiveSemesterFreeze(tx, ctx);
           const view = (await componentViews(tx)).find((c) => c.id === request.params.id)!;
@@ -855,7 +1039,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). ' +
           'Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Ditolak 409 `component_not_in_semester` ' +
           'bila konfigurasi nilai semester itu sudah dibekukan dan komponennya tidak ada di salinan beku (mis. komponen yang ' +
-          'dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah.',
+          'dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah. Tanda opsional: `purpose` ' +
+          '`initial` (asesmen awal) hanya pada komponen formatif (400 `initial_requires_formative`), `summativeScope` hanya pada ' +
+          'komponen sumatif (400 `scope_requires_summative`), `technique` dari daftar teknik. Penilaian pada komponen formatif ' +
+          'tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya.',
         headers: schoolHeader,
         body: assessmentBody,
         response: { 201: assessmentSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -869,6 +1056,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         if (!(await canInputPair(tx, ctx, b.classId, b.subjectId))) throw notAllowed();
         await assertClassReportNotFinal(tx, b.semesterId, b.classId);
         await assertComponentInSemester(tx, b.semesterId, b.componentId);
+        await assertTags(tx, b.semesterId, b.componentId, b);
         // Pengampu pasangan itu bila ada; selain itu pembuatnya bila ia guru.
         const [assigned] = await tx
           .select({ teacherId: teachingAssignment.teacherId })
@@ -885,6 +1073,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
           title: b.title,
           classId: b.classId,
           subjectId: b.subjectId,
+          ...(b.purpose ? { purpose: b.purpose } : {}),
+          ...(b.summativeScope ? { summativeScope: b.summativeScope } : {}),
+          ...(b.technique ? { technique: b.technique } : {}),
         });
         return (await assessmentViews(tx, ctx, { id: row!.id }))[0]!;
       });
@@ -901,7 +1092,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Ubah penilaian',
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain ' +
-          'itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum. Skor maksimum tidak boleh di bawah ' +
+          'itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum, dan tanda (`purpose`, `summativeScope`, `technique`; ' +
+          'dihilangkan = tetap, null = kosongkan; tanda diperiksa terhadap kategori komponen: 400 `initial_requires_formative`, ' +
+          '`scope_requires_summative`). Skor maksimum tidak boleh di bawah ' +
           'skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). ' +
           'Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 ' +
           '`component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak ' +
@@ -923,6 +1116,11 @@ export async function gradingRoutes(instance: FastifyInstance) {
         if (b.componentId !== current.componentId) {
           await assertComponentInSemester(tx, current.semesterId, b.componentId);
         }
+        // Tanda efektif = yang dikirim, atau yang sekarang bila dihilangkan (null mengosongkan).
+        await assertTags(tx, current.semesterId, b.componentId, {
+          purpose: b.purpose === undefined ? current.purpose : b.purpose,
+          summativeScope: b.summativeScope === undefined ? current.summativeScope : b.summativeScope,
+        });
         const [over] = await tx
           .select({ n: count() })
           .from(score)
@@ -931,7 +1129,12 @@ export async function gradingRoutes(instance: FastifyInstance) {
           throw new HttpError(409, 'score_exceeds_max', 'Ada skor yang lebih besar dari skor maksimum baru.');
         }
         await tx.update(assessment).set(b).where(eq(assessment.id, current.id));
-        await audit(tx, ctx, 'assessment.update', 'assessment', current.id, { title: b.title });
+        await audit(tx, ctx, 'assessment.update', 'assessment', current.id, {
+          title: b.title,
+          ...(b.purpose !== undefined ? { purpose: b.purpose } : {}),
+          ...(b.summativeScope !== undefined ? { summativeScope: b.summativeScope } : {}),
+          ...(b.technique !== undefined ? { technique: b.technique } : {}),
+        });
         return (await assessmentViews(tx, ctx, { id: current.id }))[0]!;
       });
     },
@@ -1111,6 +1314,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:read`; modul `grades`. Per siswa aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir ' +
           '(rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. ' +
+          'Komponen formatif (atau yang dikeluarkan dari nilai akhir) tetap tampil di `components`/`perComponent` (ditandai ' +
+          '`category`/`includeInFinal`) dan ringkasannya di `formative` per siswa, tetapi TIDAK memengaruhi nilai akhir, predikat, ' +
+          '`belowKkm`, atau `stats`. ' +
           '`belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). ' +
           '`stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini ' +
           '(400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk ' +
@@ -1127,7 +1333,15 @@ export async function gradingRoutes(instance: FastifyInstance) {
               .number()
               .optional()
               .describe('KKM efektif mapel ini (KKTP kelas/tingkat, jatuh ke KKM sekolah), desimal'),
-            components: z.array(z.object({ id: z.uuid(), name: z.string(), weight: z.number().int() })),
+            components: z.array(
+              z.object({
+                id: z.uuid(),
+                name: z.string(),
+                weight: z.number().int(),
+                category: formativeMark,
+                includeInFinal: notInFinalMark,
+              }),
+            ),
             source: reportSource,
             students: z.array(
               z.object({
@@ -1135,6 +1349,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
                 name: z.string(),
                 nis: z.string().nullable(),
                 perComponent: z.array(z.object({ componentId: z.uuid(), average: z.number().nullable() })),
+                formative: formativeSummary,
                 final: z.number().nullable(),
                 predicate: predicateEnum.nullable(),
                 belowKkm: z.boolean(),
@@ -1192,6 +1407,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
               name: s.name,
               nis: s.nis,
               perComponent: g.perComponent,
+              ...(g.formative ? { formative: g.formative } : {}),
               final: snap.final,
               predicate: snap.predicate,
               belowKkm: snap.belowKkm,
@@ -1203,6 +1419,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
             name: s.name,
             nis: s.nis,
             perComponent: g.perComponent,
+            ...(g.formative ? { formative: g.formative } : {}),
             final: g.final,
             predicate: g.predicate,
             belowKkm: g.final !== null && g.final < liveKkm,
@@ -1214,7 +1431,12 @@ export async function gradingRoutes(instance: FastifyInstance) {
           settings,
           kkm,
           ...(reportKkm !== null ? { source: 'report' as const } : {}),
-          components: components.map((c) => ({ id: c.id, name: c.name, weight: c.weight })),
+          components: components.map((c) => ({
+            id: c.id,
+            name: c.name,
+            weight: c.weight,
+            ...categoryMarks(c),
+          })),
           students,
           stats: {
             average: finals.length ? round2(finals.reduce((a, b) => a + b, 0) / finals.length) : null,
@@ -1241,7 +1463,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'Hanya pemegang `grade:configure`, kepala sekolah, kurikulum, atau guru yang mengajar di kelas itu (selain ' +
           'itu 403). Semester/kelas harus milik sekolah ini (400 `invalid_reference`). Siswa yang rapornya FINAL pada ' +
           'kelas ini memakai `final` dan `predicate` dari snapshot rapor dan diberi `source: report` (mapel yang tidak ada ' +
-          'di snapshot siswa itu dihitung dari konfigurasi efektif); `source` di tingkat atas muncul bila ada yang demikian.',
+          'di snapshot siswa itu dihitung dari konfigurasi efektif); `source` di tingkat atas muncul bila ada yang demikian. ' +
+          'Umpan balik formatif per sel ada di `formative` (hanya bila ada), terpisah dari `final` dan `predicate`.',
         headers: schoolHeader,
         querystring: z.object({ semesterId: z.uuid(), classId: z.uuid() }),
         response: {
@@ -1259,6 +1482,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
                     subjectId: z.uuid(),
                     final: z.number().nullable(),
                     predicate: predicateEnum.nullable(),
+                    formative: formativeSummary,
                   }),
                 ),
               }),
@@ -1316,10 +1540,21 @@ export async function gradingRoutes(instance: FastifyInstance) {
             const snap = snapRows?.find((r) => r.subjectId === sub.id);
             if (snap) {
               fromReport = true;
-              return { subjectId: sub.id, final: snap.final, predicate: snap.predicate };
+              const f = grades.get(sub.id)?.get(s.id)?.formative;
+              return {
+                subjectId: sub.id,
+                final: snap.final,
+                predicate: snap.predicate,
+                ...(f ? { formative: f } : {}),
+              };
             }
             const g = grades.get(sub.id)!.get(s.id)!;
-            return { subjectId: sub.id, final: g.final, predicate: g.predicate };
+            return {
+              subjectId: sub.id,
+              final: g.final,
+              predicate: g.predicate,
+              ...(g.formative ? { formative: g.formative } : {}),
+            };
           });
           return {
             studentId: s.id,

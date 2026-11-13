@@ -1,4 +1,5 @@
 import {
+  type ComponentCategory,
   type FreezeOrigin,
   frozenComponentsSchema,
   type KktpRow,
@@ -19,7 +20,7 @@ import {
   sql,
   type Tx,
 } from '@edusync/db';
-import { type GradingSettings, loadComponents, loadSettings } from './grading-lib';
+import { type GradingComponent, type GradingSettings, loadComponents, loadSettings } from './grading-lib';
 import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
 import { type KktpResolver, loadKktpResolver, loadKktpRows, makeKktpResolver } from './kktp-lib';
@@ -41,7 +42,7 @@ import { audit } from './routes/helpers';
 export interface EffectiveGradingConfig {
   semesterId: string;
   settings: GradingSettings;
-  components: { id: string; name: string; weight: number; sort: number }[];
+  components: GradingComponent[];
   /** null = semester mengikuti konfigurasi hidup. */
   frozen: { origin: FreezeOrigin; frozenAt: Date } | null;
   /** Pemecah KKM untuk satu kelas; dari salinan (tanpa kueri) atau dari tabel hidup (dua kueri, seperti sebelum pembekuan). */
@@ -85,10 +86,18 @@ export async function loadGradingConfig(
     predicateC: row.predicateC,
     calculationMode: row.calculationMode,
   };
-  // Pembaca lintas versi (config_version 1 dan 2). Tahap 3.0 tidak memakai field v2 (kategori, kriteria TP, remedial), jadi
-  // komponen dikembalikan dalam bentuk v1 persis seperti sebelumnya.
+  // Pembaca lintas versi (config_version 1 dan 2): kunci kategori yang hilang = sumatif dan ikut nilai akhir.
   const resolved = resolveFrozenGradingConfig(row);
-  const components = resolved.components.map(({ id, name, weight, sort }) => ({ id, name, weight, sort }));
+  const components: GradingComponent[] = resolved.components.map(
+    ({ id, name, weight, sort, category, includeInFinal }) => ({
+      id,
+      name,
+      weight,
+      sort,
+      category,
+      includeInFinal,
+    }),
+  );
   const bySubject = new Map<string, KktpRow[]>();
   for (const c of resolved.criteria) {
     const list = bySubject.get(c.subjectId) ?? [];
@@ -103,6 +112,20 @@ export async function loadGradingConfig(
     kkmResolver: async (_tx, p) => makeKktpResolver(bySubject, { ...p, fallback: settings.kkm }),
     kktpRows: async (_tx, subjectIds) => new Map(subjectIds.map((id) => [id, bySubject.get(id) ?? []])),
   };
+}
+
+/**
+ * Kategori efektif sebuah komponen pada sebuah semester (salinan beku bila ada, selain itu konfigurasi hidup). Undefined bila
+ * komponen tidak ada di konfigurasi efektif itu. Dipakai validasi tanda penilaian (`initial` hanya formatif, dst.).
+ */
+export async function effectiveComponent(
+  tx: Tx,
+  semesterId: string,
+  componentId: string,
+): Promise<{ category: ComponentCategory; includeInFinal: boolean } | undefined> {
+  const cfg = await loadGradingConfig(tx, semesterId);
+  const c = cfg.components.find((x) => x.id === componentId);
+  return c ? { category: c.category, includeInFinal: c.includeInFinal } : undefined;
 }
 
 /** Pemecah KKM untuk satu kelas: tingkat dan program dibaca dari kelas. Kelas tak dikenal dianggap tanpa tingkat dan program. */

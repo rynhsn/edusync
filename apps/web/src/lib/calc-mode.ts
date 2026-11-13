@@ -1,4 +1,5 @@
 import { type CalculationMode, finalGrade } from '@edusync/contracts';
+import { type CategorizedComponent, countedWeightTotal } from './assessment-category';
 
 /**
  * Contoh angka untuk menjelaskan mode nilai akhir dengan bahasa awam. Dihitung dengan `finalGrade` yang sama
@@ -44,9 +45,12 @@ export function modeChange(
   return picked !== modeOrDefault(saved) ? { calculationMode: picked } : {};
 }
 
-/** Jumlah bobot komponen, dihitung sama dengan server (penjumlahan biasa) supaya hasil cek klien dan server selaras. */
-export function weightsTotal(items: readonly { weight: number }[]): number {
-  return items.reduce((sum, c) => sum + c.weight, 0);
+/**
+ * Jumlah bobot komponen yang dihitung ke nilai akhir (sumatif dan ikut nilai akhir), sama dengan server supaya hasil cek klien
+ * dan server selaras. Komponen formatif tidak ikut (bobotnya 0). Komponen tanpa kategori = sumatif.
+ */
+export function weightsTotal(items: readonly ({ weight: number } & CategorizedComponent)[]): number {
+  return countedWeightTotal(items);
 }
 
 /** Mode persentase mensyaratkan jumlah bobot tepat 100. */

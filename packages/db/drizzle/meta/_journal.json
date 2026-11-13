@@ -673,6 +673,13 @@
       "when": 1796434200000,
       "tag": "0095_snapshot_fk_no_action",
       "breakpoints": true
+    },
+    {
+      "idx": 96,
+      "version": "7",
+      "when": 1796520600000,
+      "tag": "0096_assessment_category",
+      "breakpoints": true
     }
   ]
 }

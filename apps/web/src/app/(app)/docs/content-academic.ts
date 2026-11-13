@@ -45,6 +45,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Menghapus sebuah penilaian ikut menghapus semua nilai di dalamnya. Nilai maksimal juga tidak bisa diturunkan sampai di bawah nilai yang sudah terisi.',
           },
           {
+            heading: 'Formatif dan sumatif: mana yang masuk nilai rapor',
+            body: 'Setiap komponen nilai punya kategori. Sumatif adalah penilaian yang masuk nilai akhir, rapor, kenaikan kelas, dan kelulusan sesuai bobotnya (misalnya UTS atau UAS). Formatif adalah umpan balik belajar, misalnya kuis singkat atau latihan: nilainya tampil di rekap tetapi tidak masuk nilai akhir, rapor, kenaikan, atau kelulusan, dan tidak punya bobot. Komponen yang sudah ada tetap sumatif sampai Anda mengubahnya. Pada komponen formatif, sebuah penilaian boleh ditandai Asesmen awal (diagnostik) untuk melihat kemampuan awal siswa. Pada komponen sumatif, penilaian boleh ditandai lingkupnya: Lingkup materi atau Akhir semester. Anda juga bisa mencatat teknik penilaiannya, misalnya tes, observasi, atau proyek.',
+            steps: [
+              'Buka Pengaturan penilaian, lalu tambah atau ubah komponen.',
+              'Pada Kategori, pilih Sumatif atau Formatif (umpan balik, tidak masuk nilai rapor). Bobot hanya diisi untuk sumatif.',
+              'Saat membuat penilaian, pilih komponennya. Layar menampilkan kategorinya dan pilihan tambahan yang sesuai.',
+              'Di tab Rekap, nilai formatif tampil di kolom Umpan balik yang terpisah dari nilai akhir.',
+            ],
+            href: '/grades/settings',
+            tip: 'Jumlah bobot 100% hanya dihitung dari komponen sumatif. Komponen formatif tidak ikut dijumlahkan.',
+            warning:
+              'Kategori komponen tidak bisa diubah selama semester aktif punya rapor final. Buka kembali rapornya lebih dulu. Wali murid melihat nilai formatif di bagian Umpan balik belajar, bukan di nilai rapor.',
+          },
+          {
             heading: 'Membaca rekap dan nilai akhir',
             body: 'Tab Rekap menampilkan, per siswa, rata-rata tiap komponen, nilai akhir, dan predikat. Di bagian atas ada ringkasan rata-rata kelas, nilai tertinggi, nilai terendah, dan jumlah siswa di bawah KKM. Nilai akhir dihitung menurut cara yang dipilih di Pengaturan penilaian. Rata-rata tertimbang (bawaan): komponen yang belum punya nilai tidak ikut dihitung, sehingga nilai akhir tidak turun hanya karena ada komponen yang belum diujikan. Persentase: bobot dianggap persen dan komponen yang belum dinilai dihitung 0. Rata-rata biasa: rata-rata komponen yang sudah ada nilainya tanpa bobot. Rekap bisa diunduh sebagai Excel.',
             href: '/grades',
@@ -83,6 +97,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Nilai akhir siswa berubah sendiri. Kenapa?',
             a: 'Nilai akhir dihitung ulang setiap ada nilai baru atau bobot yang diubah. Periksa Pengaturan penilaian untuk melihat apakah bobot komponen baru saja diubah.',
+          },
+          {
+            q: 'Kenapa nilai kuis tidak masuk nilai akhir?',
+            a: 'Kemungkinan komponennya berkategori Formatif. Nilai formatif adalah umpan balik belajar, jadi tidak masuk nilai akhir, rapor, kenaikan, atau kelulusan. Bila nilainya memang harus dihitung, buka Pengaturan penilaian, ubah kategori komponennya menjadi Sumatif, dan isi bobotnya.',
           },
           {
             q: 'Mode persentase tidak bisa disimpan. Mengapa?',
@@ -126,6 +144,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Deleting an assessment also deletes all the scores inside it. The maximum score also cannot be lowered below a score already entered.',
           },
           {
+            heading: 'Formative and summative: which count toward the report grade',
+            body: 'Every score component has a category. Summative means the score counts toward the final grade, the report card, promotion, and graduation according to its weight (for example Midterm or Final Exam). Formative means learning feedback, such as a short quiz or practice: the score shows in the recap but does not count toward the final grade, report card, promotion, or graduation, and it has no weight. Existing components stay summative until you change them. On a formative component, an assessment can be marked Initial assessment (diagnostic) to see where students start. On a summative component, an assessment can be marked with its scope: Material scope or End of semester. You can also record the assessment technique, such as a test, observation, or project.',
+            steps: [
+              'Open Grading settings, then add or edit a component.',
+              'Under Category, pick Summative or Formative (feedback, not in report grade). A weight is only entered for summative.',
+              'When you create an assessment, pick its component. The screen shows the category and the matching extra options.',
+              'On the Recap tab, formative scores appear in the Feedback columns, separate from the final grade.',
+            ],
+            href: '/grades/settings',
+            tip: 'The 100% total weight is counted from summative components only. Formative components are not added up.',
+            warning:
+              'The category of a component cannot be changed while the active semester has finalized report cards. Reopen the report cards first. Parents see formative scores under Learning feedback, not in the report grade.',
+          },
+          {
             heading: 'Reading the recap and final score',
             body: 'The Recap tab shows, per student, the average of each component, the final score, and the predicate. At the top is a summary of the class average, the highest and lowest scores, and the number of students below the passing mark. The final score is a weighted average. Components with no scores yet are left out, so the final score does not drop just because a component has not been tested. The recap can be downloaded as Excel.',
             href: '/grades',
@@ -164,6 +196,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'A student final score changed by itself. Why?',
             a: 'The final score is recalculated whenever a new score is added or a weight is changed. Check Grading settings to see whether a component weight was changed recently.',
+          },
+          {
+            q: 'Why does a quiz score not count toward the final grade?',
+            a: 'The component is probably in the Formative category. Formative scores are learning feedback, so they do not count toward the final grade, report card, promotion, or graduation. If the score should count, open Grading settings, change the component category to Summative, and enter its weight.',
           },
           {
             q: 'Why can I not save the percentage mode?',
@@ -207,6 +243,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Mupus panilaian ogé mupus sadaya nilai di jerona. Nilai maksimal oge teu tiasa diturunkeun ka handap nilai nu tos kaeusi.',
           },
           {
+            heading: 'Formatif jeung sumatif: nu mana anu asup kana nilai rapor',
+            body: 'Unggal komponén nilai boga kategori. Sumatif nyaéta panilaian anu asup kana nilai akhir, rapor, kenaikan kelas, jeung kalulusan numutkeun bobotna (upamana UTS atawa UAS). Formatif nyaéta umpan balik diajar, upamana kuis pondok atawa latihan: nilaina muncul dina rekap tapi teu asup kana nilai akhir, rapor, kenaikan, atawa kalulusan, sarta teu boga bobot. Komponén anu geus aya tetep sumatif nepi ka Anjeun ngarobahna. Dina komponén formatif, hiji panilaian bisa ditandaan Asesmen awal (diagnostik) pikeun ningali kamampuh awal siswa. Dina komponén sumatif, panilaian bisa ditandaan lingkupna: Lingkup materi atawa Ahir semester. Anjeun oge bisa nyatet téknik panilaianna, upamana tés, observasi, atawa proyék.',
+            steps: [
+              'Buka Pengaturan penilaian, tuluy tambihan atawa robah komponén.',
+              'Dina Kategori, pilih Sumatif atawa Formatif (umpan balik, teu asup kana nilai rapor). Bobot ukur diisi pikeun sumatif.',
+              'Nalika nyieun panilaian, pilih komponénna. Layar nembongkeun kategorina jeung pilihan tambahan anu cocog.',
+              'Dina tab Rekap, nilai formatif muncul dina kolom Umpan balik anu dipisah tina nilai akhir.',
+            ],
+            href: '/grades/settings',
+            tip: 'Jumlah bobot 100% ukur diitung tina komponén sumatif. Komponén formatif teu diitung.',
+            warning:
+              'Kategori komponén teu bisa dirobah salila semester aktip boga rapor final. Buka deui rapor heula. Kolot siswa ningali nilai formatif dina bagian Umpan balik diajar, lain dina nilai rapor.',
+          },
+          {
             heading: 'Maca rekap sareng nilai akhir',
             body: 'Tab Rekap nunjukkeun, per siswa, rata-rata unggal komponén, nilai akhir, sareng predikat. Di luhur aya ringkesan rata-rata kelas, nilai pangluhurna, panghandapna, sareng jumlah siswa di handap KKM. Nilai akhir téh rata-rata kalayan bobot. Komponén nu can aya nilaina teu diitung, janten nilai akhir teu turun ngan ukur sabab aya komponén nu can diujian. Rekap tiasa diunduh jadi Excel.',
             href: '/grades',
@@ -245,6 +295,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Nilai akhir siswa robih nyalira. Naha?',
             a: 'Nilai akhir diitung deui unggal aya nilai anyar atanapi bobot dirobih. Pariksa Pengaturan penilaian pikeun ningali bobot komponén nembé dirobih atanapi henteu.',
+          },
+          {
+            q: 'Naha nilai kuis teu asup kana nilai akhir?',
+            a: 'Kamungkinan komponénna kategori Formatif. Nilai formatif téh umpan balik diajar, jadi teu asup kana nilai akhir, rapor, kenaikan, atawa kalulusan. Upami nilaina kedah diitung, buka Pengaturan penilaian, robah kategori komponénna jadi Sumatif, tuluy eusian bobotna.',
           },
           {
             q: 'Naha mode persén teu bisa disimpen?',

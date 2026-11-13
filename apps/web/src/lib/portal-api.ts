@@ -118,6 +118,10 @@ export interface RecentScore {
   date: string;
   value: number;
   maxScore: number;
+  /** Ada (`formative`) bila skor ini umpan balik formatif yang tidak masuk nilai rapor; dihilangkan = sumatif. */
+  category?: 'formative';
+  /** Ada (false) bila komponen sumatif ini dikeluarkan dari nilai akhir; dihilangkan = ikut nilai akhir. */
+  includeInFinal?: false;
 }
 
 export type Predicate = 'A' | 'B' | 'C' | 'D';
@@ -142,7 +146,18 @@ export interface PortalGrades {
     belowKkm: boolean;
     components: { name: string; weight: number; average: number | null }[];
   }[];
+  /**
+   * Umpan balik formatif per mapel, TERPISAH dari `subjects` dan tidak memengaruhi nilai akhir, predikat, atau rata-rata.
+   * Dihilangkan bila sekolah tidak punya penilaian formatif.
+   */
+  formative?: PortalFormativeSubject[];
   recentScores: RecentScore[];
+}
+
+export interface PortalFormativeSubject {
+  subjectId: string;
+  name: string;
+  components: { name: string; category: 'formative' | 'summative'; average: number }[];
 }
 
 export interface PortalReportCardItem {

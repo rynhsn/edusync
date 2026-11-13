@@ -189,6 +189,18 @@ const recentScoreSchema = z.object({
   date: dateField,
   value: z.number(),
   maxScore: z.number().int(),
+  category: z
+    .literal('formative')
+    .optional()
+    .describe(
+      'Ada (`formative`) bila skor ini dari komponen formatif: umpan balik, TIDAK masuk nilai rapor. Dihilangkan = sumatif',
+    ),
+  includeInFinal: z
+    .literal(false)
+    .optional()
+    .describe(
+      'Ada (false) bila komponen sumatif ini dikeluarkan dari nilai akhir; dihilangkan = ikut nilai akhir',
+    ),
 });
 
 const reportCardItemSchema = z.object({
@@ -860,6 +872,26 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
                 ),
               }),
             ),
+            formative: z
+              .array(
+                z.object({
+                  subjectId: z.uuid(),
+                  name: z.string(),
+                  components: z.array(
+                    z.object({
+                      name: z.string(),
+                      category: z.enum(['formative', 'summative']),
+                      average: z.number(),
+                    }),
+                  ),
+                }),
+              )
+              .optional()
+              .describe(
+                'Umpan balik formatif per mapel (rata-rata persen komponen formatif atau yang dikeluarkan dari nilai akhir). ' +
+                  'TERPISAH dari `subjects` dan berlabel "umpan balik, tidak masuk nilai rapor" di UI; tidak memengaruhi nilai akhir, ' +
+                  'predikat, atau rata-rata. Dihilangkan bila sekolah tidak punya penilaian formatif.',
+              ),
             recentScores: z.array(recentScoreSchema),
           }),
           404: errorSchema,
@@ -890,6 +922,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
           average: grades?.average ?? null,
           ...(grades?.source ? { source: grades.source } : {}),
           subjects: grades?.subjects ?? [],
+          ...(grades && 'formative' in grades && grades.formative ? { formative: grades.formative } : {}),
           recentScores: await recentScoresFor(tx, request.params.studentId, 20),
         };
       }),

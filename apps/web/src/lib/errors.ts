@@ -171,6 +171,9 @@ const KNOWN = [
   'invalid_criteria',
   'invalid_subject_group',
   'weights_sum_invalid',
+  'invalid_component_category',
+  'initial_requires_formative',
+  'scope_requires_summative',
   'level_unknown',
 ] as const;
 

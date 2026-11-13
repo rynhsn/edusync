@@ -552,3 +552,129 @@ describe('kirim ke buku nilai', () => {
     expect(res.json().error.code).toBe('no_questions');
   });
 });
+
+describe('kategori asesmen (fase 3, T6)', () => {
+  const sheetFor = (id: string, q: [string, string, string], essay: number) =>
+    call('PUT', `/v1/exams/${id}/scoresheet`, adminCookie, {
+      records: [
+        {
+          studentId: students.andi,
+          answers: [
+            { questionId: q[0], answer: 'B' },
+            { questionId: q[1], answer: 'C' },
+            { questionId: q[2], score: essay },
+          ],
+        },
+      ],
+    });
+  const mtkFinalOfAndi = async () => {
+    const res = await call(
+      'GET',
+      `/v1/grading/recap?semesterId=${semesterId}&classId=${classA}&subjectId=${mtkId}`,
+      adminCookie,
+    );
+    return (res.json().students as { studentId: string; final: number | null }[]).find(
+      (s) => s.studentId === students.andi,
+    )!.final;
+  };
+
+  it('dorong ke komponen formatif: penilaian formatif yang tidak masuk nilai akhir; teknik bawaan test', async () => {
+    const db = app.platformDb;
+    const [kuis] = await db
+      .insert(gradeComponent)
+      .values({ schoolId, name: `Kuis ${run}`, weight: 0, category: 'formative', includeInFinal: false })
+      .returning();
+    const ex = await makeExam({ title: 'Kuis formatif' });
+    expect((await sheetFor(ex.id, ex.q, 3)).statusCode).toBe(200);
+    const before = await mtkFinalOfAndi();
+
+    const sent = await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId: kuis!.id });
+    expect(sent.statusCode, sent.body).toBe(200);
+    const rows = await db.select().from(assessment).where(eq(assessment.examId, ex.id));
+    expect(rows).toHaveLength(2);
+    expect(
+      rows.every((r) => r.componentId === kuis!.id && r.technique === 'test' && r.purpose === null),
+    ).toBe(true);
+    // Kategori diturunkan dari komponen; nilai akhir tidak berubah, rata-rata formatif tampil terpisah.
+    const list = (
+      await call('GET', `/v1/assessments?semesterId=${semesterId}&classId=${classA}`, adminCookie)
+    ).json();
+    expect(list.find((a: { title: string }) => a.title === 'Kuis formatif')).toMatchObject({
+      category: 'formative',
+      includeInFinal: false,
+      technique: 'test',
+    });
+    expect(await mtkFinalOfAndi()).toBe(before);
+    const recap = (
+      await call(
+        'GET',
+        `/v1/grading/recap?semesterId=${semesterId}&classId=${classA}&subjectId=${mtkId}`,
+        adminCookie,
+      )
+    ).json();
+    expect(
+      recap.students.find((s: { studentId: string }) => s.studentId === students.andi).formative,
+    ).toMatchObject({ average: 70, count: 1 });
+  });
+
+  it('dorong ulang tidak mengubah technique dan purpose yang diatur guru; skor asli berubah; technique awal dari body', async () => {
+    const db = app.platformDb;
+    const [kuis] = await db
+      .insert(gradeComponent)
+      .values({
+        schoolId,
+        name: `Asesmen awal ${run}`,
+        weight: 0,
+        category: 'formative',
+        includeInFinal: false,
+      })
+      .returning();
+    const ex = await makeExam({ title: 'Asesmen awal CBT' });
+    expect((await sheetFor(ex.id, ex.q, 3)).statusCode).toBe(200);
+    expect(
+      (
+        await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, {
+          componentId: kuis!.id,
+          technique: 'project',
+        })
+      ).statusCode,
+    ).toBe(200);
+    const created = await db.select().from(assessment).where(eq(assessment.examId, ex.id));
+    expect(created.every((a) => a.technique === 'project')).toBe(true);
+
+    // Guru mengubah tanda penilaian kelas A.
+    const target = created.find((a) => a.classId === classA)!;
+    const edit = await call('PUT', `/v1/assessments/${target.id}`, adminCookie, {
+      componentId: kuis!.id,
+      title: target.title,
+      date: target.date,
+      maxScore: 100,
+      purpose: 'initial',
+      technique: 'observation',
+    });
+    expect(edit.statusCode, edit.body).toBe(200);
+
+    // Skor asli berubah, dorong ulang (tanpa technique): tanda tidak tertimpa.
+    expect((await sheetFor(ex.id, ex.q, 6)).statusCode).toBe(200);
+    expect(
+      (
+        await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, {
+          componentId: kuis!.id,
+          technique: 'test',
+        })
+      ).statusCode,
+    ).toBe(200);
+    const [after] = await db.select().from(assessment).where(eq(assessment.id, target.id));
+    expect(after).toMatchObject({ purpose: 'initial', technique: 'observation' });
+    const [sc] = await db.select().from(score).where(eq(score.assessmentId, target.id));
+    expect(sc!.value).toBe(100);
+    expect(await db.select().from(assessment).where(eq(assessment.examId, ex.id))).toHaveLength(2);
+
+    // Mengganti komponen ke sumatif saat penilaian bertanda initial ditolak (tanda tidak dihapus diam-diam).
+    const clash = await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId });
+    expect(clash.statusCode).toBe(400);
+    expect(clash.json().error.code).toBe('initial_requires_formative');
+    const [still] = await db.select().from(assessment).where(eq(assessment.id, target.id));
+    expect(still).toMatchObject({ purpose: 'initial', componentId: kuis!.id });
+  });
+});

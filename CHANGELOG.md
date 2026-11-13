@@ -9,8 +9,6 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
-## [1.2.3] - 2026-11-13
-
 Persiapan internal fase 3 (asesmen dan rapor). Tidak ada perubahan perilaku bagi sekolah: nilai, predikat, rekap, rapor, dan
 portal sama persis dengan v1.2.2.
 
@@ -25,6 +23,30 @@ portal sama persis dengan v1.2.2.
 - **Tes garis dasar** untuk tiga mode nilai dan empat cakupan KKTP (rekap, matriks, rapor draf dan final, daftar rapor, nilai
   portal, snapshot, salinan beku) dan tes yang membuktikan bahwa respons API membuang kunci dokumen rapor yang tidak
   dideklarasikan di skema, sebagai jaring pengaman tahap berikutnya.
+
+### Ditambahkan
+
+- **Kategori asesmen: formatif dan sumatif.** Tiap komponen nilai kini punya kategori. Komponen **sumatif** (bawaan, semua komponen
+  yang sudah ada) ikut nilai akhir seperti biasa. Komponen **formatif** (mis. kuis, latihan, observasi) adalah umpan balik: nilainya
+  dicatat dan terlihat di rekap, tetapi **tidak pernah** masuk nilai akhir, predikat, peringkat, kelengkapan nilai saat memfinalkan
+  rapor, maupun kenaikan kelas. Bobot komponen formatif diabaikan, dan pada mode persentase hanya komponen sumatif yang dihitung ke
+  jumlah 100. Mapel yang baru punya penilaian formatif tidak muncul di rapor dan tidak membuat siswa dianggap belum lengkap.
+- **Tanda pada penilaian:** asesmen awal (diagnostik) pada komponen formatif, lingkup sumatif (lingkup materi atau akhir
+  semester) pada komponen sumatif, dan teknik asesmen. Tanda ini tidak mengubah nilai. Asesmen awal tidak pernah ikut nilai
+  akhir.
+- **Rekap, matriks leger, dan portal orang tua** menampilkan rata-rata formatif terpisah dari nilai (portal: berlabel "umpan
+  balik, tidak masuk nilai rapor"). Rapor dan snapshot tidak memuat formatif; bentuk dokumen rapor tidak berubah.
+- **Ujian CBT:** hasil ujian dapat didorong ke komponen formatif (penilaian formatif). Dorong ulang tidak menimpa tanda yang sudah
+  diatur guru.
+- Mengubah kategori komponen mengubah konfigurasi nilai: ditolak selama semester aktif punya rapor final, sama seperti mengubah
+  bobot. Salinan beku konfigurasi semester hanya memuat keterangan kategori bila ada komponen formatif; sekolah tanpa formatif
+  tidak berubah sama sekali.
+- Migrasi 0096 (aditif, tanpa DROP; nilai bawaan = perilaku sekarang, tanpa pengisian data).
+
+**Catatan rollback.** Versi sebelum rilis ini mengabaikan kategori. Bila rilis ini dibatalkan **setelah ada sekolah yang memakai
+komponen formatif**, komponen formatif itu kembali ikut nilai akhir draf (dan salinan beku semester yang memuatnya), sehingga angka
+draf dapat berubah. Rapor yang sudah final aman karena dibaca dari snapshot. Disarankan membatalkan hanya sebelum sekolah
+memakai komponen formatif.
 
 ## [1.2.2] - 2026-11-13
 

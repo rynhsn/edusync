@@ -39,14 +39,17 @@ export interface ComponentValues {
   name: string;
   weight: string;
   sort: string;
+  /** Kategori komponen; dihilangkan = sumatif. Komponen formatif tidak punya bobot (server menyimpannya 0). */
+  category?: 'formative' | 'summative';
 }
-export type ComponentField = keyof ComponentValues;
+export type ComponentField = 'name' | 'weight' | 'sort';
 export const COMPONENT_ORDER: ComponentField[] = ['name', 'weight', 'sort'];
 
 export function validateComponent(v: ComponentValues): FieldErrors<ComponentField> {
   return compact<ComponentField>([
     ['name', requiredText(v.name, 60)],
-    ['weight', requiredInt(v.weight, 1, 100)],
+    // Formatif tidak masuk nilai akhir, jadi bobotnya tidak diperiksa.
+    ['weight', v.category === 'formative' ? undefined : requiredInt(v.weight, 1, 100)],
     ['sort', optionalInt(v.sort, 0, 1000)],
   ]);
 }

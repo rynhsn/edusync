@@ -20,9 +20,10 @@ import {
   Toolbar,
 } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
+import { belowKkmApplies, splitComponents } from '@/lib/assessment-category';
 import { errorKey } from '@/lib/errors';
 import { isFromReport } from '@/lib/grading-config';
-import { formatKkm, isBelowKkm, pickKkm } from '@/lib/kktp';
+import { formatKkm, pickKkm } from '@/lib/kktp';
 import { buildExport, saveBlob } from '@/lib/sheet';
 import { cn } from '@/lib/utils';
 import { PREDICATES, PredicateBadge, predicateTone, ScoreChip } from './grade-ui';
@@ -56,23 +57,26 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
 
   async function exportExcel() {
     if (!data || data.students.length === 0) return void toast.info(t('exportEmpty'));
+    const { counted, feedback } = splitComponents(data.components);
     const blob = await buildExport(
       t('recapSheet'),
       [
         t('student'),
         t('nis'),
-        ...data.components.map((c) => `${c.name} (${c.weight}%)`),
+        ...counted.map((c) => `${c.name} (${c.weight}%)`),
         t('finalScore'),
         t('predicate'),
+        ...feedback.map((c) => `${c.name} (${t('feedbackShort')})`),
       ],
       data.students.map((s) => [
         s.name,
         s.nis,
-        ...data.components.map((c) => s.perComponent.find((p) => p.componentId === c.id)?.average ?? null),
+        ...counted.map((c) => s.perComponent.find((p) => p.componentId === c.id)?.average ?? null),
         s.final,
         s.predicate,
+        ...feedback.map((c) => s.perComponent.find((p) => p.componentId === c.id)?.average ?? null),
       ]),
-      { textColumns: [2], widths: [30, 16, ...data.components.map(() => 16), 14, 10] },
+      { textColumns: [2], widths: [30, 16, ...counted.map(() => 16), 14, 10, ...feedback.map(() => 18)] },
     );
     saveBlob(blob, `rekap-nilai-${school.schoolSlug}.xlsx`);
   }
@@ -97,6 +101,9 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
   // KKM efektif mapel (KKTP, boleh desimal); tanpa itu KKM sekolah.
   const kkm = pickKkm(data.kkm, data.settings.kkm);
   const { stats } = data;
+  // Komponen yang dihitung ke nilai akhir, dan umpan balik (formatif) yang tampil terpisah dan tidak diwarnai merah.
+  const { counted, feedback } = splitComponents(data.components);
+  const hasFeedback = feedback.length > 0;
   const total = data.students.length;
   const dist = PREDICATES.map((p) => ({ p, n: data.students.filter((s) => s.predicate === p).length }));
   const distTotal = dist.reduce((n, d) => n + d.n, 0);
@@ -136,6 +143,11 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
           progress={total ? (stats.filled / total) * 100 : 0}
         />
       </StatGrid>
+      {hasFeedback && (
+        <p role="note" className="text-muted-foreground text-xs">
+          {t('recapFeedbackNote')}
+        </p>
+      )}
 
       <Toolbar className="justify-between">
         <div className="flex min-w-0 flex-1 items-center gap-3">
@@ -182,7 +194,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
       ) : (
         <>
           {/* Layar lebar: tabel rekap dengan sel nilai bernada. */}
-          <div className="bg-card hidden overflow-hidden rounded-2xl border md:block">
+          <div className="bg-card hidden overflow-x-auto rounded-2xl border md:block">
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-muted/50 text-muted-foreground text-xs">
@@ -192,7 +204,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                   <th scope="col" className="px-3 py-2.5 text-left font-medium">
                     {t('student')}
                   </th>
-                  {data.components.map((c) => (
+                  {counted.map((c) => (
                     <th key={c.id} scope="col" className="px-3 py-2.5 text-right font-medium">
                       {c.name} <span className="font-normal opacity-70">({c.weight}%)</span>
                     </th>
@@ -203,6 +215,21 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                   <th scope="col" className="px-3 py-2.5 text-left font-medium">
                     {t('predicate')}
                   </th>
+                  {feedback.map((c, k) => (
+                    <th
+                      key={c.id}
+                      scope="col"
+                      className={cn('px-3 py-2.5 text-right font-medium', k === 0 && 'border-l')}
+                    >
+                      {c.name} <span className="block text-[11px] font-normal">{t('feedbackShort')}</span>
+                    </th>
+                  ))}
+                  {hasFeedback && (
+                    <th scope="col" className="px-3 py-2.5 text-right font-medium">
+                      {t('feedbackAverage')}
+                      <span className="block text-[11px] font-normal">{t('feedbackShort')}</span>
+                    </th>
+                  )}
                 </tr>
               </thead>
               <tbody className="divide-y">
@@ -212,7 +239,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                     <td className="px-3 py-2.5">
                       <PersonCell name={s.name} sub={s.nis} />
                     </td>
-                    {data.components.map((c) => {
+                    {counted.map((c) => {
                       const v = s.perComponent.find((p) => p.componentId === c.id)?.average;
                       return (
                         <td
@@ -221,7 +248,7 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                             'px-3 py-2.5 text-right tabular-nums',
                             v === null || v === undefined
                               ? 'text-muted-foreground'
-                              : v < kkm && TONES.rose.text,
+                              : belowKkmApplies(c, v, kkm) && TONES.rose.text,
                           )}
                         >
                           {fmt(v)}
@@ -248,6 +275,32 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                         {isFromReport(s) && <ReportSourceBadge label={t('fromReportBadge')} />}
                       </div>
                     </td>
+                    {feedback.map((c, k) => {
+                      const v = s.perComponent.find((p) => p.componentId === c.id)?.average;
+                      return (
+                        <td
+                          key={c.id}
+                          className={cn(
+                            'text-muted-foreground px-3 py-2.5 text-right tabular-nums',
+                            k === 0 && 'border-l',
+                          )}
+                        >
+                          {fmt(v)}
+                        </td>
+                      );
+                    })}
+                    {hasFeedback && (
+                      <td className="text-muted-foreground px-3 py-2.5 text-right tabular-nums">
+                        {s.formative ? (
+                          <>
+                            {fmt(Math.round(s.formative.average * 10) / 10)}{' '}
+                            <span className="text-xs">({s.formative.count})</span>
+                          </>
+                        ) : (
+                          '-'
+                        )}
+                      </td>
+                    )}
                   </tr>
                 ))}
               </tbody>
@@ -283,13 +336,16 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                   </div>
                 )}
                 <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
-                  {data.components.map((c) => {
+                  {counted.map((c) => {
                     const v = s.perComponent.find((p) => p.componentId === c.id)?.average;
                     return (
                       <div key={c.id} className="bg-muted/50 rounded-lg px-2 py-1.5">
                         <dt className="text-muted-foreground break-words">{c.name}</dt>
                         <dd
-                          className={cn('font-semibold tabular-nums', isBelowKkm(v, kkm) && TONES.rose.text)}
+                          className={cn(
+                            'font-semibold tabular-nums',
+                            belowKkmApplies(c, v, kkm) && TONES.rose.text,
+                          )}
                         >
                           {fmt(v)}
                         </dd>
@@ -297,6 +353,31 @@ export function RecapPanel({ semesterId, classId, subjectId }: Props) {
                     );
                   })}
                 </dl>
+                {hasFeedback && (
+                  <div className="grid gap-1.5 rounded-xl border border-dashed p-2.5">
+                    <p className="text-muted-foreground text-xs font-medium">{t('feedbackHeading')}</p>
+                    <dl className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+                      {feedback.map((c) => {
+                        const v = s.perComponent.find((p) => p.componentId === c.id)?.average;
+                        return (
+                          <div key={c.id} className="rounded-lg px-2 py-1">
+                            <dt className="text-muted-foreground break-words">{c.name}</dt>
+                            <dd className="font-semibold tabular-nums">{fmt(v)}</dd>
+                          </div>
+                        );
+                      })}
+                      {s.formative && (
+                        <div className="rounded-lg px-2 py-1">
+                          <dt className="text-muted-foreground break-words">{t('feedbackAverage')}</dt>
+                          <dd className="font-semibold tabular-nums">
+                            {fmt(Math.round(s.formative.average * 10) / 10)}{' '}
+                            <span className="text-muted-foreground font-normal">({s.formative.count})</span>
+                          </dd>
+                        </div>
+                      )}
+                    </dl>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

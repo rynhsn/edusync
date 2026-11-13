@@ -26,6 +26,7 @@ export function GradesTab({ studentId }: { studentId: string }) {
     [semesterId],
   );
   const data = q.data;
+  const feedback = data?.formative ?? [];
 
   return (
     <div className="grid grid-cols-[minmax(0,1fr)] gap-3">
@@ -44,10 +45,10 @@ export function GradesTab({ studentId }: { studentId: string }) {
         </SelectField>
       )}
       <TabState query={q} available={data?.available ?? true} />
-      {data?.available && data.subjects.length === 0 && (
+      {data?.available && data.subjects.length === 0 && feedback.length === 0 && (
         <EmptyState title={t('gradesEmptyTitle')} body={t('gradesEmptyBody')} />
       )}
-      {data?.available && data.subjects.length > 0 && (
+      {data?.available && (data.subjects.length > 0 || feedback.length > 0) && (
         <>
           {isFromReport(data) && (
             <div
@@ -132,6 +133,37 @@ export function GradesTab({ studentId }: { studentId: string }) {
               );
             })}
           </ul>
+          {feedback.length > 0 && (
+            <section
+              className="grid grid-cols-[minmax(0,1fr)] content-start gap-2"
+              aria-labelledby="portal-feedback"
+            >
+              <div>
+                <h3 id="portal-feedback" className="font-heading font-semibold">
+                  {t('feedbackTitle')}
+                </h3>
+                <p className="text-muted-foreground text-xs">{t('feedbackNote')}</p>
+              </div>
+              <ul className="grid grid-cols-[minmax(0,1fr)] gap-2 sm:grid-cols-2">
+                {feedback.map((f) => (
+                  <li
+                    key={f.subjectId}
+                    className="bg-card grid min-w-0 grid-cols-[minmax(0,1fr)] gap-1.5 rounded-2xl border border-dashed p-3.5"
+                  >
+                    <p className="font-heading truncate text-sm font-semibold">{f.name}</p>
+                    <ul className="grid gap-1 text-sm">
+                      {f.components.map((c) => (
+                        <li key={c.name} className="flex items-center justify-between gap-3">
+                          <span className="text-muted-foreground min-w-0 truncate">{c.name}</span>
+                          <span className="font-semibold tabular-nums">{Math.round(c.average)}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
           {data.recentScores.length > 0 && (
             <section
               className="grid grid-cols-[minmax(0,1fr)] content-start gap-2"
@@ -151,6 +183,11 @@ export function GradesTab({ studentId }: { studentId: string }) {
                       <span className="text-muted-foreground block truncate text-xs">
                         {r.subject} · {formatCalendarDate(locale, r.date)}
                       </span>
+                      {r.category === 'formative' && (
+                        <span className="text-muted-foreground block truncate text-xs">
+                          {t('feedbackBadge')}
+                        </span>
+                      )}
                     </span>
                     <span className="font-semibold tabular-nums">
                       {r.value}/{r.maxScore}

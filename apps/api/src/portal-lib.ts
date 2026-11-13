@@ -1,6 +1,7 @@
 import {
   averageOfFinals,
   ayahPercent,
+  componentCounts,
   coverageFromMask,
   coverageMask,
   juzProgressFromMask,
@@ -47,7 +48,7 @@ import {
 import { todayInJakarta } from './attendance-lib';
 import { invoiceRows } from './finance-lib';
 import { finalSubjectRowsForStudent, kkmResolverForClass, loadGradingConfig } from './grading-config-lib';
-import { assessedSubjects, computeGrades } from './grading-lib';
+import { assessedSubjects, computeGrades, notCountedComponentIds } from './grading-lib';
 import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
 import { documentSummary, type ReportDocument } from './report-card-lib';
@@ -315,6 +316,8 @@ export async function recentScoresFor(tx: Tx, studentId: string, limit: number) 
       subject: subject.name,
       title: assessment.title,
       component: gradeComponent.name,
+      componentCategory: gradeComponent.category,
+      componentInFinal: gradeComponent.includeInFinal,
       date: assessment.date,
       value: score.value,
       maxScore: assessment.maxScore,
@@ -326,7 +329,13 @@ export async function recentScoresFor(tx: Tx, studentId: string, limit: number) 
     .where(and(eq(score.studentId, studentId), sql`${score.value} is not null`))
     .orderBy(desc(assessment.date), desc(score.updatedAt))
     .limit(limit);
-  return rows.map((r) => ({ ...r, value: r.value as number }));
+  // Penanda hanya bila bukan bawaan (sumatif dan ikut nilai akhir): respons sekolah tanpa formatif tidak berubah.
+  return rows.map(({ componentCategory, componentInFinal, ...r }) => ({
+    ...r,
+    value: r.value as number,
+    ...(componentCategory === 'formative' ? { category: 'formative' as const } : {}),
+    ...(componentCategory !== 'formative' && !componentInFinal ? { includeInFinal: false as const } : {}),
+  }));
 }
 
 /** Nilai akhir per mapel satu siswa pada satu semester, dengan rumus yang sama dengan rekap penilaian dan rapor. */
@@ -338,7 +347,11 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
   const cfg = await loadGradingConfig(tx, sem.id);
   const { settings, components } = cfg;
   if (!enr) return { kkm: settings.kkm, average: null as number | null, subjects: [] };
-  const subjects = await assessedSubjects(tx, sem.id, enr.classId);
+  const notCounted = notCountedComponentIds(components);
+  const subjects = await assessedSubjects(tx, sem.id, enr.classId, notCounted);
+  // Mapel yang punya penilaian formatif (tidak masuk nilai) untuk bagian umpan balik terpisah (K2); tanpa komponen formatif
+  // atau tak dihitung, tidak ada kueri tambahan dan hasilnya persis seperti sebelum fase 3.
+  const withFeedback = notCounted.length ? await assessedSubjects(tx, sem.id, enr.classId) : subjects;
   const kkmOf = await kkmResolverForClass(tx, cfg, {
     classId: enr.classId,
     subjectIds: subjects.map((s) => s.id),
@@ -346,7 +359,7 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
   const grades = await computeGrades(tx, {
     semesterId: sem.id,
     classId: enr.classId,
-    subjectIds: subjects.map((s) => s.id),
+    subjectIds: withFeedback.map((s) => s.id),
     studentIds: [studentId],
     components,
     settings,
@@ -354,6 +367,7 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
   // Rapor final siswa pada semester ini: nilai akhir, predikat, KKM, dan belowKkm dari snapshot (I3); rincian komponen
   // tetap dihitung dari konfigurasi efektif (salinan beku bila ada).
   const snapshot = await finalSubjectRowsForStudent(tx, studentId, sem.id);
+  const counted = components.filter(componentCounts);
   const rows = subjects.map((sub) => {
     const g = grades.get(sub.id)?.get(studentId);
     const snap = snapshot?.find((r) => r.subjectId === sub.id);
@@ -367,18 +381,30 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
       predicate: snap ? snap.predicate : (g?.predicate ?? null),
       belowKkm: snap ? snap.belowKkm : final !== null && final < kkm,
       ...(snap ? { source: 'report' as const } : {}),
-      components: components.map((c) => ({
+      components: counted.map((c) => ({
         name: c.name,
         weight: c.weight,
         average: g?.perComponent.find((p) => p.componentId === c.id)?.average ?? null,
       })),
     };
   });
+  // Umpan balik formatif (K2): terpisah dari nilai, berlabel di UI, tidak pernah memengaruhi final, predikat, atau rata-rata.
+  const feedback = withFeedback.flatMap((sub) => {
+    const g = grades.get(sub.id)?.get(studentId);
+    const items = components
+      .filter((c) => !componentCounts(c))
+      .flatMap((c) => {
+        const average = g?.perComponent.find((p) => p.componentId === c.id)?.average ?? null;
+        return average === null ? [] : [{ name: c.name, category: c.category, average }];
+      });
+    return items.length ? [{ subjectId: sub.id, name: sub.name, components: items }] : [];
+  });
   return {
     kkm: settings.kkm,
     average: averageOfFinals(rows.map((r) => r.final)),
     ...(rows.some((r) => r.source === 'report') ? { source: 'report' as const } : {}),
     subjects: rows,
+    ...(feedback.length ? { formative: feedback } : {}),
   };
 }
 

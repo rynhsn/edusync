@@ -25550,7 +25550,7 @@ export interface paths {
         };
         /**
          * Ubah pengaturan penilaian
-         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
+         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen yang dihitung (sumatif dan ikut nilai akhir; komponen formatif tidak ikut) bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
          */
         put: {
             parameters: {
@@ -25742,6 +25742,16 @@ export interface paths {
                                 name: string;
                                 weight: number;
                                 sort: number;
+                                /**
+                                 * @description Ada (`formative`) hanya pada komponen formatif; dihilangkan = sumatif. Formatif TIDAK masuk nilai akhir.
+                                 * @enum {string}
+                                 */
+                                category?: "formative";
+                                /**
+                                 * @description Ada (false) hanya pada komponen yang tidak ikut nilai akhir (formatif, atau sumatif yang dikeluarkan); dihilangkan = ikut.
+                                 * @enum {boolean}
+                                 */
+                                includeInFinal?: false;
                             }[];
                             /** @description Jumlah KKTP dalam salinan; null bila semester belum beku */
                             criteriaCount: number | null;
@@ -25873,6 +25883,16 @@ export interface paths {
                                 name: string;
                                 weight: number;
                                 sort: number;
+                                /**
+                                 * @description Ada (`formative`) hanya pada komponen formatif; dihilangkan = sumatif. Formatif TIDAK masuk nilai akhir.
+                                 * @enum {string}
+                                 */
+                                category?: "formative";
+                                /**
+                                 * @description Ada (false) hanya pada komponen yang tidak ikut nilai akhir (formatif, atau sumatif yang dikeluarkan); dihilangkan = ikut.
+                                 * @enum {boolean}
+                                 */
+                                includeInFinal?: false;
                             }[];
                             /** @description Jumlah KKTP dalam salinan; null bila semester belum beku */
                             criteriaCount: number | null;
@@ -25980,6 +26000,13 @@ export interface paths {
                             name: string;
                             weight: number;
                             sort: number;
+                            /**
+                             * @description Kategori komponen: `summative` (bawaan, ikut nilai akhir) atau `formative` (umpan balik; TIDAK pernah masuk nilai akhir, predikat, peringkat, kelengkapan rapor, atau kenaikan; bobot diabaikan dan disimpan 0).
+                             * @enum {string}
+                             */
+                            category?: "formative" | "summative";
+                            /** @description Ikut nilai akhir. Selalu false pada komponen formatif; komponen sumatif boleh dikeluarkan (false). */
+                            includeInFinal?: boolean;
                             /** @description Jumlah penilaian yang memakai komponen ini */
                             assessmentCount: number;
                         }[];
@@ -26018,7 +26045,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah komponen penilaian
-         * @description Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `weight` 1..100. Jumlah bobot tidak harus 100 pada mode `weighted_average` (dinormalisasi saat nilai akhir dihitung) dan `simple_average` (bobot diabaikan), tetapi mode `percentage` mensyaratkan jumlah 100 (dicek saat memilih mode itu di `PUT /v1/grading/settings`; bobot yang diubah sesudahnya tidak diperiksa ulang, hasil `percentage` tetap dibatasi 0..100). `sort` bawaan: paling akhir. Tidak dijaga `report_final` (komponen baru belum punya penilaian, jadi tidak mengubah angka yang ada). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
+         * @description Izin: `grade:configure`; modul `grades`. Nama unik di sekolah (409 `conflict`). `category` `summative` (bawaan) atau `formative` (umpan balik, tidak pernah masuk nilai akhir; `includeInFinal` dipaksa false dan bobot diabaikan, disimpan 0). `weight` 1..100 wajib untuk komponen sumatif yang ikut nilai akhir (selain itu 400 `invalid_component_category`). Jumlah bobot tidak harus 100 pada mode `weighted_average` (dinormalisasi saat nilai akhir dihitung) dan `simple_average` (bobot diabaikan), tetapi mode `percentage` mensyaratkan jumlah 100 (dicek saat memilih mode itu di `PUT /v1/grading/settings`; bobot yang diubah sesudahnya tidak diperiksa ulang, hasil `percentage` tetap dibatasi 0..100). `sort` bawaan: paling akhir. Tidak dijaga `report_final` (komponen baru belum punya penilaian, jadi tidak mengubah angka yang ada). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
          */
         post: {
             parameters: {
@@ -26034,8 +26061,16 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        weight: number;
+                        /** @description Bobot 1..100 untuk komponen sumatif yang ikut nilai akhir (wajib; selain itu 400 `invalid_component_category`). Diabaikan dan disimpan 0 pada komponen formatif. */
+                        weight?: number;
                         sort?: number;
+                        /**
+                         * @description Kategori komponen: `summative` (bawaan, ikut nilai akhir) atau `formative` (umpan balik; TIDAK pernah masuk nilai akhir, predikat, peringkat, kelengkapan rapor, atau kenaikan; bobot diabaikan dan disimpan 0). Dihilangkan: bawaan sumatif (POST) atau tetap (PUT).
+                         * @enum {string}
+                         */
+                        category?: "formative" | "summative";
+                        /** @description Ikut nilai akhir (bawaan true). Dipaksa false pada komponen formatif. Dihilangkan pada PUT: tetap. */
+                        includeInFinal?: boolean;
                     };
                 };
             };
@@ -26052,6 +26087,13 @@ export interface paths {
                             name: string;
                             weight: number;
                             sort: number;
+                            /**
+                             * @description Kategori komponen: `summative` (bawaan, ikut nilai akhir) atau `formative` (umpan balik; TIDAK pernah masuk nilai akhir, predikat, peringkat, kelengkapan rapor, atau kenaikan; bobot diabaikan dan disimpan 0).
+                             * @enum {string}
+                             */
+                            category?: "formative" | "summative";
+                            /** @description Ikut nilai akhir. Selalu false pada komponen formatif; komponen sumatif boleh dikeluarkan (false). */
+                            includeInFinal?: boolean;
                             /** @description Jumlah penilaian yang memakai komponen ini */
                             assessmentCount: number;
                             /**
@@ -26136,7 +26178,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah komponen penilaian
-         * @description Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah bobot langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 `report_final` selama semester aktif punya rapor final. Bobot tidak dinormalisasi pada mode `percentage`; jumlahnya diperiksa saat mode itu dipilih, bukan di sini. Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
+         * @description Izin: `grade:configure`; modul `grades`. Nama unik (409 `conflict`); 404 `not_found` bila tak ada. Mengubah bobot atau kategori (`category`, `includeInFinal`) langsung memengaruhi nilai akhir semua penilaian yang ada, jadi ditolak 409 `report_final` selama semester aktif punya rapor final. Kunci `category`/`includeInFinal`/`weight` yang dihilangkan dipertahankan; komponen formatif memaksa `includeInFinal` false dan bobot 0; bobot sumatif yang ikut nilai akhir 1..100 (400 `invalid_component_category`). Bobot tidak dinormalisasi pada mode `percentage`; jumlahnya diperiksa saat mode itu dipilih, bukan di sini. Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
          */
         put: {
             parameters: {
@@ -26154,8 +26196,16 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        weight: number;
+                        /** @description Bobot 1..100 untuk komponen sumatif yang ikut nilai akhir (wajib; selain itu 400 `invalid_component_category`). Diabaikan dan disimpan 0 pada komponen formatif. */
+                        weight?: number;
                         sort?: number;
+                        /**
+                         * @description Kategori komponen: `summative` (bawaan, ikut nilai akhir) atau `formative` (umpan balik; TIDAK pernah masuk nilai akhir, predikat, peringkat, kelengkapan rapor, atau kenaikan; bobot diabaikan dan disimpan 0). Dihilangkan: bawaan sumatif (POST) atau tetap (PUT).
+                         * @enum {string}
+                         */
+                        category?: "formative" | "summative";
+                        /** @description Ikut nilai akhir (bawaan true). Dipaksa false pada komponen formatif. Dihilangkan pada PUT: tetap. */
+                        includeInFinal?: boolean;
                     };
                 };
             };
@@ -26172,6 +26222,13 @@ export interface paths {
                             name: string;
                             weight: number;
                             sort: number;
+                            /**
+                             * @description Kategori komponen: `summative` (bawaan, ikut nilai akhir) atau `formative` (umpan balik; TIDAK pernah masuk nilai akhir, predikat, peringkat, kelengkapan rapor, atau kenaikan; bobot diabaikan dan disimpan 0).
+                             * @enum {string}
+                             */
+                            category?: "formative" | "summative";
+                            /** @description Ikut nilai akhir. Selalu false pada komponen formatif; komponen sumatif boleh dikeluarkan (false). */
+                            includeInFinal?: boolean;
                             /** @description Jumlah penilaian yang memakai komponen ini */
                             assessmentCount: number;
                             /**
@@ -26390,6 +26447,13 @@ export interface paths {
                             name: string;
                             weight: number;
                             sort: number;
+                            /**
+                             * @description Kategori komponen: `summative` (bawaan, ikut nilai akhir) atau `formative` (umpan balik; TIDAK pernah masuk nilai akhir, predikat, peringkat, kelengkapan rapor, atau kenaikan; bobot diabaikan dan disimpan 0).
+                             * @enum {string}
+                             */
+                            category?: "formative" | "summative";
+                            /** @description Ikut nilai akhir. Selalu false pada komponen formatif; komponen sumatif boleh dikeluarkan (false). */
+                            includeInFinal?: boolean;
                             /** @description Jumlah penilaian yang memakai komponen ini */
                             assessmentCount: number;
                         }[];
@@ -26570,6 +26634,25 @@ export interface paths {
                             /** Format: uuid */
                             componentId: string;
                             componentName: string;
+                            /**
+                             * @description Kategori diturunkan dari komponen (konfigurasi efektif semester), tidak disimpan di penilaian.
+                             * @enum {string}
+                             */
+                            category?: "formative" | "summative";
+                            /** @description Komponen penilaian ini ikut nilai akhir (diturunkan). */
+                            includeInFinal?: boolean;
+                            /**
+                             * @description `initial` = asesmen awal (diagnostik); hanya pada komponen formatif; tidak pernah masuk nilai akhir. null = biasa.
+                             * @enum {string|null}
+                             */
+                            purpose?: "initial" | null;
+                            /**
+                             * @description Lingkup sumatif (`material` atau `end_of_semester`); hanya pada komponen sumatif. null = tidak ditandai.
+                             * @enum {string|null}
+                             */
+                            summativeScope?: "material" | "end_of_semester" | null;
+                            /** @description Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat. */
+                            technique?: string | null;
                             /** Format: uuid */
                             teacherId: string | null;
                             teacherName: string | null;
@@ -26618,7 +26701,7 @@ export interface paths {
         put?: never;
         /**
          * Buat penilaian
-         * @description Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester itu sudah dibekukan dan komponennya tidak ada di salinan beku (mis. komponen yang dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah.
+         * @description Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester itu sudah dibekukan dan komponennya tidak ada di salinan beku (mis. komponen yang dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah. Tanda opsional: `purpose` `initial` (asesmen awal) hanya pada komponen formatif (400 `initial_requires_formative`), `summativeScope` hanya pada komponen sumatif (400 `scope_requires_summative`), `technique` dari daftar teknik. Penilaian pada komponen formatif tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya.
          */
         post: {
             parameters: {
@@ -26646,6 +26729,21 @@ export interface paths {
                         date: string;
                         /** @default 100 */
                         maxScore?: number;
+                        /**
+                         * @description `initial` (asesmen awal/diagnostik) hanya pada komponen formatif (400 `initial_requires_formative`).
+                         * @enum {string|null}
+                         */
+                        purpose?: "initial" | null;
+                        /**
+                         * @description `material` atau `end_of_semester`, hanya pada komponen sumatif (400 `scope_requires_summative`).
+                         * @enum {string|null}
+                         */
+                        summativeScope?: "material" | "end_of_semester" | null;
+                        /**
+                         * @description Teknik asesmen; tanpa batasan komponen.
+                         * @enum {string|null}
+                         */
+                        technique?: "test" | "observation" | "performance" | "practice" | "product" | "project" | "portfolio" | "assignment" | "other" | null;
                     };
                 };
             };
@@ -26670,6 +26768,25 @@ export interface paths {
                             /** Format: uuid */
                             componentId: string;
                             componentName: string;
+                            /**
+                             * @description Kategori diturunkan dari komponen (konfigurasi efektif semester), tidak disimpan di penilaian.
+                             * @enum {string}
+                             */
+                            category?: "formative" | "summative";
+                            /** @description Komponen penilaian ini ikut nilai akhir (diturunkan). */
+                            includeInFinal?: boolean;
+                            /**
+                             * @description `initial` = asesmen awal (diagnostik); hanya pada komponen formatif; tidak pernah masuk nilai akhir. null = biasa.
+                             * @enum {string|null}
+                             */
+                            purpose?: "initial" | null;
+                            /**
+                             * @description Lingkup sumatif (`material` atau `end_of_semester`); hanya pada komponen sumatif. null = tidak ditandai.
+                             * @enum {string|null}
+                             */
+                            summativeScope?: "material" | "end_of_semester" | null;
+                            /** @description Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat. */
+                            technique?: string | null;
                             /** Format: uuid */
                             teacherId: string | null;
                             teacherName: string | null;
@@ -26759,7 +26876,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah penilaian
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum. Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 `component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak diganti tidak diperiksa ulang).
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum, dan tanda (`purpose`, `summativeScope`, `technique`; dihilangkan = tetap, null = kosongkan; tanda diperiksa terhadap kategori komponen: 400 `initial_requires_formative`, `scope_requires_summative`). Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 `component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak diganti tidak diperiksa ulang).
          */
         put: {
             parameters: {
@@ -26783,6 +26900,21 @@ export interface paths {
                         date: string;
                         /** @default 100 */
                         maxScore?: number;
+                        /**
+                         * @description `initial` (asesmen awal/diagnostik) hanya pada komponen formatif (400 `initial_requires_formative`).
+                         * @enum {string|null}
+                         */
+                        purpose?: "initial" | null;
+                        /**
+                         * @description `material` atau `end_of_semester`, hanya pada komponen sumatif (400 `scope_requires_summative`).
+                         * @enum {string|null}
+                         */
+                        summativeScope?: "material" | "end_of_semester" | null;
+                        /**
+                         * @description Teknik asesmen; tanpa batasan komponen.
+                         * @enum {string|null}
+                         */
+                        technique?: "test" | "observation" | "performance" | "practice" | "product" | "project" | "portfolio" | "assignment" | "other" | null;
                     };
                 };
             };
@@ -26807,6 +26939,25 @@ export interface paths {
                             /** Format: uuid */
                             componentId: string;
                             componentName: string;
+                            /**
+                             * @description Kategori diturunkan dari komponen (konfigurasi efektif semester), tidak disimpan di penilaian.
+                             * @enum {string}
+                             */
+                            category?: "formative" | "summative";
+                            /** @description Komponen penilaian ini ikut nilai akhir (diturunkan). */
+                            includeInFinal?: boolean;
+                            /**
+                             * @description `initial` = asesmen awal (diagnostik); hanya pada komponen formatif; tidak pernah masuk nilai akhir. null = biasa.
+                             * @enum {string|null}
+                             */
+                            purpose?: "initial" | null;
+                            /**
+                             * @description Lingkup sumatif (`material` atau `end_of_semester`); hanya pada komponen sumatif. null = tidak ditandai.
+                             * @enum {string|null}
+                             */
+                            summativeScope?: "material" | "end_of_semester" | null;
+                            /** @description Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat. */
+                            technique?: string | null;
                             /** Format: uuid */
                             teacherId: string | null;
                             teacherName: string | null;
@@ -27034,6 +27185,25 @@ export interface paths {
                                 /** Format: uuid */
                                 componentId: string;
                                 componentName: string;
+                                /**
+                                 * @description Kategori diturunkan dari komponen (konfigurasi efektif semester), tidak disimpan di penilaian.
+                                 * @enum {string}
+                                 */
+                                category?: "formative" | "summative";
+                                /** @description Komponen penilaian ini ikut nilai akhir (diturunkan). */
+                                includeInFinal?: boolean;
+                                /**
+                                 * @description `initial` = asesmen awal (diagnostik); hanya pada komponen formatif; tidak pernah masuk nilai akhir. null = biasa.
+                                 * @enum {string|null}
+                                 */
+                                purpose?: "initial" | null;
+                                /**
+                                 * @description Lingkup sumatif (`material` atau `end_of_semester`); hanya pada komponen sumatif. null = tidak ditandai.
+                                 * @enum {string|null}
+                                 */
+                                summativeScope?: "material" | "end_of_semester" | null;
+                                /** @description Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat. */
+                                technique?: string | null;
                                 /** Format: uuid */
                                 teacherId: string | null;
                                 teacherName: string | null;
@@ -27232,7 +27402,7 @@ export interface paths {
         };
         /**
          * Rekap nilai kelas dan mapel
-         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Siswa yang rapornya FINAL pada kelas ini memakai angka snapshot rapor (`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat atas muncul bila ada yang demikian. Siswa tanpa rapor final dihitung dari konfigurasi efektif semester (salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`.
+         * @description Izin: `grade:read`; modul `grades`. Per siswa aktif dan lulusan: rata-rata persen tiap komponen, nilai akhir (rata-rata tertimbang; bobot dinormalisasi atas komponen yang punya skor), predikat, dan `belowKkm`. Komponen formatif (atau yang dikeluarkan dari nilai akhir) tetap tampil di `components`/`perComponent` (ditandai `category`/`includeInFinal`) dan ringkasannya di `formative` per siswa, tetapi TIDAK memengaruhi nilai akhir, predikat, `belowKkm`, atau `stats`. `belowKkm` dan `belowKkmCount` memakai KKM efektif mapel (`kkm`, dari KKTP bila ada, selain itu `settings.kkm`). `stats` merangkum siswa yang sudah punya nilai akhir. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`); pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Siswa yang rapornya FINAL pada kelas ini memakai angka snapshot rapor (`final`, `predicate`, `belowKkm`; `kkm` mapel dari snapshot) dan diberi `source: report`; `source` di tingkat atas muncul bila ada yang demikian. Siswa tanpa rapor final dihitung dari konfigurasi efektif semester (salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`.
          */
         get: {
             parameters: {
@@ -27279,6 +27449,16 @@ export interface paths {
                                 id: string;
                                 name: string;
                                 weight: number;
+                                /**
+                                 * @description Ada (`formative`) hanya pada komponen formatif; dihilangkan = sumatif. Formatif TIDAK masuk nilai akhir.
+                                 * @enum {string}
+                                 */
+                                category?: "formative";
+                                /**
+                                 * @description Ada (false) hanya pada komponen yang tidak ikut nilai akhir (formatif, atau sumatif yang dikeluarkan); dihilangkan = ikut.
+                                 * @enum {boolean}
+                                 */
+                                includeInFinal?: false;
                             }[];
                             /**
                              * @description Hanya ada (bernilai `report`) bila angka ini diambil dari snapshot rapor final (nilai akhir, predikat, KKM, `belowKkm` persis seperti yang terbit), bukan dihitung ulang; dihilangkan pada jalur hidup.
@@ -27295,6 +27475,13 @@ export interface paths {
                                     componentId: string;
                                     average: number | null;
                                 }[];
+                                /** @description Umpan balik formatif, TERPISAH dari nilai akhir (tidak memengaruhi `final`, `predicate`, `belowKkm`, atau peringkat). Ada hanya bila siswa punya skor di komponen formatif. */
+                                formative?: {
+                                    /** @description Rata-rata persen semua skor formatif siswa pada mapel ini */
+                                    average: number;
+                                    /** @description Jumlah skor formatif yang terisi */
+                                    count: number;
+                                };
                                 final: number | null;
                                 /** @enum {string|null} */
                                 predicate: "A" | "B" | "C" | "D" | null;
@@ -27377,7 +27564,7 @@ export interface paths {
         };
         /**
          * Rekap nilai satu kelas (leger)
-         * @description Izin: `grade:read`; modul `grades`. Matriks mapel x siswa berisi nilai akhir dan predikat, bahan rapor dan leger. Mapel yang ditampilkan: yang diampu di kelas itu atau yang sudah punya penilaian pada semester itu. Hanya pemegang `grade:configure`, kepala sekolah, kurikulum, atau guru yang mengajar di kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini (400 `invalid_reference`). Siswa yang rapornya FINAL pada kelas ini memakai `final` dan `predicate` dari snapshot rapor dan diberi `source: report` (mapel yang tidak ada di snapshot siswa itu dihitung dari konfigurasi efektif); `source` di tingkat atas muncul bila ada yang demikian.
+         * @description Izin: `grade:read`; modul `grades`. Matriks mapel x siswa berisi nilai akhir dan predikat, bahan rapor dan leger. Mapel yang ditampilkan: yang diampu di kelas itu atau yang sudah punya penilaian pada semester itu. Hanya pemegang `grade:configure`, kepala sekolah, kurikulum, atau guru yang mengajar di kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini (400 `invalid_reference`). Siswa yang rapornya FINAL pada kelas ini memakai `final` dan `predicate` dari snapshot rapor dan diberi `source: report` (mapel yang tidak ada di snapshot siswa itu dihitung dari konfigurasi efektif); `source` di tingkat atas muncul bila ada yang demikian. Umpan balik formatif per sel ada di `formative` (hanya bila ada), terpisah dari `final` dan `predicate`.
          */
         get: {
             parameters: {
@@ -27427,6 +27614,13 @@ export interface paths {
                                     final: number | null;
                                     /** @enum {string|null} */
                                     predicate: "A" | "B" | "C" | "D" | null;
+                                    /** @description Umpan balik formatif, TERPISAH dari nilai akhir (tidak memengaruhi `final`, `predicate`, `belowKkm`, atau peringkat). Ada hanya bila siswa punya skor di komponen formatif. */
+                                    formative?: {
+                                        /** @description Rata-rata persen semua skor formatif siswa pada mapel ini */
+                                        average: number;
+                                        /** @description Jumlah skor formatif yang terisi */
+                                        count: number;
+                                    };
                                 }[];
                             }[];
                         };
@@ -49447,7 +49641,7 @@ export interface paths {
         put?: never;
         /**
          * Kirim hasil ujian ke buku nilai
-         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku.
+         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, atau kaitan lain yang sudah diatur guru. Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian (mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau `scope_requires_summative`.
          */
         post: {
             parameters: {
@@ -49470,6 +49664,11 @@ export interface paths {
                         date?: string;
                         /** @default false */
                         allowPending?: boolean;
+                        /**
+                         * @description Teknik asesmen penilaian baru (bawaan `test`); diabaikan bila penilaian sudah ada
+                         * @enum {string}
+                         */
+                        technique?: "test" | "observation" | "performance" | "practice" | "product" | "project" | "portfolio" | "assignment" | "other";
                     };
                 };
             };
@@ -57376,6 +57575,16 @@ export interface paths {
                                     date: string;
                                     value: number;
                                     maxScore: number;
+                                    /**
+                                     * @description Ada (`formative`) bila skor ini dari komponen formatif: umpan balik, TIDAK masuk nilai rapor. Dihilangkan = sumatif
+                                     * @enum {string}
+                                     */
+                                    category?: "formative";
+                                    /**
+                                     * @description Ada (false) bila komponen sumatif ini dikeluarkan dari nilai akhir; dihilangkan = ikut nilai akhir
+                                     * @enum {boolean}
+                                     */
+                                    includeInFinal?: false;
                                 }[];
                             };
                             reportCards: {
@@ -57683,6 +57892,18 @@ export interface paths {
                                     average: number | null;
                                 }[];
                             }[];
+                            /** @description Umpan balik formatif per mapel (rata-rata persen komponen formatif atau yang dikeluarkan dari nilai akhir). TERPISAH dari `subjects` dan berlabel "umpan balik, tidak masuk nilai rapor" di UI; tidak memengaruhi nilai akhir, predikat, atau rata-rata. Dihilangkan bila sekolah tidak punya penilaian formatif. */
+                            formative?: {
+                                /** Format: uuid */
+                                subjectId: string;
+                                name: string;
+                                components: {
+                                    name: string;
+                                    /** @enum {string} */
+                                    category: "formative" | "summative";
+                                    average: number;
+                                }[];
+                            }[];
                             recentScores: {
                                 subject: string;
                                 title: string;
@@ -57691,6 +57912,16 @@ export interface paths {
                                 date: string;
                                 value: number;
                                 maxScore: number;
+                                /**
+                                 * @description Ada (`formative`) bila skor ini dari komponen formatif: umpan balik, TIDAK masuk nilai rapor. Dihilangkan = sumatif
+                                 * @enum {string}
+                                 */
+                                category?: "formative";
+                                /**
+                                 * @description Ada (false) bila komponen sumatif ini dikeluarkan dari nilai akhir; dihilangkan = ikut nilai akhir
+                                 * @enum {boolean}
+                                 */
+                                includeInFinal?: false;
                             }[];
                         };
                     };

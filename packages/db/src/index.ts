@@ -13,6 +13,7 @@ export {
   lte,
   max,
   ne,
+  notInArray,
   or,
   sql,
   sum,

@@ -560,6 +560,7 @@ export const EXAM_DOCS: DocArticle[] = [
               'Bila masih ada siswa dengan esai belum dinilai, aplikasi memberi peringatan dan menolak mengirim sampai Anda menegaskan bahwa esai yang belum dinilai dihitung 0.',
               'Klik Kirim. Cek hasilnya di menu Penilaian.',
             ],
+            tip: 'Bila Anda memilih komponen berkategori Formatif, hasil ujian menjadi umpan balik belajar: tampil di rekap tetapi tidak masuk nilai rapor. Anda juga bisa mencatat teknik penilaiannya.',
             warning:
               'Mengirim ulang memperbarui penilaian yang sama dan menimpa nilai lama dengan nilai terbaru, tidak membuat penilaian ganda. Esai yang belum dinilai dan Anda tegaskan tetap dikirim dihitung 0, jadi nilai itu bisa lebih rendah dari seharusnya sampai Anda mengirim ulang.',
           },
@@ -696,6 +697,7 @@ export const EXAM_DOCS: DocArticle[] = [
               'If some students still have ungraded essays, the app warns you and refuses to send until you confirm that ungraded essays count as 0.',
               'Click Send. Check the result in the Grades menu.',
             ],
+            tip: 'If you pick a component in the Formative category, the exam result becomes learning feedback: it shows in the recap but does not count toward the report grade. You can also record the assessment technique.',
             warning:
               'Sending again updates the same assessment and overwrites old scores with the latest ones; it does not create a duplicate. Ungraded essays that you confirmed are still sent as 0, so a score can be lower than it should be until you send again.',
           },
@@ -831,6 +833,7 @@ export const EXAM_DOCS: DocArticle[] = [
               'Upami masih aya siswa anu éséyna can dinilai, aplikasi méré peringatan jeung nolak ngirim nepi ka Anjeun negeskeun yén éséy anu can dinilai diitung 0.',
               'Klik Kirim. Pariksa hasilna di ménu Penilaian.',
             ],
+            tip: 'Upami Anjeun milih komponén kategori Formatif, hasil ujian jadi umpan balik diajar: muncul dina rekap tapi teu asup kana nilai rapor. Anjeun oge bisa nyatet téknik panilaianna.',
             warning:
               'Ngirim deui ngapdet penilaian anu sarua jeung nimpa nilai heubeul ku nilai panganyarna, teu nyieun penilaian ganda. Éséy anu can dinilai jeung geus ditegeskeun tetep dikirim diitung 0, jadi nilai éta bisa leuwih handap tina saharusna nepi ka Anjeun ngirim deui.',
           },
