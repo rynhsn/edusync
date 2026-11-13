@@ -19,7 +19,7 @@ import { SelectField } from '@/components/ui/select-field';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyPanel, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
-import { errorKey } from '@/lib/errors';
+import { errorKey, errorKeyIn } from '@/lib/errors';
 import { groupByPhase, reorderObjectives } from '@/lib/teaching-plan';
 import { cn } from '@/lib/utils';
 
@@ -104,7 +104,10 @@ export function OutcomesPanel({ subjectId, canWrite }: { subjectId: string; canW
       <Alert>
         <TriangleAlert className="size-4" aria-hidden />
         <AlertTitle>{t('versionWarningTitle')}</AlertTitle>
-        <AlertDescription>{t('versionWarning')}</AlertDescription>
+        <AlertDescription className="grid gap-1.5">
+          <span>{t('versionWarning')}</span>
+          <span>{t('versionWarningAssessed')}</span>
+        </AlertDescription>
       </Alert>
 
       <div className="flex items-center gap-2">
@@ -213,7 +216,7 @@ function OutcomeCard({
       toast.success(t('deleted'));
       invalidate();
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => toast.error(te(errorKeyIn(e, 'outcome'))),
   });
 
   const actions: MenuAction[] = canWrite
@@ -347,7 +350,7 @@ function ObjectivesList({
       toast.success(t('deleted'));
       invalidate();
     },
-    onError: (e) => toast.error(te(errorKey(e))),
+    onError: (e) => toast.error(te(errorKeyIn(e, 'objective'))),
   });
 
   if (objectives.isPending) return <ListSkeleton rows={1} stats={0} />;

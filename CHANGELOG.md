@@ -9,6 +9,39 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+Fase 3 (asesmen dan rapor), tahap 3.3: kaitan tujuan pembelajaran (TP) dan ketercapaian TP per murid. Tahap ini belum mengubah rapor, nilai akhir, predikat, rekap,
+atau portal: rapor draf dan final, dokumen, snapshot, dan tampilan wali sama persis dengan v1.4.0. Ketercapaian TP baru tampil
+untuk guru.
+
+### Ditambahkan
+
+- **Kaitan penilaian ke TP.** Guru dapat mengaitkan sebuah penilaian ke satu atau beberapa TP mata pelajaran yang sama (maksimal
+  20 per penilaian; TP harus aktif) saat membuat atau mengubah penilaian, atau lewat pengaturan khusus. Satu skor penilaian
+  berlaku untuk semua TP yang dikaitkan; guru yang butuh ketelitian per TP membuat penilaian per TP. Penilaian hasil ujian CBT
+  boleh dikaitkan, dan mengirim ulang nilai ujian tidak menghapus kaitannya. Selama rapor kelas final, kaitan tidak dapat diubah.
+- **Ketercapaian TP per murid** (matriks murid x TP per kelas, mata pelajaran, dan semester). Dihitung saat dibuka dari skor
+  penilaian sumatif yang dikaitkan: persen, status tercapai atau belum, label level, dan asal ambangnya. Penilaian formatif
+  tidak dihitung; ringkasannya tampil terpisah sebagai kemajuan. Ambang dicari berjenjang: kriteria ketercapaian per TP
+  (angka, interval, rubrik, atau deskriptor; menurut tingkat dan jurusan kelas) lalu KKM mata pelajaran lalu KKM sekolah.
+- **Aturan agregasi** bila satu TP dinilai beberapa kali: rata-rata (bawaan), penilaian terbaru, atau nilai tertinggi. Diatur
+  per sekolah di pengaturan nilai, ikut disalin ke konfigurasi beku semester (semester yang sudah dibekukan tidak berubah bila
+  pengaturan diubah), dan ditolak bila semester aktif sudah punya rapor final, sama seperti mengubah bobot dan KKM.
+- **Keputusan guru atas ketercapaian TP** (override) per murid dan TP: status tercapai atau belum, label level, dan alasan
+  (maksimal 500 karakter). Keputusan guru menang atas hitungan dan berlaku untuk TP tanpa angka (mis. observasi). Ditolak bila
+  rapor murid itu pada semester tersebut sudah final.
+- **Versi TP.** Mengubah teks TP yang sudah dipakai penilaian (selain yang sudah dipakai alur tujuan pembelajaran terbit)
+  membuat versi baru: penilaian dan alur lama tetap menunjuk versi lama, dan versi lama dinonaktifkan. Menghapus TP yang
+  dikaitkan ke penilaian atau sudah punya keputusan guru ditolak (`in_use`).
+- Kode galat baru: `objective_subject_mismatch`, `objective_inactive`, `too_many_objectives` (terjemahan id, en, su).
+
+### Catatan rollback
+
+- Kembali ke versi sebelum tahap ini aman dan tidak berefek pada angka: kaitan TP, keputusan guru, dan agregasi tidak dipakai
+  versi lama, jadi nilai akhir, predikat, rekap, dan rapor tidak berubah. Tabel dan kolom baru dibiarkan. Kriteria per TP di
+  konfigurasi beku disimpan di kolom terpisah sehingga versi lama mengabaikannya (tidak ada galat baca); kriteria per TP di
+  pengaturan hidup tetap diabaikan pemecah KKM versi lama. Ketercapaian TP tidak tampil selama rollback dan tampil kembali
+  setelah maju lagi. Rapor final tidak terpengaruh (snapshot).
+
 ## [1.4.0] - 2026-11-13
 
 Fase 3 (asesmen dan rapor), tahap 3.2: komponen rapor tambahan dan tanggapan orang tua. Rapor sekolah yang tidak memakai

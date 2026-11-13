@@ -1,6 +1,6 @@
 'use client';
 
-import type { CalculationMode } from '@edusync/contracts';
+import type { CalculationMode, ObjectiveAggregation } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Layers, Pencil, Plus, SlidersHorizontal, Target, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -42,6 +42,7 @@ import {
 } from '@/lib/calc-mode';
 import { errorKey } from '@/lib/errors';
 import { invalidateGradingConfig, syncedSemesterIdOf } from '@/lib/grading-config';
+import { AGGREGATION_KEYS, aggregationChange, aggregationOrDefault } from '@/lib/objective-achievement';
 import { cn } from '@/lib/utils';
 import { COMPONENT_TONES, predicateTone } from '../grade-ui';
 import {
@@ -84,6 +85,7 @@ function ThresholdsCard() {
   });
   const [dirty, setDirty] = useState(false);
   const [mode, setMode] = useState<CalculationMode>('weighted_average');
+  const [aggregation, setAggregation] = useState<ObjectiveAggregation>('mean');
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const key = ['grading-settings', school.schoolId];
@@ -100,6 +102,7 @@ function ThresholdsCard() {
       predicateC: String(settings.data.predicateC),
     });
     setMode(modeOrDefault(settings.data.calculationMode));
+    setAggregation(aggregationOrDefault(settings.data.objectiveAggregation));
     setDirty(false);
   }, [settings.data]);
 
@@ -138,6 +141,7 @@ function ThresholdsCard() {
             predicateB: n.b,
             predicateC: n.c,
             ...modeChange(settings.data?.calculationMode, mode),
+            ...aggregationChange(settings.data?.objectiveAggregation, aggregation),
           },
         }),
       ),
@@ -306,6 +310,44 @@ function ThresholdsCard() {
           {mode !== modeOrDefault(settings.data.calculationMode) && (
             <Alert>
               <AlertDescription>{t('calcModeWarning')}</AlertDescription>
+            </Alert>
+          )}
+        </fieldset>
+        <fieldset className="grid gap-3">
+          <legend className="font-heading text-base font-semibold">{t('oaAggLabel')}</legend>
+          <p className="text-muted-foreground text-sm">{t('oaAggHelp')}</p>
+          <div className="grid gap-2 lg:grid-cols-3">
+            {AGGREGATION_KEYS.map((m) => (
+              <label
+                key={m}
+                htmlFor={`oa-agg-${m}`}
+                className={cn(
+                  'has-[:focus-visible]:ring-ring/50 flex min-h-11 cursor-pointer items-start gap-3 rounded-xl border p-3 transition-colors has-[:focus-visible]:ring-[3px]',
+                  aggregation === m ? 'border-primary bg-primary/5' : 'hover:bg-muted/50',
+                )}
+              >
+                <input
+                  id={`oa-agg-${m}`}
+                  type="radio"
+                  name="oa-agg"
+                  className="accent-primary mt-1 size-4 shrink-0"
+                  checked={aggregation === m}
+                  onChange={() => {
+                    setAggregation(m);
+                    setDirty(true);
+                  }}
+                />
+                <span className="grid gap-1">
+                  <span className="text-sm font-medium">{t(`oaAggTitle_${m}`)}</span>
+                  <span className="text-muted-foreground text-xs">{t(`oaAggDesc_${m}`)}</span>
+                  <span className="text-xs font-medium">{t(`oaAggExample_${m}`)}</span>
+                </span>
+              </label>
+            ))}
+          </div>
+          {aggregation !== aggregationOrDefault(settings.data.objectiveAggregation) && (
+            <Alert>
+              <AlertDescription>{t('oaAggWarning')}</AlertDescription>
             </Alert>
           )}
         </fieldset>

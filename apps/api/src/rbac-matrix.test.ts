@@ -398,6 +398,23 @@ describe('kebijakan peran bawaan', () => {
     expect(get?.perms).toEqual(['portal:read']);
   });
 
+  it('rute kaitan TP dan ketercapaian TP (tahap 3.3) memasang izin dan modul grades yang benar', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const link = find('PUT', '/v1/assessments/:id/objectives');
+    expect([link?.perms, link?.modules]).toEqual([['grade:input'], ['grades']]);
+    const read = find('GET', '/v1/grading/objective-achievement');
+    expect([read?.perms, read?.modules]).toEqual([['grade:read'], ['grades']]);
+    const write = find('PUT', '/v1/grading/objective-achievement');
+    expect([write?.perms, write?.modules]).toEqual([['grade:input'], ['grades']]);
+    // Peran yang hanya membaca atau tanpa izin nilai tidak dapat menulis kaitan dan keputusan guru.
+    for (const r of roleKeys) {
+      const holds = (p: string) => perms(r).has(p as never);
+      expect(allows(r, link!), r).toBe(holds('grade:input'));
+      expect(allows(r, read!), r).toBe(holds('grade:read'));
+    }
+    for (const r of ['guardian', 'student', 'principal'] as const) expect(allows(r, write!), r).toBe(false);
+  });
+
   it('hanya admin sekolah yang mengelola peran dan anggota', () => {
     for (const r of roleKeys.filter((k) => k !== 'school_admin')) {
       expect(perms(r).has('role:manage'), r).toBe(false);

@@ -168,3 +168,51 @@ export function resolveKkm(
   }
   return { kkm: fallback, scope: 'settings', criteriaId: null };
 }
+
+/* ---------- Pemecah kriteria per TP (fase 3, tahap 3.3) ---------- */
+
+export type ObjectiveCriteriaScope =
+  | 'objective_level_program'
+  | 'objective_level'
+  | 'objective_program'
+  | 'objective';
+
+export interface ResolvedObjectiveCriteria {
+  /** Kriteria ber-TP yang menentukan. */
+  row: KktpRow;
+  scope: ObjectiveCriteriaScope;
+}
+
+/**
+ * Kriteria ketercapaian untuk SATU tujuan pembelajaran (TP). `rows` = kriteria sebuah mapel (baris untuk TP lain atau tanpa TP
+ * diabaikan). Jenjang cakupan sama dengan `resolveKkm`: (tingkat, program) -> (tingkat) -> (program) -> (TP saja). Hanya baris
+ * aktif dengan `objectiveId` = TP itu. Berbeda dari KKM mapel, kriteria yang ambangnya tak dapat dihitung (mode deskriptor tanpa
+ * rentang angka) TIDAK dilewati: ia tetap menentukan dan hasilnya "belum dapat ditentukan" (keputusan guru). Null bila tak ada
+ * kriteria untuk TP itu; pemanggil lalu jatuh ke KKM mapel (`resolveKkm`) dan KKM sekolah.
+ */
+export function resolveObjectiveCriteria(
+  rows: readonly KktpRow[],
+  objectiveId: string,
+  target: { levelCode: string | null; programId: string | null },
+): ResolvedObjectiveCriteria | null {
+  const usable = rows.filter((r) => r.active && r.objectiveId === objectiveId);
+  if (usable.length === 0) return null;
+  const tiers: { scope: ObjectiveCriteriaScope; levelCode: string | null; programId: string | null }[] = [];
+  if (target.levelCode !== null && target.programId !== null) {
+    tiers.push({
+      scope: 'objective_level_program',
+      levelCode: target.levelCode,
+      programId: target.programId,
+    });
+  }
+  if (target.levelCode !== null)
+    tiers.push({ scope: 'objective_level', levelCode: target.levelCode, programId: null });
+  if (target.programId !== null)
+    tiers.push({ scope: 'objective_program', levelCode: null, programId: target.programId });
+  tiers.push({ scope: 'objective', levelCode: null, programId: null });
+  for (const tier of tiers) {
+    const hit = usable.find((r) => r.levelCode === tier.levelCode && r.programId === tier.programId);
+    if (hit) return { row: hit, scope: tier.scope };
+  }
+  return null;
+}

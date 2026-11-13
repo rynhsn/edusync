@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ClipboardList, Eye, Layers, ListChecks, Pencil, PenLine, Plus, Trash2 } from 'lucide-react';
+import { ClipboardList, Eye, Layers, ListChecks, Pencil, PenLine, Plus, Target, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -44,10 +44,12 @@ import {
 } from '@/lib/assessment-category';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
+import { type ObjectiveLite, objectiveLabel } from '@/lib/objective-achievement';
 import { todayIso } from '@/lib/school-time';
 import { cn } from '@/lib/utils';
 import { COMPONENT_TONES } from './grade-ui';
 import { ASSESSMENT_ORDER, type AssessmentField, validateAssessment } from './grade-validation';
+import { ObjectivePicker } from './objective-picker';
 import { ScoreSheet } from './score-sheet';
 
 interface Props {
@@ -66,6 +68,10 @@ interface Form {
   /** Lingkup sumatif: hanya untuk komponen sumatif. */
   scope: ScopeValue;
   technique: TechniqueValue;
+  /** TP yang dikaitkan; satu skor berlaku untuk semuanya. */
+  objectiveIds: string[];
+  /** TP yang sudah terkait saat formulir dibuka (untuk menampilkan versi lama). */
+  linked: ObjectiveLite[];
 }
 
 const emptyForm = (componentId = ''): Form => ({
@@ -76,6 +82,8 @@ const emptyForm = (componentId = ''): Form => ({
   initial: false,
   scope: '',
   technique: '',
+  objectiveIds: [],
+  linked: [],
 });
 
 /** Daftar penilaian untuk satu semester, kelas, dan mata pelajaran; membuka lembar input nilai. */
@@ -127,6 +135,7 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ['assessments', school.schoolId] });
     queryClient.invalidateQueries({ queryKey: ['grading-recap', school.schoolId] });
+    queryClient.invalidateQueries({ queryKey: ['objective-achievement', school.schoolId] });
   };
 
   const submit = useMutation({
@@ -136,6 +145,7 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
         title: form.title.trim(),
         date: form.date,
         maxScore: maxNumber,
+        objectiveIds: form.objectiveIds,
         ...assessmentTags({
           category: pickedCategory,
           initial: form.initial,
@@ -338,6 +348,15 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
                       {a.technique && (
                         <span className="text-muted-foreground text-xs">{t(techniqueKey(a.technique))}</span>
                       )}
+                      {a.objectives.length > 0 && (
+                        <span title={a.objectives.map(objectiveLabel).join('\n')}>
+                          <ToneBadge tone="teal" dot={false}>
+                            <Target className="size-3" aria-hidden />
+                            {t('objectivesBadge', { count: a.objectives.length })}
+                          </ToneBadge>
+                          <span className="sr-only">{a.objectives.map(objectiveLabel).join('; ')}</span>
+                        </span>
+                      )}
                     </span>
                     <span className="text-muted-foreground text-sm md:text-foreground">
                       {formatCalendarDate(locale, a.date)}
@@ -390,6 +409,8 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
                                 initial: a.purpose === 'initial',
                                 scope: scopeValue(a.summativeScope),
                                 technique: techniqueValue(a.technique),
+                                objectiveIds: a.objectives.map((x) => x.id),
+                                linked: a.objectives,
                               }),
                           },
                           {
@@ -555,6 +576,13 @@ export function AssessmentsPanel({ semesterId, classId, subjectId }: Props) {
             ))}
           </SelectField>
         </div>
+        <ObjectivePicker
+          subjectId={subjectId}
+          value={form.objectiveIds}
+          onChange={(ids) => setForm((f) => ({ ...f, objectiveIds: ids }))}
+          linked={form.linked}
+          feedback={!!pickedComponent && pickedCategory === 'formative'}
+        />
       </FormDialog>
     </div>
   );

@@ -3,6 +3,7 @@ import {
   academicYear,
   and,
   asc,
+  assessmentObjective,
   classRoom,
   count,
   desc,
@@ -16,6 +17,7 @@ import {
   schoolLevel,
   semester,
   sql,
+  studentObjectiveAchievement,
   subject,
   type Tx,
   teacher,
@@ -87,15 +89,22 @@ async function assertCanWrite(tx: Tx, ctx: TenantContext, subjectId: string, aca
   }
 }
 
-/** TP yang dipakai item ATP berstatus terbit (dari himpunan yang diberikan). */
-async function usedByPublished(tx: Tx, objectiveIds: string[]): Promise<Set<string>> {
+/**
+ * TP yang dipakai: item ATP berstatus terbit, ATAU dikaitkan ke penilaian (tahap 3.3, K14), dari himpunan yang diberikan.
+ * Mengubah teks TP yang dipakai membuat versi baru; penilaian dan ATP terbit tetap menunjuk versi lama.
+ */
+async function usedByPublishedOrAssessed(tx: Tx, objectiveIds: string[]): Promise<Set<string>> {
   if (objectiveIds.length === 0) return new Set();
-  const rows = await tx
+  const published = await tx
     .selectDistinct({ id: learningFlowItem.objectiveId })
     .from(learningFlowItem)
     .innerJoin(learningFlow, eq(learningFlow.id, learningFlowItem.flowId))
     .where(and(eq(learningFlow.status, 'published'), inArray(learningFlowItem.objectiveId, objectiveIds)));
-  return new Set(rows.map((r) => r.id));
+  const assessed = await tx
+    .selectDistinct({ id: assessmentObjective.objectiveId })
+    .from(assessmentObjective)
+    .where(inArray(assessmentObjective.objectiveId, objectiveIds));
+  return new Set([...published, ...assessed].map((r) => r.id));
 }
 
 /* ---------- Skema ---------- */
@@ -649,7 +658,7 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
         description:
           `Izin: \`teaching_plan:write\`.${writeNote} \`phase\` dan \`description\` wajib; \`code\` dan \`active\` yang ` +
           'dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ' +
-          'ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama ' +
+          'ATP berstatus terbit atau salah satu TP-nya dikaitkan ke penilaian, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama ' +
           'dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP ' +
           'terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. ' +
           '409 `superseded`: versi ini sudah punya penerus (berlaku juga untuk `active` true pada versi lama; aktifkan versi terbaru).',
@@ -691,7 +700,7 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
           .where(eq(learningObjective.outcomeId, cur.id));
         const used = textChanged
           ? (
-              await usedByPublished(
+              await usedByPublishedOrAssessed(
                 tx,
                 objectives.map((o) => o.id),
               )
@@ -922,8 +931,8 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
         description:
           `Izin: \`teaching_plan:write\`.${writeNote} \`description\` wajib; \`code\`, \`sortOrder\`, \`active\` yang ` +
           'dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP ' +
-          'berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama ' +
-          'dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, ' +
+          'berstatus terbit ATAU dikaitkan ke penilaian (ketercapaian TP), TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama ' +
+          'dinonaktifkan; ATP terbit dan penilaian tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, ' +
           'diubah di tempat. 409 `superseded`: versi ini sudah punya penerus; berlaku juga untuk `active` true pada versi lama (aktifkan versi terbaru).',
         headers: schoolHeader,
         params: idParams,
@@ -957,7 +966,7 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
           if (successor) throw new HttpError(409, 'superseded', supersededMsg);
         }
 
-        if (textChanged && (await usedByPublished(tx, [cur.id])).has(cur.id)) {
+        if (textChanged && (await usedByPublishedOrAssessed(tx, [cur.id])).has(cur.id)) {
           const [next] = await tx
             .insert(learningObjective)
             .values({
@@ -1008,8 +1017,8 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
         tags: ['Curriculum'],
         summary: 'Hapus tujuan pembelajaran (TP)',
         description:
-          `Izin: \`teaching_plan:write\`.${writeNote} 409 \`in_use\`: TP dirujuk item ATP (draf maupun terbit) atau ` +
-          'sudah punya versi penerus; nonaktifkan lewat PUT `active` false.',
+          `Izin: \`teaching_plan:write\`.${writeNote} 409 \`in_use\`: TP dirujuk item ATP (draf maupun terbit), dikaitkan ke penilaian, ` +
+          'punya keputusan ketercapaian guru, atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
@@ -1029,6 +1038,19 @@ export async function teachingPlanRoutes(instance: FastifyInstance) {
             .where(eq(learningFlowItem.objectiveId, first.id))
             .limit(1);
           if (item) throw inUse('TP dipakai ATP; keluarkan dari ATP-nya atau nonaktifkan TP ini.');
+          const [linked] = await tx
+            .select({ id: assessmentObjective.assessmentId })
+            .from(assessmentObjective)
+            .where(eq(assessmentObjective.objectiveId, first.id))
+            .limit(1);
+          if (linked)
+            throw inUse('TP dikaitkan ke penilaian; lepaskan dari penilaiannya atau nonaktifkan TP ini.');
+          const [decided] = await tx
+            .select({ id: studentObjectiveAchievement.id })
+            .from(studentObjectiveAchievement)
+            .where(eq(studentObjectiveAchievement.objectiveId, first.id))
+            .limit(1);
+          if (decided) throw inUse('TP sudah punya keputusan ketercapaian guru; nonaktifkan saja.');
           const [successor] = await tx
             .select({ id: learningObjective.id })
             .from(learningObjective)

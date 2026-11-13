@@ -25500,6 +25500,11 @@ export interface paths {
                              * @enum {string}
                              */
                             calculationMode?: "weighted_average" | "percentage" | "simple_average";
+                            /**
+                             * @description Aturan agregasi ketercapaian TP. Ada hanya bila bukan bawaan (`latest` atau `max`); dihilangkan = `mean`.
+                             * @enum {string}
+                             */
+                            objectiveAggregation?: "mean" | "latest" | "max";
                             /** @description Hanya ada bila semester aktif punya salinan beku konfigurasi nilai; dihilangkan selain itu */
                             activeSemesterConfig?: {
                                 /** Format: uuid */
@@ -25550,7 +25555,7 @@ export interface paths {
         };
         /**
          * Ubah pengaturan penilaian
-         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen yang dihitung (sumatif dan ikut nilai akhir; komponen formatif tidak ikut) bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).
+         * @description Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen yang dihitung (sumatif dan ikut nilai akhir; komponen formatif tidak ikut) bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama). `objectiveAggregation` opsional (`mean` bawaan, `latest`, `max`) mengatur agregasi ketercapaian TP dari beberapa penilaian sumatif; dihilangkan = tetap; ikut salinan beku semester (semester beku tidak berubah) dan dijaga `report_final` seperti bobot dan KKM.
          */
         put: {
             parameters: {
@@ -25574,6 +25579,11 @@ export interface paths {
                          * @enum {string}
                          */
                         calculationMode?: "weighted_average" | "percentage" | "simple_average";
+                        /**
+                         * @description Dihilangkan: aturan yang ada dipertahankan. `mean` mengembalikan ke bawaan.
+                         * @enum {string}
+                         */
+                        objectiveAggregation?: "mean" | "latest" | "max";
                     };
                 };
             };
@@ -25598,6 +25608,11 @@ export interface paths {
                              * @enum {string}
                              */
                             calculationMode?: "weighted_average" | "percentage" | "simple_average";
+                            /**
+                             * @description Aturan agregasi ketercapaian TP. Ada hanya bila bukan bawaan (`latest` atau `max`); dihilangkan = `mean`.
+                             * @enum {string}
+                             */
+                            objectiveAggregation?: "mean" | "latest" | "max";
                             /**
                              * Format: uuid
                              * @description Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.
@@ -25755,6 +25770,13 @@ export interface paths {
                             }[];
                             /** @description Jumlah KKTP dalam salinan; null bila semester belum beku */
                             criteriaCount: number | null;
+                            /** @description Jumlah kriteria per TP dalam salinan beku; ada hanya bila > 0 */
+                            objectiveCriteriaCount?: number;
+                            /**
+                             * @description Aturan agregasi TP semester ini; ada hanya bila bukan bawaan (`mean`)
+                             * @enum {string}
+                             */
+                            objectiveAggregation?: "mean" | "latest" | "max";
                         };
                     };
                 };
@@ -25896,6 +25918,13 @@ export interface paths {
                             }[];
                             /** @description Jumlah KKTP dalam salinan; null bila semester belum beku */
                             criteriaCount: number | null;
+                            /** @description Jumlah kriteria per TP dalam salinan beku; ada hanya bila > 0 */
+                            objectiveCriteriaCount?: number;
+                            /**
+                             * @description Aturan agregasi TP semester ini; ada hanya bila bukan bawaan (`mean`)
+                             * @enum {string}
+                             */
+                            objectiveAggregation?: "mean" | "latest" | "max";
                             /** @description Salinan ditulis (dibuat atau berubah isinya) */
                             changed: boolean;
                         };
@@ -26653,6 +26682,15 @@ export interface paths {
                             summativeScope?: "material" | "end_of_semester" | null;
                             /** @description Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat. */
                             technique?: string | null;
+                            /** @description Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan. */
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                /** @description false = TP sudah diganti versi baru atau dinonaktifkan */
+                                active: boolean;
+                            }[];
                             /** Format: uuid */
                             teacherId: string | null;
                             teacherName: string | null;
@@ -26701,7 +26739,7 @@ export interface paths {
         put?: never;
         /**
          * Buat penilaian
-         * @description Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester itu sudah dibekukan dan komponennya tidak ada di salinan beku (mis. komponen yang dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah. Tanda opsional: `purpose` `initial` (asesmen awal) hanya pada komponen formatif (400 `initial_requires_formative`), `summativeScope` hanya pada komponen sumatif (400 `scope_requires_summative`), `technique` dari daftar teknik. Penilaian pada komponen formatif tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya.
+         * @description Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester itu sudah dibekukan dan komponennya tidak ada di salinan beku (mis. komponen yang dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah. Tanda opsional: `purpose` `initial` (asesmen awal) hanya pada komponen formatif (400 `initial_requires_formative`), `summativeScope` hanya pada komponen sumatif (400 `scope_requires_summative`), `technique` dari daftar teknik. Penilaian pada komponen formatif tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya. `objectiveIds` opsional mengaitkan penilaian ke tujuan pembelajaran (TP): maksimal 20 (400 `too_many_objectives`), milik mapel yang sama (400 `objective_subject_mismatch`), aktif (400 `objective_inactive`); satu skor berlaku untuk semua TP itu.
          */
         post: {
             parameters: {
@@ -26744,6 +26782,8 @@ export interface paths {
                          * @enum {string|null}
                          */
                         technique?: "test" | "observation" | "performance" | "practice" | "product" | "project" | "portfolio" | "assignment" | "other" | null;
+                        /** @description Tujuan pembelajaran (TP) yang dikaitkan, maksimal 20 (400 `too_many_objectives`); harus milik mapel penilaian (400 `objective_subject_mismatch`) dan aktif (400 `objective_inactive`). Pada PUT: dihilangkan = tetap, larik = ganti himpunan. */
+                        objectiveIds?: string[];
                     };
                 };
             };
@@ -26787,6 +26827,15 @@ export interface paths {
                             summativeScope?: "material" | "end_of_semester" | null;
                             /** @description Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat. */
                             technique?: string | null;
+                            /** @description Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan. */
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                /** @description false = TP sudah diganti versi baru atau dinonaktifkan */
+                                active: boolean;
+                            }[];
                             /** Format: uuid */
                             teacherId: string | null;
                             teacherName: string | null;
@@ -26876,7 +26925,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah penilaian
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum, dan tanda (`purpose`, `summativeScope`, `technique`; dihilangkan = tetap, null = kosongkan; tanda diperiksa terhadap kategori komponen: 400 `initial_requires_formative`, `scope_requires_summative`). Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 `component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak diganti tidak diperiksa ulang).
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum, dan tanda (`purpose`, `summativeScope`, `technique`; dihilangkan = tetap, null = kosongkan; tanda diperiksa terhadap kategori komponen: 400 `initial_requires_formative`, `scope_requires_summative`). Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 `component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak diganti tidak diperiksa ulang). `objectiveIds` (TP yang dikaitkan): dihilangkan = tetap, larik = ganti himpunan (aturan dan galat sama dengan membuat penilaian; TP yang sudah terkait boleh tetap walau sudah nonaktif).
          */
         put: {
             parameters: {
@@ -26915,6 +26964,8 @@ export interface paths {
                          * @enum {string|null}
                          */
                         technique?: "test" | "observation" | "performance" | "practice" | "product" | "project" | "portfolio" | "assignment" | "other" | null;
+                        /** @description Tujuan pembelajaran (TP) yang dikaitkan, maksimal 20 (400 `too_many_objectives`); harus milik mapel penilaian (400 `objective_subject_mismatch`) dan aktif (400 `objective_inactive`). Pada PUT: dihilangkan = tetap, larik = ganti himpunan. */
+                        objectiveIds?: string[];
                     };
                 };
             };
@@ -26958,6 +27009,15 @@ export interface paths {
                             summativeScope?: "material" | "end_of_semester" | null;
                             /** @description Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat. */
                             technique?: string | null;
+                            /** @description Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan. */
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                /** @description false = TP sudah diganti versi baru atau dinonaktifkan */
+                                active: boolean;
+                            }[];
                             /** Format: uuid */
                             teacherId: string | null;
                             teacherName: string | null;
@@ -27048,7 +27108,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus penilaian
-         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Seluruh skor penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Seluruh skor dan kaitan TP penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.
          */
         delete: {
             parameters: {
@@ -27204,6 +27264,15 @@ export interface paths {
                                 summativeScope?: "material" | "end_of_semester" | null;
                                 /** @description Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat. */
                                 technique?: string | null;
+                                /** @description Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan. */
+                                objectives: {
+                                    /** Format: uuid */
+                                    id: string;
+                                    code: string | null;
+                                    description: string;
+                                    /** @description false = TP sudah diganti versi baru atau dinonaktifkan */
+                                    active: boolean;
+                                }[];
                                 /** Format: uuid */
                                 teacherId: string | null;
                                 teacherName: string | null;
@@ -27671,6 +27740,455 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/assessments/{id}/objectives": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ganti tujuan pembelajaran (TP) yang dikaitkan ke penilaian
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403); modul `grades`. Mengganti seluruh himpunan TP penilaian (larik kosong = lepas semua). Satu skor penilaian berlaku untuk semua TP yang dikaitkan. Maksimal 20 TP (400 `too_many_objectives`); setiap TP harus ada di sekolah ini (400 `invalid_reference`), milik mapel penilaian (400 `objective_subject_mismatch`), dan aktif (400 `objective_inactive`; TP yang sudah terkait boleh tetap walau kemudian dinonaktifkan atau diganti versi baru). Berlaku juga untuk penilaian hasil ujian CBT; dorong ulang nilai ujian mempertahankan kaitan. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Diaudit (`assessment.objectives`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        objectiveIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            /** Format: uuid */
+                            classId: string;
+                            className: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            subjectName: string;
+                            /** Format: uuid */
+                            componentId: string;
+                            componentName: string;
+                            /**
+                             * @description Kategori diturunkan dari komponen (konfigurasi efektif semester), tidak disimpan di penilaian.
+                             * @enum {string}
+                             */
+                            category?: "formative" | "summative";
+                            /** @description Komponen penilaian ini ikut nilai akhir (diturunkan). */
+                            includeInFinal?: boolean;
+                            /**
+                             * @description `initial` = asesmen awal (diagnostik); hanya pada komponen formatif; tidak pernah masuk nilai akhir. null = biasa.
+                             * @enum {string|null}
+                             */
+                            purpose?: "initial" | null;
+                            /**
+                             * @description Lingkup sumatif (`material` atau `end_of_semester`); hanya pada komponen sumatif. null = tidak ditandai.
+                             * @enum {string|null}
+                             */
+                            summativeScope?: "material" | "end_of_semester" | null;
+                            /** @description Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat. */
+                            technique?: string | null;
+                            /** @description Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan. */
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                /** @description false = TP sudah diganti versi baru atau dinonaktifkan */
+                                active: boolean;
+                            }[];
+                            /** Format: uuid */
+                            teacherId: string | null;
+                            teacherName: string | null;
+                            title: string;
+                            date: string;
+                            maxScore: number;
+                            /** @description Jumlah siswa aktif atau lulusan kelas yang sudah punya skor */
+                            filled: number;
+                            /** @description Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu) */
+                            total: number;
+                            /** @description Pengguna ini boleh mengubah penilaian dan skornya */
+                            canInput: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/grading/objective-achievement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Matriks ketercapaian tujuan pembelajaran (TP) per siswa
+         * @description Izin: `grade:read`; modul `grades`. Matriks siswa x TP untuk satu kelas, mapel, dan semester. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Ketercapaian DIHITUNG saat dibaca: skor penilaian SUMATIF (komponen yang ikut nilai akhir, bukan asesmen awal) yang dikaitkan ke TP, diagregasi menurut `aggregation` (`mean`, `latest`, `max`; salinan beku semester bila ada), lalu dibandingkan dengan ambang bertingkat: kriteria per TP (KKTP ber-`objectiveId`; jenjang tingkat+program, tingkat, program, TP saja) -> KKM mapel -> KKM sekolah (`scope` per sel). Keputusan guru (`PUT` yang sama) menang (`source` `override`). Penilaian formatif tidak dihitung; ringkasannya ada di `formative` per sel sebagai kemajuan. `objectives` memuat TP yang dikaitkan ke penilaian atau yang punya keputusan guru, urut `sortOrder`; `includeAll=true` menambahkan semua TP aktif mapel itu. TP yang sudah diganti versi baru (`active` false) tetap tampil selama masih dikaitkan. `locked` per siswa = rapor semester itu sudah final (keputusan guru ditolak 409 `report_final`). Angka ini belum memengaruhi rapor. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    classId: string;
+                    subjectId: string;
+                    includeAll?: "true" | "false";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * @description Aturan agregasi ketercapaian TP dari beberapa penilaian sumatif: `mean` (bawaan, rata-rata persen), `latest` (penilaian terbaru menurut tanggal), `max` (persen tertinggi).
+                             * @enum {string}
+                             */
+                            aggregation: "mean" | "latest" | "max";
+                            /** @description Semester memakai salinan beku konfigurasi (kriteria TP dan agregasi dari salinan) */
+                            frozen: boolean;
+                            /** @description Pengguna ini boleh mengisi keputusan guru untuk kelas+mapel ini */
+                            canInput: boolean;
+                            objectives: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string | null;
+                                description: string;
+                                active: boolean;
+                                sortOrder: number;
+                                /** @description Jumlah penilaian sumatif terkait */
+                                assessmentCount: number;
+                                /** @description Jumlah penilaian formatif terkait */
+                                formativeCount: number;
+                                summary: {
+                                    /** @description Jumlah siswa yang sudah berstatus */
+                                    assessed: number;
+                                    /** @description Jumlah siswa yang tercapai */
+                                    achieved: number;
+                                };
+                            }[];
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                locked: boolean;
+                                /** @description Satu sel per TP, urutan sama dengan `objectives` */
+                                cells: {
+                                    /** Format: uuid */
+                                    objectiveId: string;
+                                    /** @description Persen agregat penilaian sumatif yang dikaitkan (aturan `aggregation`); null = belum ada skor */
+                                    percent: number | null;
+                                    /** @description Tercapai atau belum; null = belum dapat ditentukan (tanpa skor dan tanpa keputusan guru, atau deskriptor tanpa rentang) */
+                                    achieved: boolean | null;
+                                    /** @description Label level kriteria yang memuat persen, atau pilihan guru */
+                                    levelLabel: string | null;
+                                    /**
+                                     * @description `override` = keputusan guru menimpa status; `computed` = dari skor; null = belum ada keduanya
+                                     * @enum {string|null}
+                                     */
+                                    source: "computed" | "override" | null;
+                                    /**
+                                     * @description Asal ambang: kriteria per TP (`objective_level_program`, `objective_level`, `objective_program`, `objective`), KKM mapel (`subject_kkm`), atau KKM sekolah (`school_kkm`); null bila belum ada skor
+                                     * @enum {string|null}
+                                     */
+                                    scope: "objective_level_program" | "objective_level" | "objective_program" | "objective" | "subject_kkm" | "school_kkm" | null;
+                                    /** @description Ambang terkecil yang dianggap tercapai */
+                                    threshold: number | null;
+                                    /** @description Jumlah penilaian sumatif terkait yang sudah punya skor siswa ini */
+                                    scoredCount: number;
+                                    /** @description Alasan/catatan guru pada keputusan */
+                                    note: string | null;
+                                    /** @description Kemajuan dari penilaian formatif terkait, TERPISAH: tidak dipakai untuk status ketercapaian rapor. Ada hanya bila ada skor. */
+                                    formative?: {
+                                        average: number;
+                                        count: number;
+                                    };
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan keputusan guru atas ketercapaian TP
+         * @description Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel (selain itu 403); modul `grades`. Keputusan guru (override) per (siswa, TP) pada semester itu, batch 1..500. Setiap record MENGGANTIKAN keputusan sebelumnya untuk (siswa, TP) itu: `achieved` (true/false) menimpa status hitung, `levelLabel` (maks 60 karakter) dan `note` alasan (maks 500) opsional; yang dihilangkan atau null dikosongkan; ketiganya kosong menghapus keputusan. Hanya menyimpan keputusan, bukan hasil hitung. Siswa harus anggota aktif kelas dan TP milik mapel itu (400 `invalid_reference`, `objective_subject_mismatch`); TP tidak harus aktif atau sudah dikaitkan ke penilaian. Ditolak 409 `report_final` bila rapor salah satu siswa itu pada semester tersebut sudah final (buka kembali rapornya lebih dulu). Siswa dan TP yang sama dikirim dua kali: yang terakhir berlaku. Diaudit (`objective_achievement.save`).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        classId: string;
+                        /** Format: uuid */
+                        subjectId: string;
+                        records: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** Format: uuid */
+                            objectiveId: string;
+                            achieved?: boolean | null;
+                            levelLabel?: string | null;
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                            cleared: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;
@@ -50341,7 +50859,7 @@ export interface paths {
         put?: never;
         /**
          * Kirim hasil ujian ke buku nilai
-         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, atau kaitan lain yang sudah diatur guru. Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian (mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau `scope_requires_summative`.
+         * @description Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, atau kaitan tujuan pembelajaran (TP, `PUT /v1/assessments/{id}/objectives`) yang sudah diatur guru; kaitan TP bertahan walau nilai didorong ulang. Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian (mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau `scope_requires_summative`.
          */
         post: {
             parameters: {
@@ -53718,7 +54236,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah capaian pembelajaran (CP)
-         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus (berlaku juga untuk `active` true pada versi lama; aktifkan versi terbaru).
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit atau salah satu TP-nya dikaitkan ke penilaian, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus (berlaku juga untuk `active` true pada versi lama; aktifkan versi terbaru).
          */
         put: {
             parameters: {
@@ -54145,7 +54663,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah tujuan pembelajaran (TP)
-         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus; berlaku juga untuk `active` true pada versi lama (aktifkan versi terbaru).
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit ATAU dikaitkan ke penilaian (ketercapaian TP), TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit dan penilaian tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus; berlaku juga untuk `active` true pada versi lama (aktifkan versi terbaru).
          */
         put: {
             parameters: {
@@ -54256,7 +54774,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus tujuan pembelajaran (TP)
-         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). 409 `in_use`: TP dirujuk item ATP (draf maupun terbit) atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.
+         * @description Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). 409 `in_use`: TP dirujuk item ATP (draf maupun terbit), dikaitkan ke penilaian, punya keputusan ketercapaian guru, atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.
          */
         delete: {
             parameters: {

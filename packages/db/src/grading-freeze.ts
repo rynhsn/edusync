@@ -2,10 +2,13 @@ import {
   type CalculationMode,
   type ComponentCategory,
   type CriteriaMode,
+  DEFAULT_OBJECTIVE_AGGREGATION,
   type FreezeOrigin,
   type FrozenComponent,
   type FrozenCriteria,
+  type FrozenObjectiveCriteria,
   gradingConfigVersionOf,
+  type ObjectiveAggregation,
   type ResolvedFrozenGradingConfig,
   resolveFrozenGradingConfig,
   sparseFrozenComponent,
@@ -61,15 +64,14 @@ export async function readLiveGradingConfig(ex: Executor, schoolId: string) {
       .orderBy(asc(gradeComponent.sort), asc(gradeComponent.name))
   ).map((c) => sparseFrozenComponent({ ...c, category: c.category as ComponentCategory }));
 
-  // Hanya kriteria aktif tingkat mapel (tanpa TP): satu-satunya yang dipakai pemecah KKM.
-  const rows = (
-    await ex
-      .select()
-      .from(achievementCriteria)
-      .where(and(eq(achievementCriteria.schoolId, schoolId), eq(achievementCriteria.active, true)))
-      .orderBy(asc(achievementCriteria.createdAt), asc(achievementCriteria.id))
-  ).filter((r) => r.objectiveId === null);
-  const levels = rows.length
+  // Kriteria aktif: yang tanpa TP masuk `criteria` (satu-satunya yang dipakai pemecah KKM; skema baca v1 mewajibkan objectiveId
+  // null), yang ber-TP masuk `objectiveCriteria` (kolom terpisah, tahap 3.3). Satu kueri kriteria dan satu kueri level untuk keduanya.
+  const allRows = await ex
+    .select()
+    .from(achievementCriteria)
+    .where(and(eq(achievementCriteria.schoolId, schoolId), eq(achievementCriteria.active, true)))
+    .orderBy(asc(achievementCriteria.createdAt), asc(achievementCriteria.id));
+  const levels = allRows.length
     ? await ex
         .select()
         .from(achievementRubricLevel)
@@ -78,21 +80,20 @@ export async function readLiveGradingConfig(ex: Executor, schoolId: string) {
             eq(achievementRubricLevel.schoolId, schoolId),
             inArray(
               achievementRubricLevel.criteriaId,
-              rows.map((r) => r.id),
+              allRows.map((r) => r.id),
             ),
           ),
         )
         .orderBy(asc(achievementRubricLevel.sortOrder), asc(achievementRubricLevel.id))
     : [];
-  const criteria: FrozenCriteria[] = rows.map((r) => ({
+  const frozenRow = (r: (typeof allRows)[number]) => ({
     id: r.id,
     subjectId: r.subjectId,
     mode: r.mode as CriteriaMode,
     threshold: r.threshold,
     levelCode: r.levelCode,
     programId: r.programId,
-    objectiveId: null,
-    active: true,
+    active: true as const,
     levels: levels
       .filter((l) => l.criteriaId === r.id)
       .map((l) => ({
@@ -102,7 +103,14 @@ export async function readLiveGradingConfig(ex: Executor, schoolId: string) {
         maxScore: l.maxScore,
         isAchieved: l.isAchieved,
       })),
-  }));
+  });
+  const criteria: FrozenCriteria[] = allRows
+    .filter((r) => r.objectiveId === null)
+    .map((r) => ({ ...frozenRow(r), objectiveId: null }));
+  const objectiveCriteria: FrozenObjectiveCriteria[] = allRows.flatMap((r) =>
+    r.objectiveId === null ? [] : [{ ...frozenRow(r), objectiveId: r.objectiveId }],
+  );
+  const aggregation = (setting?.objectiveAggregation ?? null) as ObjectiveAggregation | null;
   return {
     kkm: setting?.kkm ?? DEFAULT_SETTINGS.kkm,
     predicateA: setting?.predicateA ?? DEFAULT_SETTINGS.predicateA,
@@ -111,14 +119,20 @@ export async function readLiveGradingConfig(ex: Executor, schoolId: string) {
     calculationMode: (setting?.calculationMode ?? DEFAULT_SETTINGS.calculationMode) as CalculationMode,
     components,
     criteria,
+    // Bagian tahap 3.3 ditulis SPARSE (R3): kunci hanya ada bila bukan bawaan, jadi sekolah tanpa kriteria TP dan dengan agregasi
+    // bawaan tetap menghasilkan salinan v1 byte demi byte dan `matchesLive` tidak bergeser.
+    ...(objectiveCriteria.length > 0 ? { objectiveCriteria } : {}),
+    ...(aggregation !== null && aggregation !== DEFAULT_OBJECTIVE_AGGREGATION
+      ? { objectiveAggregation: aggregation }
+      : {}),
   };
 }
 
 /**
  * Baca salinan beku sebuah semester lewat pembaca lintas versi (`config_version` 1 dan 2; kunci yang hilang = nilai bawaan).
  * Null bila semester belum beku. Memfilter `school_id` sendiri, jadi aman di koneksi BYPASSRLS. Salinan versi tak dikenal
- * melempar galat jelas. Kolom v2 (`objective_criteria`, `objective_aggregation`, `remedial_policy`) belum ada di tabel pada tahap
- * 3.0, jadi hasilnya selalu bernilai bawaan sampai migrasi fase 3 menambahkannya.
+ * melempar galat jelas. Kolom tahap 3.3 (`objective_criteria`, `objective_aggregation`) dibaca bila ada; kolom
+ * `remedial_policy` (tahap 3.5) belum ada di tabel, jadi bernilai bawaan sampai migrasi tahap itu menambahkannya.
  */
 export async function readFrozenGradingConfig(
   ex: Executor,
@@ -141,12 +155,20 @@ export async function readFrozenGradingConfig(
  */
 export async function freezeSemesterGradingConfig(ex: Executor, p: FreezeParams): Promise<boolean> {
   const live = await readLiveGradingConfig(ex, p.schoolId);
-  // Versi 2 hanya bila ada komponen yang memuat field kategori; selain itu v1 seperti sebelum fase 3.
-  const configVersion = gradingConfigVersionOf(live.components);
+  // Versi 2 hanya bila ada komponen yang memuat field kategori, kriteria TP, atau agregasi TP bukan bawaan; selain itu v1
+  // seperti sebelum fase 3.
+  const configVersion = gradingConfigVersionOf(live.components, live);
+  // Kolom tahap 3.3 selalu ditulis eksplisit supaya menimpa salinan lama yang memuatnya (Drizzle mengabaikan `undefined` di `set`).
+  const v2 = {
+    objectiveCriteria: live.objectiveCriteria ?? [],
+    objectiveAggregation: live.objectiveAggregation ?? null,
+  };
+  const { objectiveCriteria: _oc, objectiveAggregation: _oa, ...base } = live;
   const values = {
     schoolId: p.schoolId,
     semesterId: p.semesterId,
-    ...live,
+    ...base,
+    ...v2,
     configVersion,
     origin: p.origin,
     frozenBy: p.actorId,
@@ -157,7 +179,8 @@ export async function freezeSemesterGradingConfig(ex: Executor, p: FreezeParams)
         .onConflictDoUpdate({
           target: semesterGradingConfig.semesterId,
           set: {
-            ...live,
+            ...base,
+            ...v2,
             configVersion,
             origin: p.origin,
             frozenBy: p.actorId,

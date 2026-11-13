@@ -1,8 +1,11 @@
 import {
   type ComponentCategory,
+  DEFAULT_OBJECTIVE_AGGREGATION,
   type FreezeOrigin,
   frozenComponentsSchema,
   type KktpRow,
+  OBJECTIVE_AGGREGATIONS,
+  type ObjectiveAggregation,
   resolveFrozenGradingConfig,
 } from '@edusync/contracts';
 import {
@@ -13,6 +16,7 @@ import {
   eq,
   freezeSemesterGradingConfig,
   gradeComponent,
+  gradingSetting,
   readLiveGradingConfig,
   reportCard,
   semester,
@@ -23,7 +27,13 @@ import {
 import { type GradingComponent, type GradingSettings, loadComponents, loadSettings } from './grading-lib';
 import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
-import { type KktpResolver, loadKktpResolver, loadKktpRows, makeKktpResolver } from './kktp-lib';
+import {
+  type KktpResolver,
+  loadKktpResolver,
+  loadKktpRows,
+  loadObjectiveKktpRows,
+  makeKktpResolver,
+} from './kktp-lib';
 import type { ReportDocument } from './report-card-lib';
 import { REPORT_FINAL_CODE } from './report-lock-lib';
 import { audit } from './routes/helpers';
@@ -52,6 +62,18 @@ export interface EffectiveGradingConfig {
   ): Promise<KktpResolver>;
   /** Baris KKTP (aktif, tingkat mapel) per mapel; dari salinan (tanpa kueri) atau dari tabel hidup. Untuk pratinjau pemecah KKM. */
   kktpRows(tx: Tx, subjectIds: string[]): Promise<Map<string, KktpRow[]>>;
+  /** Aturan agregasi ketercapaian TP (K4); dari salinan (tanpa kueri) atau dari `grading_setting` hidup (satu kueri). */
+  objectiveAggregation(tx: Tx): Promise<ObjectiveAggregation>;
+  /** Kriteria per TP (aktif) per id TP; dari salinan (`objective_criteria`, tanpa kueri) atau dari tabel hidup (dua kueri). */
+  objectiveKktpRows(tx: Tx, objectiveIds: string[]): Promise<Map<string, KktpRow[]>>;
+}
+
+/** Aturan agregasi TP sekolah (konfigurasi hidup); nilai tak dikenal atau kosong = bawaan. */
+async function loadLiveObjectiveAggregation(tx: Tx): Promise<ObjectiveAggregation> {
+  const [s] = await tx.select({ v: gradingSetting.objectiveAggregation }).from(gradingSetting);
+  return (OBJECTIVE_AGGREGATIONS as readonly string[]).includes(s?.v ?? '')
+    ? (s?.v as ObjectiveAggregation)
+    : DEFAULT_OBJECTIVE_AGGREGATION;
 }
 
 /**
@@ -77,6 +99,8 @@ export async function loadGradingConfig(
       frozen: null,
       kkmResolver: (t, p) => loadKktpResolver(t, { ...p, fallback: settings.kkm }),
       kktpRows: (t, subjectIds) => loadKktpRows(t, subjectIds),
+      objectiveAggregation: (t) => loadLiveObjectiveAggregation(t),
+      objectiveKktpRows: (t, objectiveIds) => loadObjectiveKktpRows(t, objectiveIds),
     };
   }
   const settings: GradingSettings = {
@@ -111,6 +135,19 @@ export async function loadGradingConfig(
     frozen: { origin: row.origin, frozenAt: row.frozenAt },
     kkmResolver: async (_tx, p) => makeKktpResolver(bySubject, { ...p, fallback: settings.kkm }),
     kktpRows: async (_tx, subjectIds) => new Map(subjectIds.map((id) => [id, bySubject.get(id) ?? []])),
+    // Salinan v1 (tanpa kolom tahap 3.3) terbaca sebagai tanpa kriteria TP dan agregasi `mean`.
+    objectiveAggregation: async () => resolved.objectiveAggregation,
+    objectiveKktpRows: async (_tx, objectiveIds) => {
+      const wanted = new Set(objectiveIds);
+      const byObjective = new Map<string, KktpRow[]>();
+      for (const c of resolved.objectiveCriteria) {
+        if (!wanted.has(c.objectiveId)) continue;
+        const list = byObjective.get(c.objectiveId) ?? [];
+        list.push(c);
+        byObjective.set(c.objectiveId, list);
+      }
+      return byObjective;
+    },
   };
 }
 
@@ -203,6 +240,10 @@ const summarize = (r: typeof semesterGradingConfig.$inferSelect) => ({
   origin: r.origin,
   components: Array.isArray(r.components) ? r.components.length : 0,
   criteria: Array.isArray(r.criteria) ? r.criteria.length : 0,
+  ...(Array.isArray(r.objectiveCriteria) && r.objectiveCriteria.length > 0
+    ? { objectiveCriteria: r.objectiveCriteria.length }
+    : {}),
+  ...(r.objectiveAggregation ? { objectiveAggregation: r.objectiveAggregation } : {}),
 });
 
 /**
@@ -355,6 +396,14 @@ export async function matchesLive(
       calculationMode: row.calculationMode,
       components: row.components,
       criteria: row.criteria,
+      // Kolom tahap 3.3 hanya ikut bila bukan bawaan (sparse, sama dengan `readLiveGradingConfig`), jadi salinan lama dan
+      // salinan tanpa fitur itu tetap `matchesLive` seperti sebelumnya.
+      ...(Array.isArray(row.objectiveCriteria) && row.objectiveCriteria.length > 0
+        ? { objectiveCriteria: row.objectiveCriteria }
+        : {}),
+      ...(row.objectiveAggregation && row.objectiveAggregation !== DEFAULT_OBJECTIVE_AGGREGATION
+        ? { objectiveAggregation: row.objectiveAggregation }
+        : {}),
     }) === canonical(live)
   );
 }

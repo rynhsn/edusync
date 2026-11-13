@@ -100,3 +100,51 @@ export async function loadKktpResolverForClass(
     fallback: p.fallback,
   });
 }
+
+/**
+ * Kriteria per TP (aktif, `objectiveId` terisi) milik TP-TP itu beserta levelnya, dikelompokkan per TP. Dua kueri (kriteria dan
+ * level) berapa pun jumlah TP-nya. Hanya untuk konfigurasi hidup; semester beku memakai `objective_criteria` di salinannya.
+ */
+export async function loadObjectiveKktpRows(tx: Tx, objectiveIds: string[]): Promise<Map<string, KktpRow[]>> {
+  const byObjective = new Map<string, KktpRow[]>();
+  if (objectiveIds.length === 0) return byObjective;
+  const rows = await tx
+    .select()
+    .from(achievementCriteria)
+    .where(and(inArray(achievementCriteria.objectiveId, objectiveIds), eq(achievementCriteria.active, true)));
+  if (rows.length === 0) return byObjective;
+  const levels = await tx
+    .select()
+    .from(achievementRubricLevel)
+    .where(
+      inArray(
+        achievementRubricLevel.criteriaId,
+        rows.map((r) => r.id),
+      ),
+    )
+    .orderBy(asc(achievementRubricLevel.sortOrder), asc(achievementRubricLevel.id));
+  for (const r of rows) {
+    if (r.objectiveId === null) continue;
+    const list = byObjective.get(r.objectiveId) ?? [];
+    list.push({
+      id: r.id,
+      mode: r.mode as CriteriaMode,
+      threshold: r.threshold,
+      levelCode: r.levelCode,
+      programId: r.programId,
+      objectiveId: r.objectiveId,
+      active: r.active,
+      levels: levels
+        .filter((l) => l.criteriaId === r.id)
+        .map((l) => ({
+          label: l.label,
+          descriptor: l.descriptor,
+          minScore: l.minScore,
+          maxScore: l.maxScore,
+          isAchieved: l.isAchieved,
+        })),
+    });
+    byObjective.set(r.objectiveId, list);
+  }
+  return byObjective;
+}

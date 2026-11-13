@@ -76,6 +76,21 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             heading: 'Siapa yang bisa melakukan apa',
             body: 'Guru hanya bisa melihat dan mengisi nilai untuk kelas dan mata pelajaran yang diampunya. Operator dan Admin sekolah bisa mengisi semua kelas. Kepala sekolah dan Kurikulum bisa melihat semua kelas dan mata pelajaran. Pengaturan penilaian (KKM, predikat, bobot) hanya bisa diubah oleh Kurikulum, Operator, dan Admin sekolah. Nilai dan rapor adalah satu modul. Ekstrakurikuler punya predikat sendiri di modul Ekstrakurikuler, dan predikat itu tampil di rapor.',
           },
+          {
+            heading: 'Mengaitkan penilaian ke tujuan pembelajaran (TP) dan melihat ketercapaiannya',
+            body: 'Sebuah penilaian dapat dikaitkan ke satu atau beberapa tujuan pembelajaran (TP) mata pelajaran itu, paling banyak 20 TP. Satu skor berlaku untuk semua TP yang dipilih; bila ingin ketercapaian tiap TP dinilai terpisah, buat penilaian sendiri untuk tiap TP. Tab Ketercapaian TP lalu menunjukkan, untuk setiap siswa dan TP, persen hasilnya, status Tercapai atau Belum tercapai, ambang yang dipakai beserta asalnya (kriteria TP, KKM mapel, atau KKM sekolah), dan jumlah skor. Hanya penilaian sumatif yang menentukan status. Penilaian formatif tampil terpisah sebagai kemajuan (umpan balik) dan tidak menentukan ketercapaian untuk rapor. Angka di tab ini belum memengaruhi rapor.',
+            steps: [
+              'Buka menu Penilaian, lalu pilih semester, kelas, dan mata pelajaran.',
+              'Di tab Penilaian, klik Penilaian baru, atau pilih Ubah pada penilaian yang sudah ada.',
+              'Pada bagian Tujuan Pembelajaran (TP), klik Pilih TP, cari bila perlu, lalu centang TP yang diukur. Simpan.',
+              'Isi nilai seperti biasa, lalu buka tab Ketercapaian TP untuk melihat hasilnya.',
+              'Bila perlu, klik Ubah keputusan guru pada sebuah kotak, pilih Tercapai, Belum tercapai, atau Ikuti hitungan, dan tulis catatan. Keputusan guru menggantikan hasil hitungan untuk siswa dan TP itu.',
+            ],
+            href: '/grades',
+            tip: 'Bila satu TP diukur beberapa kali, pilih cara menggabungkan skornya (rata-rata, terbaru, atau tertinggi) di Pengaturan penilaian.',
+            warning:
+              'TP versi lama (sudah diganti atau dinonaktifkan) tetap tampil pada penilaian yang sudah memakainya, tetapi tidak bisa ditambahkan ke penilaian lain. Keputusan guru tidak bisa diubah untuk siswa yang rapornya sudah final.',
+          },
         ],
         faq: [
           {
@@ -105,6 +120,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Mode persentase tidak bisa disimpan. Mengapa?',
             a: 'Mode persentase mensyaratkan jumlah bobot semua komponen tepat 100%. Saat Anda memilih mode ini, layar menampilkan jumlah bobot saat ini. Bila bukan 100%, muncul peringatan merah dan tombol Simpan tidak aktif. Ubah bobot di kartu Komponen nilai sampai jumlahnya 100%, lalu simpan lagi. Mode lain tidak mensyaratkan jumlah bobot 100%.',
+          },
+          {
+            q: 'Mengapa status TP seorang siswa masih kosong?',
+            a: 'Status baru muncul bila siswa punya skor pada penilaian sumatif yang dikaitkan ke TP itu, atau bila guru sudah membuat keputusan. Penilaian formatif hanya tampil sebagai kemajuan dan tidak menentukan status.',
           },
         ],
       },
@@ -175,6 +194,21 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             heading: 'Who can do what',
             body: 'Teachers can only view and fill in scores for the classes and subjects they teach. Operators and School admins can fill in every class. The Principal and Curriculum staff can view all classes and subjects. Grading settings (passing mark, predicates, weights) can only be changed by Curriculum staff, Operators, and School admins. Grades and report cards are one module. Extracurriculars have their own predicate in the Extracurricular module, and it appears on the report card.',
           },
+          {
+            heading: 'Linking assessments to learning objectives (TP) and viewing achievement',
+            body: 'An assessment can be linked to one or more learning objectives (TP) of its subject, at most 20. One score applies to all the selected TP; if you want each TP judged separately, create a separate assessment for each one. The Objective achievement tab then shows, for every student and TP, the percentage, the status Achieved or Not yet achieved, the threshold used and where it comes from (TP criteria, subject KKM, or school KKM), and the number of scores. Only summative assessments decide the status. Formative assessments are shown separately as progress (feedback) and do not decide achievement for the report card. The figures in this tab do not affect the report card yet.',
+            steps: [
+              'Open the Grades menu, then choose the semester, class, and subject.',
+              'In the Assessments tab, click New assessment, or choose Edit on an existing one.',
+              'In the Learning objectives (TP) part, click Choose TP, search if needed, then tick the TP being measured. Save.',
+              'Enter the scores as usual, then open the Objective achievement tab to see the result.',
+              'If needed, click Change decision on a box, choose Achieved, Not yet achieved, or Follow the calculation, and write a note. A teacher decision replaces the calculated result for that student and TP.',
+            ],
+            href: '/grades',
+            tip: 'When one TP is measured several times, choose how the scores are combined (average, latest, or highest) in Grading settings.',
+            warning:
+              'An old-version TP (replaced or deactivated) still shows on the assessments that already use it, but it cannot be added to other assessments. A teacher decision cannot be changed for a student whose report card is already final.',
+          },
         ],
         faq: [
           {
@@ -204,6 +238,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Why can I not save the percentage mode?',
             a: 'The percentage mode needs the weights of all components to add up to exactly 100%. When you pick this mode, the screen shows the current total weight. If it is not 100%, a red warning appears and the Save button is disabled. Change the weights in the Grade components card until they add up to 100%, then save again. The other modes do not need the weights to add up to 100%.',
+          },
+          {
+            q: 'Why is a student status for a TP still empty?',
+            a: 'A status appears once the student has a score on a summative assessment linked to that TP, or once a teacher has made a decision. Formative assessments only show as progress and do not decide the status.',
           },
         ],
       },
@@ -274,6 +312,21 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             heading: 'Saha nu tiasa naon',
             body: 'Guru ngan tiasa ningali sareng ngeusian nilai kanggo kelas sareng mata pelajaran nu diampuna. Operator sareng Admin sekolah tiasa ngeusian sadaya kelas. Kepala sekolah sareng Kurikulum tiasa ningali sadaya kelas sareng mata pelajaran. Pengaturan penilaian (KKM, predikat, bobot) ngan tiasa dirobih ku Kurikulum, Operator, sareng Admin sekolah. Nilai sareng rapor téh hiji modul. Ékstrakurikuler gaduh predikat sorangan dina modul Ekstrakurikuler, tur predikatna muncul dina rapor.',
           },
+          {
+            heading: 'Ngaitkeun panilaian ka tujuan pangajaran (TP) jeung ningali kahontalna',
+            body: 'Hiji panilaian tiasa dikaitkeun ka hiji atawa langkung tujuan pangajaran (TP) mapelna, paling loba 20 TP. Hiji skor lumaku pikeun sakabéh TP nu dipilih; upami hayang kahontal unggal TP dinilai sacara misah, jieun panilaian séwang-séwangan pikeun tiap TP. Tab Kahontal TP tuluy nembongkeun, pikeun unggal siswa jeung TP, perséna, status Kahontal atawa Can kahontal, ambang nu dipaké sarta asalna (kritéria TP, KKM mapel, atawa KKM sakola), jeung jumlah skor. Ngan panilaian sumatif nu nangtukeun status. Panilaian formatif ditémbongkeun sacara misah minangka kamajuan (umpan balik) jeung teu nangtukeun kahontal pikeun rapor. Angka dina tab ieu can mangaruhan rapor.',
+            steps: [
+              'Buka ménu Panilaian, tuluy pilih semester, kelas, jeung mapel.',
+              'Dina tab Panilaian, klik Panilaian anyar, atawa pilih Robah dina panilaian nu geus aya.',
+              'Dina bagian Tujuan Pangajaran (TP), klik Pilih TP, pilari upami perlu, tuluy centang TP nu diukur. Simpen.',
+              'Eusian nilai saperti biasa, tuluy buka tab Kahontal TP pikeun ningali hasilna.',
+              'Upami perlu, klik Robah kaputusan guru dina hiji kotak, pilih Kahontal, Can kahontal, atawa Turutan itungan, sarta tulis catetan. Kaputusan guru ngagentos hasil itungan pikeun siswa jeung TP éta.',
+            ],
+            href: '/grades',
+            tip: 'Upami hiji TP diukur sababaraha kali, pilih cara ngagabungkeun skorna (rata-rata, pangahirna, atawa pangluhurna) dina Pangaturan panilaian.',
+            warning:
+              'TP vérsi heubeul (geus diganti atawa dipareuman) tetep muncul dina panilaian nu geus migunakeunana, tapi teu tiasa ditambahkeun kana panilaian séjén. Kaputusan guru teu tiasa dirobah pikeun siswa nu raporna geus final.',
+          },
         ],
         faq: [
           {
@@ -303,6 +356,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Naha mode persén teu bisa disimpen?',
             a: 'Mode persén merlukeun jumlah bobot sakabéh komponén pas 100%. Nalika milih mode ieu, layar nembongkeun jumlah bobot ayeuna. Lamun lain 100%, aya paringatan beureum jeung tombol Simpen teu aktif. Robah bobot dina kartu Komponén nilai nepi ka jumlahna 100%, tuluy simpen deui. Mode séjén teu merlukeun jumlah bobot 100%.',
+          },
+          {
+            q: 'Naha status TP hiji siswa masih kosong?',
+            a: 'Status karék muncul upami siswa boga skor dina panilaian sumatif nu dikaitkeun ka TP éta, atawa upami guru geus nyieun kaputusan. Panilaian formatif ngan muncul minangka kamajuan jeung teu nangtukeun status.',
           },
         ],
       },
@@ -1746,6 +1803,17 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             warning:
               'ATP yang sudah terbit tidak bisa diubah atau dihapus. Pastikan isinya benar sebelum menerbitkan.',
           },
+          {
+            heading: 'Mengubah TP yang sudah dipakai penilaian',
+            body: 'Bila sebuah TP sudah dikaitkan ke penilaian, mengubah teksnya tidak menimpa teks lama. Sistem membuat versi baru TP itu dan menandai yang lama sebagai versi lama. Penilaian yang sudah ada tetap memakai teks lama beserta skornya, jadi ketercapaian yang sudah dihitung tidak berubah diam-diam. Bila ingin penilaian memakai teks baru, ganti TP pada penilaian tersebut di menu Penilaian.',
+            steps: [
+              'Ubah teks TP seperti biasa dan simpan. Bila TP sudah dipakai penilaian, muncul pemberitahuan bahwa versi baru dibuat.',
+              'Buka menu Penilaian, pilih Ubah pada penilaian yang ingin memakai teks baru, lalu ganti TP-nya dengan versi yang aktif.',
+            ],
+            href: '/grades',
+            warning:
+              'TP yang sudah dikaitkan ke penilaian atau sudah punya keputusan ketercapaian dari guru tidak bisa dihapus. Nonaktifkan saja.',
+          },
         ],
         faq: [
           {
@@ -1771,6 +1839,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Apa arti lencana tujuan nonaktif pada alur?',
             a: 'Lencana itu menandakan ada item yang menunjuk tujuan pembelajaran versi lama, yaitu yang sudah diganti versi baru atau dinonaktifkan. Alur seperti itu tidak bisa diterbitkan. Buka alurnya, hapus item bertanda versi lama, tambahkan tujuan versi baru, lalu simpan draf. Saat tahun ajaran disalin, alur hasil salinan yang memuat tujuan nonaktif juga diberi peringatan.',
+          },
+          {
+            q: 'Mengapa TP tidak bisa dihapus?',
+            a: 'TP yang dipakai penilaian, ATP, atau keputusan ketercapaian guru tidak bisa dihapus agar riwayat nilai tetap utuh. Nonaktifkan TP itu supaya tidak muncul lagi untuk penilaian baru.',
           },
         ],
       },
@@ -1821,6 +1893,17 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             warning:
               'A published ATP cannot be changed or deleted. Make sure its contents are right before publishing.',
           },
+          {
+            heading: 'Changing a TP that assessments already use',
+            body: 'When a TP is already linked to an assessment, changing its text does not overwrite the old text. The system creates a new version of the TP and marks the old one as an old version. Existing assessments keep the old text together with their scores, so achievement that was already calculated does not change silently. To make an assessment use the new text, replace the TP on that assessment in the Grades menu.',
+            steps: [
+              'Change the TP text as usual and save. If assessments already use the TP, a notice says that a new version was created.',
+              'Open the Grades menu, choose Edit on the assessment that should use the new text, and replace its TP with the active version.',
+            ],
+            href: '/grades',
+            warning:
+              'A TP that is linked to an assessment or already has a teacher achievement decision cannot be deleted. Deactivate it instead.',
+          },
         ],
         faq: [
           {
@@ -1846,6 +1929,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'What does the inactive objectives badge on a flow mean?',
             a: 'The badge means some items point to an old version of a learning objective, one that was replaced by a new version or deactivated. Such a flow cannot be published. Open the flow, remove the items marked as an old version, add the new version of the objective, then save the draft. When an academic year is copied, copied flows that contain inactive objectives also get a warning.',
+          },
+          {
+            q: 'Why can a TP not be deleted?',
+            a: 'A TP used by an assessment, an ATP, or a teacher achievement decision cannot be deleted so that the grade history stays complete. Deactivate the TP so it no longer appears for new assessments.',
           },
         ],
       },
@@ -1896,6 +1983,17 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             warning:
               'ATP nu geus terbit teu bisa dirobah atawa dipiceun. Pastikeun eusina bener saacan nerbitkeun.',
           },
+          {
+            heading: 'Ngarobah TP nu geus dipaké panilaian',
+            body: 'Upami hiji TP geus dikaitkeun ka panilaian, ngarobah téksna teu nimpa téks heubeul. Sistem nyieun vérsi anyar TP éta jeung nandaan nu heubeul minangka vérsi heubeul. Panilaian nu geus aya tetep migunakeun téks heubeul sarta skorna, jadi kahontal nu geus dihitung teu robah jempé. Upami hayang panilaian migunakeun téks anyar, ganti TP dina panilaian éta dina ménu Panilaian.',
+            steps: [
+              'Robah téks TP saperti biasa tuluy simpen. Upami TP geus dipaké panilaian, aya béwara yén vérsi anyar dijieun.',
+              'Buka ménu Panilaian, pilih Robah dina panilaian nu hayang migunakeun téks anyar, tuluy ganti TP-na ku vérsi nu aktif.',
+            ],
+            href: '/grades',
+            warning:
+              'TP nu geus dikaitkeun ka panilaian atawa geus boga kaputusan kahontal ti guru teu tiasa dihapus. Pareuman wungkul.',
+          },
         ],
         faq: [
           {
@@ -1921,6 +2019,10 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           {
             q: 'Naon hartina lencana tujuan nonaktif dina alur?',
             a: 'Lencana éta nandakeun aya item nu nuduhkeun tujuan pembelajaran vérsi heubeul, nyaéta nu geus diganti vérsi anyar atawa dinonaktifkeun. Alur kitu teu bisa diterbitkeun. Buka alurna, hapus item nu ditandaan vérsi heubeul, tambahkeun tujuan vérsi anyar, tuluy simpen rarancang. Nalika taun ajaran disalin, alur hasil salinan nu ngandung tujuan nonaktif ogé dibéré paringatan.',
+          },
+          {
+            q: 'Naha TP teu tiasa dihapus?',
+            a: 'TP nu dipaké panilaian, ATP, atawa kaputusan kahontal guru teu tiasa dihapus sangkan riwayat nilai tetep lengkep. Pareuman TP éta sangkan teu muncul deui pikeun panilaian anyar.',
           },
         ],
       },

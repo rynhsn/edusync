@@ -70,6 +70,9 @@ const KNOWN = [
   'response_closed',
   'not_guardian',
   'guardian_response_exists',
+  'objective_subject_mismatch',
+  'objective_inactive',
+  'too_many_objectives',
   'component_not_in_semester',
   'grades_incomplete',
   'overpay',
@@ -184,7 +187,7 @@ const KNOWN = [
 type KnownCode = (typeof KNOWN)[number];
 
 /** Benda yang sedang diubah atau dihapus; membuat galat umum (`in_use`, `invalid_level`) menyebut penyebab yang tepat. */
-export type ErrorContext = 'level' | 'program' | 'subject' | 'class' | 'semester';
+export type ErrorContext = 'level' | 'program' | 'subject' | 'class' | 'semester' | 'outcome' | 'objective';
 
 const IN_USE_KEY = {
   level: 'errors.in_use_level',
@@ -192,6 +195,8 @@ const IN_USE_KEY = {
   subject: 'errors.in_use_subject',
   class: 'errors.in_use_class',
   semester: 'errors.in_use_semester',
+  outcome: 'errors.in_use_outcome',
+  objective: 'errors.in_use_objective',
 } as const satisfies Record<ErrorContext, string>;
 
 /**

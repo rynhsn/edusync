@@ -7,13 +7,17 @@ import {
   countedWeightSum,
   FREEZE_ORIGINS,
   normalizeComponentInput,
+  OBJECTIVE_AGGREGATIONS,
+  OBJECTIVE_STATUS_SCOPES,
   SUMMATIVE_SCOPES,
+  summarizeObjective,
   validateAssessmentTags,
 } from '@edusync/contracts';
 import {
   and,
   asc,
   assessment,
+  assessmentObjective,
   classRoom,
   count,
   desc,
@@ -23,10 +27,12 @@ import {
   gradingSetting,
   inArray,
   isNull,
+  reportCard,
   score,
   semester,
   sql,
   student,
+  studentObjectiveAchievement,
   subject,
   type Tx,
   teacher,
@@ -53,7 +59,14 @@ import {
 import { computeGrades, loadComponents, loadSettings, round2 } from '../grading-lib';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
-import { assertClassReportNotFinal } from '../report-lock-lib';
+import {
+  assertObjectivesForSubject,
+  computeObjectiveAchievement,
+  linkedObjectiveIds,
+  objectivesOfAssessments,
+  replaceAssessmentObjectives,
+} from '../objective-achievement-lib';
+import { assertClassReportNotFinal, assertStudentsReportNotFinal } from '../report-lock-lib';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const tag = ['Grading'];
@@ -118,7 +131,19 @@ const activeSemesterConfigSchema = z
   })
   .describe('Status konfigurasi beku semester aktif');
 
+const objectiveAggregationSchema = z
+  .enum(OBJECTIVE_AGGREGATIONS)
+  .describe(
+    'Aturan agregasi ketercapaian TP dari beberapa penilaian sumatif: `mean` (bawaan, rata-rata persen), `latest` ' +
+      '(penilaian terbaru menurut tanggal), `max` (persen tertinggi).',
+  );
+
 const settingsReadSchema = settingsSchema.extend({
+  objectiveAggregation: objectiveAggregationSchema
+    .optional()
+    .describe(
+      'Aturan agregasi ketercapaian TP. Ada hanya bila bukan bawaan (`latest` atau `max`); dihilangkan = `mean`.',
+    ),
   activeSemesterConfig: activeSemesterConfigSchema
     .optional()
     .describe('Hanya ada bila semester aktif punya salinan beku konfigurasi nilai; dihilangkan selain itu'),
@@ -178,6 +203,14 @@ const semesterGradingStatusSchema = z.object({
     .int()
     .nullable()
     .describe('Jumlah KKTP dalam salinan; null bila semester belum beku'),
+  objectiveCriteriaCount: z
+    .number()
+    .int()
+    .optional()
+    .describe('Jumlah kriteria per TP dalam salinan beku; ada hanya bila > 0'),
+  objectiveAggregation: objectiveAggregationSchema
+    .optional()
+    .describe('Aturan agregasi TP semester ini; ada hanya bila bukan bawaan (`mean`)'),
 });
 
 const formativeSummary = z
@@ -198,7 +231,9 @@ const syncedSemesterId = z
     'Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.',
   );
 
-const settingsWriteSchema = settingsSchema.extend({ syncedSemesterId });
+const settingsWriteSchema = settingsReadSchema
+  .omit({ activeSemesterConfig: true })
+  .extend({ syncedSemesterId });
 
 const settingsBody = z
   .object({
@@ -207,6 +242,9 @@ const settingsBody = z
     predicateB: z.number().int().min(1).max(100),
     predicateC: z.number().int().min(1).max(100),
     calculationMode: calculationModeSchema.optional(),
+    objectiveAggregation: objectiveAggregationSchema
+      .optional()
+      .describe('Dihilangkan: aturan yang ada dipertahankan. `mean` mengembalikan ke bawaan.'),
   })
   .refine((b) => b.predicateA > b.predicateB && b.predicateB > b.predicateC && b.predicateC > 0, {
     message: 'Batas predikat harus berurutan: A > B > C > 0.',
@@ -293,6 +331,18 @@ const assessmentSchema = z.object({
     .describe(
       'Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat.',
     ),
+  objectives: z
+    .array(
+      z.object({
+        id: z.uuid(),
+        code: z.string().nullable(),
+        description: z.string(),
+        active: z.boolean().describe('false = TP sudah diganti versi baru atau dinonaktifkan'),
+      }),
+    )
+    .describe(
+      'Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan.',
+    ),
   teacherId: z.uuid().nullable(),
   teacherName: z.string().nullable(),
   title: z.string(),
@@ -333,7 +383,17 @@ const assessmentBody = z.object({
     .nullable()
     .optional()
     .describe('Teknik asesmen; tanpa batasan komponen.'),
+  objectiveIds: z
+    .array(z.uuid())
+    .max(100)
+    .optional()
+    .describe(
+      'Tujuan pembelajaran (TP) yang dikaitkan, maksimal 20 (400 `too_many_objectives`); harus milik mapel penilaian ' +
+        '(400 `objective_subject_mismatch`) dan aktif (400 `objective_inactive`). Pada PUT: dihilangkan = tetap, larik = ganti himpunan.',
+    ),
 });
+
+const objectiveIdsBody = z.object({ objectiveIds: assessmentBody.shape.objectiveIds.unwrap() });
 
 const assessmentUpdateBody = assessmentBody.pick({
   componentId: true,
@@ -343,6 +403,7 @@ const assessmentUpdateBody = assessmentBody.pick({
   purpose: true,
   summativeScope: true,
   technique: true,
+  objectiveIds: true,
 });
 
 const scopeQuery = z.object({ semesterId: z.uuid(), classId: z.uuid(), subjectId: z.uuid() });
@@ -442,6 +503,19 @@ export async function gradingRoutes(instance: FastifyInstance) {
     await requireComponent(tx, refs.componentId);
   }
 
+  /** Semester, kelas, dan mapel milik sekolah ini; semester dan kelas satu tahun ajaran (400 `invalid_reference`). */
+  async function requirePairRefs(tx: Tx, refs: { semesterId: string; classId: string; subjectId: string }) {
+    const [sem] = await tx.select().from(semester).where(eq(semester.id, refs.semesterId));
+    if (!sem) throw invalidRef('Semester tidak ditemukan.');
+    const [cls] = await tx.select().from(classRoom).where(eq(classRoom.id, refs.classId));
+    if (!cls) throw invalidRef('Kelas tidak ditemukan.');
+    if (cls.academicYearId !== sem.academicYearId) {
+      throw invalidRef('Semester dan kelas harus berada pada tahun ajaran yang sama.');
+    }
+    const [sub] = await tx.select({ id: subject.id }).from(subject).where(eq(subject.id, refs.subjectId));
+    if (!sub) throw invalidRef('Mata pelajaran tidak ditemukan.');
+  }
+
   async function loadAssessment(tx: Tx, id: string) {
     const [a] = await tx.select().from(assessment).where(eq(assessment.id, id));
     if (!a) throw notFound('Penilaian');
@@ -536,6 +610,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
     for (const semId of new Set(visible.map((r) => r.a.semesterId))) {
       effective.set(semId, new Map((await loadGradingConfig(tx, semId)).components.map((c) => [c.id, c])));
     }
+    const linked = await objectivesOfAssessments(
+      tx,
+      visible.map((r) => r.a.id),
+    );
     const configure = ctx.permissions.has('grade:configure');
     const input = ctx.permissions.has('grade:input');
     return visible.map((r) => ({
@@ -555,6 +633,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
       purpose: r.a.purpose as 'initial' | null,
       summativeScope: r.a.summativeScope as 'material' | 'end_of_semester' | null,
       technique: r.a.technique,
+      objectives: linked.get(r.a.id) ?? [],
       teacherId: r.a.teacherId,
       teacherName: r.teacherName,
       title: r.a.title,
@@ -564,6 +643,13 @@ export async function gradingRoutes(instance: FastifyInstance) {
       total: totals.find((t) => t.classId === r.a.classId)?.n ?? 0,
       canInput: configure || (input && teaches(mine, r.a.classId, r.a.subjectId)),
     }));
+  }
+
+  /** Aturan agregasi TP hidup sekolah sebagai penanda sparse: hanya bila bukan bawaan, supaya respons lama tidak berubah. */
+  async function aggregationMark(tx: Tx) {
+    const [s] = await tx.select({ v: gradingSetting.objectiveAggregation }).from(gradingSetting);
+    const v = s?.v;
+    return v === 'latest' || v === 'max' ? { objectiveAggregation: v as 'latest' | 'max' } : {};
   }
 
   /* ---------- Pengaturan ---------- */
@@ -589,7 +675,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
-        const settings = await loadSettings(tx);
+        const settings = { ...(await loadSettings(tx)), ...(await aggregationMark(tx)) };
         const active = await activeSemesterConfig(tx, ctx.schoolId);
         return active
           ? { ...settings, activeSemesterConfig: { ...active, frozenAt: active.frozenAt.toISOString() } }
@@ -603,6 +689,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
   async function semesterStatusView(tx: Tx, schoolId: string, semesterId: string) {
     const st = await semesterGradingStatus(tx, schoolId, semesterId);
     const cfg = await loadGradingConfig(tx, semesterId);
+    const aggregation = await cfg.objectiveAggregation(tx);
     return {
       semesterId,
       frozen: st.frozen,
@@ -617,6 +704,11 @@ export async function gradingRoutes(instance: FastifyInstance) {
         ...categoryMarks({ category, includeInFinal }),
       })),
       criteriaCount: st.row && Array.isArray(st.row.criteria) ? st.row.criteria.length : null,
+      // Sparse (tahap 3.3): ada hanya bila bukan bawaan, jadi respons semester tanpa fitur itu tidak berubah.
+      ...(st.row && Array.isArray(st.row.objectiveCriteria) && st.row.objectiveCriteria.length > 0
+        ? { objectiveCriteriaCount: st.row.objectiveCriteria.length }
+        : {}),
+      ...(aggregation !== 'mean' ? { objectiveAggregation: aggregation } : {}),
     };
   }
 
@@ -708,7 +800,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
           ' Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, ' +
           'salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa ' +
           '`syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. ' +
-          'Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).',
+          'Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama). `objectiveAggregation` opsional ' +
+          '(`mean` bawaan, `latest`, `max`) mengatur agregasi ketercapaian TP dari beberapa penilaian sumatif; dihilangkan = ' +
+          'tetap; ikut salinan beku semester (semester beku tidak berubah) dan dijaga `report_final` seperti bobot dan KKM.',
         headers: schoolHeader,
         body: settingsBody,
         response: { 200: settingsWriteSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -739,7 +833,11 @@ export async function gradingRoutes(instance: FastifyInstance) {
           });
         await audit(tx, ctx, 'grading.settings_update', 'grading_setting', ctx.schoolId, request.body);
         const synced = await syncActiveSemesterFreeze(tx, ctx);
-        return { ...(await loadSettings(tx)), ...(synced ? { syncedSemesterId: synced } : {}) };
+        return {
+          ...(await loadSettings(tx)),
+          ...(await aggregationMark(tx)),
+          ...(synced ? { syncedSemesterId: synced } : {}),
+        };
       });
     },
   );
@@ -1042,7 +1140,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah. Tanda opsional: `purpose` ' +
           '`initial` (asesmen awal) hanya pada komponen formatif (400 `initial_requires_formative`), `summativeScope` hanya pada ' +
           'komponen sumatif (400 `scope_requires_summative`), `technique` dari daftar teknik. Penilaian pada komponen formatif ' +
-          'tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya.',
+          'tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya. `objectiveIds` opsional mengaitkan ' +
+          'penilaian ke tujuan pembelajaran (TP): maksimal 20 (400 `too_many_objectives`), milik mapel yang sama (400 ' +
+          '`objective_subject_mismatch`), aktif (400 `objective_inactive`); satu skor berlaku untuk semua TP itu.',
         headers: schoolHeader,
         body: assessmentBody,
         response: { 201: assessmentSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -1050,13 +1150,14 @@ export async function gradingRoutes(instance: FastifyInstance) {
     },
     async (request, reply) => {
       const ctx = request.ctx as TenantContext;
-      const b = request.body;
+      const { objectiveIds, ...b } = request.body;
       const created = await tenant(request, async (tx) => {
         await requireRefs(tx, b);
         if (!(await canInputPair(tx, ctx, b.classId, b.subjectId))) throw notAllowed();
         await assertClassReportNotFinal(tx, b.semesterId, b.classId);
         await assertComponentInSemester(tx, b.semesterId, b.componentId);
         await assertTags(tx, b.semesterId, b.componentId, b);
+        const links = await assertObjectivesForSubject(tx, b.subjectId, objectiveIds ?? []);
         // Pengampu pasangan itu bila ada; selain itu pembuatnya bila ia guru.
         const [assigned] = await tx
           .select({ teacherId: teachingAssignment.teacherId })
@@ -1069,10 +1170,12 @@ export async function gradingRoutes(instance: FastifyInstance) {
           .insert(assessment)
           .values({ schoolId: ctx.schoolId, ...b, teacherId })
           .returning({ id: assessment.id });
+        await replaceAssessmentObjectives(tx, ctx.schoolId, row!.id, links);
         await audit(tx, ctx, 'assessment.create', 'assessment', row!.id, {
           title: b.title,
           classId: b.classId,
           subjectId: b.subjectId,
+          ...(links.length > 0 ? { objectiveIds: links } : {}),
           ...(b.purpose ? { purpose: b.purpose } : {}),
           ...(b.summativeScope ? { summativeScope: b.summativeScope } : {}),
           ...(b.technique ? { technique: b.technique } : {}),
@@ -1098,7 +1201,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). ' +
           'Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 ' +
           '`component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak ' +
-          'diganti tidak diperiksa ulang).',
+          'diganti tidak diperiksa ulang). `objectiveIds` (TP yang dikaitkan): dihilangkan = tetap, larik = ganti himpunan ' +
+          '(aturan dan galat sama dengan membuat penilaian; TP yang sudah terkait boleh tetap walau sudah nonaktif).',
         headers: schoolHeader,
         params: idParams,
         body: assessmentUpdateBody,
@@ -1107,12 +1211,18 @@ export async function gradingRoutes(instance: FastifyInstance) {
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      const b = request.body;
+      const { objectiveIds, ...b } = request.body;
       return tenant(request, async (tx) => {
         const current = await loadAssessment(tx, request.params.id);
         if (!(await canInputPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
         await assertClassReportNotFinal(tx, current.semesterId, current.classId);
         await requireComponent(tx, b.componentId);
+        const links =
+          objectiveIds === undefined
+            ? undefined
+            : await assertObjectivesForSubject(tx, current.subjectId, objectiveIds, {
+                keep: await linkedObjectiveIds(tx, current.id),
+              });
         if (b.componentId !== current.componentId) {
           await assertComponentInSemester(tx, current.semesterId, b.componentId);
         }
@@ -1129,8 +1239,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
           throw new HttpError(409, 'score_exceeds_max', 'Ada skor yang lebih besar dari skor maksimum baru.');
         }
         await tx.update(assessment).set(b).where(eq(assessment.id, current.id));
+        if (links) await replaceAssessmentObjectives(tx, ctx.schoolId, current.id, links);
         await audit(tx, ctx, 'assessment.update', 'assessment', current.id, {
           title: b.title,
+          ...(links ? { objectiveIds: links } : {}),
           ...(b.purpose !== undefined ? { purpose: b.purpose } : {}),
           ...(b.summativeScope !== undefined ? { summativeScope: b.summativeScope } : {}),
           ...(b.technique !== undefined ? { technique: b.technique } : {}),
@@ -1149,7 +1261,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Hapus penilaian',
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain ' +
-          'itu 403). Seluruh skor penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada ' +
+          'itu 403). Seluruh skor dan kaitan TP penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada ' +
           'semester itu sudah final.',
         headers: schoolHeader,
         params: idParams,
@@ -1163,6 +1275,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
         if (!(await canInputPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
         await assertClassReportNotFinal(tx, current.semesterId, current.classId);
         await tx.delete(score).where(eq(score.assessmentId, current.id));
+        // Kaitan TP hanya tautan: ikut terhapus bersama penilaian (FK juga CASCADE).
+        await tx.delete(assessmentObjective).where(eq(assessmentObjective.assessmentId, current.id));
         await tx.delete(assessment).where(eq(assessment.id, current.id));
         await audit(tx, ctx, 'assessment.delete', 'assessment', current.id, { title: current.title });
         return { ok: true as const };
@@ -1569,6 +1683,319 @@ export async function gradingRoutes(instance: FastifyInstance) {
           ...(students.some((s) => s.source === 'report') ? { source: 'report' as const } : {}),
           students,
         };
+      });
+    },
+  );
+
+  /* ---------- Kaitan penilaian <-> TP dan ketercapaian TP (tahap 3.3) ---------- */
+
+  app.put(
+    '/v1/assessments/:id/objectives',
+    {
+      onRequest: inputGate,
+      schema: {
+        tags: tag,
+        summary: 'Ganti tujuan pembelajaran (TP) yang dikaitkan ke penilaian',
+        description:
+          'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403); ' +
+          'modul `grades`. Mengganti seluruh himpunan TP penilaian (larik kosong = lepas semua). Satu skor penilaian berlaku untuk ' +
+          'semua TP yang dikaitkan. Maksimal 20 TP (400 `too_many_objectives`); setiap TP harus ada di sekolah ini (400 ' +
+          '`invalid_reference`), milik mapel penilaian (400 `objective_subject_mismatch`), dan aktif (400 `objective_inactive`; ' +
+          'TP yang sudah terkait boleh tetap walau kemudian dinonaktifkan atau diganti versi baru). Berlaku juga untuk penilaian ' +
+          'hasil ujian CBT; dorong ulang nilai ujian mempertahankan kaitan. Ditolak 409 `report_final` bila rapor kelas pada ' +
+          'semester itu sudah final. Diaudit (`assessment.objectives`).',
+        headers: schoolHeader,
+        params: idParams,
+        body: objectiveIdsBody,
+        response: { 200: assessmentSchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      return tenant(request, async (tx) => {
+        const current = await loadAssessment(tx, request.params.id);
+        if (!(await canInputPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
+        await assertClassReportNotFinal(tx, current.semesterId, current.classId);
+        const links = await assertObjectivesForSubject(tx, current.subjectId, request.body.objectiveIds, {
+          keep: await linkedObjectiveIds(tx, current.id),
+        });
+        const changed = await replaceAssessmentObjectives(tx, ctx.schoolId, current.id, links);
+        await audit(tx, ctx, 'assessment.objectives', 'assessment', current.id, {
+          objectiveIds: links,
+          ...changed,
+        });
+        return (await assessmentViews(tx, ctx, { id: current.id }))[0]!;
+      });
+    },
+  );
+
+  const objectiveCellSchema = z.object({
+    objectiveId: z.uuid(),
+    percent: z
+      .number()
+      .nullable()
+      .describe(
+        'Persen agregat penilaian sumatif yang dikaitkan (aturan `aggregation`); null = belum ada skor',
+      ),
+    achieved: z
+      .boolean()
+      .nullable()
+      .describe(
+        'Tercapai atau belum; null = belum dapat ditentukan (tanpa skor dan tanpa keputusan guru, atau deskriptor tanpa rentang)',
+      ),
+    levelLabel: z.string().nullable().describe('Label level kriteria yang memuat persen, atau pilihan guru'),
+    source: z
+      .enum(['computed', 'override'])
+      .nullable()
+      .describe(
+        '`override` = keputusan guru menimpa status; `computed` = dari skor; null = belum ada keduanya',
+      ),
+    scope: z
+      .enum(OBJECTIVE_STATUS_SCOPES)
+      .nullable()
+      .describe(
+        'Asal ambang: kriteria per TP (`objective_level_program`, `objective_level`, `objective_program`, `objective`), KKM mapel ' +
+          '(`subject_kkm`), atau KKM sekolah (`school_kkm`); null bila belum ada skor',
+      ),
+    threshold: z.number().nullable().describe('Ambang terkecil yang dianggap tercapai'),
+    scoredCount: z
+      .number()
+      .int()
+      .describe('Jumlah penilaian sumatif terkait yang sudah punya skor siswa ini'),
+    note: z.string().nullable().describe('Alasan/catatan guru pada keputusan'),
+    formative: z
+      .object({ average: z.number(), count: z.number().int() })
+      .optional()
+      .describe(
+        'Kemajuan dari penilaian formatif terkait, TERPISAH: tidak dipakai untuk status ketercapaian rapor. Ada hanya bila ada skor.',
+      ),
+  });
+
+  app.get(
+    '/v1/grading/objective-achievement',
+    {
+      onRequest: readGate,
+      schema: {
+        tags: tag,
+        summary: 'Matriks ketercapaian tujuan pembelajaran (TP) per siswa',
+        description:
+          'Izin: `grade:read`; modul `grades`. Matriks siswa x TP untuk satu kelas, mapel, dan semester. Pengguna selain pemegang ' +
+          'configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Ketercapaian DIHITUNG saat dibaca: skor ' +
+          'penilaian SUMATIF (komponen yang ikut nilai akhir, bukan asesmen awal) yang dikaitkan ke TP, diagregasi menurut ' +
+          '`aggregation` (`mean`, `latest`, `max`; salinan beku semester bila ada), lalu dibandingkan dengan ambang bertingkat: ' +
+          'kriteria per TP (KKTP ber-`objectiveId`; jenjang tingkat+program, tingkat, program, TP saja) -> KKM mapel -> KKM sekolah ' +
+          '(`scope` per sel). Keputusan guru (`PUT` yang sama) menang (`source` `override`). Penilaian formatif tidak dihitung; ' +
+          'ringkasannya ada di `formative` per sel sebagai kemajuan. `objectives` memuat TP yang dikaitkan ke penilaian atau yang ' +
+          'punya keputusan guru, urut `sortOrder`; `includeAll=true` menambahkan semua TP aktif mapel itu. TP yang sudah diganti ' +
+          'versi baru (`active` false) tetap tampil selama masih dikaitkan. `locked` per siswa = rapor semester itu sudah final ' +
+          '(keputusan guru ditolak 409 `report_final`). Angka ini belum memengaruhi rapor. Semester/kelas/mapel harus milik ' +
+          'sekolah ini (400 `invalid_reference`).',
+        headers: schoolHeader,
+        querystring: scopeQuery.extend({ includeAll: z.enum(['true', 'false']).optional() }),
+        response: {
+          200: z.object({
+            aggregation: objectiveAggregationSchema,
+            frozen: z
+              .boolean()
+              .describe('Semester memakai salinan beku konfigurasi (kriteria TP dan agregasi dari salinan)'),
+            canInput: z.boolean().describe('Pengguna ini boleh mengisi keputusan guru untuk kelas+mapel ini'),
+            objectives: z.array(
+              z.object({
+                id: z.uuid(),
+                code: z.string().nullable(),
+                description: z.string(),
+                active: z.boolean(),
+                sortOrder: z.number().int(),
+                assessmentCount: z.number().int().describe('Jumlah penilaian sumatif terkait'),
+                formativeCount: z.number().int().describe('Jumlah penilaian formatif terkait'),
+                summary: z.object({
+                  assessed: z.number().int().describe('Jumlah siswa yang sudah berstatus'),
+                  achieved: z.number().int().describe('Jumlah siswa yang tercapai'),
+                }),
+              }),
+            ),
+            students: z.array(
+              z.object({
+                studentId: z.uuid(),
+                name: z.string(),
+                nis: z.string().nullable(),
+                locked: z.boolean(),
+                cells: z
+                  .array(objectiveCellSchema)
+                  .describe('Satu sel per TP, urutan sama dengan `objectives`'),
+              }),
+            ),
+          }),
+          400: errorSchema,
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const { semesterId, classId, subjectId } = request.query;
+      return tenant(request, async (tx) => {
+        await requirePairRefs(tx, { semesterId, classId, subjectId });
+        if (!(await canReadPair(tx, ctx, classId, subjectId))) throw notAllowed();
+        const cfg = await loadGradingConfig(tx, semesterId);
+        const { rows } = await historicalRosterOf(tx, classId);
+        const studentIds = rows.map((s) => s.id);
+        const result = await computeObjectiveAchievement(tx, {
+          semesterId,
+          classId,
+          subjectId,
+          studentIds,
+          cfg,
+          includeAll: request.query.includeAll === 'true',
+        });
+        const finals = studentIds.length
+          ? await tx
+              .select({ studentId: reportCard.studentId })
+              .from(reportCard)
+              .where(
+                and(
+                  eq(reportCard.semesterId, semesterId),
+                  inArray(reportCard.studentId, studentIds),
+                  eq(reportCard.status, 'final'),
+                ),
+              )
+          : [];
+        const locked = new Set(finals.map((f) => f.studentId));
+        return {
+          aggregation: result.aggregation,
+          frozen: cfg.frozen !== null,
+          canInput: await canInputPair(tx, ctx, classId, subjectId),
+          objectives: result.objectives.map((o) => ({
+            ...o,
+            summary: summarizeObjective(studentIds.map((sid) => result.cells.get(sid)!.get(o.id)!)),
+          })),
+          students: rows.map((s) => ({
+            studentId: s.id,
+            name: s.name,
+            nis: s.nis,
+            locked: locked.has(s.id),
+            cells: result.objectives.map((o) => ({
+              objectiveId: o.id,
+              ...result.cells.get(s.id)!.get(o.id)!,
+            })),
+          })),
+        };
+      });
+    },
+  );
+
+  app.put(
+    '/v1/grading/objective-achievement',
+    {
+      onRequest: inputGate,
+      schema: {
+        tags: tag,
+        summary: 'Simpan keputusan guru atas ketercapaian TP',
+        description:
+          'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel (selain itu 403); modul `grades`. ' +
+          'Keputusan guru (override) per (siswa, TP) pada semester itu, batch 1..500. Setiap record MENGGANTIKAN keputusan ' +
+          'sebelumnya untuk (siswa, TP) itu: `achieved` (true/false) menimpa status hitung, `levelLabel` (maks 60 karakter) dan ' +
+          '`note` alasan (maks 500) opsional; yang dihilangkan atau null dikosongkan; ketiganya kosong menghapus keputusan. ' +
+          'Hanya menyimpan keputusan, bukan hasil hitung. Siswa harus anggota aktif kelas dan TP milik mapel itu (400 ' +
+          '`invalid_reference`, `objective_subject_mismatch`); TP tidak harus aktif atau sudah dikaitkan ke penilaian. Ditolak ' +
+          '409 `report_final` bila rapor salah satu siswa itu pada semester tersebut sudah final (buka kembali rapornya lebih dulu). ' +
+          'Siswa dan TP yang sama dikirim dua kali: yang terakhir berlaku. Diaudit (`objective_achievement.save`).',
+        headers: schoolHeader,
+        body: z.object({
+          semesterId: z.uuid(),
+          classId: z.uuid(),
+          subjectId: z.uuid(),
+          records: z
+            .array(
+              z.object({
+                studentId: z.uuid(),
+                objectiveId: z.uuid(),
+                achieved: z.boolean().nullable().optional(),
+                levelLabel: z.string().trim().max(60).nullable().optional(),
+                note: z.string().trim().max(500).nullable().optional(),
+              }),
+            )
+            .min(1)
+            .max(500),
+        }),
+        response: {
+          200: z.object({ saved: z.number().int(), cleared: z.number().int() }),
+          400: errorSchema,
+          404: errorSchema,
+          409: errorSchema,
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const { semesterId, classId, subjectId } = request.body;
+      return tenant(request, async (tx) => {
+        await requirePairRefs(tx, { semesterId, classId, subjectId });
+        if (!(await canInputPair(tx, ctx, classId, subjectId))) throw notAllowed();
+        const records = [
+          ...new Map(request.body.records.map((r) => [`${r.studentId}:${r.objectiveId}`, r])).values(),
+        ];
+        const { rows } = await rosterOf(tx, classId);
+        const allowed = new Set(rows.map((s) => s.id));
+        if (records.some((r) => !allowed.has(r.studentId))) {
+          throw invalidRef('Ada siswa yang bukan anggota aktif kelas ini.');
+        }
+        await assertObjectivesForSubject(tx, subjectId, [...new Set(records.map((r) => r.objectiveId))], {
+          requireActive: false,
+          maxCount: false,
+        });
+        await assertStudentsReportNotFinal(tx, semesterId, [...new Set(records.map((r) => r.studentId))]);
+        let saved = 0;
+        let cleared = 0;
+        for (const r of records) {
+          const values = {
+            achieved: r.achieved ?? null,
+            levelLabel: r.levelLabel || null,
+            note: r.note || null,
+          };
+          if (values.achieved === null && values.levelLabel === null && values.note === null) {
+            await tx
+              .delete(studentObjectiveAchievement)
+              .where(
+                and(
+                  eq(studentObjectiveAchievement.semesterId, semesterId),
+                  eq(studentObjectiveAchievement.studentId, r.studentId),
+                  eq(studentObjectiveAchievement.objectiveId, r.objectiveId),
+                ),
+              );
+            cleared += 1;
+            continue;
+          }
+          await tx
+            .insert(studentObjectiveAchievement)
+            .values({
+              schoolId: ctx.schoolId,
+              semesterId,
+              classId,
+              subjectId,
+              studentId: r.studentId,
+              objectiveId: r.objectiveId,
+              ...values,
+              updatedBy: ctx.userId,
+            })
+            .onConflictDoUpdate({
+              target: [
+                studentObjectiveAchievement.semesterId,
+                studentObjectiveAchievement.studentId,
+                studentObjectiveAchievement.objectiveId,
+              ],
+              set: { classId, subjectId, ...values, updatedBy: ctx.userId, updatedAt: new Date() },
+            });
+          saved += 1;
+        }
+        await audit(tx, ctx, 'objective_achievement.save', 'semester', semesterId, {
+          classId,
+          subjectId,
+          saved,
+          cleared,
+        });
+        return { saved, cleared };
       });
     },
   );

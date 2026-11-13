@@ -1676,6 +1676,8 @@ export const gradingSetting = pgTable('grading_setting', {
   calculationMode: text('calculation_mode', { enum: ['weighted_average', 'percentage', 'simple_average'] })
     .notNull()
     .default('weighted_average'),
+  /** Aturan agregasi ketercapaian TP (K4): NULL (= mean) | 'mean' | 'latest' | 'max'. CHECK di migrasi 0098. */
+  objectiveAggregation: text('objective_aggregation'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 
@@ -1699,6 +1701,10 @@ export const semesterGradingConfig = pgTable('semester_grading_config', {
   }).notNull(),
   components: jsonb('components').$type<unknown>().notNull(),
   criteria: jsonb('criteria').$type<unknown>().notNull().default([]),
+  /** Kriteria per TP beku (tahap 3.3), kolom TERPISAH dari `criteria` (skema baca v1 mewajibkan objectiveId null). Sparse: '[]'. */
+  objectiveCriteria: jsonb('objective_criteria').$type<unknown>().notNull().default([]),
+  /** Aturan agregasi TP beku; NULL = 'mean'. */
+  objectiveAggregation: text('objective_aggregation'),
   configVersion: integer('config_version').notNull().default(1),
   origin: text('origin', {
     enum: ['finalize', 'semester_closed', 'sync', 'backfill', 'manual'],
@@ -1769,6 +1775,7 @@ export const assessment = pgTable(
   (t) => [
     index('assessment_scope_idx').on(t.classId, t.subjectId, t.semesterId),
     uniqueIndex('assessment_exam_class_uq').on(t.examId, t.classId).where(sql`${t.examId} is not null`),
+    unique('assessment_school_id_uq').on(t.schoolId, t.id),
     check('assessment_purpose_ck', sql`${t.purpose} is null or ${t.purpose} = 'initial'`),
     check(
       'assessment_scope_ck',
@@ -1797,6 +1804,59 @@ export const score = pgTable(
     updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
   },
   (t) => [unique('score_assessment_student_uq').on(t.assessmentId, t.studentId)],
+);
+
+/**
+ * Kaitan penilaian <-> tujuan pembelajaran (TP), many-to-many (tahap 3.3). Satu skor penilaian berlaku untuk semua TP yang
+ * dikaitkan (K5). FK komposit (school_id, x_id) di SQL tangan 0098: ke penilaian ON DELETE CASCADE, ke TP NO ACTION (hapus TP
+ * yang dikaitkan ditolak). Drizzle tidak memodelkan FK komposit ini.
+ */
+export const assessmentObjective = pgTable(
+  'assessment_objective',
+  {
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    assessmentId: uuid('assessment_id').notNull(),
+    objectiveId: uuid('objective_id').notNull(),
+  },
+  (t) => [
+    primaryKey({ columns: [t.assessmentId, t.objectiveId], name: 'assessment_objective_pk' }),
+    index('assessment_objective_objective_idx').on(t.schoolId, t.objectiveId),
+  ],
+);
+
+/**
+ * Keputusan guru atas ketercapaian TP satu siswa pada satu semester (override). BUKAN hasil hitung: ketercapaian dihitung saat
+ * dibaca dari skor; baris ini hanya menimpa status (`achieved` bukan null) atau menambah label level dan catatan. FK komposit ke
+ * semester, kelas, mapel, siswa, dan TP di SQL tangan 0098 (NO ACTION).
+ */
+export const studentObjectiveAchievement = pgTable(
+  'student_objective_achievement',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    semesterId: uuid('semester_id').notNull(),
+    classId: uuid('class_id').notNull(),
+    subjectId: uuid('subject_id').notNull(),
+    studentId: uuid('student_id').notNull(),
+    objectiveId: uuid('objective_id').notNull(),
+    achieved: boolean('achieved'),
+    levelLabel: text('level_label'),
+    note: text('note'),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('student_objective_achievement_uq').on(t.semesterId, t.studentId, t.objectiveId),
+    index('student_objective_achievement_scope_idx').on(t.schoolId, t.semesterId, t.classId, t.subjectId),
+    check(
+      'student_objective_achievement_some_ck',
+      sql`${t.achieved} is not null or ${t.levelLabel} is not null or ${t.note} is not null`,
+    ),
+  ],
 );
 
 /* ---------- Rapor (modul `grades`) ---------- */

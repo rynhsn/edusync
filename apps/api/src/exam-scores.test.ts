@@ -1,6 +1,7 @@
 import {
   academicYear,
   assessment,
+  assessmentObjective,
   assignRoles,
   classRoom,
   enrollment,
@@ -9,6 +10,8 @@ import {
   foundation,
   freezeSemesterGradingConfig,
   gradeComponent,
+  learningObjective,
+  learningOutcome,
   member,
   reportCard,
   school,
@@ -240,6 +243,8 @@ afterAll(async () => {
     'teacher',
     'enrollment',
     'student',
+    'learning_objective',
+    'learning_outcome',
     'subject',
     'class_room',
     'semester',
@@ -676,5 +681,44 @@ describe('kategori asesmen (fase 3, T6)', () => {
     expect(clash.json().error.code).toBe('initial_requires_formative');
     const [still] = await db.select().from(assessment).where(eq(assessment.id, target.id));
     expect(still).toMatchObject({ purpose: 'initial', componentId: kuis!.id });
+  });
+  it('dorong ulang mempertahankan kaitan TP yang diatur guru (T6 tahap 3.3)', async () => {
+    const db = app.platformDb;
+    const [cp] = await db
+      .insert(learningOutcome)
+      .values({ schoolId, subjectId: mtkId, phase: 'D', description: 'CP kaitan' })
+      .returning();
+    const [tp] = await db
+      .insert(learningObjective)
+      .values({ schoolId, outcomeId: cp!.id, description: 'TP kaitan' })
+      .returning();
+    const ex = await makeExam({ title: 'Ujian dengan TP' });
+    expect((await sheetFor(ex.id, ex.q, 3)).statusCode).toBe(200);
+    expect((await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId })).statusCode).toBe(
+      200,
+    );
+    const created = await db.select().from(assessment).where(eq(assessment.examId, ex.id));
+    const target = created.find((a) => a.classId === classA)!;
+    // Penilaian hasil ujian CBT boleh dikaitkan ke TP.
+    const link = await call('PUT', `/v1/assessments/${target.id}/objectives`, adminCookie, {
+      objectiveIds: [tp!.id],
+    });
+    expect(link.statusCode, link.body).toBe(200);
+    expect(link.json().objectives.map((o: { id: string }) => o.id)).toEqual([tp!.id]);
+
+    // Skor asli berubah lalu dorong ulang: nilai tertimpa, kaitan TP tetap.
+    expect((await sheetFor(ex.id, ex.q, 6)).statusCode).toBe(200);
+    expect((await call('POST', `/v1/exams/${ex.id}/grades`, adminCookie, { componentId })).statusCode).toBe(
+      200,
+    );
+    const links = await db
+      .select()
+      .from(assessmentObjective)
+      .where(eq(assessmentObjective.assessmentId, target.id));
+    expect(links.map((l) => l.objectiveId)).toEqual([tp!.id]);
+    const [sc] = await db.select().from(score).where(eq(score.assessmentId, target.id));
+    expect(sc!.value).toBe(100);
+    const [still] = await db.select().from(assessment).where(eq(assessment.id, target.id));
+    expect(still!.id).toBe(target.id);
   });
 });

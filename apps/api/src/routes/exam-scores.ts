@@ -353,7 +353,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           'semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: ' +
           'dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai ' +
           'hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, ' +
-          'atau kaitan lain yang sudah diatur guru. Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian ' +
+          'atau kaitan tujuan pembelajaran (TP, `PUT /v1/assessments/{id}/objectives`) yang sudah diatur guru; kaitan TP bertahan walau nilai didorong ulang. Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian ' +
           '(mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau ' +
           '`scope_requires_summative`.',
         headers: schoolHeader,

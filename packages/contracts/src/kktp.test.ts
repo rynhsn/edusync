@@ -7,6 +7,7 @@ import {
   isCriteriaMode,
   type KktpRow,
   resolveKkm,
+  resolveObjectiveCriteria,
 } from './kktp';
 
 const lv = (label: string, minScore: number | null, maxScore: number | null, isAchieved: boolean) => ({
@@ -200,5 +201,60 @@ describe('resolveKkm (urutan fallback)', () => {
       kkm: 60,
       scope: 'subject',
     });
+  });
+});
+
+describe('resolveObjectiveCriteria (kriteria per TP)', () => {
+  const tp = 'tp-1';
+  const other = 'tp-2';
+  const rows: KktpRow[] = [
+    row({ id: 'sem', objectiveId: tp, threshold: 60 }),
+    row({ id: 'prog', objectiveId: tp, programId: 'ipa', threshold: 65 }),
+    row({ id: 'lvl', objectiveId: tp, levelCode: '10', threshold: 70 }),
+    row({ id: 'lvlprog', objectiveId: tp, levelCode: '10', programId: 'ipa', threshold: 75 }),
+    row({ id: 'lain', objectiveId: other, threshold: 99 }),
+    row({ id: 'mapel', objectiveId: null, threshold: 80 }),
+  ];
+
+  it('empat jenjang cakupan: (tingkat, program) -> tingkat -> program -> TP saja', () => {
+    expect(resolveObjectiveCriteria(rows, tp, { levelCode: '10', programId: 'ipa' })).toMatchObject({
+      scope: 'objective_level_program',
+      row: { id: 'lvlprog' },
+    });
+    expect(resolveObjectiveCriteria(rows, tp, { levelCode: '10', programId: 'ips' })).toMatchObject({
+      scope: 'objective_level',
+      row: { id: 'lvl' },
+    });
+    expect(resolveObjectiveCriteria(rows, tp, { levelCode: '11', programId: 'ipa' })).toMatchObject({
+      scope: 'objective_program',
+      row: { id: 'prog' },
+    });
+    expect(resolveObjectiveCriteria(rows, tp, { levelCode: '11', programId: 'ips' })).toMatchObject({
+      scope: 'objective',
+      row: { id: 'sem' },
+    });
+    expect(resolveObjectiveCriteria(rows, tp, { levelCode: null, programId: null })?.row.id).toBe('sem');
+  });
+
+  it('mengabaikan baris TP lain, baris tanpa TP, dan baris nonaktif; null bila tak ada', () => {
+    expect(resolveObjectiveCriteria(rows, 'tp-x', { levelCode: '10', programId: null })).toBeNull();
+    expect(resolveObjectiveCriteria(rows, other, { levelCode: '10', programId: null })?.row.id).toBe('lain');
+    const off = rows.map((r) => (r.id === 'lvlprog' ? { ...r, active: false } : r));
+    expect(resolveObjectiveCriteria(off, tp, { levelCode: '10', programId: 'ipa' })?.scope).toBe(
+      'objective_level',
+    );
+  });
+
+  it('kriteria deskriptor tanpa rentang tetap menentukan (tidak dilewati ke KKM)', () => {
+    const desc = row({
+      id: 'd',
+      objectiveId: tp,
+      mode: 'descriptor',
+      threshold: null,
+      levels: [lv('Tercapai', null, null, true)],
+    });
+    const hit = resolveObjectiveCriteria([desc], tp, { levelCode: null, programId: null });
+    expect(hit?.row.id).toBe('d');
+    expect(isAchieved(90, hit!.row)).toBeNull();
   });
 });

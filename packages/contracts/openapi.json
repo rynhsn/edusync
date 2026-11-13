@@ -59274,6 +59274,15 @@
                       ],
                       "description": "Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan."
                     },
+                    "objectiveAggregation": {
+                      "description": "Aturan agregasi ketercapaian TP. Ada hanya bila bukan bawaan (`latest` atau `max`); dihilangkan = `mean`.",
+                      "type": "string",
+                      "enum": [
+                        "mean",
+                        "latest",
+                        "max"
+                      ]
+                    },
                     "activeSemesterConfig": {
                       "description": "Hanya ada bila semester aktif punya salinan beku konfigurasi nilai; dihilangkan selain itu",
                       "type": "object",
@@ -59406,7 +59415,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen yang dihitung (sumatif dan ikut nilai akhir; komponen formatif tidak ikut) bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama).",
+        "description": "Izin: `grade:configure`; modul `grades`. `kkm` bilangan bulat 1..100 (desimal ditolak; KKM desimal lewat KKTP per mapel); batas predikat harus berurutan `predicateA` > `predicateB` > `predicateC` > 0 (selain itu 400 galat validasi). `calculationMode` opsional (`weighted_average` bawaan, `percentage`, `simple_average`; rumus di skema); bila dihilangkan, nilai yang ada dipertahankan. Memilih `percentage` ditolak 400 `weights_sum_invalid` bila jumlah bobot komponen yang dihitung (sumatif dan ikut nilai akhir; komponen formatif tidak ikut) bukan 100 (mode lain tidak memeriksa jumlah bobot; bila `calculationMode` dihilangkan, jumlah bobot tidak diperiksa). Ditolak 409 `report_final` selama semester aktif punya rapor final (buka kembali rapornya lebih dulu). Aturan tulis-tembus: bila semester aktif punya salinan konfigurasi beku, tidak punya rapor final, dan salinannya bukan kunci manual, salinan itu ikut ditulis ulang dari konfigurasi hidup di transaksi yang sama, dicatat di audit (`grading_config.sync`), dan respons membawa `syncedSemesterId` (dihilangkan bila tidak ada yang disinkronkan). Semester nonaktif yang beku tidak pernah berubah oleh perubahan ini. Penulisan konfigurasi bergantian dengan finalisasi rapor per sekolah (kunci bersama). `objectiveAggregation` opsional (`mean` bawaan, `latest`, `max`) mengatur agregasi ketercapaian TP dari beberapa penilaian sumatif; dihilangkan = tetap; ikut salinan beku semester (semester beku tidak berubah) dan dijaga `report_final` seperti bobot dan KKM.",
         "requestBody": {
           "required": true,
           "content": {
@@ -59442,6 +59451,15 @@
                       "simple_average"
                     ],
                     "description": "Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan."
+                  },
+                  "objectiveAggregation": {
+                    "description": "Dihilangkan: aturan yang ada dipertahankan. `mean` mengembalikan ke bawaan.",
+                    "type": "string",
+                    "enum": [
+                      "mean",
+                      "latest",
+                      "max"
+                    ]
                   }
                 },
                 "required": [
@@ -59507,6 +59525,15 @@
                         "simple_average"
                       ],
                       "description": "Mode nilai akhir. `weighted_average` (bawaan): rata-rata tertimbang komponen yang punya skor, bobot dinormalisasi atas komponen itu (jumlah bobot bebas). `percentage`: jumlah (rata-rata komponen x bobot%) / 100 tanpa renormalisasi, komponen tanpa skor menyumbang 0, hasil dibatasi 0..100; WAJIB jumlah bobot komponen tepat 100 (400 `weights_sum_invalid` saat memilih mode ini). `simple_average`: rata-rata tanpa bobot dari rata-rata komponen yang punya skor; bobot diabaikan."
+                    },
+                    "objectiveAggregation": {
+                      "description": "Aturan agregasi ketercapaian TP. Ada hanya bila bukan bawaan (`latest` atau `max`); dihilangkan = `mean`.",
+                      "type": "string",
+                      "enum": [
+                        "mean",
+                        "latest",
+                        "max"
+                      ]
                     },
                     "syncedSemesterId": {
                       "description": "Id semester aktif yang salinan beku konfigurasinya ikut ditulis ulang (aturan tulis-tembus); dihilangkan bila tidak ada.",
@@ -59837,6 +59864,21 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "objectiveCriteriaCount": {
+                      "description": "Jumlah kriteria per TP dalam salinan beku; ada hanya bila > 0",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "objectiveAggregation": {
+                      "description": "Aturan agregasi TP semester ini; ada hanya bila bukan bawaan (`mean`)",
+                      "type": "string",
+                      "enum": [
+                        "mean",
+                        "latest",
+                        "max"
+                      ]
                     }
                   },
                   "required": [
@@ -60135,6 +60177,21 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "objectiveCriteriaCount": {
+                      "description": "Jumlah kriteria per TP dalam salinan beku; ada hanya bila > 0",
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "objectiveAggregation": {
+                      "description": "Aturan agregasi TP semester ini; ada hanya bila bukan bawaan (`mean`)",
+                      "type": "string",
+                      "enum": [
+                        "mean",
+                        "latest",
+                        "max"
+                      ]
                     },
                     "changed": {
                       "type": "boolean",
@@ -61617,6 +61674,38 @@
                         "nullable": true,
                         "type": "string"
                       },
+                      "objectives": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "id": {
+                              "type": "string",
+                              "format": "uuid",
+                              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                            },
+                            "code": {
+                              "nullable": true,
+                              "type": "string"
+                            },
+                            "description": {
+                              "type": "string"
+                            },
+                            "active": {
+                              "type": "boolean",
+                              "description": "false = TP sudah diganti versi baru atau dinonaktifkan"
+                            }
+                          },
+                          "required": [
+                            "id",
+                            "code",
+                            "description",
+                            "active"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "description": "Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan."
+                      },
                       "teacherId": {
                         "nullable": true,
                         "type": "string",
@@ -61664,6 +61753,7 @@
                       "subjectName",
                       "componentId",
                       "componentName",
+                      "objectives",
                       "teacherId",
                       "teacherName",
                       "title",
@@ -61750,7 +61840,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester itu sudah dibekukan dan komponennya tidak ada di salinan beku (mis. komponen yang dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah. Tanda opsional: `purpose` `initial` (asesmen awal) hanya pada komponen formatif (400 `initial_requires_formative`), `summativeScope` hanya pada komponen sumatif (400 `scope_requires_summative`), `technique` dari daftar teknik. Penilaian pada komponen formatif tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya.",
+        "description": "Izin: `grade:input`; modul `grades`. Boleh bagi pemegang `grade:configure` atau guru yang mengampu kelas dan mapel itu (selain itu 403). Semester, kelas, mapel, dan komponen harus milik sekolah ini dan semester sama tahun ajarannya dengan kelas (400 `invalid_reference`). `maxScore` 1..1000 (bawaan 100). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester itu sudah dibekukan dan komponennya tidak ada di salinan beku (mis. komponen yang dibuat sesudah pembekuan); semester yang belum beku menerima komponen apa pun milik sekolah. Tanda opsional: `purpose` `initial` (asesmen awal) hanya pada komponen formatif (400 `initial_requires_formative`), `summativeScope` hanya pada komponen sumatif (400 `scope_requires_summative`), `technique` dari daftar teknik. Penilaian pada komponen formatif tidak masuk nilai akhir; respons membawa `category` turunan dari komponennya. `objectiveIds` opsional mengaitkan penilaian ke tujuan pembelajaran (TP): maksimal 20 (400 `too_many_objectives`), milik mapel yang sama (400 `objective_subject_mismatch`), aktif (400 `objective_inactive`); satu skor berlaku untuk semua TP itu.",
         "requestBody": {
           "required": true,
           "content": {
@@ -61826,6 +61916,16 @@
                       "assignment",
                       "other"
                     ]
+                  },
+                  "objectiveIds": {
+                    "description": "Tujuan pembelajaran (TP) yang dikaitkan, maksimal 20 (400 `too_many_objectives`); harus milik mapel penilaian (400 `objective_subject_mismatch`) dan aktif (400 `objective_inactive`). Pada PUT: dihilangkan = tetap, larik = ganti himpunan.",
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
                   }
                 },
                 "required": [
@@ -61929,6 +62029,38 @@
                       "nullable": true,
                       "type": "string"
                     },
+                    "objectives": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "code": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "active": {
+                            "type": "boolean",
+                            "description": "false = TP sudah diganti versi baru atau dinonaktifkan"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "code",
+                          "description",
+                          "active"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan."
+                    },
                     "teacherId": {
                       "nullable": true,
                       "type": "string",
@@ -61976,6 +62108,7 @@
                     "subjectName",
                     "componentId",
                     "componentName",
+                    "objectives",
                     "teacherId",
                     "teacherName",
                     "title",
@@ -62127,7 +62260,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum, dan tanda (`purpose`, `summativeScope`, `technique`; dihilangkan = tetap, null = kosongkan; tanda diperiksa terhadap kategori komponen: 400 `initial_requires_formative`, `scope_requires_summative`). Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 `component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak diganti tidak diperiksa ulang).",
+        "description": "Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Yang bisa diubah: komponen, judul, tanggal, skor maksimum, dan tanda (`purpose`, `summativeScope`, `technique`; dihilangkan = tetap, null = kosongkan; tanda diperiksa terhadap kategori komponen: 400 `initial_requires_formative`, `scope_requires_summative`). Skor maksimum tidak boleh di bawah skor yang sudah diisi (409 `score_exceeds_max`). Komponen harus milik sekolah ini (400 `invalid_reference`). Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Mengganti komponen ditolak 409 `component_not_in_semester` bila semester itu beku dan komponen baru tidak ada di salinan beku (komponen yang tidak diganti tidak diperiksa ulang). `objectiveIds` (TP yang dikaitkan): dihilangkan = tetap, larik = ganti himpunan (aturan dan galat sama dengan membuat penilaian; TP yang sudah terkait boleh tetap walau sudah nonaktif).",
         "requestBody": {
           "required": true,
           "content": {
@@ -62188,6 +62321,16 @@
                       "assignment",
                       "other"
                     ]
+                  },
+                  "objectiveIds": {
+                    "description": "Tujuan pembelajaran (TP) yang dikaitkan, maksimal 20 (400 `too_many_objectives`); harus milik mapel penilaian (400 `objective_subject_mismatch`) dan aktif (400 `objective_inactive`). Pada PUT: dihilangkan = tetap, larik = ganti himpunan.",
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
                   }
                 },
                 "required": [
@@ -62298,6 +62441,38 @@
                       "nullable": true,
                       "type": "string"
                     },
+                    "objectives": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "code": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "active": {
+                            "type": "boolean",
+                            "description": "false = TP sudah diganti versi baru atau dinonaktifkan"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "code",
+                          "description",
+                          "active"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan."
+                    },
                     "teacherId": {
                       "nullable": true,
                       "type": "string",
@@ -62345,6 +62520,7 @@
                     "subjectName",
                     "componentId",
                     "componentName",
+                    "objectives",
                     "teacherId",
                     "teacherName",
                     "title",
@@ -62526,7 +62702,7 @@
         "tags": [
           "Grading"
         ],
-        "description": "Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Seluruh skor penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.",
+        "description": "Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403). Seluruh skor dan kaitan TP penilaian itu ikut terhapus. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final.",
         "parameters": [
           {
             "schema": {
@@ -62813,6 +62989,38 @@
                           "nullable": true,
                           "type": "string"
                         },
+                        "objectives": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "string",
+                                "format": "uuid",
+                                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                              },
+                              "code": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              },
+                              "active": {
+                                "type": "boolean",
+                                "description": "false = TP sudah diganti versi baru atau dinonaktifkan"
+                              }
+                            },
+                            "required": [
+                              "id",
+                              "code",
+                              "description",
+                              "active"
+                            ],
+                            "additionalProperties": false
+                          },
+                          "description": "Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan."
+                        },
                         "teacherId": {
                           "nullable": true,
                           "type": "string",
@@ -62860,6 +63068,7 @@
                         "subjectName",
                         "componentId",
                         "componentName",
+                        "objectives",
                         "teacherId",
                         "teacherName",
                         "title",
@@ -63917,6 +64126,1074 @@
             }
           },
           "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/assessments/{id}/objectives": {
+      "put": {
+        "summary": "Ganti tujuan pembelajaran (TP) yang dikaitkan ke penilaian",
+        "tags": [
+          "Grading"
+        ],
+        "description": "Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel penilaian itu (selain itu 403); modul `grades`. Mengganti seluruh himpunan TP penilaian (larik kosong = lepas semua). Satu skor penilaian berlaku untuk semua TP yang dikaitkan. Maksimal 20 TP (400 `too_many_objectives`); setiap TP harus ada di sekolah ini (400 `invalid_reference`), milik mapel penilaian (400 `objective_subject_mismatch`), dan aktif (400 `objective_inactive`; TP yang sudah terkait boleh tetap walau kemudian dinonaktifkan atau diganti versi baru). Berlaku juga untuk penilaian hasil ujian CBT; dorong ulang nilai ujian mempertahankan kaitan. Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Diaudit (`assessment.objectives`).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "objectiveIds": {
+                    "maxItems": 100,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    }
+                  }
+                },
+                "required": [
+                  "objectiveIds"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "semesterId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "classId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "className": {
+                      "type": "string"
+                    },
+                    "subjectId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "subjectName": {
+                      "type": "string"
+                    },
+                    "componentId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "componentName": {
+                      "type": "string"
+                    },
+                    "category": {
+                      "description": "Kategori diturunkan dari komponen (konfigurasi efektif semester), tidak disimpan di penilaian.",
+                      "type": "string",
+                      "enum": [
+                        "formative",
+                        "summative"
+                      ]
+                    },
+                    "includeInFinal": {
+                      "description": "Komponen penilaian ini ikut nilai akhir (diturunkan).",
+                      "type": "boolean"
+                    },
+                    "purpose": {
+                      "description": "`initial` = asesmen awal (diagnostik); hanya pada komponen formatif; tidak pernah masuk nilai akhir. null = biasa.",
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "initial"
+                      ]
+                    },
+                    "summativeScope": {
+                      "description": "Lingkup sumatif (`material` atau `end_of_semester`); hanya pada komponen sumatif. null = tidak ditandai.",
+                      "nullable": true,
+                      "type": "string",
+                      "enum": [
+                        "material",
+                        "end_of_semester"
+                      ]
+                    },
+                    "technique": {
+                      "description": "Teknik asesmen (test, observation, performance, practice, product, project, portfolio, assignment, other); null = tidak dicatat.",
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "objectives": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "code": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "active": {
+                            "type": "boolean",
+                            "description": "false = TP sudah diganti versi baru atau dinonaktifkan"
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "code",
+                          "description",
+                          "active"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "description": "Tujuan pembelajaran (TP) yang dikaitkan; satu skor penilaian berlaku untuk semuanya. Kosong = tanpa kaitan."
+                    },
+                    "teacherId": {
+                      "nullable": true,
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "teacherName": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "title": {
+                      "type": "string"
+                    },
+                    "date": {
+                      "type": "string"
+                    },
+                    "maxScore": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "filled": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "description": "Jumlah siswa aktif atau lulusan kelas yang sudah punya skor"
+                    },
+                    "total": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "description": "Jumlah siswa aktif dan lulusan yang terdaftar di kelas (tahun ajaran kelas itu)"
+                    },
+                    "canInput": {
+                      "type": "boolean",
+                      "description": "Pengguna ini boleh mengubah penilaian dan skornya"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "semesterId",
+                    "classId",
+                    "className",
+                    "subjectId",
+                    "subjectName",
+                    "componentId",
+                    "componentName",
+                    "objectives",
+                    "teacherId",
+                    "teacherName",
+                    "title",
+                    "date",
+                    "maxScore",
+                    "filled",
+                    "total",
+                    "canInput"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/grading/objective-achievement": {
+      "get": {
+        "summary": "Matriks ketercapaian tujuan pembelajaran (TP) per siswa",
+        "tags": [
+          "Grading"
+        ],
+        "description": "Izin: `grade:read`; modul `grades`. Matriks siswa x TP untuk satu kelas, mapel, dan semester. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). Ketercapaian DIHITUNG saat dibaca: skor penilaian SUMATIF (komponen yang ikut nilai akhir, bukan asesmen awal) yang dikaitkan ke TP, diagregasi menurut `aggregation` (`mean`, `latest`, `max`; salinan beku semester bila ada), lalu dibandingkan dengan ambang bertingkat: kriteria per TP (KKTP ber-`objectiveId`; jenjang tingkat+program, tingkat, program, TP saja) -> KKM mapel -> KKM sekolah (`scope` per sel). Keputusan guru (`PUT` yang sama) menang (`source` `override`). Penilaian formatif tidak dihitung; ringkasannya ada di `formative` per sel sebagai kemajuan. `objectives` memuat TP yang dikaitkan ke penilaian atau yang punya keputusan guru, urut `sortOrder`; `includeAll=true` menambahkan semua TP aktif mapel itu. TP yang sudah diganti versi baru (`active` false) tetap tampil selama masih dikaitkan. `locked` per siswa = rapor semester itu sudah final (keputusan guru ditolak 409 `report_final`). Angka ini belum memengaruhi rapor. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "semesterId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "classId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "subjectId",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "true",
+                "false"
+              ]
+            },
+            "in": "query",
+            "name": "includeAll",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "aggregation": {
+                      "type": "string",
+                      "enum": [
+                        "mean",
+                        "latest",
+                        "max"
+                      ],
+                      "description": "Aturan agregasi ketercapaian TP dari beberapa penilaian sumatif: `mean` (bawaan, rata-rata persen), `latest` (penilaian terbaru menurut tanggal), `max` (persen tertinggi)."
+                    },
+                    "frozen": {
+                      "type": "boolean",
+                      "description": "Semester memakai salinan beku konfigurasi (kriteria TP dan agregasi dari salinan)"
+                    },
+                    "canInput": {
+                      "type": "boolean",
+                      "description": "Pengguna ini boleh mengisi keputusan guru untuk kelas+mapel ini"
+                    },
+                    "objectives": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "code": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "active": {
+                            "type": "boolean"
+                          },
+                          "sortOrder": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991
+                          },
+                          "assessmentCount": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "description": "Jumlah penilaian sumatif terkait"
+                          },
+                          "formativeCount": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "description": "Jumlah penilaian formatif terkait"
+                          },
+                          "summary": {
+                            "type": "object",
+                            "properties": {
+                              "assessed": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991,
+                                "description": "Jumlah siswa yang sudah berstatus"
+                              },
+                              "achieved": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991,
+                                "description": "Jumlah siswa yang tercapai"
+                              }
+                            },
+                            "required": [
+                              "assessed",
+                              "achieved"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "required": [
+                          "id",
+                          "code",
+                          "description",
+                          "active",
+                          "sortOrder",
+                          "assessmentCount",
+                          "formativeCount",
+                          "summary"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "students": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "studentId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "name": {
+                            "type": "string"
+                          },
+                          "nis": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "locked": {
+                            "type": "boolean"
+                          },
+                          "cells": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "objectiveId": {
+                                  "type": "string",
+                                  "format": "uuid",
+                                  "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                                },
+                                "percent": {
+                                  "nullable": true,
+                                  "description": "Persen agregat penilaian sumatif yang dikaitkan (aturan `aggregation`); null = belum ada skor",
+                                  "type": "number"
+                                },
+                                "achieved": {
+                                  "nullable": true,
+                                  "description": "Tercapai atau belum; null = belum dapat ditentukan (tanpa skor dan tanpa keputusan guru, atau deskriptor tanpa rentang)",
+                                  "type": "boolean"
+                                },
+                                "levelLabel": {
+                                  "nullable": true,
+                                  "description": "Label level kriteria yang memuat persen, atau pilihan guru",
+                                  "type": "string"
+                                },
+                                "source": {
+                                  "nullable": true,
+                                  "description": "`override` = keputusan guru menimpa status; `computed` = dari skor; null = belum ada keduanya",
+                                  "type": "string",
+                                  "enum": [
+                                    "computed",
+                                    "override"
+                                  ]
+                                },
+                                "scope": {
+                                  "nullable": true,
+                                  "description": "Asal ambang: kriteria per TP (`objective_level_program`, `objective_level`, `objective_program`, `objective`), KKM mapel (`subject_kkm`), atau KKM sekolah (`school_kkm`); null bila belum ada skor",
+                                  "type": "string",
+                                  "enum": [
+                                    "objective_level_program",
+                                    "objective_level",
+                                    "objective_program",
+                                    "objective",
+                                    "subject_kkm",
+                                    "school_kkm"
+                                  ]
+                                },
+                                "threshold": {
+                                  "nullable": true,
+                                  "description": "Ambang terkecil yang dianggap tercapai",
+                                  "type": "number"
+                                },
+                                "scoredCount": {
+                                  "type": "integer",
+                                  "minimum": -9007199254740991,
+                                  "maximum": 9007199254740991,
+                                  "description": "Jumlah penilaian sumatif terkait yang sudah punya skor siswa ini"
+                                },
+                                "note": {
+                                  "nullable": true,
+                                  "description": "Alasan/catatan guru pada keputusan",
+                                  "type": "string"
+                                },
+                                "formative": {
+                                  "description": "Kemajuan dari penilaian formatif terkait, TERPISAH: tidak dipakai untuk status ketercapaian rapor. Ada hanya bila ada skor.",
+                                  "type": "object",
+                                  "properties": {
+                                    "average": {
+                                      "type": "number"
+                                    },
+                                    "count": {
+                                      "type": "integer",
+                                      "minimum": -9007199254740991,
+                                      "maximum": 9007199254740991
+                                    }
+                                  },
+                                  "required": [
+                                    "average",
+                                    "count"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "required": [
+                                "objectiveId",
+                                "percent",
+                                "achieved",
+                                "levelLabel",
+                                "source",
+                                "scope",
+                                "threshold",
+                                "scoredCount",
+                                "note"
+                              ],
+                              "additionalProperties": false
+                            },
+                            "description": "Satu sel per TP, urutan sama dengan `objectives`"
+                          }
+                        },
+                        "required": [
+                          "studentId",
+                          "name",
+                          "nis",
+                          "locked",
+                          "cells"
+                        ],
+                        "additionalProperties": false
+                      }
+                    }
+                  },
+                  "required": [
+                    "aggregation",
+                    "frozen",
+                    "canInput",
+                    "objectives",
+                    "students"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Simpan keputusan guru atas ketercapaian TP",
+        "tags": [
+          "Grading"
+        ],
+        "description": "Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel (selain itu 403); modul `grades`. Keputusan guru (override) per (siswa, TP) pada semester itu, batch 1..500. Setiap record MENGGANTIKAN keputusan sebelumnya untuk (siswa, TP) itu: `achieved` (true/false) menimpa status hitung, `levelLabel` (maks 60 karakter) dan `note` alasan (maks 500) opsional; yang dihilangkan atau null dikosongkan; ketiganya kosong menghapus keputusan. Hanya menyimpan keputusan, bukan hasil hitung. Siswa harus anggota aktif kelas dan TP milik mapel itu (400 `invalid_reference`, `objective_subject_mismatch`); TP tidak harus aktif atau sudah dikaitkan ke penilaian. Ditolak 409 `report_final` bila rapor salah satu siswa itu pada semester tersebut sudah final (buka kembali rapornya lebih dulu). Siswa dan TP yang sama dikirim dua kali: yang terakhir berlaku. Diaudit (`objective_achievement.save`).",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "semesterId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "classId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "subjectId": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "records": {
+                    "minItems": 1,
+                    "maxItems": 500,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "studentId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "objectiveId": {
+                          "type": "string",
+                          "format": "uuid",
+                          "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                        },
+                        "achieved": {
+                          "nullable": true,
+                          "type": "boolean"
+                        },
+                        "levelLabel": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 60
+                        },
+                        "note": {
+                          "nullable": true,
+                          "type": "string",
+                          "maxLength": 500
+                        }
+                      },
+                      "required": [
+                        "studentId",
+                        "objectiveId"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "semesterId",
+                  "classId",
+                  "subjectId",
+                  "records"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "saved": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "cleared": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    }
+                  },
+                  "required": [
+                    "saved",
+                    "cleared"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -114996,7 +116273,7 @@
         "tags": [
           "Exams"
         ],
-        "description": "Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, atau kaitan lain yang sudah diatur guru. Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian (mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau `scope_requires_summative`.",
+        "description": "Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 `essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor salah satu kelas peserta pada semester ujian sudah final. Ditolak 409 `component_not_in_semester` bila konfigurasi nilai semester ujian sudah dibekukan dan komponennya tidak ada di salinan beku. Kategori komponen menentukan kategori penilaian: dorong ke komponen formatif membuat penilaian formatif yang TIDAK masuk nilai akhir. `technique` (bawaan `test`) dipakai hanya saat penilaian pertama kali dibuat; dorong ulang tidak menyentuh `technique`, `purpose`, `summativeScope`, atau kaitan tujuan pembelajaran (TP, `PUT /v1/assessments/{id}/objectives`) yang sudah diatur guru; kaitan TP bertahan walau nilai didorong ulang. Bila komponen diganti ke kategori yang tidak cocok dengan tanda penilaian (mis. `purpose` `initial` ke komponen sumatif) ditolak 400 `initial_requires_formative` atau `scope_requires_summative`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -122000,7 +123277,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus (berlaku juga untuk `active` true pada versi lama; aktifkan versi terbaru).",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). `phase` dan `description` wajib; `code` dan `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila fase atau deskripsi berubah DAN CP ini dipakai item ATP berstatus terbit atau salah satu TP-nya dikaitkan ke penilaian, CP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama), yang lama dinonaktifkan, dan TP aktif milik CP lama disalin ke versi baru (versi baru juga, lama dinonaktifkan); ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus (berlaku juga untuk `active` true pada versi lama; aktifkan versi terbaru).",
         "requestBody": {
           "required": true,
           "content": {
@@ -122942,7 +124219,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit, TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus; berlaku juga untuk `active` true pada versi lama (aktifkan versi terbaru).",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). `description` wajib; `code`, `sortOrder`, `active` yang dihilangkan tidak berubah (`code` null mengosongkan). Bila deskripsi berubah DAN TP ini dipakai item ATP berstatus terbit ATAU dikaitkan ke penilaian (ketercapaian TP), TP lama tidak ditimpa: dibuat baris baru (`version` + 1, `supersedesId` = lama) dan yang lama dinonaktifkan; ATP terbit dan penilaian tetap menunjuk yang lama (`versioned` true, `previousId` terisi). Bila belum dipakai, diubah di tempat. 409 `superseded`: versi ini sudah punya penerus; berlaku juga untuk `active` true pada versi lama (aktifkan versi terbaru).",
         "requestBody": {
           "required": true,
           "content": {
@@ -123209,7 +124486,7 @@
         "tags": [
           "Curriculum"
         ],
-        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). 409 `in_use`: TP dirujuk item ATP (draf maupun terbit) atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.",
+        "description": "Izin: `teaching_plan:write`. Pemegang `curriculum:manage` boleh untuk semua mapel; guru hanya untuk mapel yang ia ampu pada tahun ajaran berjalan atau yang akan datang, yakni punya penugasan di kelas yang tahun ajarannya belum berakhir (untuk ATP: di kelas tahun ajaran ATP itu) (403 `not_subject_teacher`). 409 `in_use`: TP dirujuk item ATP (draf maupun terbit), dikaitkan ke penilaian, punya keputusan ketercapaian guru, atau sudah punya versi penerus; nonaktifkan lewat PUT `active` false.",
         "parameters": [
           {
             "schema": {

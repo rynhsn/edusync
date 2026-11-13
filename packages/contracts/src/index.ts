@@ -17,6 +17,7 @@ export * from './grading-config';
 export * from './kktp';
 export * from './letters';
 export * from './messaging';
+export * from './objective-achievement';
 export * from './omr';
 export * from './permissions';
 export * from './pkl';

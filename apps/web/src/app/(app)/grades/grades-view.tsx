@@ -1,7 +1,15 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { CalendarRange, ClipboardCheck, ListFilter, Settings2 } from 'lucide-react';
+import {
+  CalendarRange,
+  ClipboardCheck,
+  ClipboardList,
+  ListFilter,
+  Settings2,
+  Table2,
+  Target,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -15,9 +23,12 @@ import { api, schoolHeader, unwrap } from '@/lib/api';
 import { semesterLabel } from '@/lib/semester-label';
 import { cn } from '@/lib/utils';
 import { AssessmentsPanel } from './assessments-panel';
+import { ObjectiveAchievementPanel } from './objective-achievement-panel';
 import { RecapPanel } from './recap-panel';
 
-type Mode = 'assessments' | 'recap';
+type Mode = 'assessments' | 'recap' | 'objectives';
+const MODES = ['assessments', 'recap', 'objectives'] as const satisfies readonly Mode[];
+const MODE_ICONS = { assessments: ClipboardList, recap: Table2, objectives: Target } as const;
 
 /** Modul penilaian: filter semester, kelas, dan mata pelajaran, lalu tampilan daftar penilaian atau rekap nilai. */
 export function GradesView() {
@@ -130,25 +141,38 @@ export function GradesView() {
             </option>
           ))}
         </SelectField>
-        <div className="bg-muted ml-auto inline-flex rounded-xl p-0.5">
-          {(['assessments', 'recap'] as const).map((m) => (
+      </Toolbar>
+
+      <div
+        role="tablist"
+        aria-label={t('tabsLabel')}
+        className="bg-muted grid w-full grid-cols-2 gap-0.5 rounded-xl p-0.5 lg:flex lg:w-fit lg:overflow-x-auto"
+      >
+        {MODES.map((m) => {
+          const Icon = MODE_ICONS[m];
+          return (
             <button
               key={m}
               type="button"
-              aria-pressed={mode === m}
+              role="tab"
+              id={`grades-tab-${m}`}
+              aria-selected={mode === m}
+              aria-controls="grades-panel"
               onClick={() => setMode(m)}
               className={cn(
-                'focus-visible:ring-ring/60 rounded-[10px] px-3 py-1.5 text-sm font-medium max-sm:min-h-11 outline-none transition-colors focus-visible:ring-2',
+                'focus-visible:ring-ring/60 inline-flex items-center justify-center gap-1.5 rounded-[10px] px-3 py-1.5 text-center text-sm font-medium outline-none transition-colors focus-visible:ring-2 max-lg:min-h-11 lg:whitespace-nowrap',
+                m === 'objectives' && 'max-lg:col-span-2',
                 mode === m
                   ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground',
               )}
             >
+              <Icon aria-hidden className="size-4" />
               {t(`mode_${m}`)}
             </button>
-          ))}
-        </div>
-      </Toolbar>
+          );
+        })}
+      </div>
 
       {semesters.data?.length === 0 ? (
         <EmptyPanel
@@ -168,10 +192,21 @@ export function GradesView() {
             body={t('pickFilters')}
           />
         )
-      ) : mode === 'assessments' ? (
-        <AssessmentsPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
       ) : (
-        <RecapPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
+        <div role="tabpanel" id="grades-panel" aria-labelledby={`grades-tab-${mode}`}>
+          {mode === 'assessments' ? (
+            <AssessmentsPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
+          ) : mode === 'recap' ? (
+            <RecapPanel semesterId={semesterId} classId={classId} subjectId={subjectId} />
+          ) : (
+            <ObjectiveAchievementPanel
+              semesterId={semesterId}
+              classId={classId}
+              subjectId={subjectId}
+              onGoAssessments={() => setMode('assessments')}
+            />
+          )}
+        </div>
       )}
     </PageBody>
   );
