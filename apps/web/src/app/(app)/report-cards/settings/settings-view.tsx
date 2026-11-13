@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { FileText, PenLine, Settings2, Signature } from 'lucide-react';
+import { FileText, ListChecks, PenLine, Settings2, Signature } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -15,10 +15,22 @@ import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { IconTile, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import {
+  DEFAULT_NARRATIVE_MAX_ITEMS,
+  defaultTemplate,
+  exampleSentence,
+  NARRATIVE_MAX_ITEMS_LIMIT,
+  NARRATIVE_TEMPLATE_MAX_LENGTH,
+  NARRATIVE_TP_PLACEHOLDER,
+  parseMaxItems,
+  templateForSave,
+  templateToField,
+} from '@/lib/report-narrative';
 import { parseWindowDays } from '@/lib/report-v2';
 import { predicateTone } from '../../grades/grade-ui';
 import {
@@ -45,6 +57,11 @@ interface Form {
   showGuardianResponse: boolean;
   /** Teks apa adanya; kosong = tanpa batas. */
   responseWindowDays: string;
+  /** Jumlah TP per sisi (1-5), sebagai teks pilihan. */
+  narrativeMaxItems: string;
+  /** Kosong = templat bawaan. */
+  narrativeHighTemplate: string;
+  narrativeLowTemplate: string;
 }
 
 const EMPTY: Form = {
@@ -60,6 +77,9 @@ const EMPTY: Form = {
   showCocurricular: false,
   showGuardianResponse: false,
   responseWindowDays: '30',
+  narrativeMaxItems: String(DEFAULT_NARRATIVE_MAX_ITEMS),
+  narrativeHighTemplate: '',
+  narrativeLowTemplate: '',
 };
 
 /** Pengaturan rapor: identitas penandatangan, deskripsi capaian per predikat, dan tampilan peringkat. */
@@ -101,6 +121,9 @@ export function ReportCardSettingsView() {
       showCocurricular: d.showCocurricular,
       showGuardianResponse: d.showGuardianResponse,
       responseWindowDays: d.responseWindowDays === null ? '' : String(d.responseWindowDays),
+      narrativeMaxItems: String(d.narrativeMaxItems),
+      narrativeHighTemplate: templateToField(d.narrativeHighTemplate),
+      narrativeLowTemplate: templateToField(d.narrativeLowTemplate),
     });
     setDirty(false);
   }, [settings.data]);
@@ -128,6 +151,9 @@ export function ReportCardSettingsView() {
             showCocurricular: form.showCocurricular,
             showGuardianResponse: form.showGuardianResponse,
             responseWindowDays: parseWindowDays(form.responseWindowDays) as number | null,
+            narrativeMaxItems: parseMaxItems(form.narrativeMaxItems),
+            narrativeHighTemplate: templateForSave(form.narrativeHighTemplate),
+            narrativeLowTemplate: templateForSave(form.narrativeLowTemplate),
           },
         }),
       ),
@@ -137,6 +163,7 @@ export function ReportCardSettingsView() {
       validation.reset();
       queryClient.invalidateQueries({ queryKey: key });
       queryClient.invalidateQueries({ queryKey: ['report-card', school.schoolId] });
+      queryClient.invalidateQueries({ queryKey: ['report-card-narratives', school.schoolId] });
     },
     onError: (e) => toast.error(te(errorKey(e))),
   });
@@ -295,6 +322,68 @@ export function ReportCardSettingsView() {
               />
               <p className="text-muted-foreground text-sm">{t('responseWindowHint')}</p>
             </div>
+          </Card>
+
+          <Card className="gap-4 p-4 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300">
+            <div className="flex items-start gap-3">
+              <IconTile icon={ListChecks} tone="emerald" />
+              <div>
+                <h2 className="font-heading text-lg font-semibold">{t('tpDescTitle')}</h2>
+                <p className="text-muted-foreground text-sm">{t('tpDescHint')}</p>
+              </div>
+            </div>
+            <div className="grid max-w-xs content-start gap-2">
+              <Label htmlFor="rc-narrativeMaxItems">{t('narrativeMaxItems')}</Label>
+              <SelectField
+                id="rc-narrativeMaxItems"
+                value={form.narrativeMaxItems}
+                onChange={(e) => patch({ narrativeMaxItems: e.target.value })}
+              >
+                {Array.from({ length: NARRATIVE_MAX_ITEMS_LIMIT }, (_, i) => String(i + 1)).map((n) => (
+                  <option key={n} value={n}>
+                    {n}
+                  </option>
+                ))}
+              </SelectField>
+              <p className="text-muted-foreground text-sm">{t('narrativeMaxItemsHint')}</p>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-2">
+              {(['high', 'low'] as const).map((side) => {
+                const k = side === 'high' ? 'narrativeHighTemplate' : 'narrativeLowTemplate';
+                return (
+                  <div key={side} className="grid content-start gap-2">
+                    <Label htmlFor={validation.idOf(k)}>{t(`${k}Label`)}</Label>
+                    <Textarea
+                      {...validation.fieldProps(k)}
+                      rows={3}
+                      placeholder={defaultTemplate(side)}
+                      value={form[k]}
+                      onChange={(e) => patch({ [k]: e.target.value })}
+                    />
+                    <FieldError id={validation.idOf(k)} issue={validation.issue(k)} />
+                    <p className="text-muted-foreground text-xs">
+                      {t('templateCounter', { count: form[k].length, max: NARRATIVE_TEMPLATE_MAX_LENGTH })}
+                    </p>
+                    <p className="bg-muted/50 rounded-lg border p-2 text-sm" aria-live="polite">
+                      <span className="text-muted-foreground block text-xs">{t('templateExample')}</span>
+                      {exampleSentence(form[k], side, t('templateSampleTp'))}
+                    </p>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-11 w-fit md:h-8"
+                      disabled={form[k] === ''}
+                      onClick={() => patch({ [k]: '' })}
+                    >
+                      {t('templateUseDefault')}
+                    </Button>
+                  </div>
+                );
+              })}
+            </div>
+            <p className="text-muted-foreground text-sm">
+              {t('templateTpHint', { tp: NARRATIVE_TP_PLACEHOLDER })}
+            </p>
           </Card>
 
           <div className="flex flex-wrap items-center gap-3">

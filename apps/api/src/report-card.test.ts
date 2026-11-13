@@ -445,6 +445,10 @@ describe('pengaturan', () => {
       showCocurricular: false,
       showGuardianResponse: false,
       responseWindowDays: 30,
+      // Tahap 3.4: tiga field aditif narasi dari TP (2 TP per sisi, templat bawaan = null).
+      narrativeMaxItems: 2,
+      narrativeHighTemplate: null,
+      narrativeLowTemplate: null,
     };
     expect(put.json()).toEqual(withDefaults);
     expect((await call('GET', '/v1/report-cards/settings', waliCookie)).json()).toEqual(withDefaults);

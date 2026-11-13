@@ -1,7 +1,9 @@
 import {
   averageOfFinals,
+  DEFAULT_NARRATIVE_MAX_ITEMS,
   DEFAULT_PREDICATE_DESCRIPTIONS,
   descriptionOf,
+  type ObjectiveNarrative,
   type ReportDocument,
   type ReportDocumentV2,
   rankPositions,
@@ -28,9 +30,10 @@ import {
   teacher,
 } from '@edusync/db';
 import { historicalRosterOf } from './attendance-lib';
-import { loadGradingConfig } from './grading-config-lib';
+import { type EffectiveGradingConfig, loadGradingConfig } from './grading-config-lib';
 import { assessedSubjects, computeGrades, notCountedComponentIds, type StudentGrade } from './grading-lib';
 import { HttpError } from './http-error';
+import { isNarrativeStale, loadObjectiveNarratives, type ObjectiveNarratives } from './report-narrative-lib';
 
 /** Pengaturan rapor sekolah. Sekolah yang belum mengaturnya mendapat nilai bawaan. */
 export interface ReportSettings {
@@ -49,6 +52,11 @@ export interface ReportSettings {
   showGuardianResponse: boolean;
   /** Jendela tanggapan wali sejak finalisasi, dalam hari; null = tanpa batas (bawaan 30; K9). */
   responseWindowDays: number | null;
+  /** Narasi dari TP (3.4): TP per sisi tinggi/rendah, 1..5, bawaan 2. */
+  narrativeMaxItems: number;
+  /** Templat kalimat narasi memuat `{tp}`; null = templat bawaan di kontrak. */
+  narrativeHighTemplate: string | null;
+  narrativeLowTemplate: string | null;
 }
 
 export const DEFAULT_REPORT_SETTINGS: ReportSettings = {
@@ -61,6 +69,9 @@ export const DEFAULT_REPORT_SETTINGS: ReportSettings = {
   showCocurricular: false,
   showGuardianResponse: false,
   responseWindowDays: 30,
+  narrativeMaxItems: DEFAULT_NARRATIVE_MAX_ITEMS,
+  narrativeHighTemplate: null,
+  narrativeLowTemplate: null,
 };
 
 export async function loadReportSettings(tx: Tx): Promise<ReportSettings> {
@@ -79,6 +90,9 @@ export async function loadReportSettings(tx: Tx): Promise<ReportSettings> {
     showCocurricular: s.showCocurricular,
     showGuardianResponse: s.showGuardianResponse,
     responseWindowDays: s.responseWindowDays,
+    narrativeMaxItems: s.narrativeMaxItems,
+    narrativeHighTemplate: s.narrativeHighTemplate,
+    narrativeLowTemplate: s.narrativeLowTemplate,
   };
 }
 
@@ -112,6 +126,8 @@ export interface ClassContext {
   yearName: string;
   schoolName: string;
   reportSettings: ReportSettings;
+  /** Konfigurasi nilai efektif semester (salinan beku bila ada); dipakai ketercapaian TP untuk narasi. */
+  cfg: EffectiveGradingConfig;
   /** KKM sekolah (`grading_setting.kkm`); KKM tiap mapel ada di `kkmBySubject`. */
   kkm: number;
   /** KKM efektif per mapel (KKTP berjenjang, jatuh ke `kkm` bila tak ada kriteria). */
@@ -142,7 +158,8 @@ export async function loadClassContext(
     .select({ name: academicYear.name })
     .from(academicYear)
     .where(eq(academicYear.id, sem.academicYearId));
-  const { settings, components, kkmResolver } = await loadGradingConfig(tx, sem.id);
+  const cfg = await loadGradingConfig(tx, sem.id);
+  const { settings, components, kkmResolver } = cfg;
   const reportSettings = await loadReportSettings(tx);
   const subjects = await assessedSubjects(tx, sem.id, cls.id, notCountedComponentIds(components));
   const studentIds = [...new Set([...roster.map((s) => s.id), ...extraStudentIds])];
@@ -181,6 +198,7 @@ export async function loadClassContext(
     yearName: year?.name ?? '',
     schoolName: sch?.name ?? '',
     reportSettings,
+    cfg,
     kkm: settings.kkm,
     kkmBySubject: new Map(subjects.map((s) => [s.id, kkmOf(s.id)])),
     subjects,
@@ -231,14 +249,26 @@ async function attendanceCounts(tx: Tx, studentId: string, startsOn: string, end
 /** Mode rapor tingkat kelas: 'descriptive' (Fase A, K10) atau null (numerik; juga bila tingkat belum diatur). */
 export type ReportMode = 'descriptive' | null;
 
-/** Bahan bagian v2 untuk seluruh kelas: mode rapor dan deskripsi manual per mapel (2 kueri, tidak bergantung jumlah siswa). */
+/**
+ * Bahan bagian v2 untuk seluruh kelas: mode rapor, deskripsi manual per mapel, dan narasi otomatis dari TP. Jumlah kueri tidak
+ * bergantung pada jumlah siswa (lihat `loadObjectiveNarratives`).
+ */
 export interface ReportExtras {
   reportMode: ReportMode;
   /** siswa -> mapel -> deskripsi manual. */
   narratives: Map<string, Map<string, string>>;
+  /** siswa -> mapel -> sidik teks otomatis saat deskripsi manual disunting (null = suntingan tahap 3.2, tanpa sidik). */
+  narrativeHashes: Map<string, Map<string, string | null>>;
+  /** siswa -> mapel -> narasi otomatis dari TP (hanya (siswa, mapel) yang punya TP berstatus). */
+  objectives: ObjectiveNarratives;
 }
 
-export async function loadReportExtras(tx: Tx, c: Pick<ClassContext, 'sem' | 'cls'>): Promise<ReportExtras> {
+/** `extraStudentIds`: siswa di luar roster (mis. pindah) yang dokumennya ikut dibuat. */
+export async function loadReportExtras(
+  tx: Tx,
+  c: Pick<ClassContext, 'sem' | 'cls' | 'subjects' | 'roster' | 'reportSettings' | 'cfg'>,
+  extraStudentIds: string[] = [],
+): Promise<ReportExtras> {
   const [[level], rows] = await Promise.all([
     tx
       .select({ mode: schoolLevel.reportMode })
@@ -250,6 +280,7 @@ export async function loadReportExtras(tx: Tx, c: Pick<ClassContext, 'sem' | 'cl
         studentId: reportSubjectNarrative.studentId,
         subjectId: reportSubjectNarrative.subjectId,
         text: reportSubjectNarrative.text,
+        generatedHash: reportSubjectNarrative.generatedHash,
       })
       .from(reportSubjectNarrative)
       .where(
@@ -257,17 +288,66 @@ export async function loadReportExtras(tx: Tx, c: Pick<ClassContext, 'sem' | 'cl
       ),
   ]);
   const narratives = new Map<string, Map<string, string>>();
+  const narrativeHashes = new Map<string, Map<string, string | null>>();
   for (const r of rows) {
     const m = narratives.get(r.studentId) ?? new Map<string, string>();
     m.set(r.subjectId, r.text);
     narratives.set(r.studentId, m);
+    const h = narrativeHashes.get(r.studentId) ?? new Map<string, string | null>();
+    h.set(r.subjectId, r.generatedHash);
+    narrativeHashes.set(r.studentId, h);
   }
-  return { reportMode: level?.mode === 'descriptive' ? 'descriptive' : null, narratives };
+  const studentIds = [...new Set([...c.roster.map((s) => s.id), ...extraStudentIds])];
+  const objectives = await loadObjectiveNarratives(tx, c, studentIds, c.reportSettings);
+  return {
+    reportMode: level?.mode === 'descriptive' ? 'descriptive' : null,
+    narratives,
+    narrativeHashes,
+    objectives,
+  };
+}
+
+/**
+ * Deskripsi otomatis satu (siswa, mapel): dari TP bila siswa punya TP berstatus di mapel itu; selain itu menurut predikat (v1);
+ * di mode deskriptif tanpa TP null (teks per predikat membocorkan predikat).
+ */
+export function autoDescriptionOf(
+  c: Pick<ClassContext, 'grades' | 'reportSettings'>,
+  extras: Pick<ReportExtras, 'reportMode' | 'objectives'>,
+  studentId: string,
+  subjectId: string,
+): { text: string | null; source: 'objectives' | 'predicate' | null } {
+  const fromObjectives = extras.objectives.get(studentId)?.get(subjectId);
+  if (fromObjectives) return { text: fromObjectives.text, source: 'objectives' };
+  const predicate = c.grades.get(subjectId)?.get(studentId)?.predicate ?? null;
+  if (predicate && extras.reportMode !== 'descriptive') {
+    return { text: descriptionOf(predicate, c.reportSettings), source: 'predicate' };
+  }
+  return { text: null, source: null };
+}
+
+/** Jumlah deskripsi manual yang usang (teks otomatis berubah sejak disunting) pada siswa-siswa itu (R7). */
+export function countStaleNarratives(
+  c: Pick<ClassContext, 'grades' | 'reportSettings' | 'subjects'>,
+  extras: ReportExtras,
+  studentIds: readonly string[],
+): number {
+  let n = 0;
+  for (const studentId of studentIds) {
+    const hashes = extras.narrativeHashes.get(studentId);
+    if (!hashes) continue;
+    for (const sub of c.subjects) {
+      if (!hashes.has(sub.id)) continue;
+      if (isNarrativeStale(hashes.get(sub.id), autoDescriptionOf(c, extras, studentId, sub.id).text)) n += 1;
+    }
+  }
+  return n;
 }
 
 /**
  * Kelengkapan satu siswa untuk finalisasi. Mode numerik: mapel yang sudah punya nilai akhir (sama dengan `liveSummary`).
- * Mode deskriptif: mapel yang sudah punya deskripsi manual (nilai akhir tidak dipersyaratkan; angka tetap dihitung dan disimpan).
+ * Mode deskriptif: mapel yang sudah punya deskripsi, manual atau otomatis dari TP (nilai akhir tidak dipersyaratkan; angka tetap
+ * dihitung dan disimpan).
  */
 export function completenessOf(c: ClassContext, extras: ReportExtras, studentId: string) {
   if (extras.reportMode !== 'descriptive') {
@@ -275,8 +355,9 @@ export function completenessOf(c: ClassContext, extras: ReportExtras, studentId:
     return { subjectsGraded, subjectsTotal };
   }
   const mine = extras.narratives.get(studentId);
+  const auto = extras.objectives.get(studentId);
   return {
-    subjectsGraded: c.subjects.filter((sub) => mine?.has(sub.id)).length,
+    subjectsGraded: c.subjects.filter((sub) => mine?.has(sub.id) || auto?.has(sub.id)).length,
     subjectsTotal: c.subjects.length,
   };
 }
@@ -299,6 +380,8 @@ export interface StudentV2Input {
   reportMode?: ReportMode;
   /** mapel -> deskripsi manual siswa ini. */
   narratives?: Map<string, string> | undefined;
+  /** mapel -> narasi otomatis dari TP siswa ini (hanya mapel yang punya TP berstatus). */
+  objectives?: Map<string, ObjectiveNarrative> | undefined;
   cocurricularNote?: string | null;
   developmentNote?: string | null;
 }
@@ -308,8 +391,10 @@ export interface StudentV2Input {
  *
  * Bagian v2 ditulis SPARSE (rancangan 3.3): kunci hanya ada bila dipakai. `reportMode` hanya bila 'descriptive';
  * `cocurricularNote` bila terisi; `developmentNote` hanya di mode deskriptif dan terisi (K11); `descriptionSource: 'manual'`
- * dan `description` dari teks manual bila ada deskripsi manual untuk mapel itu. Di mode deskriptif deskripsi TIDAK jatuh ke
- * teks per predikat (itu membocorkan predikat): tanpa deskripsi manual, `description` = null.
+ * dan `description` dari teks manual bila ada deskripsi manual untuk mapel itu; selain itu bila siswa punya TP berstatus di mapel
+ * itu (3.4) `descriptionSource: 'objectives'`, `description` dari narasi TP, dan `objectives` {assessed, achieved, high, low}.
+ * Di mode deskriptif deskripsi TIDAK jatuh ke teks per predikat (itu membocorkan predikat): tanpa deskripsi manual atau TP,
+ * `description` = null.
  */
 export async function buildDocument(
   tx: Tx,
@@ -353,15 +438,24 @@ export async function buildDocument(
       const predicate = g?.predicate ?? null;
       const kkm = c.kkmBySubject.get(sub.id) ?? c.kkm;
       const manual = v2.narratives?.get(sub.id);
+      const obj = v2.objectives?.get(sub.id);
       return {
         subjectId: sub.id,
         name: sub.name,
         kkm,
         final,
         predicate,
-        description: manual ?? (predicate && !descriptive ? descriptionOf(predicate, d) : null),
+        // Manual > otomatis dari TP > per predikat (v1). Tanpa TP berstatus, teksnya persis v1.
+        description: manual ?? obj?.text ?? (predicate && !descriptive ? descriptionOf(predicate, d) : null),
         belowKkm: final !== null && final < kkm,
-        ...(manual ? { descriptionSource: 'manual' as const } : {}),
+        ...(manual
+          ? { descriptionSource: 'manual' as const }
+          : obj
+            ? { descriptionSource: 'objectives' as const }
+            : {}),
+        ...(obj
+          ? { objectives: { assessed: obj.assessed, achieved: obj.achieved, high: obj.high, low: obj.low } }
+          : {}),
       };
     }),
     extracurriculars: ekskul,

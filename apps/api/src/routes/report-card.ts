@@ -1,4 +1,9 @@
 import {
+  DEFAULT_NARRATIVE_HIGH_TEMPLATE,
+  DEFAULT_NARRATIVE_LOW_TEMPLATE,
+  isValidNarrativeTemplate,
+  NARRATIVE_MAX_ITEMS_LIMIT,
+  NARRATIVE_TEMPLATE_MAX_LENGTH,
   type ReportDocumentV2,
   reportDocumentResponseSchema,
   reportDocumentSchemaVersion,
@@ -33,6 +38,7 @@ import {
 import {
   buildDocument,
   completenessOf,
+  countStaleNarratives,
   documentSummary,
   liveSummary,
   loadClassContext,
@@ -71,6 +77,22 @@ const settingsSchema = z.object({
     .int()
     .nullable()
     .describe('Jendela tanggapan wali sejak finalisasi, dalam hari (1-365); null = tanpa batas. Bawaan 30'),
+  narrativeMaxItems: z
+    .number()
+    .int()
+    .describe('Narasi dari TP: jumlah TP paling banyak per sisi (tinggi dan rendah), 1-5. Bawaan 2'),
+  narrativeHighTemplate: z
+    .string()
+    .nullable()
+    .describe(
+      `Templat kalimat sisi tinggi memuat {tp}; null = templat bawaan ("${DEFAULT_NARRATIVE_HIGH_TEMPLATE}")`,
+    ),
+  narrativeLowTemplate: z
+    .string()
+    .nullable()
+    .describe(
+      `Templat kalimat sisi rendah memuat {tp}; null = templat bawaan ("${DEFAULT_NARRATIVE_LOW_TEMPLATE}")`,
+    ),
 });
 
 const optionalText = (max: number) =>
@@ -82,6 +104,20 @@ const optionalText = (max: number) =>
     .default(null)
     .transform((v) => (v === '' ? null : v));
 const descText = z.string().trim().min(1).max(500);
+
+const narrativeTemplate = z
+  .string()
+  .trim()
+  .max(NARRATIVE_TEMPLATE_MAX_LENGTH)
+  .nullable()
+  .optional()
+  .transform((v) => (v === '' ? null : v))
+  .refine((v) => v === undefined || v === null || isValidNarrativeTemplate(v), {
+    message: 'Templat harus memuat {tp}.',
+  })
+  .describe(
+    'Memuat {tp}, maksimal 300 karakter; null atau kosong = templat bawaan; dihilangkan = tidak berubah',
+  );
 
 const settingsBody = z.object({
   principalName: optionalText(120),
@@ -103,6 +139,15 @@ const settingsBody = z.object({
     .nullable()
     .optional()
     .describe('Dihilangkan = tidak berubah; null = tanpa batas'),
+  narrativeMaxItems: z
+    .number()
+    .int()
+    .min(1)
+    .max(NARRATIVE_MAX_ITEMS_LIMIT)
+    .optional()
+    .describe('Dihilangkan = tidak berubah'),
+  narrativeHighTemplate: narrativeTemplate,
+  narrativeLowTemplate: narrativeTemplate,
 });
 
 const sectionText = z
@@ -170,8 +215,11 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           'Izin: `report_card:manage`; modul `grades`. Mengganti seluruh pengaturan. Teks kosong pada nama, NIP, ' +
           'kota, dan alamat disimpan sebagai kosong (null); deskripsi capaian wajib terisi (400 galat validasi). ' +
           '`showCocurricular`, `showGuardianResponse` (bendera bagian PDF, bawaan mati) dan `responseWindowDays` (1-365 hari ' +
-          'atau null = tanpa batas, bawaan 30) bersifat opsional: dihilangkan = tidak berubah. Tidak dijaga `report_final` ' +
-          '(tidak mengubah angka; rapor final dibaca dari snapshot).',
+          'atau null = tanpa batas, bawaan 30) bersifat opsional: dihilangkan = tidak berubah. Narasi dari TP (opsional, ' +
+          'dihilangkan = tidak berubah): `narrativeMaxItems` (1-5 TP per sisi, bawaan 2), `narrativeHighTemplate` dan ' +
+          '`narrativeLowTemplate` (kalimat memuat `{tp}`, maksimal 300 karakter; null atau kosong = templat bawaan; templat tanpa ' +
+          '`{tp}` ditolak 400 galat validasi). Tidak dijaga `report_final` (tidak mengubah angka; rapor final dibaca dari ' +
+          'snapshot; draf memakai pengaturan terbaru).',
         headers: schoolHeader,
         body: settingsBody,
         response: { 200: settingsSchema, 400: errorSchema, ...guarded },
@@ -181,11 +229,22 @@ export async function reportCardRoutes(instance: FastifyInstance) {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
         // Bagian opsional yang dihilangkan tidak ikut ditulis: sisipan pertama memakai bawaan kolom, pembaruan membiarkannya.
-        const { showCocurricular, showGuardianResponse, responseWindowDays, ...core } = request.body;
+        const {
+          showCocurricular,
+          showGuardianResponse,
+          responseWindowDays,
+          narrativeMaxItems,
+          narrativeHighTemplate,
+          narrativeLowTemplate,
+          ...core
+        } = request.body;
         const optional = {
           ...(showCocurricular !== undefined ? { showCocurricular } : {}),
           ...(showGuardianResponse !== undefined ? { showGuardianResponse } : {}),
           ...(responseWindowDays !== undefined ? { responseWindowDays } : {}),
+          ...(narrativeMaxItems !== undefined ? { narrativeMaxItems } : {}),
+          ...(narrativeHighTemplate !== undefined ? { narrativeHighTemplate } : {}),
+          ...(narrativeLowTemplate !== undefined ? { narrativeLowTemplate } : {}),
         };
         await tx
           .insert(reportSetting)
@@ -273,7 +332,8 @@ export async function reportCardRoutes(instance: FastifyInstance) {
             ? {}
             : frozen
               ? {
-                  subjectsGraded: frozen.subjects.filter((sub) => sub.descriptionSource === 'manual').length,
+                  // Deskripsi manual atau otomatis dari TP (3.4) sama-sama memenuhi kelengkapan; teks v1 per predikat tidak ada di mode ini.
+                  subjectsGraded: frozen.subjects.filter((sub) => sub.descriptionSource !== undefined).length,
                   subjectsTotal: frozen.subjects.length,
                 }
               : completenessOf(c, extras, s.id);
@@ -310,7 +370,8 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           'ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): ' +
           '`schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` ' +
           '(`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, ' +
-          '`developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual) dan ' +
+          '`developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila ' +
+          'dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan ' +
           '`guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan ' +
           'persis seperti dulu.',
         headers: schoolHeader,
@@ -335,11 +396,12 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           return withResponses(tx, frozen, sem.id, stu.id);
         }
         const c = await loadClassContext(tx, sem, cls, [stu.id]);
-        const extras = await loadReportExtras(tx, c);
+        const extras = await loadReportExtras(tx, c, [stu.id]);
         const notes = await loadSectionNotes(tx, sem.id);
         const doc = await buildDocument(tx, c, stu, row?.homeroomNote ?? null, {
           reportMode: extras.reportMode,
           narratives: extras.narratives.get(stu.id),
+          objectives: extras.objectives.get(stu.id),
           ...notes.get(stu.id),
         });
         const live = reportDocumentSchemaVersion(doc) === 2 ? { ...doc, schemaVersion: 2 as const } : doc;
@@ -503,7 +565,12 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           'deskripsi kokurikuler/perkembangan, deskripsi manual mapel, atau tingkat kelasnya bermode deskriptif: snapshot dan ' +
           '`schema_version` siswa itu menjadi 2; siswa lain (juga di kelas yang sama) tetap v1 persis. Mode deskriptif ' +
           '(`school_level.report_mode`): kelengkapan = setiap mapel punya deskripsi manual (bukan nilai akhir; angka tetap dihitung ' +
-          'dan disimpan) dan pesan `grades_incomplete` menyebut "deskripsi".',
+          'dan disimpan) dan pesan `grades_incomplete` menyebut "deskripsi"; deskripsi manual atau otomatis dari TP sama-sama ' +
+          'memenuhinya. Deskripsi capaian tiap mapel dibekukan dalam bentuk teks efektif: manual (`descriptionSource: manual`) ' +
+          '> otomatis dari TP berstatus siswa itu (`objectives`, memakai pengaturan narasi sekolah, plus ringkasan ' +
+          '`subjects[].objectives`) > menurut predikat (v1 persis). Siswa yang punya TP berstatus di suatu mapel berversi ' +
+          'snapshot 2. `staleNarratives` (hanya bila > 0) = jumlah deskripsi manual yang teks otomatisnya sudah berubah sejak ' +
+          'disunting; hanya peringatan, finalisasi tetap berjalan dan memakai teks manual.',
         headers: schoolHeader,
         body: z.object({
           semesterId: z.uuid(),
@@ -511,7 +578,16 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           force: z.boolean().default(false).describe('Finalkan walau nilai ada yang belum lengkap'),
         }),
         response: {
-          200: z.object({ finalized: z.number().int() }),
+          200: z.object({
+            finalized: z.number().int(),
+            staleNarratives: z
+              .number()
+              .int()
+              .optional()
+              .describe(
+                'Hanya bila > 0: jumlah deskripsi manual yang teks otomatisnya berubah sejak disunting (peringatan, tidak memblokir)',
+              ),
+          }),
           400: errorSchema,
           409: errorSchema,
           ...guarded,
@@ -544,6 +620,11 @@ export async function reportCardRoutes(instance: FastifyInstance) {
                   'Lengkapi nilainya atau finalkan dengan force.',
           );
         }
+        const staleNarratives = countStaleNarratives(
+          c,
+          extras,
+          c.roster.map((s) => s.id),
+        );
         const [stuRows, existing] = await Promise.all([
           tx
             .select({ id: student.id, name: student.name, nis: student.nis, nisn: student.nisn })
@@ -573,6 +654,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
             ...(await buildDocument(tx, c, stu, note, {
               reportMode: extras.reportMode,
               narratives: extras.narratives.get(s.id),
+              objectives: extras.objectives.get(s.id),
               ...notes.get(s.id),
             })),
             status: 'final',
@@ -631,8 +713,9 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           count: c.roster.length,
           force,
           incomplete: incomplete.length,
+          ...(staleNarratives > 0 ? { staleNarratives } : {}),
         });
-        return { finalized: c.roster.length };
+        return { finalized: c.roster.length, ...(staleNarratives > 0 ? { staleNarratives } : {}) };
       });
     },
   );

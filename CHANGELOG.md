@@ -9,9 +9,9 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
-Fase 3 (asesmen dan rapor), tahap 3.3: kaitan tujuan pembelajaran (TP) dan ketercapaian TP per murid. Tahap ini belum mengubah rapor, nilai akhir, predikat, rekap,
-atau portal: rapor draf dan final, dokumen, snapshot, dan tampilan wali sama persis dengan v1.4.0. Ketercapaian TP baru tampil
-untuk guru.
+Fase 3 (asesmen dan rapor), tahap 3.3 dan 3.4: kaitan tujuan pembelajaran (TP), ketercapaian TP per murid, dan narasi rapor dari
+TP. Nilai akhir, predikat, rekap, dan portal nilai tidak berubah. Rapor murid yang belum punya status TP sama persis dengan
+v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran yang punya ketercapaian TP mendapat narasi baru.
 
 ### Ditambahkan
 
@@ -33,6 +33,22 @@ untuk guru.
   membuat versi baru: penilaian dan alur lama tetap menunjuk versi lama, dan versi lama dinonaktifkan. Menghapus TP yang
   dikaitkan ke penilaian atau sudah punya keputusan guru ditolak (`in_use`).
 - Kode galat baru: `objective_subject_mismatch`, `objective_inactive`, `too_many_objectives` (terjemahan id, en, su).
+- **Narasi rapor dari TP.** Deskripsi capaian tiap mata pelajaran kini disusun otomatis dari ketercapaian TP murid itu: TP yang
+  tercapai disebut sebagai kekuatan (persen tertinggi dulu) dan TP yang belum tercapai sebagai bahan bimbingan (persen terendah
+  dulu), paling banyak 2 TP per sisi. Persen yang sama diurutkan menurut alur tujuan pembelajaran (ATP) yang terbit, lalu urutan
+  TP. Bila semua TP tercapai, kalimat bimbingan tidak ditulis. Hanya TP yang punya status (dari skor atau keputusan guru) yang
+  dihitung; penilaian formatif tidak ikut. Murid tanpa TP berstatus di suatu mata pelajaran tetap mendapat teks per predikat
+  seperti sebelumnya.
+- **Prioritas teks**: suntingan guru menang atas narasi dari TP, dan narasi dari TP menang atas teks per predikat. Menghapus
+  suntingan mengembalikan teks otomatis. Rapor draf selalu memakai data terkini; saat difinalkan, teks yang berlaku dibekukan
+  ke rapor (disertai ringkasan TP yang disebut) dan rapor final tidak berubah walau skor berubah kemudian. Buka kembali rapor
+  mempertahankan suntingan guru dan menghitung ulang teks otomatis; finalisasi ulang membekukan lagi.
+- **Penanda narasi usang.** Setiap suntingan guru mencatat teks otomatis saat itu. Bila skor atau TP berubah sehingga teks
+  otomatis berbeda, daftar deskripsi menandai suntingan itu `stale`, dan finalisasi mengembalikan jumlahnya
+  (`staleNarratives`) sebagai peringatan tanpa menghentikan finalisasi.
+- **Pengaturan narasi sekolah** di pengaturan rapor: jumlah TP per sisi (1-5, bawaan 2) dan templat kalimat kekuatan dan
+  bimbingan (harus memuat `{tp}`, maksimal 300 karakter; kosong = templat bawaan). Templat berlaku per sekolah, bukan per
+  bahasa tampilan. Di kelas bermode deskriptif (Fase A) narasi dari TP juga memenuhi syarat kelengkapan deskripsi.
 
 ### Catatan rollback
 
@@ -41,6 +57,9 @@ untuk guru.
   konfigurasi beku disimpan di kolom terpisah sehingga versi lama mengabaikannya (tidak ada galat baca); kriteria per TP di
   pengaturan hidup tetap diabaikan pemecah KKM versi lama. Ketercapaian TP tidak tampil selama rollback dan tampil kembali
   setelah maju lagi. Rapor final tidak terpengaruh (snapshot).
+- Narasi rapor dari TP (tahap 3.4): tidak berefek pada angka. Setelah kembali ke versi sebelumnya, deskripsi capaian rapor DRAF
+  kembali dari predikat (suntingan guru tetap tampil); rapor final aman karena dibaca dari snapshot (teks dan ringkasan TP
+  tampil lagi setelah maju). Kolom pengaturan narasi dibiarkan dan diabaikan versi lama.
 
 ## [1.4.0] - 2026-11-13
 

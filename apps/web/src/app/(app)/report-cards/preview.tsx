@@ -95,6 +95,11 @@ export function ReportCardPreview({ doc, display }: { doc: ReportCardDoc; displa
                         {t('descManual')}
                       </ToneBadge>
                     )}
+                    {s.descriptionSource === 'objectives' && (
+                      <ToneBadge tone="emerald" dot={false} className="ml-2 align-middle">
+                        {t('sourceObjectives')}
+                      </ToneBadge>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}

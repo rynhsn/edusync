@@ -28246,6 +28246,12 @@ export interface paths {
                             showGuardianResponse: boolean;
                             /** @description Jendela tanggapan wali sejak finalisasi, dalam hari (1-365); null = tanpa batas. Bawaan 30 */
                             responseWindowDays: number | null;
+                            /** @description Narasi dari TP: jumlah TP paling banyak per sisi (tinggi dan rendah), 1-5. Bawaan 2 */
+                            narrativeMaxItems: number;
+                            /** @description Templat kalimat sisi tinggi memuat {tp}; null = templat bawaan ("Menunjukkan penguasaan yang baik dalam {tp}.") */
+                            narrativeHighTemplate: string | null;
+                            /** @description Templat kalimat sisi rendah memuat {tp}; null = templat bawaan ("Perlu bimbingan dalam {tp}.") */
+                            narrativeLowTemplate: string | null;
                         };
                     };
                 };
@@ -28281,7 +28287,7 @@ export interface paths {
         };
         /**
          * Ubah pengaturan rapor
-         * @description Izin: `report_card:manage`; modul `grades`. Mengganti seluruh pengaturan. Teks kosong pada nama, NIP, kota, dan alamat disimpan sebagai kosong (null); deskripsi capaian wajib terisi (400 galat validasi). `showCocurricular`, `showGuardianResponse` (bendera bagian PDF, bawaan mati) dan `responseWindowDays` (1-365 hari atau null = tanpa batas, bawaan 30) bersifat opsional: dihilangkan = tidak berubah. Tidak dijaga `report_final` (tidak mengubah angka; rapor final dibaca dari snapshot).
+         * @description Izin: `report_card:manage`; modul `grades`. Mengganti seluruh pengaturan. Teks kosong pada nama, NIP, kota, dan alamat disimpan sebagai kosong (null); deskripsi capaian wajib terisi (400 galat validasi). `showCocurricular`, `showGuardianResponse` (bendera bagian PDF, bawaan mati) dan `responseWindowDays` (1-365 hari atau null = tanpa batas, bawaan 30) bersifat opsional: dihilangkan = tidak berubah. Narasi dari TP (opsional, dihilangkan = tidak berubah): `narrativeMaxItems` (1-5 TP per sisi, bawaan 2), `narrativeHighTemplate` dan `narrativeLowTemplate` (kalimat memuat `{tp}`, maksimal 300 karakter; null atau kosong = templat bawaan; templat tanpa `{tp}` ditolak 400 galat validasi). Tidak dijaga `report_final` (tidak mengubah angka; rapor final dibaca dari snapshot; draf memakai pengaturan terbaru).
          */
         put: {
             parameters: {
@@ -28316,6 +28322,12 @@ export interface paths {
                         showGuardianResponse?: boolean;
                         /** @description Dihilangkan = tidak berubah; null = tanpa batas */
                         responseWindowDays?: number | null;
+                        /** @description Dihilangkan = tidak berubah */
+                        narrativeMaxItems?: number;
+                        /** @description Memuat {tp}, maksimal 300 karakter; null atau kosong = templat bawaan; dihilangkan = tidak berubah */
+                        narrativeHighTemplate?: string | null;
+                        /** @description Memuat {tp}, maksimal 300 karakter; null atau kosong = templat bawaan; dihilangkan = tidak berubah */
+                        narrativeLowTemplate?: string | null;
                     };
                 };
             };
@@ -28347,6 +28359,12 @@ export interface paths {
                             showGuardianResponse: boolean;
                             /** @description Jendela tanggapan wali sejak finalisasi, dalam hari (1-365); null = tanpa batas. Bawaan 30 */
                             responseWindowDays: number | null;
+                            /** @description Narasi dari TP: jumlah TP paling banyak per sisi (tinggi dan rendah), 1-5. Bawaan 2 */
+                            narrativeMaxItems: number;
+                            /** @description Templat kalimat sisi tinggi memuat {tp}; null = templat bawaan ("Menunjukkan penguasaan yang baik dalam {tp}.") */
+                            narrativeHighTemplate: string | null;
+                            /** @description Templat kalimat sisi rendah memuat {tp}; null = templat bawaan ("Perlu bimbingan dalam {tp}.") */
+                            narrativeLowTemplate: string | null;
                         };
                     };
                 };
@@ -28508,7 +28526,7 @@ export interface paths {
         };
         /**
          * Dokumen rapor satu siswa
-         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
+         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
          */
         get: {
             parameters: {
@@ -28975,7 +28993,7 @@ export interface paths {
         put?: never;
         /**
          * Finalkan rapor satu kelas
-         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif dan lulusan kelas (tahun ajaran kelas itu): dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Tiap siswa memakai bagian v2 hanya bila punya deskripsi kokurikuler/perkembangan, deskripsi manual mapel, atau tingkat kelasnya bermode deskriptif: snapshot dan `schema_version` siswa itu menjadi 2; siswa lain (juga di kelas yang sama) tetap v1 persis. Mode deskriptif (`school_level.report_mode`): kelengkapan = setiap mapel punya deskripsi manual (bukan nilai akhir; angka tetap dihitung dan disimpan) dan pesan `grades_incomplete` menyebut "deskripsi".
+         * @description Izin: `report_card:read`, dan pemegang `report_card:manage` atau wali kelas kelas itu (selain itu 403). Membuat atau menimpa rapor semua siswa aktif dan lulusan kelas (tahun ajaran kelas itu): dokumen rapor dibekukan sebagai snapshot dan status menjadi `final`. Bila ada siswa yang belum punya nilai akhir pada sebagian mapel (atau kelas belum punya penilaian sama sekali) dan `force` bukan true, ditolak 409 `grades_incomplete` dengan jumlah siswa pada pesan. Setiap finalisasi tersimpan di riwayat snapshot (`report_card_snapshot`), jadi snapshot lama tidak hilang bila rapor dibuka kembali. Finalisasi kelas pertama pada sebuah semester lebih dulu membekukan konfigurasi nilai semester itu (KKM, batas predikat, mode, komponen berbobot, dan KKTP) ke `semester_grading_config` sebelum dokumen dihitung, dan menunggu penulisan konfigurasi yang sedang berjalan (kunci per sekolah). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`). Tiap siswa memakai bagian v2 hanya bila punya deskripsi kokurikuler/perkembangan, deskripsi manual mapel, atau tingkat kelasnya bermode deskriptif: snapshot dan `schema_version` siswa itu menjadi 2; siswa lain (juga di kelas yang sama) tetap v1 persis. Mode deskriptif (`school_level.report_mode`): kelengkapan = setiap mapel punya deskripsi manual (bukan nilai akhir; angka tetap dihitung dan disimpan) dan pesan `grades_incomplete` menyebut "deskripsi"; deskripsi manual atau otomatis dari TP sama-sama memenuhinya. Deskripsi capaian tiap mapel dibekukan dalam bentuk teks efektif: manual (`descriptionSource: manual`) > otomatis dari TP berstatus siswa itu (`objectives`, memakai pengaturan narasi sekolah, plus ringkasan `subjects[].objectives`) > menurut predikat (v1 persis). Siswa yang punya TP berstatus di suatu mapel berversi snapshot 2. `staleNarratives` (hanya bila > 0) = jumlah deskripsi manual yang teks otomatisnya sudah berubah sejak disunting; hanya peringatan, finalisasi tetap berjalan dan memakai teks manual.
          */
         post: {
             parameters: {
@@ -29011,6 +29029,8 @@ export interface paths {
                     content: {
                         "application/json": {
                             finalized: number;
+                            /** @description Hanya bila > 0: jumlah deskripsi manual yang teks otomatisnya berubah sejak disunting (peringatan, tidak memblokir) */
+                            staleNarratives?: number;
                         };
                     };
                 };
@@ -29182,7 +29202,7 @@ export interface paths {
         };
         /**
          * Deskripsi capaian per mata pelajaran satu kelas
-         * @description Izin: `report_card:read`; modul `grades`. Daftar siswa kelas itu untuk satu mapel dengan deskripsi otomatis (menurut predikat), deskripsi manual, dan teks efektif yang dipakai rapor. Boleh dibaca pemegang `report_card:manage`/`report_card:read_all`, wali kelas, `grade:configure`, atau guru pengampu mapel itu di kelas itu (selain itu 403). Di mode deskriptif (Fase A) deskripsi otomatis kosong: hanya deskripsi manual yang memenuhi kelengkapan. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).
+         * @description Izin: `report_card:read`; modul `grades`. Daftar siswa kelas itu untuk satu mapel dengan deskripsi otomatis (`generated`: dari TP berstatus siswa itu bila ada, memakai aturan dan templat narasi sekolah; selain itu menurut predikat; `generatedSource` menyebut asalnya), deskripsi manual, dan teks efektif yang dipakai rapor (`source`: `manual` > `objectives` > `predicate`). `objectives` (hanya bila ada TP berstatus) memuat ringkasan dan TP yang disebut; `stale: true` (hanya bila benar) menandai deskripsi manual yang teks otomatisnya berubah sejak disunting. Boleh dibaca pemegang `report_card:manage`/`report_card:read_all`, wali kelas, `grade:configure`, atau guru pengampu mapel itu di kelas itu (selain itu 403). Di mode deskriptif (Fase A) deskripsi otomatis dari predikat kosong: deskripsi manual atau otomatis dari TP yang memenuhi kelengkapan. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).
          */
         get: {
             parameters: {
@@ -29227,13 +29247,43 @@ export interface paths {
                                 final: number | null;
                                 /** @enum {string|null} */
                                 predicate: "A" | "B" | "C" | "D" | null;
-                                /** @description Deskripsi otomatis menurut predikat (tahap 3.2); null di mode deskriptif atau bila belum ada predikat */
+                                /** @description Deskripsi otomatis: dari TP berstatus siswa itu (tahap 3.4) bila ada, selain itu menurut predikat; null di mode deskriptif tanpa TP atau bila belum ada predikat */
                                 generated: string | null;
+                                /**
+                                 * @description Asal teks otomatis: objectives = dari TP, predicate = menurut predikat (v1)
+                                 * @enum {string|null}
+                                 */
+                                generatedSource: "objectives" | "predicate" | null;
                                 manual: string | null;
                                 /** @description Teks yang dipakai rapor: manual bila ada, selain itu otomatis */
                                 effective: string | null;
                                 /** @enum {string|null} */
-                                source: "manual" | "predicate" | null;
+                                source: "manual" | "objectives" | "predicate" | null;
+                                /**
+                                 * @description Hanya bila true: teks otomatis berubah sejak deskripsi manual disunting (skor, TP, atau pengaturan berubah); tinjau ulang
+                                 * @enum {boolean}
+                                 */
+                                stale?: true;
+                                /** @description Hanya bila siswa punya TP berstatus di mapel itu */
+                                objectives?: {
+                                    /** @description Jumlah TP mapel itu yang punya status bagi siswa ini */
+                                    assessed: number;
+                                    achieved: number;
+                                    /** @description TP tercapai yang disebut (persen menurun) */
+                                    high: {
+                                        /** Format: uuid */
+                                        id: string;
+                                        code: string | null;
+                                        text: string;
+                                    }[];
+                                    /** @description TP belum tercapai yang disebut (persen menaik) */
+                                    low: {
+                                        /** Format: uuid */
+                                        id: string;
+                                        code: string | null;
+                                        text: string;
+                                    }[];
+                                };
                             }[];
                         };
                     };
@@ -29284,7 +29334,7 @@ export interface paths {
         };
         /**
          * Simpan deskripsi capaian manual satu mapel (batch)
-         * @description Izin: `report_card:read`, dan guru pengampu mapel itu di kelas itu (`grade:input` + penugasan), pemegang `grade:configure`, atau pemegang `report_card:manage` (selain itu 403; wali kelas yang bukan pengampu hanya membaca). Menulis deskripsi manual per siswa untuk satu kelas-mapel-semester (1-200 siswa, teks maksimal 1.000 karakter; null atau kosong menghapus suntingan). Deskripsi manual menang atas deskripsi otomatis dan membuat rapor siswa itu berversi snapshot 2 saat difinalkan. Ditolak seluruhnya 409 `report_final` bila rapor salah satu siswa pada semester itu sudah final (buka kembali dulu). 400 `invalid_reference` bila semester/kelas/mapel tidak milik sekolah ini atau siswa bukan anggota kelas itu pada tahun ajarannya. Bertahan lewat buka kembali.
+         * @description Izin: `report_card:read`, dan guru pengampu mapel itu di kelas itu (`grade:input` + penugasan), pemegang `grade:configure`, atau pemegang `report_card:manage` (selain itu 403; wali kelas yang bukan pengampu hanya membaca). Menulis deskripsi manual per siswa untuk satu kelas-mapel-semester (1-200 siswa, teks maksimal 1.000 karakter; null atau kosong menghapus suntingan). Deskripsi manual menang atas deskripsi otomatis dan membuat rapor siswa itu berversi snapshot 2 saat difinalkan. Saat disimpan, sidik teks otomatis saat itu dicatat supaya GET dapat menandai `stale` bila teks otomatis kelak berubah; teks kosong atau null menghapus suntingan sehingga rapor kembali ke teks otomatis. Ditolak seluruhnya 409 `report_final` bila rapor salah satu siswa pada semester itu sudah final (buka kembali dulu). 400 `invalid_reference` bila semester/kelas/mapel tidak milik sekolah ini atau siswa bukan anggota kelas itu pada tahun ajarannya. Bertahan lewat buka kembali.
          */
         put: {
             parameters: {

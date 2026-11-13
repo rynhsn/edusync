@@ -9,6 +9,7 @@
 import { compact, optionalText, requiredText } from '../../../lib/area-rules';
 import { intInRange } from '../../../lib/form-issues';
 import type { FieldErrors } from '../../../lib/form-validation';
+import { templateIssue } from '../../../lib/report-narrative';
 import {
   RESPONSE_TEXT_MAX,
   RESPONSE_WINDOW_MAX_DAYS,
@@ -44,6 +45,9 @@ export interface ReportSettingsValues {
   descD: string;
   /** Lama jendela tanggapan wali (hari); kosong = tanpa batas. Hanya diperiksa bila ada. */
   responseWindowDays?: string;
+  /** Templat kalimat narasi dari TP; kosong = templat bawaan, selain itu memuat {tp} dan maksimal 300 karakter. */
+  narrativeHighTemplate?: string;
+  narrativeLowTemplate?: string;
 }
 export type ReportSettingsField = keyof ReportSettingsValues;
 export const REPORT_SETTINGS_ORDER: ReportSettingsField[] = [
@@ -56,6 +60,8 @@ export const REPORT_SETTINGS_ORDER: ReportSettingsField[] = [
   'descC',
   'descD',
   'responseWindowDays',
+  'narrativeHighTemplate',
+  'narrativeLowTemplate',
 ];
 
 export function validateReportSettings(v: ReportSettingsValues): FieldErrors<ReportSettingsField> {
@@ -74,5 +80,7 @@ export function validateReportSettings(v: ReportSettingsValues): FieldErrors<Rep
         required: false,
       }),
     ],
+    ['narrativeHighTemplate', templateIssue(v.narrativeHighTemplate ?? '')],
+    ['narrativeLowTemplate', templateIssue(v.narrativeLowTemplate ?? '')],
   ]);
 }

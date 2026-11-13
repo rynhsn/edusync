@@ -241,9 +241,13 @@ export function ReportCardsView() {
           body: { semesterId, classId, ...(force ? { force: true } : {}) },
         }),
       ),
-    onSuccess: () => {
+    onSuccess: (data) => {
       setDialog(null);
       toast.success(t('finalized'));
+      // Peringatan saja: finalisasi tetap berjalan dan memakai teks suntingan guru.
+      if (data.staleNarratives && data.staleNarratives > 0) {
+        toast.warning(t('finalizedStale', { count: data.staleNarratives }), { duration: 15000 });
+      }
       refresh();
     },
     onError: (e) => {

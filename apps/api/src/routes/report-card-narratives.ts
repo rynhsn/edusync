@@ -1,4 +1,3 @@
-import { descriptionOf } from '@edusync/contracts';
 import {
   and,
   eq,
@@ -19,8 +18,14 @@ import { historicalRosterOf } from '../attendance-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { canViewClass, reportNotAllowed } from '../report-card-access-lib';
-import { loadClassContext, loadReportExtras, requireSemesterClass } from '../report-card-lib';
+import {
+  autoDescriptionOf,
+  loadClassContext,
+  loadReportExtras,
+  requireSemesterClass,
+} from '../report-card-lib';
 import { assertStudentsReportNotFinal } from '../report-lock-lib';
+import { isNarrativeStale, narrativeHash } from '../report-narrative-lib';
 import { audit, guarded, schoolHeader } from './helpers';
 
 const tag = ['Report cards'];
@@ -40,6 +45,8 @@ const narrativeItem = z.object({
     .describe('Teks deskripsi capaian; null atau kosong menghapus suntingan manual'),
 });
 
+const objectiveRef = z.object({ id: z.uuid(), code: z.string().nullable(), text: z.string() });
+
 const narrativeRow = z.object({
   studentId: z.uuid(),
   name: z.string(),
@@ -53,11 +60,31 @@ const narrativeRow = z.object({
     .string()
     .nullable()
     .describe(
-      'Deskripsi otomatis menurut predikat (tahap 3.2); null di mode deskriptif atau bila belum ada predikat',
+      'Deskripsi otomatis: dari TP berstatus siswa itu (tahap 3.4) bila ada, selain itu menurut predikat; null di mode ' +
+        'deskriptif tanpa TP atau bila belum ada predikat',
     ),
+  generatedSource: z
+    .enum(['objectives', 'predicate'])
+    .nullable()
+    .describe('Asal teks otomatis: objectives = dari TP, predicate = menurut predikat (v1)'),
   manual: z.string().nullable(),
   effective: z.string().nullable().describe('Teks yang dipakai rapor: manual bila ada, selain itu otomatis'),
-  source: z.enum(['manual', 'predicate']).nullable(),
+  source: z.enum(['manual', 'objectives', 'predicate']).nullable(),
+  stale: z
+    .literal(true)
+    .optional()
+    .describe(
+      'Hanya bila true: teks otomatis berubah sejak deskripsi manual disunting (skor, TP, atau pengaturan berubah); tinjau ulang',
+    ),
+  objectives: z
+    .object({
+      assessed: z.number().int().describe('Jumlah TP mapel itu yang punya status bagi siswa ini'),
+      achieved: z.number().int(),
+      high: z.array(objectiveRef).describe('TP tercapai yang disebut (persen menurun)'),
+      low: z.array(objectiveRef).describe('TP belum tercapai yang disebut (persen menaik)'),
+    })
+    .optional()
+    .describe('Hanya bila siswa punya TP berstatus di mapel itu'),
 });
 
 /** Deskripsi capaian manual per mata pelajaran (bagian v2). Modul `grades`. */
@@ -106,10 +133,14 @@ export async function reportCardNarrativeRoutes(instance: FastifyInstance) {
         summary: 'Deskripsi capaian per mata pelajaran satu kelas',
         description:
           'Izin: `report_card:read`; modul `grades`. Daftar siswa kelas itu untuk satu mapel dengan deskripsi otomatis ' +
-          '(menurut predikat), deskripsi manual, dan teks efektif yang dipakai rapor. Boleh dibaca pemegang ' +
+          '(`generated`: dari TP berstatus siswa itu bila ada, memakai aturan dan templat narasi sekolah; selain itu menurut ' +
+          'predikat; `generatedSource` menyebut asalnya), deskripsi manual, dan teks efektif yang dipakai rapor (`source`: ' +
+          '`manual` > `objectives` > `predicate`). `objectives` (hanya bila ada TP berstatus) memuat ringkasan dan TP yang ' +
+          'disebut; `stale: true` (hanya bila benar) menandai deskripsi manual yang teks otomatisnya berubah sejak disunting. ' +
+          'Boleh dibaca pemegang ' +
           '`report_card:manage`/`report_card:read_all`, wali kelas, `grade:configure`, atau guru pengampu mapel itu di ' +
-          'kelas itu (selain itu 403). Di mode deskriptif (Fase A) deskripsi otomatis kosong: hanya deskripsi manual yang ' +
-          'memenuhi kelengkapan. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).',
+          'kelas itu (selain itu 403). Di mode deskriptif (Fase A) deskripsi otomatis dari predikat kosong: deskripsi manual ' +
+          'atau otomatis dari TP yang memenuhi kelengkapan. Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).',
         headers: schoolHeader,
         querystring: scopeQuery,
         response: {
@@ -157,8 +188,13 @@ export async function reportCardNarrativeRoutes(instance: FastifyInstance) {
           students: c.roster.map((s) => {
             const g = c.grades.get(subjectId)?.get(s.id);
             const predicate = g?.predicate ?? null;
-            const generated = predicate && !descriptive ? descriptionOf(predicate, c.reportSettings) : null;
+            const auto = autoDescriptionOf(c, extras, s.id, subjectId);
+            const generated = auto.text;
             const manual = extras.narratives.get(s.id)?.get(subjectId) ?? null;
+            const objectives = extras.objectives.get(s.id)?.get(subjectId);
+            const stale =
+              manual !== null &&
+              isNarrativeStale(extras.narrativeHashes.get(s.id)?.get(subjectId), generated);
             return {
               studentId: s.id,
               name: s.name,
@@ -167,9 +203,21 @@ export async function reportCardNarrativeRoutes(instance: FastifyInstance) {
               final: g?.final ?? null,
               predicate,
               generated,
+              generatedSource: auto.source,
               manual,
               effective: manual ?? generated,
-              source: manual ? ('manual' as const) : generated ? ('predicate' as const) : null,
+              source: manual ? ('manual' as const) : generated ? auto.source : null,
+              ...(stale ? { stale: true as const } : {}),
+              ...(objectives
+                ? {
+                    objectives: {
+                      assessed: objectives.assessed,
+                      achieved: objectives.achieved,
+                      high: objectives.high,
+                      low: objectives.low,
+                    },
+                  }
+                : {}),
             };
           }),
         };
@@ -189,7 +237,9 @@ export async function reportCardNarrativeRoutes(instance: FastifyInstance) {
           '`grade:configure`, atau pemegang `report_card:manage` (selain itu 403; wali kelas yang bukan pengampu hanya ' +
           'membaca). Menulis deskripsi manual per siswa untuk satu kelas-mapel-semester (1-200 siswa, teks maksimal 1.000 ' +
           'karakter; null atau kosong menghapus suntingan). Deskripsi manual menang atas deskripsi otomatis dan membuat ' +
-          'rapor siswa itu berversi snapshot 2 saat difinalkan. Ditolak seluruhnya 409 `report_final` bila rapor salah ' +
+          'rapor siswa itu berversi snapshot 2 saat difinalkan. Saat disimpan, sidik teks otomatis saat itu dicatat supaya GET ' +
+          'dapat menandai `stale` bila teks otomatis kelak berubah; teks kosong atau null menghapus suntingan sehingga rapor ' +
+          'kembali ke teks otomatis. Ditolak seluruhnya 409 `report_final` bila rapor salah ' +
           'satu siswa pada semester itu sudah final (buka kembali dulu). 400 `invalid_reference` bila semester/kelas/mapel ' +
           'tidak milik sekolah ini atau siswa bukan anggota kelas itu pada tahun ajarannya. Bertahan lewat buka kembali.',
         headers: schoolHeader,
@@ -211,7 +261,7 @@ export async function reportCardNarrativeRoutes(instance: FastifyInstance) {
       const ctx = request.ctx as TenantContext;
       const { semesterId, classId, subjectId, items } = request.body;
       return tenant(request, async (tx) => {
-        await requireSemesterClass(tx, semesterId, classId);
+        const { sem, cls } = await requireSemesterClass(tx, semesterId, classId);
         await requireSubject(tx, subjectId);
         if (!(await canEdit(tx, ctx, classId, subjectId))) throw reportNotAllowed();
         const ids = [...new Set(items.map((i) => i.studentId))];
@@ -224,6 +274,8 @@ export async function reportCardNarrativeRoutes(instance: FastifyInstance) {
           throw new HttpError(400, 'invalid_reference', 'Ada siswa yang bukan anggota kelas itu.');
         }
         await assertStudentsReportNotFinal(tx, semesterId, ids);
+        const c = await loadClassContext(tx, sem, cls);
+        const extras = await loadReportExtras(tx, c);
         const toSave = items.flatMap((i) => (i.text ? [{ studentId: i.studentId, text: i.text }] : []));
         const toRemove = items.filter((i) => !i.text).map((i) => i.studentId);
         if (toSave.length > 0) {
@@ -237,6 +289,7 @@ export async function reportCardNarrativeRoutes(instance: FastifyInstance) {
                 subjectId,
                 studentId: i.studentId,
                 text: i.text,
+                generatedHash: narrativeHash(autoDescriptionOf(c, extras, i.studentId, subjectId).text),
                 updatedBy: ctx.userId,
               })),
             )
@@ -248,6 +301,7 @@ export async function reportCardNarrativeRoutes(instance: FastifyInstance) {
               ],
               set: {
                 text: sql`excluded.text`,
+                generatedHash: sql`excluded.generated_hash`,
                 classId: sql`excluded.class_id`,
                 updatedBy: sql`excluded.updated_by`,
                 updatedAt: new Date(),

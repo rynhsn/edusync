@@ -1416,7 +1416,11 @@ describe('guard report_final per siswa pada override', () => {
     expect([link.statusCode, errCode(link)]).toEqual([409, 'report_final']);
     // Rapor final tidak berubah oleh keputusan lain (snapshot utuh) dan keputusan lama bertahan.
     const [card] = await db().select().from(reportCard).where(eq(reportCard.studentId, a!));
-    expect(card).toMatchObject({ status: 'final', schemaVersion: 1 });
+    // Sejak tahap 3.4 murid yang punya TP berstatus berversi snapshot 2 dengan narasi dari TP (sebelumnya v1: rapor belum berubah).
+    expect(card).toMatchObject({ status: 'final', schemaVersion: 2 });
+    expect((card!.snapshot as { subjects: { descriptionSource?: string }[] }).subjects[0]).toMatchObject({
+      descriptionSource: 'objectives',
+    });
     // Buka kembali: boleh lagi.
     expect(
       (await call(w, 'POST', '/v1/report-cards/reopen', { semesterId: w.sem, classId: w.c7p })).statusCode,

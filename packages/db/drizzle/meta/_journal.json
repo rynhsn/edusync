@@ -694,6 +694,13 @@
       "when": 1796693400000,
       "tag": "0098_objective_achievement",
       "breakpoints": true
+    },
+    {
+      "idx": 99,
+      "version": "7",
+      "when": 1796779800000,
+      "tag": "0099_report_narrative_settings",
+      "breakpoints": true
     }
   ]
 }

@@ -1891,6 +1891,11 @@ export const reportSetting = pgTable('report_setting', {
   showGuardianResponse: boolean('show_guardian_response').notNull().default(false),
   /** Jendela tanggapan wali sejak finalisasi, dalam hari (1..365); NULL = tanpa batas (K9). */
   responseWindowDays: integer('response_window_days').default(30),
+  /** Narasi rapor dari TP (tahap 3.4): TP per sisi tinggi/rendah (1..5, bawaan 2). */
+  narrativeMaxItems: integer('narrative_max_items').notNull().default(2),
+  /** Templat kalimat narasi memuat `{tp}`; NULL = templat bawaan di kontrak. CHECK di SQL tangan 0099. */
+  narrativeHighTemplate: text('narrative_high_template'),
+  narrativeLowTemplate: text('narrative_low_template'),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
 

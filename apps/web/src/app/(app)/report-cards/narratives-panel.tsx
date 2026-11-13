@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ChevronDown, Lock, NotebookPen } from 'lucide-react';
+import { ChevronDown, Lock, NotebookPen, TriangleAlert } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -16,6 +16,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { IconTile, MODULE_TONE, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { generatedSourceKey, narrativeSourceKey, objectiveLabel, staleRows } from '@/lib/report-narrative';
 import {
   dropSaved,
   filterNarrativeRows,
@@ -72,6 +73,7 @@ export function NarrativesPanel({ semesterId, classId, subjects, descriptive }: 
   const editable = rows.filter((r) => !r.locked);
   const items = narrativeItems(editable, drafts);
   const tooLong = narrativesTooLong(drafts);
+  const staleCount = staleRows(rows).length;
   const missing = rows.filter((r) => narrativeValue(r, drafts).trim() === '').length;
   const shown = filterNarrativeRows(rows, { query, onlyMissing }, drafts);
 
@@ -180,13 +182,22 @@ export function NarrativesPanel({ semesterId, classId, subjects, descriptive }: 
                       <AlertDescription>{t('narrativesAllFinal')}</AlertDescription>
                     </Alert>
                   )}
+                  {staleCount > 0 && (
+                    <Alert>
+                      <TriangleAlert aria-hidden className="size-4" />
+                      <AlertDescription>{t('narrativesStale', { count: staleCount })}</AlertDescription>
+                    </Alert>
+                  )}
                   {shown.length === 0 && rows.length > 0 && (
                     <p className="text-muted-foreground text-sm">{t('narrativesNoMatch')}</p>
                   )}
-                  <ul className="grid gap-3 md:grid-cols-2">
+                  <ul className="grid gap-3 xl:grid-cols-2">
                     {shown.map((r) => {
                       const value = narrativeValue(r, drafts);
                       const inputId = `rc-narr-${r.studentId}`;
+                      const sourceKey = narrativeSourceKey(r.source);
+                      const autoKey = generatedSourceKey(r.generatedSource);
+                      const stale = r.stale === true && !r.locked;
                       return (
                         <li
                           key={r.studentId}
@@ -199,13 +210,82 @@ export function NarrativesPanel({ semesterId, classId, subjects, descriptive }: 
                               </Label>
                               {r.nis && <p className="text-muted-foreground text-xs">{r.nis}</p>}
                             </div>
-                            {r.locked && (
-                              <ToneBadge tone="emerald">
-                                <Lock aria-hidden className="size-3" />
-                                {t('statusFinal')}
-                              </ToneBadge>
-                            )}
+                            <div className="flex shrink-0 flex-wrap justify-end gap-1">
+                              {sourceKey && (
+                                <ToneBadge tone={r.source === 'manual' ? 'sky' : 'slate'} dot={false}>
+                                  {t(sourceKey)}
+                                </ToneBadge>
+                              )}
+                              {r.locked && (
+                                <ToneBadge tone="emerald">
+                                  <Lock aria-hidden className="size-3" />
+                                  {t('statusFinal')}
+                                </ToneBadge>
+                              )}
+                            </div>
                           </div>
+                          {r.objectives && (
+                            <div className="grid gap-1.5">
+                              <p className="text-muted-foreground text-xs tabular-nums">
+                                {t('objectivesSummary', {
+                                  achieved: r.objectives.achieved,
+                                  assessed: r.objectives.assessed,
+                                })}
+                              </p>
+                              {r.objectives.high.length > 0 && (
+                                <div className="grid gap-1">
+                                  <span className="text-xs font-medium">{t('objectivesHigh')}</span>
+                                  <ul className="flex flex-wrap gap-1">
+                                    {r.objectives.high.map((o) => (
+                                      <li key={o.id} className="max-w-full min-w-0" title={o.text}>
+                                        <ToneBadge
+                                          tone="emerald"
+                                          dot={false}
+                                          className="h-auto max-w-full py-1 whitespace-normal"
+                                        >
+                                          {objectiveLabel(o)}
+                                        </ToneBadge>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                              {r.objectives.low.length > 0 && (
+                                <div className="grid gap-1">
+                                  <span className="text-xs font-medium">{t('objectivesLow')}</span>
+                                  <ul className="flex flex-wrap gap-1">
+                                    {r.objectives.low.map((o) => (
+                                      <li key={o.id} className="max-w-full min-w-0" title={o.text}>
+                                        <ToneBadge
+                                          tone="amber"
+                                          dot={false}
+                                          className="h-auto max-w-full py-1 whitespace-normal"
+                                        >
+                                          {objectiveLabel(o)}
+                                        </ToneBadge>
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          {r.generated && (
+                            <div
+                              className={`rounded-lg border p-2 text-sm ${stale ? 'border-amber-500/60 bg-amber-500/10' : 'bg-muted/50'}`}
+                            >
+                              <span className="text-muted-foreground block text-xs">
+                                {autoKey ? t('autoTextFrom', { source: t(autoKey) }) : t('autoText')}
+                              </span>
+                              {r.generated}
+                            </div>
+                          )}
+                          {stale && (
+                            <p className="flex items-start gap-1.5 text-sm text-amber-800 dark:text-amber-300">
+                              <TriangleAlert aria-hidden className="mt-0.5 size-4 shrink-0" />
+                              {t('narrativeStale')}
+                            </p>
+                          )}
                           <Textarea
                             id={inputId}
                             rows={3}
@@ -218,10 +298,20 @@ export function NarrativesPanel({ semesterId, classId, subjects, descriptive }: 
                           <p id={`${inputId}-hint`} className="text-muted-foreground text-xs">
                             {r.locked
                               ? t('narrativeLocked')
-                              : !descriptive && r.generated && !value.trim()
-                                ? t('narrativeAuto', { text: r.generated })
+                              : r.generated && !value.trim()
+                                ? t('narrativeEmptyUsesAuto')
                                 : `${value.length}/${NARRATIVE_MAX}`}
                           </p>
+                          {!r.locked && r.generated && value.trim() !== '' && (
+                            <Button
+                              type="button"
+                              variant="outline"
+                              className="h-11 w-fit"
+                              onClick={() => setDraft(r.studentId, '')}
+                            >
+                              {t('useAutoText')}
+                            </Button>
+                          )}
                         </li>
                       );
                     })}

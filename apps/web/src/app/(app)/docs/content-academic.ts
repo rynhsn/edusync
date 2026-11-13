@@ -447,6 +447,19 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Setelah rapor final, semua catatan dan deskripsi terkunci. Buka kembali rapor kelas bila perlu mengubahnya.',
           },
           {
+            heading: 'Deskripsi otomatis dari tujuan pembelajaran',
+            body: 'Bila murid sudah punya ketercapaian tujuan pembelajaran (TP) pada sebuah mata pelajaran, rapor menyusun deskripsinya sendiri: satu kalimat untuk TP yang paling unggul dan satu kalimat untuk TP yang perlu bimbingan. Murid yang belum punya data TP tetap memakai kalimat menurut predikat. Di panel Deskripsi per mata pelajaran, tiap murid menampilkan teks otomatis beserta asalnya (dari ketercapaian TP atau dari predikat nilai) dan daftar TP unggul serta TP perlu bimbingan. Tulisan guru selalu menang atas teks otomatis. Tombol Pakai teks otomatis menghapus tulisan guru sehingga rapor kembali memakai teks otomatis. Di Pengaturan rapor, bagian Deskripsi dari tujuan pembelajaran mengatur jumlah TP yang disebut (1 sampai 5, bawaannya 2) dan kedua kalimat. Tulis {tp} di tempat daftar TP akan muncul, maksimal 300 karakter; kosongkan untuk memakai kalimat bawaan.',
+            steps: [
+              'Buka Pengaturan rapor, lalu bagian Deskripsi dari tujuan pembelajaran.',
+              'Pilih jumlah TP yang disebut, dan ubah kalimat bila perlu. Contoh hasilnya langsung tampil.',
+              'Simpan, lalu buka panel Deskripsi per mata pelajaran di menu Rapor untuk melihat hasilnya pada tiap murid.',
+            ],
+            href: '/report-cards/settings',
+            tip: 'Bila semua TP murid sudah tercapai, kalimat perlu bimbingan tidak ditulis. Pakai tombol Pakai templat bawaan untuk mengembalikan kalimat awal.',
+            warning:
+              'Bila skor atau TP berubah setelah guru menyunting sebuah deskripsi, muncul tanda bahwa teks otomatis berubah sejak disunting. Rapor tetap memakai tulisan guru, jadi periksa dan pilih Pakai teks otomatis bila perlu. Saat finalisasi, jumlah deskripsi yang mungkin sudah tidak sesuai ditampilkan sebagai peringatan dan tidak menghalangi finalisasi.',
+          },
+          {
             heading: 'Rapor deskriptif untuk Fase A',
             body: 'Tingkat tertentu, misalnya kelas 1 dan 2 (Fase A), dapat memakai rapor deskriptif. Pada mode ini rapor hanya memuat deskripsi capaian dan catatan perkembangan, tanpa angka, predikat, KKM, dan peringkat, baik di pratinjau maupun di PDF. Angka tetap tersimpan di sekolah tetapi tidak ditampilkan, dan portal orang tua tidak memuatnya. Sebelum finalisasi, setiap murid wajib punya deskripsi untuk tiap mata pelajaran; kartu murid menampilkan Kurang berapa deskripsi.',
             steps: [
@@ -571,6 +584,19 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Once the report cards are final, all notes and descriptions are locked. Reopen the class report cards if you need to change them.',
           },
           {
+            heading: 'Automatic descriptions from learning objectives',
+            body: "When a student already has learning objective (TP) results in a subject, the report card builds its own description: one sentence for the strongest objectives and one for the objectives that need guidance. Students without objective data still use the sentence for their grade. In the Descriptions per subject panel, every student shows the automatic text with where it comes from (from objective results or from the grade) and the lists of strong objectives and objectives needing guidance. A teacher's own text always wins over the automatic text. The Use automatic text button removes the teacher's text so the report card goes back to the automatic one. In Report card settings, the Descriptions from learning objectives section sets how many objectives are mentioned (1 to 5, default 2) and the two sentences. Write {tp} where the list of objectives should appear, up to 300 characters; leave it empty to use the default sentence.",
+            steps: [
+              'Open Report card settings, then the Descriptions from learning objectives section.',
+              'Choose how many objectives to mention, and change the sentences if needed. The example result appears right away.',
+              'Save, then open the Descriptions per subject panel in the Report cards menu to see the result for each student.',
+            ],
+            href: '/report-cards/settings',
+            tip: 'When every objective of a student is achieved, the needs-guidance sentence is left out. Use the Use the default sentence button to go back to the original sentence.',
+            warning:
+              "If scores or objectives change after a teacher edited a description, a mark shows that the automatic text changed since the edit. The report card keeps the teacher's text, so check it and choose Use automatic text if needed. When finalizing, the number of descriptions that may be out of date is shown as a warning and does not stop finalizing.",
+          },
+          {
             heading: 'Descriptive report cards for Phase A',
             body: 'Some levels, for example grades 1 and 2 (Phase A), can use a descriptive report card. In this mode the report card only holds achievement descriptions and the development note, with no scores, grades, passing marks, or rankings, in both the preview and the PDF. Scores are still kept by the school but not shown, and the parent portal does not load them. Before finalizing, every student needs a description for each subject; the student card shows how many descriptions are missing.',
             steps: [
@@ -693,6 +719,19 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             tip: 'Anggo kotak Nu acan kaeusi wungkul pikeun gancang manggihan murid nu kénéh kosong.',
             warning:
               'Sanggeus rapor final, kabéh catetan jeung déskripsi dikonci. Buka deui rapor kelas lamun kudu dirobah.',
+          },
+          {
+            heading: 'Déskripsi otomatis tina tujuan pangajaran',
+            body: 'Lamun murid geus boga capaian tujuan pangajaran (TP) dina hiji mata pelajaran, rapor nyusun déskripsina sorangan: hiji kalimah keur TP nu pang unggulna jeung hiji kalimah keur TP nu perlu bimbingan. Murid nu can boga data TP tetep maké kalimah numutkeun prédikat. Dina panél Déskripsi per mata pelajaran, unggal murid nembongkeun téks otomatis jeung asalna (tina capaian TP atawa tina prédikat) sarta daptar TP unggul jeung TP perlu bimbingan. Tulisan guru salawasna meunang tina téks otomatis. Tombol Paké téks otomatis ngahapus tulisan guru nepi ka rapor balik maké téks otomatis. Dina Pangaturan rapor, bagian Déskripsi tina tujuan pangajaran ngatur sabaraha TP nu disebut (1 nepi ka 5, biasana 2) jeung dua kalimahna. Tulis {tp} di tempat daptar TP baris muncul, pangbadagna 300 karakter; kosongkeun pikeun maké kalimah biasa.',
+            steps: [
+              'Buka Pangaturan rapor, terus bagian Déskripsi tina tujuan pangajaran.',
+              'Pilih sabaraha TP nu disebut, jeung robah kalimahna lamun perlu. Conto hasilna langsung muncul.',
+              'Simpen, terus buka panél Déskripsi per mata pelajaran dina ménu Rapor pikeun nempo hasilna dina unggal murid.',
+            ],
+            href: '/report-cards/settings',
+            tip: 'Lamun sakabéh TP murid geus kahontal, kalimah perlu bimbingan teu ditulis. Paké tombol Paké templat biasa pikeun mulangkeun kalimah awal.',
+            warning:
+              'Lamun skor atawa TP robah sanggeus guru nyunting hiji déskripsi, aya tanda yén téks otomatis robah saprak disunting. Rapor tetep maké tulisan guru, jadi pariksa terus pilih Paké téks otomatis lamun perlu. Waktu finalisasi, jumlah déskripsi nu meureun geus teu cocog ditémbongkeun salaku peringatan jeung teu nahan finalisasi.',
           },
           {
             heading: 'Rapor déskriptif keur Fase A',
