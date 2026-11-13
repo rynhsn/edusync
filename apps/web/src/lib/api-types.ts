@@ -23847,7 +23847,7 @@ export interface paths {
         };
         /**
          * Anggota ekstrakurikuler
-         * @description Izin: `extracurricular:read`; modul `extracurricular`. Anggota pada tahun ajaran `academicYearId` (bawaan: tahun ajaran aktif; 409 `no_active_year` bila tidak ada). `className` adalah kelas siswa pada tahun itu.
+         * @description Izin: `extracurricular:read`; modul `extracurricular`. Anggota pada tahun ajaran `academicYearId` (bawaan: tahun ajaran aktif; 409 `no_active_year` bila tidak ada). `className` adalah kelas siswa pada tahun itu. Lulusan yang punya keanggotaan pada tahun itu ikut tampil; siswa pindah/keluar tidak.
          */
         get: {
             parameters: {
@@ -23877,6 +23877,11 @@ export interface paths {
                             name: string;
                             nis: string | null;
                             className: string | null;
+                            /**
+                             * @description Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
+                             * @enum {string}
+                             */
+                            studentStatus?: "active" | "graduated";
                             joinedOn: string;
                         }[];
                     };
@@ -24709,7 +24714,7 @@ export interface paths {
         };
         /**
          * Penilaian ekstrakurikuler per semester
-         * @description Izin: `extracurricular:read`; modul `extracurricular`. Anggota pada tahun ajaran semester itu dengan predikat A-D (null bila belum dinilai). Semester tak dikenal: 400 `invalid_reference`.
+         * @description Izin: `extracurricular:read`; modul `extracurricular`. Anggota (termasuk lulusan yang punya keanggotaan) pada tahun ajaran semester itu dengan predikat A-D (null bila belum dinilai). Semester tak dikenal: 400 `invalid_reference`.
          */
         get: {
             parameters: {
@@ -24737,6 +24742,11 @@ export interface paths {
                             /** Format: uuid */
                             studentId: string;
                             name: string;
+                            /**
+                             * @description Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
+                             * @enum {string}
+                             */
+                            studentStatus?: "active" | "graduated";
                             /** @enum {string|null} */
                             predicate: "A" | "B" | "C" | "D" | null;
                             note: string | null;
@@ -24933,7 +24943,7 @@ export interface paths {
         };
         /**
          * Rekap kehadiran ekstrakurikuler
-         * @description Izin: `extracurricular:read`; modul `extracurricular`. Rekap per anggota (tahun ajaran dari tanggal `to`) untuk pertemuan pada rentang `from`..`to` (bawaan 90 hari terakhir; maksimal 366 hari, selain itu 400 `invalid_range`). `sessions` = jumlah pertemuan yang tercatat untuk anggota itu; `totalSessions` = jumlah pertemuan ekskul pada rentang.
+         * @description Izin: `extracurricular:read`; modul `extracurricular`. Rekap per anggota, termasuk lulusan yang punya keanggotaan (tahun ajaran dari tanggal `to`) untuk pertemuan pada rentang `from`..`to` (bawaan 90 hari terakhir; maksimal 366 hari, selain itu 400 `invalid_range`). `sessions` = jumlah pertemuan yang tercatat untuk anggota itu; `totalSessions` = jumlah pertemuan ekskul pada rentang.
          */
         get: {
             parameters: {
@@ -49133,7 +49143,7 @@ export interface paths {
         };
         /**
          * Lembar nilai ujian
-         * @description Izin: `exam:read`; modul `exams`. Siswa aktif kelas peserta (menurut pendaftaran tahun ajaran semester ujian) dengan jawaban dan skor yang sudah dimasukkan, jumlah skor, dan persentase. 404 `not_found` (juga bagi guru yang tidak mengampu mapelnya).
+         * @description Izin: `exam:read`; modul `exams`. Siswa kelas peserta (menurut pendaftaran tahun ajaran semester ujian) dengan jawaban dan skor yang sudah dimasukkan, jumlah skor, dan persentase. Lulusan yang punya pendaftaran pada tahun ajaran semester itu ikut tampil (tahun lampau tetap utuh); siswa pindah/keluar tidak. 404 `not_found` (juga bagi guru yang tidak mengampu mapelnya).
          */
         get: {
             parameters: {
@@ -49177,6 +49187,11 @@ export interface paths {
                                 /** Format: uuid */
                                 classId: string;
                                 className: string;
+                                /**
+                                 * @description Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
+                                 * @enum {string}
+                                 */
+                                studentStatus?: "active" | "graduated";
                                 /** @description Sudah ada data hasil untuk siswa ini */
                                 entered: boolean;
                                 absent: boolean;
@@ -49249,7 +49264,7 @@ export interface paths {
         };
         /**
          * Simpan hasil ujian siswa
-         * @description Izin: `exam:author`; modul `exams`; guru hanya untuk mapel yang ia ampu (403). Per siswa: `absent` (tidak hadir menghapus jawabannya) dan `answers`. Pilihan ganda: `answer` = huruf opsi atau kosong; skor dihitung otomatis (benar = poin soal, selain itu 0) dan `score` kiriman diabaikan. Esai: `score` 0 sampai poin soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Siswa di luar kelas peserta, soal di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`. Ditolak 409 `report_final` bila hasil ujian sudah dikirim ke buku nilai kelas yang rapornya final.
+         * @description Izin: `exam:author`; modul `exams`; guru hanya untuk mapel yang ia ampu (403). Per siswa: `absent` (tidak hadir menghapus jawabannya) dan `answers`. Pilihan ganda: `answer` = huruf opsi atau kosong; skor dihitung otomatis (benar = poin soal, selain itu 0) dan `score` kiriman diabaikan. Esai: `score` 0 sampai poin soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Siswa di luar kelas peserta (lulusan tidak bisa diisi; hanya siswa aktif), soal di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`. Ditolak 409 `report_final` bila hasil ujian sudah dikirim ke buku nilai kelas yang rapornya final.
          */
         put: {
             parameters: {
@@ -49311,6 +49326,11 @@ export interface paths {
                                 /** Format: uuid */
                                 classId: string;
                                 className: string;
+                                /**
+                                 * @description Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)
+                                 * @enum {string}
+                                 */
+                                studentStatus?: "active" | "graduated";
                                 /** @description Sudah ada data hasil untuk siswa ini */
                                 entered: boolean;
                                 absent: boolean;

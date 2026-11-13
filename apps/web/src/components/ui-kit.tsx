@@ -102,6 +102,7 @@ export function StatCard({
   progress,
   active,
   className,
+  iconClassName,
 }: {
   label: React.ReactNode;
   value: React.ReactNode;
@@ -112,6 +113,8 @@ export function StatCard({
   progress?: number;
   active?: boolean;
   className?: string;
+  /** Kelas tambahan untuk kotak ikon (mis. `max-sm:hidden` agar kartu teks panjang tidak boros di ponsel). */
+  iconClassName?: string;
 }) {
   return (
     <div
@@ -129,7 +132,11 @@ export function StatCard({
         {Icon && (
           <span
             aria-hidden
-            className={cn('grid size-9 shrink-0 place-items-center rounded-lg', TONES[tone].soft)}
+            className={cn(
+              'grid size-9 shrink-0 place-items-center rounded-lg',
+              TONES[tone].soft,
+              iconClassName,
+            )}
           >
             <Icon className="size-4" />
           </span>

@@ -23,6 +23,13 @@ import { EmptyPanel, ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import type { FieldIssue } from '@/lib/form-validation';
+import {
+  countWritable,
+  firstEditableIndex,
+  isReadOnlyRow,
+  nextEditableIndex,
+  rowsToSubmit,
+} from '@/lib/read-only-rows';
 import { cn } from '@/lib/utils';
 import { SEND_ORDER, type SendField, validateEssayScore, validateSend } from '../../exam-validation';
 
@@ -40,6 +47,8 @@ interface Student {
   nis: string | null;
   classId: string;
   className: string;
+  /** `graduated` = lulusan: tampil baca-saja dan tidak pernah dikirim. Kosong (server lama) = dapat diubah. */
+  studentStatus?: 'active' | 'graduated';
   entered: boolean;
   absent: boolean;
   /** Dari server: ada esai yang belum diberi skor. */
@@ -113,8 +122,11 @@ export function ScoresView({ id }: { id: string }) {
   const students = (sheet.data?.students ?? []) as Student[];
   const maxTotal = sheet.data?.maxTotal ?? 0;
   const multiClass = new Set(students.map((s) => s.classId)).size > 1;
-  const dirty = Object.keys(edits).length > 0;
-  const pendingEssays = students.filter((s) => s.entered && !s.absent && s.essayPending).length;
+  const dirty = rowsToSubmit(students, (s) => !!edits[s.studentId]).length > 0;
+  const hasReadOnly = students.some(isReadOnlyRow);
+  // Lulusan tidak ikut dikirim ke buku nilai, jadi esai mereka yang belum dinilai bukan "perlu diisi".
+  const pendingEssays = countWritable(students, (s) => s.entered && !s.absent && s.essayPending);
+  const firstEditable = firstEditableIndex(students);
 
   const view = (s: Student): Edit =>
     edits[s.studentId] ?? {
@@ -124,11 +136,12 @@ export function ScoresView({ id }: { id: string }) {
 
   const rows = students.map((s, r) => {
     const e = view(s);
+    const readOnly = isReadOnlyRow(s);
     const touched = s.entered || !!edits[s.studentId];
     const total = round2(questions.reduce((n, q) => n + scoreOf(q, e.cells[q.id] ?? ''), 0));
     // Galat per sel skor esai, kuncinya "baris-kolom" seperti data-cell. Siswa tidak hadir tidak diperiksa.
     const cellIssues: Record<string, FieldIssue> = {};
-    if (!e.absent) {
+    if (!e.absent && !readOnly) {
       questions.forEach((q, c) => {
         if (q.type !== 'essay') return;
         const issue = validateEssayScore(e.cells[q.id] ?? '', q.points);
@@ -138,11 +151,14 @@ export function ScoresView({ id }: { id: string }) {
     return {
       s,
       e,
+      readOnly,
+      studentStatus: s.studentStatus,
       touched,
       total,
       cellIssues,
       percent: touched && !e.absent && maxTotal > 0 ? round2((total / maxTotal) * 100) : null,
       essayPending:
+        !readOnly &&
         touched &&
         !e.absent &&
         questions.some((q) => q.type === 'essay' && (e.cells[q.id] ?? '').trim() === ''),
@@ -166,26 +182,25 @@ export function ScoresView({ id }: { id: string }) {
 
   const save = useMutation({
     mutationFn: async () => {
-      const records = students
-        .filter((s) => edits[s.studentId])
-        .map((s) => {
-          const e = edits[s.studentId] as Edit;
-          return {
-            studentId: s.studentId,
-            absent: e.absent,
-            answers: e.absent
-              ? []
-              : questions.map((q) => {
-                  const v = e.cells[q.id] ?? '';
-                  return q.type === 'mcq'
-                    ? { questionId: q.id, answer: v || null }
-                    : {
-                        questionId: q.id,
-                        score: v.trim() === '' ? null : Number(v.replace(',', '.')),
-                      };
-                }),
-          };
-        });
+      // Lulusan tidak pernah dikirim: server menolak seluruh permintaan (400) bila ada satu saja.
+      const records = rowsToSubmit(students, (s) => !!edits[s.studentId]).map((s) => {
+        const e = edits[s.studentId] as Edit;
+        return {
+          studentId: s.studentId,
+          absent: e.absent,
+          answers: e.absent
+            ? []
+            : questions.map((q) => {
+                const v = e.cells[q.id] ?? '';
+                return q.type === 'mcq'
+                  ? { questionId: q.id, answer: v || null }
+                  : {
+                      questionId: q.id,
+                      score: v.trim() === '' ? null : Number(v.replace(',', '.')),
+                    };
+              }),
+        };
+      });
       return unwrap(
         await api.PUT('/v1/exams/{id}/scoresheet', {
           params: { ...header, path: { id } },
@@ -242,7 +257,10 @@ export function ScoresView({ id }: { id: string }) {
   function onKey(e: React.KeyboardEvent<HTMLInputElement>, r: number, c: number) {
     const move = (dr: number, dc: number) => {
       e.preventDefault();
-      focusCell(r + dr, c + dc);
+      if (dr === 0) return focusCell(r, c + dc);
+      // Vertikal: lompati baris baca-saja (lulusan) dan siswa tidak hadir.
+      const next = nextEditableIndex(rows, r, dr < 0 ? -1 : 1, (row) => !row.e.absent);
+      if (next !== null) focusCell(next, c);
     };
     if (e.key === 'Enter' || e.key === 'ArrowDown') move(1, 0);
     else if (e.key === 'ArrowUp') move(-1, 0);
@@ -260,7 +278,7 @@ export function ScoresView({ id }: { id: string }) {
   const loading = sheet.isPending || exam.isPending;
   const ex = exam.data;
   const componentList = components.data ?? [];
-  const canSend = author && !dirty && students.some((s) => s.entered);
+  const canSend = author && !dirty && students.some((s) => !isReadOnlyRow(s) && s.entered);
   const sendValidation = useFormValidation<SendField>({
     errors: validateSend({ componentId, pendingEssays, allowPending }),
     order: SEND_ORDER,
@@ -347,6 +365,12 @@ export function ScoresView({ id }: { id: string }) {
               <AlertDescription>{t('readOnly')}</AlertDescription>
             </Alert>
           )}
+          {hasReadOnly && (
+            <Alert>
+              <Info className="size-4" aria-hidden />
+              <AlertDescription>{t('graduatedHint')}</AlertDescription>
+            </Alert>
+          )}
           <p className="text-muted-foreground text-xs">{t('keysHint')}</p>
 
           <div ref={grid} className="bg-card max-h-[70vh] overflow-auto rounded-2xl border">
@@ -378,9 +402,22 @@ export function ScoresView({ id }: { id: string }) {
               </thead>
               <tbody>
                 {rows.map((row, r) => (
-                  <tr key={row.s.studentId} className={cn(row.e.absent && 'bg-muted/40 opacity-70')}>
+                  <tr
+                    key={row.s.studentId}
+                    className={cn(
+                      (row.e.absent || row.readOnly) && 'bg-muted/40',
+                      row.e.absent && 'opacity-70',
+                    )}
+                  >
                     <td className="bg-card sticky left-0 z-10 border-b px-3 py-1.5">
-                      <div className="truncate font-medium">{row.s.name}</div>
+                      <div className="flex items-center gap-2">
+                        <span className="min-w-0 truncate font-medium">{row.s.name}</span>
+                        {row.readOnly && (
+                          <ToneBadge tone="slate" dot={false}>
+                            {t('graduatedBadge')}
+                          </ToneBadge>
+                        )}
+                      </div>
                       <div className="text-muted-foreground text-xs">
                         {[multiClass ? row.s.className : null, row.s.nis].filter(Boolean).join(' · ')}
                       </div>
@@ -416,10 +453,11 @@ export function ScoresView({ id }: { id: string }) {
                             <input
                               data-cell={`${r}-${c}`}
                               // biome-ignore lint/a11y/noAutofocus: guru langsung mengetik di sel pertama.
-                              autoFocus={r === 0 && c === 0}
+                              autoFocus={r === firstEditable && c === 0}
                               inputMode={mcq ? 'text' : 'decimal'}
                               maxLength={mcq ? 1 : 6}
-                              disabled={!author || row.e.absent}
+                              disabled={!author || row.e.absent || row.readOnly}
+                              readOnly={row.readOnly}
                               value={v}
                               aria-label={t(mcq ? 'cellMcq' : 'cellEssay', { name: row.s.name, n: c + 1 })}
                               aria-invalid={over}
@@ -441,6 +479,7 @@ export function ScoresView({ id }: { id: string }) {
                               className={cn(
                                 'border-input h-10 w-12 rounded-md border bg-transparent text-center tabular-nums outline-none md:h-8',
                                 'focus-visible:ring-ring/50 focus-visible:ring-2 disabled:cursor-not-allowed',
+                                row.readOnly && 'bg-muted/60 text-muted-foreground border-dashed',
                                 right &&
                                   'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
                                 wrong && 'border-rose-400 bg-rose-500/10 text-rose-700 dark:text-rose-300',
@@ -475,7 +514,7 @@ export function ScoresView({ id }: { id: string }) {
                       <div className="flex flex-wrap items-center gap-2">
                         <Checkbox
                           checked={row.e.absent}
-                          disabled={!author}
+                          disabled={!author || row.readOnly}
                           aria-label={t('absentLabel', { name: row.s.name })}
                           onCheckedChange={(v) =>
                             patch(row.s, (ed) => ({

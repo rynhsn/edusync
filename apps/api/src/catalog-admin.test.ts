@@ -9,6 +9,7 @@ import {
 } from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from './app';
+import { pinDefaultCatalog } from './catalog-fixture';
 import { loadEnv } from './env';
 
 try {
@@ -50,6 +51,8 @@ const call = (method: 'GET' | 'POST' | 'PUT' | 'DELETE', url: string, cookie: st
 
 let originalAttendance: { name: string; price: number; sort: number } | null = null;
 let originalBilling: unknown = null;
+// Harga katalog di DB bisa diubah operator; tes memakai harga bawaan lalu memulihkan nilai semula.
+let restoreCatalog: (() => Promise<void>) | undefined;
 
 beforeAll(async () => {
   app = await buildApp(
@@ -65,10 +68,12 @@ beforeAll(async () => {
     sql`select value from platform_setting where key = 'billing'`,
   );
   originalBilling = billing.rows[0]?.value ?? null;
+  restoreCatalog = await pinDefaultCatalog(app.platformDb);
 });
 
 afterAll(async () => {
   const db = app.platformDb;
+  await restoreCatalog?.();
   if (originalAttendance) {
     await db.execute(
       sql`update catalog_item set name = ${originalAttendance.name}, price_monthly = ${originalAttendance.price}, sort = ${originalAttendance.sort}, active = true where kind = 'module' and key = 'attendance'`,

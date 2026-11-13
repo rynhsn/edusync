@@ -3153,6 +3153,8 @@
     }
   },
   "extracurricular": {
+    "graduatedBadge": "Lulus",
+    "graduatedHint": "Siswa yang sudah lulus hanya dapat dilihat; datanya tidak dapat diubah dari layar ini.",
     "title": "Ekstrakurikuler",
     "subtitle": "Kegiatan di luar jam pelajaran: anggota, pertemuan, absensi, penilaian, dan laporan.",
     "addTitle": "Tambah ekstrakurikuler",
@@ -6239,6 +6241,8 @@
     "inactive": "Tidak aktif"
   },
   "examScores": {
+    "graduatedBadge": "Lulus",
+    "graduatedHint": "Siswa yang sudah lulus hanya dapat dilihat; datanya tidak dapat diubah dari layar ini.",
     "title": "Input nilai",
     "subtitle": "Masukkan jawaban pilihan ganda dan skor esai per siswa.",
     "inputScores": "Input nilai",

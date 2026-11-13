@@ -574,7 +574,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Memberi predikat semester dan melihat laporan kehadiran',
-            body: 'Di tab Penilaian, pilih semester lalu beri tiap anggota predikat A sampai D beserta keterangan. Predikat ini tampil di rapor siswa. Tab Laporan merangkum kehadiran tiap anggota pada rentang tanggal yang dipilih (bawaannya 90 hari terakhir, paling lama 366 hari) dan bisa diunduh sebagai Excel.',
+            body: 'Di tab Penilaian, pilih semester lalu beri tiap anggota predikat A sampai D beserta keterangan. Predikat ini tampil di rapor siswa. Tab Laporan merangkum kehadiran tiap anggota pada rentang tanggal yang dipilih (bawaannya 90 hari terakhir, paling lama 366 hari) dan bisa diunduh sebagai Excel. Siswa yang sudah lulus tetap tampil pada tahun lampau, tetapi hanya untuk dilihat dan tidak dapat diubah.',
             steps: [
               'Buka tab Penilaian dan pilih semester.',
               'Pilih predikat A, B, C, atau D untuk tiap anggota dan isi keterangannya.',
@@ -651,7 +651,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Giving semester predicates and viewing the attendance report',
-            body: 'On the Assessment tab, pick a semester and give each member a predicate from A to D with a note. This predicate appears on the student report card. The Report tab summarizes each member attendance over the chosen date range (default the last 90 days, at most 366 days) and can be downloaded as Excel.',
+            body: 'On the Assessment tab, pick a semester and give each member a predicate from A to D with a note. This predicate appears on the student report card. The Report tab summarizes each member attendance over the chosen date range (default the last 90 days, at most 366 days) and can be downloaded as Excel. Students who have graduated still appear for past years, but only for viewing and cannot be changed.',
             steps: [
               'Open the Assessment tab and pick the semester.',
               'Choose predicate A, B, C, or D for each member and fill in the note.',
@@ -728,7 +728,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             heading: 'Méré predikat semester sareng ningali laporan kahadiran',
-            body: 'Dina tab Penilaian, pilih semester tuluy pasihan unggal anggota predikat A dugi ka D sareng katerangan. Predikat ieu muncul dina rapor siswa. Tab Laporan ngarangkum kahadiran unggal anggota dina rentang tanggal nu dipilih (bawaan 90 poé panungtung, paling lami 366 poé) tur tiasa diunduh jadi Excel.',
+            body: 'Dina tab Penilaian, pilih semester tuluy pasihan unggal anggota predikat A dugi ka D sareng katerangan. Predikat ieu muncul dina rapor siswa. Tab Laporan ngarangkum kahadiran unggal anggota dina rentang tanggal nu dipilih (bawaan 90 poé panungtung, paling lami 366 poé) tur tiasa diunduh jadi Excel. Siswa anu parantos lulus tetep muncul pikeun taun kapengker, tapi ngan pikeun ditingali sareng teu tiasa dirobah.',
             steps: [
               'Buka tab Penilaian tuluy pilih semester.',
               'Pilih predikat A, B, C, atanapi D kanggo unggal anggota tuluy eusian katerangan.',

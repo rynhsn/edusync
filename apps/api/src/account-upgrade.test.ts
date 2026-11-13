@@ -2,6 +2,7 @@ import { signDevEvent } from '@edusync/billing';
 import { inArray, outbox, sql, user } from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp } from './app';
+import { pinDefaultCatalog } from './catalog-fixture';
 import { loadEnv } from './env';
 import { testNpsn } from './npsn-lib';
 
@@ -75,9 +76,12 @@ const tierOf = async (sid: string) =>
     )
   ).rows[0]?.student_tier;
 
+// Harga katalog di DB bisa diubah operator; tes memakai harga bawaan lalu memulihkan nilai semula.
+let restoreCatalog: (() => Promise<void>) | undefined;
 beforeAll(async () => {
   app = await buildApp(env);
   await app.ready();
+  restoreCatalog = await pinDefaultCatalog(app.platformDb);
   owner = await makeUser('own');
   stranger = await makeUser('oth');
 
@@ -105,6 +109,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   const db = app.platformDb;
+  await restoreCatalog?.();
   const F = foundationId ? [foundationId] : [];
   if (F.length > 0) {
     const regIds = sql`(select id from registration where user_id in (${ids(userIds)}))`;

@@ -7,6 +7,7 @@ import {
 import { inArray, invalidateBillingSettings, outbox, platformStaff, sql, user } from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { buildApp, paymentConfig } from './app';
+import { pinDefaultCatalog } from './catalog-fixture';
 import { loadEnv } from './env';
 import { testNpsn } from './npsn-lib';
 
@@ -117,13 +118,17 @@ const renewalInvoice = async (foundationId: string) =>
     )
   ).rows[0];
 
+// Harga katalog di DB bisa diubah operator; tes memakai harga bawaan lalu memulihkan nilai semula.
+let restoreCatalog: (() => Promise<void>) | undefined;
 beforeAll(async () => {
   app = await buildApp(env);
   await app.ready();
+  restoreCatalog = await pinDefaultCatalog(app.platformDb);
 });
 
 afterAll(async () => {
   const db = app.platformDb;
+  await restoreCatalog?.();
   const list = (xs: string[]) =>
     sql.join(
       xs.map((x) => sql`${x}`),

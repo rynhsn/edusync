@@ -58,6 +58,14 @@ export async function rosterOf(tx: Tx, classId: string) {
 }
 
 /**
+ * Status siswa untuk baris baca historis. Kueri roster hanya memuat siswa aktif dan lulusan, jadi selain `graduated`
+ * berarti aktif; lulusan ditandai supaya klien menampilkannya baca-saja.
+ */
+export function rosterStudentStatus(status: string): 'active' | 'graduated' {
+  return status === 'graduated' ? 'graduated' : 'active';
+}
+
+/**
  * Roster historis kelas untuk pembacaan dan finalisasi rapor/rekap nilai: siswa aktif dan lulusan (`graduated`) yang
  * terdaftar di kelas itu pada tahun ajaran kelas tersebut, urut nama. Lulusan ditetapkan lulus oleh kenaikan kelas
  * setelah tahun terakhirnya, sedangkan enrollment tahun itu tetap ada, jadi rapornya tetap harus tampil dan dapat

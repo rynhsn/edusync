@@ -229,7 +229,7 @@ export function PlacementDetail({ id }: { id: string }) {
       <div
         role="tablist"
         aria-label={t('tabsLabel')}
-        className="bg-muted flex w-full gap-1 overflow-x-auto rounded-xl p-1 sm:w-fit"
+        className="bg-muted grid w-full grid-cols-2 gap-1 rounded-xl p-1 lg:flex lg:w-fit lg:overflow-x-auto"
       >
         {tabs.map(({ key, label, icon: Icon }) => (
           <button
@@ -241,7 +241,7 @@ export function PlacementDetail({ id }: { id: string }) {
             aria-controls={`panel-${key}`}
             onClick={() => setTab(key)}
             className={cn(
-              'focus-visible:ring-ring/50 inline-flex shrink-0 items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-medium transition-colors outline-none focus-visible:ring-3',
+              'focus-visible:ring-ring/50 inline-flex items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-center text-sm font-medium transition-colors outline-none focus-visible:ring-3 max-lg:min-h-11 lg:shrink-0 lg:whitespace-nowrap',
               tab === key
                 ? 'bg-background text-foreground shadow-sm'
                 : 'text-muted-foreground hover:text-foreground',

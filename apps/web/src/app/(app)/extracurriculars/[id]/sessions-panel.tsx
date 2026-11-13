@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
 import { FieldError, TOUCH_INPUT, useFormValidation } from '@/components/form-field-error';
+import { DataRows } from '@/components/master-kit';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -118,58 +119,100 @@ function SessionSheet({ sessionId, id, onClose }: { sessionId: string; id: strin
       )}
       {students.length === 0 && <p className="text-muted-foreground text-sm">{t('noMembers')}</p>}
       {students.length > 0 && (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>{t('student')}</TableHead>
-              <TableHead>{t('note')}</TableHead>
-              <TableHead className="text-right">{t('attStatus')}</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {students.map((s) => (
-              <TableRow key={s.studentId}>
-                <TableCell>
-                  <div className="font-medium">{s.name}</div>
-                  {s.nis && <div className="text-muted-foreground font-mono text-xs">{s.nis}</div>}
-                </TableCell>
-                <TableCell>
-                  <Input
-                    aria-label={`${t('note')} ${s.name}`}
-                    className="h-8 min-w-32"
-                    maxLength={200}
-                    disabled={!canRecord}
-                    value={notes[s.studentId] ?? ''}
-                    onChange={(e) => {
-                      setNotes((n) => ({ ...n, [s.studentId]: e.target.value }));
-                      setDirty(true);
-                    }}
-                  />
-                </TableCell>
-                <TableCell className="text-right">
-                  <fieldset className="m-0 inline-flex gap-1 border-0 p-0">
-                    <legend className="sr-only">{`${t('attStatus')} ${s.name}`}</legend>
-                    {ATT_STATUSES.map((st) => (
-                      <Button
-                        key={st}
-                        size="sm"
-                        variant="outline"
+        <>
+          <div className="hidden lg:block">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{t('student')}</TableHead>
+                  <TableHead>{t('note')}</TableHead>
+                  <TableHead className="text-right">{t('attStatus')}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {students.map((s) => (
+                  <TableRow key={s.studentId}>
+                    <TableCell>
+                      <div className="font-medium">{s.name}</div>
+                      {s.nis && <div className="text-muted-foreground font-mono text-xs">{s.nis}</div>}
+                    </TableCell>
+                    <TableCell>
+                      <Input
+                        aria-label={`${t('note')} ${s.name}`}
+                        className="h-8 min-w-32"
+                        maxLength={200}
                         disabled={!canRecord}
-                        aria-pressed={marks[s.studentId] === st}
-                        title={t(st)}
-                        className={cn('min-w-9', marks[s.studentId] === st && ACTIVE_STYLE[st])}
-                        onClick={() => set(s.studentId, st)}
-                      >
-                        <span className="sm:hidden">{t(`short.${st}`)}</span>
-                        <span className="hidden sm:inline">{t(st)}</span>
-                      </Button>
-                    ))}
-                  </fieldset>
-                </TableCell>
-              </TableRow>
+                        value={notes[s.studentId] ?? ''}
+                        onChange={(e) => {
+                          setNotes((n) => ({ ...n, [s.studentId]: e.target.value }));
+                          setDirty(true);
+                        }}
+                      />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <fieldset className="m-0 inline-flex gap-1 border-0 p-0">
+                        <legend className="sr-only">{`${t('attStatus')} ${s.name}`}</legend>
+                        {ATT_STATUSES.map((st) => (
+                          <Button
+                            key={st}
+                            size="sm"
+                            variant="outline"
+                            disabled={!canRecord}
+                            aria-pressed={marks[s.studentId] === st}
+                            title={t(st)}
+                            className={cn('min-w-9', marks[s.studentId] === st && ACTIVE_STYLE[st])}
+                            onClick={() => set(s.studentId, st)}
+                          >
+                            <span className="sm:hidden">{t(`short.${st}`)}</span>
+                            <span className="hidden sm:inline">{t(st)}</span>
+                          </Button>
+                        ))}
+                      </fieldset>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+          <ul className="divide-y rounded-xl border lg:hidden">
+            {students.map((s) => (
+              <li key={s.studentId} className="grid gap-2.5 p-3">
+                <div className="min-w-0">
+                  <div className="font-medium break-words">{s.name}</div>
+                  {s.nis && <div className="text-muted-foreground font-mono text-xs">{s.nis}</div>}
+                </div>
+                <fieldset className="m-0 grid grid-cols-4 gap-1.5 border-0 p-0">
+                  <legend className="sr-only">{`${t('attStatus')} ${s.name}`}</legend>
+                  {ATT_STATUSES.map((st) => (
+                    <Button
+                      key={st}
+                      variant="outline"
+                      disabled={!canRecord}
+                      aria-pressed={marks[s.studentId] === st}
+                      title={t(st)}
+                      className={cn('h-11', marks[s.studentId] === st && ACTIVE_STYLE[st])}
+                      onClick={() => set(s.studentId, st)}
+                    >
+                      {t(`short.${st}`)}
+                    </Button>
+                  ))}
+                </fieldset>
+                <Input
+                  aria-label={`${t('note')} ${s.name}`}
+                  placeholder={t('note')}
+                  className="h-11"
+                  maxLength={200}
+                  disabled={!canRecord}
+                  value={notes[s.studentId] ?? ''}
+                  onChange={(e) => {
+                    setNotes((n) => ({ ...n, [s.studentId]: e.target.value }));
+                    setDirty(true);
+                  }}
+                />
+              </li>
             ))}
-          </TableBody>
-        </Table>
+          </ul>
+        </>
       )}
       {dirty && <p className="text-muted-foreground text-sm">{t('unsaved')}</p>}
     </Card>
@@ -280,52 +323,110 @@ export function SessionsPanel({ id, canWrite }: { id: string; canWrite: boolean 
         <Card className="text-muted-foreground p-10 text-center text-sm">{t('noSessions')}</Card>
       )}
       {sessions.data && sessions.data.length > 0 && (
-        <Card className="overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('sessionDate')}</TableHead>
-                <TableHead>{t('topic')}</TableHead>
-                <TableHead>{t('attStatus')}</TableHead>
-                <TableHead className="w-44" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sessions.data.map((s) => {
-                const done = s.total > 0 && s.filled >= s.total;
-                return (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-medium tabular-nums">{s.date}</TableCell>
-                    <TableCell>
-                      {s.topic ?? <span className="text-muted-foreground">{t('noTopic')}</span>}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant={done ? 'default' : 'outline'}>
-                        {t('filled', { filled: s.filled, total: s.total })}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="text-right whitespace-nowrap">
-                      <Button size="sm" variant={done ? 'outline' : 'default'} onClick={() => setOpen(s.id)}>
-                        {t('openSheet')}
-                      </Button>
-                      {canWrite && (
-                        <Button
-                          size="icon-sm"
-                          variant="ghost"
-                          aria-label={`${t('deleteTitle')} ${s.date}`}
-                          disabled={remove.isPending}
-                          onClick={() => remove.mutate(s.id)}
-                        >
-                          <Trash2 className="size-4" />
-                        </Button>
-                      )}
-                    </TableCell>
+        <>
+          <div className="hidden lg:block">
+            <Card className="overflow-hidden p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('sessionDate')}</TableHead>
+                    <TableHead>{t('topic')}</TableHead>
+                    <TableHead>{t('attStatus')}</TableHead>
+                    <TableHead className="w-44" />
                   </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </Card>
+                </TableHeader>
+                <TableBody>
+                  {sessions.data.map((s) => {
+                    const done = s.total > 0 && s.filled >= s.total;
+                    return (
+                      <TableRow key={s.id}>
+                        <TableCell className="font-medium tabular-nums">{s.date}</TableCell>
+                        <TableCell>
+                          {s.topic ?? <span className="text-muted-foreground">{t('noTopic')}</span>}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={done ? 'default' : 'outline'}>
+                            {t('filled', { filled: s.filled, total: s.total })}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right whitespace-nowrap">
+                          <Button
+                            size="sm"
+                            variant={done ? 'outline' : 'default'}
+                            onClick={() => setOpen(s.id)}
+                          >
+                            {t('openSheet')}
+                          </Button>
+                          {canWrite && (
+                            <Button
+                              size="icon-sm"
+                              variant="ghost"
+                              aria-label={`${t('deleteTitle')} ${s.date}`}
+                              disabled={remove.isPending}
+                              onClick={() => remove.mutate(s.id)}
+                            >
+                              <Trash2 className="size-4" />
+                            </Button>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
+          <DataRows
+            cardsOnly
+            cardsBelow="lg"
+            rows={sessions.data}
+            rowKey={(s) => s.id}
+            actionsHeader=""
+            columns={[
+              {
+                key: 'date',
+                header: t('sessionDate'),
+                cell: (s) => <span className="font-medium tabular-nums">{s.date}</span>,
+              },
+              {
+                key: 'topic',
+                header: t('topic'),
+                cell: (s) => s.topic ?? <span className="text-muted-foreground">{t('noTopic')}</span>,
+              },
+              {
+                key: 'att',
+                header: t('attStatus'),
+                cell: (s) => (
+                  <Badge variant={s.total > 0 && s.filled >= s.total ? 'default' : 'outline'}>
+                    {t('filled', { filled: s.filled, total: s.total })}
+                  </Badge>
+                ),
+              },
+            ]}
+            actions={(s) => (
+              <span className="inline-flex items-center gap-1">
+                <Button
+                  size="sm"
+                  variant={s.total > 0 && s.filled >= s.total ? 'outline' : 'default'}
+                  onClick={() => setOpen(s.id)}
+                >
+                  {t('openSheet')}
+                </Button>
+                {canWrite && (
+                  <Button
+                    size="icon-sm"
+                    variant="ghost"
+                    aria-label={`${t('deleteTitle')} ${s.date}`}
+                    disabled={remove.isPending}
+                    onClick={() => remove.mutate(s.id)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                )}
+              </span>
+            )}
+          />
+        </>
       )}
     </div>
   );

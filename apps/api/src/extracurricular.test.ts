@@ -556,8 +556,8 @@ describe('penilaian', () => {
   it('menyimpan predikat per semester dan menolak yang bukan anggota', async () => {
     const empty = (await call('GET', `${url()}?semesterId=${semesterId}`, coachCookie)).json();
     expect(empty).toEqual([
-      { studentId: ani, name: 'Ani', predicate: null, note: null },
-      { studentId: budi, name: 'Budi', predicate: null, note: null },
+      { studentId: ani, name: 'Ani', studentStatus: 'active', predicate: null, note: null },
+      { studentId: budi, name: 'Budi', studentStatus: 'active', predicate: null, note: null },
     ]);
     const save = await call('PUT', url(), coachCookie, {
       semesterId,
@@ -570,8 +570,8 @@ describe('penilaian', () => {
     await call('PUT', url(), adminCookie, { semesterId, records: [{ studentId: budi, predicate: 'B' }] });
     const after = (await call('GET', `${url()}?semesterId=${semesterId}`, adminCookie)).json();
     expect(after).toEqual([
-      { studentId: ani, name: 'Ani', predicate: 'A', note: 'Aktif' },
-      { studentId: budi, name: 'Budi', predicate: 'B', note: null },
+      { studentId: ani, name: 'Ani', studentStatus: 'active', predicate: 'A', note: 'Aktif' },
+      { studentId: budi, name: 'Budi', studentStatus: 'active', predicate: 'B', note: null },
     ]);
 
     const nonMember = await call('PUT', url(), adminCookie, {

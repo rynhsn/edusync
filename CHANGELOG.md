@@ -9,6 +9,17 @@ Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya men
 
 ## Belum dirilis
 
+### Diperbaiki
+
+- **Status WhatsApp sekolah bisa salah** bila dua peristiwa klien datang berdekatan (mis. "siap" menimpa "terputus"): penulisan
+  status ke `wa_account` kini berurutan per sekolah. Tes worker yang kadang gagal di CI karena hal ini ikut diperbaiki.
+- **Lembar nilai ujian dan penilaian ekskul tahun lampau** kini memuat siswa yang sudah lulus (baca-saja, berlencana "Lulus",
+  tidak ikut tersimpan), sejalan dengan rapor dan rekap. Tambah anggota, absensi sesi, dan penilaian tetap hanya siswa aktif.
+- **Tampilan ponsel**: detail ekstrakurikuler (kartu ringkasan lebih ringkas, tab 2x2, tabel sesi, anggota, penilaian, dan
+  laporan menjadi kartu, lembar absensi dengan tombol 44 px), tab penempatan PKL, dan tab Laporan keuangan tidak lagi terpotong
+  atau melebar di layar sempit. Tampilan desktop tidak berubah.
+- Tes billing dan katalog tidak lagi bergantung pada harga katalog di database (yang bisa diubah operator di konsol platform).
+
 ## [1.2.0] - 2026-11-13
 
 ### Ditambahkan

@@ -3,6 +3,7 @@ import { DEFAULT_CATALOG, quoteUnits } from '@edusync/contracts';
 import { inArray, outbox, sql, user } from '@edusync/db';
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { buildApp, paymentConfig } from './app';
+import { pinDefaultCatalog } from './catalog-fixture';
 import { loadEnv } from './env';
 import { requireModule, requirePermission } from './identity/guards';
 import { testNpsn } from './npsn-lib';
@@ -88,6 +89,8 @@ const units = (label: string) => [
   },
 ];
 
+// Harga katalog di DB bisa diubah operator; tes memakai harga bawaan lalu memulihkan nilai semula.
+let restoreCatalog: (() => Promise<void>) | undefined;
 beforeAll(async () => {
   app = await buildApp(env);
   // Rute uji untuk requireModule: izin biasa + modul absensi.
@@ -97,10 +100,12 @@ beforeAll(async () => {
     async () => ({ ok: true }),
   );
   await app.ready();
+  restoreCatalog = await pinDefaultCatalog(app.platformDb);
 });
 
 afterAll(async () => {
   const db = app.platformDb;
+  await restoreCatalog?.();
   const schoolIds = (
     await db.execute<{ id: string }>(sql`select id from school where slug like ${`%-${run}`}`)
   ).rows.map((r) => r.id);

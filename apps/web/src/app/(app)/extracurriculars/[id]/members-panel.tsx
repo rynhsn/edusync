@@ -8,6 +8,7 @@ import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
 import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/components/form-field-error';
+import { DataRows } from '@/components/master-kit';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -16,10 +17,12 @@ import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ToneBadge } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
 import { formatCalendarDate } from '@/lib/format-date';
+import { isReadOnlyRow } from '@/lib/read-only-rows';
 import { ADD_MEMBERS_ORDER, type AddMembersField, validateAddMembers } from '../extracurricular-validation';
 
 /** Dialog pilih kelas lalu centang siswa yang akan ditambahkan sebagai anggota. */
@@ -203,6 +206,7 @@ export function MembersPanel({ id, canWrite }: { id: string; canWrite: boolean }
   });
 
   const memberIds = new Set((members.data ?? []).map((m) => m.studentId));
+  const hasReadOnly = (members.data ?? []).some(isReadOnlyRow);
 
   return (
     <div className="grid gap-3">
@@ -211,6 +215,7 @@ export function MembersPanel({ id, canWrite }: { id: string; canWrite: boolean }
           <AddMembers id={id} memberIds={memberIds} />
         </div>
       )}
+      {hasReadOnly && <p className="text-muted-foreground text-xs">{t('graduatedHint')}</p>}
       {members.isPending && <Skeleton className="h-40 w-full" />}
       {members.data?.length === 0 && (
         <Card className="text-muted-foreground p-10 text-center text-sm">
@@ -219,43 +224,108 @@ export function MembersPanel({ id, canWrite }: { id: string; canWrite: boolean }
         </Card>
       )}
       {members.data && members.data.length > 0 && (
-        <Card className="overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('student')}</TableHead>
-                <TableHead>{t('nis')}</TableHead>
-                <TableHead>{t('className')}</TableHead>
-                <TableHead>{t('joinedOn')}</TableHead>
-                {canWrite && <TableHead className="w-16" />}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {members.data.map((m) => (
-                <TableRow key={m.studentId}>
-                  <TableCell className="font-medium">{m.name}</TableCell>
-                  <TableCell className="text-muted-foreground font-mono text-xs">{m.nis ?? '-'}</TableCell>
-                  <TableCell>{m.className ?? '-'}</TableCell>
-                  <TableCell className="tabular-nums">{formatCalendarDate(locale, m.joinedOn)}</TableCell>
-                  {canWrite && (
-                    <TableCell className="text-right">
-                      <Button
-                        size="icon-sm"
-                        variant="ghost"
-                        aria-label={`${t('remove')} ${m.name}`}
-                        title={t('remove')}
-                        disabled={remove.isPending}
-                        onClick={() => remove.mutate(m.studentId)}
-                      >
-                        <Trash2 className="size-4" />
-                      </Button>
-                    </TableCell>
-                  )}
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <>
+          <div className="hidden lg:block">
+            <Card className="overflow-hidden p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('student')}</TableHead>
+                    <TableHead>{t('nis')}</TableHead>
+                    <TableHead>{t('className')}</TableHead>
+                    <TableHead>{t('joinedOn')}</TableHead>
+                    {canWrite && <TableHead className="w-16" />}
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {members.data.map((m) => (
+                    <TableRow key={m.studentId} className={isReadOnlyRow(m) ? 'bg-muted/40' : undefined}>
+                      <TableCell className="font-medium">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span>{m.name}</span>
+                          {isReadOnlyRow(m) && (
+                            <ToneBadge tone="slate" dot={false}>
+                              {t('graduatedBadge')}
+                            </ToneBadge>
+                          )}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-muted-foreground font-mono text-xs">
+                        {m.nis ?? '-'}
+                      </TableCell>
+                      <TableCell>{m.className ?? '-'}</TableCell>
+                      <TableCell className="tabular-nums">{formatCalendarDate(locale, m.joinedOn)}</TableCell>
+                      {canWrite && (
+                        <TableCell className="text-right">
+                          <Button
+                            size="icon-sm"
+                            variant="ghost"
+                            aria-label={`${t('remove')} ${m.name}`}
+                            title={t('remove')}
+                            disabled={remove.isPending || isReadOnlyRow(m)}
+                            onClick={() => remove.mutate(m.studentId)}
+                          >
+                            <Trash2 className="size-4" />
+                          </Button>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
+          <DataRows
+            cardsOnly
+            cardsBelow="lg"
+            rows={members.data}
+            rowKey={(m) => m.studentId}
+            actionsHeader=""
+            columns={[
+              {
+                key: 'name',
+                header: t('student'),
+                cell: (m) => (
+                  <div className="flex flex-wrap items-center gap-2 font-medium">
+                    <span className="break-words">{m.name}</span>
+                    {isReadOnlyRow(m) && (
+                      <ToneBadge tone="slate" dot={false}>
+                        {t('graduatedBadge')}
+                      </ToneBadge>
+                    )}
+                  </div>
+                ),
+              },
+              {
+                key: 'nis',
+                header: t('nis'),
+                cell: (m) => <span className="font-mono text-xs">{m.nis ?? '-'}</span>,
+              },
+              { key: 'class', header: t('className'), cell: (m) => m.className ?? '-' },
+              {
+                key: 'joined',
+                header: t('joinedOn'),
+                cell: (m) => <span className="tabular-nums">{formatCalendarDate(locale, m.joinedOn)}</span>,
+              },
+            ]}
+            actions={
+              canWrite
+                ? (m) => (
+                    <Button
+                      size="icon-sm"
+                      variant="ghost"
+                      aria-label={`${t('remove')} ${m.name}`}
+                      title={t('remove')}
+                      disabled={remove.isPending || isReadOnlyRow(m)}
+                      onClick={() => remove.mutate(m.studentId)}
+                    >
+                      <Trash2 className="size-4" />
+                    </Button>
+                  )
+                : undefined
+            }
+          />
+        </>
       )}
     </div>
   );

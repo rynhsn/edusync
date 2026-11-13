@@ -1,6 +1,6 @@
 import { EventEmitter } from 'node:events';
 import { eq, waAccount } from '@edusync/db';
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import { AccountSync, type PlatformMessagingSettings } from './account-sync';
 import { createFixture } from './test-helpers';
 import { type WaClient, WhatsAppManager } from './whatsapp';
@@ -12,6 +12,13 @@ const account = async (id: string) => {
   const [a] = await fx.db.select().from(waAccount).where(eq(waAccount.schoolId, id));
   return a as typeof waAccount.$inferSelect;
 };
+
+/** Pendengar klien menulis tanpa ditunggu: tunggu sampai wa_account memenuhi kondisi, bukan jeda tetap. */
+const waitAccount = (id: string, expected: Partial<typeof waAccount.$inferSelect>) =>
+  vi.waitFor(async () => expect(await account(id)).toMatchObject(expected), {
+    timeout: 10_000,
+    interval: 25,
+  });
 
 beforeAll(fx.init);
 afterAll(fx.cleanup);
@@ -114,25 +121,45 @@ describe('WhatsAppManager (klien tiruan)', () => {
     const manager = new WhatsAppManager(fx.db, { factory: async () => client });
     await manager.connect(sid);
     expect((await account(sid)).status).toBe('connecting');
-    const settle = () => new Promise((r) => setTimeout(r, 100));
 
     client.emit('qr', 'KODE-QR');
-    await settle();
-    expect(await account(sid)).toMatchObject({ status: 'qr', qr: 'KODE-QR' });
+    await waitAccount(sid, { status: 'qr', qr: 'KODE-QR' });
 
     client.emit('authenticated');
-    await settle();
-    expect(await account(sid)).toMatchObject({ status: 'connecting', qr: null });
+    await waitAccount(sid, { status: 'connecting', qr: null });
 
     client.emit('ready');
-    await settle();
-    expect(await account(sid)).toMatchObject({ status: 'ready', phone: '628111222333', qr: null });
+    await waitAccount(sid, { status: 'ready', phone: '628111222333', qr: null });
     expect(manager.isReady(sid)).toBe(true);
 
     client.emit('disconnected', 'LOGOUT');
-    await settle();
-    expect((await account(sid)).status).toBe('disconnected');
+    await waitAccount(sid, { status: 'disconnected' });
     expect(manager.isReady(sid)).toBe(false);
+  });
+
+  it('penulisan status berurutan: ready yang lambat tidak menimpa disconnected', async () => {
+    const sid = await fx.newSchool({ account: { desiredState: 'on', status: 'disconnected' } });
+    const client = new FakeClient();
+    const manager = new WhatsAppManager(fx.db, { factory: async () => client });
+    await manager.connect(sid);
+    // Meniru DB lambat: UPDATE berstatus 'ready' selesai belakangan dari UPDATE sesudahnya.
+    const real = fx.db;
+    const slow = {
+      update: (table: typeof waAccount) => ({
+        set: (values: Partial<typeof waAccount.$inferInsert>) => ({
+          where: async (cond: Parameters<ReturnType<ReturnType<typeof real.update>['set']>['where']>[0]) => {
+            if (values.status === 'ready') await new Promise((r) => setTimeout(r, 150));
+            return real.update(table).set(values).where(cond);
+          },
+        }),
+      }),
+    };
+    (manager as unknown as { db: unknown }).db = slow;
+    client.emit('ready');
+    client.emit('disconnected', 'LOGOUT');
+    await waitAccount(sid, { status: 'disconnected' });
+    await new Promise((r) => setTimeout(r, 400)); // beri kesempatan UPDATE lambat menimpa bila urutan salah
+    expect((await account(sid)).status).toBe('disconnected');
   });
 
   it('batas klien: sambungan di atas batas ditolak dengan failed, tanpa membuat klien', async () => {
@@ -162,8 +189,7 @@ describe('WhatsAppManager (klien tiruan)', () => {
     const manager = new WhatsAppManager(fx.db, { factory: async () => client });
     await manager.connect(sid);
     client.emit('auth_failure', 'sesi rusak');
-    await new Promise((r) => setTimeout(r, 100));
-    expect(await account(sid)).toMatchObject({ status: 'failed', lastError: 'sesi rusak' });
+    await waitAccount(sid, { status: 'failed', lastError: 'sesi rusak' });
   });
 
   it('send: not_ready, not_on_whatsapp, lalu berhasil', async () => {
@@ -227,8 +253,7 @@ describe('AccountSync mode whatsapp', () => {
     expect(manager.has(sid)).toBe(true);
     expect((await account(sid)).status).toBe('connecting');
     client.emit('ready');
-    await new Promise((r) => setTimeout(r, 100));
-    expect((await account(sid)).status).toBe('ready');
+    await waitAccount(sid, { status: 'ready' });
 
     await fx.db.update(waAccount).set({ desiredState: 'off' }).where(eq(waAccount.schoolId, sid));
     await sync.tick();

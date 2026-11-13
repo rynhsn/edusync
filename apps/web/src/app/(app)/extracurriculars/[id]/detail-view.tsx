@@ -22,6 +22,12 @@ import { SessionsPanel } from './sessions-panel';
 const TABS = ['members', 'sessions', 'assessment', 'report'] as const;
 type Tab = (typeof TABS)[number];
 
+// Kartu ringkasan: di ponsel lebih rapat, ikon disembunyikan, nilai teks kecil dengan jarak baris rapat
+// (blok agar tidak mewarisi tinggi baris `text-2xl` dari StatCard). Di lg ke atas tampilan semula (sidebar sudah tampil mulai md, jadi lebar isi sempit di 768 px).
+const STAT_CARD = 'max-lg:p-3';
+const STAT_ICON = 'max-lg:hidden';
+const STAT_TEXT = 'block text-sm leading-snug break-words lg:text-base lg:leading-8';
+
 export function ExtracurricularDetailView({ id }: { id: string }) {
   const t = useTranslations('extracurricular');
   const { school } = useSchool();
@@ -92,27 +98,44 @@ export function ExtracurricularDetailView({ id }: { id: string }) {
         }
       />
       <div className="grid grid-cols-2 gap-3 motion-safe:animate-in motion-safe:fade-in motion-safe:duration-300 lg:grid-cols-4">
-        <StatCard icon={Users} tone={meta.tone} label={t('membersCount')} value={item.memberCount} />
+        <StatCard
+          icon={Users}
+          tone={meta.tone}
+          label={t('membersCount')}
+          value={item.memberCount}
+          className={STAT_CARD}
+          iconClassName={STAT_ICON}
+        />
         <StatCard
           icon={UserRound}
           tone="sky"
           label={t('coach')}
-          value={<span className="text-base">{item.coachName ?? item.externalCoach ?? '-'}</span>}
+          value={<span className={STAT_TEXT}>{item.coachName ?? item.externalCoach ?? '-'}</span>}
+          className={STAT_CARD}
+          iconClassName={STAT_ICON}
         />
         <StatCard
           icon={CalendarClock}
           tone="amber"
           label={t('schedule')}
-          value={<span className="text-base">{schedule}</span>}
+          value={<span className={STAT_TEXT}>{schedule}</span>}
+          className={STAT_CARD}
+          iconClassName={STAT_ICON}
         />
         <StatCard
           icon={MapPin}
           tone="emerald"
           label={t('location')}
-          value={<span className="text-base">{item.location ?? '-'}</span>}
+          value={<span className={STAT_TEXT}>{item.location ?? '-'}</span>}
+          className={STAT_CARD}
+          iconClassName={STAT_ICON}
         />
       </div>
-      <div role="tablist" className="bg-muted flex w-full gap-0.5 overflow-x-auto rounded-xl p-0.5 sm:w-fit">
+      <div
+        role="tablist"
+        aria-label={t('title')}
+        className="bg-muted grid w-full grid-cols-2 gap-0.5 rounded-xl p-0.5 lg:flex lg:w-fit lg:overflow-x-auto"
+      >
         {TABS.map((k) => {
           const Icon = TAB_ICONS[k];
           return (
@@ -123,7 +146,7 @@ export function ExtracurricularDetailView({ id }: { id: string }) {
               aria-selected={tab === k}
               onClick={() => setTab(k)}
               className={cn(
-                'focus-visible:ring-ring/60 inline-flex items-center gap-1.5 rounded-[10px] px-3 py-1.5 text-sm font-medium whitespace-nowrap outline-none transition-colors focus-visible:ring-2',
+                'focus-visible:ring-ring/60 inline-flex items-center justify-center gap-1.5 rounded-[10px] px-3 py-1.5 text-center text-sm font-medium outline-none transition-colors focus-visible:ring-2 max-lg:min-h-11 lg:whitespace-nowrap',
                 tab === k
                   ? 'bg-card text-foreground shadow-sm'
                   : 'text-muted-foreground hover:text-foreground',

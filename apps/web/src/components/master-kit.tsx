@@ -90,6 +90,7 @@ export function DataRows<T>({
   actionsHeader,
   onRowClick,
   cardsBelow = 'md',
+  cardsOnly = false,
 }: {
   rows: T[];
   rowKey: (row: T) => string;
@@ -102,52 +103,65 @@ export function DataRows<T>({
    * (banyak kolom) yang bergulir menyamping di 768 px.
    */
   cardsBelow?: 'md' | 'lg';
+  /**
+   * Hanya render kartu (tanpa tabel) dan sembunyikan seluruhnya di atas titik `cardsBelow`. Dipakai
+   * bila tabel desktop sudah ada dan hanya tampilan ponselnya yang perlu berupa kartu.
+   */
+  cardsOnly?: boolean;
 }) {
   const [first, ...rest] = columns;
   const wide = cardsBelow === 'lg';
   return (
-    <div className={cn('bg-card overflow-hidden rounded-2xl border', REVEAL)}>
-      <div className={wide ? 'hidden lg:block' : 'hidden md:block'}>
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-muted/40 hover:bg-muted/40">
-              {columns.map((c) => (
-                <TableHead
-                  key={c.key}
-                  className={cn('text-xs font-semibold tracking-wide uppercase', c.className)}
-                >
-                  {c.header}
-                </TableHead>
-              ))}
-              {actions && (
-                <TableHead className="w-12">
-                  <span className="sr-only">{actionsHeader}</span>
-                </TableHead>
-              )}
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.map((r) => (
-              <TableRow
-                key={rowKey(r)}
-                className={cn('transition-colors', onRowClick && 'cursor-pointer')}
-                onClick={onRowClick ? () => onRowClick(r) : undefined}
-              >
+    <div
+      className={cn(
+        'bg-card overflow-hidden rounded-2xl border',
+        cardsOnly && (wide ? 'lg:hidden' : 'md:hidden'),
+        REVEAL,
+      )}
+    >
+      {!cardsOnly && (
+        <div className={wide ? 'hidden lg:block' : 'hidden md:block'}>
+          <Table>
+            <TableHeader>
+              <TableRow className="bg-muted/40 hover:bg-muted/40">
                 {columns.map((c) => (
-                  <TableCell key={c.key} className={c.className}>
-                    {c.cell(r)}
-                  </TableCell>
+                  <TableHead
+                    key={c.key}
+                    className={cn('text-xs font-semibold tracking-wide uppercase', c.className)}
+                  >
+                    {c.header}
+                  </TableHead>
                 ))}
                 {actions && (
-                  <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
-                    {actions(r)}
-                  </TableCell>
+                  <TableHead className="w-12">
+                    <span className="sr-only">{actionsHeader}</span>
+                  </TableHead>
                 )}
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+            </TableHeader>
+            <TableBody>
+              {rows.map((r) => (
+                <TableRow
+                  key={rowKey(r)}
+                  className={cn('transition-colors', onRowClick && 'cursor-pointer')}
+                  onClick={onRowClick ? () => onRowClick(r) : undefined}
+                >
+                  {columns.map((c) => (
+                    <TableCell key={c.key} className={c.className}>
+                      {c.cell(r)}
+                    </TableCell>
+                  ))}
+                  {actions && (
+                    <TableCell className="text-right" onClick={(e) => e.stopPropagation()}>
+                      {actions(r)}
+                    </TableCell>
+                  )}
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
+      )}
 
       <ul className={wide ? 'divide-y lg:hidden' : 'divide-y md:hidden'}>
         {rows.map((r) => (

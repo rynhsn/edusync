@@ -23,6 +23,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { rosterStudentStatus } from '../attendance-lib';
 import { examOrThrow, guardSubject } from '../exam-lib';
 import { assertComponentInSemester } from '../grading-config-lib';
 import { errorSchema, HttpError } from '../http-error';
@@ -62,6 +63,12 @@ const sheetSchema = z.object({
       nis: z.string().nullable(),
       classId: z.uuid(),
       className: z.string(),
+      studentStatus: z
+        .enum(['active', 'graduated'])
+        .optional()
+        .describe(
+          'Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)',
+        ),
       entered: z.boolean().describe('Sudah ada data hasil untuk siswa ini'),
       absent: z.boolean(),
       answers: z.record(z.string(), answerCell).describe('Kunci = id soal ujian'),
@@ -106,7 +113,12 @@ export async function examScoreRoutes(instance: FastifyInstance) {
   const tenant = <T>(request: { ctx?: TenantContext; server: FastifyInstance }, fn: (tx: Tx) => Promise<T>) =>
     withTenant(request.server.tenantDb, [(request.ctx as TenantContext).schoolId], fn);
 
-  async function roster(tx: Tx, ex: typeof exam.$inferSelect) {
+  /**
+   * Peserta ujian menurut pendaftaran pada tahun ajaran semester ujian. `historical` (jalur baca) memuat siswa aktif dan
+   * lulusan (`graduated`) yang terdaftar pada tahun itu, supaya lembar nilai tahun lampau tetap utuh setelah kenaikan
+   * kelas; jalur tulis memakai hanya siswa aktif. Siswa pindah/keluar tidak pernah ikut.
+   */
+  async function roster(tx: Tx, ex: typeof exam.$inferSelect, historical = false) {
     if (ex.classIds.length === 0) return [];
     const [sem] = await tx
       .select({ yearId: semester.academicYearId })
@@ -120,6 +132,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         nis: student.nis,
         classId: classRoom.id,
         className: classRoom.name,
+        studentStatus: student.status,
       })
       .from(enrollment)
       .innerJoin(student, eq(student.id, enrollment.studentId))
@@ -128,19 +141,19 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         and(
           inArray(enrollment.classId, ex.classIds),
           eq(enrollment.academicYearId, sem.yearId),
-          eq(student.status, 'active'),
+          historical ? inArray(student.status, ['active', 'graduated']) : eq(student.status, 'active'),
         ),
       )
       .orderBy(asc(classRoom.name), asc(student.name));
   }
 
-  async function sheet(tx: Tx, ex: typeof exam.$inferSelect) {
+  async function sheet(tx: Tx, ex: typeof exam.$inferSelect, historical = false) {
     const qs = await tx
       .select()
       .from(examQuestion)
       .where(eq(examQuestion.examId, ex.id))
       .orderBy(asc(examQuestion.sort), asc(examQuestion.id));
-    const people = await roster(tx, ex);
+    const people = await roster(tx, ex, historical);
     const attempts = await tx.select().from(examAttempt).where(eq(examAttempt.examId, ex.id));
     const answers = attempts.length
       ? await tx
@@ -178,6 +191,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         const absent = at?.absent ?? false;
         return {
           ...p,
+          studentStatus: rosterStudentStatus(p.studentStatus),
           entered: !!at,
           absent,
           answers: cells,
@@ -200,9 +214,10 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Lembar nilai ujian',
         description:
-          'Izin: `exam:read`; modul `exams`. Siswa aktif kelas peserta (menurut pendaftaran tahun ajaran semester ' +
-          'ujian) dengan jawaban dan skor yang sudah dimasukkan, jumlah skor, dan persentase. 404 `not_found` ' +
-          '(juga bagi guru yang tidak mengampu mapelnya).',
+          'Izin: `exam:read`; modul `exams`. Siswa kelas peserta (menurut pendaftaran tahun ajaran semester ' +
+          'ujian) dengan jawaban dan skor yang sudah dimasukkan, jumlah skor, dan persentase. Lulusan yang punya ' +
+          'pendaftaran pada tahun ajaran semester itu ikut tampil (tahun lampau tetap utuh); siswa pindah/keluar tidak. ' +
+          '404 `not_found` (juga bagi guru yang tidak mengampu mapelnya).',
         headers: schoolHeader,
         params: idParams,
         response: { 200: sheetSchema, 404: errorSchema, ...guarded },
@@ -210,7 +225,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
     },
     async (request) =>
       tenant(request, async (tx) =>
-        sheet(tx, await examOrThrow(tx, request.ctx as TenantContext, request.params.id, false)),
+        sheet(tx, await examOrThrow(tx, request.ctx as TenantContext, request.params.id, false), true),
       ),
   );
 
@@ -225,7 +240,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           'Izin: `exam:author`; modul `exams`; guru hanya untuk mapel yang ia ampu (403). Per siswa: `absent` ' +
           '(tidak hadir menghapus jawabannya) dan `answers`. Pilihan ganda: `answer` = huruf opsi atau kosong; skor ' +
           'dihitung otomatis (benar = poin soal, selain itu 0) dan `score` kiriman diabaikan. Esai: `score` 0 sampai poin ' +
-          'soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Siswa di luar kelas peserta, soal ' +
+          'soal (kosong = belum dinilai). Soal yang tidak disebut tidak berubah. Siswa di luar kelas peserta (lulusan tidak bisa diisi; hanya siswa aktif), soal ' +
           'di luar ujian, huruf di luar opsi, atau skor di luar rentang: 400 `invalid_reference`/`validation`. Ditolak ' +
           '409 `report_final` bila hasil ujian sudah dikirim ke buku nilai kelas yang rapornya final.',
         headers: schoolHeader,
@@ -314,7 +329,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           }
         }
         await audit(tx, ctx, 'exam.scores_save', 'exam', ex.id, { students: request.body.records.length });
-        return sheet(tx, ex);
+        return sheet(tx, ex, true);
       });
     },
   );

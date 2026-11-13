@@ -6,6 +6,7 @@ import { useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { DataRows } from '@/components/master-kit';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -83,37 +84,70 @@ export function ReportPanel({ id }: { id: string }) {
           {report.data.students.length === 0 ? (
             <Card className="text-muted-foreground p-10 text-center text-sm">{t('noMembers')}</Card>
           ) : (
-            <Card className="overflow-hidden p-0">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>{t('student')}</TableHead>
-                    {ATT_STATUSES.map((s) => (
-                      <TableHead key={s} className="text-right">
-                        {t(s)}
-                      </TableHead>
-                    ))}
-                    <TableHead className="text-right">{t('recorded')}</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {report.data.students.map((m) => (
-                    <TableRow key={m.studentId}>
-                      <TableCell>
-                        <div className="font-medium">{m.name}</div>
-                        {m.nis && <div className="text-muted-foreground font-mono text-xs">{m.nis}</div>}
-                      </TableCell>
-                      {ATT_STATUSES.map((s) => (
-                        <TableCell key={s} className="text-right tabular-nums">
-                          {m[s]}
-                        </TableCell>
+            <>
+              <div className="hidden lg:block">
+                <Card className="overflow-hidden p-0">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t('student')}</TableHead>
+                        {ATT_STATUSES.map((s) => (
+                          <TableHead key={s} className="text-right">
+                            {t(s)}
+                          </TableHead>
+                        ))}
+                        <TableHead className="text-right">{t('recorded')}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {report.data.students.map((m) => (
+                        <TableRow key={m.studentId}>
+                          <TableCell>
+                            <div className="font-medium">{m.name}</div>
+                            {m.nis && <div className="text-muted-foreground font-mono text-xs">{m.nis}</div>}
+                          </TableCell>
+                          {ATT_STATUSES.map((s) => (
+                            <TableCell key={s} className="text-right tabular-nums">
+                              {m[s]}
+                            </TableCell>
+                          ))}
+                          <TableCell className="text-right tabular-nums">{m.sessions}</TableCell>
+                        </TableRow>
                       ))}
-                      <TableCell className="text-right tabular-nums">{m.sessions}</TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </Card>
+                    </TableBody>
+                  </Table>
+                </Card>
+              </div>
+              <DataRows
+                cardsOnly
+                cardsBelow="lg"
+                rows={report.data.students}
+                rowKey={(m) => m.studentId}
+                actionsHeader=""
+                columns={[
+                  {
+                    key: 'name',
+                    header: t('student'),
+                    cell: (m) => (
+                      <>
+                        <div className="font-medium break-words">{m.name}</div>
+                        {m.nis && <div className="text-muted-foreground font-mono text-xs">{m.nis}</div>}
+                      </>
+                    ),
+                  },
+                  ...ATT_STATUSES.map((st) => ({
+                    key: st,
+                    header: t(st),
+                    cell: (m: { [K in typeof st]: number }) => <span className="tabular-nums">{m[st]}</span>,
+                  })),
+                  {
+                    key: 'recorded',
+                    header: t('recorded'),
+                    cell: (m) => <span className="tabular-nums">{m.sessions}</span>,
+                  },
+                ]}
+              />
+            </>
           )}
         </>
       )}

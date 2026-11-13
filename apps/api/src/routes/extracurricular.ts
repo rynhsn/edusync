@@ -25,7 +25,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { todayInJakarta } from '../attendance-lib';
+import { rosterStudentStatus, todayInJakarta } from '../attendance-lib';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { assertStudentsReportNotFinal } from '../report-lock-lib';
@@ -44,6 +44,14 @@ const manageGate = [requirePermission('extracurricular:manage'), requireModule('
 
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
 const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', message);
+
+/** Status siswa pada baris baca: `graduated` = lulusan yang tampil hanya untuk dibaca (tidak dapat diubah). */
+const studentStatusField = z
+  .enum(['active', 'graduated'])
+  .optional()
+  .describe(
+    'Status siswa; `graduated` = lulusan yang hanya tampil untuk dibaca (tidak dapat diisi atau diubah)',
+  );
 
 const extracurricularSchema = z.object({
   id: z.uuid(),
@@ -160,13 +168,18 @@ async function sessionOrThrow(tx: Tx, sessionId: string) {
   return s;
 }
 
-/** Anggota ekskul pada satu tahun ajaran (siswa aktif), urut nama. */
-function membersOf(tx: Tx, ekskulId: string, yearId: string) {
+/**
+ * Anggota ekskul pada satu tahun ajaran, urut nama. Bawaan hanya siswa aktif (jalur operasional dan tulis).
+ * `historical` (jalur baca saja) juga memuat lulusan (`graduated`) yang punya keanggotaan pada tahun itu; keanggotaan
+ * dicocokkan per tahun, jadi lulusan tanpa keanggotaan tahun itu tidak ikut. Siswa pindah/keluar tidak pernah ikut.
+ */
+function membersOf(tx: Tx, ekskulId: string, yearId: string, historical = false) {
   return tx
     .select({
       id: student.id,
       name: student.name,
       nis: student.nis,
+      studentStatus: student.status,
       joinedOn: extracurricularMember.joinedOn,
     })
     .from(extracurricularMember)
@@ -176,7 +189,7 @@ function membersOf(tx: Tx, ekskulId: string, yearId: string) {
         eq(extracurricularMember.extracurricularId, ekskulId),
         eq(extracurricularMember.academicYearId, yearId),
         isNull(student.deletedAt),
-        eq(student.status, 'active'),
+        historical ? inArray(student.status, ['active', 'graduated']) : eq(student.status, 'active'),
       ),
     )
     .orderBy(asc(student.name));
@@ -394,6 +407,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
     name: z.string(),
     nis: z.string().nullable(),
     className: z.string().nullable(),
+    studentStatus: studentStatusField,
     joinedOn: z.string(),
   });
 
@@ -406,7 +420,8 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         summary: 'Anggota ekstrakurikuler',
         description:
           'Izin: `extracurricular:read`; modul `extracurricular`. Anggota pada tahun ajaran `academicYearId` (bawaan: ' +
-          'tahun ajaran aktif; 409 `no_active_year` bila tidak ada). `className` adalah kelas siswa pada tahun itu.',
+          'tahun ajaran aktif; 409 `no_active_year` bila tidak ada). `className` adalah kelas siswa pada tahun itu. ' +
+          'Lulusan yang punya keanggotaan pada tahun itu ikut tampil; siswa pindah/keluar tidak.',
         headers: schoolHeader,
         params: idParams,
         querystring: z.object({ academicYearId: z.uuid().optional() }),
@@ -423,7 +438,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
       tenant(request, async (tx) => {
         await loadOrThrow(tx, request.params.id);
         const yearId = await resolveYear(tx, request.query.academicYearId);
-        const members = await membersOf(tx, request.params.id, yearId);
+        const members = await membersOf(tx, request.params.id, yearId, true);
         const classes = members.length
           ? await tx
               .select({ studentId: enrollment.studentId, className: classRoom.name })
@@ -444,6 +459,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
           name: m.name,
           nis: m.nis,
           className: classes.find((c) => c.studentId === m.id)?.className ?? null,
+          studentStatus: rosterStudentStatus(m.studentStatus),
           joinedOn: m.joinedOn,
         }));
       }),
@@ -854,7 +870,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Penilaian ekstrakurikuler per semester',
         description:
-          'Izin: `extracurricular:read`; modul `extracurricular`. Anggota pada tahun ajaran semester itu dengan ' +
+          'Izin: `extracurricular:read`; modul `extracurricular`. Anggota (termasuk lulusan yang punya keanggotaan) pada tahun ajaran semester itu dengan ' +
           'predikat A-D (null bila belum dinilai). Semester tak dikenal: 400 `invalid_reference`.',
         headers: schoolHeader,
         params: idParams,
@@ -864,6 +880,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
             z.object({
               studentId: z.uuid(),
               name: z.string(),
+              studentStatus: studentStatusField,
               predicate: z.enum(PREDICATES).nullable(),
               note: z.string().nullable(),
             }),
@@ -878,7 +895,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
       tenant(request, async (tx) => {
         await loadOrThrow(tx, request.params.id);
         const sem = await semesterOrThrow(tx, request.query.semesterId);
-        const members = await membersOf(tx, request.params.id, sem.academicYearId);
+        const members = await membersOf(tx, request.params.id, sem.academicYearId, true);
         const marks = await tx
           .select()
           .from(extracurricularAssessment)
@@ -893,6 +910,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
           return {
             studentId: m.id,
             name: m.name,
+            studentStatus: rosterStudentStatus(m.studentStatus),
             predicate: mark?.predicate ?? null,
             note: mark?.note ?? null,
           };
@@ -992,7 +1010,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Rekap kehadiran ekstrakurikuler',
         description:
-          'Izin: `extracurricular:read`; modul `extracurricular`. Rekap per anggota (tahun ajaran dari tanggal `to`) ' +
+          'Izin: `extracurricular:read`; modul `extracurricular`. Rekap per anggota, termasuk lulusan yang punya keanggotaan (tahun ajaran dari tanggal `to`) ' +
           'untuk pertemuan pada rentang `from`..`to` (bawaan 90 hari terakhir; maksimal 366 hari, selain itu 400 ' +
           '`invalid_range`). `sessions` = jumlah pertemuan yang tercatat untuk anggota itu; `totalSessions` = jumlah ' +
           'pertemuan ekskul pada rentang.',
@@ -1048,7 +1066,7 @@ export async function extracurricularRoutes(instance: FastifyInstance) {
               .where(inArray(extracurricularAttendance.sessionId, ids))
           : [];
         const yearId = await yearForDate(tx, range.to);
-        const members = yearId ? await membersOf(tx, request.params.id, yearId) : [];
+        const members = yearId ? await membersOf(tx, request.params.id, yearId, true) : [];
         return {
           ...range,
           totalSessions: ids.length,

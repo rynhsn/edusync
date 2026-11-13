@@ -51,11 +51,29 @@ export class WhatsAppManager implements MessageSender {
     return this.clients.get(schoolId)?.ready === true;
   }
 
-  private async write(schoolId: string, values: Partial<typeof waAccount.$inferInsert>) {
-    await this.db
-      .update(waAccount)
-      .set({ ...values, updatedAt: new Date() })
-      .where(eq(waAccount.schoolId, schoolId));
+  /**
+   * Penulisan status per sekolah dijalankan berurutan sesuai urutan peristiwa. Pendengar klien
+   * tidak menunggu hasil tulis; tanpa antrean, dua UPDATE berdekatan memakai koneksi pool yang
+   * berbeda dan bisa selesai terbalik (mis. 'ready' menimpa 'disconnected').
+   */
+  private readonly writeTails = new Map<string, Promise<unknown>>();
+
+  private write(schoolId: string, values: Partial<typeof waAccount.$inferInsert>): Promise<void> {
+    const previous = this.writeTails.get(schoolId) ?? Promise.resolve();
+    const run = previous
+      .catch(() => undefined)
+      .then(async () => {
+        await this.db
+          .update(waAccount)
+          .set({ ...values, updatedAt: new Date() })
+          .where(eq(waAccount.schoolId, schoolId));
+      });
+    this.writeTails.set(schoolId, run);
+    const clear = () => {
+      if (this.writeTails.get(schoolId) === run) this.writeTails.delete(schoolId);
+    };
+    run.then(clear, clear);
+    return run;
   }
 
   private async createClient(schoolId: string): Promise<WaClient> {

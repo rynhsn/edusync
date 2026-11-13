@@ -537,7 +537,7 @@ export const EXAM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Mengisi nilai dari lembar kertas',
-            body: 'Setelah siswa mengerjakan di kertas, guru mengisi hasilnya di halaman Input nilai. Tabelnya berisi satu baris per siswa dan satu kolom per soal. Pilihan ganda dinilai otomatis dari huruf jawaban; esai diberi skor oleh guru.',
+            body: 'Setelah siswa mengerjakan di kertas, guru mengisi hasilnya di halaman Input nilai. Tabelnya berisi satu baris per siswa dan satu kolom per soal. Pilihan ganda dinilai otomatis dari huruf jawaban; esai diberi skor oleh guru. Siswa yang sudah lulus tetap tampil pada ujian tahun lampau, tetapi hanya untuk dilihat dan tidak dapat diubah.',
             steps: [
               'Buka ujian, lalu klik Input nilai.',
               'Pada soal pilihan ganda, ketik satu huruf jawaban siswa. Kotak hijau berarti benar dan merah berarti salah.',
@@ -673,7 +673,7 @@ export const EXAM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Entering scores from paper sheets',
-            body: 'After students have taken the exam on paper, the teacher enters the results on the Enter scores page. The table has one row per student and one column per question. Multiple choice is graded automatically from the answer letter; essays are scored by the teacher.',
+            body: 'After students have taken the exam on paper, the teacher enters the results on the Enter scores page. The table has one row per student and one column per question. Multiple choice is graded automatically from the answer letter; essays are scored by the teacher. Students who have graduated still appear on exams from past years, but only for viewing and cannot be changed.',
             steps: [
               'Open the exam, then click Enter scores.',
               'For a multiple choice question, type the one letter the student answered. A green box means correct and red means wrong.',
@@ -808,7 +808,7 @@ export const EXAM_DOCS: DocArticle[] = [
           },
           {
             heading: 'Ngeusian nilai tina lambaran kertas',
-            body: 'Sanggeus siswa ngerjakeun dina kertas, guru ngeusian hasilna di kaca Input nilai. Tabelna eusina hiji baris per siswa jeung hiji kolom per soal. Pilihan ganda dinilai otomatis tina hurup jawaban; éséy dibéré skor ku guru.',
+            body: 'Sanggeus siswa ngerjakeun dina kertas, guru ngeusian hasilna di kaca Input nilai. Tabelna eusina hiji baris per siswa jeung hiji kolom per soal. Pilihan ganda dinilai otomatis tina hurup jawaban; éséy dibéré skor ku guru. Siswa anu parantos lulus tetep muncul dina ujian taun kapengker, tapi ngan pikeun ditingali sareng teu tiasa dirobah.',
             steps: [
               'Buka ujian, tuluy klik Input nilai.',
               'Dina soal pilihan ganda, ketik hiji hurup jawaban siswa. Kotak héjo hartosna bener jeung beureum hartosna lepat.',

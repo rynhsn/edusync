@@ -3153,6 +3153,8 @@
     }
   },
   "extracurricular": {
+    "graduatedBadge": "Graduated",
+    "graduatedHint": "Graduated students are view-only; their data cannot be changed from this screen.",
     "title": "Extracurriculars",
     "subtitle": "Activities outside lessons: members, sessions, attendance, assessment, and reports.",
     "addTitle": "Add extracurricular",
@@ -6236,6 +6238,8 @@
     "inactive": "Inactive"
   },
   "examScores": {
+    "graduatedBadge": "Graduated",
+    "graduatedHint": "Graduated students are view-only; their data cannot be changed from this screen.",
     "title": "Enter scores",
     "subtitle": "Enter multiple choice answers and essay scores per student.",
     "inputScores": "Enter scores",

@@ -255,7 +255,7 @@ export function ReportsView() {
       <div
         role="tablist"
         aria-label={t('title')}
-        className="bg-muted inline-flex w-full max-w-full gap-1 overflow-x-auto rounded-xl p-1 sm:w-fit"
+        className="bg-muted grid w-full max-w-full grid-cols-3 gap-1 rounded-xl p-1 lg:inline-flex lg:w-fit lg:overflow-x-auto"
       >
         {(
           [
@@ -270,7 +270,7 @@ export function ReportsView() {
             role="tab"
             aria-selected={tab === k}
             onClick={() => setTab(k)}
-            className={`focus-visible:ring-ring/50 inline-flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-medium whitespace-nowrap transition-colors outline-none focus-visible:ring-3 sm:flex-none ${
+            className={`focus-visible:ring-ring/50 inline-flex flex-col items-center justify-center gap-0.5 rounded-lg px-2 py-1.5 text-center text-sm font-medium transition-colors outline-none focus-visible:ring-3 max-lg:min-h-11 lg:flex-row lg:gap-1.5 lg:px-3.5 lg:whitespace-nowrap ${
               tab === k ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground'
             }`}
           >

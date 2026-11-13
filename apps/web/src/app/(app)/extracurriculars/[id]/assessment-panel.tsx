@@ -5,14 +5,17 @@ import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
+import { DataRows } from '@/components/master-kit';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { SelectField } from '@/components/ui/select-field';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { ToneBadge } from '@/components/ui-kit';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
+import { isReadOnlyRow } from '@/lib/read-only-rows';
 import { semesterLabel } from '@/lib/semester-label';
 import { PREDICATES, type Predicate } from '../shared';
 
@@ -59,6 +62,9 @@ export function AssessmentPanel({ id, canWrite }: { id: string; canWrite: boolea
     setDirty(false);
   }, [assessment.data]);
 
+  const readOnlyIds = new Set((assessment.data ?? []).filter(isReadOnlyRow).map((r) => r.studentId));
+  const hasReadOnly = readOnlyIds.size > 0;
+
   const save = useMutation({
     mutationFn: async () =>
       unwrap(
@@ -66,9 +72,13 @@ export function AssessmentPanel({ id, canWrite }: { id: string; canWrite: boolea
           params: { ...header, path: { id } },
           body: {
             semesterId,
-            // Hanya anggota yang sudah diberi predikat yang dikirim.
+            // Hanya anggota yang sudah diberi predikat yang dikirim. Lulusan (baca-saja) tidak pernah ikut:
+            // server menolak seluruh permintaan (400) bila ada satu lulusan di dalamnya.
             records: Object.entries(rows)
-              .filter((entry): entry is [string, Row & { predicate: Predicate }] => entry[1].predicate !== '')
+              .filter(
+                (entry): entry is [string, Row & { predicate: Predicate }] =>
+                  entry[1].predicate !== '' && !readOnlyIds.has(entry[0]),
+              )
               .map(([studentId, r]) => ({ studentId, predicate: r.predicate, note: r.note.trim() || null })),
           },
         }),
@@ -116,49 +126,123 @@ export function AssessmentPanel({ id, canWrite }: { id: string; canWrite: boolea
         <Card className="text-muted-foreground p-10 text-center text-sm">{t('noMembers')}</Card>
       )}
       {assessment.data && assessment.data.length > 0 && (
-        <Card className="overflow-hidden p-0">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{t('student')}</TableHead>
-                <TableHead className="w-44">{t('predicate')}</TableHead>
-                <TableHead>{t('note')}</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {assessment.data.map((r) => (
-                <TableRow key={r.studentId}>
-                  <TableCell className="font-medium">{r.name}</TableCell>
-                  <TableCell>
-                    <SelectField
-                      disabled={!canWrite}
-                      aria-label={`${t('predicate')} ${r.name}`}
-                      value={rows[r.studentId]?.predicate ?? ''}
-                      onChange={(e) => patch(r.studentId, { predicate: e.target.value as Predicate | '' })}
-                    >
-                      <option value="">{t('noPredicate')}</option>
-                      {PREDICATES.map((p) => (
-                        <option key={p} value={p}>
-                          {p}
-                        </option>
-                      ))}
-                    </SelectField>
-                  </TableCell>
-                  <TableCell>
-                    <Input
-                      disabled={!canWrite}
-                      aria-label={`${t('note')} ${r.name}`}
-                      maxLength={200}
-                      value={rows[r.studentId]?.note ?? ''}
-                      onChange={(e) => patch(r.studentId, { note: e.target.value })}
-                    />
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+        <>
+          <div className="hidden lg:block">
+            <Card className="overflow-hidden p-0">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>{t('student')}</TableHead>
+                    <TableHead className="w-44">{t('predicate')}</TableHead>
+                    <TableHead>{t('note')}</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {assessment.data.map((r) => {
+                    const readOnly = isReadOnlyRow(r);
+                    return (
+                      <TableRow key={r.studentId} className={readOnly ? 'bg-muted/40' : undefined}>
+                        <TableCell className="font-medium">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span>{r.name}</span>
+                            {readOnly && (
+                              <ToneBadge tone="slate" dot={false}>
+                                {t('graduatedBadge')}
+                              </ToneBadge>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <SelectField
+                            disabled={!canWrite || readOnly}
+                            aria-label={`${t('predicate')} ${r.name}`}
+                            value={rows[r.studentId]?.predicate ?? ''}
+                            onChange={(e) =>
+                              patch(r.studentId, { predicate: e.target.value as Predicate | '' })
+                            }
+                          >
+                            <option value="">{t('noPredicate')}</option>
+                            {PREDICATES.map((p) => (
+                              <option key={p} value={p}>
+                                {p}
+                              </option>
+                            ))}
+                          </SelectField>
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            disabled={!canWrite || readOnly}
+                            aria-label={`${t('note')} ${r.name}`}
+                            maxLength={200}
+                            value={rows[r.studentId]?.note ?? ''}
+                            onChange={(e) => patch(r.studentId, { note: e.target.value })}
+                          />
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
+            </Card>
+          </div>
+          <DataRows
+            cardsOnly
+            cardsBelow="lg"
+            rows={assessment.data}
+            rowKey={(r) => r.studentId}
+            actionsHeader=""
+            columns={[
+              {
+                key: 'name',
+                header: t('student'),
+                cell: (r) => (
+                  <div className="flex flex-wrap items-center gap-2 font-medium">
+                    <span className="break-words">{r.name}</span>
+                    {isReadOnlyRow(r) && (
+                      <ToneBadge tone="slate" dot={false}>
+                        {t('graduatedBadge')}
+                      </ToneBadge>
+                    )}
+                  </div>
+                ),
+              },
+              {
+                key: 'predicate',
+                header: t('predicate'),
+                cell: (r) => (
+                  <SelectField
+                    disabled={!canWrite || isReadOnlyRow(r)}
+                    aria-label={`${t('predicate')} ${r.name}`}
+                    value={rows[r.studentId]?.predicate ?? ''}
+                    onChange={(e) => patch(r.studentId, { predicate: e.target.value as Predicate | '' })}
+                  >
+                    <option value="">{t('noPredicate')}</option>
+                    {PREDICATES.map((p) => (
+                      <option key={p} value={p}>
+                        {p}
+                      </option>
+                    ))}
+                  </SelectField>
+                ),
+              },
+              {
+                key: 'note',
+                header: t('note'),
+                cell: (r) => (
+                  <Input
+                    disabled={!canWrite || isReadOnlyRow(r)}
+                    aria-label={`${t('note')} ${r.name}`}
+                    maxLength={200}
+                    value={rows[r.studentId]?.note ?? ''}
+                    onChange={(e) => patch(r.studentId, { note: e.target.value })}
+                  />
+                ),
+              },
+            ]}
+          />
+        </>
       )}
+      {hasReadOnly && <p className="text-muted-foreground text-xs">{t('graduatedHint')}</p>}
       {dirty && <p className="text-muted-foreground text-sm">{t('unsaved')}</p>}
     </div>
   );
