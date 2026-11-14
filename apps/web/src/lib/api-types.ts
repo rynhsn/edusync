@@ -20686,6 +20686,24 @@ export interface paths {
                                 /** @enum {string} */
                                 reportMode?: "descriptive";
                                 cocurricularNote?: string;
+                                cocurricular?: {
+                                    /** Format: uuid */
+                                    programId: string;
+                                    title: string;
+                                    /** @enum {string} */
+                                    form: "collaborative" | "g7kaih" | "other";
+                                    items: {
+                                        code: string;
+                                        label: string;
+                                        /** @description Kunci kerangka profil butir (mis. profil_lulusan_2025) */
+                                        framework: string;
+                                        level: {
+                                            code: string;
+                                            label: string;
+                                        } | null;
+                                        note?: string;
+                                    }[];
+                                }[];
                                 developmentNote?: string;
                             } | null;
                         };
@@ -38566,7 +38584,7 @@ export interface paths {
         };
         /**
          * Daftar rapor satu kelas
-         * @description Izin: `report_card:read`; modul `grades`. Siswa aktif dan lulusan kelas pada tahun ajaran kelas itu (urut nama) dengan status rapor, ada tidaknya catatan wali kelas, rata-rata nilai akhir mapel, dan kelengkapan nilai (`subjectsGraded` dari `subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). Rapor final memakai snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
+         * @description Izin: `report_card:read`; modul `grades`. Siswa aktif dan lulusan kelas pada tahun ajaran kelas itu (urut nama) dengan status rapor, ada tidaknya catatan wali kelas, rata-rata nilai akhir mapel, dan kelengkapan nilai (`subjectsGraded` dari `subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). `cocurricularMissing: true` (sparse, lencana info; tidak memengaruhi finalisasi) bila rapor masih draf, rombel ikut program kokurikuler aktif yang tampil di rapor, dan siswa belum punya penilaiannya. Rapor final memakai snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu 403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).
          */
         get: {
             parameters: {
@@ -38600,6 +38618,11 @@ export interface paths {
                             average: number | null;
                             subjectsGraded: number;
                             subjectsTotal: number;
+                            /**
+                             * @description Lencana info, hanya bila true: rombel ikut program kokurikuler aktif yang tampil di rapor tetapi murid ini belum punya penilaian pada semester itu. Tidak memengaruhi finalisasi
+                             * @enum {boolean}
+                             */
+                            cocurricularMissing?: true;
                         }[];
                     };
                 };
@@ -38807,7 +38830,7 @@ export interface paths {
         };
         /**
          * Dokumen rapor satu siswa
-         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
+         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
          */
         get: {
             parameters: {
@@ -38915,6 +38938,24 @@ export interface paths {
                             /** @enum {string} */
                             reportMode?: "descriptive";
                             cocurricularNote?: string;
+                            cocurricular?: {
+                                /** Format: uuid */
+                                programId: string;
+                                title: string;
+                                /** @enum {string} */
+                                form: "collaborative" | "g7kaih" | "other";
+                                items: {
+                                    code: string;
+                                    label: string;
+                                    /** @description Kunci kerangka profil butir (mis. profil_lulusan_2025) */
+                                    framework: string;
+                                    level: {
+                                        code: string;
+                                        label: string;
+                                    } | null;
+                                    note?: string;
+                                }[];
+                            }[];
                             developmentNote?: string;
                             /**
                              * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
@@ -69793,7 +69834,7 @@ export interface paths {
         };
         /**
          * Dokumen rapor final satu semester
-         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.
+         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `cocurricular`, `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.
          */
         get: {
             parameters: {
@@ -69900,6 +69941,24 @@ export interface paths {
                             /** @enum {string} */
                             reportMode?: "descriptive";
                             cocurricularNote?: string;
+                            cocurricular?: {
+                                /** Format: uuid */
+                                programId: string;
+                                title: string;
+                                /** @enum {string} */
+                                form: "collaborative" | "g7kaih" | "other";
+                                items: {
+                                    code: string;
+                                    label: string;
+                                    /** @description Kunci kerangka profil butir (mis. profil_lulusan_2025) */
+                                    framework: string;
+                                    level: {
+                                        code: string;
+                                        label: string;
+                                    } | null;
+                                    note?: string;
+                                }[];
+                            }[];
                             developmentNote?: string;
                             /**
                              * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1

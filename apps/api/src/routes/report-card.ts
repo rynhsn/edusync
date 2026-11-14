@@ -38,6 +38,7 @@ import {
 } from '../report-card-access-lib';
 import {
   buildDocument,
+  cocurricularMissing,
   completenessOf,
   countStaleNarratives,
   documentSummary,
@@ -275,8 +276,9 @@ export async function reportCardRoutes(instance: FastifyInstance) {
         description:
           'Izin: `report_card:read`; modul `grades`. Siswa aktif dan lulusan kelas pada tahun ajaran kelas itu (urut nama) dengan status rapor, ada tidaknya ' +
           'catatan wali kelas, rata-rata nilai akhir mapel, dan kelengkapan nilai (`subjectsGraded` dari ' +
-          '`subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). Rapor final memakai ' +
-          'snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu ' +
+          '`subjectsTotal`; mapel = yang punya penilaian di kelas itu pada semester itu). `cocurricularMissing: true` (sparse, ' +
+          'lencana info; tidak memengaruhi finalisasi) bila rapor masih draf, rombel ikut program kokurikuler aktif yang tampil ' +
+          'di rapor, dan siswa belum punya penilaiannya. Rapor final memakai snapshot. Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas itu (selain itu ' +
           '403). Semester/kelas harus milik sekolah ini dan satu tahun ajaran (400 `invalid_reference`).',
         headers: schoolHeader,
         querystring: listQuery,
@@ -291,6 +293,12 @@ export async function reportCardRoutes(instance: FastifyInstance) {
               average: z.number().nullable(),
               subjectsGraded: z.number().int(),
               subjectsTotal: z.number().int(),
+              cocurricularMissing: z
+                .literal(true)
+                .optional()
+                .describe(
+                  'Lencana info, hanya bila true: rombel ikut program kokurikuler aktif yang tampil di rapor tetapi murid ini belum punya penilaian pada semester itu. Tidak memengaruhi finalisasi',
+                ),
             }),
           ),
           400: errorSchema,
@@ -320,6 +328,12 @@ export async function reportCardRoutes(instance: FastifyInstance) {
               )
           : [];
         const extras = await loadReportExtras(tx, c);
+        const noCocurricular = await cocurricularMissing(
+          tx,
+          sem,
+          cls.id,
+          c.roster.map((s) => s.id),
+        );
         return c.roster.map((s) => {
           const row = rows.find((r) => r.studentId === s.id);
           const frozen = row?.status === 'final' && row.snapshot ? (row.snapshot as ReportDocumentV2) : null;
@@ -346,6 +360,9 @@ export async function reportCardRoutes(instance: FastifyInstance) {
             hasNote: Boolean(row?.homeroomNote),
             ...base,
             ...completeness,
+            ...(row?.status !== 'final' && noCocurricular.has(s.id)
+              ? { cocurricularMissing: true as const }
+              : {}),
           };
         });
       });
@@ -447,6 +464,8 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           'ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): ' +
           '`schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` ' +
           '(`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, ' +
+          '`cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya ' +
+          'penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), ' +
           '`developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila ' +
           'dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan ' +
           '`guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan ' +

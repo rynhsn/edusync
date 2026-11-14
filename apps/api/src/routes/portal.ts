@@ -1069,7 +1069,7 @@ export async function portalRoutes(instance: FastifyInstance, options: { env: En
           'Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 ' +
           '`not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul ' +
           '`grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, ' +
-          '`cocurricularNote`, `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN ' +
+          '`cocurricularNote`, `cocurricular`, `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN ' +
           'dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat ' +
           'tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.',
         headers: schoolHeader,

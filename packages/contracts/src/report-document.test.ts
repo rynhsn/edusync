@@ -164,3 +164,47 @@ describe('skema respons dan proyeksi portal (tahap 3.2)', () => {
     expect(projectDescriptiveForPortal(v1)).toBe(v1);
   });
 });
+
+describe('bagian cocurricular (tahap 4.4)', () => {
+  const cocurricular = [
+    {
+      programId: uuid('e'),
+      title: 'Gaya Hidup Berkelanjutan',
+      form: 'collaborative' as const,
+      items: [
+        {
+          code: 'kolaborasi',
+          label: 'Kolaborasi',
+          framework: 'profil_lulusan_2025',
+          level: { code: 'SB', label: 'Sangat Baik' },
+        },
+        {
+          code: 'mandiri',
+          label: 'Kemandirian',
+          framework: 'profil_lulusan_2025',
+          level: null,
+          note: 'Aktif.',
+        },
+      ],
+    },
+  ];
+
+  it('lolos skema v2, respons staf, dan portal tanpa perubahan; v1 membuangnya; menaikkan versi ke 2', () => {
+    const doc = { ...v1, cocurricular };
+    expect(reportDocumentV2Schema.parse(doc)).toEqual(doc);
+    expect(reportDocumentResponseSchema.parse(doc)).toEqual(doc);
+    expect(portalReportDocumentSchema.parse(doc)).toEqual(doc);
+    expect(reportDocumentSchema.parse(doc)).toEqual(v1);
+    expect(reportDocumentSchemaVersion(doc)).toBe(2);
+    expect(reportDocumentSchemaVersion({ ...v1, cocurricular: undefined })).toBe(1);
+  });
+
+  it('menolak bentuk rusak (bentuk program di luar daftar, id bukan uuid)', () => {
+    expect(() =>
+      reportDocumentV2Schema.parse({ ...v1, cocurricular: [{ ...cocurricular[0], form: 'lain' }] }),
+    ).toThrow();
+    expect(() =>
+      reportDocumentV2Schema.parse({ ...v1, cocurricular: [{ ...cocurricular[0], programId: 'x' }] }),
+    ).toThrow();
+  });
+});

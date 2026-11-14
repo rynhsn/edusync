@@ -85,11 +85,34 @@ export const reportSubjectV2Schema = reportSubjectSchema.extend({
   objectives: reportSubjectObjectivesSchema.optional(),
 });
 
+/**
+ * Penilaian kokurikuler terstruktur (tahap 4.4): per program, butir dengan tingkat rubrik dan/atau catatan. Label dan nama
+ * dibekukan saat dokumen disusun. Hanya ada bila murid punya minimal satu penilaian pada program yang tampil di rapor.
+ */
+export const reportCocurricularSchema = z.array(
+  z.object({
+    programId: z.uuid(),
+    title: z.string(),
+    form: z.enum(['collaborative', 'g7kaih', 'other']),
+    items: z.array(
+      z.object({
+        code: z.string(),
+        label: z.string(),
+        framework: z.string().describe('Kunci kerangka profil butir (mis. profil_lulusan_2025)'),
+        level: z.object({ code: z.string(), label: z.string() }).nullable(),
+        note: z.string().optional(),
+      }),
+    ),
+  }),
+);
+export type ReportCocurricular = z.infer<typeof reportCocurricularSchema>;
+
 /** Dokumen rapor bentuk v2: semua bagian tambahan opsional (ditulis hanya bila dipakai). */
 export const reportDocumentV2Schema = reportDocumentSchema.extend({
   /** Hanya bila tingkat kelas bermode deskriptif (Fase A). */
   reportMode: z.literal('descriptive').optional(),
   cocurricularNote: z.string().optional(),
+  cocurricular: reportCocurricularSchema.optional(),
   developmentNote: z.string().optional(),
   subjects: z.array(reportSubjectV2Schema),
 });
@@ -146,7 +169,12 @@ export const portalReportDocumentSchema = reportDocumentV2Schema.extend({
 export type PortalReportDocument = z.infer<typeof portalReportDocumentSchema>;
 
 /** Kunci bagian v2 tingkat dokumen dan tingkat mapel. Satu daftar supaya deteksi dan tes memakai sumber yang sama. */
-export const REPORT_V2_DOCUMENT_KEYS = ['reportMode', 'cocurricularNote', 'developmentNote'] as const;
+export const REPORT_V2_DOCUMENT_KEYS = [
+  'reportMode',
+  'cocurricularNote',
+  'cocurricular',
+  'developmentNote',
+] as const;
 export const REPORT_V2_SUBJECT_KEYS = ['descriptionSource', 'objectives'] as const;
 
 /**

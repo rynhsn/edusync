@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  cocurricularDraft,
   completeCount,
   completenessPercent,
   dropSaved,
@@ -210,5 +211,51 @@ describe('localDateOf', () => {
   it('memakai tanggal lokal dari waktu ISO', () => {
     expect(localDateOf(new Date(2026, 10, 13, 12, 0, 0).toISOString())).toBe('2026-11-13');
     expect(localDateOf(new Date(2026, 0, 5, 0, 30, 0).toISOString())).toBe('2026-01-05');
+  });
+});
+
+describe('kokurikuler terstruktur (tahap 4.4)', () => {
+  const v1 = { subjects: [] };
+  const programs = [
+    {
+      programId: 'p1',
+      title: 'Gaya Hidup Berkelanjutan',
+      items: [
+        { code: 'a', label: 'Kolaborasi', level: { code: 'SB', label: 'Sangat Baik' } },
+        { code: 'b', label: 'Kemandirian', level: { code: 'B', label: 'Baik' }, note: 'Aktif' },
+        { code: 'c', label: 'Penalaran', level: null, note: 'Perlu latihan' },
+      ],
+    },
+  ];
+  const say = (key: string, v: Record<string, string>) =>
+    ({
+      program: `${v.title}: ${v.items}.`,
+      item: `${v.label} (${v.level})`,
+      itemNote: `${v.label} (${v.level}): ${v.note}`,
+      noteOnly: `${v.label}: ${v.note}`,
+    })[key] as string;
+
+  it('tampil hanya bila dokumen memuat penilaian; dokumen v1 tidak berubah', () => {
+    expect(reportView({ ...v1 }).cocurricularPrograms).toBeNull();
+    expect(reportView({ ...v1, cocurricular: [] }).cocurricularPrograms).toBeNull();
+    expect(reportView({ ...v1, cocurricular: programs }).cocurricularPrograms).toBe(programs);
+    // Tidak bergantung pada bendera teks kokurikuler.
+    expect(
+      reportView({ ...v1, cocurricular: programs }, { showCocurricular: false }).cocurricularPrograms,
+    ).toBe(programs);
+    expect(reportView({ ...v1, cocurricular: programs }).cocurricular.show).toBe(false);
+  });
+
+  it('draf disusun dari penilaian dan dipotong ke batas catatan', () => {
+    expect(cocurricularDraft(programs, say)).toBe(
+      'Gaya Hidup Berkelanjutan: Kolaborasi (Sangat Baik); Kemandirian (Baik): Aktif; Penalaran: Perlu latihan.',
+    );
+    expect(cocurricularDraft(undefined, say)).toBe('');
+    const long = [
+      { ...programs[0]!, items: [{ code: 'x', label: 'x'.repeat(1200), level: null, note: 'n' }] },
+    ];
+    const draft = cocurricularDraft(long, say);
+    expect(draft.length).toBeLessThanOrEqual(1000);
+    expect(draft.endsWith('…')).toBe(true);
   });
 });

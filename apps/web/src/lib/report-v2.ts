@@ -204,9 +204,22 @@ export interface ReportDisplayOptions {
   showGuardianResponse?: boolean;
 }
 
+/** Penilaian kokurikuler terstruktur pada dokumen (tahap 4.4); label sudah dibekukan oleh server. */
+export interface CocurricularProgramLike {
+  programId: string;
+  title: string;
+  items: {
+    code: string;
+    label: string;
+    level: { code: string; label: string } | null;
+    note?: string | undefined;
+  }[];
+}
+
 export interface ReportV2Source {
   reportMode?: 'descriptive';
   cocurricularNote?: string | null;
+  cocurricular?: readonly CocurricularProgramLike[] | undefined;
   developmentNote?: string | null;
   rank?: unknown;
   guardianResponses?: readonly { guardianName: string; text: string; outdated: boolean }[];
@@ -214,6 +227,32 @@ export interface ReportV2Source {
 }
 
 const clean = (v: string | null | undefined) => (v?.trim() ? v.trim() : null);
+
+export type CocurricularDraftKey = 'program' | 'item' | 'itemNote' | 'noteOnly';
+
+/**
+ * Draf deskripsi kokurikuler dari penilaian terstruktur, disusun DI KLIEN (templat i18n lewat `say`) lalu dimasukkan ke editor
+ * `cocurricularNote`; guru menyunting dan menyimpannya. Server tidak pernah mengisi catatan itu. Dipotong ke batas panjang catatan.
+ */
+export function cocurricularDraft(
+  programs: readonly CocurricularProgramLike[] | undefined,
+  say: (key: CocurricularDraftKey, values: Record<string, string>) => string,
+): string {
+  const text = (programs ?? [])
+    .map((p) => {
+      const items = p.items
+        .map((i) => {
+          if (i.level && i.note)
+            return say('itemNote', { label: i.label, level: i.level.label, note: i.note });
+          if (i.level) return say('item', { label: i.label, level: i.level.label });
+          return say('noteOnly', { label: i.label, note: i.note ?? '' });
+        })
+        .join('; ');
+      return say('program', { title: p.title, items: items.replace(/[.\s]+$/, '') });
+    })
+    .join('\n');
+  return text.length > SECTION_NOTE_MAX ? `${text.slice(0, SECTION_NOTE_MAX - 1).trimEnd()}…` : text;
+}
 
 /**
  * Apa yang digambar untuk sebuah dokumen. Dokumen v1 (tanpa bagian v2, tanpa bendera) menghasilkan tata letak v1
@@ -233,6 +272,8 @@ export function reportView(doc: ReportV2Source, options: ReportDisplayOptions = 
     showRank: !descriptive && !!doc.rank,
     showBelowKkmNote: !descriptive && doc.subjects.some((s) => s.belowKkm),
     cocurricular: { show: options.showCocurricular === true || cocurricular !== null, text: cocurricular },
+    // Bagian terstruktur mengikuti pengaturan per program (`showInReport`, sudah disaring server), bukan bendera teks di atas.
+    cocurricularPrograms: doc.cocurricular?.length ? doc.cocurricular : null,
     development: { show: descriptive || development !== null, text: development },
     responseBox: { show: showResponseBox, items: responses },
   };

@@ -1,4 +1,5 @@
 import { ApiError } from './api';
+import type { CocurricularProgramLike } from './report-v2';
 
 /**
  * Kontrak portal wali/siswa (M11), disalin dari skema Zod di apps/api/src/routes/portal.ts dan portal-public.ts.
@@ -303,6 +304,7 @@ export interface PortalReportDocument {
   schemaVersion?: 2;
   reportMode?: 'descriptive';
   cocurricularNote?: string | null;
+  cocurricular?: CocurricularProgramLike[];
   developmentNote?: string | null;
   guardianResponses?: PortalGuardianResponse[];
 }

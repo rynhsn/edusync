@@ -4,6 +4,7 @@ import {
   DEFAULT_PREDICATE_DESCRIPTIONS,
   descriptionOf,
   type ObjectiveNarrative,
+  type ReportCocurricular,
   type ReportDocument,
   type ReportDocumentV2,
   rankPositions,
@@ -13,18 +14,26 @@ import {
   and,
   asc,
   classRoom,
+  cocurricularAssessment,
+  cocurricularProgram,
+  cocurricularProgramClass,
+  cocurricularRubricLevel,
   count,
   dailyAttendance,
   eq,
   extracurricular,
   extracurricularAssessment,
   gte,
+  inArray,
+  isNull,
   lte,
+  or,
   reportCardSection,
   reportSetting,
   reportSubjectNarrative,
   school,
   schoolLevel,
+  schoolProfileItem,
   semester,
   type Tx,
   teacher,
@@ -390,18 +399,122 @@ export function completenessOf(c: ClassContext, extras: ReportExtras, studentId:
   };
 }
 
-/** Deskripsi kokurikuler dan catatan perkembangan per siswa pada semester itu (satu kueri; `studentIds` kosong = semua). */
-export async function loadSectionNotes(tx: Tx, semesterId: string) {
+/**
+ * Penilaian kokurikuler terstruktur per murid pada semester itu (tahap 4.4; satu kueri, tanpa N+1). Hanya program
+ * `show_in_report`; murid tanpa penilaian tidak ada di peta (dokumennya persis seperti sebelumnya). Label dibaca saat ini
+ * lalu dibekukan di snapshot.
+ */
+export async function loadCocurricular(tx: Tx, semesterId: string) {
   const rows = await tx
     .select({
-      studentId: reportCardSection.studentId,
-      cocurricularNote: reportCardSection.cocurricularNote,
-      developmentNote: reportCardSection.developmentNote,
+      studentId: cocurricularAssessment.studentId,
+      programId: cocurricularProgram.id,
+      title: cocurricularProgram.title,
+      form: cocurricularProgram.form,
+      framework: schoolProfileItem.frameworkKey,
+      itemSort: schoolProfileItem.sort,
+      code: schoolProfileItem.code,
+      label: schoolProfileItem.label,
+      levelCode: cocurricularRubricLevel.code,
+      levelLabel: cocurricularRubricLevel.label,
+      note: cocurricularAssessment.note,
     })
-    .from(reportCardSection)
-    .where(eq(reportCardSection.semesterId, semesterId));
-  return new Map(rows.map((r) => [r.studentId, r]));
+    .from(cocurricularAssessment)
+    .innerJoin(cocurricularProgram, eq(cocurricularProgram.id, cocurricularAssessment.programId))
+    .innerJoin(schoolProfileItem, eq(schoolProfileItem.id, cocurricularAssessment.profileItemId))
+    .leftJoin(cocurricularRubricLevel, eq(cocurricularRubricLevel.id, cocurricularAssessment.rubricLevelId))
+    .where(and(eq(cocurricularAssessment.semesterId, semesterId), eq(cocurricularProgram.showInReport, true)))
+    .orderBy(
+      asc(cocurricularProgram.title),
+      asc(cocurricularProgram.id),
+      asc(schoolProfileItem.frameworkKey),
+      asc(schoolProfileItem.sort),
+      asc(schoolProfileItem.code),
+    );
+  const byStudent = new Map<string, ReportCocurricular>();
+  for (const r of rows) {
+    const programs = byStudent.get(r.studentId) ?? [];
+    byStudent.set(r.studentId, programs);
+    let program = programs.find((p) => p.programId === r.programId);
+    if (!program) {
+      program = { programId: r.programId, title: r.title, form: r.form, items: [] };
+      programs.push(program);
+    }
+    program.items.push({
+      code: r.code,
+      label: r.label,
+      framework: r.framework,
+      level:
+        r.levelCode !== null && r.levelLabel !== null ? { code: r.levelCode, label: r.levelLabel } : null,
+      ...(r.note ? { note: r.note } : {}),
+    });
+  }
+  return byStudent;
 }
+
+/**
+ * Murid kelas ini yang belum punya penilaian kokurikuler padahal rombelnya ikut program aktif yang tampil di rapor pada semester
+ * itu. Hanya lencana info di daftar rapor: TIDAK memengaruhi kelengkapan atau finalisasi. Tanpa program berlaku, selalu kosong.
+ */
+export async function cocurricularMissing(
+  tx: Tx,
+  sem: { id: string; academicYearId: string },
+  classId: string,
+  studentIds: string[],
+): Promise<Set<string>> {
+  if (studentIds.length === 0) return new Set();
+  const [program] = await tx
+    .select({ id: cocurricularProgram.id })
+    .from(cocurricularProgram)
+    .innerJoin(cocurricularProgramClass, eq(cocurricularProgramClass.programId, cocurricularProgram.id))
+    .where(
+      and(
+        eq(cocurricularProgramClass.classId, classId),
+        eq(cocurricularProgram.academicYearId, sem.academicYearId),
+        eq(cocurricularProgram.status, 'active'),
+        eq(cocurricularProgram.showInReport, true),
+        or(isNull(cocurricularProgram.semesterId), eq(cocurricularProgram.semesterId, sem.id)),
+      ),
+    )
+    .limit(1);
+  if (!program) return new Set();
+  const assessed = await tx
+    .selectDistinct({ studentId: cocurricularAssessment.studentId })
+    .from(cocurricularAssessment)
+    .where(
+      and(
+        eq(cocurricularAssessment.semesterId, sem.id),
+        inArray(cocurricularAssessment.studentId, studentIds),
+      ),
+    );
+  const done = new Set(assessed.map((r) => r.studentId));
+  return new Set(studentIds.filter((id) => !done.has(id)));
+}
+
+/**
+ * Deskripsi kokurikuler, catatan perkembangan, dan penilaian kokurikuler terstruktur per siswa pada semester itu. Hasilnya
+ * disebar ke `StudentV2Input`: `cocurricular` hanya ada bagi murid yang punya penilaian.
+ */
+export async function loadSectionNotes(tx: Tx, semesterId: string) {
+  const [rows, structured] = await Promise.all([
+    tx
+      .select({
+        studentId: reportCardSection.studentId,
+        cocurricularNote: reportCardSection.cocurricularNote,
+        developmentNote: reportCardSection.developmentNote,
+      })
+      .from(reportCardSection)
+      .where(eq(reportCardSection.semesterId, semesterId)),
+    loadCocurricular(tx, semesterId),
+  ]);
+  const out = new Map<string, StudentV2Sections>(rows.map((r) => [r.studentId, r]));
+  for (const [studentId, cocurricular] of structured) {
+    out.set(studentId, { ...out.get(studentId), cocurricular });
+  }
+  return out;
+}
+
+type StudentV2Sections = Pick<StudentV2Input, 'cocurricularNote' | 'developmentNote' | 'cocurricular'>;
 
 /** Isian bagian v2 satu siswa. Semua opsional: tanpa isian, dokumen persis v1. */
 export interface StudentV2Input {
@@ -411,6 +524,8 @@ export interface StudentV2Input {
   /** mapel -> narasi otomatis dari TP siswa ini (hanya mapel yang punya TP berstatus). */
   objectives?: Map<string, ObjectiveNarrative> | undefined;
   cocurricularNote?: string | null;
+  /** Penilaian kokurikuler terstruktur (4.4); absen/kosong = kunci tidak ditulis. */
+  cocurricular?: ReportCocurricular | undefined;
   developmentNote?: string | null;
 }
 
@@ -494,6 +609,7 @@ export async function buildDocument(
     rank: d.showRank ? (c.ranks.get(stu.id) ?? null) : null,
     ...(descriptive ? { reportMode: 'descriptive' as const } : {}),
     ...(v2.cocurricularNote ? { cocurricularNote: v2.cocurricularNote } : {}),
+    ...(v2.cocurricular?.length ? { cocurricular: v2.cocurricular } : {}),
     ...(descriptive && v2.developmentNote ? { developmentNote: v2.developmentNote } : {}),
     generatedAt: new Date().toISOString(),
   };

@@ -125,6 +125,32 @@ export function ReportCardPreview({ doc, display }: { doc: ReportCardDoc; displa
         )}
       </section>
 
+      {view.cocurricularPrograms && (
+        <section className="grid content-start gap-2">
+          <h3 className="font-medium">{t('cocurricularPrograms')}</h3>
+          <ul className="grid gap-2">
+            {view.cocurricularPrograms.map((p) => (
+              <li key={p.programId} className="grid gap-1.5 rounded-lg border p-3">
+                <p className="font-medium break-words">{p.title}</p>
+                <ul className="grid gap-1.5">
+                  {p.items.map((i) => (
+                    <li key={i.code} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
+                      <span className="min-w-0 break-words">{i.label}</span>
+                      {i.level && (
+                        <ToneBadge tone="sky" dot={false}>
+                          {i.level.label}
+                        </ToneBadge>
+                      )}
+                      {i.note && <p className="text-muted-foreground w-full text-xs break-words">{i.note}</p>}
+                    </li>
+                  ))}
+                </ul>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {view.cocurricular.show && (
         <section className="grid content-start gap-2">
           <h3 className="font-medium">{t('cocurricular')}</h3>

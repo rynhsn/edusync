@@ -247,6 +247,16 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   tidak bisa dihapus (409 `item_in_use`; nonaktifkan). Migrasi 0108 (dua tabel tenant baru ber-RLS dengan FK komposit; tanpa kolom baru
   pada tabel lama, tanpa baris otomatis). Kokurikuler tetap bukan mapel dan tidak memengaruhi nilai, peringkat, kenaikan, atau
   kelulusan; bagian rapor kokurikuler menyusul di tahap 4.4.
+- **Rapor kokurikuler** (fase 4, tahap 4.4): dokumen rapor memuat bagian terstruktur `cocurricular` (per program: butir, tingkat rubrik,
+  catatan) HANYA bila murid punya penilaian pada program yang diatur tampil di rapor. Murid tanpa penilaian: dokumen dan snapshot
+  persis seperti sebelumnya (kunci tidak ada, bentuk data versi 1). Bagian ini ikut dibekukan di snapshot beserta nama butir dan
+  tingkatnya (mengganti label sesudah final tidak mengubah rapor; buka kembali untuk memperbarui), terbaca di respons staf dan portal
+  orang tua, serta digambar di pratinjau dan PDF. Di Catatan rapor ada tombol "Susun dari penilaian kokurikuler" yang menyusun draf
+  deskripsi di layar ke kolom Catatan kokurikuler; guru menyunting dan menyimpannya lewat `PUT /v1/report-cards/sections`, server
+  tidak pernah mengisi catatan itu otomatis. Kokurikuler yang belum dinilai TIDAK menghalangi finalisasi: daftar rapor
+  (`GET /v1/report-cards`) hanya menambah lencana info sparse `cocurricularMissing: true` bagi murid berstatus draf yang rombelnya ikut
+  program kokurikuler aktif yang tampil di rapor tetapi belum dinilai pada semester itu. Tanpa migrasi dan tanpa kolom baru. Bantuan
+  baru "Kokurikuler di rapor" (id/en/su).
 
 ### Diubah
 
@@ -310,6 +320,9 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   yang membacanya). Penjagaan 409 saat menghapus program, melepas rombel/butir, atau menghapus tingkat rubrik yang sudah dinilai tidak
   berlaku di versi lama; FK database (NO ACTION) tetap menolak penghapusan itu (galat umum, bukan 409), jadi data penilaian tidak
   hilang. Sekolah yang belum menilai tidak terpengaruh.
+- Rapor kokurikuler (tahap 4.4): tanpa migrasi. Snapshot rapor final yang sudah memuat `cocurricular` tetap utuh di database; versi lama tidak
+  membacanya (kunci itu diabaikan saat respons dibentuk), sehingga rapor final tetap terbaca seperti rapor tanpa bagian kokurikuler
+  terstruktur. Tidak ada efek pada nilai, kenaikan, atau kelulusan.
 - Kelulusan (tahap 3C.4): tabel `graduation_policy`, `school_exam`, `school_exam_score`, dan `graduation_decision` serta izin
   `graduation:read` dan `graduation:manage` dibiarkan di database dan tampil lagi setelah maju. Setelah kembali ke versi
   sebelumnya, halaman dan endpoint kelulusan tidak ada dan keputusan `graduate` di wizard kenaikan kembali bebas dipilih (penjaga

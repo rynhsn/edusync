@@ -4276,4 +4276,134 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'cocurricular-report',
+    icon: 'layers',
+    tone: 'violet',
+    group: 'academic',
+    module: 'grades',
+    text: {
+      id: {
+        title: 'Kokurikuler di rapor: bagian terstruktur dan deskripsi',
+        summary:
+          'Bagaimana penilaian kokurikuler muncul di rapor (pratinjau, PDF, portal orang tua), cara menyusun draf deskripsi dari penilaian, dan mengapa kokurikuler kosong tidak menghalangi finalisasi.',
+        forWho: 'Wali kelas dan pengelola rapor yang menyiapkan rapor; orang tua melihat hasilnya di portal.',
+        sections: [
+          {
+            heading: 'Bagian kokurikuler pada rapor',
+            body: 'Bila seorang murid punya penilaian pada program kokurikuler yang diatur tampil di rapor, rapornya memuat bagian Penilaian kokurikuler: per program, daftar butir (misalnya dimensi profil lulusan), tingkat capaian, dan catatan. Murid tanpa penilaian tidak mendapat bagian ini dan rapornya sama seperti sebelumnya. Bagian ini muncul di pratinjau, PDF, dan portal orang tua. Pengaturan Tampilkan bagian kokurikuler di PDF hanya mengatur kotak deskripsi teks; bagian terstruktur ditentukan oleh pengaturan Tampil di rapor pada program.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Menyusun draf deskripsi dari penilaian',
+            body: 'Di Catatan rapor murid, tombol Susun dari penilaian kokurikuler menyusun draf kalimat dari penilaian murid dan memasukkannya ke kolom Catatan kokurikuler. Draf menggantikan isi kolom itu di layar saja. Sunting sesuai kebutuhan lalu klik Simpan; server tidak pernah mengisi catatan ini otomatis, jadi tidak ada perubahan rapor tanpa sepengetahuan guru.',
+            steps: [
+              'Buka menu Rapor, pilih kelas, lalu pilih Catatan rapor pada murid.',
+              'Klik Susun dari penilaian kokurikuler.',
+              'Periksa dan sunting teksnya (maksimal 1.000 karakter).',
+              'Klik Simpan.',
+            ],
+            href: '/report-cards',
+            tip: 'Tombol hanya muncul bila murid punya penilaian kokurikuler.',
+          },
+          {
+            heading: 'Finalisasi dan lencana info',
+            body: 'Kokurikuler yang belum dinilai tidak menghalangi finalisasi rapor. Pada daftar rapor, murid yang rombelnya ikut program kokurikuler aktif tetapi belum dinilai diberi lencana Kokurikuler belum dinilai sebagai pengingat. Saat rapor difinalkan, bagian kokurikuler dibekukan bersama nama butir dan tingkatnya, sehingga perubahan label sesudahnya tidak mengubah rapor final. Buka kembali rapor untuk memperbarui.',
+            href: '/report-cards',
+          },
+        ],
+        faq: [
+          {
+            q: 'Mengapa bagian kokurikuler tidak muncul di rapor murid?',
+            a: 'Murid itu belum punya penilaian kokurikuler pada semester tersebut, atau programnya diatur tidak tampil di rapor.',
+          },
+          {
+            q: 'Apakah rapor final berubah bila saya mengganti label butir?',
+            a: 'Tidak. Rapor final memakai label saat difinalkan. Buka kembali rapornya lalu finalkan ulang untuk memakai label baru.',
+          },
+        ],
+      },
+      en: {
+        title: 'Cocurricular on the report card: structured section and description',
+        summary:
+          'How cocurricular assessment appears on the report card (preview, PDF, parent portal), how to compose a description draft from it, and why an empty cocurricular does not block finalization.',
+        forWho:
+          'Homeroom teachers and report managers preparing report cards; parents see the result in the portal.',
+        sections: [
+          {
+            heading: 'The cocurricular section on the report card',
+            body: 'When a student has assessments on a cocurricular program set to appear on report cards, the report includes a Cocurricular assessment section: per program, the items (for example graduate profile dimensions), the achievement level, and notes. A student without assessments gets no such section and the report stays as before. It shows in the preview, the PDF, and the parent portal. The Show the cocurricular section in the PDF setting only controls the text description box; the structured section follows the program Show in report setting.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Composing a description draft from the assessment',
+            body: 'In a student Report notes, the Compose from cocurricular assessment button builds a draft sentence from the assessment and places it in the Cocurricular note field. The draft replaces that field on screen only. Edit it as needed and click Save; the server never fills this note automatically, so the report never changes without the teacher knowing.',
+            steps: [
+              'Open Report cards, choose a class, then choose Report notes on a student.',
+              'Click Compose from cocurricular assessment.',
+              'Review and edit the text (up to 1,000 characters).',
+              'Click Save.',
+            ],
+            href: '/report-cards',
+            tip: 'The button appears only when the student has cocurricular assessments.',
+          },
+          {
+            heading: 'Finalization and the info badge',
+            body: 'An unassessed cocurricular does not block report finalization. In the report list, a student whose class takes part in an active cocurricular program but has no assessment gets a Cocurricular not assessed badge as a reminder. When a report is finalized, the cocurricular section is frozen together with the item and level names, so later label changes do not alter the final report. Reopen the report to refresh it.',
+            href: '/report-cards',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why does the cocurricular section not appear on a student report?',
+            a: 'The student has no cocurricular assessment for that semester, or the program is set not to appear on report cards.',
+          },
+          {
+            q: 'Does a final report change if I rename an item label?',
+            a: 'No. A final report uses the labels from when it was finalized. Reopen it and finalize again to use the new labels.',
+          },
+        ],
+      },
+      su: {
+        title: 'Kokurikuler dina rapor: bagian terstruktur jeung déskripsi',
+        summary:
+          'Kumaha pangajén kokurikuler muncul dina rapor (pramuninggal, PDF, portal kolot), cara nyusun dramana déskripsi tina pangajén, sarta naha kokurikuler kosong teu ngahalangan finalisasi.',
+        forWho: 'Wali kelas jeung pangurus rapor nu nyiapkeun rapor; kolot ningali hasilna dina portal.',
+        sections: [
+          {
+            heading: 'Bagian kokurikuler dina rapor',
+            body: 'Lamun murid boga pangajén dina program kokurikuler nu diatur muncul dina rapor, raporna ngandung bagian Penilaian kokurikuler: per program, daptar butir (upamana dimensi profil lulusan), tingkat capaian, jeung catetan. Murid tanpa pangajén teu meunang bagian ieu jeung raporna sarua jiga samemehna. Bagian ieu muncul dina pramuninggal, PDF, jeung portal kolot. Pangaturan Témbongkeun bagian kokurikuler dina PDF ngan ngatur kotak déskripsi téks; bagian terstruktur ditangtukeun ku pangaturan Muncul dina rapor dina program.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Nyusun dramana déskripsi tina pangajén',
+            body: 'Dina Catetan rapor murid, tombol Susun tina penilaian kokurikuler nyusun dramana kalimah tina pangajén murid tuluy nempatkeunana dina kolom Catetan kokurikuler. Dramana ngagantikeun eusi kolom éta dina layar wungkul. Édit saperlu tuluy klik Simpen; server henteu kungsi ngeusian catetan ieu sacara otomatis, jadi rapor teu robah tanpa sepengetahuan guru.',
+            steps: [
+              'Buka ménu Rapor, pilih kelas, tuluy pilih Catetan rapor dina murid.',
+              'Klik Susun tina penilaian kokurikuler.',
+              'Pariksa jeung édit téksna (pangpangna 1.000 karakter).',
+              'Klik Simpen.',
+            ],
+            href: '/report-cards',
+            tip: 'Tombolna ngan muncul lamun murid boga pangajén kokurikuler.',
+          },
+          {
+            heading: 'Finalisasi jeung lencana info',
+            body: 'Kokurikuler nu can dipariksa teu ngahalangan finalisasi rapor. Dina daptar rapor, murid nu rombelna milu program kokurikuler aktip tapi can dipariksa dibéré lencana Kokurikuler can dinilai minangka pangéling-ngéling. Waktu rapor difinalkeun, bagian kokurikuler dibekukeun jeung ngaran butir jeung tingkatna, jadi parobahan labél satuluyna teu ngarobah rapor final. Buka deui rapor pikeun nganyarian.',
+            href: '/report-cards',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha bagian kokurikuler teu muncul dina rapor murid?',
+            a: 'Murid éta can boga pangajén kokurikuler dina semester éta, atawa programna diatur teu muncul dina rapor.',
+          },
+          {
+            q: 'Naha rapor final robah lamun kuring ngarobah labél butir?',
+            a: 'Henteu. Rapor final maké labél waktu difinalkeun. Buka deui tuluy finalkeun deui pikeun maké labél anyar.',
+          },
+        ],
+      },
+    },
+  },
 ];

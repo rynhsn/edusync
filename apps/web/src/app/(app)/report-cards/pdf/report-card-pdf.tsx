@@ -215,6 +215,29 @@ export function ReportCardPage({
         )}
       </View>
 
+      {view.cocurricularPrograms ? (
+        <View>
+          <Text style={styles.section}>Penilaian Kokurikuler</Text>
+          {view.cocurricularPrograms.map((p) => (
+            <View key={p.programId} wrap={false} style={{ marginBottom: 4 }}>
+              <Text style={styles.bold}>{p.title}</Text>
+              <View style={styles.head}>
+                <Text style={[styles.cell, styles.bold, { flex: 3 }]}>Dimensi / Topik</Text>
+                <Text style={[styles.cell, styles.bold, { flex: 2 }]}>Capaian</Text>
+                <Text style={[styles.cell, styles.bold, { flex: 3 }]}>Keterangan</Text>
+              </View>
+              {p.items.map((i) => (
+                <View key={i.code} style={styles.row}>
+                  <Text style={[styles.cell, { flex: 3 }]}>{i.label}</Text>
+                  <Text style={[styles.cell, { flex: 2 }]}>{i.level?.label ?? '-'}</Text>
+                  <Text style={[styles.cell, { flex: 3 }]}>{i.note || '-'}</Text>
+                </View>
+              ))}
+            </View>
+          ))}
+        </View>
+      ) : null}
+
       {view.cocurricular.show ? (
         <View wrap={false}>
           <Text style={styles.section}>Kokurikuler</Text>

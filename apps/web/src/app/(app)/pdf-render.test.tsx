@@ -353,6 +353,26 @@ describe('PDF rapor', () => {
     expect(buf.length).toBeGreaterThan(v1.length);
   });
 
+  it('merender bagian kokurikuler terstruktur; murid tanpa penilaian dirender seperti v1', async () => {
+    const doc: ReportCardDoc = {
+      ...base,
+      schemaVersion: 2,
+      cocurricular: [
+        {
+          programId: 'p1',
+          title: 'Gaya Hidup Berkelanjutan',
+          items: [
+            { code: 'a', label: 'Kolaborasi', level: { code: 'SB', label: 'Sangat Baik' } },
+            { code: 'b', label: 'Kemandirian', level: null, note: 'Aktif dalam kerja bakti.' },
+          ],
+        },
+      ],
+    };
+    const withIt = await render('rapor-kokurikuler-terstruktur', <ReportCardDocument docs={[doc]} />);
+    const plain = await render('rapor-v1-banding3', <ReportCardDocument docs={[base]} />);
+    expect(withIt.length).toBeGreaterThan(plain.length);
+  });
+
   it('merender kotak tanggapan kosong untuk tulisan tangan dan kokurikuler kosong bila bendera menyala', async () => {
     const buf = await render(
       'rapor-v2-kosong',

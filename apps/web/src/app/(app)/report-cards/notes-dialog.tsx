@@ -2,15 +2,16 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { useTranslations } from 'next-intl';
-import { useEffect, useState } from 'react';
+import { type ReactNode, useEffect, useState } from 'react';
 import { toast } from 'sonner';
 import { useSchool } from '@/components/app-shell';
 import { FormDialog } from '@/components/form-dialog';
 import { FieldError, useFormValidation } from '@/components/form-field-error';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { api, schoolHeader, unwrap } from '@/lib/api';
 import { errorKey } from '@/lib/errors';
-import { SECTION_NOTE_MAX } from '@/lib/report-v2';
+import { cocurricularDraft, SECTION_NOTE_MAX } from '@/lib/report-v2';
 import { validateHomeroomNote, validateSections } from './report-card-validation';
 import { useReportCard } from './report-data';
 import { Textarea } from './textarea';
@@ -104,6 +105,11 @@ export function NotesDialog({
     onError: (e) => setError(te(errorKey(e))),
   });
 
+  const programs = loaded?.cocurricular;
+  // Draf hanya disusun di layar dan dimasukkan ke editor; baru tersimpan bila guru menekan Simpan.
+  const composeDraft = () =>
+    setCocurricular(cocurricularDraft(programs, (key, values) => t(`draft_${key}`, values)));
+
   const field = (
     name: Field,
     label: string,
@@ -111,6 +117,7 @@ export function NotesDialog({
     set: (v: string) => void,
     max: number,
     hint?: string,
+    action?: ReactNode,
   ) => (
     <div className="grid content-start gap-2">
       <Label htmlFor={validation.idOf(name)}>{label}</Label>
@@ -124,6 +131,7 @@ export function NotesDialog({
       />
       <FieldError id={validation.idOf(name)} issue={validation.issue(name)} />
       {hint && <p className="text-muted-foreground text-xs">{hint}</p>}
+      {action}
       <p className="text-muted-foreground text-right text-xs tabular-nums">
         {value.length}/{max}
       </p>
@@ -153,6 +161,19 @@ export function NotesDialog({
           setCocurricular,
           SECTION_NOTE_MAX,
           t('cocurricularHint'),
+          programs?.length ? (
+            <div className="grid gap-1">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 w-full justify-center md:h-8 md:w-fit"
+                onClick={composeDraft}
+              >
+                {t('cocurricularDraftButton')}
+              </Button>
+              <p className="text-muted-foreground text-xs">{t('cocurricularDraftHint')}</p>
+            </div>
+          ) : undefined,
         )}
         {descriptive &&
           field(

@@ -581,10 +581,17 @@ export function ReportCardsView() {
                   </div>
 
                   <div className="flex flex-wrap items-center justify-between gap-2 border-t pt-3">
-                    <ToneBadge tone={r.hasNote ? 'sky' : 'slate'} dot={false}>
-                      <MessageSquare aria-hidden className="size-3" />
-                      {t('note')}: {t(r.hasNote ? 'noteYes' : 'noteNo')}
-                    </ToneBadge>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      <ToneBadge tone={r.hasNote ? 'sky' : 'slate'} dot={false}>
+                        <MessageSquare aria-hidden className="size-3" />
+                        {t('note')}: {t(r.hasNote ? 'noteYes' : 'noteNo')}
+                      </ToneBadge>
+                      {r.cocurricularMissing && (
+                        <ToneBadge tone="slate" dot={false}>
+                          {t('cocurricularMissing')}
+                        </ToneBadge>
+                      )}
+                    </div>
                     <div className="flex items-center gap-1">
                       <Button size="sm" variant="outline" onClick={() => setPreview(target)}>
                         <Eye className="size-3.5" /> {t('preview')}

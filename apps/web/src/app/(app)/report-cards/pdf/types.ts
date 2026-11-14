@@ -3,6 +3,8 @@
  * GET /v1/grading/recap/class. Ganti dengan tipe turunan api-types begitu endpoint rapor tersedia di sana.
  */
 
+import type { CocurricularProgramLike } from '../../../../lib/report-v2';
+
 export type Predicate = 'A' | 'B' | 'C' | 'D';
 
 export interface ReportCardDoc {
@@ -44,6 +46,8 @@ export interface ReportCardDoc {
   schemaVersion?: 2;
   reportMode?: 'descriptive';
   cocurricularNote?: string | null;
+  /** Penilaian kokurikuler terstruktur (4.4); hanya bila murid punya penilaian. */
+  cocurricular?: CocurricularProgramLike[];
   developmentNote?: string | null;
   guardianResponses?: ReportCardResponse[];
 }
