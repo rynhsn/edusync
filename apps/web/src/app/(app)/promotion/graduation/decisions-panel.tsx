@@ -28,7 +28,6 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SelectField } from '@/components/ui/select-field';
-import { Skeleton } from '@/components/ui/skeleton';
 import { Textarea } from '@/components/ui/textarea';
 import { EmptyPanel, MODULE_TONE, StatCard, StatGrid, type Tone, ToneBadge } from '@/components/ui-kit';
 import type { Locale } from '@/i18n/config';
