@@ -31,6 +31,7 @@ import { assertComponentInSemester, effectiveComponent } from '../grading-config
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { assertClassesReportNotFinal } from '../report-lock-lib';
+import { takersOf, takes } from '../subject-roster-lib';
 import { audit, guarded, idParams, schoolHeader } from './helpers';
 
 const tag = ['Exams'];
@@ -347,6 +348,8 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           'Izin: `exam:author`; modul `exams` dan `grades`; guru hanya untuk mapel yang ia ampu (403). Membuat atau ' +
           'memperbarui satu penilaian per kelas peserta pada komponen `componentId` (skala 100 = jumlah skor / total ' +
           'poin x 100, dua desimal) dan mengisi skor siswa yang sudah punya data; siswa tidak hadir diberi skor kosong. ' +
+          'Bila rombel menandai mapel ujian ini hanya diikuti murid yang memilih, hanya murid yang mengambil mapel itu pada ' +
+          'semester ujian yang diberi skor; yang lain dilewati dan jumlahnya ada di `skippedNotTaking` (hanya bila ada). ' +
           'Dipanggil ulang menimpa penilaian yang sama (tidak ganda). Ujian tanpa soal: 400 `no_questions`; ' +
           'komponen tidak ada: 400 `invalid_reference`. Bila ada siswa hadir dengan esai yang belum dinilai, ditolak 409 ' +
           '`essay_pending` kecuali `allowPending` = true (esai itu dihitung 0). Ditolak 409 `report_final` bila rapor ' +
@@ -369,7 +372,15 @@ export async function examScoreRoutes(instance: FastifyInstance) {
             .describe('Teknik asesmen penilaian baru (bawaan `test`); diabaikan bila penilaian sudah ada'),
         }),
         response: {
-          200: z.object({ assessments: z.number().int(), scores: z.number().int() }),
+          200: z.object({
+            assessments: z.number().int(),
+            scores: z.number().int(),
+            skippedNotTaking: z
+              .number()
+              .int()
+              .optional()
+              .describe('Murid yang dilewati karena tidak mengambil mapel ujian (hanya bila ada)'),
+          }),
           400: errorSchema,
           404: errorSchema,
           409: errorSchema,
@@ -405,6 +416,7 @@ export async function examScoreRoutes(instance: FastifyInstance) {
         const date = request.body.date ?? ex.examDate ?? new Date().toISOString().slice(0, 10);
 
         let scores = 0;
+        let skippedNotTaking = 0;
         // R13: dorong ulang hanya mengubah skor ASLI; percobaan remedial (tabel terpisah) tetap. Jumlah skor yang berubah dan
         // percobaan yang dipertahankan dicatat di audit.
         let changed = 0;
@@ -457,7 +469,17 @@ export async function examScoreRoutes(instance: FastifyInstance) {
                 .where(eq(scoreTable.assessmentId, assessmentId))
             ).map((r) => [r.studentId, r.value]),
           );
+          // Mapel pilihan (3B.2): hanya murid yang mengambil mapel ujian ini pada semester ujian yang diberi skor.
+          const takers = await takersOf(tx, {
+            classId,
+            semesterId: ex.semesterId,
+            subjectIds: [ex.subjectId],
+          });
           for (const s of data.students.filter((x) => x.classId === classId && x.entered)) {
+            if (!takes(takers, ex.subjectId, s.studentId)) {
+              skippedNotTaking += 1;
+              continue;
+            }
             const value = s.absent ? null : round2((s.total / data.maxTotal) * 100);
             if (existing && (before.get(s.studentId) ?? null) !== value) changed += 1;
             await tx
@@ -491,7 +513,11 @@ export async function examScoreRoutes(instance: FastifyInstance) {
           ...(changed > 0 ? { scoresChanged: changed } : {}),
           ...(kept > 0 ? { remedialAttemptsKept: kept } : {}),
         });
-        return { assessments: classIds.length, scores };
+        return {
+          assessments: classIds.length,
+          scores,
+          ...(skippedNotTaking > 0 ? { skippedNotTaking } : {}),
+        };
       });
     },
   );

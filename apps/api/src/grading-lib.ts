@@ -25,6 +25,7 @@ import {
   type Tx,
 } from '@edusync/db';
 import { applyRemedialScores, loadAttempts, type RemedialContext, remedialMark } from './remedial-lib';
+import { type SubjectTakers, takes } from './subject-roster-lib';
 
 /** Pustaka perhitungan nilai bersama: dipakai rute penilaian dan rapor agar rumusnya tunggal. */
 
@@ -128,6 +129,12 @@ export async function computeGrades(
      * nilai tidak berubah dan konteks hanya menghasilkan penanda `remedial`.
      */
     remedial?: RemedialContext | undefined;
+    /**
+     * Pengambil per mapel (tahap 3B.2, `takersOf`). Pasangan (mapel, siswa) yang tidak mengambil TIDAK dimasukkan ke peta hasil
+     * (bukan `final: null`), jadi "tidak mengambil" dapat dibedakan dari "belum dinilai". Tanpa ini atau `null` semua pasangan
+     * dihitung, persis perilaku sebelum 3B.2. Rumus nilai akhir tidak disentuh.
+     */
+    takers?: SubjectTakers | null | undefined;
   },
 ) {
   const assessments = p.subjectIds.length
@@ -225,7 +232,11 @@ export async function computeGrades(
   for (const subjectId of p.subjectIds) {
     result.set(
       subjectId,
-      new Map(p.studentIds.map((studentId) => [studentId, gradeOf(subjectId, studentId)])),
+      new Map(
+        p.studentIds
+          .filter((studentId) => takes(p.takers ?? null, subjectId, studentId))
+          .map((studentId) => [studentId, gradeOf(subjectId, studentId)]),
+      ),
     );
   }
   return result;

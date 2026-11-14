@@ -26,6 +26,7 @@ import {
 } from '../report-card-lib';
 import { assertStudentsReportNotFinal } from '../report-lock-lib';
 import { isNarrativeStale, narrativeHash } from '../report-narrative-lib';
+import { assertStudentsTakeSubject, takersOf, takes } from '../subject-roster-lib';
 import { audit, guarded, schoolHeader } from './helpers';
 
 const tag = ['Report cards'];
@@ -182,44 +183,48 @@ export async function reportCardNarrativeRoutes(instance: FastifyInstance) {
               )
           : [];
         const descriptive = extras.reportMode === 'descriptive';
+        const takers = await takersOf(tx, { classId, semesterId, subjectIds: [subjectId] });
         return {
           reportMode: descriptive ? ('descriptive' as const) : ('numeric' as const),
           subject: sub,
-          students: c.roster.map((s) => {
-            const g = c.grades.get(subjectId)?.get(s.id);
-            const predicate = g?.predicate ?? null;
-            const auto = autoDescriptionOf(c, extras, s.id, subjectId);
-            const generated = auto.text;
-            const manual = extras.narratives.get(s.id)?.get(subjectId) ?? null;
-            const objectives = extras.objectives.get(s.id)?.get(subjectId);
-            const stale =
-              manual !== null &&
-              isNarrativeStale(extras.narrativeHashes.get(s.id)?.get(subjectId), generated);
-            return {
-              studentId: s.id,
-              name: s.name,
-              nis: s.nis,
-              reportStatus: rows.find((r) => r.studentId === s.id)?.status ?? ('draft' as const),
-              final: g?.final ?? null,
-              predicate,
-              generated,
-              generatedSource: auto.source,
-              manual,
-              effective: manual ?? generated,
-              source: manual ? ('manual' as const) : generated ? auto.source : null,
-              ...(stale ? { stale: true as const } : {}),
-              ...(objectives
-                ? {
-                    objectives: {
-                      assessed: objectives.assessed,
-                      achieved: objectives.achieved,
-                      high: objectives.high,
-                      low: objectives.low,
-                    },
-                  }
-                : {}),
-            };
-          }),
+          // Hanya siswa yang mengambil mapel ini (3B.2); tanpa mapel pilihan = seluruh roster.
+          students: c.roster
+            .filter((s) => takes(takers, subjectId, s.id))
+            .map((s) => {
+              const g = c.grades.get(subjectId)?.get(s.id);
+              const predicate = g?.predicate ?? null;
+              const auto = autoDescriptionOf(c, extras, s.id, subjectId);
+              const generated = auto.text;
+              const manual = extras.narratives.get(s.id)?.get(subjectId) ?? null;
+              const objectives = extras.objectives.get(s.id)?.get(subjectId);
+              const stale =
+                manual !== null &&
+                isNarrativeStale(extras.narrativeHashes.get(s.id)?.get(subjectId), generated);
+              return {
+                studentId: s.id,
+                name: s.name,
+                nis: s.nis,
+                reportStatus: rows.find((r) => r.studentId === s.id)?.status ?? ('draft' as const),
+                final: g?.final ?? null,
+                predicate,
+                generated,
+                generatedSource: auto.source,
+                manual,
+                effective: manual ?? generated,
+                source: manual ? ('manual' as const) : generated ? auto.source : null,
+                ...(stale ? { stale: true as const } : {}),
+                ...(objectives
+                  ? {
+                      objectives: {
+                        assessed: objectives.assessed,
+                        achieved: objectives.achieved,
+                        high: objectives.high,
+                        low: objectives.low,
+                      },
+                    }
+                  : {}),
+              };
+            }),
         };
       });
     },
@@ -274,6 +279,7 @@ export async function reportCardNarrativeRoutes(instance: FastifyInstance) {
           throw new HttpError(400, 'invalid_reference', 'Ada siswa yang bukan anggota kelas itu.');
         }
         await assertStudentsReportNotFinal(tx, semesterId, ids);
+        await assertStudentsTakeSubject(tx, { classId, semesterId, subjectId, studentIds: ids });
         const c = await loadClassContext(tx, sem, cls);
         const extras = await loadReportExtras(tx, c);
         const toSave = items.flatMap((i) => (i.text ? [{ studentId: i.studentId, text: i.text }] : []));

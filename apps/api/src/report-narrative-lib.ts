@@ -20,6 +20,7 @@ import {
 } from '@edusync/db';
 import type { EffectiveGradingConfig } from './grading-config-lib';
 import { computeObjectiveAchievement } from './objective-achievement-lib';
+import { type SubjectTakers, takes } from './subject-roster-lib';
 
 /**
  * Narasi rapor dari ketercapaian TP (rancangan fase 3, bagian 3.4). Menghitung, untuk satu kelas-semester, narasi otomatis tiap
@@ -37,6 +38,8 @@ export interface NarrativeClassInput {
   sem: { id: string; academicYearId: string };
   cls: { id: string; level: string };
   subjects: { id: string }[];
+  /** Pengambil per mapel (3B.2): murid yang tidak mengambil suatu mapel tidak mendapat narasi mapel itu. Kosong/null = semua. */
+  takers?: SubjectTakers | null | undefined;
   cfg: EffectiveGradingConfig;
 }
 
@@ -115,6 +118,7 @@ export async function loadObjectiveNarratives(
 
   for (const studentId of studentIds) {
     for (const { subjectId, r } of results) {
+      if (!takes(c.takers ?? null, subjectId, studentId)) continue;
       const row = r.cells.get(studentId);
       if (!row) continue;
       const candidates: NarrativeCandidate[] = [];

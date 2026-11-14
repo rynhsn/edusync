@@ -96,6 +96,19 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   rekap, rapor, portal, jadwal, dan absensi belum berubah, dan sekolah tanpa penanda mapel identik dengan sebelumnya. Mengubah
   pilihan yang memengaruhi semester dengan rapor final ditolak (`report_final`). Kode galat baru: `subject_not_selected_mode`,
   `choice_rule_violation`, `scope_overlap`, `choice_locked`.
+- **Pilihan mapel memengaruhi nilai, rapor, dan portal.** Untuk mapel yang ditandai "berdasarkan pilihan" di sebuah rombel,
+  hanya murid yang mengambilnya (setahun atau pada semester yang dinilai) yang muncul di lembar skor, rekap mapel, matriks kelas,
+  ketercapaian TP, remedial, pendampingan, deskripsi capaian, dan hitungan `total`/`filled` penilaian; menyimpan skor, keputusan
+  TP, percobaan remedial, deskripsi, atau peserta pendampingan untuk murid yang tidak mengambil mapel itu ditolak
+  (`student_not_taking_subject`). Pada matriks kelas, sel mapel yang tidak diambil murid ditandai `notTaken`. Rapor per murid
+  hanya memuat mapel yang ia ambil; murid tidak dianggap "belum lengkap" untuk mapel yang tidak ia ambil (finalisasi tidak lagi
+  memaksa `force` untuk kelas campuran), dan rata-rata serta peringkat dihitung atas mapel yang diambil masing-masing murid
+  (sekolah yang menilai peringkat lintas pilihan tidak adil dapat mematikan tampilan peringkat di pengaturan rapor). Portal wali
+  dan murid menampilkan nilai dan skor terbaru hanya untuk mapel yang diambil anak. Dorong nilai ujian ke buku nilai hanya
+  memberi skor kepada murid yang mengambil mapel ujian dan melaporkan jumlah yang dilewati (`skippedNotTaking`). Skor lama murid
+  yang belum terdaftar tidak dihapus: skor itu hanya tersembunyi dan tampil lagi bila penanda dimatikan atau murid didaftarkan.
+  Sekolah tanpa penanda identik dengan sebelumnya; rapor final tetap dari snapshot dan bentuk dokumen rapor tidak berubah.
+  Kode galat baru: `student_not_taking_subject`.
 
 ### Diubah
 
@@ -123,6 +136,12 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   `subject_choice_rule`, dan `subject_choice_rule_subject` dibiarkan di database; versi lama tidak membacanya sehingga tidak ada
   efek pada nilai, rapor, jadwal, atau absensi (tahap ini memang belum memakainya). Data pilihan tetap ada dan tampil lagi setelah
   maju. Izin `subject_choice:manage` pada peran sekolah dibiarkan dan diabaikan versi lama.
+- Pilihan mapel memengaruhi nilai, rapor, dan portal (tahap 3B.2): tidak ada tabel atau kolom baru. Setelah kembali ke versi
+  sebelumnya, sekolah yang memakai penanda "berdasarkan pilihan" akan melihat DRAF rapor, rekap, matriks, dan portal kembali
+  memuat semua mapel rombel untuk semua murid (murid yang tidak mengambil mapel tampil dengan nilai kosong dan rapor "belum
+  lengkap" sampai maju lagi); lembar skor kembali menerima skor untuk semua murid rombel. Skor yang sudah tersimpan tidak
+  hilang. Rapor final aman karena dibaca dari snapshot (hanya berisi mapel yang diambil murid). Sekolah tanpa penanda tidak
+  terpengaruh.
 - Mutasi murid dan riwayat rombel (tahap 3C.1): tabel `student_transfer` dan `enrollment_change` dibiarkan di database dan
   tampil lagi setelah maju. Setelah kembali ke versi sebelumnya, murid berstatus pindah kembali dikecualikan dari daftar rapor
   kelas (rapor final mereka tetap aman di snapshot dan tetap terbaca lewat dokumen tunggal), dan membuka kembali lalu

@@ -33,7 +33,7 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
-import { historicalRosterOf, rosterOf } from '../attendance-lib';
+import { rosterOf } from '../attendance-lib';
 import {
   canInputPair,
   canReadPair,
@@ -51,6 +51,7 @@ import { requireModule, requirePermission, type TenantContext } from '../identit
 import { assertObjectivesForSubject } from '../objective-achievement-lib';
 import { loadAttempts } from '../remedial-lib';
 import { assertClassReportNotFinal, assertStudentsReportNotFinal } from '../report-lock-lib';
+import { assertStudentsTakeSubject, subjectRosterOf } from '../subject-roster-lib';
 import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
 
 const tag = ['Grading'];
@@ -278,16 +279,17 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
     tx: Tx,
     ctx: TenantContext,
     supportId: string,
-    classId: string,
+    scope: { classId: string; subjectId: string; semesterId: string },
     list: z.infer<typeof participantInput>[],
   ) {
-    const { rows } = await rosterOf(tx, classId);
+    const { rows } = await rosterOf(tx, scope.classId);
     const allowed = new Set(rows.map((s) => s.id));
     // Siswa yang dikirim dua kali: yang terakhir berlaku.
     const records = [...new Map(list.map((r) => [r.studentId, r])).values()];
     if (records.some((r) => !allowed.has(r.studentId))) {
       throw invalidRef('Ada siswa yang bukan anggota aktif kelas pendampingan ini.');
     }
+    await assertStudentsTakeSubject(tx, { ...scope, studentIds: records.map((r) => r.studentId) });
     await tx.delete(learningSupportParticipant).where(eq(learningSupportParticipant.supportId, supportId));
     if (records.length > 0) {
       await tx.insert(learningSupportParticipant).values(
@@ -386,7 +388,15 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
           })
           .returning({ id: learningSupport.id });
         await replaceSupportObjectives(tx, ctx.schoolId, row!.id, links);
-        const count = participants ? await replaceParticipants(tx, ctx, row!.id, b.classId, participants) : 0;
+        const count = participants
+          ? await replaceParticipants(
+              tx,
+              ctx,
+              row!.id,
+              { classId: b.classId, subjectId: b.subjectId, semesterId: b.semesterId },
+              participants,
+            )
+          : 0;
         await audit(tx, ctx, 'learning_support.create', 'learning_support', row!.id, {
           kind: b.kind,
           title: b.title,
@@ -474,7 +484,8 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel pendampingan itu (selain itu 403); ' +
           'modul `grades`. MENGGANTI seluruh himpunan peserta (larik kosong = kosongkan): murid yang tidak disebut dikeluarkan. ' +
           '`status` `planned` (bawaan), `in_progress`, `completed`, atau `cancelled`; `outcomeNote` catatan hasil (maks 1000). ' +
-          'Murid harus anggota aktif kelas pendampingan (400 `invalid_reference`); murid yang dikirim dua kali: yang terakhir berlaku. ' +
+          'Murid harus anggota aktif kelas pendampingan (400 `invalid_reference`) dan, bila rombel menandai mapelnya hanya diikuti murid ' +
+          'yang memilih, mengambil mapel itu pada semester pendampingan (400 `student_not_taking_subject`); murid yang dikirim dua kali: yang terakhir berlaku. ' +
           'Ditolak 409 `report_final` bila rapor kelas pada semester itu sudah final. Diaudit (`learning_support.participants`).',
         headers: schoolHeader,
         params: idParams,
@@ -492,7 +503,7 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
           tx,
           ctx,
           current.id,
-          current.classId,
+          { classId: current.classId, subjectId: current.subjectId, semesterId: current.semesterId },
           request.body.participants,
         );
         await tx
@@ -554,7 +565,7 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
 
   async function attemptSheet(tx: Tx, ctx: TenantContext, a: typeof assessment.$inferSelect) {
     const { policy, kkm } = await policyFor(tx, a);
-    const { rows } = await historicalRosterOf(tx, a.classId);
+    const { rows } = await subjectRosterOf(tx, a.classId, a.subjectId, a.semesterId, { historical: true });
     const scores = await tx.select().from(score).where(eq(score.assessmentId, a.id));
     const attempts = await tx
       .select()
@@ -655,7 +666,8 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:read`; modul `grades`. Roster siswa aktif dan lulusan kelas penilaian dengan skor asli, percobaan remedial ' +
           '(urut `attemptNo`), dan nilai efektif menurut kebijakan remedial semester (`policy`). `needsRemedial` = skor asli di bawah ' +
-          'KKM efektif mapel (`kkm`, persen). Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ' +
+          'KKM efektif mapel (`kkm`, persen). Bila rombel menandai mapel ini hanya diikuti murid yang memilih, roster hanya murid yang ' +
+          'mengambilnya pada semester penilaian. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ' +
           'ia ampu (403). 404 `not_found` bila penilaian tidak ada.',
         headers: schoolHeader,
         params: idParams,
@@ -685,7 +697,8 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
           'menghasilkan dua percobaan berurutan. `value` 0..skor maksimum penilaian (400 `score_out_of_range`) atau null (percobaan ' +
           'tanpa nilai: tercatat tetapi tidak dipakai nilai efektif). `takenOn` bawaan hari ini. `supportId` opsional menautkan ke ' +
           'pendampingan remedial pada kelas, mapel, dan semester yang sama (400 `invalid_reference`). Siswa harus anggota aktif kelas ' +
-          '(400 `invalid_reference`). Maksimal 20 percobaan per siswa dan penilaian (400 `too_many_attempts`). Skor asli TIDAK ' +
+          '(400 `invalid_reference`) dan, bila rombel menandai mapel ini hanya diikuti murid yang memilih, mengambil mapel itu ' +
+          '(400 `student_not_taking_subject`). Maksimal 20 percobaan per siswa dan penilaian (400 `too_many_attempts`). Skor asli TIDAK ' +
           'berubah. Pengaruhnya pada nilai akhir dan ketercapaian TP mengikuti kebijakan remedial sekolah (`record_only` hanya ' +
           'mencatat). Ditolak 409 `report_final` bila rapor salah satu siswa itu pada semester tersebut sudah final. ' +
           'Diaudit (`remedial_attempt.save`). Respons sama dengan GET.',
@@ -733,6 +746,12 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
             if (records.some((r) => !allowed.has(r.studentId))) {
               throw invalidRef('Ada siswa yang bukan anggota aktif kelas penilaian ini.');
             }
+            await assertStudentsTakeSubject(tx, {
+              classId: a.classId,
+              semesterId: a.semesterId,
+              subjectId: a.subjectId,
+              studentIds: records.map((r) => r.studentId),
+            });
             if (records.some((r) => r.value !== null && r.value > a.maxScore)) {
               throw new HttpError(
                 400,
@@ -844,7 +863,7 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
           'penilaian SUMATIF yang ikut nilai akhir (formatif dan asesmen awal tidak dihitung) untuk satu kelas, mapel, dan semester. ' +
           'Per penilaian: skor asli, persen, jumlah percobaan, nilai efektif menurut kebijakan remedial semester (`policy`), dan ' +
           '`stillBelow` (nilai efektif masih di bawah KKM). Hanya murid yang punya paling sedikit satu penilaian di bawah KKM yang ' +
-          'tampil. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). ' +
+          'tampil. Bila rombel menandai mapel ini hanya diikuti murid yang memilih, hanya murid yang mengambilnya pada semester itu tampil. Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya untuk kelas+mapel yang ia ampu (403). ' +
           'Semester/kelas/mapel harus milik sekolah ini (400 `invalid_reference`).',
         headers: schoolHeader,
         querystring: scopeQuery,
@@ -911,7 +930,7 @@ export async function learningSupportRoutes(instance: FastifyInstance) {
           const c = componentOf.get(a.componentId);
           return c !== undefined && componentCounts(c) && assessmentCounts(a, c);
         });
-        const { rows } = await historicalRosterOf(tx, classId);
+        const { rows } = await subjectRosterOf(tx, classId, subjectId, semesterId, { historical: true });
         if (counted.length === 0) return { policy, kkm, students: [] };
         const ids = counted.map((a) => a.id);
         const scores = await tx

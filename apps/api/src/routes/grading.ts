@@ -80,6 +80,13 @@ import {
   replaceAssessmentObjectives,
 } from '../objective-achievement-lib';
 import { assertClassReportNotFinal, assertStudentsReportNotFinal } from '../report-lock-lib';
+import {
+  assertStudentsTakeSubject,
+  pairKey,
+  subjectRosterOf,
+  takersForPairs,
+  takersOf,
+} from '../subject-roster-lib';
 import { audit, conflictAs409, guarded, idParams, ok, remedialMarkSchema, schoolHeader } from './helpers';
 
 const tag = ['Grading'];
@@ -581,6 +588,53 @@ export async function gradingRoutes(instance: FastifyInstance) {
       )
       .groupBy(score.assessmentId);
 
+    // Mapel pilihan (3B.2): `total` dan `filled` hanya atas murid yang mengambil mapel itu. Tanpa penanda partisipasi peta
+    // kosong dan kedua angka di atas dipakai apa adanya (hasil identik).
+    const takersByPair = await takersForPairs(
+      tx,
+      visible.map((r) => ({ classId: r.a.classId, semesterId: r.a.semesterId, subjectId: r.a.subjectId })),
+    );
+    const narrowed = new Map<string, { filled: number; total: number }>();
+    if (takersByPair.size > 0) {
+      const marked = visible.filter((r) => takersByPair.has(pairKey(r.a)));
+      const markedClassIds = [...new Set(marked.map((r) => r.a.classId))];
+      const members = await tx
+        .select({ classId: enrollment.classId, studentId: enrollment.studentId })
+        .from(enrollment)
+        .innerJoin(student, eq(student.id, enrollment.studentId))
+        .innerJoin(classRoom, eq(classRoom.id, enrollment.classId))
+        .where(
+          and(
+            inArray(enrollment.classId, markedClassIds),
+            eq(enrollment.academicYearId, classRoom.academicYearId),
+            isNull(student.deletedAt),
+            inArray(student.status, ['active', 'graduated']),
+          ),
+        );
+      const scored = await tx
+        .select({ assessmentId: score.assessmentId, studentId: score.studentId })
+        .from(score)
+        .where(
+          and(
+            inArray(
+              score.assessmentId,
+              marked.map((r) => r.a.id),
+            ),
+            sql`${score.value} is not null`,
+          ),
+        );
+      for (const r of marked) {
+        const takers = takersByPair.get(pairKey(r.a))!;
+        const roster = new Set(members.filter((m) => m.classId === r.a.classId).map((m) => m.studentId));
+        narrowed.set(r.a.id, {
+          total: [...roster].filter((id) => takers.has(id)).length,
+          filled: scored.filter(
+            (x) => x.assessmentId === r.a.id && roster.has(x.studentId) && takers.has(x.studentId),
+          ).length,
+        });
+      }
+    }
+
     // Kategori diturunkan dari konfigurasi EFEKTIF semester (salinan beku bila ada), sama dengan yang dipakai penghitung.
     const effective = new Map<
       string,
@@ -618,8 +672,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
       title: r.a.title,
       date: r.a.date,
       maxScore: r.a.maxScore,
-      filled: filled.find((f) => f.assessmentId === r.a.id)?.n ?? 0,
-      total: totals.find((t) => t.classId === r.a.classId)?.n ?? 0,
+      filled: narrowed.get(r.a.id)?.filled ?? filled.find((f) => f.assessmentId === r.a.id)?.n ?? 0,
+      total: narrowed.get(r.a.id)?.total ?? totals.find((t) => t.classId === r.a.classId)?.n ?? 0,
       canInput: configure || (input && teaches(mine, r.a.classId, r.a.subjectId)),
     }));
   }
@@ -1296,7 +1350,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
         summary: 'Skor satu penilaian',
         description:
           'Izin: `grade:read`; modul `grades`. Roster siswa aktif dan lulusan kelas penilaian (urut nama) dengan skor ' +
-          '(`value` null bila belum diisi). Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya boleh ' +
+          '(`value` null bila belum diisi). Bila rombel menandai mapel ini hanya diikuti murid yang memilih, roster hanya ' +
+          'murid yang mengambil mapel itu pada semester penilaian (skor murid lain tidak dihapus tetapi tidak tampil). ' +
+          'Pengguna selain pemegang configure/kepala sekolah/kurikulum hanya boleh ' +
           'untuk kelas+mapel yang ia ampu (403). `canInput` menandai hak mengisi.',
         headers: schoolHeader,
         params: idParams,
@@ -1325,7 +1381,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
         const current = await loadAssessment(tx, request.params.id);
         if (!(await canReadPair(tx, ctx, current.classId, current.subjectId))) throw notAllowed();
         const view = (await assessmentViews(tx, ctx, { id: current.id }))[0]!;
-        const { rows } = await historicalRosterOf(tx, current.classId);
+        const { rows } = await subjectRosterOf(tx, current.classId, current.subjectId, current.semesterId, {
+          historical: true,
+        });
         const scores = await tx.select().from(score).where(eq(score.assessmentId, current.id));
         return {
           assessment: view,
@@ -1355,7 +1413,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
         description:
           'Izin: `grade:input`, dan pemegang `grade:configure` atau guru pengampu kelas+mapel (selain itu 403). ' +
           '`value` 0..skor maksimum penilaian (400 `invalid_score`) atau null untuk mengosongkan; siswa harus anggota ' +
-          'aktif kelas (400 `invalid_reference`). Mengirim ulang siswa yang sama menimpa skor sebelumnya.',
+          'aktif kelas (400 `invalid_reference`) dan, bila rombel menandai mapel ini hanya diikuti murid yang memilih, harus ' +
+          'mengambil mapel itu pada semester penilaian (400 `student_not_taking_subject`; tanpa penanda tidak pernah terjadi). ' +
+          'Mengirim ulang siswa yang sama menimpa skor sebelumnya.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({
@@ -1392,6 +1452,12 @@ export async function gradingRoutes(instance: FastifyInstance) {
         if (records.some((r) => !allowed.has(r.studentId))) {
           throw invalidRef('Ada siswa yang bukan anggota aktif kelas penilaian ini.');
         }
+        await assertStudentsTakeSubject(tx, {
+          classId: current.classId,
+          semesterId: current.semesterId,
+          subjectId: current.subjectId,
+          studentIds: records.map((r) => r.studentId),
+        });
         if (records.some((r) => r.value !== null && r.value > current.maxScore)) {
           throw new HttpError(400, 'invalid_score', `Skor harus antara 0 dan ${current.maxScore}.`);
         }
@@ -1441,7 +1507,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
           '(salinan beku bila ada). Tanpa rapor final, respons tidak membawa `source`. ' +
           'Nilai akhir memakai nilai EFEKTIF remedial menurut kebijakan sekolah (`remedialPolicy`, ada hanya bila bukan ' +
           '`record_only`); `remedial` per siswa (`attempts`, `effectiveSource`) ada hanya bila siswa punya percobaan remedial. ' +
-          'Skor asli tidak pernah ditimpa; angka rapor final tetap dari snapshot.',
+          'Skor asli tidak pernah ditimpa; angka rapor final tetap dari snapshot. Bila rombel menandai mapel ini hanya ' +
+          'diikuti murid yang memilih, `students` dan `stats` hanya memuat murid yang mengambilnya pada semester itu.',
         headers: schoolHeader,
         querystring: scopeQuery,
         response: {
@@ -1505,7 +1572,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
 
         const cfg = await loadGradingConfig(tx, semesterId);
         const { settings, components } = cfg;
-        const { rows } = await historicalRosterOf(tx, classId);
+        // Hanya murid yang mengambil mapel ini (3B.2); tanpa penanda partisipasi = seluruh roster historis.
+        const { rows } = await subjectRosterOf(tx, classId, subjectId, semesterId, { historical: true });
         const grades = await computeGrades(tx, {
           semesterId,
           classId,
@@ -1592,7 +1660,9 @@ export async function gradingRoutes(instance: FastifyInstance) {
           'itu 403). Semester/kelas harus milik sekolah ini (400 `invalid_reference`). Siswa yang rapornya FINAL pada ' +
           'kelas ini memakai `final` dan `predicate` dari snapshot rapor dan diberi `source: report` (mapel yang tidak ada ' +
           'di snapshot siswa itu dihitung dari konfigurasi efektif); `source` di tingkat atas muncul bila ada yang demikian. ' +
-          'Umpan balik formatif per sel ada di `formative` (hanya bila ada), terpisah dari `final` dan `predicate`.',
+          'Umpan balik formatif per sel ada di `formative` (hanya bila ada), terpisah dari `final` dan `predicate`. ' +
+          'Sel mapel yang tidak diambil murid itu (hanya bila rombel menandai mapelnya berdasarkan pilihan) membawa ' +
+          '`notTaken: true` dengan `final` dan `predicate` null; kunci itu absen untuk sekolah tanpa mapel pilihan.',
         headers: schoolHeader,
         querystring: z.object({ semesterId: z.uuid(), classId: z.uuid() }),
         response: {
@@ -1611,6 +1681,10 @@ export async function gradingRoutes(instance: FastifyInstance) {
                     final: z.number().nullable(),
                     predicate: predicateEnum.nullable(),
                     formative: formativeSummary,
+                    notTaken: z
+                      .literal(true)
+                      .optional()
+                      .describe('Murid tidak mengambil mapel ini (mapel pilihan)'),
                   }),
                 ),
               }),
@@ -1653,6 +1727,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         const cfg = await loadGradingConfig(tx, semesterId);
         const { settings, components } = cfg;
         const { rows } = await historicalRosterOf(tx, classId);
+        const takers = await takersOf(tx, { classId, semesterId, subjectIds: subjects.map((s) => s.id) });
         const grades = await computeGrades(tx, {
           semesterId,
           classId,
@@ -1660,6 +1735,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
           studentIds: rows.map((s) => s.id),
           components,
           settings,
+          takers,
           remedial: await remedialContextFor(tx, cfg, { classId, subjectIds: subjects.map((s) => s.id) }),
         });
         const snapshots = await finalSubjectRows(tx, semesterId, classId);
@@ -1678,7 +1754,8 @@ export async function gradingRoutes(instance: FastifyInstance) {
                 ...(f ? { formative: f } : {}),
               };
             }
-            const g = grades.get(sub.id)!.get(s.id)!;
+            const g = grades.get(sub.id)?.get(s.id);
+            if (!g) return { subjectId: sub.id, final: null, predicate: null, notTaken: true as const };
             return {
               subjectId: sub.id,
               final: g.final,
@@ -1854,7 +1931,7 @@ export async function gradingRoutes(instance: FastifyInstance) {
         await requirePairRefs(tx, { semesterId, classId, subjectId });
         if (!(await canReadPair(tx, ctx, classId, subjectId))) throw notAllowed();
         const cfg = await loadGradingConfig(tx, semesterId);
-        const { rows } = await historicalRosterOf(tx, classId);
+        const { rows } = await subjectRosterOf(tx, classId, subjectId, semesterId, { historical: true });
         const studentIds = rows.map((s) => s.id);
         const result = await computeObjectiveAchievement(tx, {
           semesterId,
@@ -1957,6 +2034,12 @@ export async function gradingRoutes(instance: FastifyInstance) {
         if (records.some((r) => !allowed.has(r.studentId))) {
           throw invalidRef('Ada siswa yang bukan anggota aktif kelas ini.');
         }
+        await assertStudentsTakeSubject(tx, {
+          classId,
+          semesterId,
+          subjectId,
+          studentIds: [...new Set(records.map((r) => r.studentId))],
+        });
         await assertObjectivesForSubject(tx, subjectId, [...new Set(records.map((r) => r.objectiveId))], {
           requireActive: false,
           maxCount: false,

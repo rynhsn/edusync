@@ -1070,6 +1070,7 @@
     "too_many_attempts": "Satu murid paling banyak 20 percobaan remedial per penilaian.",
     "invalid_dates": "Tanggal mulai tidak boleh setelah tanggal selesai.",
     "subject_not_selected_mode": "Mapel ini belum ditandai \"berdasarkan pilihan\" di rombel ini.",
+    "student_not_taking_subject": "Siswa ini tidak mengambil mata pelajaran tersebut pada semester ini.",
     "choice_rule_violation": "Pilihan melanggar aturan pilihan mapel sekolah.",
     "scope_overlap": "Pilihan setahun dan per semester untuk mapel yang sama tidak boleh bertumpuk.",
     "choice_locked": "Batas ganti pilihan sudah lewat. Hubungi pengelola kurikulum.",

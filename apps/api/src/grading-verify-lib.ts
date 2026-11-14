@@ -2,6 +2,7 @@ import { classRoom, eq, reportCard, semester, sql, type Tx } from '@edusync/db';
 import { kkmResolverForClass, loadGradingConfig, remedialContextFor } from './grading-config-lib';
 import { computeGrades } from './grading-lib';
 import type { ReportDocument } from './report-card-lib';
+import { takersOf } from './subject-roster-lib';
 
 /**
  * Verifikasi BACA-SAJA: untuk setiap kelas yang rapornya final, apakah finalisasi ulang HARI INI (konfigurasi hidup) akan
@@ -55,6 +56,8 @@ export async function verifyFinalReports(tx: Tx): Promise<VerifyClassResult[]> {
     const diffs: VerifyDiff[] = [];
     if (subjectIds.length > 0) {
       const cfg = await loadGradingConfig(tx, semesterId, { live: true });
+      // Roster per mapel yang sama dengan rapor dan rekap (3B.2): murid yang kini tidak mengambil mapel itu tidak dihitung.
+      const takers = await takersOf(tx, { classId, semesterId, subjectIds });
       const grades = await computeGrades(tx, {
         semesterId,
         classId,
@@ -62,6 +65,7 @@ export async function verifyFinalReports(tx: Tx): Promise<VerifyClassResult[]> {
         studentIds: withSnapshot.map((m) => m.studentId),
         components: cfg.components,
         settings: cfg.settings,
+        takers,
         // Konfigurasi HIDUP termasuk kebijakan remedialnya: yang dibandingkan dengan snapshot adalah hasil finalisasi ulang hari ini.
         remedial: await remedialContextFor(tx, cfg, { classId, subjectIds }),
       });

@@ -18,6 +18,7 @@ import {
   asc,
   assessment,
   classRoom,
+  classSubjectParticipation,
   dailyAttendance,
   desc,
   enrollment,
@@ -45,6 +46,7 @@ import {
   sql,
   student,
   studentGuardian,
+  studentSubjectEnrollment,
   subject,
   type Tx,
 } from '@edusync/db';
@@ -61,6 +63,7 @@ import { HttpError } from './http-error';
 import type { TenantContext } from './identity/guards';
 import { documentSummary } from './report-card-lib';
 import { withResponses } from './report-response-lib';
+import { takersOf, takes } from './subject-roster-lib';
 
 /** Kunci modul tiap bagian portal. Modul inti portal sendiri (`parent_portal`) dicek oleh gerbang route. */
 export const PORTAL_SECTIONS = {
@@ -362,6 +365,26 @@ export async function recentScoresFor(tx: Tx, studentId: string, limit: number) 
           inner join ${schoolLevel} on ${schoolLevel.code} = ${classRoom.level} and ${schoolLevel.schoolId} = ${classRoom.schoolId}
           where ${classRoom.id} = ${assessment.classId} and ${schoolLevel.reportMode} = 'descriptive'
         )`,
+        // Mapel pilihan (3B.2): skor mapel yang tidak diambil murid (rombel menandai mapelnya berdasarkan pilihan dan murid tidak
+        // terdaftar pada tahun itu atau semester penilaian) tidak tampil. Tanpa penanda partisipasi kondisi ini selalu benar.
+        sql`not (
+          exists (
+            select 1 from ${classSubjectParticipation}
+            where ${classSubjectParticipation.classId} = ${assessment.classId}
+              and ${classSubjectParticipation.subjectId} = ${assessment.subjectId}
+          )
+          and not exists (
+            select 1 from ${studentSubjectEnrollment}
+            inner join ${classRoom} on ${classRoom.id} = ${assessment.classId}
+            where ${studentSubjectEnrollment.studentId} = ${score.studentId}
+              and ${studentSubjectEnrollment.subjectId} = ${assessment.subjectId}
+              and ${studentSubjectEnrollment.academicYearId} = ${classRoom.academicYearId}
+              and (
+                ${studentSubjectEnrollment.semesterId} is null
+                or ${studentSubjectEnrollment.semesterId} = ${assessment.semesterId}
+              )
+          )
+        )`,
       ),
     )
     .orderBy(desc(assessment.date), desc(score.updatedAt))
@@ -397,10 +420,18 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
   const { settings, components } = cfg;
   if (!enr) return { kkm: settings.kkm, average: null as number | null, subjects: [] };
   const notCounted = notCountedComponentIds(components);
-  const subjects = await assessedSubjects(tx, sem.id, enr.classId, notCounted);
+  const classSubjects = await assessedSubjects(tx, sem.id, enr.classId, notCounted);
   // Mapel yang punya penilaian formatif (tidak masuk nilai) untuk bagian umpan balik terpisah (K2); tanpa komponen formatif
   // atau tak dihitung, tidak ada kueri tambahan dan hasilnya persis seperti sebelum fase 3.
-  const withFeedback = notCounted.length ? await assessedSubjects(tx, sem.id, enr.classId) : subjects;
+  const allWithFeedback = notCounted.length ? await assessedSubjects(tx, sem.id, enr.classId) : classSubjects;
+  // Mapel pilihan (3B.2): anak hanya melihat mapel yang ia ambil; tanpa penanda partisipasi daftar tidak berubah.
+  const takers = await takersOf(tx, {
+    classId: enr.classId,
+    semesterId: sem.id,
+    subjectIds: allWithFeedback.map((s) => s.id),
+  });
+  const subjects = classSubjects.filter((s) => takes(takers, s.id, studentId));
+  const withFeedback = allWithFeedback.filter((s) => takes(takers, s.id, studentId));
   const kkmOf = await kkmResolverForClass(tx, cfg, {
     classId: enr.classId,
     subjectIds: subjects.map((s) => s.id),
@@ -412,6 +443,7 @@ export async function gradesFor(tx: Tx, studentId: string, sem: typeof semester.
     studentIds: [studentId],
     components,
     settings,
+    takers,
     // Nilai efektif remedial sama dengan rapor draf dan rekap; `markers` hanya untuk penanda percobaan (field opsional).
     remedial: await remedialContextFor(tx, cfg, {
       classId: enr.classId,

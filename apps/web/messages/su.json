@@ -1070,6 +1070,7 @@
     "too_many_attempts": "Hiji murid maksimal 20 percobaan remedial pikeun unggal penilaian.",
     "invalid_dates": "Tanggal mimiti teu meunang sanggeus tanggal rengse.",
     "subject_not_selected_mode": "Mapel ieu acan ditandaan \"dumasar pilihan\" di rombongan ieu.",
+    "student_not_taking_subject": "Murid ieu henteu nyandak mata pelajaran éta dina semester ieu.",
     "choice_rule_violation": "Pilihan ngalanggar aturan pilihan mapel sakola.",
     "scope_overlap": "Pilihan sataun jeung per semester pikeun mapel anu sarua teu meunang tumpang tindih.",
     "choice_locked": "Wates ngarobah pilihan geus kaliwat. Hubungi pangatur kurikulum.",

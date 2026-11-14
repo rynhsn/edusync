@@ -1070,6 +1070,7 @@
     "too_many_attempts": "A student can have at most 20 remedial attempts per assessment.",
     "invalid_dates": "The start date cannot be after the end date.",
     "subject_not_selected_mode": "This subject is not marked as \"by choice\" in this class.",
+    "student_not_taking_subject": "This student does not take this subject in this semester.",
     "choice_rule_violation": "The choice violates the school's subject choice rule.",
     "scope_overlap": "Year-long and per-semester choices for the same subject cannot overlap.",
     "choice_locked": "The deadline for changing choices has passed. Contact the curriculum manager.",

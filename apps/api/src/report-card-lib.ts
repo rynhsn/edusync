@@ -34,6 +34,7 @@ import { assessedSubjects, computeGrades, notCountedComponentIds, type StudentGr
 import { HttpError } from './http-error';
 import { isNarrativeStale, loadObjectiveNarratives, type ObjectiveNarratives } from './report-narrative-lib';
 import { semesterRosterOf } from './student-mobility-lib';
+import { type SubjectTakers, takersOf, takes } from './subject-roster-lib';
 
 /** Pengaturan rapor sekolah. Sekolah yang belum mengaturnya mendapat nilai bawaan. */
 export interface ReportSettings {
@@ -132,8 +133,12 @@ export interface ClassContext {
   kkm: number;
   /** KKM efektif per mapel (KKTP berjenjang, jatuh ke `kkm` bila tak ada kriteria). */
   kkmBySubject: Map<string, number>;
+  /** Mapel kelas yang dinilai pada semester itu; mapel yang dipilih per murid disaring lewat `subjectsOf`. */
   subjects: { id: string; name: string }[];
+  /** Pengambil per mapel berpenanda partisipasi (3B.2); `null` = tidak ada mapel pilihan, semua murid mengambil semua mapel. */
+  takers: SubjectTakers | null;
   roster: { id: string; name: string; nis: string | null }[];
+  /** Nilai per mapel per murid; murid yang tidak mengambil mapel itu tidak ada di petanya. */
   grades: Map<string, Map<string, StudentGrade>>;
   homeroomTeacher: { name: string; nip: string | null } | null;
   /** Rata-rata nilai akhir mapel tiap siswa (null bila belum ada nilai). */
@@ -147,6 +152,14 @@ export interface ClassContext {
  * keluar setelah semester berakhir dan diluruskan menurut riwayat rombel (sama persis bila tidak ada mutasi atau perpindahan).
  * `extraStudentIds` menambahkan siswa di luar roster itu (mis. siswa pindah yang kini nonaktif) agar nilainya ikut dihitung.
  */
+/**
+ * Mapel rapor satu murid: mapel kelas yang ia ambil (tahap 3B.2). Tanpa mapel pilihan (`takers` null) persis `c.subjects`, jadi
+ * dokumen, ringkasan, kelengkapan finalisasi, rata-rata, dan peringkat sekolah lama tidak berubah.
+ */
+export function subjectsOf(c: Pick<ClassContext, 'subjects' | 'takers'>, studentId: string) {
+  return c.takers === null ? c.subjects : c.subjects.filter((sub) => takes(c.takers, sub.id, studentId));
+}
+
 export async function loadClassContext(
   tx: Tx,
   sem: SemesterRow,
@@ -164,6 +177,13 @@ export async function loadClassContext(
   const reportSettings = await loadReportSettings(tx);
   const subjects = await assessedSubjects(tx, sem.id, cls.id, notCountedComponentIds(components));
   const studentIds = [...new Set([...roster.map((s) => s.id), ...extraStudentIds])];
+  // Satu kueri batch (dua bila ada mapel pilihan) tanpa memandang jumlah murid; sekolah tanpa penanda mendapat null.
+  const takers = await takersOf(tx, {
+    classId: cls.id,
+    semesterId: sem.id,
+    subjectIds: subjects.map((s) => s.id),
+    academicYearId: cls.academicYearId,
+  });
   const grades = await computeGrades(tx, {
     semesterId: sem.id,
     classId: cls.id,
@@ -171,6 +191,7 @@ export async function loadClassContext(
     studentIds,
     components,
     settings,
+    takers,
     // Nilai efektif remedial menurut kebijakan semester (undefined = record_only: tanpa kueri tambahan, hasil identik).
     remedial: await remedialContextFor(tx, cfg, { classId: cls.id, subjectIds: subjects.map((s) => s.id) }),
   });
@@ -182,7 +203,9 @@ export async function loadClassContext(
   const averages = new Map(
     studentIds.map((id) => [
       id,
-      averageOfFinals(subjects.map((sub) => grades.get(sub.id)?.get(id)?.final ?? null)),
+      averageOfFinals(
+        subjectsOf({ subjects, takers }, id).map((sub) => grades.get(sub.id)?.get(id)?.final ?? null),
+      ),
     ]),
   );
   const ranks = rankPositions(roster.map((s) => ({ id: s.id, average: averages.get(s.id) ?? null })));
@@ -205,6 +228,7 @@ export async function loadClassContext(
     kkm: settings.kkm,
     kkmBySubject: new Map(subjects.map((s) => [s.id, kkmOf(s.id)])),
     subjects,
+    takers,
     roster,
     grades,
     homeroomTeacher,
@@ -215,7 +239,7 @@ export async function loadClassContext(
 
 /** Ringkasan nilai satu siswa (versi hidup) untuk daftar rapor. */
 export function liveSummary(c: ClassContext, studentId: string) {
-  const finals = c.subjects.map((sub) => c.grades.get(sub.id)?.get(studentId)?.final ?? null);
+  const finals = subjectsOf(c, studentId).map((sub) => c.grades.get(sub.id)?.get(studentId)?.final ?? null);
   return summarizeFinals(finals);
 }
 
@@ -269,7 +293,7 @@ export interface ReportExtras {
 /** `extraStudentIds`: siswa di luar roster (mis. pindah) yang dokumennya ikut dibuat. */
 export async function loadReportExtras(
   tx: Tx,
-  c: Pick<ClassContext, 'sem' | 'cls' | 'subjects' | 'roster' | 'reportSettings' | 'cfg'>,
+  c: Pick<ClassContext, 'sem' | 'cls' | 'subjects' | 'takers' | 'roster' | 'reportSettings' | 'cfg'>,
   extraStudentIds: string[] = [],
 ): Promise<ReportExtras> {
   const [[level], rows] = await Promise.all([
@@ -331,7 +355,7 @@ export function autoDescriptionOf(
 
 /** Jumlah deskripsi manual yang usang (teks otomatis berubah sejak disunting) pada siswa-siswa itu (R7). */
 export function countStaleNarratives(
-  c: Pick<ClassContext, 'grades' | 'reportSettings' | 'subjects'>,
+  c: Pick<ClassContext, 'grades' | 'reportSettings' | 'subjects' | 'takers'>,
   extras: ReportExtras,
   studentIds: readonly string[],
 ): number {
@@ -339,7 +363,7 @@ export function countStaleNarratives(
   for (const studentId of studentIds) {
     const hashes = extras.narrativeHashes.get(studentId);
     if (!hashes) continue;
-    for (const sub of c.subjects) {
+    for (const sub of subjectsOf(c, studentId)) {
       if (!hashes.has(sub.id)) continue;
       if (isNarrativeStale(hashes.get(sub.id), autoDescriptionOf(c, extras, studentId, sub.id).text)) n += 1;
     }
@@ -359,9 +383,10 @@ export function completenessOf(c: ClassContext, extras: ReportExtras, studentId:
   }
   const mine = extras.narratives.get(studentId);
   const auto = extras.objectives.get(studentId);
+  const own = subjectsOf(c, studentId);
   return {
-    subjectsGraded: c.subjects.filter((sub) => mine?.has(sub.id) || auto?.has(sub.id)).length,
-    subjectsTotal: c.subjects.length,
+    subjectsGraded: own.filter((sub) => mine?.has(sub.id) || auto?.has(sub.id)).length,
+    subjectsTotal: own.length,
   };
 }
 
@@ -435,7 +460,7 @@ export async function buildDocument(
       className: c.cls.name,
       level: c.cls.level,
     },
-    subjects: c.subjects.map((sub) => {
+    subjects: subjectsOf(c, stu.id).map((sub) => {
       const g = c.grades.get(sub.id)?.get(stu.id);
       const final = g?.final ?? null;
       const predicate = g?.predicate ?? null;
