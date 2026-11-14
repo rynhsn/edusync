@@ -14592,7 +14592,7 @@ export interface paths {
         };
         /**
          * Simpan tingkat rubrik kokurikuler
-         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar tingkat: tingkat dengan `id` diubah, tanpa `id` dibuat, yang tidak disertakan dihapus (maks. 12). Untuk menyembunyikan tingkat kirim `active: false`. Galat: 400 `invalid_reference` (id tidak dikenal), 409 `conflict` (kode kembar). Penolakan 409 `item_in_use` untuk tingkat yang sudah dipakai penilaian berlaku sejak tahap 4.3.
+         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar tingkat: tingkat dengan `id` diubah, tanpa `id` dibuat, yang tidak disertakan dihapus (maks. 12). Untuk menyembunyikan tingkat kirim `active: false`. Galat: 400 `invalid_reference` (id tidak dikenal), 409 `conflict` (kode kembar), 409 `item_in_use` (tingkat yang sudah dipakai penilaian kokurikuler tidak bisa dihapus; nonaktifkan).
          */
         put: {
             parameters: {
@@ -15276,7 +15276,7 @@ export interface paths {
         post?: never;
         /**
          * Hapus program kokurikuler
-         * @description Izin: `cocurricular:manage`; modul `grades`. Menghapus program beserta rombel, butir sasaran, dan fasilitatornya. Penolakan 409 `cocurricular_assessed` untuk program yang sudah punya penilaian berlaku sejak tahap 4.3 (gunakan `status: closed`). Galat: 404 `not_found`.
+         * @description Izin: `cocurricular:manage`; modul `grades`. Menghapus program beserta rombel, butir sasaran, dan fasilitatornya. Program yang sudah punya penilaian ditolak: 409 `report_final` bila ada penilaian pada rapor yang sudah final, selain itu 409 `cocurricular_assessed` (gunakan `status: closed`). Bukti program ikut terhapus. Galat: 404 `not_found`.
          */
         delete: {
             parameters: {
@@ -15346,6 +15346,20 @@ export interface paths {
                         };
                     };
                 };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
             };
         };
         options?: never;
@@ -15363,7 +15377,7 @@ export interface paths {
         get?: never;
         /**
          * Ganti rombel program kokurikuler
-         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar rombel peserta. Rombel harus milik tahun ajaran program. Rombel yang masih punya fasilitator tidak bisa dilepas (409 `conflict`; ubah fasilitator dulu). Galat: 404 `not_found`, 400 `invalid_reference`.
+         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar rombel peserta. Rombel harus milik tahun ajaran program. Rombel yang masih punya fasilitator tidak bisa dilepas (409 `conflict`; ubah fasilitator dulu), dan rombel yang muridnya sudah dinilai juga tidak (409 `cocurricular_assessed`, atau `report_final` bila rapornya final). Galat: 404 `not_found`, 400 `invalid_reference`.
          */
         put: {
             parameters: {
@@ -15533,7 +15547,7 @@ export interface paths {
         get?: never;
         /**
          * Ganti butir sasaran program kokurikuler
-         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar butir sasaran (dimensi profil / topik Panca Cinta milik sekolah). Butir baru harus aktif; butir yang sudah menjadi sasaran boleh tetap walau kini nonaktif. Galat: 404 `not_found`, 400 `invalid_reference`.
+         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar butir sasaran (dimensi profil / topik Panca Cinta milik sekolah). Butir baru harus aktif; butir yang sudah menjadi sasaran boleh tetap walau kini nonaktif. Butir yang sudah dinilai tidak bisa dilepas (409 `cocurricular_assessed`, atau `report_final` bila rapornya final). Galat: 404 `not_found`, 400 `invalid_reference`.
          */
         put: {
             parameters: {
@@ -15658,6 +15672,20 @@ export interface paths {
                 };
                 /** @description Default Response */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -15948,6 +15976,687 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/programs/{id}/assessment-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pilihan semester dan rombel untuk penilaian kokurikuler
+         * @description Izin: `cocurricular:read`; modul `grades`. Semester yang boleh dinilai (satu semester bila program terikat semester, selain itu seluruh semester tahun ajaran program) dan rombel program yang boleh dilihat pengguna (fasilitator hanya rombelnya). Tidak memerlukan izin tahun ajaran atau rombel, sehingga guru fasilitator tetap dapat memilih. Galat: 404 `not_found`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            semesters: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                startsOn: string;
+                                endsOn: string;
+                            }[];
+                            classes: {
+                                /** Format: uuid */
+                                classId: string;
+                                name: string;
+                                level: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/programs/{id}/assessments": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lembar penilaian kokurikuler satu rombel
+         * @description Izin: `cocurricular:read`; modul `grades`. Murid rombel pada semester itu (termasuk murid pindah yang keluar setelah semester berakhir) beserta penilaian tiap butir sasaran. Pengelola, kepala sekolah, kurikulum, operator, dan koordinator melihat semua rombel; fasilitator hanya rombelnya (selain itu 403). `canAssess` menunjukkan hak menyimpan, `locked` rapor rombel sudah final, `programClosed` program selesai. Galat: 404 `not_found`, 400 `invalid_reference`.
+         */
+        get: {
+            parameters: {
+                query: {
+                    semesterId: string;
+                    classId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            programId: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            /** Format: uuid */
+                            classId: string;
+                            students: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                nis: string | null;
+                            }[];
+                            cells: {
+                                /** Format: uuid */
+                                profileItemId: string;
+                                /** Format: uuid */
+                                studentId: string;
+                                /** Format: uuid */
+                                rubricLevelId: string | null;
+                                note: string | null;
+                            }[];
+                            /** @description Pengguna boleh menyimpan penilaian rombel ini (pengelola, fasilitator rombel, atau koordinator) */
+                            canAssess: boolean;
+                            /** @description Rapor rombel ini pada semester itu sudah final: baca saja sampai dibuka kembali */
+                            locked: boolean;
+                            /** @description Program berstatus selesai: baca saja */
+                            programClosed: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan penilaian kokurikuler satu rombel
+         * @description Izin: `cocurricular:read` di gerbang; hak menyimpan kontekstual: `cocurricular:manage`, koordinator program, atau fasilitator rombel itu (selain itu 403). Satu permintaan menyimpan sampai 500 sel (butir x murid) sebagai upsert; sel dengan tingkat dan catatan sama-sama kosong menghapus penilaian sel itu. Hanya penilaian sumatif per semester. Murid harus aktif di rombel, butir harus sasaran program, tingkat harus aktif. Galat: 404 `not_found`, 400 `invalid_reference`, 400 `student_not_in_class`, 400 `too_many_items`, 409 `program_closed`, 409 `report_final` (rapor murid itu pada semester itu sudah final; buka kembali dulu).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId: string;
+                        /** Format: uuid */
+                        classId: string;
+                        cells: {
+                            /** Format: uuid */
+                            profileItemId: string;
+                            /** Format: uuid */
+                            studentId: string;
+                            /** Format: uuid */
+                            rubricLevelId?: string | null;
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                            cleared: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/programs/{id}/evidence": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar bukti kokurikuler
+         * @description Izin: `cocurricular:read`; modul `grades`. Bukti karya berupa tautan https untuk program, terbaru dulu; saring dengan `classId`. Fasilitator hanya melihat bukti rombelnya (koordinator, pengelola, kepala sekolah, kurikulum, dan operator melihat semua). `canAssess` = boleh menambah/menghapus bukti untuk `classId` itu (tanpa `classId`: bukti tingkat program).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    classId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            canAssess: boolean;
+                            programClosed: boolean;
+                            evidence: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                programId: string;
+                                /** Format: uuid */
+                                classId: string | null;
+                                /** Format: uuid */
+                                studentId: string | null;
+                                studentName: string | null;
+                                title: string;
+                                url: string;
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah bukti kokurikuler
+         * @description Izin: `cocurricular:read` di gerbang; hak kontekstual seperti penyimpanan penilaian (pengelola, koordinator, atau fasilitator `classId` itu; bukti tanpa `classId` hanya pengelola/koordinator). Bukti hanya TAUTAN https (maks. 500 karakter); unggah berkas belum ada. `studentId` opsional dan harus murid aktif di `classId`. Galat: 404 `not_found`, 400 `invalid_url`, 400 `invalid_reference`, 400 `student_not_in_class`, 409 `program_closed`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        title: string;
+                        url: string;
+                        /** Format: uuid */
+                        classId?: string | null;
+                        /** Format: uuid */
+                        studentId?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            programId: string;
+                            /** Format: uuid */
+                            classId: string | null;
+                            /** Format: uuid */
+                            studentId: string | null;
+                            studentName: string | null;
+                            title: string;
+                            url: string;
+                            createdAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/programs/{id}/evidence/{evidenceId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Hapus bukti kokurikuler
+         * @description Izin: `cocurricular:read` di gerbang; hak kontekstual seperti menambah bukti. Galat: 404 `not_found`, 409 `program_closed`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                    evidenceId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;

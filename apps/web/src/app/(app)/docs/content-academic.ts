@@ -3878,7 +3878,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Apa itu program kokurikuler',
-            body: 'Program adalah satu kegiatan penguatan profil lulusan pada satu tahun ajaran, misalnya proyek kolaboratif atau gerakan 7 Kebiasaan Anak Indonesia Hebat. Program mencatat bentuk, tema, uraian, rencana JP, semester (atau sepanjang tahun), status, dan apakah tampil di rapor. Program bukan mata pelajaran, jadi tidak memengaruhi nilai, peringkat, kenaikan kelas, maupun kelulusan. Penilaian dan bukti belum tersedia di tahap ini.',
+            body: 'Program adalah satu kegiatan penguatan profil lulusan pada satu tahun ajaran, misalnya proyek kolaboratif atau gerakan 7 Kebiasaan Anak Indonesia Hebat. Program mencatat bentuk, tema, uraian, rencana JP, semester (atau sepanjang tahun), status, dan apakah tampil di rapor. Program bukan mata pelajaran, jadi tidak memengaruhi nilai, peringkat, kenaikan kelas, maupun kelulusan. Penilaian murid dan bukti karya ada di tab Penilaian dan Bukti (lihat panduan Penilaian kokurikuler).',
             href: '/cocurricular',
           },
           {
@@ -3934,7 +3934,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             q: 'Bolehkah menghapus program?',
-            a: 'Boleh, beserta rombel, sasaran, dan fasilitatornya. Untuk menyimpan riwayat, ubah statusnya menjadi Selesai.',
+            a: 'Boleh, beserta rombel, sasaran, fasilitator, dan buktinya, selama belum ada penilaian murid. Program yang sudah dinilai ditolak; untuk menyimpan riwayat, ubah statusnya menjadi Selesai.',
           },
         ],
       },
@@ -3947,7 +3947,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'What a cocurricular program is',
-            body: 'A program is one activity that strengthens the graduate profile in one academic year, for example a collaborative project or the 7 Habits of Great Indonesian Children movement. It records the form, theme, description, planned periods, semester (or the whole year), status, and whether it appears on the report card. A program is not a subject, so it does not affect grades, rankings, promotion, or graduation. Assessment and evidence are not available at this stage.',
+            body: 'A program is one activity that strengthens the graduate profile in one academic year, for example a collaborative project or the 7 Habits of Great Indonesian Children movement. It records the form, theme, description, planned periods, semester (or the whole year), status, and whether it appears on the report card. A program is not a subject, so it does not affect grades, rankings, promotion, or graduation. Student assessment and work evidence are on the Assessment and Evidence tabs (see the Cocurricular assessment guide).',
             href: '/cocurricular',
           },
           {
@@ -4003,7 +4003,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             q: 'Can I delete a program?',
-            a: 'Yes, together with its classes, targets, and facilitators. To keep the history, set its status to Closed instead.',
+            a: 'Yes, together with its classes, targets, facilitators, and evidence, as long as no student has been assessed. A program that has assessments is refused; to keep the history, set its status to Closed instead.',
           },
         ],
       },
@@ -4016,7 +4016,7 @@ export const ACADEMIC_DOCS: DocArticle[] = [
         sections: [
           {
             heading: 'Naon éta program kokurikuler',
-            body: 'Program nyaéta hiji kagiatan nu nguatkeun profil lulusan dina hiji taun pelajaran, upamana proyék kolaboratif atawa gerakan 7 Kabiasaan Anak Indonesia Hébat. Program nyatet wangun, téma, uraian, rencana JP, semester (atawa sapanjang taun), status, jeung naha kaciri dina rapor. Program lain mata pelajaran, jadi henteu mangaruhan nilai, pangkat, kanaékan kelas, atawa kalulusan. Pangajén jeung bukti acan sayogi dina tahap ieu.',
+            body: 'Program nyaéta hiji kagiatan nu nguatkeun profil lulusan dina hiji taun pelajaran, upamana proyék kolaboratif atawa gerakan 7 Kabiasaan Anak Indonesia Hébat. Program nyatet wangun, téma, uraian, rencana JP, semester (atawa sapanjang taun), status, jeung naha kaciri dina rapor. Program lain mata pelajaran, jadi henteu mangaruhan nilai, pangkat, kanaékan kelas, atawa kalulusan. Pangajén murid jeung bukti karya aya dina tab Pangajén jeung Bukti (tingal pituduh Pangajén kokurikuler).',
             href: '/cocurricular',
           },
           {
@@ -4072,7 +4072,205 @@ export const ACADEMIC_DOCS: DocArticle[] = [
           },
           {
             q: 'Naha program bisa dipupus?',
-            a: 'Bisa, jeung rombel, tujuan, jeung fasilitatorna. Pikeun nyimpen riwayat, robah statusna jadi Réngsé.',
+            a: 'Bisa, jeung rombel, tujuan, fasilitator, jeung buktina, salami acan aya murid nu dipariksa. Program nu geus dipariksa ditolak; pikeun nyimpen riwayat, robah statusna jadi Réngsé.',
+          },
+        ],
+      },
+    },
+  },
+  {
+    slug: 'cocurricular-assessment',
+    icon: 'layers',
+    tone: 'violet',
+    group: 'academic',
+    module: 'grades',
+    text: {
+      id: {
+        title: 'Penilaian kokurikuler: tingkat capaian, catatan, dan bukti',
+        summary:
+          'Cara menilai murid pada butir sasaran program kokurikuler per semester dan rombel, mengisi massal, melampirkan bukti berupa tautan, serta memahami hak menilai dan penguncian saat rapor final.',
+        forWho:
+          'Admin sekolah dan Kurikulum (semua rombel), koordinator program (semua rombel program), dan guru fasilitator (rombelnya saja); kepala sekolah dan operator dapat melihat.',
+        sections: [
+          {
+            heading: 'Apa yang dinilai',
+            body: 'Setiap murid dinilai pada tiap butir sasaran program (misalnya dimensi profil lulusan) dengan satu tingkat rubrik dari Pengaturan kokurikuler dan, bila perlu, catatan singkat. Hanya penilaian sumatif per semester yang disimpan. Kokurikuler bukan mata pelajaran: penilaian ini tidak masuk nilai akhir, rata-rata, peringkat, kenaikan kelas, maupun kelulusan.',
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Mengisi penilaian',
+            body: 'Di tab Penilaian, pilih semester dan rombel. Di ponsel setiap murid tampil sebagai kartu; di layar lebar tampil sebagai matriks murid dan butir. Pilih tingkat pada tiap butir, buka tombol catatan bila perlu menulis, lalu simpan. Mengosongkan tingkat dan catatan menghapus penilaian sel itu. Satu kali simpan menampung sampai 500 sel; halaman membaginya otomatis.',
+            steps: [
+              'Buka program, tab Penilaian.',
+              'Pilih semester dan rombel.',
+              'Pilih tingkat tiap murid pada tiap butir; ikon pesan membuka catatan.',
+              'Untuk memberi semua murid tingkat yang sama pada satu butir, pakai Isi massal lalu Terapkan ke semua.',
+              'Klik Simpan pada bilah bawah; penanda Ada perubahan yang belum disimpan hilang setelah tersimpan.',
+            ],
+            href: '/cocurricular',
+            tip: 'Isi rubrik tingkat lebih dulu di Pengaturan kokurikuler; tanpa rubrik hanya catatan yang dapat diisi.',
+          },
+          {
+            heading: 'Siapa yang boleh menilai',
+            body: 'Admin sekolah dan Kurikulum boleh menilai semua rombel. Koordinator program boleh menilai semua rombel program itu, dan fasilitator hanya rombel yang ditugaskan padanya di tab Rombel dan fasilitator. Guru lain tidak melihat penilaian program itu dan ditolak bila mencoba menilai. Kepala sekolah dan operator dapat melihat semua rombel tanpa dapat mengubah.',
+          },
+          {
+            heading: 'Rapor final mengunci penilaian',
+            body: 'Bila rapor murid pada semester itu sudah difinalkan, penilaian murid itu tidak dapat diubah sampai rapornya dibuka kembali di menu Rapor. Murid lain yang rapornya belum final tetap dapat dinilai. Program, rombel, atau butir yang sudah punya penilaian tidak dapat dihapus atau dilepas, dan tingkat rubrik yang sudah dipakai tidak dapat dihapus (nonaktifkan saja). Program berstatus Selesai hanya dapat dibaca.',
+          },
+          {
+            heading: 'Bukti karya',
+            body: 'Tab Bukti menyimpan tautan https ke karya atau dokumentasi kegiatan (judul dan tautan, paling banyak 500 karakter) per rombel atau untuk seluruh program. Hanya tautan https yang diterima; unggah berkas belum tersedia. Tautan dibuka di tab baru.',
+            steps: [
+              'Buka program, tab Bukti.',
+              'Pilih rombel (atau Seluruh program bila Anda pengelola atau koordinator).',
+              'Isi judul dan tautan yang diawali https://, lalu klik Tambah bukti.',
+            ],
+            href: '/cocurricular',
+          },
+        ],
+        faq: [
+          {
+            q: 'Mengapa saya tidak bisa menyimpan dan muncul pesan rapor sudah difinalisasi?',
+            a: 'Rapor murid itu pada semester tersebut sudah final. Minta wali kelas atau pengelola rapor membukanya kembali di menu Rapor, lalu simpan lagi.',
+          },
+          {
+            q: 'Mengapa saya tidak melihat rombel tertentu?',
+            a: 'Fasilitator hanya melihat rombel yang ditugaskan kepadanya. Minta admin sekolah atau Kurikulum menambahkan Anda di tab Rombel dan fasilitator.',
+          },
+          {
+            q: 'Mengapa tautan bukti ditolak?',
+            a: 'Bukti harus berupa tautan yang diawali https://, tanpa spasi, paling banyak 500 karakter. Tautan http biasa tidak diterima.',
+          },
+          {
+            q: 'Mengapa saya tidak bisa menghapus program atau tingkat rubrik?',
+            a: 'Program, rombel, atau butir yang sudah dinilai dan tingkat rubrik yang sudah dipakai tidak dapat dihapus. Ubah status program menjadi Selesai atau nonaktifkan tingkatnya.',
+          },
+        ],
+      },
+      en: {
+        title: 'Cocurricular assessment: achievement level, notes, and evidence',
+        summary:
+          'How to assess students on a cocurricular program’s target items per semester and class, fill in bulk, attach evidence links, and understand who may assess and the lock when a report card is final.',
+        forWho:
+          'School admins and Curriculum (all classes), program coordinators (all program classes), and facilitator teachers (their own class only); principals and operators can view.',
+        sections: [
+          {
+            heading: 'What is assessed',
+            body: 'Each student is rated on every program target item (for example a graduate profile dimension) with one rubric level from Cocurricular settings and, if needed, a short note. Only summative assessment per semester is saved. Cocurricular work is not a subject: this assessment does not enter the final grade, average, ranking, promotion, or graduation.',
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Filling in the assessment',
+            body: 'On the Assessment tab, choose the semester and class. On a phone each student appears as a card; on a wide screen as a student by item matrix. Choose a level on each item, open the note button to write, then save. Clearing the level and note removes that cell’s assessment. One save carries up to 500 cells; the page splits it automatically.',
+            steps: [
+              'Open the program, Assessment tab.',
+              'Choose the semester and class.',
+              'Choose each student’s level on each item; the message icon opens the note.',
+              'To give all students the same level on one item, use Fill in bulk then Apply to all.',
+              'Click Save on the bottom bar; the unsaved-changes notice disappears once saved.',
+            ],
+            href: '/cocurricular',
+            tip: 'Fill in the rubric levels in Cocurricular settings first; without a rubric only notes can be entered.',
+          },
+          {
+            heading: 'Who may assess',
+            body: 'School admins and Curriculum may assess every class. A program coordinator may assess all of that program’s classes, and a facilitator only the class assigned on the Classes and facilitators tab. Other teachers do not see that program’s assessment and are refused if they try to assess. Principals and operators can view every class but not change it.',
+          },
+          {
+            heading: 'A final report card locks the assessment',
+            body: 'Once a student’s report card for the semester is finalized, that student’s assessment cannot be changed until the report card is reopened in the Report cards menu. Other students whose report cards are not final can still be assessed. A program, class, or item that has assessments cannot be deleted or removed, and a rubric level already used cannot be deleted (deactivate it instead). A Closed program is read only.',
+          },
+          {
+            heading: 'Work evidence',
+            body: 'The Evidence tab stores https links to work or documentation of the activity (a title and a link of at most 500 characters) per class or for the whole program. Only https links are accepted; file upload is not available yet. Links open in a new tab.',
+            steps: [
+              'Open the program, Evidence tab.',
+              'Choose the class (or Whole program if you are a manager or coordinator).',
+              'Enter a title and a link starting with https://, then click Add evidence.',
+            ],
+            href: '/cocurricular',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why can I not save, and I see a message that the report card is finalized?',
+            a: 'That student’s report card for that semester is final. Ask the homeroom teacher or report manager to reopen it in the Report cards menu, then save again.',
+          },
+          {
+            q: 'Why do I not see a certain class?',
+            a: 'A facilitator only sees the class assigned to them. Ask the school admin or Curriculum to add you on the Classes and facilitators tab.',
+          },
+          {
+            q: 'Why was an evidence link rejected?',
+            a: 'Evidence must be a link starting with https://, with no spaces, at most 500 characters. A plain http link is not accepted.',
+          },
+          {
+            q: 'Why can I not delete a program or a rubric level?',
+            a: 'A program, class, or item that has been assessed, and a rubric level already used, cannot be deleted. Set the program to Closed or deactivate the level.',
+          },
+        ],
+      },
+      su: {
+        title: 'Pangajén kokurikuler: tingkat capaian, catetan, jeung bukti',
+        summary:
+          'Cara mariksa murid dina butir tujuan program kokurikuler per semester jeung rombel, ngeusian sakaligus, ngalampirkeun bukti mangrupa tumbu, sarta ngarti saha nu meunang mariksa jeung konci nalika rapor final.',
+        forWho:
+          'Admin sakola jeung Kurikulum (sakabéh rombel), koordinator program (sakabéh rombel program), jeung guru fasilitator (rombelna wungkul); kepala sakola jeung operator bisa ningali.',
+        sections: [
+          {
+            heading: 'Naon nu dipariksa',
+            body: 'Unggal murid dipariksa dina unggal butir tujuan program (upamana dimensi profil lulusan) ku hiji tingkat rubrik tina Pangaturan kokurikuler jeung, lamun perlu, catetan pondok. Ngan pangajén sumatif per semester nu disimpen. Kokurikuler lain mata pelajaran: pangajén ieu henteu asup kana nilai ahir, rata-rata, pangkat, kanaékan kelas, atawa kalulusan.',
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Ngeusian pangajén',
+            body: 'Dina tab Pangajén, pilih semester jeung rombel. Di ponsel unggal murid kaciri minangka kartu; di layar lega minangka matriks murid jeung butir. Pilih tingkat dina unggal butir, buka tombol catetan lamun perlu nulis, tuluy simpen. Ngosongkeun tingkat jeung catetan miceun pangajén sél éta. Sakali simpen nampung nepi ka 500 sél; kaca ngabagina sacara otomatis.',
+            steps: [
+              'Buka program, tab Pangajén.',
+              'Pilih semester jeung rombel.',
+              'Pilih tingkat unggal murid dina unggal butir; ikon pesen muka catetan.',
+              'Pikeun méré sakabéh murid tingkat nu sarua dina hiji butir, pake Eusian sakaligus tuluy Larapkeun ka sakabéh.',
+              'Klik Simpen dina bar handap; tanda Aya parobahan nu acan kasimpen leungit sanggeus kasimpen.',
+            ],
+            href: '/cocurricular',
+            tip: 'Eusian heula tingkat rubrik dina Pangaturan kokurikuler; tanpa rubrik ngan catetan nu bisa dieusian.',
+          },
+          {
+            heading: 'Saha nu meunang mariksa',
+            body: 'Admin sakola jeung Kurikulum meunang mariksa sakabéh rombel. Koordinator program meunang mariksa sakabéh rombel program éta, jeung fasilitator ngan rombel nu ditugaskeun ka manéhna dina tab Rombel jeung fasilitator. Guru séjén teu nempo pangajén program éta jeung ditolak lamun nyoba mariksa. Kepala sakola jeung operator bisa ningali sakabéh rombel tanpa bisa ngarobah.',
+          },
+          {
+            heading: 'Rapor final ngonci pangajén',
+            body: 'Lamun rapor murid dina semester éta geus difinalkeun, pangajén murid éta teu bisa dirobah nepi ka raporna dibuka deui dina ménu Rapor. Murid séjén nu raporna acan final tetep bisa dipariksa. Program, rombel, atawa butir nu geus boga pangajén teu bisa dipupus atawa dicabut, jeung tingkat rubrik nu geus dipaké teu bisa dipupus (nonaktipkeun waé). Program nu statusna Réngsé ngan bisa dibaca.',
+          },
+          {
+            heading: 'Bukti karya',
+            body: 'Tab Bukti nyimpen tumbu https ka karya atawa dokuméntasi kagiatan (judul jeung tumbu, paling réa 500 karakter) per rombel atawa pikeun sakabéh program. Ngan tumbu https nu ditampa; unggah koropak acan sayogi. Tumbu dibuka dina tab anyar.',
+            steps: [
+              'Buka program, tab Bukti.',
+              'Pilih rombel (atawa Sakabéh program lamun Anjeun pangurus atawa koordinator).',
+              'Eusian judul jeung tumbu nu dimimitian ku https://, tuluy klik Tambah bukti.',
+            ],
+            href: '/cocurricular',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha abdi teu bisa nyimpen jeung muncul pesen rapor geus difinalkeun?',
+            a: 'Rapor murid éta dina semester éta geus final. Pénta wali kelas atawa pangurus rapor muka deui dina ménu Rapor, tuluy simpen deui.',
+          },
+          {
+            q: 'Naha abdi teu ningali rombel nu tangtu?',
+            a: 'Fasilitator ngan ningali rombel nu ditugaskeun ka manéhna. Pénta admin sakola atawa Kurikulum nambahan Anjeun dina tab Rombel jeung fasilitator.',
+          },
+          {
+            q: 'Naha tumbu bukti ditolak?',
+            a: 'Bukti kudu mangrupa tumbu nu dimimitian ku https://, tanpa spasi, paling réa 500 karakter. Tumbu http biasa teu ditampa.',
+          },
+          {
+            q: 'Naha abdi teu bisa mupus program atawa tingkat rubrik?',
+            a: 'Program, rombel, atawa butir nu geus dipariksa jeung tingkat rubrik nu geus dipaké teu bisa dipupus. Robah status program jadi Réngsé atawa nonaktipkeun tingkatna.',
           },
         ],
       },

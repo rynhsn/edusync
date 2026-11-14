@@ -31,14 +31,15 @@ import {
 import type { FastifyInstance } from 'fastify';
 import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
+import { assertNotAssessed } from '../cocurricular-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import { audit, guarded, idParams, ok, schoolHeader } from './helpers';
 
 /**
  * Kokurikuler, tahap 4.2: program per tahun ajaran (bentuk, tema, rombel, butir sasaran, fasilitator, rencana JP vs alokasi).
- * Kokurikuler BUKAN mapel dan tidak memengaruhi nilai. Penilaian dan bukti menyusul di tahap 4.3 (penolakan 409
- * `cocurricular_assessed` saat menghapus program/melepas rombel atau butir yang sudah dinilai berlaku sejak saat itu).
+ * Kokurikuler BUKAN mapel dan tidak memengaruhi nilai. Penilaian dan bukti ada di cocurricular-assessments.ts (tahap 4.3); program, rombel, atau butir yang sudah
+ * dinilai ditolak 409 `cocurricular_assessed` (atau `report_final`).
  */
 
 const tag = ['Cocurricular'];
@@ -391,17 +392,18 @@ export async function cocurricularProgramRoutes(instance: FastifyInstance) {
         summary: 'Hapus program kokurikuler',
         description:
           'Izin: `cocurricular:manage`; modul `grades`. Menghapus program beserta rombel, butir sasaran, dan fasilitatornya. ' +
-          'Penolakan 409 `cocurricular_assessed` untuk program yang sudah punya penilaian berlaku sejak tahap 4.3 (gunakan ' +
-          '`status: closed`). Galat: 404 `not_found`.',
+          'Program yang sudah punya penilaian ditolak: 409 `report_final` bila ada penilaian pada rapor yang sudah final, selain itu ' +
+          '409 `cocurricular_assessed` (gunakan `status: closed`). Bukti program ikut terhapus. Galat: 404 `not_found`.',
         headers: schoolHeader,
         params: idParams,
-        response: { 200: ok, 404: errorSchema, ...guarded },
+        response: { 200: ok, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
       return tenant(request, async (tx) => {
         const p = await loadProgram(tx, request.params.id);
+        await assertNotAssessed(tx, p.id);
         await tx.delete(cocurricularProgram).where(eq(cocurricularProgram.id, p.id));
         await audit(tx, ctx, 'cocurricular.program.delete', 'cocurricular_program', p.id, { title: p.title });
         return { ok: true as const };
@@ -418,7 +420,8 @@ export async function cocurricularProgramRoutes(instance: FastifyInstance) {
         summary: 'Ganti rombel program kokurikuler',
         description:
           'Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar rombel peserta. Rombel harus milik tahun ajaran ' +
-          'program. Rombel yang masih punya fasilitator tidak bisa dilepas (409 `conflict`; ubah fasilitator dulu). Galat: 404 ' +
+          'program. Rombel yang masih punya fasilitator tidak bisa dilepas (409 `conflict`; ubah fasilitator dulu), dan rombel yang ' +
+          'muridnya sudah dinilai juga tidak (409 `cocurricular_assessed`, atau `report_final` bila rapornya final). Galat: 404 ' +
           '`not_found`, 400 `invalid_reference`.',
         headers: schoolHeader,
         params: idParams,
@@ -443,9 +446,16 @@ export async function cocurricularProgramRoutes(instance: FastifyInstance) {
           .from(cocurricularFacilitator)
           .where(eq(cocurricularFacilitator.programId, p.id));
         const keep = new Set(classIds);
+        const current = (
+          await tx
+            .select({ id: cocurricularProgramClass.classId })
+            .from(cocurricularProgramClass)
+            .where(eq(cocurricularProgramClass.programId, p.id))
+        ).map((c) => c.id);
         if (facs.some((f) => f.classId !== null && !keep.has(f.classId))) {
           throw dup('Rombel yang dilepas masih punya fasilitator; ubah fasilitator terlebih dahulu.');
         }
+        await assertNotAssessed(tx, p.id, { classIds: current.filter((c) => !keep.has(c)) });
         await replaceClasses(tx, ctx.schoolId, p.id, classIds);
         await tx
           .update(cocurricularProgram)
@@ -468,12 +478,19 @@ export async function cocurricularProgramRoutes(instance: FastifyInstance) {
         summary: 'Ganti butir sasaran program kokurikuler',
         description:
           'Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar butir sasaran (dimensi profil / topik Panca Cinta ' +
-          'milik sekolah). Butir baru harus aktif; butir yang sudah menjadi sasaran boleh tetap walau kini nonaktif. Galat: 404 ' +
+          'milik sekolah). Butir baru harus aktif; butir yang sudah menjadi sasaran boleh tetap walau kini nonaktif. Butir yang sudah ' +
+          'dinilai tidak bisa dilepas (409 `cocurricular_assessed`, atau `report_final` bila rapornya final). Galat: 404 ' +
           '`not_found`, 400 `invalid_reference`.',
         headers: schoolHeader,
         params: idParams,
         body: z.object({ profileItemIds: z.array(z.uuid()).max(PROGRAM_CHILD_LIMIT) }),
-        response: { 200: cocurricularProgramDetailSchema, 400: errorSchema, 404: errorSchema, ...guarded },
+        response: {
+          200: cocurricularProgramDetailSchema,
+          400: errorSchema,
+          404: errorSchema,
+          409: errorSchema,
+          ...guarded,
+        },
       },
     },
     async (request) => {
@@ -486,6 +503,10 @@ export async function cocurricularProgramRoutes(instance: FastifyInstance) {
           .from(cocurricularProgramTarget)
           .where(eq(cocurricularProgramTarget.programId, p.id));
         await assertTargets(tx, profileItemIds, new Set(current.map((c) => c.id)));
+        const next = new Set(profileItemIds);
+        await assertNotAssessed(tx, p.id, {
+          profileItemIds: current.map((c) => c.id).filter((i) => !next.has(i)),
+        });
         await replaceTargets(tx, ctx.schoolId, p.id, profileItemIds);
         await tx
           .update(cocurricularProgram)

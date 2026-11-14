@@ -1,7 +1,17 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { ListChecks, Pencil, Plus, Sparkles, Target, Trash2, Users } from 'lucide-react';
+import {
+  ClipboardCheck,
+  Link2,
+  ListChecks,
+  Pencil,
+  Plus,
+  Sparkles,
+  Target,
+  Trash2,
+  Users,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
@@ -38,6 +48,7 @@ import { cn } from '@/lib/utils';
 import { ProgramFields } from '../program-form';
 import { STATUS_TONE } from '../programs-view';
 import { SaveBar } from '../settings/settings-view';
+import { AssessmentTab, EvidenceTab } from './assessment-tab';
 
 type Header = { header: { 'x-school-id': string } };
 
@@ -45,9 +56,22 @@ const fetchProgram = async (header: Header, id: string) =>
   unwrap(await api.GET('/v1/cocurricular/programs/{id}', { params: { ...header, path: { id } } }));
 type Program = Awaited<ReturnType<typeof fetchProgram>>;
 
-const TABS = ['summary', 'classes', 'targets'] as const;
+const TABS = ['summary', 'classes', 'targets', 'assessment', 'evidence'] as const;
 type Tab = (typeof TABS)[number];
-const TAB_ICONS = { summary: ListChecks, classes: Users, targets: Target } as const;
+const TAB_ICONS = {
+  summary: ListChecks,
+  classes: Users,
+  targets: Target,
+  assessment: ClipboardCheck,
+  evidence: Link2,
+} as const;
+const TAB_LABEL = {
+  summary: 'tabSummary',
+  classes: 'tabClasses',
+  targets: 'tabTargets',
+  assessment: 'tabAssessment',
+  evidence: 'tabEvidence',
+} as const;
 
 /** Menyimpan hasil PUT (detail terbaru) ke cache dan menyegarkan daftar serta peringatan JP. */
 function useProgramCache(schoolId: string, id: string) {
@@ -544,7 +568,7 @@ const draftOf = (p: Program): ProgramDraft => ({
   status: p.status,
 });
 
-/** Detail dan kelola satu program kokurikuler (tahap 4.2): ringkasan, rombel dan fasilitator, butir sasaran. */
+/** Detail dan kelola satu program kokurikuler: ringkasan, rombel dan fasilitator, butir sasaran (4.2), penilaian dan bukti (4.3). */
 export function CocurricularProgramDetailView({ id }: { id: string }) {
   const t = useTranslations('cocurricular');
   const te = useTranslations();
@@ -678,9 +702,7 @@ export function CocurricularProgramDetailView({ id }: { id: string }) {
               )}
             >
               <Icon aria-hidden className="size-4 shrink-0" />
-              <span className="min-w-0 break-words">
-                {t(k === 'summary' ? 'tabSummary' : k === 'classes' ? 'tabClasses' : 'tabTargets')}
-              </span>
+              <span className="min-w-0 break-words">{t(TAB_LABEL[k])}</span>
             </button>
           );
         })}
@@ -696,6 +718,11 @@ export function CocurricularProgramDetailView({ id }: { id: string }) {
       {tab === 'targets' && (
         <TargetsTab program={p} canManage={canManage} header={header} schoolId={school.schoolId} />
       )}
+
+      {tab === 'assessment' && (
+        <AssessmentTab programId={p.id} targets={p.targets} header={header} schoolId={school.schoolId} />
+      )}
+      {tab === 'evidence' && <EvidenceTab programId={p.id} header={header} schoolId={school.schoolId} />}
 
       {canManage && (
         <FormDialog

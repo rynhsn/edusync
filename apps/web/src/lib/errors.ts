@@ -205,6 +205,10 @@ const KNOWN = [
   'dataset_requires_module',
   'framework_not_for_profile',
   'item_in_use',
+  'cocurricular_assessed',
+  'program_closed',
+  'student_not_in_class',
+  'invalid_url',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

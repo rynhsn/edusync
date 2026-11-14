@@ -232,6 +232,21 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   modul `grades`. Migrasi 0107 (empat tabel tenant baru ber-RLS dengan FK komposit; tanpa kolom baru pada tabel lama, tanpa baris
   otomatis). Penilaian murid, bukti, dan bagian rapor menyusul di tahap 4.3 dan 4.4; kokurikuler tetap bukan mapel dan tidak
   memengaruhi nilai, peringkat, kenaikan, atau kelulusan.
+- **Penilaian kokurikuler** (fase 4, tahap 4.3): tab Penilaian dan Bukti pada halaman program kokurikuler. Guru menilai tiap murid pada
+  butir sasaran program per semester dan rombel dengan satu tingkat rubrik sekolah dan/atau catatan (maks. 1000 karakter); hanya
+  penilaian sumatif yang disimpan. Layar: kartu per murid di ponsel, matriks murid x butir dari lebar `lg`, isi massal per butir, simpan
+  eksplisit dengan penanda belum disimpan (batch dibagi otomatis per 500 sel). Endpoint `GET /v1/cocurricular/programs/:id/assessments`
+  dan `.../assessment-options`, `PUT .../assessments` (upsert; sel kosong menghapus), serta `GET/POST/DELETE .../evidence` (bukti karya
+  hanya TAUTAN https, maks. 500 karakter, per rombel atau program; unggah berkas belum ada). **Hak menilai kontekstual** tanpa izin baru:
+  `cocurricular:manage`, koordinator program (semua rombel program), atau fasilitator rombel itu; gerbang rute cukup
+  `cocurricular:read`. Guru lain ditolak (403) dan tidak melihat penilaian rombel yang bukan miliknya (kepala sekolah, kurikulum, dan
+  operator melihat semua tanpa dapat mengubah). Galat baru: 409 `report_final` (rapor murid itu pada semester itu sudah final; buka
+  kembali dulu), 409 `program_closed`, 400 `student_not_in_class`, 400 `too_many_items` (> 500 sel), 400 `invalid_url`. Program yang
+  sudah dinilai tidak bisa dihapus, dan rombel atau butir yang sudah dinilai tidak bisa dilepas dari program: 409
+  `cocurricular_assessed` (atau `report_final` bila penilaian itu ada pada rapor yang sudah final); tingkat rubrik yang sudah dipakai
+  tidak bisa dihapus (409 `item_in_use`; nonaktifkan). Migrasi 0108 (dua tabel tenant baru ber-RLS dengan FK komposit; tanpa kolom baru
+  pada tabel lama, tanpa baris otomatis). Kokurikuler tetap bukan mapel dan tidak memengaruhi nilai, peringkat, kenaikan, atau
+  kelulusan; bagian rapor kokurikuler menyusul di tahap 4.4.
 
 ### Diubah
 
@@ -290,6 +305,11 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
 - Program kokurikuler (tahap 4.2): tabel `cocurricular_program`, `cocurricular_program_target`, `cocurricular_program_class`, dan
   `cocurricular_facilitator` dibiarkan di database. Setelah kembali ke versi sebelumnya halaman dan endpoint program tidak ada dan
   penghapusan butir kerangka tidak lagi dicegah (FK database tetap menolak menghapus butir yang masih menjadi sasaran program).
+- Penilaian kokurikuler (tahap 4.3): tabel `cocurricular_assessment` dan `cocurricular_evidence` dibiarkan di database. Setelah kembali ke
+  versi sebelumnya tab dan endpoint penilaian/bukti tidak ada dan tidak berefek pada nilai, rapor, kenaikan, atau kelulusan (belum ada
+  yang membacanya). Penjagaan 409 saat menghapus program, melepas rombel/butir, atau menghapus tingkat rubrik yang sudah dinilai tidak
+  berlaku di versi lama; FK database (NO ACTION) tetap menolak penghapusan itu (galat umum, bukan 409), jadi data penilaian tidak
+  hilang. Sekolah yang belum menilai tidak terpengaruh.
 - Kelulusan (tahap 3C.4): tabel `graduation_policy`, `school_exam`, `school_exam_score`, dan `graduation_decision` serta izin
   `graduation:read` dan `graduation:manage` dibiarkan di database dan tampil lagi setelah maju. Setelah kembali ke versi
   sebelumnya, halaman dan endpoint kelulusan tidak ada dan keputusan `graduate` di wizard kenaikan kembali bebas dipilih (penjaga

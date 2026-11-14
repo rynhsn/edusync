@@ -4204,6 +4204,64 @@ export const cocurricularFacilitator = pgTable(
   (t) => [unique('cocurricular_facilitator_school_id_uq').on(t.schoolId, t.id)],
 );
 
+/* ---------- Penilaian kokurikuler (fase 4, tahap 4.3; DDL dan FK komposit di migrasi 0108) ---------- */
+
+/** Penilaian sumatif per (program, butir, murid, semester): tingkat rubrik dan/atau catatan (CHECK di SQL: salah satunya terisi). */
+export const cocurricularAssessment = pgTable(
+  'cocurricular_assessment',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    programId: uuid('program_id')
+      .notNull()
+      .references(() => cocurricularProgram.id),
+    profileItemId: uuid('profile_item_id')
+      .notNull()
+      .references(() => schoolProfileItem.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    rubricLevelId: uuid('rubric_level_id').references(() => cocurricularRubricLevel.id),
+    note: text('note'),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('cocurricular_assessment_school_id_uq').on(t.schoolId, t.id),
+    unique('cocurricular_assessment_cell_uq').on(t.programId, t.profileItemId, t.studentId, t.semesterId),
+    index('cocurricular_assessment_sem_student_idx').on(t.schoolId, t.semesterId, t.studentId),
+  ],
+);
+
+/** Bukti karya berupa tautan https. `studentId`/`classId` null = bukti program (kelompok). Terhapus bersama programnya. */
+export const cocurricularEvidence = pgTable(
+  'cocurricular_evidence',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    programId: uuid('program_id')
+      .notNull()
+      .references(() => cocurricularProgram.id),
+    studentId: uuid('student_id').references(() => student.id),
+    classId: uuid('class_id').references(() => classRoom.id),
+    title: text('title').notNull(),
+    url: text('url').notNull(),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+  },
+  (t) => [
+    unique('cocurricular_evidence_school_id_uq').on(t.schoolId, t.id),
+    index('cocurricular_evidence_program_idx').on(t.schoolId, t.programId),
+  ],
+);
+
 /* ---------- Perubahan paket yayasan (tingkatkan, tambah unit, jadwalkan penurunan) ---------- */
 
 /**

@@ -217,3 +217,105 @@ export const cocurricularPeriodsLevelSchema = z.object({
 export function facilitatorShapeValid(f: { role: string; classId: string | null }): boolean {
   return f.role === 'coordinator' ? f.classId === null : f.classId !== null;
 }
+
+/* ---------- Penilaian dan bukti kokurikuler (tahap 4.3) ---------- */
+
+/** Kode galat tahap 4.2-4.3 (selain `report_final` milik penjaga rapor). */
+export const COCURRICULAR_ASSESSMENT_ERROR_CODES = [
+  'cocurricular_assessed',
+  'program_closed',
+  'student_not_in_class',
+  'too_many_items',
+  'invalid_url',
+] as const;
+
+/** Batas sel penilaian per permintaan simpan (satu sel = butir x murid). */
+export const ASSESSMENT_BATCH_LIMIT = 500;
+export const EVIDENCE_URL_MAX = 500;
+
+/** Bukti hanya tautan https dengan nama host, tanpa spasi, maks. 500 karakter. Dipakai API dan layar. */
+export function isEvidenceUrl(value: string): boolean {
+  const v = value.trim();
+  return v.length <= EVIDENCE_URL_MAX && /^https:\/\/[^\s/?#]+\S*$/i.test(v);
+}
+
+/** Satu sel penilaian. Tingkat dan catatan kosong dua-duanya = hapus penilaian sel itu. */
+export const assessmentCellInputSchema = z.object({
+  profileItemId: z.uuid(),
+  studentId: z.uuid(),
+  rubricLevelId: z
+    .uuid()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+  note: optionalText(1000),
+});
+
+/** Jumlah sel tidak dibatasi di skema supaya kelebihan menjadi 400 `too_many_items`, bukan galat validasi umum. */
+export const assessmentsSaveSchema = z.object({
+  semesterId: z.uuid(),
+  classId: z.uuid(),
+  cells: z.array(assessmentCellInputSchema),
+});
+
+export const assessmentCellSchema = z.object({
+  profileItemId: z.uuid(),
+  studentId: z.uuid(),
+  rubricLevelId: z.uuid().nullable(),
+  note: z.string().nullable(),
+});
+
+export const assessmentStudentSchema = z.object({
+  id: z.uuid(),
+  name: z.string(),
+  nis: z.string().nullable(),
+});
+
+export const assessmentSheetSchema = z.object({
+  programId: z.uuid(),
+  semesterId: z.uuid(),
+  classId: z.uuid(),
+  students: z.array(assessmentStudentSchema),
+  cells: z.array(assessmentCellSchema),
+  canAssess: z
+    .boolean()
+    .describe(
+      'Pengguna boleh menyimpan penilaian rombel ini (pengelola, fasilitator rombel, atau koordinator)',
+    ),
+  locked: z
+    .boolean()
+    .describe('Rapor rombel ini pada semester itu sudah final: baca saja sampai dibuka kembali'),
+  programClosed: z.boolean().describe('Program berstatus selesai: baca saja'),
+});
+
+export const evidenceInputSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  url: z.string().trim().min(1).max(2000),
+  classId: z
+    .uuid()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+  studentId: z
+    .uuid()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+});
+
+export const evidenceSchema = z.object({
+  id: z.uuid(),
+  programId: z.uuid(),
+  classId: z.uuid().nullable(),
+  studentId: z.uuid().nullable(),
+  studentName: z.string().nullable(),
+  title: z.string(),
+  url: z.string(),
+  createdAt: z.string(),
+});
+
+/** Pilihan layar penilaian: semester yang boleh dinilai dan rombel yang boleh dilihat pengguna (guru tanpa izin tahun ajaran tetap bisa memilih). */
+export const assessmentOptionsSchema = z.object({
+  semesters: z.array(z.object({ id: z.uuid(), name: z.string(), startsOn: z.string(), endsOn: z.string() })),
+  classes: z.array(cocurricularProgramClassSchema),
+});

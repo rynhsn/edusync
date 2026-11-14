@@ -11,6 +11,7 @@ import {
 import {
   and,
   asc,
+  cocurricularAssessment,
   cocurricularProgramTarget,
   cocurricularRubricLevel,
   eq,
@@ -353,8 +354,8 @@ export async function cocurricularRoutes(instance: FastifyInstance) {
         description:
           'Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar tingkat: tingkat dengan `id` diubah, tanpa `id` ' +
           `dibuat, yang tidak disertakan dihapus (maks. ${RUBRIC_LEVEL_LIMIT}). Untuk menyembunyikan tingkat kirim ` +
-          '`active: false`. Galat: 400 `invalid_reference` (id tidak dikenal), 409 `conflict` (kode kembar). Penolakan 409 ' +
-          '`item_in_use` untuk tingkat yang sudah dipakai penilaian berlaku sejak tahap 4.3.',
+          '`active: false`. Galat: 400 `invalid_reference` (id tidak dikenal), 409 `conflict` (kode kembar), 409 `item_in_use` ' +
+          '(tingkat yang sudah dipakai penilaian kokurikuler tidak bisa dihapus; nonaktifkan).',
         headers: schoolHeader,
         body: z.object({ levels: z.array(rubricLevelInputSchema).max(RUBRIC_LEVEL_LIMIT) }),
         response: {
@@ -381,6 +382,18 @@ export async function cocurricularRoutes(instance: FastifyInstance) {
             throw bad('invalid_reference', 'Tingkat tidak ditemukan.');
           const removed = [...existing].filter((id) => !keepIds.includes(id));
           if (removed.length > 0) {
+            const used = await tx
+              .select({ id: cocurricularAssessment.id })
+              .from(cocurricularAssessment)
+              .where(inArray(cocurricularAssessment.rubricLevelId, removed))
+              .limit(1);
+            if (used.length > 0) {
+              throw new HttpError(
+                409,
+                'item_in_use',
+                'Tingkat ini sudah dipakai penilaian kokurikuler; nonaktifkan, jangan dihapus.',
+              );
+            }
             await tx.delete(cocurricularRubricLevel).where(inArray(cocurricularRubricLevel.id, removed));
           }
           for (const { id, ...fields } of input) {

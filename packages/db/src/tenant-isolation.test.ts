@@ -3,6 +3,8 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   academicYear,
   classRoom,
+  cocurricularAssessment,
+  cocurricularEvidence,
   cocurricularFacilitator,
   cocurricularProgram,
   cocurricularProgramClass,
@@ -12,6 +14,8 @@ import {
   foundation,
   school,
   schoolProfileItem,
+  semester,
+  student,
   teacher,
   withTenant,
 } from './index';
@@ -302,6 +306,139 @@ describe('tabel tenant program kokurikuler (tahap 4.2)', () => {
         await platform.db.delete(schoolProfileItem).where(eq(schoolProfileItem.schoolId, sid));
         await platform.db.delete(classRoom).where(eq(classRoom.schoolId, sid));
         await platform.db.delete(teacher).where(eq(teacher.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tabel tenant penilaian kokurikuler (tahap 4.3)', () => {
+  it('penilaian dan bukti terisolasi; FK komposit dan CHECK menolak data tidak sah', async () => {
+    const seed = async (sid: string, n: number) => {
+      const [year] = await platform.db.select().from(academicYear).where(eq(academicYear.schoolId, sid));
+      const [sem] = await platform.db
+        .insert(semester)
+        .values({
+          schoolId: sid,
+          academicYearId: year!.id,
+          name: `S${n}`,
+          startsOn: '2026-07-13',
+          endsOn: '2026-12-20',
+        })
+        .returning();
+      const [stu] = await platform.db
+        .insert(student)
+        .values({ schoolId: sid, name: `Murid ${n}`, gender: 'L' })
+        .returning();
+      const [item] = await platform.db
+        .insert(schoolProfileItem)
+        .values({ schoolId: sid, frameworkKey: 'profil_lulusan_2025', code: `q${n}`, label: `Butir ${n}` })
+        .returning();
+      const [level] = await platform.db
+        .insert(cocurricularRubricLevel)
+        .values({ schoolId: sid, code: `L${n}`, label: `Tingkat ${n}`, sort: 1 })
+        .returning();
+      const [prog] = await platform.db
+        .insert(cocurricularProgram)
+        .values({
+          schoolId: sid,
+          academicYearId: year!.id,
+          form: 'other',
+          title: `Program ${n}`,
+          createdBy: 'uji',
+        })
+        .returning();
+      await platform.db.insert(cocurricularAssessment).values({
+        schoolId: sid,
+        programId: prog!.id,
+        profileItemId: item!.id,
+        studentId: stu!.id,
+        semesterId: sem!.id,
+        rubricLevelId: level!.id,
+        updatedBy: 'uji',
+      });
+      await platform.db.insert(cocurricularEvidence).values({
+        schoolId: sid,
+        programId: prog!.id,
+        studentId: stu!.id,
+        title: 'Foto',
+        url: 'https://contoh.id/a',
+        createdBy: 'uji',
+      });
+      return { prog: prog!.id, item: item!.id, stu: stu!.id, sem: sem!.id, level: level!.id };
+    };
+    const a = await seed(schoolA1, 1);
+    const b = await seed(schoolB, 2);
+    try {
+      for (const t of [cocurricularAssessment, cocurricularEvidence] as const) {
+        const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(t));
+        expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+        expect(await app.db.select().from(t)).toHaveLength(0);
+      }
+      // Tulis lintas sekolah ditolak RLS.
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) =>
+          tx.insert(cocurricularEvidence).values({
+            schoolId: schoolB,
+            programId: b.prog,
+            title: 'x',
+            url: 'https://contoh.id/x',
+            createdBy: 'uji',
+          }),
+        ),
+      ).rejects.toThrow();
+      // FK komposit: murid sekolah B tidak boleh dinilai pada program sekolah A walau id valid.
+      await expect(
+        platform.db.insert(cocurricularAssessment).values({
+          schoolId: schoolA1,
+          programId: a.prog,
+          profileItemId: a.item,
+          studentId: b.stu,
+          semesterId: a.sem,
+          rubricLevelId: a.level,
+          updatedBy: 'uji',
+        }),
+      ).rejects.toThrow();
+      // CHECK: tingkat atau catatan harus terisi; bukti hanya https.
+      await expect(
+        platform.db.insert(cocurricularAssessment).values({
+          schoolId: schoolA1,
+          programId: a.prog,
+          profileItemId: a.item,
+          studentId: a.stu,
+          semesterId: a.sem,
+          updatedBy: 'uji',
+        }),
+      ).rejects.toThrow();
+      await expect(
+        platform.db.insert(cocurricularEvidence).values({
+          schoolId: schoolA1,
+          programId: a.prog,
+          title: 'x',
+          url: 'http://contoh.id/x',
+          createdBy: 'uji',
+        }),
+      ).rejects.toThrow();
+      // Program yang sudah dinilai tidak terhapus (FK NO ACTION); tanpa penilaian, bukti ikut terhapus.
+      await expect(
+        platform.db.delete(cocurricularProgram).where(eq(cocurricularProgram.id, a.prog)),
+      ).rejects.toThrow();
+      await platform.db.delete(cocurricularAssessment).where(eq(cocurricularAssessment.programId, a.prog));
+      await platform.db.delete(cocurricularProgram).where(eq(cocurricularProgram.id, a.prog));
+      expect(
+        await platform.db
+          .select()
+          .from(cocurricularEvidence)
+          .where(eq(cocurricularEvidence.programId, a.prog)),
+      ).toHaveLength(0);
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(cocurricularEvidence).where(eq(cocurricularEvidence.schoolId, sid));
+        await platform.db.delete(cocurricularAssessment).where(eq(cocurricularAssessment.schoolId, sid));
+        await platform.db.delete(cocurricularProgram).where(eq(cocurricularProgram.schoolId, sid));
+        await platform.db.delete(cocurricularRubricLevel).where(eq(cocurricularRubricLevel.schoolId, sid));
+        await platform.db.delete(schoolProfileItem).where(eq(schoolProfileItem.schoolId, sid));
+        await platform.db.delete(student).where(eq(student.schoolId, sid));
+        await platform.db.delete(semester).where(eq(semester.schoolId, sid));
       }
     }
   });

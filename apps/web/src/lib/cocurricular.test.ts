@@ -1,9 +1,14 @@
 import { describe, expect, it } from 'vitest';
 import {
+  cellMapFrom,
+  changedCells,
+  chunkBy,
   EMPTY_PROGRAM,
   type FacilitatorDraft,
   facilitatorsBody,
   facilitatorsValid,
+  fillColumn,
+  getCell,
   type ItemDraft,
   itemsBody,
   itemsValid,
@@ -11,11 +16,13 @@ import {
   levelsBody,
   levelsValid,
   moveItem,
+  pickSemester,
   programBody,
   programValid,
   refLabel,
   sameDrafts,
   sameIds,
+  setCell,
   toggleId,
 } from './cocurricular';
 
@@ -134,5 +141,51 @@ describe('program kokurikuler', () => {
     expect(toggleId(['a', 'b'], 'a')).toEqual(['b']);
     expect(sameIds(['a', 'b'], ['b', 'a'])).toBe(true);
     expect(sameIds(['a'], ['b'])).toBe(false);
+  });
+});
+
+describe('penilaian kokurikuler (tahap 4.3)', () => {
+  const server = cellMapFrom([
+    { studentId: 's1', profileItemId: 'i1', rubricLevelId: 'L1', note: null },
+    { studentId: 's1', profileItemId: 'i2', rubricLevelId: null, note: 'aktif' },
+  ]);
+  it('peta sel dan setCell: sel kosong dibuang dari peta', () => {
+    expect(getCell(server, 's1', 'i1')).toEqual({ levelId: 'L1', note: '' });
+    expect(getCell(server, 's9', 'i1')).toEqual({ levelId: '', note: '' });
+    expect(Object.keys(setCell(server, 's1', 'i1', { levelId: '' }))).toEqual(['s1|i2']);
+    expect(setCell(server, 's2', 'i1', { levelId: 'L2' })['s2|i1']).toEqual({ levelId: 'L2', note: '' });
+  });
+  it('changedCells hanya mengirim sel yang berubah; dikosongkan = null/null', () => {
+    expect(changedCells(server, server)).toEqual([]);
+    const draft = setCell(setCell(server, 's1', 'i1', { levelId: '' }), 's2', 'i1', {
+      levelId: 'L2',
+      note: ' ok ',
+    });
+    expect(changedCells(draft, server).sort((a, b) => a.studentId.localeCompare(b.studentId))).toEqual([
+      { profileItemId: 'i1', studentId: 's1', rubricLevelId: null, note: null },
+      { profileItemId: 'i1', studentId: 's2', rubricLevelId: 'L2', note: 'ok' },
+    ]);
+  });
+  it('isi massal mempertahankan catatan; chunkBy membagi per 500', () => {
+    const filled = fillColumn(server, ['s1', 's2'], 'i2', 'L3');
+    expect(filled['s1|i2']).toEqual({ levelId: 'L3', note: 'aktif' });
+    expect(filled['s2|i2']).toEqual({ levelId: 'L3', note: '' });
+    const parts = chunkBy(
+      Array.from({ length: 1001 }, (_, i) => i),
+      500,
+    );
+    expect(parts.map((p) => p.length)).toEqual([500, 500, 1]);
+    expect(chunkBy([], 500)).toEqual([]);
+  });
+  it('pickSemester: semester berjalan, kalau tidak yang terakhir dimulai, kalau belum yang pertama', () => {
+    const sems = [
+      { id: 'g', startsOn: '2027-01-04', endsOn: '2027-06-30' },
+      { id: 'a', startsOn: '2026-07-13', endsOn: '2026-12-20' },
+    ];
+    expect(pickSemester(sems, '2026-08-01')).toBe('a');
+    expect(pickSemester(sems, '2026-12-25')).toBe('a');
+    expect(pickSemester(sems, '2027-02-01')).toBe('g');
+    expect(pickSemester(sems, '2026-01-01')).toBe('a');
+    expect(pickSemester([], '2026-01-01')).toBe('');
   });
 });

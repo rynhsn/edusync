@@ -1,8 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import {
+  assessmentCellInputSchema,
+  assessmentsSaveSchema,
   cocurricularProgramCreateSchema,
   duplicateKeys,
+  evidenceInputSchema,
   facilitatorShapeValid,
+  isEvidenceUrl,
   rubricLevelInputSchema,
   schoolProfileItemInputSchema,
 } from './cocurricular';
@@ -66,5 +70,41 @@ describe('kontrak program kokurikuler', () => {
     expect(facilitatorShapeValid({ role: 'coordinator', classId: 'c' })).toBe(false);
     expect(facilitatorShapeValid({ role: 'facilitator', classId: 'c' })).toBe(true);
     expect(facilitatorShapeValid({ role: 'facilitator', classId: null })).toBe(false);
+  });
+});
+
+describe('kontrak penilaian dan bukti kokurikuler', () => {
+  const id = '019e0000-0000-7000-8000-000000000001';
+  it('sel: tingkat dan catatan opsional (dipangkas, kosong menjadi null)', () => {
+    const v = assessmentCellInputSchema.parse({ profileItemId: id, studentId: id, note: '  ' });
+    expect(v).toMatchObject({ rubricLevelId: null, note: null });
+    expect(
+      assessmentCellInputSchema.safeParse({ profileItemId: id, studentId: id, note: 'x'.repeat(1001) })
+        .success,
+    ).toBe(false);
+  });
+  it('batas jumlah sel diperiksa API (400 too_many_items), bukan skema', () => {
+    const cells = Array.from({ length: 501 }, () => ({ profileItemId: id, studentId: id }));
+    expect(assessmentsSaveSchema.safeParse({ semesterId: id, classId: id, cells }).success).toBe(true);
+  });
+  it('bukti hanya tautan https tanpa spasi, maksimal 500 karakter', () => {
+    expect(isEvidenceUrl('https://contoh.id/karya?x=1')).toBe(true);
+    expect(isEvidenceUrl('  https://contoh.id  ')).toBe(true);
+    for (const bad of [
+      'http://contoh.id',
+      'javascript:alert(1)',
+      'https://',
+      'https://a b',
+      '',
+      'ftp://x.id',
+      `https://a.id/${'x'.repeat(500)}`,
+    ]) {
+      expect(isEvidenceUrl(bad), bad).toBe(false);
+    }
+    expect(evidenceInputSchema.parse({ title: ' Foto ', url: 'https://a.id' })).toMatchObject({
+      title: 'Foto',
+      classId: null,
+      studentId: null,
+    });
   });
 });

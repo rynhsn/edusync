@@ -664,6 +664,28 @@ describe('kebijakan peran bawaan', () => {
     }
   });
 
+  it('rute penilaian dan bukti kokurikuler (tahap 4.3) memakai gerbang cocurricular:read dan modul grades; hak menilai kontekstual', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const base = '/v1/cocurricular/programs/:id';
+    const routes = [
+      find('GET', `${base}/assessment-options`),
+      find('GET', `${base}/assessments`),
+      find('PUT', `${base}/assessments`),
+      find('GET', `${base}/evidence`),
+      find('POST', `${base}/evidence`),
+      find('DELETE', `${base}/evidence/:evidenceId`),
+    ];
+    const readers = ['school_admin', 'principal', 'curriculum', 'operator', 'teacher'];
+    for (const e of routes) {
+      // Tidak ada izin baru: gerbang cukup baca; keputusan menilai (pengelola, koordinator, fasilitator rombel) ada di handler.
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['cocurricular:read'], ['grades']]);
+      expect(e?.description).toContain('Izin: `cocurricular:read`');
+      for (const r of roleKeys)
+        expect(allows(r, e!), `${r} ${e?.method} ${e?.url}`).toBe(readers.includes(r));
+    }
+    expect(PERMISSIONS).not.toContain('cocurricular:assess');
+  });
+
   it('rute ekspor akademik (tahap 3C.5) memasang data_export:run tanpa modul di gerbang', () => {
     const e = eps.find((x) => x.method === 'GET' && x.url === '/v1/exports/academic');
     // Modul grades hanya diperiksa di handler untuk dataset nilai (400 dataset_requires_module), bukan di gerbang rute.

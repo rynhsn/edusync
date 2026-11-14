@@ -185,3 +185,96 @@ export function toggleId(list: readonly string[], id: string): string[] {
 export function sameIds(a: readonly string[], b: readonly string[]): boolean {
   return a.length === b.length && new Set([...a, ...b]).size === a.length;
 }
+
+/* ---------- Penilaian dan bukti (tahap 4.3) ---------- */
+
+export { isEvidenceUrl } from '@edusync/contracts';
+
+export interface CellDraft {
+  /** '' = belum dinilai. */
+  levelId: string;
+  note: string;
+}
+/** Kunci: `studentId|profileItemId`. Sel kosong (tingkat dan catatan kosong) tidak disimpan di peta. */
+export type CellMap = Record<string, CellDraft>;
+
+export const cellKey = (studentId: string, itemId: string) => `${studentId}|${itemId}`;
+const EMPTY_CELL: CellDraft = { levelId: '', note: '' };
+export const getCell = (map: CellMap, studentId: string, itemId: string): CellDraft =>
+  map[cellKey(studentId, itemId)] ?? EMPTY_CELL;
+
+export function cellMapFrom(
+  cells: readonly {
+    studentId: string;
+    profileItemId: string;
+    rubricLevelId: string | null;
+    note: string | null;
+  }[],
+): CellMap {
+  const map: CellMap = {};
+  for (const c of cells) {
+    map[cellKey(c.studentId, c.profileItemId)] = { levelId: c.rubricLevelId ?? '', note: c.note ?? '' };
+  }
+  return map;
+}
+
+/** Ubah satu sel; sel yang jadi kosong dibuang dari peta. */
+export function setCell(map: CellMap, studentId: string, itemId: string, patch: Partial<CellDraft>): CellMap {
+  const next = { ...map };
+  const merged = { ...getCell(map, studentId, itemId), ...patch };
+  if (merged.levelId === '' && merged.note.trim() === '') delete next[cellKey(studentId, itemId)];
+  else next[cellKey(studentId, itemId)] = merged;
+  return next;
+}
+
+/** Isi massal: satu tingkat untuk satu butir pada semua murid (catatan yang ada dipertahankan). */
+export function fillColumn(
+  map: CellMap,
+  studentIds: readonly string[],
+  itemId: string,
+  levelId: string,
+): CellMap {
+  return studentIds.reduce((m, s) => setCell(m, s, itemId, { levelId }), map);
+}
+
+/** Badan PUT: hanya sel yang berbeda dari data server; sel yang dikosongkan dikirim null/null (hapus). */
+export function changedCells(draft: CellMap, server: CellMap) {
+  const out: {
+    profileItemId: string;
+    studentId: string;
+    rubricLevelId: string | null;
+    note: string | null;
+  }[] = [];
+  for (const key of new Set([...Object.keys(draft), ...Object.keys(server)])) {
+    const a = draft[key] ?? EMPTY_CELL;
+    const b = server[key] ?? EMPTY_CELL;
+    if (a.levelId === b.levelId && a.note.trim() === b.note.trim()) continue;
+    const [studentId, profileItemId] = key.split('|') as [string, string];
+    out.push({
+      profileItemId,
+      studentId,
+      rubricLevelId: a.levelId === '' ? null : a.levelId,
+      note: a.note.trim() === '' ? null : a.note.trim(),
+    });
+  }
+  return out;
+}
+
+/** Bagi daftar menjadi kelompok sebesar batas API (500 sel per simpan). */
+export function chunkBy<T>(list: readonly T[], size: number): T[][] {
+  const out: T[][] = [];
+  for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
+  return out;
+}
+
+/** Semester awal layar penilaian: yang memuat `today`; bila tidak ada, yang terakhir sudah dimulai; bila belum, yang pertama. */
+export function pickSemester(
+  semesters: readonly { id: string; startsOn: string; endsOn: string }[],
+  today: string,
+): string {
+  const sorted = [...semesters].sort((a, b) => a.startsOn.localeCompare(b.startsOn));
+  const current = sorted.find((s) => s.startsOn <= today && today <= s.endsOn);
+  if (current) return current.id;
+  const started = sorted.filter((s) => s.startsOn <= today);
+  return (started[started.length - 1] ?? sorted[0])?.id ?? '';
+}
