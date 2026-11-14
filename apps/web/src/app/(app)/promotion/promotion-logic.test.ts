@@ -28,6 +28,7 @@ import {
   optionsFor,
   optionsForStudent,
   type PromotionClass,
+  type PromotionStudent,
   pendingStudents,
   permissionForOption,
   ROLLOVER_WARNING_CODES,
@@ -675,5 +676,60 @@ describe('berita acara dan kelas tujuan tinggal kelas tingkat akhir (3C.3)', () 
     const out = setClassMeetingId(locked as PromotionClass, {}, 'm2');
     expect(Object.keys(out)).toEqual(['a']);
     expect(out.a).toEqual({ meetingId: 'm2' });
+  });
+});
+
+describe('kebijakan kelulusan di wizard (3C.4)', () => {
+  const student = (id: string, over: Partial<PromotionStudent> = {}): PromotionStudent => ({
+    studentId: id,
+    name: id,
+    nis: null,
+    decision: null,
+    suggestedDecision: null,
+    toClassId: null,
+    note: null,
+    applied: false,
+    ...over,
+  });
+  const finalLevel = (students: PromotionStudent[]): PromotionClass => ({
+    classId: 'c',
+    name: 'XII-A',
+    level: 'XII',
+    nextLevel: null,
+    isFinalLevel: true,
+    students,
+  });
+
+  it('tanpa kebijakan daftar tidak berubah; dengan kebijakan murid tingkat akhir yang belum ditetapkan tidak bisa dipilih lulus', () => {
+    const cls = finalLevel([student('a')]);
+    expect(markLocked([cls], new Set())[0]).toEqual(cls);
+    const [gated] = markLocked([cls], new Set(), true);
+    const s = (gated as PromotionClass).students[0] as PromotionStudent;
+    expect(s.graduationGate).toBe(true);
+    expect(optionsForStudent(cls, s)).toEqual(['retain']);
+    expect(optionsForStudent(cls, student('b'))).toEqual(['graduate', 'retain']);
+  });
+
+  it('murid yang sudah ditetapkan lulus atau tidak lulus terkunci; yang ditunda tidak; yang diterapkan tetap', () => {
+    const cls = finalLevel([
+      student('g', { graduationResult: 'graduated' }),
+      student('n', { graduationResult: 'not_graduated' }),
+      student('d', { graduationResult: 'deferred' }),
+      student('x', { graduationResult: 'graduated', applied: true }),
+    ]);
+    const [out] = markLocked([cls], new Set(), true);
+    const by = (id: string) =>
+      (out as PromotionClass).students.find((s) => s.studentId === id) as PromotionStudent;
+    expect([by('g').locked, by('n').locked, by('d').locked, by('x').locked]).toEqual([
+      true,
+      true,
+      undefined,
+      undefined,
+    ]);
+    expect(by('d').graduationGate).toBe(true);
+    expect(by('g').graduationGate).toBeUndefined();
+    expect(isFrozen(by('g'))).toBe(true);
+    // Aksi massal "lulus" melewati yang terkunci dan yang tak boleh.
+    expect(setClassDecision(out as PromotionClass, {}, 'graduate')).toEqual({});
   });
 });

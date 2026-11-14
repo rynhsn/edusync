@@ -150,6 +150,13 @@ export const NAV_GROUPS = [
       { href: '/calendar', labelKey: 'calendar', icon: CalendarRange, permission: 'academic_year:read' },
       { href: '/promotion', labelKey: 'promotion', icon: ChevronsUp, permission: 'promotion:manage' },
       {
+        href: '/promotion/graduation',
+        labelKey: 'graduation',
+        icon: Award,
+        permission: 'graduation:read',
+        module: 'grades',
+      },
+      {
         href: '/school-settings',
         labelKey: 'schoolSettings',
         icon: Settings2,

@@ -27,6 +27,10 @@ export interface PromotionStudent {
   applied: boolean;
   /** Diisi klien: keputusan tertaut ke berita acara final, jadi terkunci di server (409 `meeting_final`). */
   locked?: boolean;
+  /** Hasil penetapan kelulusan FINAL (menu Kelulusan); ada hanya bila tahun itu punya kebijakan kelulusan (tahap 3C.4). */
+  graduationResult?: 'graduated' | 'not_graduated' | 'deferred';
+  /** Diisi klien: tahun itu punya kebijakan kelulusan dan murid belum ditetapkan lulus, jadi "lulus" tidak bisa dipilih di sini. */
+  graduationGate?: boolean;
 }
 
 export interface PromotionClass {
@@ -94,10 +98,13 @@ export function optionsFor(cls: Pick<PromotionClass, 'isFinalLevel' | 'levelUnkn
  */
 export function optionsForStudent(
   cls: Pick<PromotionClass, 'isFinalLevel' | 'levelUnknown'>,
-  student: Pick<PromotionStudent, 'toClassId'>,
+  student: Pick<PromotionStudent, 'toClassId'> & Pick<Partial<PromotionStudent>, 'graduationGate'>,
 ): Decision[] {
   const base = optionsFor(cls);
-  return cls.levelUnknown && !cls.isFinalLevel && student.toClassId ? ['promote', ...base] : base;
+  const all =
+    cls.levelUnknown && !cls.isFinalLevel && student.toClassId ? (['promote', ...base] as Decision[]) : base;
+  // Kebijakan kelulusan: keputusan lulus hanya lewat penetapan di menu Kelulusan (server menolak dengan 409).
+  return student.graduationGate ? all.filter((o) => o !== 'graduate') : all;
 }
 
 /** Tahun tujuan yang sah: dimulai setelah tahun sumber, diurutkan dari yang paling dekat. */
@@ -222,17 +229,26 @@ export function setClassMeetingId(cls: PromotionClass, details: Details, meeting
 export const isFrozen = (s: Pick<PromotionStudent, 'applied' | 'locked'>): boolean =>
   s.applied || s.locked === true;
 
-/** Tandai siswa yang keputusannya tertaut ke berita acara final (terkunci di server). */
+/**
+ * Tandai siswa yang keputusannya terkunci di server: tertaut ke berita acara final, atau sudah ditetapkan lulus/tidak lulus di menu
+ * Kelulusan (keputusan kenaikannya mengikuti penetapan itu). Dengan kebijakan kelulusan (`graduationPolicy`), siswa tingkat akhir
+ * yang belum ditetapkan ditandai `graduationGate` (tidak bisa dipilih lulus di sini).
+ */
 export function markLocked(
   classes: readonly PromotionClass[],
   finalMeetingIds: ReadonlySet<string>,
+  graduationPolicy = false,
 ): PromotionClass[] {
-  if (finalMeetingIds.size === 0) return [...classes];
+  if (finalMeetingIds.size === 0 && !graduationPolicy) return [...classes];
   return classes.map((c) => ({
     ...c,
-    students: c.students.map((s) =>
-      s.meetingId && finalMeetingIds.has(s.meetingId) && !s.applied ? { ...s, locked: true } : s,
-    ),
+    students: c.students.map((s) => {
+      if (s.applied) return s;
+      const byMeeting = !!s.meetingId && finalMeetingIds.has(s.meetingId);
+      const byGraduation = s.graduationResult === 'graduated' || s.graduationResult === 'not_graduated';
+      if (byMeeting || byGraduation) return { ...s, locked: true };
+      return graduationPolicy && c.isFinalLevel ? { ...s, graduationGate: true } : s;
+    }),
   }));
 }
 

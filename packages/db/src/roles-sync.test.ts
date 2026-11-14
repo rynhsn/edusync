@@ -115,3 +115,35 @@ describe('sinkron izin subject_choice:manage', () => {
     expect(await has(teacher)).toBe(false);
   });
 });
+
+describe('sinkron izin kelulusan', () => {
+  it('menyebar ke peran kurikulum dan kepala sekolah sekolah lama, tidak ke guru', async () => {
+    const roleId = async (key: string) =>
+      (
+        await platform.db
+          .select({ id: role.id })
+          .from(role)
+          .where(and(eq(role.schoolId, schoolId), eq(role.key, key)))
+      )[0]!.id;
+    const has = async (id: string, permission: string) =>
+      (await platform.db.select().from(rolePermission).where(eq(rolePermission.roleId, id))).some(
+        (r) => r.permission === permission,
+      );
+    const cur = await roleId('curriculum');
+    const principal = await roleId('principal');
+    const teacher = await roleId('teacher');
+    await platform.db
+      .delete(rolePermission)
+      .where(and(eq(rolePermission.roleId, cur), eq(rolePermission.permission, 'graduation:manage')));
+    await platform.db
+      .delete(rolePermission)
+      .where(and(eq(rolePermission.roleId, principal), eq(rolePermission.permission, 'graduation:read')));
+    expect(await has(cur, 'graduation:manage')).toBe(false);
+    expect(await has(principal, 'graduation:read')).toBe(false);
+    await syncSystemRolePermissions(platform.db);
+    expect(await has(cur, 'graduation:manage')).toBe(true);
+    expect(await has(principal, 'graduation:read')).toBe(true);
+    expect(await has(principal, 'graduation:manage')).toBe(false);
+    expect(await has(teacher, 'graduation:read')).toBe(false);
+  });
+});

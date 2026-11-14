@@ -115,8 +115,8 @@ export function useDecisions(sourceId: string, enabled: boolean, targetId = '') 
     [meetingsQuery.data],
   );
   const classes: PromotionClass[] = useMemo(
-    () => markLocked(data?.classes ?? [], finalIds),
-    [data, finalIds],
+    () => markLocked(data?.classes ?? [], finalIds, data?.graduationPolicy === true),
+    [data, finalIds, data?.graduationPolicy],
   );
   const summary = summarize(classes, choices, details);
   const blockers = saveBlockers(classes, choices, details);
@@ -366,7 +366,19 @@ function StudentRow({
           )}
         </div>
       )}
-      {frozen && !student.applied && <p className="text-muted-foreground text-xs">{t('lockedHint')}</p>}
+      {frozen && !student.applied && (
+        <p className="text-muted-foreground text-xs">
+          {student.graduationResult ? t('lockedByGraduationHint') : t('lockedHint')}
+        </p>
+      )}
+      {!frozen && student.graduationGate && (
+        <p className="text-muted-foreground text-xs">
+          {t('graduationGateHint')}{' '}
+          <Link href="/promotion/graduation" className="font-medium underline underline-offset-2">
+            {t('graduationLink')}
+          </Link>
+        </p>
+      )}
       {!frozen && (
         <>
           <button

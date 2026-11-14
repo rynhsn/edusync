@@ -104,3 +104,24 @@ describe('izin pilihan mapel', () => {
     }
   });
 });
+
+describe('izin kelulusan', () => {
+  const has = (role: keyof typeof SYSTEM_ROLES, p: string) =>
+    (SYSTEM_ROLES[role].permissions as readonly string[]).includes(p);
+  it('tulis: admin dan kurikulum saja; baca: ditambah kepala sekolah dan operator', () => {
+    expect(isPermission('graduation:manage')).toBe(true);
+    expect(isPermission('graduation:read')).toBe(true);
+    for (const role of ['school_admin', 'curriculum'] as const) {
+      expect(has(role, 'graduation:manage')).toBe(true);
+      expect(has(role, 'graduation:read')).toBe(true);
+    }
+    for (const role of ['principal', 'operator'] as const) {
+      expect(has(role, 'graduation:manage')).toBe(false);
+      expect(has(role, 'graduation:read')).toBe(true);
+    }
+    for (const role of ['treasurer', 'teacher', 'guardian', 'student'] as const) {
+      expect(has(role, 'graduation:manage')).toBe(false);
+      expect(has(role, 'graduation:read')).toBe(false);
+    }
+  });
+});

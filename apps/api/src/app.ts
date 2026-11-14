@@ -53,6 +53,7 @@ import { gateRoutes } from './routes/gate';
 import { gateManualRoutes } from './routes/gate-manual';
 import { gateScanRoutes } from './routes/gate-scan';
 import { gradingRoutes } from './routes/grading';
+import { graduationRoutes } from './routes/graduation';
 import { guardianRoutes } from './routes/guardians';
 import { identityCodeRoutes } from './routes/identity-code';
 import { invitationRoutes } from './routes/invitations';
@@ -285,6 +286,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(academicStructureRoutes);
   await app.register(promotionRoutes);
   await app.register(councilMeetingRoutes);
+  await app.register(graduationRoutes);
   await app.register(peopleRoutes);
   await app.register(studentTransferRoutes);
   await app.register(subjectChoiceRoutes);

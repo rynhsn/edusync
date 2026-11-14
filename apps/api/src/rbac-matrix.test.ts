@@ -565,6 +565,46 @@ describe('kebijakan peran bawaan', () => {
     for (const r of roleKeys) expect(allows(r, ledger!), r).toBe(allows(r, list!));
   });
 
+  it('rute kelulusan (tahap 3C.4) memasang izin graduation:read/manage dan modul grades sesuai rancangan', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const reads = [
+      find('GET', '/v1/academic-years/:id/graduation-policy'),
+      find('GET', '/v1/academic-years/:id/school-exams'),
+      find('GET', '/v1/school-exams/:id/scores'),
+      find('GET', '/v1/academic-years/:id/graduations'),
+    ];
+    const writes = [
+      find('PUT', '/v1/academic-years/:id/graduation-policy'),
+      find('DELETE', '/v1/academic-years/:id/graduation-policy'),
+      find('POST', '/v1/academic-years/:id/school-exams'),
+      find('PUT', '/v1/school-exams/:id'),
+      find('DELETE', '/v1/school-exams/:id'),
+      find('PUT', '/v1/school-exams/:id/scores'),
+      find('PUT', '/v1/academic-years/:id/graduations'),
+      find('POST', '/v1/academic-years/:id/graduations/finalize'),
+      find('POST', '/v1/academic-years/:id/graduations/reopen'),
+      find('PUT', '/v1/academic-years/:id/graduations/diploma-numbers'),
+    ];
+    for (const e of reads) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['graduation:read'], ['grades']]);
+      expect(e?.description).toContain('Izin: `graduation:read`');
+    }
+    for (const e of writes) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['graduation:manage'], ['grades']]);
+      expect(e?.description).toContain('Izin: `graduation:manage`');
+    }
+    for (const r of roleKeys) {
+      const holds = (p: string) => perms(r).has(p as never);
+      for (const e of reads) expect(allows(r, e!), `${r} ${e?.url}`).toBe(holds('graduation:read'));
+      for (const e of writes) expect(allows(r, e!), `${r} ${e?.url}`).toBe(holds('graduation:manage'));
+    }
+    for (const r of ['guardian', 'student', 'principal', 'operator', 'teacher', 'treasurer'] as const) {
+      for (const e of writes) expect(allows(r, e!), `${r} ${e?.url}`).toBe(false);
+    }
+    // Wizard kenaikan tidak bergantung pada modul nilai.
+    expect(find('PUT', '/v1/academic-years/:id/promotions')?.modules).toEqual([]);
+  });
+
   it('hanya admin sekolah yang mengelola peran dan anggota', () => {
     for (const r of roleKeys.filter((k) => k !== 'school_admin')) {
       expect(perms(r).has('role:manage'), r).toBe(false);

@@ -1,6 +1,8 @@
 import {
   deriveTargetClassName,
   firstLevel,
+  GRADUATION_FINAL_CODE,
+  GRADUATION_RESULTS,
   isFinalLevel,
   nextLevel,
   PROMOTION_DECISIONS,
@@ -37,6 +39,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { recordHomeroomChange, recordTeachingChange } from '../assignment-history-lib';
 import { meetingFinalError } from '../council-meeting-lib';
+import { finalResultsOf, loadPolicy } from '../graduation-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
 import { assertClassYearNotClosed } from '../report-lock-lib';
@@ -132,6 +135,12 @@ const studentEntry = z.object({
     .optional()
     .describe('Berita acara musyawarah yang membahas keputusan ini (ada hanya bila tertaut)'),
   applied: z.boolean().describe('Keputusan sudah diterapkan ke tahun tujuan; tidak bisa diubah lagi'),
+  graduationResult: z
+    .enum(GRADUATION_RESULTS)
+    .optional()
+    .describe(
+      'Hasil penetapan kelulusan FINAL murid ini (menu Kelulusan); ada hanya bila tahun itu punya kebijakan kelulusan dan murid sudah ditetapkan. Keputusan kenaikannya mengikuti hasil ini',
+    ),
 });
 
 const classEntry = z.object({
@@ -151,6 +160,12 @@ const classEntry = z.object({
 
 const listResponse = z.object({
   academicYear: z.object({ id: z.uuid(), name: z.string(), startsOn: z.iso.date(), endsOn: z.iso.date() }),
+  graduationPolicy: z
+    .literal(true)
+    .optional()
+    .describe(
+      'Ada hanya bila tahun itu punya kebijakan kelulusan: keputusan lulus datang dari penetapan di menu Kelulusan, bukan dipilih di sini',
+    ),
   classes: z.array(classEntry),
 });
 
@@ -233,7 +248,7 @@ const applyResponse = z.object({
         .string()
         .optional()
         .describe(
-          'Kode alasan stabil: student_missing, student_not_active, source_class_missing, target_class_invalid, no_next_level, no_target_class, not_final_level',
+          'Kode alasan stabil: student_missing, student_not_active, source_class_missing, target_class_invalid, no_next_level, no_target_class, not_final_level, graduation_not_determined',
         ),
       reasonParams: z.record(z.string(), z.union([z.string(), z.number()])).optional(),
     }),
@@ -759,6 +774,15 @@ async function runApply(
   /** Penempatan yang direncanakan; hanya yang benar-benar menghasilkan enrollment yang ditandai diterapkan. */
   const pending: { decisionId: string; decision: string; row: typeof enrollment.$inferInsert }[] = [];
   const graduates: { decisionId: string; studentId: string; classId: string }[] = [];
+  // Kebijakan kelulusan tahun sumber (bila ada): hanya murid yang ditetapkan lulus di menu Kelulusan yang boleh lulus.
+  const graduationPolicy = await loadPolicy(tx, source.id);
+  const graduationFinals = graduationPolicy
+    ? await finalResultsOf(
+        tx,
+        source.id,
+        decisions.filter((d) => d.decision === 'graduate').map((d) => d.studentId),
+      )
+    : null;
 
   /**
    * Kelas tujuan otomatis: kelas bernama sama dengan turunan nama kelas asal; bila tidak ada, satu-satunya kelas
@@ -814,6 +838,15 @@ async function runApply(
           reason: `Kelas "${from.name}" (tingkat "${from.level}") bukan tingkat akhir lagi, jadi keputusan lulus tidak diterapkan. Ubah keputusannya.`,
           reasonCode: 'not_final_level',
           reasonParams: { className: from.name, level: from.level },
+        });
+        continue;
+      }
+      if (graduationFinals && graduationFinals.get(d.studentId) !== 'graduated') {
+        out.unplaced.push({
+          studentId: d.studentId,
+          reason:
+            'Kelulusan murid ini belum ditetapkan di menu Kelulusan, jadi keputusan lulus tidak diterapkan.',
+          reasonCode: 'graduation_not_determined',
         });
         continue;
       }
@@ -1034,7 +1067,8 @@ export async function promotionRoutes(instance: FastifyInstance) {
           'ditetapkan sekolah setelah ujian satuan pendidikan dan wajib dipilih eksplisit), kelas tujuan, catatan (`note`, ' +
           '`reason`, `followUp`, `meetingDate`), dan penanda `applied`. Tingkat akhir kelas = `final_level_code` jurusannya bila ' +
           'diisi, jika tidak tingkat dengan `sort` terbesar; tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`). ' +
-          'Kelas bertingkat yang tidak ada di daftar tingkat sekolah ditandai `levelUnknown` true dan tidak mendapat saran `promote`.',
+          'Kelas bertingkat yang tidak ada di daftar tingkat sekolah ditandai `levelUnknown` true dan tidak mendapat saran `promote`. ' +
+          'Bila tahun itu punya kebijakan kelulusan, `graduationPolicy` true dan murid yang sudah ditetapkan membawa `graduationResult`.',
         headers: schoolHeader,
         params: idParams,
         response: { 200: listResponse, 404: errorSchema, ...guarded },
@@ -1067,12 +1101,21 @@ export async function promotionRoutes(instance: FastifyInstance) {
             await tx.select().from(promotionDecision).where(eq(promotionDecision.academicYearId, year.id))
           ).map((d) => [d.studentId, d]),
         );
+        const graduationPolicy = await loadPolicy(tx, year.id);
+        const graduationFinals = graduationPolicy
+          ? await finalResultsOf(
+              tx,
+              year.id,
+              rows.map((r) => r.studentId),
+            )
+          : null;
         const order = new Map(sortLevels(levels).map((l, i) => [l.code, i]));
         classes.sort(
           (a, b) => (order.get(a.level) ?? 999) - (order.get(b.level) ?? 999) || a.name.localeCompare(b.name),
         );
         return {
           academicYear: { id: year.id, name: year.name, startsOn: year.startsOn, endsOn: year.endsOn },
+          ...(graduationPolicy ? { graduationPolicy: true as const } : {}),
           classes: classes.map((c) => {
             const finalCode = finalOf(c.programId);
             const final = isFinalLevel(levels, c.level, finalCode);
@@ -1101,6 +1144,9 @@ export async function promotionRoutes(instance: FastifyInstance) {
                     followUp: d?.followUp ?? null,
                     meetingDate: d?.meetingDate ?? null,
                     ...(d?.meetingId ? { meetingId: d.meetingId } : {}),
+                    ...(graduationFinals?.get(r.studentId)
+                      ? { graduationResult: graduationFinals.get(r.studentId) as 'graduated' }
+                      : {}),
                     applied: !!d?.appliedAt,
                   };
                 }),
@@ -1129,6 +1175,8 @@ export async function promotionRoutes(instance: FastifyInstance) {
           '`meetingId` (opsional) menautkan keputusan ke berita acara musyawarah tahun itu (dihilangkan = dipertahankan, null = dilepas; tanggal rapat murid diisi dari tanggal berita acara); ' +
           '400 `invalid_reference` bila berita acara tidak ada pada tahun itu. 409 `meeting_final`: keputusan itu tertaut ke berita acara final atau ' +
           'hendak ditautkan ke berita acara final. ' +
+          'Bila tahun itu punya kebijakan kelulusan: 409 `graduation_not_determined` untuk `graduate` yang belum ditetapkan lulus di menu Kelulusan ' +
+          '(atau murid berhasil ditunda), dan 409 `graduation_final` bila keputusan berbeda dari hasil penetapan final (lulus = `graduate`, tidak lulus = `retain`). ' +
           '409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun ' +
           'sumber yang sama berjalan bergantian (kunci per tahun sumber).',
         headers: schoolHeader,
@@ -1184,6 +1232,9 @@ export async function promotionRoutes(instance: FastifyInstance) {
                 )
             ).map((d) => [d.studentId, d]),
           );
+          // Kebijakan kelulusan tahun itu (bila ada): keputusan lulus hanya berlaku bila ditetapkan di menu Kelulusan.
+          const graduationPolicy = await loadPolicy(tx, year.id);
+          const graduationFinals = graduationPolicy ? await finalResultsOf(tx, year.id, ids) : null;
           const toIds = [
             ...new Set(items.flatMap((i) => (i.decision !== 'graduate' && i.toClassId ? [i.toClassId] : []))),
           ];
@@ -1251,6 +1302,25 @@ export async function promotionRoutes(instance: FastifyInstance) {
                 'not_final_level',
                 `Kelas tingkat terakhir ("${enr.level}") tidak bisa naik kelas; pilih lulus atau tinggal kelas.`,
               );
+            }
+            if (graduationFinals) {
+              const result = graduationFinals.get(item.studentId);
+              const expected =
+                result === 'graduated' ? 'graduate' : result === 'not_graduated' ? 'retain' : null;
+              if (expected && item.decision !== expected) {
+                throw new HttpError(
+                  409,
+                  GRADUATION_FINAL_CODE,
+                  `Siswa ${item.studentId} sudah ditetapkan di menu Kelulusan, jadi keputusannya harus "${expected === 'graduate' ? 'lulus' : 'tinggal kelas'}". Buka kembali penetapannya di sana bila perlu mengubahnya.`,
+                );
+              }
+              if (!expected && item.decision === 'graduate') {
+                throw new HttpError(
+                  409,
+                  'graduation_not_determined',
+                  `Siswa ${item.studentId} belum ditetapkan lulus di menu Kelulusan. Tetapkan kelulusannya di sana; keputusan lulus tidak bisa dipilih langsung di sini.`,
+                );
+              }
             }
             if (item.decision === 'promote' && !item.toClassId && !isKnownLevel(levels, enr.level)) {
               throw bad(

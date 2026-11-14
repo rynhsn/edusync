@@ -9877,7 +9877,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
                     };
                 };
             };
@@ -10413,7 +10413,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
                     };
                 };
             };
@@ -12185,7 +12185,7 @@ export interface paths {
         };
         /**
          * Daftar siswa dan keputusan kenaikan kelas satu tahun ajaran
-         * @description Izin: `promotion:manage`. Kelas tahun ajaran itu beserta siswa aktif yang ter-enroll, dengan keputusan tersimpan (`decision`, null bila belum), saran bawaan (`suggestedDecision`: `promote`; null di tingkat akhir karena kelulusan ditetapkan sekolah setelah ujian satuan pendidikan dan wajib dipilih eksplisit), kelas tujuan, catatan (`note`, `reason`, `followUp`, `meetingDate`), dan penanda `applied`. Tingkat akhir kelas = `final_level_code` jurusannya bila diisi, jika tidak tingkat dengan `sort` terbesar; tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`). Kelas bertingkat yang tidak ada di daftar tingkat sekolah ditandai `levelUnknown` true dan tidak mendapat saran `promote`.
+         * @description Izin: `promotion:manage`. Kelas tahun ajaran itu beserta siswa aktif yang ter-enroll, dengan keputusan tersimpan (`decision`, null bila belum), saran bawaan (`suggestedDecision`: `promote`; null di tingkat akhir karena kelulusan ditetapkan sekolah setelah ujian satuan pendidikan dan wajib dipilih eksplisit), kelas tujuan, catatan (`note`, `reason`, `followUp`, `meetingDate`), dan penanda `applied`. Tingkat akhir kelas = `final_level_code` jurusannya bila diisi, jika tidak tingkat dengan `sort` terbesar; tingkat berikutnya diturunkan dari daftar tingkat sekolah (urutan `sort`). Kelas bertingkat yang tidak ada di daftar tingkat sekolah ditandai `levelUnknown` true dan tidak mendapat saran `promote`. Bila tahun itu punya kebijakan kelulusan, `graduationPolicy` true dan murid yang sudah ditetapkan membawa `graduationResult`.
          */
         get: {
             parameters: {
@@ -12217,6 +12217,11 @@ export interface paths {
                                 /** Format: date */
                                 endsOn: string;
                             };
+                            /**
+                             * @description Ada hanya bila tahun itu punya kebijakan kelulusan: keputusan lulus datang dari penetapan di menu Kelulusan, bukan dipilih di sini
+                             * @enum {boolean}
+                             */
+                            graduationPolicy?: true;
                             classes: {
                                 /** Format: uuid */
                                 classId: string;
@@ -12263,6 +12268,11 @@ export interface paths {
                                     meetingId?: string | null;
                                     /** @description Keputusan sudah diterapkan ke tahun tujuan; tidak bisa diubah lagi */
                                     applied: boolean;
+                                    /**
+                                     * @description Hasil penetapan kelulusan FINAL murid ini (menu Kelulusan); ada hanya bila tahun itu punya kebijakan kelulusan dan murid sudah ditetapkan. Keputusan kenaikannya mengikuti hasil ini
+                                     * @enum {string}
+                                     */
+                                    graduationResult?: "graduated" | "not_graduated" | "deferred";
                                 }[];
                             }[];
                         };
@@ -12314,7 +12324,7 @@ export interface paths {
         };
         /**
          * Simpan keputusan kenaikan kelas
-         * @description Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; `graduate` berarti "ditetapkan lulus": kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, tidak disarankan otomatis. Catatan opsional per baris: `note`, `reason` (alasan), `followUp` (tindak lanjut), `meetingDate` (tanggal rapat dewan pendidik, YYYY-MM-DD); yang DIHILANGKAN dipertahankan dari keputusan tersimpan, `null` eksplisit mengosongkan. Semua atau tidak sama sekali. 400 `level_unknown`: `promote` tanpa `toClassId` untuk kelas yang tingkatnya tidak ada di daftar tingkat sekolah. 400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: `toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). `meetingId` (opsional) menautkan keputusan ke berita acara musyawarah tahun itu (dihilangkan = dipertahankan, null = dilepas; tanggal rapat murid diisi dari tanggal berita acara); 400 `invalid_reference` bila berita acara tidak ada pada tahun itu. 409 `meeting_final`: keputusan itu tertaut ke berita acara final atau hendak ditautkan ke berita acara final. 409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber).
+         * @description Izin: `promotion:manage`. Upsert keputusan per siswa (`promote`, `retain`, `graduate`) untuk tahun ajaran yang ditutup; `graduate` berarti "ditetapkan lulus": kelulusan ditetapkan sekolah setelah ujian satuan pendidikan, tidak disarankan otomatis. Catatan opsional per baris: `note`, `reason` (alasan), `followUp` (tindak lanjut), `meetingDate` (tanggal rapat dewan pendidik, YYYY-MM-DD); yang DIHILANGKAN dipertahankan dari keputusan tersimpan, `null` eksplisit mengosongkan. Semua atau tidak sama sekali. 400 `level_unknown`: `promote` tanpa `toClassId` untuk kelas yang tingkatnya tidak ada di daftar tingkat sekolah. 400 `not_final_level`: lulus hanya untuk kelas tingkat akhir (jurusan dengan `final_level_code` memakai tingkat itu) dan naik tidak bisa dari tingkat terakhir. 400 `student_not_enrolled`: siswa tidak ter-enroll di tahun itu. 400 `invalid_target_class`: `toClassId` harus kelas pada tahun ajaran yang dimulai setelah tahun sumber (diabaikan untuk `graduate`). `meetingId` (opsional) menautkan keputusan ke berita acara musyawarah tahun itu (dihilangkan = dipertahankan, null = dilepas; tanggal rapat murid diisi dari tanggal berita acara); 400 `invalid_reference` bila berita acara tidak ada pada tahun itu. 409 `meeting_final`: keputusan itu tertaut ke berita acara final atau hendak ditautkan ke berita acara final. Bila tahun itu punya kebijakan kelulusan: 409 `graduation_not_determined` untuk `graduate` yang belum ditetapkan lulus di menu Kelulusan (atau murid berhasil ditunda), dan 409 `graduation_final` bila keputusan berbeda dari hasil penetapan final (lulus = `graduate`, tidak lulus = `retain`). 409 `promotion_applied`: keputusan siswa itu sudah diterapkan dan tidak bisa diubah. Penyimpanan dan penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber).
          */
         put: {
             parameters: {
@@ -12650,7 +12660,7 @@ export interface paths {
                                 /** Format: uuid */
                                 studentId: string;
                                 reason: string;
-                                /** @description Kode alasan stabil: student_missing, student_not_active, source_class_missing, target_class_invalid, no_next_level, no_target_class, not_final_level */
+                                /** @description Kode alasan stabil: student_missing, student_not_active, source_class_missing, target_class_invalid, no_next_level, no_target_class, not_final_level, graduation_not_determined */
                                 reasonCode?: string;
                                 reasonParams?: {
                                     [key: string]: string | number;
@@ -14095,6 +14105,1882 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/graduation-policy": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Kebijakan kelulusan satu tahun ajaran
+         * @description Izin: `graduation:read`; modul `grades`. `policy` null = sekolah tidak memakai alur kelulusan formal untuk tahun itu (keputusan `graduate` di wizard kenaikan berlaku seperti biasa). Bobot, ambang, dan mapel wajib sepenuhnya diatur sekolah.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            policy: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                config: {
+                                    /** @description Bobot nilai rapor (rata-rata nilai akhir dari snapshot rapor final) */
+                                    reportWeight: number;
+                                    /** @description Bobot tiap ujian satuan pendidikan (id ujian pada tahun ajaran itu) */
+                                    examWeights: {
+                                        [key: string]: number;
+                                    };
+                                    /** @enum {string} */
+                                    reportScope: "final_level" | "all_levels" | "levels";
+                                    /**
+                                     * @description Tingkat yang rapornya dipakai; hanya bermakna bila `reportScope` = `levels`
+                                     * @default []
+                                     */
+                                    reportLevels: string[];
+                                    /** @enum {string} */
+                                    rounding: "integer" | "one_decimal" | "two_decimals";
+                                    /** @description Ambang rata-rata nilai kelulusan (saran); null = tanpa ambang */
+                                    minAverage: number | null;
+                                    /** @description Ambang nilai per mapel wajib (saran); null = tanpa ambang */
+                                    minSubjectScore: number | null;
+                                    /**
+                                     * @description Mapel wajib; kosong = semua mapel yang punya nilai
+                                     * @default []
+                                     */
+                                    requiredSubjectIds: string[];
+                                    /** @description Teks kriteria untuk dokumen dan murid */
+                                    criteriaText?: string | null;
+                                };
+                                sklNumberTemplate: string | null;
+                                /** Format: date */
+                                announceOn: string | null;
+                                updatedAt: string;
+                            } | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan kebijakan kelulusan tahun ajaran
+         * @description Izin: `graduation:manage`; modul `grades`. Membuat atau mengganti kebijakan: `config` (`reportWeight`, `examWeights` per id ujian satuan pendidikan, `reportScope` `final_level`/`all_levels`/`levels` + `reportLevels`, `rounding`, `minAverage`, `minSubjectScore`, `requiredSubjectIds`, `criteriaText`), `sklNumberTemplate` (mis. `{seq:3}/SKL/{year}`; wajib memuat `{seq}`) dan `announceOn`. Bobot dinormalkan (yang dipakai porsinya terhadap jumlah bobot). Adanya kebijakan menyalakan alur kelulusan formal: keputusan `graduate` di wizard kenaikan hanya berlaku bila ditetapkan di sini. 400 `invalid_reference`: ujian bukan milik tahun itu atau mapel wajib tidak ada; 400 `invalid_template`. 409 `graduation_final`: sudah ada penetapan final tahun itu.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        config: {
+                            /** @description Bobot nilai rapor (rata-rata nilai akhir dari snapshot rapor final) */
+                            reportWeight: number;
+                            /** @description Bobot tiap ujian satuan pendidikan (id ujian pada tahun ajaran itu) */
+                            examWeights: {
+                                [key: string]: number;
+                            };
+                            /** @enum {string} */
+                            reportScope: "final_level" | "all_levels" | "levels";
+                            /**
+                             * @description Tingkat yang rapornya dipakai; hanya bermakna bila `reportScope` = `levels`
+                             * @default []
+                             */
+                            reportLevels?: string[];
+                            /** @enum {string} */
+                            rounding: "integer" | "one_decimal" | "two_decimals";
+                            /** @description Ambang rata-rata nilai kelulusan (saran); null = tanpa ambang */
+                            minAverage: number | null;
+                            /** @description Ambang nilai per mapel wajib (saran); null = tanpa ambang */
+                            minSubjectScore: number | null;
+                            /**
+                             * @description Mapel wajib; kosong = semua mapel yang punya nilai
+                             * @default []
+                             */
+                            requiredSubjectIds?: string[];
+                            /** @description Teks kriteria untuk dokumen dan murid */
+                            criteriaText?: string | null;
+                        };
+                        sklNumberTemplate?: string | null;
+                        /** Format: date */
+                        announceOn?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            config: {
+                                /** @description Bobot nilai rapor (rata-rata nilai akhir dari snapshot rapor final) */
+                                reportWeight: number;
+                                /** @description Bobot tiap ujian satuan pendidikan (id ujian pada tahun ajaran itu) */
+                                examWeights: {
+                                    [key: string]: number;
+                                };
+                                /** @enum {string} */
+                                reportScope: "final_level" | "all_levels" | "levels";
+                                /**
+                                 * @description Tingkat yang rapornya dipakai; hanya bermakna bila `reportScope` = `levels`
+                                 * @default []
+                                 */
+                                reportLevels: string[];
+                                /** @enum {string} */
+                                rounding: "integer" | "one_decimal" | "two_decimals";
+                                /** @description Ambang rata-rata nilai kelulusan (saran); null = tanpa ambang */
+                                minAverage: number | null;
+                                /** @description Ambang nilai per mapel wajib (saran); null = tanpa ambang */
+                                minSubjectScore: number | null;
+                                /**
+                                 * @description Mapel wajib; kosong = semua mapel yang punya nilai
+                                 * @default []
+                                 */
+                                requiredSubjectIds: string[];
+                                /** @description Teks kriteria untuk dokumen dan murid */
+                                criteriaText?: string | null;
+                            };
+                            sklNumberTemplate: string | null;
+                            /** Format: date */
+                            announceOn: string | null;
+                            updatedAt: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus kebijakan kelulusan (kembali ke alur kenaikan lama)
+         * @description Izin: `graduation:manage`; modul `grades`. Menghapus kebijakan tahun itu beserta DRAF keputusan kelulusan; sekolah kembali ke alur lama (keputusan `graduate` di wizard berlaku seperti biasa). Ujian dan nilai ujian tidak dihapus. 409 `graduation_final`: ada penetapan final; buka kembali lebih dulu.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/school-exams": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar ujian satuan pendidikan satu tahun ajaran
+         * @description Izin: `graduation:read`; modul `grades`. Ujian dengan jumlah nilai terisi dan bobotnya pada kebijakan tahun itu (null bila belum berbobot).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                name: string;
+                                /** @enum {string} */
+                                form: "written" | "practical" | "portfolio" | "assignment" | "project" | "other";
+                                /** Format: date */
+                                startsOn: string | null;
+                                /** Format: date */
+                                endsOn: string | null;
+                                /** @description Jumlah nilai terisi */
+                                scoreCount: number;
+                                /** @description Bobot pada kebijakan tahun itu; null bila belum berbobot */
+                                weight: number | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat ujian satuan pendidikan
+         * @description Izin: `graduation:manage`; modul `grades`. Nama dan bentuk (`written`, `practical`, `portfolio`, `assignment`, `project`, `other`) bebas dipilih sekolah; tidak ada kaitan ke asesmen nasional. 409 `graduation_final`: sudah ada penetapan final tahun itu.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** @enum {string} */
+                        form: "written" | "practical" | "portfolio" | "assignment" | "project" | "other";
+                        /** Format: date */
+                        startsOn?: string | null;
+                        /** Format: date */
+                        endsOn?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            name: string;
+                            /** @enum {string} */
+                            form: "written" | "practical" | "portfolio" | "assignment" | "project" | "other";
+                            /** Format: date */
+                            startsOn: string | null;
+                            /** Format: date */
+                            endsOn: string | null;
+                            /** @description Jumlah nilai terisi */
+                            scoreCount: number;
+                            /** @description Bobot pada kebijakan tahun itu; null bila belum berbobot */
+                            weight: number | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/school-exams/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah ujian satuan pendidikan
+         * @description Izin: `graduation:manage`; modul `grades`. 409 `graduation_final`: sudah ada penetapan final tahun itu.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        name: string;
+                        /** @enum {string} */
+                        form: "written" | "practical" | "portfolio" | "assignment" | "project" | "other";
+                        /** Format: date */
+                        startsOn?: string | null;
+                        /** Format: date */
+                        endsOn?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            name: string;
+                            /** @enum {string} */
+                            form: "written" | "practical" | "portfolio" | "assignment" | "project" | "other";
+                            /** Format: date */
+                            startsOn: string | null;
+                            /** Format: date */
+                            endsOn: string | null;
+                            /** @description Jumlah nilai terisi */
+                            scoreCount: number;
+                            /** @description Bobot pada kebijakan tahun itu; null bila belum berbobot */
+                            weight: number | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus ujian satuan pendidikan beserta nilainya
+         * @description Izin: `graduation:manage`; modul `grades`. 409 `exam_in_use`: ujian masih berbobot pada kebijakan kelulusan (hapus dari bobot lebih dulu). 409 `graduation_final`: sudah ada penetapan final tahun itu.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/school-exams/{id}/scores": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Nilai ujian satuan pendidikan: murid kelas tingkat akhir x mapel
+         * @description Izin: `graduation:read`; modul `grades`. Daftar murid kelas tingkat akhir tahun ujian itu, mapel sekolah, dan nilai terisi (`value` 0-100). `locked` true bila sudah ada penetapan final tahun itu (nilai tidak bisa diubah).
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            exam: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                name: string;
+                                form: string;
+                            };
+                            locked: boolean;
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                className: string;
+                            }[];
+                            subjects: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string;
+                                name: string;
+                            }[];
+                            scores: {
+                                /** Format: uuid */
+                                studentId: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                                value: number | null;
+                                note: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan nilai ujian satuan pendidikan (batch)
+         * @description Izin: `graduation:manage`; modul `grades`. Upsert nilai per (murid, mapel); `value` null tanpa `note` menghapus nilai. Hanya murid kelas tingkat akhir tahun ujian itu. Semua atau tidak sama sekali. 400 `invalid_reference`: murid bukan murid kelas tingkat akhir tahun itu atau mapel tidak ada; 400 `duplicate_entry`: pasangan (murid, mapel) ganda. 409 `graduation_final`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        scores: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            value: number | null;
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                            cleared: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/graduations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Murid tingkat akhir dengan saran nilai kelulusan dan keputusan
+         * @description Izin: `graduation:read`; modul `grades`. Murid kelas tingkat akhir tahun itu (tingkat akhir jurusan bila diisi, selain itu tingkat dengan `sort` terbesar). Murid berstatus draf/belum diputuskan membawa `suggestion`: nilai rapor dibaca HANYA dari snapshot rapor final (tidak pernah dihitung ulang dari data hidup), nilai ujian satuan pendidikan, nilai kelulusan per mapel dan rata-rata menurut bobot kebijakan, serta kegagalan kriteria; ini SARAN, sekolah yang menetapkan. `suggestion.reportNotFinal` true bila ada semester tahun kelulusan yang rapornya belum final. Murid yang sudah final membawa `transcript` beku (bukan `suggestion`). Filter opsional `classId`. 409 `no_graduation_policy`: tahun itu belum punya kebijakan.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    classId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            academicYear: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                            };
+                            policy: {
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                config: {
+                                    /** @description Bobot nilai rapor (rata-rata nilai akhir dari snapshot rapor final) */
+                                    reportWeight: number;
+                                    /** @description Bobot tiap ujian satuan pendidikan (id ujian pada tahun ajaran itu) */
+                                    examWeights: {
+                                        [key: string]: number;
+                                    };
+                                    /** @enum {string} */
+                                    reportScope: "final_level" | "all_levels" | "levels";
+                                    /**
+                                     * @description Tingkat yang rapornya dipakai; hanya bermakna bila `reportScope` = `levels`
+                                     * @default []
+                                     */
+                                    reportLevels: string[];
+                                    /** @enum {string} */
+                                    rounding: "integer" | "one_decimal" | "two_decimals";
+                                    /** @description Ambang rata-rata nilai kelulusan (saran); null = tanpa ambang */
+                                    minAverage: number | null;
+                                    /** @description Ambang nilai per mapel wajib (saran); null = tanpa ambang */
+                                    minSubjectScore: number | null;
+                                    /**
+                                     * @description Mapel wajib; kosong = semua mapel yang punya nilai
+                                     * @default []
+                                     */
+                                    requiredSubjectIds: string[];
+                                    /** @description Teks kriteria untuk dokumen dan murid */
+                                    criteriaText?: string | null;
+                                };
+                                sklNumberTemplate: string | null;
+                                /** Format: date */
+                                announceOn: string | null;
+                                updatedAt: string;
+                            };
+                            exams: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                weight: number;
+                            }[];
+                            school: {
+                                name: string;
+                                npsn: string | null;
+                                address: string | null;
+                                city: string | null;
+                                principal: {
+                                    name: string;
+                                    nip: string | null;
+                                } | null;
+                            };
+                            classes: {
+                                /** Format: uuid */
+                                classId: string;
+                                name: string;
+                                level: string;
+                                studentCount: number;
+                                finalCount: number;
+                            }[];
+                            summary: {
+                                total: number;
+                                graduated: number;
+                                notGraduated: number;
+                                deferred: number;
+                                undecided: number;
+                                final: number;
+                            };
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                nisn: string | null;
+                                /** @enum {string} */
+                                studentStatus: "active" | "graduated" | "transferred" | "dropped";
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                                suggestion?: {
+                                    subjects: {
+                                        /** Format: uuid */
+                                        subjectId: string;
+                                        name: string;
+                                        /** @description Rata-rata nilai rapor mapel dari snapshot rapor final */
+                                        report: number | null;
+                                        exams: {
+                                            /** Format: uuid */
+                                            examId: string;
+                                            value: number | null;
+                                        }[];
+                                        /** @description Nilai kelulusan mapel (rata-rata tertimbang komponen berbobot yang bernilai) */
+                                        final: number | null;
+                                        /** @description Komponen berbobot yang belum bernilai: `report` atau id ujian */
+                                        missing: string[];
+                                    }[];
+                                    average: number | null;
+                                    /** @description SARAN: memenuhi ambang kebijakan; penetapan tetap oleh sekolah */
+                                    meetsCriteria: boolean;
+                                    failures: {
+                                        /** @enum {string} */
+                                        code: "below_average" | "below_subject" | "required_missing" | "no_scores";
+                                        /** Format: uuid */
+                                        subjectId?: string;
+                                    }[];
+                                    /** @description Ada mapel dengan komponen berbobot yang belum bernilai */
+                                    incomplete: boolean;
+                                    /** @description Ada semester tahun kelulusan yang rapornya belum final untuk murid ini (butuh `force` saat penetapan) */
+                                    reportNotFinal: boolean;
+                                    /** @description Semester rapor final yang dipakai */
+                                    reportSemesters: {
+                                        /** Format: uuid */
+                                        semesterId: string;
+                                        name: string;
+                                        className: string;
+                                    }[];
+                                };
+                                transcript?: {
+                                    /** @enum {number} */
+                                    version: 1;
+                                    capturedAt: string;
+                                    policy: {
+                                        reportWeight: number;
+                                        examWeights: {
+                                            /** Format: uuid */
+                                            examId: string;
+                                            name: string;
+                                            weight: number;
+                                        }[];
+                                        /** @enum {string} */
+                                        reportScope: "final_level" | "all_levels" | "levels";
+                                        reportLevels: string[];
+                                        /** @enum {string} */
+                                        rounding: "integer" | "one_decimal" | "two_decimals";
+                                        minAverage: number | null;
+                                        minSubjectScore: number | null;
+                                        requiredSubjectIds: string[];
+                                        criteriaText: string | null;
+                                    };
+                                    reportSemesters: {
+                                        /** Format: uuid */
+                                        semesterId: string;
+                                        name: string;
+                                        className: string;
+                                    }[];
+                                    subjects: {
+                                        /** Format: uuid */
+                                        subjectId: string;
+                                        name: string;
+                                        /** @description Rata-rata nilai rapor mapel dari snapshot rapor final */
+                                        report: number | null;
+                                        exams: {
+                                            /** Format: uuid */
+                                            examId: string;
+                                            value: number | null;
+                                        }[];
+                                        /** @description Nilai kelulusan mapel (rata-rata tertimbang komponen berbobot yang bernilai) */
+                                        final: number | null;
+                                        /** @description Komponen berbobot yang belum bernilai: `report` atau id ujian */
+                                        missing: string[];
+                                    }[];
+                                    average: number | null;
+                                    /** @description SARAN: memenuhi ambang kebijakan; penetapan tetap oleh sekolah */
+                                    meetsCriteria: boolean;
+                                    failures: {
+                                        /** @enum {string} */
+                                        code: "below_average" | "below_subject" | "required_missing" | "no_scores";
+                                        /** Format: uuid */
+                                        subjectId?: string;
+                                    }[];
+                                    /** @description Ada mapel dengan komponen berbobot yang belum bernilai */
+                                    incomplete: boolean;
+                                    /** @description Ada bila difinalkan dengan `force` (alasan wajib) */
+                                    forced?: {
+                                        reason: string;
+                                    };
+                                };
+                                decision: {
+                                    /** @enum {string|null} */
+                                    result: "graduated" | "not_graduated" | "deferred" | null;
+                                    /** @enum {string} */
+                                    status: "draft" | "final";
+                                    /** Format: date */
+                                    graduatedOn: string | null;
+                                    sklNumber: string | null;
+                                    diplomaNumber: string | null;
+                                    note: string | null;
+                                    /**
+                                     * Format: uuid
+                                     * @description Berita acara yang membahas keputusan ini (ada hanya bila tertaut)
+                                     */
+                                    meetingId?: string;
+                                    finalizedAt: string | null;
+                                    /** @description Keputusan kenaikan murid ini sudah diterapkan: penetapan tidak bisa dibuka kembali */
+                                    promotionApplied: boolean;
+                                } | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan draf keputusan kelulusan murid
+         * @description Izin: `graduation:manage`; modul `grades`. Upsert draf keputusan per murid: `result` (`graduated`, `not_graduated`, `deferred`, atau null = belum diputuskan), `graduatedOn` (tanggal kelulusan), `sklNumber` (diketik; kosong = dibuat otomatis dari templat saat final), `diplomaNumber`, `note`, `meetingId` (berita acara). Yang DIHILANGKAN dipertahankan, `null` mengosongkan. Semua atau tidak sama sekali. Draf belum mengubah keputusan kenaikan; itu terjadi saat finalisasi. 400 `student_not_in_final_class`: murid bukan murid kelas tingkat akhir tahun itu; 400 `invalid_reference`: berita acara tidak ada pada tahun itu. 409 `graduation_final`: keputusan murid sudah final (buka kembali dulu); 409 `meeting_final`: tertaut ke berita acara final; 409 `number_taken`: nomor SKL/ijazah dipakai murid lain; 409 `no_graduation_policy`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        decisions: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** @enum {string|null} */
+                            result: "graduated" | "not_graduated" | "deferred" | null;
+                            /** Format: date */
+                            graduatedOn?: string | null;
+                            sklNumber?: string | null;
+                            diplomaNumber?: string | null;
+                            note?: string | null;
+                            /** Format: uuid */
+                            meetingId?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/graduations/finalize": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Tetapkan (finalkan) keputusan kelulusan murid
+         * @description Izin: `graduation:manage`; modul `grades`. Untuk tiap murid dalam `studentIds` (harus sudah punya draf dengan `result`; yang lulus wajib `graduatedOn`): menghitung ulang saran dari snapshot rapor final dan nilai ujian, MEMBEKUKAN transkrip (nilai rapor per semester, nilai ujian, nilai kelulusan per mapel, rata-rata, kebijakan yang dipakai), membuat nomor SKL dari templat bila lulus dan belum bernomor, lalu menulis keputusan kenaikan murid (`graduated` menjadi `graduate`, `not_graduated` menjadi `retain`, `deferred` tidak ditulis). Status murid `graduated` TIDAK berubah di sini; itu terjadi pada penerapan kenaikan. 409 `report_not_final`: ada murid yang rapor semester tahun kelulusannya belum final; 409 `scores_incomplete`: ada komponen berbobot yang belum bernilai; keduanya dapat dilewati dengan `force` true disertai `reason` (400 `reason_required`); alasan dibekukan di transkrip. 409 `promotion_applied`: keputusan kenaikan murid sudah diterapkan. 409 `meeting_final`: keputusan tertaut ke berita acara final. 409 `graduation_final`: sudah final. Semua atau tidak sama sekali. 400 `result_required`, `graduated_on_required`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        studentIds: string[];
+                        /** @default false */
+                        force?: boolean;
+                        reason?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            finalized: number;
+                            graduated: number;
+                            notGraduated: number;
+                            deferred: number;
+                            sklAssigned: number;
+                            promotionWritten: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/graduations/reopen": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buka kembali penetapan kelulusan murid
+         * @description Izin: `graduation:manage`; modul `grades`. Mengembalikan keputusan final menjadi draf: transkrip beku dibuang (dihitung ulang saat ditetapkan lagi), keputusan kenaikan yang ditulis penetapan ini dicabut, nomor SKL dan ijazah tetap. 409 `promotion_applied`: keputusan kenaikan murid sudah diterapkan (status lulus sudah berlaku); 409 `meeting_final`: tertaut ke berita acara final; 409 `graduation_not_final`: murid belum final. Semua atau tidak sama sekali.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        studentIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            reopened: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/academic-years/{id}/graduations/diploma-numbers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Catat nomor ijazah/seri murid lulus
+         * @description Izin: `graduation:manage`; modul `grades`. Nomor ijazah/seri adalah teks yang diketik operator (Edusync tidak membuat format dan tidak mencetak ijazah). Boleh diubah juga setelah penetapan final karena bukan bagian transkrip beku. Unik per sekolah; null mengosongkan. 400 `invalid_reference`: murid tanpa keputusan lulus. 409 `number_taken`: nomor dipakai murid lain.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            studentId: string;
+                            diplomaNumber?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;

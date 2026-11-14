@@ -1,7 +1,15 @@
 'use client';
 
 import { useQuery } from '@tanstack/react-query';
-import { ArrowLeft, ArrowRight, CalendarDays, ChevronsUp, FileSignature, ShieldCheck } from 'lucide-react';
+import {
+  ArrowLeft,
+  ArrowRight,
+  Award,
+  CalendarDays,
+  ChevronsUp,
+  FileSignature,
+  ShieldCheck,
+} from 'lucide-react';
 import Link from 'next/link';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
@@ -82,11 +90,18 @@ export function PromotionView() {
         title={t('title')}
         description={t('subtitle')}
         actions={
-          can('report_card:read_all') && (
-            <Button variant="outline" nativeButton={false} render={<Link href="/promotion/minutes" />}>
-              <FileSignature className="size-4" aria-hidden /> {t('minutesLink')}
-            </Button>
-          )
+          <>
+            {can('graduation:read') && (
+              <Button variant="outline" nativeButton={false} render={<Link href="/promotion/graduation" />}>
+                <Award className="size-4" aria-hidden /> {t('graduationLink')}
+              </Button>
+            )}
+            {can('report_card:read_all') && (
+              <Button variant="outline" nativeButton={false} render={<Link href="/promotion/minutes" />}>
+                <FileSignature className="size-4" aria-hidden /> {t('minutesLink')}
+              </Button>
+            )}
+          </>
         }
       />
 

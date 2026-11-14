@@ -806,6 +806,113 @@ export const councilMeetingAttendee = pgTable(
 );
 
 /**
+ * Kebijakan kelulusan per tahun ajaran (tahap 3C.4). Adanya baris = sekolah memakai alur kelulusan formal untuk tahun itu; tanpa
+ * baris, keputusan `graduate` di wizard kenaikan berlaku seperti sebelumnya. `config` divalidasi zod di API
+ * (`graduationConfigSchema`). FK komposit, CHECK, indeks unik (tahun, program), dan RLS ada di migrasi 0104.
+ */
+export const graduationPolicy = pgTable(
+  'graduation_policy',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id').notNull(),
+    programId: uuid('program_id'),
+    config: jsonb('config').notNull(),
+    configVersion: integer('config_version').notNull().default(1),
+    sklNumberTemplate: text('skl_number_template'),
+    announceOn: date('announce_on'),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [unique('graduation_policy_school_id_uq').on(t.schoolId, t.id)],
+);
+
+/** Ujian satuan pendidikan (tahap 3C.4). Bentuk (`form`) divalidasi API terhadap daftar di kontrak. */
+export const schoolExam = pgTable(
+  'school_exam',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id').notNull(),
+    name: text('name').notNull(),
+    form: text('form').notNull(),
+    startsOn: date('starts_on'),
+    endsOn: date('ends_on'),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('school_exam_school_id_uq').on(t.schoolId, t.id),
+    index('school_exam_year_idx').on(t.schoolId, t.academicYearId),
+  ],
+);
+
+/** Nilai ujian satuan pendidikan per (ujian, murid, mapel), 0..100. */
+export const schoolExamScore = pgTable(
+  'school_exam_score',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    examId: uuid('exam_id').notNull(),
+    studentId: uuid('student_id').notNull(),
+    subjectId: uuid('subject_id').notNull(),
+    value: numeric('value', { precision: 5, scale: 2, mode: 'number' }),
+    note: text('note'),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('school_exam_score_school_id_uq').on(t.schoolId, t.id),
+    unique('school_exam_score_uq').on(t.examId, t.studentId, t.subjectId),
+    index('school_exam_score_exam_idx').on(t.schoolId, t.examId, t.subjectId),
+  ],
+);
+
+/**
+ * Keputusan kelulusan per (tahun, murid) (tahap 3C.4). Saat `status = 'final'`, `transcript` membekukan nilai yang dipakai.
+ * `promotionSynced`: keputusan kenaikan (`promotion_decision`) ditulis oleh penetapan ini. CHECK, FK komposit, dan indeks unik nomor
+ * SKL/ijazah ada di migrasi 0104.
+ */
+export const graduationDecision = pgTable(
+  'graduation_decision',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id').notNull(),
+    studentId: uuid('student_id').notNull(),
+    classId: uuid('class_id').notNull(),
+    result: text('result', { enum: ['graduated', 'not_graduated', 'deferred'] }),
+    status: text('status', { enum: ['draft', 'final'] })
+      .notNull()
+      .default('draft'),
+    graduatedOn: date('graduated_on'),
+    sklNumber: text('skl_number'),
+    sklSeq: integer('skl_seq'),
+    diplomaNumber: text('diploma_number'),
+    transcript: jsonb('transcript'),
+    meetingId: uuid('meeting_id'),
+    note: text('note'),
+    promotionSynced: boolean('promotion_synced').notNull().default(false),
+    decidedBy: text('decided_by'),
+    finalizedAt: timestamp('finalized_at', { withTimezone: true }),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('graduation_decision_school_id_uq').on(t.schoolId, t.id),
+    unique('graduation_decision_student_uq').on(t.academicYearId, t.studentId),
+    index('graduation_decision_year_idx').on(t.schoolId, t.academicYearId),
+  ],
+);
+
+/**
  * Penanda partisipasi mapel per rombel (tahap 3B.1), SPARSE: baris ada hanya bila mapel itu di rombel itu diikuti murid yang
  * terdaftar saja (`mode = 'selected'`). Tanpa baris = semua murid rombel mengikuti (perilaku sebelumnya). Hanya baris ini yang
  * menyalakan fitur pilihan mapel. FK komposit di SQL tangan 0102.

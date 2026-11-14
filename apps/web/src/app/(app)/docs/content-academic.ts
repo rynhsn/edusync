@@ -3124,4 +3124,250 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'graduation',
+    icon: 'graduation',
+    tone: 'violet',
+    group: 'academic',
+    module: 'grades',
+    text: {
+      id: {
+        title: 'Kelulusan: kriteria, ujian sekolah, penetapan, dan surat keterangan lulus',
+        summary:
+          'Cara mengatur kriteria kelulusan, mencatat nilai ujian sekolah, menetapkan kelulusan murid kelas akhir, memberi nomor, dan mencetak surat keterangan lulus.',
+        forWho:
+          'Wakil kepala sekolah bidang kurikulum, admin sekolah, dan operator yang mengurus kelulusan; kepala sekolah dapat melihat hasilnya.',
+        sections: [
+          {
+            heading: 'Gambaran singkat',
+            body: 'Kelulusan ditetapkan oleh sekolah setelah ujian sekolah dan pertimbangan nilai rapor. Edusync hanya memberi saran angka dari kriteria yang Anda atur, lalu mencatat keputusan sekolah dengan nilai yang dibekukan. Bila tahun ajaran belum punya kriteria kelulusan, kenaikan kelas berjalan seperti biasa dan halaman ini tidak dipakai.',
+            href: '/promotion/graduation',
+            tip: 'Buka dari tombol Kelulusan di halaman Kenaikan kelas, atau dari menu samping.',
+          },
+          {
+            heading: 'Mengatur kriteria',
+            body: 'Di tab Kriteria, tentukan bobot nilai rapor dan bobot tiap ujian sekolah. Jumlah bobot tidak harus 100; yang dipakai adalah porsinya. Pilih rapor yang dipakai (tahun terakhir saja, semua rapor yang sudah final, atau tingkat tertentu), pembulatan, rata-rata minimal, nilai minimal mapel wajib, dan daftar mapel wajib. Ambang hanya menjadi saran: murid di bawah ambang ditandai, tetapi sekolah tetap yang menetapkan. Isi juga templat nomor surat keterangan lulus bila ingin dibuat otomatis.',
+            steps: [
+              'Tambahkan dulu ujian sekolah di tab Ujian sekolah bila ingin memberinya bobot.',
+              'Buka tab Kriteria dan isi bobot, ambang, serta teks kriteria.',
+              'Tulis templat nomor, misalnya nomor urut tiga angka diikuti tahun kelulusan; contoh hasilnya tampil di bawah kolom.',
+              'Klik Simpan kriteria.',
+            ],
+            href: '/promotion/graduation',
+            warning:
+              'Kriteria dan nilai ujian terkunci setelah ada murid yang ditetapkan final. Buka kembali penetapan murid itu bila perlu mengubahnya.',
+          },
+          {
+            heading: 'Mencatat nilai ujian sekolah',
+            body: 'Di tab Ujian sekolah, tambahkan ujian (nama dan bentuknya bebas), lalu isi nilainya per mata pelajaran untuk tiap murid kelas akhir. Anda bisa mengetik satu per satu, atau menempel dari spreadsheet: satu murid per baris berisi NIS atau nama persis, lalu nilai 0 sampai 100. Hasil tempel ditampilkan lebih dulu di daftar dan baru tersimpan saat Anda menekan Simpan nilai.',
+            href: '/promotion/graduation',
+            tip: 'Baris yang NIS atau namanya tidak ditemukan dilaporkan di bawah kotak tempel supaya mudah diperbaiki.',
+          },
+          {
+            heading: 'Melihat saran dan menetapkan',
+            body: 'Tab Penetapan menampilkan murid kelas akhir dengan rata-rata nilai kelulusan, penanda rapor belum final atau nilai belum lengkap, dan keputusannya. Nilai rapor hanya diambil dari rapor yang sudah final. Buka seorang murid untuk melihat nilai tiap mata pelajaran, memilih hasil (lulus, tidak lulus, atau ditunda), mengisi tanggal kelulusan, memilih berita acara, lalu menetapkannya. Tombol Isi dari saran mengisi draf untuk semua murid yang datanya lengkap, dan Tetapkan yang siap menetapkan banyak murid sekaligus.',
+            steps: [
+              'Buka tab Penetapan dan periksa murid yang diberi penanda.',
+              'Buka murid, pilih hasil, isi tanggal kelulusan, lalu simpan draf.',
+              'Klik Tetapkan. Nilai yang dipakai dibekukan sebagai transkrip.',
+            ],
+            href: '/promotion/graduation',
+            warning:
+              'Bila rapor murid belum final atau nilainya belum lengkap, penetapan hanya bisa dilanjutkan dengan alasan tertulis yang ikut tercatat di transkrip.',
+          },
+          {
+            heading: 'Hubungannya dengan kenaikan kelas',
+            body: 'Penetapan mengisi keputusan kenaikan kelas: murid yang lulus menjadi keputusan lulus, yang tidak lulus menjadi tinggal kelas, dan yang ditunda tidak diisi. Status murid baru berubah menjadi lulus saat Anda menerapkan kenaikan kelas, bukan saat menetapkan. Bila tahun ajaran punya kriteria kelulusan, keputusan lulus di langkah Keputusan siswa tidak bisa dipilih langsung; ia datang dari penetapan di halaman ini.',
+            href: '/promotion',
+            warning: 'Penetapan yang keputusan kenaikannya sudah diterapkan tidak bisa dibuka kembali.',
+          },
+          {
+            heading: 'Nomor, surat keterangan lulus, dan transkrip',
+            body: 'Nomor surat keterangan lulus dibuat otomatis saat penetapan dari templat yang Anda tulis, atau bisa diketik sendiri; nomornya tidak boleh sama dengan murid lain. Nomor ijazah diketik sendiri pada tiap murid yang lulus dan juga tidak boleh sama. Edusync tidak membuat format nomor ijazah dan tidak mencetak ijazah. Buka murid yang sudah ditetapkan lalu klik Cetak SKL atau Cetak transkrip; untuk berkas PDF pilih Simpan sebagai PDF pada pilihan printer.',
+            tip: 'Nomor ijazah masih boleh diubah setelah penetapan final karena bukan bagian transkrip yang dibekukan.',
+          },
+          {
+            heading: 'Siapa yang dapat melihat dan mengubah',
+            body: 'Admin sekolah dan Kurikulum dapat mengatur kriteria, mencatat nilai, menetapkan, membuka kembali, dan mencetak. Kepala sekolah dan Operator dapat melihat dan mencetak. Fitur ini memerlukan modul Nilai aktif.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Mengapa murid saya tidak punya saran?',
+            a: 'Saran baru muncul bila rapor tahun terakhir sudah final dan nilai ujian yang berbobot sudah diisi. Murid yang datanya belum lengkap diberi penanda dan perlu diputuskan sendiri.',
+          },
+          {
+            q: 'Apakah murid otomatis lulus bila memenuhi kriteria?',
+            a: 'Tidak. Kelulusan ditetapkan sekolah; kriteria hanya memberi saran, dan status lulus murid baru berubah saat kenaikan kelas diterapkan.',
+          },
+          {
+            q: 'Bagaimana bila perlu mengubah nilai setelah penetapan?',
+            a: 'Buka kembali penetapan murid itu, ubah nilainya, lalu tetapkan lagi. Nomor surat keterangan lulus yang sudah dibuat tetap sama.',
+          },
+          {
+            q: 'Mengapa keputusan lulus di langkah Keputusan siswa tidak bisa dipilih?',
+            a: 'Tahun ajaran itu punya kriteria kelulusan, jadi keputusan lulus berasal dari penetapan di halaman Kelulusan. Tetapkan di sana, lalu keputusannya muncul di langkah Keputusan siswa.',
+          },
+        ],
+      },
+      en: {
+        title: 'Graduation: criteria, school exams, decisions, and certificates of graduation',
+        summary:
+          'How to set the graduation criteria, record school exam scores, confirm graduation for final-year students, give them numbers, and print the certificate of graduation.',
+        forWho:
+          'Vice principals for curriculum, school admins, and operators who handle graduation; principals can view the results.',
+        sections: [
+          {
+            heading: 'Overview',
+            body: 'Graduation is decided by the school after the school exams and a review of the report scores. Edusync only suggests numbers from the criteria you set, then records the school’s decision with the scores frozen. If an academic year has no graduation criteria, promotion works as usual and this page is not used.',
+            href: '/promotion/graduation',
+            tip: 'Open it with the Graduation button on the Promotion page, or from the side menu.',
+          },
+          {
+            heading: 'Setting the criteria',
+            body: 'On the Criteria tab, set the weight of the report score and of each school exam. The weights do not have to add up to 100; their shares are used. Choose which reports are used (last year only, all reports that are final, or specific grades), the rounding, the minimum average, the minimum score for required subjects, and the list of required subjects. Thresholds are only suggestions: students below them are flagged, but the school still decides. Also fill in a certificate number template if you want numbers created automatically.',
+            steps: [
+              'First add the school exams on the School exams tab if you want to give them a weight.',
+              'Open the Criteria tab and fill in the weights, thresholds, and criteria text.',
+              'Write the number template, for example a three-digit running number followed by the graduation year; an example result appears under the field.',
+              'Click Save criteria.',
+            ],
+            href: '/promotion/graduation',
+            warning:
+              'The criteria and exam scores are locked once a student is confirmed as final. Reopen that student’s decision if you need to change them.',
+          },
+          {
+            heading: 'Recording school exam scores',
+            body: 'On the School exams tab, add an exam (its name and form are up to you), then fill in the scores per subject for each final-year student. You can type them one by one, or paste from a spreadsheet: one student per line with the student number or exact name, then a score from 0 to 100. Pasted scores are shown in the list first and are only saved when you press Save scores.',
+            href: '/promotion/graduation',
+            tip: 'Lines whose number or name is not found are reported under the paste box so they are easy to fix.',
+          },
+          {
+            heading: 'Viewing suggestions and confirming',
+            body: 'The Decisions tab shows final-year students with their graduation average, flags for a report that is not final or scores that are incomplete, and their decision. Report scores are only taken from reports that are final. Open a student to see the score of each subject, choose the result (graduated, not graduated, or deferred), fill in the graduation date, pick the meeting minutes, and confirm. The Fill from suggestions button fills drafts for every student whose data is complete, and Confirm ready confirms many students at once.',
+            steps: [
+              'Open the Decisions tab and check the students that are flagged.',
+              'Open a student, choose the result, fill in the graduation date, then save the draft.',
+              'Click Confirm. The scores used are frozen as a transcript.',
+            ],
+            href: '/promotion/graduation',
+            warning:
+              'If a student’s report is not final or the scores are incomplete, confirming can only continue with a written reason, which is recorded on the transcript.',
+          },
+          {
+            heading: 'How it relates to promotion',
+            body: 'Confirming fills in the promotion decision: students who graduate become a graduate decision, those who do not become repeating the year, and deferred students are left empty. A student’s status only changes to graduated when you apply the promotion, not when you confirm. When an academic year has graduation criteria, the graduate decision in the Student decisions step cannot be chosen directly; it comes from the confirmation on this page.',
+            href: '/promotion',
+            warning: 'A decision whose promotion has already been applied cannot be reopened.',
+          },
+          {
+            heading: 'Numbers, certificates, and transcripts',
+            body: 'The certificate number is created automatically when confirming, from the template you wrote, or you can type it yourself; it may not be the same as another student’s. The diploma number is typed in for each graduating student and also may not repeat. Edusync does not generate diploma number formats and does not print diplomas. Open a confirmed student and click Print certificate or Print transcript; for a PDF file choose Save as PDF in the printer options.',
+            tip: 'The diploma number can still be changed after the decision is final because it is not part of the frozen transcript.',
+          },
+          {
+            heading: 'Who can view and change',
+            body: 'School admins and Curriculum can set the criteria, record scores, confirm, reopen, and print. Principals and Operators can view and print. This feature needs the Grades module to be active.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why does my student have no suggestion?',
+            a: 'A suggestion only appears when the last year’s reports are final and the weighted exam scores are filled in. Students with incomplete data are flagged and need to be decided by hand.',
+          },
+          {
+            q: 'Does a student graduate automatically when meeting the criteria?',
+            a: 'No. Graduation is decided by the school; the criteria only suggest, and the student’s graduated status only changes when the promotion is applied.',
+          },
+          {
+            q: 'What if I need to change a score after confirming?',
+            a: 'Reopen that student’s decision, change the score, then confirm again. A certificate number that was already created stays the same.',
+          },
+          {
+            q: 'Why can I not choose the graduate decision in the Student decisions step?',
+            a: 'That academic year has graduation criteria, so the graduate decision comes from the confirmation on the Graduation page. Confirm it there and the decision then appears in the Student decisions step.',
+          },
+        ],
+      },
+      su: {
+        title: 'Kalulusan: kriteria, ujian sakola, panetepan, jeung surat katerangan lulus',
+        summary:
+          'Cara ngatur kriteria kalulusan, nyatet nilai ujian sakola, netepkeun kalulusan murid kelas ahir, méré nomer, jeung nyitak surat katerangan lulus.',
+        forWho:
+          'Wakil kepala sakola bidang kurikulum, admin sakola, jeung operator nu ngurus kalulusan; kepala sakola bisa nempo hasilna.',
+        sections: [
+          {
+            heading: 'Gambaran ringkes',
+            body: 'Kalulusan ditetepkeun ku sakola sanggeus ujian sakola jeung pertimbangan nilai rapor. Edusync ngan méré saran angka tina kriteria nu diatur ku Anjeun, terus nyatet kaputusan sakola maké nilai nu dibekukeun. Lamun taun ajaran can boga kriteria kalulusan, naek kelas jalan biasa jeung kaca ieu teu dipaké.',
+            href: '/promotion/graduation',
+            tip: 'Buka tina tombol Kalulusan di kaca Naek kelas, atawa tina ménu gigir.',
+          },
+          {
+            heading: 'Ngatur kriteria',
+            body: 'Dina tab Kriteria, tangtukeun bobot nilai rapor jeung bobot unggal ujian sakola. Jumlah bobot teu kudu 100; nu dipaké nyaéta porsina. Pilih rapor nu dipaké (taun panungtungan wungkul, sakabéh rapor nu geus final, atawa tingkat tangtu), pangbulatan, rata-rata minimal, nilai minimal mapel wajib, jeung daptar mapel wajib. Ambang ngan saran: murid di handapeun ambang ditandaan, tapi sakola tetep nu netepkeun. Eusian ogé citakan nomer surat katerangan lulus lamun hayang dijieun otomatis.',
+            steps: [
+              'Tambahkeun heula ujian sakola dina tab Ujian sakola lamun hayang méré bobot.',
+              'Buka tab Kriteria jeung eusian bobot, ambang, jeung téks kriteria.',
+              'Tulis citakan nomer, upamana nomer urut tilu angka dituturkeun ku taun kalulusan; conto hasilna kaciri di handapeun kolom.',
+              'Klik Simpen kriteria.',
+            ],
+            href: '/promotion/graduation',
+            warning:
+              'Kriteria jeung nilai ujian dikonci sanggeus aya murid nu ditetepkeun final. Buka deui panetepan murid éta lamun perlu dirobah.',
+          },
+          {
+            heading: 'Nyatet nilai ujian sakola',
+            body: 'Dina tab Ujian sakola, tambahkeun ujian (ngaran jeung wangunna bébas), terus eusian nilaina per mata pelajaran keur unggal murid kelas ahir. Bisa diketik hiji-hiji, atawa témpél tina spreadsheet: hiji murid sabaris eusina NIS atawa ngaran pasti, terus nilai 0 nepi ka 100. Hasil témpél ditémbongkeun heula dina daptar jeung kakara kasimpen nalika Anjeun mencét Simpen nilai.',
+            href: '/promotion/graduation',
+            tip: 'Baris nu NIS atawa ngaranna teu kapanggih dilaporkeun di handapeun kotak témpél supaya gampang dibenerkeun.',
+          },
+          {
+            heading: 'Nempo saran jeung netepkeun',
+            body: 'Tab Panetepan mintonkeun murid kelas ahir jeung rata-rata nilai kalulusan, tanda rapor can final atawa nilai can lengkep, jeung kaputusanana. Nilai rapor ngan dicokot tina rapor nu geus final. Buka hiji murid pikeun nempo nilai unggal mata pelajaran, milih hasil (lulus, teu lulus, atawa ditunda), ngeusian tanggal kalulusan, milih berita acara, terus netepkeun. Tombol Eusian tina saran ngeusian draf keur sakabéh murid nu datana lengkep, jeung Tetepkeun nu siap netepkeun loba murid sakaligus.',
+            steps: [
+              'Buka tab Panetepan jeung pariksa murid nu dibéré tanda.',
+              'Buka murid, pilih hasil, eusian tanggal kalulusan, terus simpen draf.',
+              'Klik Tetepkeun. Nilai nu dipaké dibekukeun jadi transkrip.',
+            ],
+            href: '/promotion/graduation',
+            warning:
+              'Lamun rapor murid can final atawa nilaina can lengkep, panetepan ngan bisa diteruskeun maké alesan tinulis nu milu kacatet dina transkrip.',
+          },
+          {
+            heading: 'Kaitanana jeung naek kelas',
+            body: 'Panetepan ngeusian kaputusan naek kelas: murid nu lulus jadi kaputusan lulus, nu teu lulus jadi tinggal kelas, jeung nu ditunda teu dieusian. Status murid kakara robah jadi lulus nalika Anjeun nerapkeun naek kelas, lain nalika netepkeun. Lamun taun ajaran boga kriteria kalulusan, kaputusan lulus dina léngkah Kaputusan siswa teu bisa dipilih langsung; asalna tina panetepan di kaca ieu.',
+            href: '/promotion',
+            warning: 'Panetepan nu kaputusan naek kelasna geus diterapkeun teu bisa dibuka deui.',
+          },
+          {
+            heading: 'Nomer, surat katerangan lulus, jeung transkrip',
+            body: 'Nomer surat katerangan lulus dijieun otomatis nalika panetepan tina citakan nu ditulis ku Anjeun, atawa bisa diketik sorangan; nomerna teu meunang sarua jeung murid sejen. Nomer ijazah diketik sorangan keur unggal murid nu lulus jeung ogé teu meunang sarua. Edusync henteu nyieun format nomer ijazah jeung henteu nyitak ijazah. Buka murid nu geus ditetepkeun terus klik Citak SKL atawa Citak transkrip; keur berkas PDF pilih Simpen salaku PDF dina pilihan printer.',
+            tip: 'Nomer ijazah masih bisa dirobah sanggeus panetepan final sabab lain bagian transkrip nu dibekukeun.',
+          },
+          {
+            heading: 'Saha nu bisa nempo jeung ngarobah',
+            body: 'Admin sakola jeung Kurikulum bisa ngatur kriteria, nyatet nilai, netepkeun, muka deui, jeung nyitak. Kepala sakola jeung Operator bisa nempo jeung nyitak. Fitur ieu peryogi modul Nilai aktip.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha murid kuring teu boga saran?',
+            a: 'Saran kakara muncul lamun rapor taun panungtungan geus final jeung nilai ujian nu aya bobotna geus dieusian. Murid nu datana can lengkep dibéré tanda jeung perlu diputuskeun sorangan.',
+          },
+          {
+            q: 'Naha murid otomatis lulus lamun minuhan kriteria?',
+            a: 'Henteu. Kalulusan ditetepkeun ku sakola; kriteria ngan méré saran, jeung status lulus murid kakara robah nalika naek kelas diterapkeun.',
+          },
+          {
+            q: 'Kumaha lamun perlu ngarobah nilai sanggeus panetepan?',
+            a: 'Buka deui panetepan murid éta, robah nilaina, terus tetepkeun deui. Nomer surat katerangan lulus nu geus dijieun tetep sarua.',
+          },
+          {
+            q: 'Naha kaputusan lulus dina léngkah Kaputusan siswa teu bisa dipilih?',
+            a: 'Taun ajaran éta boga kriteria kalulusan, jadi kaputusan lulus asalna tina panetepan di kaca Kalulusan. Tetepkeun di dinya, terus kaputusanana muncul dina léngkah Kaputusan siswa.',
+          },
+        ],
+      },
+    },
+  },
 ];

@@ -198,6 +198,8 @@ const KNOWN = [
   'student_not_taking_subject',
   'meeting_final',
   'meeting_not_final',
+  'graduation_final',
+  'graduation_not_determined',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

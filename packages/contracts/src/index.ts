@@ -15,6 +15,7 @@ export * from './finance-billing';
 export * from './finance-late-fee';
 export * from './grading';
 export * from './grading-config';
+export * from './graduation';
 export * from './kktp';
 export * from './letters';
 export * from './messaging';

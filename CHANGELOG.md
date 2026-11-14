@@ -139,6 +139,33 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   kelas dapat dipilihkan kelas tujuan eksplisit di tahun tujuan. Tanpa kelas tujuan, murid tetap dilaporkan `no_target_class` seperti
   sebelumnya. Pendaftaran tahun sumber tidak dihapus sehingga riwayat rombel utuh. Tanpa keputusan tinggal kelas di tingkat akhir,
   hasil salin tahun ajaran tidak berubah.
+- **Kelulusan.** Halaman baru "Kelulusan" (dari tombol di halaman Kenaikan kelas dan menu samping) untuk sekolah yang ingin menetapkan
+  kelulusan secara formal. Per tahun ajaran, sekolah mengatur kriteria: bobot nilai rapor dan bobot tiap ujian sekolah (jumlah bobot
+  tidak harus 100; yang dipakai porsinya), rapor yang dipakai (tahun terakhir, semua rapor final, atau tingkat tertentu), pembulatan,
+  rata-rata minimal, nilai minimal mapel wajib, daftar mapel wajib, teks kriteria, tanggal pengumuman, dan templat nomor SKL. Tidak ada
+  angka bawaan: semuanya pilihan sekolah. Sekolah mencatat ujian sekolah (nama dan bentuk bebas) dan nilainya per murid dan mapel
+  (ketik atau tempel dari spreadsheet). Edusync menghitung SARAN nilai kelulusan per mapel dan rata-rata dari nilai rapor (hanya
+  dari rapor yang sudah final; tidak pernah dihitung ulang dari data hidup) dan nilai ujian, menandai murid yang rapornya belum final
+  atau nilainya belum lengkap, dan menjelaskan kriteria yang belum terpenuhi; sekolah yang menetapkan hasilnya (lulus, tidak lulus,
+  atau ditunda) dengan tanggal kelulusan, catatan, dan berita acara opsional. Penetapan membekukan transkrip (nilai rapor per
+  semester, nilai ujian, nilai kelulusan per mapel, rata-rata, kriteria yang dipakai), membuat nomor SKL dari templat, dan menulis
+  keputusan kenaikan murid (lulus menjadi `graduate`, tidak lulus menjadi `retain`, ditunda tidak ditulis). Rapor yang belum final
+  atau nilai yang belum lengkap hanya dapat ditetapkan dengan `force` dan alasan tertulis yang ikut dibekukan. Penetapan dapat dibuka
+  kembali (transkrip dibuang dan keputusan kenaikan yang ditulisnya dicabut; nomor SKL tetap) selama keputusan kenaikannya belum
+  diterapkan atau berita acara tertaut belum final. Nomor ijazah diketik operator (unik per sekolah; Edusync tidak membuat format dan
+  tidak mencetak ijazah) dan boleh dicatat setelah penetapan final. SKL dan transkrip dicetak atau disimpan sebagai PDF dari peramban.
+  Status murid `graduated` tetap hanya berubah saat kenaikan kelas diterapkan. Tahun ajaran dengan kriteria kelulusan: keputusan
+  `graduate` di wizard kenaikan hanya berlaku bila sudah ditetapkan (409 `graduation_not_determined`; keputusan yang berbeda dari
+  penetapan final ditolak 409 `graduation_final`) dan penerapan melewati keputusan lulus yang belum ditetapkan
+  (`graduation_not_determined` pada `unplaced`). Sekolah tanpa kriteria kelulusan identik dengan sebelumnya. Penetapan final
+  mengunci kriteria, ujian, dan nilai ujian tahun itu (409 `graduation_final`). Endpoint baru: `GET/PUT/DELETE
+  /v1/academic-years/{id}/graduation-policy`, `GET/POST /v1/academic-years/{id}/school-exams`, `PUT/DELETE /v1/school-exams/{id}`,
+  `GET/PUT /v1/school-exams/{id}/scores`, `GET/PUT /v1/academic-years/{id}/graduations`, `POST .../graduations/finalize`, `POST
+  .../graduations/reopen`, dan `PUT .../graduations/diploma-numbers` (izin baru `graduation:read` untuk Admin sekolah, Kurikulum,
+  Kepala sekolah, dan Operator; `graduation:manage` untuk Admin sekolah dan Kurikulum; modul `grades`). Daftar keputusan kenaikan
+  memuat `graduationPolicy` dan `graduationResult` hanya bila tahun itu punya kriteria. Migrasi 0104 (aditif): tabel
+  `graduation_policy`, `school_exam`, `school_exam_score`, dan `graduation_decision` (RLS, kunci asing komposit, CHECK, dan nomor
+  unik per sekolah).
 
 ### Diubah
 
@@ -178,6 +205,12 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   berlaku apa adanya (tanggal musyawarah murid yang sudah terisi tidak berubah) dan penguncian oleh berita acara final tidak
   berlaku. Kelas tingkat akhir yang sudah disalin untuk murid yang tinggal kelas tetap ada (kelas biasa) dan murid yang sudah
   ditempatkan di dalamnya tetap di sana; salin tahun ajaran versi lama kembali tidak menyalin kelas tingkat akhir.
+- Kelulusan (tahap 3C.4): tabel `graduation_policy`, `school_exam`, `school_exam_score`, dan `graduation_decision` serta izin
+  `graduation:read` dan `graduation:manage` dibiarkan di database dan tampil lagi setelah maju. Setelah kembali ke versi
+  sebelumnya, halaman dan endpoint kelulusan tidak ada dan keputusan `graduate` di wizard kenaikan kembali bebas dipilih (penjaga
+  `graduation_not_determined` tidak berlaku) serta diterapkan seperti biasa. Keputusan kenaikan yang sudah ditulis oleh penetapan
+  tetap berlaku apa adanya, jadi murid yang sudah ditetapkan lulus tetap lulus saat kenaikan diterapkan; transkrip beku, nomor SKL,
+  dan nomor ijazah tetap tersimpan tetapi tidak dapat dilihat sampai maju lagi. Sekolah tanpa kriteria kelulusan tidak terpengaruh.
 - Legger kelas (tahap 3C.2): tidak ada tabel atau kolom baru. Setelah kembali ke versi sebelumnya halaman Legger dan endpoint-nya
   tidak ada; tidak ada efek pada nilai atau rapor (leger Excel lama di halaman Rapor tetap tersedia).
 - Mutasi murid dan riwayat rombel (tahap 3C.1): tabel `student_transfer` dan `enrollment_change` dibiarkan di database dan
