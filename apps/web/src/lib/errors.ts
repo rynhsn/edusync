@@ -192,6 +192,8 @@ const KNOWN = [
   'student_status_changed',
   'transfer_superseded',
   'subject_not_selected_mode',
+  'parallel_requires_selected',
+  'combined_mismatch',
   'choice_rule_violation',
   'scope_overlap',
   'choice_locked',

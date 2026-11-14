@@ -20574,7 +20574,7 @@ export interface paths {
         };
         /**
          * Jadwal sebuah kelas atau seorang guru
-         * @description Izin: `schedule:read`. Isi `classId` untuk jadwal kelas, atau `teacherId` untuk jadwal guru pada tahun ajaran aktif (atau `academicYearId`). Guru pengampu diambil dari penugasan guru di kelas. Tanpa `semesterId` hanya sel setahun penuh yang dikembalikan (`semesterId` null pada hasil). Dengan `semesterId`, hasilnya jadwal efektif semester itu: sel khusus semester itu ditambah sel setahun penuh.
+         * @description Izin: `schedule:read`. Isi `classId` untuk jadwal kelas, atau `teacherId` untuk jadwal guru pada tahun ajaran aktif (atau `academicYearId`). Guru pengampu diambil dari penugasan guru di kelas. Tanpa `semesterId` hanya sel setahun penuh yang dikembalikan (`semesterId` null pada hasil). Dengan `semesterId`, hasilnya jadwal efektif semester itu: sel khusus semester itu ditambah sel setahun penuh. Sel di jalur paralel (`lane` 1..9) dan sel pertemuan gabungan (`combinedKey`) menyertakan field itu; sel biasa tidak (sparse).
          */
         get: {
             parameters: {
@@ -20616,6 +20616,9 @@ export interface paths {
                             periodId: string;
                             /** Format: uuid */
                             semesterId: string | null;
+                            lane?: number;
+                            /** Format: uuid */
+                            combinedKey?: string;
                         }[];
                     };
                 };
@@ -20681,7 +20684,7 @@ export interface paths {
         get?: never;
         /**
          * Isi atau ganti satu sel jadwal
-         * @description Izin: `schedule:manage`. Gurunya otomatis guru pengampu mata pelajaran itu di kelas tersebut (tetapkan dulu di halaman Kelas). `semesterId` kosong = sel setahun penuh; terisi = sel khusus semester itu (harus semester tahun ajaran kelas, jika tidak 400 `invalid_reference`). Cakupan yang sama menimpa isi sel. Ditolak 409 `schedule_scope_conflict` bila slot kelas itu sudah terisi di cakupan lain yang bertumpuk (sel setahun penuh vs sel semester), dan 409 `teacher_busy` bila guru itu sudah mengajar di kelas lain pada hari dan jam yang sama dengan cakupan beririsan (setahun penuh beririsan dengan semua; semester X hanya dengan setahun penuh dan semester X).
+         * @description Izin: `schedule:manage`. Gurunya otomatis guru pengampu mata pelajaran itu di kelas tersebut (tetapkan dulu di halaman Kelas). `semesterId` kosong = sel setahun penuh; terisi = sel khusus semester itu (harus semester tahun ajaran kelas, jika tidak 400 `invalid_reference`). Cakupan yang sama menimpa isi sel. Ditolak 409 `schedule_scope_conflict` bila slot kelas itu sudah terisi di cakupan lain yang bertumpuk (sel setahun penuh vs sel semester), dan 409 `teacher_busy` bila guru itu sudah mengajar di kelas lain pada hari dan jam yang sama dengan cakupan beririsan (setahun penuh beririsan dengan semua; semester X hanya dengan setahun penuh dan semester X). Jadwal paralel: `lane` (0..9, bawaan 0) memungkinkan beberapa sel di slot kelas yang sama, hanya bila semua mapel di slot itu berpenanda pilihan (`selected`) di kelas itu, jika tidak 400 `parallel_requires_selected`; guru yang sama tetap tidak boleh dua sel di slot yang sama. Pertemuan gabungan: `combinedKey` yang sama pada sel di kelas berbeda dengan guru, mapel, hari, jam, dan cakupan sama dianggap satu pertemuan (tidak dihitung `teacher_busy`); anggota yang tidak cocok ditolak 400 `combined_mismatch`. Tanpa kedua field, perilaku sama seperti sebelumnya. Sel yang diganti dikenali dari (kelas, hari, jam, cakupan, `lane`).
          */
         put: {
             parameters: {
@@ -20705,6 +20708,9 @@ export interface paths {
                         subjectId: string;
                         /** Format: uuid */
                         semesterId?: string;
+                        lane?: number;
+                        /** Format: uuid */
+                        combinedKey?: string;
                     };
                 };
             };
@@ -20732,6 +20738,9 @@ export interface paths {
                             periodId: string;
                             /** Format: uuid */
                             semesterId: string | null;
+                            lane?: number;
+                            /** Format: uuid */
+                            combinedKey?: string;
                         };
                     };
                 };
@@ -20810,7 +20819,7 @@ export interface paths {
         post?: never;
         /**
          * Kosongkan satu sel jadwal
-         * @description Izin: `schedule:manage`. Hanya menghapus sel pada cakupan yang persis sama: tanpa `semesterId` = sel setahun penuh, dengan `semesterId` = sel semester itu (400 `invalid_reference` bila bukan semester tahun ajaran kelas). 404 bila tidak ada sel pada cakupan itu.
+         * @description Izin: `schedule:manage`. Hanya menghapus sel pada cakupan yang persis sama: tanpa `semesterId` = sel setahun penuh, dengan `semesterId` = sel semester itu (400 `invalid_reference` bila bukan semester tahun ajaran kelas). `lane` (bawaan 0) memilih jalur paralel yang dikosongkan. 404 bila tidak ada sel pada cakupan dan jalur itu.
          */
         delete: {
             parameters: {
@@ -20819,6 +20828,7 @@ export interface paths {
                     weekday: number;
                     periodId: string;
                     semesterId?: string;
+                    lane?: number;
                 };
                 header: {
                     /** @description Sekolah yang sedang dipakai */

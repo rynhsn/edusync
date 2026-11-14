@@ -166,6 +166,21 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   memuat `graduationPolicy` dan `graduationResult` hanya bila tahun itu punya kriteria. Migrasi 0104 (aditif): tabel
   `graduation_policy`, `school_exam`, `school_exam_score`, dan `graduation_decision` (RLS, kunci asing komposit, CHECK, dan nomor
   unik per sekolah).
+- **Jadwal paralel dan kelas gabungan.** Satu slot jadwal kelas (hari + jam) kini boleh berisi beberapa sel pada jalur (`lane` 0 sampai 9)
+  berbeda, hanya bila semua mata pelajaran di slot itu bermode pilihan (`selected`) di kelas itu; selain itu ditolak 400
+  `parallel_requires_selected` (sel tunggal di jalur 0 tetap boleh berisi mapel apa pun). Beberapa rombel dapat membentuk satu
+  pertemuan gabungan lewat `combinedKey` yang sama: sel di kelas berbeda dengan guru, mapel, hari, jam, dan cakupan (setahun atau
+  semester) yang sama tidak dihitung bentrok guru (`teacher_busy`); anggota yang tidak cocok ditolak 400 `combined_mismatch`. Tanpa
+  `combinedKey`, `teacher_busy` persis seperti sebelumnya, dan seorang guru tetap tidak bisa mengisi dua jalur di slot yang sama.
+  `PUT /v1/schedule/cell` menerima `lane` dan `combinedKey` opsional, `DELETE /v1/schedule/cell` menerima `lane` (bawaan 0), dan
+  `GET /v1/schedule` memuat `lane` dan `combinedKey` hanya pada sel yang bukan bawaan (sparse). Halaman Jadwal pelajaran menampilkan
+  beberapa kartu per slot (label Paralel dan Gabungan), tombol Tambah jalur paralel, dan pilihan Pertemuan gabungan dengan kelas lain
+  (id, en, su; bantuan di artikel Pilihan mata pelajaran). Sekolah yang tidak memakai jalur paralel atau kelas gabungan tidak melihat
+  perubahan apa pun. Absensi per jam, jadwal hari ini, dan laporan jam belum diisi masih memperlakukan tiap sel sebagai sel biasa
+  (roster pengambil dan absensi gabungan menyusul di tahap berikutnya). Migrasi 0105: kolom `lane` dan `combined_key` pada
+  `schedule_entry` (berdefault aman, tanpa backfill) dan penggantian indeks unik jadwal: indeks slot kelas kini menyertakan `lane`,
+  indeks slot guru dibatasi pada sel tanpa kunci gabungan (indeks baru dibuat sebelum yang lama dihapus; keunikan lama terjaga
+  persis karena semua baris lama berjalur 0 dan tanpa kunci).
 
 ### Diubah
 
@@ -205,6 +220,12 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   berlaku apa adanya (tanggal musyawarah murid yang sudah terisi tidak berubah) dan penguncian oleh berita acara final tidak
   berlaku. Kelas tingkat akhir yang sudah disalin untuk murid yang tinggal kelas tetap ada (kelas biasa) dan murid yang sudah
   ditempatkan di dalamnya tetap di sana; salin tahun ajaran versi lama kembali tidak menyalin kelas tingkat akhir.
+- Jadwal paralel dan kelas gabungan (tahap 3B.3): kolom `lane` dan `combined_key` dibiarkan di database. Setelah kembali ke versi
+  sebelumnya, sel berjalur lebih dari 0 dan sel bergabung tampil sebagai sel biasa (beberapa kartu di slot yang sama bisa tampil
+  tumpang tindih di kisi lama dan tidak dapat diedit) dan tidak ada galat baca. Indeks unik lama (satu sel per kelas per slot, satu
+  sel per guru per slot) tidak ada lagi: bila versi lama dipasang ulang dengan `drizzle` dan masih ada baris berjalur lebih dari 0 atau
+  ber-kunci, pembuatan indeks lama gagal sampai baris itu dikosongkan. Sekolah yang tidak memakai jalur paralel atau kelas gabungan
+  tidak terpengaruh.
 - Kelulusan (tahap 3C.4): tabel `graduation_policy`, `school_exam`, `school_exam_score`, dan `graduation_decision` serta izin
   `graduation:read` dan `graduation:manage` dibiarkan di database dan tampil lagi setelah maju. Setelah kembali ke versi
   sebelumnya, halaman dan endpoint kelulusan tidak ada dan keputusan `graduate` di wizard kenaikan kembali bebas dipilih (penjaga

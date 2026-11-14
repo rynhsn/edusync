@@ -28,6 +28,7 @@ export * from './quran';
 export * from './remedial';
 export * from './report-card';
 export * from './report-document';
+export * from './schedule-parallel';
 export * from './school-domain';
 export * from './school-settings';
 export * from './site-assets';

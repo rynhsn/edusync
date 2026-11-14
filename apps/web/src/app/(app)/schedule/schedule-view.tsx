@@ -1,5 +1,6 @@
 'use client';
 
+import { nextFreeLane } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import {
   BookOpen,
@@ -7,6 +8,7 @@ import {
   CalendarDays,
   Clock,
   LayoutGrid,
+  Link2,
   Plus,
   Shapes,
   Trash2,
@@ -20,6 +22,7 @@ import { FieldError, TOUCH_INPUT, TOUCH_SELECT, useFormValidation } from '@/comp
 import { PageBody, PageHeader } from '@/components/page-header';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Dialog,
   DialogContent,
@@ -40,6 +43,7 @@ import { useSchoolSettings } from '@/lib/school-settings';
 import { todayWeekdayNumber } from '@/lib/school-time';
 import { semesterLabel } from '@/lib/semester-label';
 import { cn } from '@/lib/utils';
+import { combineCandidates, laneOf, slotEntries } from './schedule-lanes';
 import {
   GENERATE_ORDER,
   type GenerateField,
@@ -360,10 +364,17 @@ export function ScheduleView() {
     periodId: string;
     label: string;
     subjectId: string;
+    /** Jalur paralel sel yang dibuka (0 = bawaan). */
+    lane: number;
+    /** Pertemuan gabungan: aktif, kunci yang sudah dimiliki sel, dan sel rombel lain yang dipilih untuk digabung. */
+    combine: boolean;
+    combinedKey: string | null;
+    joinWith: string;
   } | null>(null);
   // Sel yang sudah dicoba disimpan tanpa memilih mapel; pesan merah tampil untuk sel itu saja.
   const [cellTried, setCellTried] = useState<string | null>(null);
-  const cellMissing = !!cell && !cell.subjectId && cellTried === `${cell.weekday}-${cell.periodId}`;
+  const cellMissing =
+    !!cell && !cell.subjectId && cellTried === `${cell.weekday}-${cell.periodId}-${cell.lane}`;
 
   const periods = useQuery({
     queryKey: ['lesson-periods', school.schoolId],
@@ -429,17 +440,63 @@ export function ScheduleView() {
       unwrap(await api.GET('/v1/classes/{id}/assignments', { params: { ...header, path: { id: classId } } })),
   });
 
+  // Mapel berpenanda pilihan di kelas ini: hanya itu yang boleh di jalur paralel (server menjaga aturannya).
+  const participation = useQuery({
+    queryKey: ['subject-participation', school.schoolId, classId],
+    enabled: mode === 'class' && !!classId && manage && can('class:read'),
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/v1/classes/{id}/subject-participation', {
+          params: { ...header, path: { id: classId } },
+        }),
+      ),
+  });
+  const selectedSubjects = new Set(
+    (participation.data?.subjects ?? []).filter((x) => x.mode === 'selected').map((x) => x.subjectId),
+  );
+
   const refresh = () => queryClient.invalidateQueries({ queryKey: ['schedule', school.schoolId] });
   const [cellError, setCellError] = useState<string | null>(null);
 
   const setCellMutation = useMutation({
-    mutationFn: async (v: { weekday: Weekday; periodId: string; subjectId: string }) =>
-      unwrap(
+    mutationFn: async (v: {
+      weekday: Weekday;
+      periodId: string;
+      subjectId: string;
+      lane: number;
+      combinedKey?: string;
+      /** Sel rombel lain yang digabung dan belum berkunci: diberi kunci yang sama lebih dulu. */
+      tagOther?: { classId: string; lane: number };
+    }) => {
+      const { lane, combinedKey, tagOther, ...slot } = v;
+      const scope = scopeId ? { semesterId: scopeId } : {};
+      if (tagOther && combinedKey) {
+        unwrap(
+          await api.PUT('/v1/schedule/cell', {
+            params: header,
+            body: {
+              classId: tagOther.classId,
+              ...slot,
+              ...scope,
+              ...(tagOther.lane > 0 ? { lane: tagOther.lane } : {}),
+              combinedKey,
+            },
+          }),
+        );
+      }
+      return unwrap(
         await api.PUT('/v1/schedule/cell', {
           params: header,
-          body: { classId, ...v, ...(scopeId ? { semesterId: scopeId } : {}) },
+          body: {
+            classId,
+            ...slot,
+            ...scope,
+            ...(lane > 0 ? { lane } : {}),
+            ...(combinedKey ? { combinedKey } : {}),
+          },
         }),
-      ),
+      );
+    },
     onSuccess: () => {
       toast.success(t('saved'));
       setCell(null);
@@ -448,12 +505,22 @@ export function ScheduleView() {
     onError: (e) => setCellError(te(errorKey(e))),
   });
   const clearCell = useMutation({
-    mutationFn: async (v: { weekday: Weekday; periodId: string }) =>
-      unwrap(
+    mutationFn: async (v: { weekday: Weekday; periodId: string; lane: number }) => {
+      const { lane, ...slot } = v;
+      return unwrap(
         await api.DELETE('/v1/schedule/cell', {
-          params: { ...header, query: { classId, ...v, ...(scopeId ? { semesterId: scopeId } : {}) } },
+          params: {
+            ...header,
+            query: {
+              classId,
+              ...slot,
+              ...(lane > 0 ? { lane } : {}),
+              ...(scopeId ? { semesterId: scopeId } : {}),
+            },
+          },
         }),
-      ),
+      );
+    },
     onSuccess: () => {
       toast.success(t('cleared'));
       setCell(null);
@@ -462,17 +529,16 @@ export function ScheduleView() {
     onError: (e) => setCellError(te(errorKey(e))),
   });
 
-  const entryAt = (weekday: number, periodId: string) =>
-    schedule.data?.find((e) => e.weekday === weekday && e.periodId === periodId);
+  const slotAt = (weekday: number, periodId: string) => slotEntries(schedule.data ?? [], weekday, periodId);
   // Sel yang dimiliki cakupan terpilih (bisa diubah/dikosongkan); di cakupan semester, sel setahun penuh hanya tampil.
   const isOwn = (e: { semesterId: string | null }) => (e.semesterId ?? '') === scopeId;
-  const ownEntryAt = (weekday: number, periodId: string) => {
-    const e = entryAt(weekday, periodId);
-    return e && isOwn(e) ? e : undefined;
-  };
+  const ownEntryAt = (weekday: number, periodId: string, lane = 0) =>
+    slotAt(weekday, periodId).find((e) => isOwn(e) && laneOf(e) === lane);
   const noPeriods = periods.data?.length === 0;
 
   const entries = schedule.data ?? [];
+  // Slot terisi dihitung per (hari, jam): jalur paralel dan pertemuan gabungan tidak menambah jumlah slot.
+  const filledSlots = new Set(entries.map((e) => `${e.weekday}-${e.periodId}`)).size;
   const periodList = periods.data ?? [];
   const slotCount = periodList.length * weekdays.length;
   const distinct = (pick: (e: (typeof entries)[number]) => string) => new Set(entries.map(pick)).size;
@@ -480,43 +546,56 @@ export function ScheduleView() {
   const editable = manage && mode === 'class';
   const showGrid = periodList.length > 0 && !!target;
 
-  const openCell = (d: Weekday, p: (typeof periodList)[number]) => {
-    const e = ownEntryAt(d, p.id);
+  const openCell = (d: Weekday, p: (typeof periodList)[number], lane = 0) => {
+    const e = ownEntryAt(d, p.id, lane);
     setCellError(null);
     setCell({
       weekday: d,
       periodId: p.id,
-      label: `${t(`days.${d}`)} · ${p.number}`,
+      label: `${t(`days.${d}`)} · ${p.number}${lane > 0 ? ` · ${t('laneN', { n: lane + 1 })}` : ''}`,
       subjectId: e?.subjectId ?? '',
+      lane,
+      combine: !!e?.combinedKey,
+      combinedKey: e?.combinedKey ?? null,
+      joinWith: '',
     });
   };
 
-  /** Isi satu sel jadwal: kartu berwarna menurut mata pelajaran, atau slot kosong yang bisa diisi. */
+  // Slot berjalur paralel: hanya mapel berpenanda pilihan yang boleh dipilih (server menolak yang lain).
+  const cellRestricted =
+    !!cell &&
+    (cell.lane > 0 || slotAt(cell.weekday, cell.periodId).some((e) => isOwn(e) && laneOf(e) !== cell.lane));
+
+  // Kandidat pertemuan gabungan: sel guru pengampu mapel yang dipilih, di rombel lain pada slot dan cakupan yang sama.
+  const cellTeacherId = assignments.data?.find((a) => a.subjectId === cell?.subjectId)?.teacherId ?? '';
+  const mateQuery = useQuery({
+    queryKey: ['schedule-combine', school.schoolId, cellTeacherId, scopeId],
+    enabled: !!cell?.combine && !!cellTeacherId,
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/v1/schedule', {
+          params: {
+            ...header,
+            query: { teacherId: cellTeacherId, ...(scopeId ? { semesterId: scopeId } : {}) },
+          },
+        }),
+      ),
+  });
+  const mateCandidates = cell
+    ? combineCandidates(mateQuery.data ?? [], {
+        classId,
+        subjectId: cell.subjectId,
+        weekday: cell.weekday,
+        periodId: cell.periodId,
+        scopeId,
+      })
+    : [];
+
+  /** Isi satu slot jadwal: kartu berwarna menurut mata pelajaran (satu per jalur paralel), atau slot kosong yang bisa diisi. */
   const renderLesson = (d: Weekday, p: (typeof periodList)[number]) => {
-    const e = entryAt(d, p.id);
-    // Sel setahun penuh yang tampil di cakupan semester: hanya baca (diredupkan).
-    const inherited = !!e && !isOwn(e);
-    const inner = e ? (
-      <span
-        title={inherited ? t('inheritedCell') : undefined}
-        className={cn(
-          'relative block h-full min-h-14 overflow-hidden rounded-lg py-2 pr-2.5 pl-3.5 text-left',
-          TONES[subjectTone(e.subjectName)].soft,
-          inherited && 'opacity-60',
-        )}
-      >
-        <span
-          aria-hidden
-          className={cn('absolute inset-y-0 left-0 w-1', TONES[subjectTone(e.subjectName)].bar)}
-        />
-        <span className="block text-sm leading-tight font-semibold break-words">
-          {mode === 'class' ? e.subjectName : e.className}
-        </span>
-        <span className="mt-0.5 block text-xs leading-tight break-words opacity-80">
-          {mode === 'class' ? e.teacherName : e.subjectName}
-        </span>
-      </span>
-    ) : (
+    const list = slotAt(d, p.id);
+    const parallel = list.length > 1;
+    const empty = (
       <span
         className={cn(
           'text-muted-foreground/70 grid h-full min-h-14 place-items-center rounded-lg border border-dashed text-xs',
@@ -526,18 +605,86 @@ export function ScheduleView() {
         {editable ? <Plus aria-hidden className="size-4" /> : <span aria-hidden>·</span>}
       </span>
     );
-    if (!editable || inherited) {
-      return e ? inner : <span className="sr-only">{t('free')}</span>;
+    if (list.length === 0) {
+      if (!editable) return <span className="sr-only">{t('free')}</span>;
+      return (
+        <button
+          type="button"
+          aria-label={`${t('fillCell')}: ${t(`days.${d}`)} · ${p.number}`}
+          className="group/cell focus-visible:ring-ring/60 block h-full w-full rounded-lg outline-none transition-transform focus-visible:ring-2 motion-safe:active:scale-[0.98]"
+          onClick={() => openCell(d, p)}
+        >
+          {empty}
+        </button>
+      );
     }
+    const lane = nextFreeLane(list.map(laneOf));
+    // Jalur paralel baru hanya di cakupan yang sama dan bila kelas ini punya mapel pilihan (server menjaga aturannya).
+    const canAddLane = editable && lane !== null && list.every(isOwn) && selectedSubjects.size > 0;
     return (
-      <button
-        type="button"
-        aria-label={`${t(e ? 'editCell' : 'fillCell')}: ${t(`days.${d}`)} · ${p.number}`}
-        className="group/cell focus-visible:ring-ring/60 block h-full w-full rounded-lg outline-none transition-transform focus-visible:ring-2 motion-safe:active:scale-[0.98]"
-        onClick={() => openCell(d, p)}
-      >
-        {inner}
-      </button>
+      <div className="grid h-full content-start gap-1.5">
+        {list.map((e) => {
+          // Sel setahun penuh yang tampil di cakupan semester: hanya baca (diredupkan).
+          const inherited = !isOwn(e);
+          const inner = (
+            <span
+              title={inherited ? t('inheritedCell') : undefined}
+              className={cn(
+                'relative block h-full min-h-14 overflow-hidden rounded-lg py-2 pr-2.5 pl-3.5 text-left',
+                TONES[subjectTone(e.subjectName)].soft,
+                inherited && 'opacity-60',
+              )}
+            >
+              <span
+                aria-hidden
+                className={cn('absolute inset-y-0 left-0 w-1', TONES[subjectTone(e.subjectName)].bar)}
+              />
+              <span className="block text-sm leading-tight font-semibold break-words">
+                {mode === 'class' ? e.subjectName : e.className}
+              </span>
+              <span className="mt-0.5 block text-xs leading-tight break-words opacity-80">
+                {mode === 'class' ? e.teacherName : e.subjectName}
+              </span>
+              {(parallel || e.combinedKey) && (
+                <span className="mt-1 flex flex-wrap gap-1">
+                  {parallel && (
+                    <span className="bg-background/70 rounded-full px-1.5 py-0.5 text-[10px] font-medium">
+                      {t('parallel')}
+                    </span>
+                  )}
+                  {e.combinedKey && (
+                    <span className="bg-background/70 inline-flex items-center gap-0.5 rounded-full px-1.5 py-0.5 text-[10px] font-medium">
+                      <Link2 aria-hidden className="size-3" /> {t('combined')}
+                    </span>
+                  )}
+                </span>
+              )}
+            </span>
+          );
+          if (!editable || inherited) return <div key={e.id}>{inner}</div>;
+          return (
+            <button
+              key={e.id}
+              type="button"
+              aria-label={`${t('editCell')}: ${t(`days.${d}`)} · ${p.number}${laneOf(e) > 0 ? ` · ${t('laneN', { n: laneOf(e) + 1 })}` : ''}`}
+              className="group/cell focus-visible:ring-ring/60 block w-full rounded-lg outline-none transition-transform focus-visible:ring-2 motion-safe:active:scale-[0.98]"
+              onClick={() => openCell(d, p, laneOf(e))}
+            >
+              {inner}
+            </button>
+          );
+        })}
+        {canAddLane && (
+          <button
+            type="button"
+            aria-label={`${t('addParallel')}: ${t(`days.${d}`)} · ${p.number}`}
+            className="text-muted-foreground hover:border-violet-400 hover:text-violet-600 focus-visible:ring-ring/60 flex min-h-10 items-center justify-center gap-1 rounded-lg border border-dashed px-2 text-xs outline-none focus-visible:ring-2 md:min-h-8"
+            onClick={() => openCell(d, p, lane)}
+          >
+            <Plus aria-hidden className="size-3.5" /> {t('addParallel')}
+          </button>
+        )}
+      </div>
     );
   };
 
@@ -583,9 +730,9 @@ export function ScheduleView() {
             icon={LayoutGrid}
             tone="amber"
             label={t('statFill')}
-            value={`${slotCount ? Math.round((entries.length / slotCount) * 100) : 0}%`}
-            hint={t('statFillHint', { filled: entries.length, total: slotCount })}
-            progress={slotCount ? (entries.length / slotCount) * 100 : 0}
+            value={`${slotCount ? Math.round((filledSlots / slotCount) * 100) : 0}%`}
+            hint={t('statFillHint', { filled: filledSlots, total: slotCount })}
+            progress={slotCount ? (filledSlots / slotCount) * 100 : 0}
           />
         </StatGrid>
       )}
@@ -816,7 +963,7 @@ export function ScheduleView() {
       <PeriodsDialog open={periodsOpen} onOpenChange={setPeriodsOpen} periods={periods.data ?? []} />
 
       <Dialog open={!!cell} onOpenChange={(open) => !open && setCell(null)}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="font-heading text-lg">{cell?.label}</DialogTitle>
             <DialogDescription>{t('pickSubjectHint')}</DialogDescription>
@@ -832,16 +979,57 @@ export function ScheduleView() {
                 aria-describedby={cellMissing ? 'cell-subject-error' : undefined}
                 className={TOUCH_SELECT}
                 value={cell?.subjectId ?? ''}
-                onChange={(e) => cell && setCell({ ...cell, subjectId: e.target.value })}
+                onChange={(e) => cell && setCell({ ...cell, subjectId: e.target.value, joinWith: '' })}
               >
                 <option value="">{t('choose')}</option>
-                {assignments.data?.map((a) => (
-                  <option key={a.subjectId} value={a.subjectId}>
-                    {a.subjectName} · {a.teacherName}
-                  </option>
-                ))}
+                {assignments.data
+                  ?.filter((a) => !cellRestricted || selectedSubjects.has(a.subjectId))
+                  .map((a) => (
+                    <option key={a.subjectId} value={a.subjectId}>
+                      {a.subjectName} · {a.teacherName}
+                    </option>
+                  ))}
               </SelectField>
               <FieldError id="cell-subject" issue={cellMissing ? { code: 'choose' } : undefined} />
+              {cellRestricted && <p className="text-muted-foreground text-xs">{t('parallelHint')}</p>}
+            </div>
+          )}
+          {!!cell && !!cell.subjectId && (
+            <div className="grid gap-2 rounded-lg border p-3">
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="cell-combine"
+                  className="mt-0.5"
+                  checked={cell.combine}
+                  onCheckedChange={(v) => setCell({ ...cell, combine: v === true, joinWith: '' })}
+                />
+                <Label htmlFor="cell-combine" className="grid gap-0.5 leading-snug">
+                  <span>{t('combineLabel')}</span>
+                  <span className="text-muted-foreground text-xs font-normal">{t('combineHint')}</span>
+                </Label>
+              </div>
+              {cell.combine && (
+                <div className="grid content-start gap-1.5">
+                  <Label htmlFor="cell-join">{t('combineWith')}</Label>
+                  <SelectField
+                    id="cell-join"
+                    className={TOUCH_SELECT}
+                    value={cell.joinWith}
+                    onChange={(e) => setCell({ ...cell, joinWith: e.target.value })}
+                  >
+                    <option value="">{cell.combinedKey ? t('combineKeep') : t('combineNew')}</option>
+                    {mateCandidates.map((m) => (
+                      <option key={m.id} value={m.id}>
+                        {m.className}
+                        {m.combinedKey ? ` · ${t('combined')}` : ''}
+                      </option>
+                    ))}
+                  </SelectField>
+                  {!mateQuery.isPending && mateCandidates.length === 0 && (
+                    <p className="text-muted-foreground text-xs">{t('combineNone')}</p>
+                  )}
+                </div>
+              )}
             </div>
           )}
           {cellError && (
@@ -850,12 +1038,15 @@ export function ScheduleView() {
             </Alert>
           )}
           <DialogFooter>
-            {cell && ownEntryAt(cell.weekday, cell.periodId) && (
+            {cell && ownEntryAt(cell.weekday, cell.periodId, cell.lane) && (
               <Button
                 variant="ghost"
                 className="sm:mr-auto"
                 disabled={clearCell.isPending}
-                onClick={() => cell && clearCell.mutate({ weekday: cell.weekday, periodId: cell.periodId })}
+                onClick={() =>
+                  cell &&
+                  clearCell.mutate({ weekday: cell.weekday, periodId: cell.periodId, lane: cell.lane })
+                }
               >
                 {t('clear')}
               </Button>
@@ -865,14 +1056,23 @@ export function ScheduleView() {
               onClick={() => {
                 if (!cell) return;
                 if (!cell.subjectId) {
-                  setCellTried(`${cell.weekday}-${cell.periodId}`);
+                  setCellTried(`${cell.weekday}-${cell.periodId}-${cell.lane}`);
                   document.getElementById('cell-subject')?.focus();
                   return;
                 }
+                const mate = cell.combine ? mateCandidates.find((m) => m.id === cell.joinWith) : undefined;
+                const key = cell.combine
+                  ? (mate?.combinedKey ?? (mate ? undefined : cell.combinedKey) ?? crypto.randomUUID())
+                  : undefined;
                 setCellMutation.mutate({
                   weekday: cell.weekday,
                   periodId: cell.periodId,
                   subjectId: cell.subjectId,
+                  lane: cell.lane,
+                  ...(key ? { combinedKey: key } : {}),
+                  ...(mate && !mate.combinedKey
+                    ? { tagOther: { classId: mate.classId, lane: laneOf(mate) } }
+                    : {}),
                 });
               }}
             >

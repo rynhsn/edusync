@@ -2441,6 +2441,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Menimpa pilihan yang terkunci sebaiknya hanya untuk koreksi yang memang perlu, karena tercatat atas nama Anda.',
           },
           {
+            heading: 'Jadwal paralel dan kelas gabungan',
+            body: 'Mapel pilihan sering berjalan bersamaan: murid yang memilih Fisika belajar di satu ruang sementara yang memilih Kimia di ruang lain pada jam yang sama. Di halaman Jadwal pelajaran, buka sel kelas lalu klik Tambah jalur paralel untuk menaruh mapel pilihan lain di jam yang sama; tiap jalur punya guru pengampunya sendiri. Jalur paralel hanya bisa diisi mapel yang sudah ditandai sebagai pilihan di kelas itu, dan seorang guru tetap tidak bisa mengajar dua jalur pada jam yang sama. Bila satu guru mengajar mapel pilihan yang sama untuk beberapa kelas sekaligus (kelas gabungan), centang Pertemuan gabungan dengan kelas lain di sel itu lalu pilih kelas lain yang jamnya sama; guru tidak dianggap bentrok untuk pertemuan gabungan itu.',
+            steps: [
+              'Tandai dulu mapelnya sebagai pilihan di kelas (bagian Mapel yang dipilih murid).',
+              'Buka Jadwal pelajaran, pilih kelas, lalu klik sel jam yang diinginkan.',
+              'Untuk jalur lain di jam yang sama, klik Tambah jalur paralel pada sel itu dan pilih mapel pilihan berikutnya.',
+              'Untuk kelas gabungan, centang Pertemuan gabungan dengan kelas lain, pilih kelas yang sudah mengisi mapel itu (atau mulai pertemuan baru), lalu simpan.',
+            ],
+            href: '/schedule',
+            tip: 'Sekolah yang tidak memakai jalur paralel atau kelas gabungan tidak melihat perubahan apa pun: satu jam tetap satu mapel per kelas.',
+            warning:
+              'Mengosongkan sel hanya menghapus jalurnya. Absensi per jam untuk pertemuan gabungan masih dicatat per sel kelas masing-masing.',
+          },
+          {
             heading: 'Melihat pilihan satu murid',
             body: 'Di halaman Siswa, buka menu tindakan pada baris murid lalu pilih Mapel pilihan. Anda melihat mapel pilihan di kelasnya, mana yang diambil, dan apakah murid itu sudah sesuai aturan sekolah.',
             href: '/students',
@@ -2534,6 +2548,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Overriding locked choices should be kept for corrections that are really needed, because it is recorded under your name.',
           },
           {
+            heading: 'Parallel schedule and combined classes',
+            body: 'Elective subjects often run at the same time: students who chose Physics study in one room while those who chose Chemistry study in another during the same period. On the Lesson schedule page, open a class cell and click Add parallel lane to put another elective subject in the same period; each lane has its own teacher. A parallel lane can only hold subjects already marked as electives in that class, and one teacher still cannot teach two lanes in the same period. When one teacher teaches the same elective for several classes at once (a combined class), tick Combined meeting with other classes in that cell and pick the other class with the same period; the teacher is not treated as double-booked for that combined meeting.',
+            steps: [
+              'First mark the subject as an elective in the class (Subjects chosen by students section).',
+              'Open Lesson schedule, choose the class, then click the period cell you want.',
+              'For another lane in the same period, click Add parallel lane on that cell and pick the next elective subject.',
+              'For a combined class, tick Combined meeting with other classes, choose the class that already has the subject (or start a new meeting), then save.',
+            ],
+            href: '/schedule',
+            tip: 'Schools that do not use parallel lanes or combined classes see no change: one period still holds one subject per class.',
+            warning:
+              'Clearing a cell only removes that lane. Per-period attendance for a combined meeting is still recorded per class cell.',
+          },
+          {
             heading: "Viewing one student's choices",
             body: "On the Students page, open the actions menu on a student's row and pick Elective subjects. You see the elective subjects in the student's class, which ones the student takes, and whether the student meets the school rules.",
             href: '/students',
@@ -2625,6 +2653,20 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             body: 'Aturan bisa nangtukeun hiji semester salaku wates: sanggeus semester éta dimimitian, pilihan teu bisa dirobah deui. Ngan anu boga idin ngurus kurikulum anu tetep tiasa ngarobahna, sanggeus ngonfirmasi, jeung parobahanana dicatet. Pilihan ogé teu bisa dirobah upami rapor semester anu patali geus difinalkeun; buka deui heula raporna.',
             warning:
               'Nimpa pilihan anu dikonci sakuduna ngan pikeun koréksi anu bener-bener perlu, sabab dicatet atas ngaran Anjeun.',
+          },
+          {
+            heading: 'Jadwal paralel jeung kelas gabungan',
+            body: 'Mapel pilihan mindeng jalan babarengan: murid anu milih Fisika diajar di hiji rohangan sedengkeun anu milih Kimia di rohangan sejen dina jam anu sarua. Di kaca Jadwal pelajaran, buka sél kelas terus klik Tambih jalur paralel pikeun nempatkeun mapel pilihan sejen dina jam anu sarua; unggal jalur boga guru pangampuna sorangan. Jalur paralel ngan bisa dieusi mapel anu geus ditandaan salaku pilihan di kelas éta, sarta hiji guru tetep teu bisa ngajar dua jalur dina jam anu sarua. Upami hiji guru ngajar mapel pilihan anu sarua pikeun sababaraha kelas sakaligus (kelas gabungan), centang Patepungan gabungan jeung kelas sejen dina sél éta terus pilih kelas sejen anu jamna sarua; guru teu dianggap bentrok pikeun patepungan gabungan éta.',
+            steps: [
+              'Tandaan heula mapelna salaku pilihan di kelas (bagian Mapel anu dipilih murid).',
+              'Buka Jadwal pelajaran, pilih kelas, terus klik sél jam anu dipikahoyong.',
+              'Pikeun jalur sejen dina jam anu sarua, klik Tambih jalur paralel dina sél éta terus pilih mapel pilihan saterusna.',
+              'Pikeun kelas gabungan, centang Patepungan gabungan jeung kelas sejen, pilih kelas anu geus ngeusi mapel éta (atawa mimitian patepungan anyar), terus simpen.',
+            ],
+            href: '/schedule',
+            tip: 'Sakola anu teu makéna jalur paralel atawa kelas gabungan teu nempo parobahan naon waé: hiji jam tetep hiji mapel per kelas.',
+            warning:
+              'Ngosongkeun sél ngan ngahapus jalurna. Absensi per jam pikeun patepungan gabungan tetep dicatet per sél kelas masing-masing.',
           },
           {
             heading: 'Nempo pilihan hiji murid',

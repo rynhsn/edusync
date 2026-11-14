@@ -1469,6 +1469,8 @@
     "too_many_attempts": "Hiji murid maksimal 20 percobaan remedial pikeun unggal penilaian.",
     "invalid_dates": "Tanggal mimiti teu meunang sanggeus tanggal rengse.",
     "subject_not_selected_mode": "Mapel ieu acan ditandaan \"dumasar pilihan\" di rombongan ieu.",
+    "parallel_requires_selected": "Jalur paralel ngan pikeun mata pelajaran pilihan. Tandaan heula mapelna salaku pilihan di kelas ieu.",
+    "combined_mismatch": "Patepungan gabungan kudu di kelas béda kalayan guru, mata pelajaran, poé, jam, jeung cakupan anu sarua.",
     "student_not_taking_subject": "Murid ieu henteu nyandak mata pelajaran éta dina semester ieu.",
     "meeting_final": "Berita acara ieu geus final, jadi eusina jeung kaputusan anu numbu dikonci. Buka deui berita acarana lamun kudu ngarobah.",
     "meeting_not_final": "Berita acara ieu can final.",
@@ -3268,7 +3270,18 @@
     "statFillHint": "{filled} tina {total} slot",
     "noPeriodsTitle": "Jam pelajaran acan diatur",
     "noClassesTitle": "Acan aya kelas",
-    "lessonsCount": "{count} pelajaran"
+    "lessonsCount": "{count} pelajaran",
+    "parallel": "Paralel",
+    "combined": "Gabungan",
+    "addParallel": "Tambih jalur paralel",
+    "laneN": "Jalur {n}",
+    "parallelHint": "Slot paralel ngan pikeun mata pelajaran pilihan (ditandaan di kelas ieu). Murid ngan nuturkeun jalur anu dicandakna.",
+    "combineLabel": "Patepungan gabungan jeung kelas sejen",
+    "combineHint": "Hiji guru ngajar mapel ieu ka sababaraha kelas sakaligus dina jam anu sarua.",
+    "combineWith": "Gabung jeung",
+    "combineNew": "Mimitian patepungan gabungan anyar",
+    "combineKeep": "Tetep di patepungan gabungan ieu",
+    "combineNone": "Can aya kelas sejen kalayan mapel, guru, poé, jeung jam anu sarua. Eusian sél di kelas sejen terus gabungkeun ti dinya, atawa simpen heula ieu salaku patepungan gabungan anyar."
   },
   "attendance": {
     "title": "Rékap absénsi",

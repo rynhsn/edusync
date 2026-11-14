@@ -1469,6 +1469,8 @@
     "too_many_attempts": "Satu murid paling banyak 20 percobaan remedial per penilaian.",
     "invalid_dates": "Tanggal mulai tidak boleh setelah tanggal selesai.",
     "subject_not_selected_mode": "Mapel ini belum ditandai \"berdasarkan pilihan\" di rombel ini.",
+    "parallel_requires_selected": "Jalur paralel hanya untuk mata pelajaran pilihan. Tandai mapelnya sebagai pilihan di kelas ini lebih dulu.",
+    "combined_mismatch": "Pertemuan gabungan harus di kelas berbeda dengan guru, mata pelajaran, hari, jam, dan cakupan yang sama.",
     "student_not_taking_subject": "Siswa ini tidak mengambil mata pelajaran tersebut pada semester ini.",
     "meeting_final": "Berita acara ini sudah final, jadi isinya dan keputusan yang tertaut terkunci. Buka kembali berita acaranya bila perlu mengubah.",
     "meeting_not_final": "Berita acara ini belum final.",
@@ -3268,7 +3270,18 @@
     "statFillHint": "{filled} dari {total} slot",
     "noPeriodsTitle": "Jam pelajaran belum diatur",
     "noClassesTitle": "Belum ada kelas",
-    "lessonsCount": "{count} pelajaran"
+    "lessonsCount": "{count} pelajaran",
+    "parallel": "Paralel",
+    "combined": "Gabungan",
+    "addParallel": "Tambah jalur paralel",
+    "laneN": "Jalur {n}",
+    "parallelHint": "Slot paralel hanya untuk mata pelajaran pilihan (ditandai di kelas ini). Murid hanya mengikuti jalur yang diambilnya.",
+    "combineLabel": "Pertemuan gabungan dengan kelas lain",
+    "combineHint": "Satu guru mengajar mapel ini untuk beberapa kelas sekaligus pada jam yang sama.",
+    "combineWith": "Gabung dengan",
+    "combineNew": "Mulai pertemuan gabungan baru",
+    "combineKeep": "Tetap di pertemuan gabungan ini",
+    "combineNone": "Belum ada kelas lain dengan mapel, guru, hari, dan jam yang sama. Isi sel di kelas lain lalu gabungkan dari sana, atau simpan ini dulu sebagai pertemuan gabungan baru."
   },
   "attendance": {
     "title": "Rekap absensi",

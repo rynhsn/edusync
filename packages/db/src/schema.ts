@@ -1638,8 +1638,8 @@ export const lessonPeriod = pgTable(
 );
 
 /**
- * Satu sel jadwal: kelas + hari + jam pelajaran berisi satu mata pelajaran dan gurunya. Dua batasan unik
- * mencegah bentrok di tingkat database: satu kelas satu isi per jam, dan satu guru satu kelas per jam.
+ * Satu sel jadwal: kelas + hari + jam pelajaran (+ lane) berisi satu mata pelajaran dan gurunya. Indeks unik mencegah bentrok di
+ * tingkat database: satu kelas satu isi per jam per lane, dan satu guru satu sel biasa per jam (sel bergabung dijaga API).
  */
 export const scheduleEntry = pgTable(
   'schedule_entry',
@@ -1667,21 +1667,28 @@ export const scheduleEntry = pgTable(
       .references(() => lessonPeriod.id),
     /** Kosong = berlaku sepanjang tahun ajaran; terisi = khusus semester itu (keunikan per cakupan). */
     semesterId: uuid('semester_id').references(() => semester.id, { onDelete: 'cascade' }),
+    /** Jalur paralel 0..9 (tahap 3B.3). 0 = bawaan; lane > 0 hanya untuk mapel berpenanda pilihan (dijaga API). */
+    lane: smallint('lane').notNull().default(0),
+    /** Kunci pertemuan gabungan lintas rombel (tahap 3B.3); kosong = sel biasa. Hanya pengelompokan, tanpa FK. */
+    combinedKey: uuid('combined_key'),
     createdAt: createdAt(),
   },
   (t) => [
-    uniqueIndex('schedule_class_slot_year_uq')
-      .on(t.classId, t.weekday, t.periodId)
+    uniqueIndex('schedule_class_slot_year_lane_uq')
+      .on(t.classId, t.weekday, t.periodId, t.lane)
       .where(sql`${t.semesterId} is null`),
-    uniqueIndex('schedule_class_slot_sem_uq')
-      .on(t.semesterId, t.classId, t.weekday, t.periodId)
+    uniqueIndex('schedule_class_slot_sem_lane_uq')
+      .on(t.semesterId, t.classId, t.weekday, t.periodId, t.lane)
       .where(sql`${t.semesterId} is not null`),
-    uniqueIndex('schedule_teacher_slot_year_uq')
+    uniqueIndex('schedule_teacher_slot_year_solo_uq')
       .on(t.academicYearId, t.teacherId, t.weekday, t.periodId)
-      .where(sql`${t.semesterId} is null`),
-    uniqueIndex('schedule_teacher_slot_sem_uq')
+      .where(sql`${t.semesterId} is null and ${t.combinedKey} is null`),
+    uniqueIndex('schedule_teacher_slot_sem_solo_uq')
       .on(t.semesterId, t.teacherId, t.weekday, t.periodId)
-      .where(sql`${t.semesterId} is not null`),
+      .where(sql`${t.semesterId} is not null and ${t.combinedKey} is null`),
+    index('schedule_entry_combined_idx')
+      .on(t.schoolId, t.combinedKey)
+      .where(sql`${t.combinedKey} is not null`),
   ],
 );
 

@@ -1,15 +1,25 @@
 import {
+  COMBINED_MISMATCH_CODE,
+  combinedMatches,
+  PARALLEL_REQUIRES_SELECTED_CODE,
+  parallelViolations,
+  SCHEDULE_DEFAULT_LANE,
+  SCHEDULE_MAX_LANE,
+} from '@edusync/contracts';
+import {
   academicYear,
   and,
   asc,
   classRoom,
   eq,
+  inArray,
   isNull,
   lessonPeriod,
   ne,
   or,
   scheduleEntry,
   semester,
+  sql,
   subject,
   type Tx,
   teacher,
@@ -21,6 +31,7 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { errorSchema, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { participatingSubjectsOf } from '../subject-roster-lib';
 import {
   audit,
   guarded,
@@ -51,6 +62,10 @@ const entrySchema = z.object({
   periodId: z.uuid(),
   /** Null = sel setahun penuh; terisi = sel khusus semester itu. */
   semesterId: z.uuid().nullable(),
+  /** Jalur paralel 1..9; dihilangkan untuk lane bawaan 0 (tahap 3B.3). */
+  lane: z.number().int().min(1).max(SCHEDULE_MAX_LANE).optional(),
+  /** Kunci pertemuan gabungan lintas rombel; dihilangkan bila sel biasa (tahap 3B.3). */
+  combinedKey: z.uuid().optional(),
 });
 const tag = ['Schedule'];
 const gate = (permission: 'schedule:read' | 'schedule:manage') => [
@@ -59,6 +74,12 @@ const gate = (permission: 'schedule:read' | 'schedule:manage') => [
 ];
 const invalid = (message: string) => new HttpError(400, 'invalid_period', message);
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
+
+/** Bentuk respons sel: `lane` dan `combinedKey` hanya muncul bila bukan bawaan, sehingga sekolah tanpa paralel tidak melihat bedanya. */
+const sparse = (e: { lane: number; combinedKey: string | null }) => ({
+  ...(e.lane !== SCHEDULE_DEFAULT_LANE ? { lane: e.lane } : {}),
+  ...(e.combinedKey ? { combinedKey: e.combinedKey } : {}),
+});
 
 const minutes = (hhmm: string) => Number(hhmm.slice(0, 2)) * 60 + Number(hhmm.slice(3));
 const hhmm = (m: number) =>
@@ -307,7 +328,8 @@ export async function scheduleRoutes(instance: FastifyInstance) {
           'Izin: `schedule:read`. Isi `classId` untuk jadwal kelas, atau `teacherId` untuk jadwal guru pada tahun ajaran ' +
           'aktif (atau `academicYearId`). Guru pengampu diambil dari penugasan guru di kelas. Tanpa `semesterId` hanya ' +
           'sel setahun penuh yang dikembalikan (`semesterId` null pada hasil). Dengan `semesterId`, hasilnya jadwal ' +
-          'efektif semester itu: sel khusus semester itu ditambah sel setahun penuh.',
+          'efektif semester itu: sel khusus semester itu ditambah sel setahun penuh. Sel di jalur paralel (`lane` 1..9) dan sel ' +
+          'pertemuan gabungan (`combinedKey`) menyertakan field itu; sel biasa tidak (sparse).',
         headers: schoolHeader,
         querystring: z
           .object({
@@ -344,6 +366,8 @@ export async function scheduleRoutes(instance: FastifyInstance) {
             weekday: scheduleEntry.weekday,
             periodId: scheduleEntry.periodId,
             semesterId: scheduleEntry.semesterId,
+            lane: scheduleEntry.lane,
+            combinedKey: scheduleEntry.combinedKey,
           })
           .from(scheduleEntry)
           .innerJoin(classRoom, eq(classRoom.id, scheduleEntry.classId))
@@ -359,7 +383,10 @@ export async function scheduleRoutes(instance: FastifyInstance) {
                 : isNull(scheduleEntry.semesterId),
             ),
           )
-          .orderBy(asc(scheduleEntry.weekday));
+          .orderBy(asc(scheduleEntry.weekday), asc(scheduleEntry.lane))
+          .then((rows) =>
+            rows.map(({ lane, combinedKey, ...rest }) => ({ ...rest, ...sparse({ lane, combinedKey }) })),
+          );
       });
     },
   );
@@ -378,7 +405,12 @@ export async function scheduleRoutes(instance: FastifyInstance) {
           '`schedule_scope_conflict` bila slot kelas itu sudah terisi di cakupan lain yang bertumpuk (sel setahun ' +
           'penuh vs sel semester), dan 409 `teacher_busy` bila guru itu sudah mengajar di kelas lain pada hari dan ' +
           'jam yang sama dengan cakupan beririsan (setahun penuh beririsan dengan semua; semester X hanya dengan ' +
-          'setahun penuh dan semester X).',
+          'setahun penuh dan semester X). Jadwal paralel: `lane` (0..9, bawaan 0) memungkinkan beberapa sel di slot kelas yang ' +
+          'sama, hanya bila semua mapel di slot itu berpenanda pilihan (`selected`) di kelas itu, jika tidak 400 ' +
+          '`parallel_requires_selected`; guru yang sama tetap tidak boleh dua sel di slot yang sama. Pertemuan gabungan: ' +
+          '`combinedKey` yang sama pada sel di kelas berbeda dengan guru, mapel, hari, jam, dan cakupan sama dianggap satu ' +
+          'pertemuan (tidak dihitung `teacher_busy`); anggota yang tidak cocok ditolak 400 `combined_mismatch`. Tanpa kedua ' +
+          'field, perilaku sama seperti sebelumnya. Sel yang diganti dikenali dari (kelas, hari, jam, cakupan, `lane`).',
         headers: schoolHeader,
         body: z.object({
           classId: z.uuid(),
@@ -386,13 +418,16 @@ export async function scheduleRoutes(instance: FastifyInstance) {
           periodId: z.uuid(),
           subjectId: z.uuid(),
           semesterId: z.uuid().optional(),
+          lane: z.number().int().min(SCHEDULE_DEFAULT_LANE).max(SCHEDULE_MAX_LANE).optional(),
+          combinedKey: z.uuid().optional(),
         }),
         response: { 200: entrySchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) => {
       const ctx = request.ctx as TenantContext;
-      const { classId, weekday, periodId, subjectId, semesterId } = request.body;
+      const { classId, weekday, periodId, subjectId, semesterId, combinedKey } = request.body;
+      const lane = request.body.lane ?? SCHEDULE_DEFAULT_LANE;
       try {
         return await tenant(request, async (tx) => {
           const [cls] = await tx.select().from(classRoom).where(eq(classRoom.id, classId));
@@ -432,7 +467,12 @@ export async function scheduleRoutes(instance: FastifyInstance) {
                 eq(scheduleEntry.teacherId, assign.teacherId),
                 eq(scheduleEntry.weekday, weekday),
                 eq(scheduleEntry.periodId, periodId),
-                ne(scheduleEntry.classId, classId),
+                // Sel yang sedang diganti (kelas dan lane sama) bukan bentrok; kelas sama di lane lain tetap bentrok.
+                or(ne(scheduleEntry.classId, classId), ne(scheduleEntry.lane, lane)),
+                // Anggota pertemuan gabungan yang sama (kunci sama) bukan bentrok.
+                combinedKey
+                  ? sql`${scheduleEntry.combinedKey} is distinct from ${combinedKey}::uuid`
+                  : undefined,
                 semesterId
                   ? or(isNull(scheduleEntry.semesterId), eq(scheduleEntry.semesterId, semesterId))
                   : undefined,
@@ -448,7 +488,12 @@ export async function scheduleRoutes(instance: FastifyInstance) {
           // Satu slot kelas hanya boleh punya satu sel yang berlaku pada tanggal mana pun: tahunan dan semester
           // tidak boleh bertumpuk. Cakupan yang sama menimpa isi (ganti mapel/guru).
           const slot = await tx
-            .select({ id: scheduleEntry.id, semesterId: scheduleEntry.semesterId })
+            .select({
+              id: scheduleEntry.id,
+              semesterId: scheduleEntry.semesterId,
+              lane: scheduleEntry.lane,
+              subjectId: scheduleEntry.subjectId,
+            })
             .from(scheduleEntry)
             .where(
               and(
@@ -469,11 +514,71 @@ export async function scheduleRoutes(instance: FastifyInstance) {
                 : 'Slot ini sudah terisi untuk semester tertentu. Kosongkan sel semester dulu bila ingin mengisi setahun penuh.',
             );
           }
-          const same = slot.find((e) => e.semesterId === (semesterId ?? null));
+          const same = slot.find((e) => e.semesterId === (semesterId ?? null) && e.lane === lane);
+          // Jalur paralel: lebih dari satu sel di slot (atau sel di lane > 0) hanya untuk mapel berpenanda pilihan. Slot
+          // satu sel di lane 0 tidak membuka kueri tambahan (perilaku lama).
+          // Hanya sel yang cakupannya sama yang berjalan bersamaan (Ganjil dan Genap tidak saling paralel).
+          const after = [
+            ...slot.filter((e) => e.semesterId === (semesterId ?? null) && e.id !== same?.id),
+            { subjectId, lane },
+          ];
+          if (after.length > 1 || lane > SCHEDULE_DEFAULT_LANE) {
+            const selected = await participatingSubjectsOf(tx, classId);
+            const bad = parallelViolations(after, selected);
+            if (bad.length > 0) {
+              const names = await tx
+                .select({ name: subject.name })
+                .from(subject)
+                .where(inArray(subject.id, bad));
+              throw new HttpError(
+                400,
+                PARALLEL_REQUIRES_SELECTED_CODE,
+                `Slot paralel hanya untuk mata pelajaran pilihan di kelas ini. Belum berpenanda pilihan: ${names
+                  .map((n) => n.name)
+                  .join(', ')}.`,
+              );
+            }
+          }
+          // Pertemuan gabungan: setiap anggota lain berkunci sama harus di kelas berbeda dengan guru, mapel, hari, jam, dan
+          // cakupan yang sama (tahun ajaran juga).
+          if (combinedKey) {
+            const mates = await tx
+              .select({
+                classId: scheduleEntry.classId,
+                subjectId: scheduleEntry.subjectId,
+                teacherId: scheduleEntry.teacherId,
+                weekday: scheduleEntry.weekday,
+                periodId: scheduleEntry.periodId,
+                semesterId: scheduleEntry.semesterId,
+                academicYearId: scheduleEntry.academicYearId,
+              })
+              .from(scheduleEntry)
+              .where(
+                and(
+                  eq(scheduleEntry.combinedKey, combinedKey),
+                  same ? ne(scheduleEntry.id, same.id) : undefined,
+                ),
+              );
+            const me = {
+              classId,
+              subjectId,
+              teacherId: assign.teacherId,
+              weekday,
+              periodId,
+              semesterId: semesterId ?? null,
+            };
+            if (mates.some((m) => m.academicYearId !== cls.academicYearId || !combinedMatches(m, me))) {
+              throw new HttpError(
+                400,
+                COMBINED_MISMATCH_CODE,
+                'Kelas gabungan harus di kelas berbeda dengan guru, mata pelajaran, hari, jam pelajaran, dan cakupan yang sama.',
+              );
+            }
+          }
           const [row] = same
             ? await tx
                 .update(scheduleEntry)
-                .set({ subjectId, teacherId: assign.teacherId })
+                .set({ subjectId, teacherId: assign.teacherId, combinedKey: combinedKey ?? null })
                 .where(eq(scheduleEntry.id, same.id))
                 .returning()
             : await tx
@@ -487,6 +592,8 @@ export async function scheduleRoutes(instance: FastifyInstance) {
                   weekday,
                   periodId,
                   semesterId: semesterId ?? null,
+                  lane,
+                  combinedKey: combinedKey ?? null,
                 })
                 .returning();
           await audit(tx, ctx, 'schedule.set', 'class', classId, {
@@ -494,6 +601,8 @@ export async function scheduleRoutes(instance: FastifyInstance) {
             periodId,
             subjectId,
             semesterId: semesterId ?? null,
+            ...(lane !== SCHEDULE_DEFAULT_LANE ? { lane } : {}),
+            ...(combinedKey ? { combinedKey } : {}),
           });
           return {
             id: row!.id,
@@ -506,6 +615,7 @@ export async function scheduleRoutes(instance: FastifyInstance) {
             weekday,
             periodId,
             semesterId: semesterId ?? null,
+            ...sparse({ lane, combinedKey: combinedKey ?? null }),
           };
         });
       } catch (error) {
@@ -531,13 +641,14 @@ export async function scheduleRoutes(instance: FastifyInstance) {
         description:
           'Izin: `schedule:manage`. Hanya menghapus sel pada cakupan yang persis sama: tanpa `semesterId` = sel setahun ' +
           'penuh, dengan `semesterId` = sel semester itu (400 `invalid_reference` bila bukan semester tahun ajaran ' +
-          'kelas). 404 bila tidak ada sel pada cakupan itu.',
+          'kelas). `lane` (bawaan 0) memilih jalur paralel yang dikosongkan. 404 bila tidak ada sel pada cakupan dan jalur itu.',
         headers: schoolHeader,
         querystring: z.object({
           classId: z.uuid(),
           weekday: z.coerce.number().int().min(1).max(6),
           periodId: z.uuid(),
           semesterId: z.uuid().optional(),
+          lane: z.coerce.number().int().min(SCHEDULE_DEFAULT_LANE).max(SCHEDULE_MAX_LANE).optional(),
         }),
         response: { 200: ok, 400: errorSchema, 404: errorSchema, ...guarded },
       },
@@ -545,6 +656,7 @@ export async function scheduleRoutes(instance: FastifyInstance) {
     async (request) => {
       const ctx = request.ctx as TenantContext;
       const { classId, weekday, periodId, semesterId } = request.query;
+      const lane = request.query.lane ?? SCHEDULE_DEFAULT_LANE;
       await tenant(request, async (tx) => {
         if (semesterId) {
           const [cls] = await tx
@@ -560,6 +672,7 @@ export async function scheduleRoutes(instance: FastifyInstance) {
               eq(scheduleEntry.classId, classId),
               eq(scheduleEntry.weekday, weekday),
               eq(scheduleEntry.periodId, periodId),
+              eq(scheduleEntry.lane, lane),
               semesterId ? eq(scheduleEntry.semesterId, semesterId) : isNull(scheduleEntry.semesterId),
             ),
           )
@@ -569,6 +682,7 @@ export async function scheduleRoutes(instance: FastifyInstance) {
           weekday,
           periodId,
           semesterId: semesterId ?? null,
+          ...(lane !== SCHEDULE_DEFAULT_LANE ? { lane } : {}),
         });
       });
       return { ok: true as const };

@@ -1469,6 +1469,8 @@
     "too_many_attempts": "A student can have at most 20 remedial attempts per assessment.",
     "invalid_dates": "The start date cannot be after the end date.",
     "subject_not_selected_mode": "This subject is not marked as \"by choice\" in this class.",
+    "parallel_requires_selected": "Parallel lanes are only for elective subjects. Mark the subject as elective in this class first.",
+    "combined_mismatch": "A combined meeting must be in different classes with the same teacher, subject, day, period, and scope.",
     "student_not_taking_subject": "This student does not take this subject in this semester.",
     "meeting_final": "These minutes are final, so their content and the linked decisions are locked. Reopen the minutes if you need to change them.",
     "meeting_not_final": "These minutes are not final yet.",
@@ -3268,7 +3270,18 @@
     "statFillHint": "{filled} of {total} slots",
     "noPeriodsTitle": "Lesson periods are not set up yet",
     "noClassesTitle": "No classes yet",
-    "lessonsCount": "{count} lessons"
+    "lessonsCount": "{count} lessons",
+    "parallel": "Parallel",
+    "combined": "Combined",
+    "addParallel": "Add parallel lane",
+    "laneN": "Lane {n}",
+    "parallelHint": "Parallel slots are only for elective subjects (marked in this class). Students only attend the lane they chose.",
+    "combineLabel": "Combined meeting with other classes",
+    "combineHint": "One teacher teaches this subject to several classes at the same time.",
+    "combineWith": "Combine with",
+    "combineNew": "Start a new combined meeting",
+    "combineKeep": "Stay in this combined meeting",
+    "combineNone": "No other class has the same subject, teacher, day, and period yet. Fill the cell in the other class and combine from there, or save this one first as a new combined meeting."
   },
   "attendance": {
     "title": "Attendance report",
