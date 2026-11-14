@@ -424,6 +424,34 @@ describe('PDF rapor', () => {
       pageCount(await render('rapor-deskriptif-banyak', <ReportCardDocument docs={[many]} />)),
     ).toBeGreaterThanOrEqual(2);
   });
+
+  it('NSM di kop (4.5): ada hanya bila terisi; judul dokumen mengikuti label bahasa', async () => {
+    const title = (s: string) => `(${s})`; // Judul metadata ditulis sebagai string literal.
+    const withNsm = await render(
+      'rapor-nsm',
+      <ReportCardDocument docs={[{ ...base, schemaVersion: 2, schoolNsm: '131132730001' }]} />,
+    );
+    const plain = await render('rapor-v1-banding4', <ReportCardDocument docs={[base]} />);
+    expect(withNsm.length).toBeGreaterThan(plain.length);
+    // Judul dokumen (metadata) bawaan Indonesia; label Inggris menggantinya, dokumen satu murid memuat namanya.
+    expect(plain.toString('latin1')).toContain(title(`Rapor ${base.student.name}`));
+    const en = await render(
+      'rapor-en',
+      <ReportCardDocument
+        docs={[base]}
+        labels={{
+          parent: 'Parent',
+          homeroom: 'Homeroom',
+          principal: 'Principal',
+          title: 'LEARNING OUTCOMES REPORT',
+          docTitle: 'Report card',
+          docTitleStudent: 'Report card {name}',
+        }}
+      />,
+    );
+    expect(en.toString('latin1')).toContain(title(`Report card ${base.student.name}`));
+    expect(en.toString('latin1')).not.toContain(title(`Rapor ${base.student.name}`));
+  });
 });
 
 describe('PDF rekap presensi', () => {

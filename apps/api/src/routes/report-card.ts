@@ -466,7 +466,7 @@ export async function reportCardRoutes(instance: FastifyInstance) {
           '(`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, ' +
           '`cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya ' +
           'penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), ' +
-          '`developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila ' +
+          '`schoolNsm` (NSM madrasah untuk kop, hanya bila terisi; dibekukan di snapshot), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila ' +
           'dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan ' +
           '`guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan ' +
           'persis seperti dulu.',

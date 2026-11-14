@@ -21,3 +21,6 @@ staff-transfer*.json
 
 # Cadangan database lokal
 backups/
+
+# CodeGraph
+.codegraph/

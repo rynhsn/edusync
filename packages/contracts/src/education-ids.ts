@@ -24,3 +24,18 @@ export function normalizeNpsn(raw: string | null | undefined): string | null {
 export function normalizeNuptk(raw: string | null | undefined): string | null {
   return normalizeDigits(raw, NUPTK_LENGTH);
 }
+
+export const NSM_MIN_LENGTH = 8;
+export const NSM_MAX_LENGTH = 16;
+
+/**
+ * NSM madrasah: 8-16 angka (spasi/titik/strip dibuang); null bila tidak sah. Rentang sengaja longgar karena format resmi belum
+ * diverifikasi; harus sama dengan CHECK `school_identifier_nsm_ck` (memperketat butuh pembersihan data).
+ */
+export function normalizeNsm(raw: string | null | undefined): string | null {
+  if (raw == null) return null;
+  const trimmed = raw.trim();
+  if (!/^[\d\s.-]+$/.test(trimmed)) return null;
+  const compact = trimmed.replace(/[\s.-]/g, '');
+  return compact.length >= NSM_MIN_LENGTH && compact.length <= NSM_MAX_LENGTH ? compact : null;
+}

@@ -33,6 +33,11 @@ export function ReportCardPreview({ doc, display }: { doc: ReportCardDoc; displa
             <p className="text-muted-foreground">
               {semester.name} · {semester.academicYear}
             </p>
+            {doc.schoolNsm && (
+              <p className="text-muted-foreground text-xs">
+                {doc.school.name} · {t('nsm')} {doc.schoolNsm}
+              </p>
+            )}
           </div>
         </div>
         <ToneBadge tone={doc.status === 'final' ? 'emerald' : 'amber'}>

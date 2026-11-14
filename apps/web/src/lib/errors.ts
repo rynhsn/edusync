@@ -209,6 +209,9 @@ const KNOWN = [
   'program_closed',
   'student_not_in_class',
   'invalid_url',
+  'invalid_nsm',
+  'nsm_not_applicable',
+  'nsm_taken',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

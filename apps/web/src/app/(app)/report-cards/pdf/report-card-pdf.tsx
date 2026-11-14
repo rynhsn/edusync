@@ -84,21 +84,41 @@ function Signature({ label, name, nip }: { label: string; name?: string | null; 
   );
 }
 
+/**
+ * Teks PDF yang mengikuti bahasa pengguna (PDF dirender di klien tanpa hook, jadi diteruskan lewat props): tanda tangan, judul,
+ * label NSM, dan bagian kokurikuler. Teks PDF lain masih berbahasa Indonesia. Bagian opsional jatuh ke bahasa Indonesia.
+ */
 export interface SignLabels {
   parent: string;
   homeroom: string;
   principal: string;
+  title?: string;
+  docTitle?: string;
+  /** Memuat `{name}`. */
+  docTitleStudent?: string;
+  nsm?: string;
+  cocurricular?: { title: string; dimension: string; achievement: string; remark: string };
 }
-const DEFAULT_SIGN_LABELS: SignLabels = {
+const DEFAULT_SIGN_LABELS: Required<SignLabels> = {
   parent: 'Orang tua / wali',
   homeroom: 'Wali kelas',
   principal: 'Kepala sekolah',
+  title: 'LAPORAN HASIL BELAJAR',
+  docTitle: 'Rapor',
+  docTitleStudent: 'Rapor {name}',
+  nsm: 'NSM',
+  cocurricular: {
+    title: 'Penilaian Kokurikuler',
+    dimension: 'Dimensi / Topik',
+    achievement: 'Capaian',
+    remark: 'Keterangan',
+  },
 };
 
 /** Rapor satu siswa: halaman A4 portrait, menyambung ke halaman berikut (header tabel berulang) bila mapel banyak. */
 export function ReportCardPage({
   doc,
-  labels = DEFAULT_SIGN_LABELS,
+  labels: given,
   display,
 }: {
   doc: ReportCardDoc;
@@ -107,6 +127,7 @@ export function ReportCardPage({
   display?: ReportDisplayOptions;
 }) {
   const { school, semester, student, attendance } = doc;
+  const labels = { ...DEFAULT_SIGN_LABELS, ...given };
   const place = [school.city, formatIdDate(doc.generatedAt)].filter(Boolean).join(', ');
   const view = reportView(doc, display);
   return (
@@ -120,8 +141,13 @@ export function ReportCardPage({
       <View style={styles.kop}>
         <Text style={styles.school}>{school.name}</Text>
         {school.address ? <Text style={styles.address}>{school.address}</Text> : null}
+        {doc.schoolNsm ? (
+          <Text style={styles.address}>
+            {labels.nsm} {doc.schoolNsm}
+          </Text>
+        ) : null}
       </View>
-      <Text style={styles.title}>LAPORAN HASIL BELAJAR</Text>
+      <Text style={styles.title}>{labels.title}</Text>
 
       <View style={styles.identity} wrap={false}>
         <View style={styles.identityCol}>
@@ -217,14 +243,14 @@ export function ReportCardPage({
 
       {view.cocurricularPrograms ? (
         <View>
-          <Text style={styles.section}>Penilaian Kokurikuler</Text>
+          <Text style={styles.section}>{labels.cocurricular.title}</Text>
           {view.cocurricularPrograms.map((p) => (
             <View key={p.programId} wrap={false} style={{ marginBottom: 4 }}>
               <Text style={styles.bold}>{p.title}</Text>
               <View style={styles.head}>
-                <Text style={[styles.cell, styles.bold, { flex: 3 }]}>Dimensi / Topik</Text>
-                <Text style={[styles.cell, styles.bold, { flex: 2 }]}>Capaian</Text>
-                <Text style={[styles.cell, styles.bold, { flex: 3 }]}>Keterangan</Text>
+                <Text style={[styles.cell, styles.bold, { flex: 3 }]}>{labels.cocurricular.dimension}</Text>
+                <Text style={[styles.cell, styles.bold, { flex: 2 }]}>{labels.cocurricular.achievement}</Text>
+                <Text style={[styles.cell, styles.bold, { flex: 3 }]}>{labels.cocurricular.remark}</Text>
               </View>
               {p.items.map((i) => (
                 <View key={i.code} style={styles.row}>
@@ -319,7 +345,9 @@ export function ReportCardDocument({
   display?: ReportDisplayOptions;
 }) {
   const first = docs[0];
-  const title = first && docs.length === 1 ? `Rapor ${first.student.name}` : 'Rapor';
+  const l = { ...DEFAULT_SIGN_LABELS, ...labels };
+  const title =
+    first && docs.length === 1 ? l.docTitleStudent.replace('{name}', first.student.name) : l.docTitle;
   return (
     <Document title={title} author="Edusync">
       {docs.map((d) => (

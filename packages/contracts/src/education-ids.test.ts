@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { normalizeNpsn, normalizeNuptk } from './education-ids';
+import { normalizeNpsn, normalizeNsm, normalizeNuptk } from './education-ids';
 
 describe('normalizeNpsn', () => {
   it('menerima 8 angka dengan atau tanpa pemisah', () => {
@@ -26,6 +26,19 @@ describe('normalizeNuptk', () => {
   it('menolak yang bukan 16 angka', () => {
     for (const bad of ['', '777712341234123', '77771234123412345', '777712341234123x', null]) {
       expect(normalizeNuptk(bad as string | null), String(bad)).toBeNull();
+    }
+  });
+});
+
+describe('normalizeNsm', () => {
+  it('menerima 8-16 angka, pemisah dibuang', () => {
+    expect(normalizeNsm('12345678')).toBe('12345678');
+    expect(normalizeNsm('1311 3273 0001')).toBe('131132730001');
+    expect(normalizeNsm('1234567890123456')).toBe('1234567890123456');
+  });
+  it('menolak 7 atau 17 angka, huruf, dan kosong', () => {
+    for (const bad of ['', '1234567', '12345678901234567', '1234567a', null, undefined]) {
+      expect(normalizeNsm(bad as string | null | undefined), String(bad)).toBeNull();
     }
   });
 });

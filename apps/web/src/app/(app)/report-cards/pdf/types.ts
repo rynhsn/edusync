@@ -48,6 +48,8 @@ export interface ReportCardDoc {
   cocurricularNote?: string | null;
   /** Penilaian kokurikuler terstruktur (4.4); hanya bila murid punya penilaian. */
   cocurricular?: CocurricularProgramLike[];
+  /** NSM madrasah untuk kop (4.5); hanya bila terisi. */
+  schoolNsm?: string;
   developmentNote?: string | null;
   guardianResponses?: ReportCardResponse[];
 }

@@ -257,6 +257,15 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   (`GET /v1/report-cards`) hanya menambah lencana info sparse `cocurricularMissing: true` bagi murid berstatus draf yang rombelnya ikut
   program kokurikuler aktif yang tampil di rapor tetapi belum dinilai pada semester itu. Tanpa migrasi dan tanpa kolom baru. Bantuan
   baru "Kokurikuler di rapor" (id/en/su).
+- **Madrasah** (fase 4, tahap 4.5; migrasi 0109): kolom NSM (8 sampai 16 angka, rentang longgar karena format resmi belum diverifikasi) di Pengaturan
+  sekolah tab Identitas, hanya untuk jenjang berotoritas Kemenag (MI, MTs, MA, MAK). Disimpan di tabel baru `school_identifier` (bukan kolom
+  `school`; tanpa baris otomatis), unik lintas sekolah (409 `nsm_taken`), diubah lewat `GET/PUT /v1/school/identifier` (izin
+  `school:manage`; galat `invalid_nsm`, `nsm_not_applicable`). NSM yang terisi masuk dokumen rapor sebagai kunci sparse `schoolNsm` dan
+  tampil di kop pratinjau, PDF, dan portal; ikut dibekukan di snapshot. Sekolah tanpa NSM: dokumen persis seperti sebelumnya. Bank
+  kurikulum KMA kini memuat lima nama mapel rumpun PAI dan Bahasa Arab (Al-Qur'an Hadis, Akidah Akhlak, Fikih, SKI, Bahasa Arab)
+  untuk MI dan MA, selain MTs; tanpa jam pelajaran dan tanpa mapel khusus MA karena KMA 1503/2025 belum terbaca. Adopsi KMA memberi
+  salinan lima mapel itu kelompok `pai_arabic`, dan madrasah mengadopsi kurikulum umum dan KMA bersamaan. Judul PDF rapor, label NSM,
+  dan bagian Penilaian kokurikuler di PDF kini mengikuti bahasa pengguna (id/en/su). Bantuan baru "Madrasah" (id/en/su).
 
 ### Diubah
 
@@ -320,6 +329,9 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   yang membacanya). Penjagaan 409 saat menghapus program, melepas rombel/butir, atau menghapus tingkat rubrik yang sudah dinilai tidak
   berlaku di versi lama; FK database (NO ACTION) tetap menolak penghapusan itu (galat umum, bukan 409), jadi data penilaian tidak
   hilang. Sekolah yang belum menilai tidak terpengaruh.
+- Madrasah (tahap 4.5): tabel `school_identifier` dan mapel acuan KMA untuk MI/MA dibiarkan di database. Setelah kembali ke versi sebelumnya
+  kolom NSM tidak ada dan kunci `schoolNsm` pada snapshot rapor final diabaikan (rapor tetap terbaca tanpa NSM); mapel sekolah yang sudah
+  diadopsi tetap utuh. Tidak ada efek pada nilai, kenaikan, atau kelulusan.
 - Rapor kokurikuler (tahap 4.4): tanpa migrasi. Snapshot rapor final yang sudah memuat `cocurricular` tetap utuh di database; versi lama tidak
   membacanya (kunci itu diabaikan saat respons dibentuk), sehingga rapor final tetap terbaca seperti rapor tanpa bagian kokurikuler
   terstruktur. Tidak ada efek pada nilai, kenaikan, atau kelulusan.

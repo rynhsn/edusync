@@ -22,6 +22,8 @@ import { audit, guarded, schoolHeader } from './helpers';
  * Bank data kurikulum. Acuan bersifat global dan hanya-baca; sekolah "mengadopsi" dengan menyalin mapel acuan ke
  * daftar mapel sekolahnya, lalu bebas mengubahnya. Mapel yang kodenya sudah ada di sekolah dilewati, tidak ditimpa.
  */
+const PAI_ARABIC_CODES = new Set(['AQH', 'AKH', 'FQH', 'SKI', 'BAR']);
+
 export async function curriculumRoutes(instance: FastifyInstance) {
   const app = instance.withTypeProvider<ZodTypeProvider>();
 
@@ -248,7 +250,9 @@ export async function curriculumRoutes(instance: FastifyInstance) {
           'Izin: `subject:manage`. Menyalin mapel acuan (semua, atau hanya `subjectCodes` yang dipilih) ke mapel sekolah. ' +
           'Salinan diberi tautan `refSubjectId` ke mapel acuan. Mapel yang sudah tertaut ke acuan itu atau yang kodenya sudah ' +
           'ada dilewati; bila kodenya sudah ada tapi belum tertaut, tautannya diisi tanpa menimpa nama. Salinan bebas ' +
-          'diubah sekolah; pembaruan acuan tidak menimpanya.',
+          'diubah sekolah; pembaruan acuan tidak menimpanya. Acuan `kma` (MI, MTs, MA) hanya memuat nama rumpun PAI/Bahasa Arab ' +
+          '(AQH, AKH, FQH, SKI, BAR; tanpa JP): salinannya diberi `subjectGroup` `pai_arabic`. Madrasah mengadopsi `merdeka` dan `kma` ' +
+          'bersamaan (dua panggilan); JP dan mapel khusus MA diisi sekolah sendiri.',
         headers: schoolHeader,
         body: z.object({
           curriculumKey: z.string().min(1).max(40),
@@ -307,6 +311,10 @@ export async function curriculumRoutes(instance: FastifyInstance) {
                   code: r.code,
                   name: r.name,
                   refSubjectId: r.id,
+                  // Rumpun PAI/Arab madrasah (4.5): hanya acuan `kma` dengan lima kode itu; selebihnya tanpa kelompok seperti sebelumnya.
+                  ...(curriculumKey === 'kma' && PAI_ARABIC_CODES.has(r.code)
+                    ? { subjectGroup: 'pai_arabic' }
+                    : {}),
                 })),
               )
               .onConflictDoNothing()

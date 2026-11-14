@@ -4406,4 +4406,166 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'madrasah-identity',
+    icon: 'school',
+    tone: 'teal',
+    group: 'academic',
+    text: {
+      id: {
+        title: 'Madrasah: NSM di kop rapor dan rumpun PAI/Bahasa Arab',
+        summary:
+          'Cara mengisi NSM madrasah agar tampil di kop rapor, cara mengadopsi rumpun PAI/Bahasa Arab untuk MI dan MA bersama mapel umum, dan bahasa judul PDF rapor.',
+        forWho: 'Admin madrasah (MI, MTs, MA, MAK) dan kurikulum yang menyiapkan mapel serta rapor.',
+        sections: [
+          {
+            heading: 'Mengisi NSM',
+            body: 'Di Pengaturan sekolah, tab Identitas, madrasah punya kolom NSM (Nomor Statistik Madrasah). Isi 8 sampai 16 angka; rentang ini sengaja longgar karena format resmi belum diverifikasi, dan akan diperketat kemudian. Satu NSM hanya bisa dipakai satu sekolah. Kolom hanya tampil untuk jenjang MI, MTs, MA, dan MAK, dan hanya admin sekolah yang dapat menyimpannya. Mengosongkan kolom menghapus NSM dari kop.',
+            steps: [
+              'Buka Pengaturan sekolah, lalu tab Identitas.',
+              'Isi kolom NSM dengan angka saja (spasi dan strip dibuang otomatis).',
+              'Klik Simpan NSM.',
+            ],
+            href: '/school-settings',
+            tip: 'Sekolah yang tidak mengisi NSM tidak berubah sama sekali: rapornya persis seperti sebelumnya.',
+          },
+          {
+            heading: 'NSM di kop rapor',
+            body: 'Bila NSM terisi, kop rapor memuat baris NSM di pratinjau, PDF, dan portal orang tua. Saat rapor difinalkan, NSM ikut dibekukan; mengganti NSM sesudahnya tidak mengubah rapor final. Buka kembali rapor lalu finalkan ulang untuk memakai NSM baru.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Rumpun PAI dan Bahasa Arab untuk MI dan MA',
+            body: 'Bank kurikulum KMA kini memuat lima nama mapel rumpun PAI dan Bahasa Arab (Al-Qur’an Hadis, Akidah Akhlak, Fikih, Sejarah Kebudayaan Islam, Bahasa Arab) untuk MI dan MA, selain MTs. Madrasah mengadopsi kurikulum umum (Merdeka) dan KMA sekaligus; salinan mapel KMA otomatis masuk kelompok Rumpun PAI dan Bahasa Arab. Hanya nama yang disediakan: jam pelajaran, mapel khusus MA (misalnya program keagamaan), dan aturan per tingkat belum disediakan karena teks KMA 1503/2025 belum diverifikasi, jadi isi sendiri lewat mapel dan alokasi jam.',
+            steps: [
+              'Buka Kurikulum, lalu bagian Bank data kurikulum.',
+              'Pilih kurikulum umum untuk jenjang Anda dan adopsi mapelnya.',
+              'Pilih Kurikulum madrasah (KMA) dengan jenjang yang sama, lalu adopsi.',
+              'Atur jam pelajaran dan mapel tambahan di struktur kurikulum.',
+            ],
+            href: '/curriculum',
+            warning:
+              'Acuan umum (Merdeka) belum tersedia untuk jenjang SD/MI: di MI, mapel umum diisi manual atau lewat impor.',
+          },
+          {
+            heading: 'Bahasa judul PDF rapor',
+            body: 'Judul PDF rapor, label NSM, dan bagian Penilaian kokurikuler mengikuti bahasa yang Anda pilih (Indonesia, Inggris, atau Sunda). Teks lain di PDF masih berbahasa Indonesia.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Mengapa kolom NSM tidak muncul?',
+            a: 'Kolom hanya tampil untuk jenjang madrasah (MI, MTs, MA, MAK). Jenjang unit ditetapkan admin platform.',
+          },
+          {
+            q: 'NSM saya ditolak karena sudah dipakai.',
+            a: 'Satu NSM hanya boleh terdaftar di satu sekolah. Periksa kembali nomornya; bila benar milik Anda, hubungi dukungan.',
+          },
+        ],
+      },
+      en: {
+        title: 'Madrasah: NSM on the report card header and the Islamic Studies / Arabic group',
+        summary:
+          'How to enter the madrasah NSM so it prints in the report card header, how to adopt the Islamic Studies and Arabic group for MI and MA together with general subjects, and the language of the report PDF title.',
+        forWho:
+          'Madrasah admins (MI, MTs, MA, MAK) and curriculum staff preparing subjects and report cards.',
+        sections: [
+          {
+            heading: 'Entering the NSM',
+            body: 'In School settings, the Identity tab, a madrasah has an NSM (Madrasah Statistics Number) field. Enter 8 to 16 digits; the range is deliberately loose because the official format is not yet verified, and will be tightened later. One NSM can belong to one school only. The field shows only for MI, MTs, MA, and MAK, and only a school admin can save it. Clearing the field removes the NSM from the header.',
+            steps: [
+              'Open School settings, then the Identity tab.',
+              'Enter the NSM using digits only (spaces and dashes are removed automatically).',
+              'Click Save NSM.',
+            ],
+            href: '/school-settings',
+            tip: 'A school that leaves the NSM empty is not affected at all: its report cards stay exactly as before.',
+          },
+          {
+            heading: 'NSM in the report card header',
+            body: 'When the NSM is filled in, the report card header carries an NSM line in the preview, the PDF, and the parent portal. When a report is finalized the NSM is frozen with it; changing the NSM later does not alter a final report. Reopen the report and finalize again to use the new NSM.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Islamic Studies and Arabic group for MI and MA',
+            body: 'The KMA curriculum bank now holds five Islamic Studies and Arabic subject names (Qur’an Hadith, Creed and Morals, Fiqh, Islamic Cultural History, Arabic) for MI and MA, in addition to MTs. A madrasah adopts the general curriculum (Merdeka) and KMA together; the KMA subject copies automatically join the Islamic Studies and Arabic group. Only names are provided: lesson periods, MA-specific subjects (for example the religious program), and per-grade rules are not provided because the text of KMA 1503/2025 is not yet verified, so enter them yourself through subjects and period allocation.',
+            steps: [
+              'Open Curriculum, then the Curriculum bank section.',
+              'Choose the general curriculum for your level and adopt its subjects.',
+              'Choose Madrasah curriculum (KMA) for the same level, then adopt.',
+              'Set lesson periods and extra subjects in the curriculum structure.',
+            ],
+            href: '/curriculum',
+            warning:
+              'The general reference (Merdeka) is not yet available for primary/MI: in an MI, enter general subjects manually or by import.',
+          },
+          {
+            heading: 'Language of the report PDF title',
+            body: 'The report PDF title, the NSM label, and the Cocurricular assessment section follow the language you chose (Indonesian, English, or Sundanese). Other text in the PDF is still Indonesian.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why does the NSM field not appear?',
+            a: 'The field appears only for madrasah levels (MI, MTs, MA, MAK). The unit level is set by a platform admin.',
+          },
+          {
+            q: 'My NSM was rejected because it is already in use.',
+            a: 'One NSM can be registered to one school only. Check the number again; if it is yours, contact support.',
+          },
+        ],
+      },
+      su: {
+        title: 'Madrasah: NSM dina kop rapor jeung rumpun PAI/Basa Arab',
+        summary:
+          'Cara ngeusian NSM madrasah sangkan muncul dina kop rapor, cara ngadopsi rumpun PAI/Basa Arab keur MI jeung MA babarengan jeung mapel umum, sarta basa judul PDF rapor.',
+        forWho: 'Admin madrasah (MI, MTs, MA, MAK) jeung kurikulum nu nyiapkeun mapel sarta rapor.',
+        sections: [
+          {
+            heading: 'Ngeusian NSM',
+            body: 'Dina Pangaturan sakola, tab Idéntitas, madrasah boga kolom NSM (Nomer Statistik Madrasah). Eusian 8 nepi ka 16 angka; rentang ieu sengaja lega sabab format resmina can diverifikasi, bakal diketatkeun engké. Hiji NSM ngan bisa dipaké ku hiji sakola. Kolomna ngan muncul keur jenjang MI, MTs, MA, jeung MAK, sarta ngan admin sakola nu bisa nyimpenna. Ngosongkeun kolom ngahapus NSM tina kop.',
+            steps: [
+              'Buka Pangaturan sakola, tuluy tab Idéntitas.',
+              'Eusian kolom NSM ku angka wungkul (spasi jeung strip dibuang otomatis).',
+              'Klik Simpen NSM.',
+            ],
+            href: '/school-settings',
+            tip: 'Sakola nu henteu ngeusian NSM teu robah sama sakali: raporna persis jiga samemehna.',
+          },
+          {
+            heading: 'NSM dina kop rapor',
+            body: 'Lamun NSM dieusian, kop rapor ngandung baris NSM dina pramuninggal, PDF, jeung portal kolot. Waktu rapor difinalkeun, NSM ikut dibekukeun; ngarobah NSM satuluyna teu ngarobah rapor final. Buka deui rapor tuluy finalkeun deui pikeun maké NSM anyar.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Rumpun PAI jeung Basa Arab keur MI jeung MA',
+            body: 'Bank kurikulum KMA ayeuna ngandung lima ngaran mapel rumpun PAI jeung Basa Arab (Al-Qur’an Hadis, Akidah Akhlak, Fikih, Sajarah Kabudayaan Islam, Basa Arab) keur MI jeung MA, salian ti MTs. Madrasah ngadopsi kurikulum umum (Merdeka) jeung KMA sakaligus; salinan mapel KMA otomatis asup kana kelompok Rumpun PAI jeung Basa Arab. Nu disayogikeun ngan ngaranna: jam pelajaran, mapel husus MA (upamana program kaagamaan), jeung aturan per tingkat can disayogikeun sabab téks KMA 1503/2025 can diverifikasi, jadi eusian sorangan ngaliwatan mapel jeung alokasi jam.',
+            steps: [
+              'Buka Kurikulum, tuluy bagian Bank data kurikulum.',
+              'Pilih kurikulum umum keur jenjang Anjeun tuluy adopsi mapelna.',
+              'Pilih Kurikulum madrasah (KMA) jeung jenjang nu sarua, tuluy adopsi.',
+              'Atur jam pelajaran jeung mapel tambahan dina struktur kurikulum.',
+            ],
+            href: '/curriculum',
+            warning:
+              'Acuan umum (Merdeka) can aya keur SD/MI: di MI, mapel umum diasupkeun sacara manual atawa ngaliwatan impor.',
+          },
+          {
+            heading: 'Basa judul PDF rapor',
+            body: 'Judul PDF rapor, labél NSM, jeung bagian Penilaian kokurikuler nuturkeun basa nu Anjeun pilih (Indonésia, Inggris, atawa Sunda). Téks séjén dina PDF masih basa Indonésia.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha kolom NSM teu muncul?',
+            a: 'Kolomna ngan muncul keur jenjang madrasah (MI, MTs, MA, MAK). Jenjang unit ditetepkeun ku admin platform.',
+          },
+          {
+            q: 'NSM kuring ditolak sabab geus dipaké.',
+            a: 'Hiji NSM ngan meunang kadaptar di hiji sakola. Pariksa deui nomorna; upami éta milik Anjeun, hubungi rojongan.',
+          },
+        ],
+      },
+    },
+  },
 ];

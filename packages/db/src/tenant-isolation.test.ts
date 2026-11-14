@@ -13,6 +13,7 @@ import {
   createDb,
   foundation,
   school,
+  schoolIdentifier,
   schoolProfileItem,
   semester,
   student,
@@ -440,6 +441,44 @@ describe('tabel tenant penilaian kokurikuler (tahap 4.3)', () => {
         await platform.db.delete(student).where(eq(student.schoolId, sid));
         await platform.db.delete(semester).where(eq(semester.schoolId, sid));
       }
+    }
+  });
+});
+
+describe('tabel tenant identitas madrasah (tahap 4.5)', () => {
+  it('NSM terisolasi per sekolah, tulis lintas sekolah ditolak, CHECK 8-16 digit, unik lintas sekolah', async () => {
+    const nsm = `${Date.now()}`.slice(-12).padStart(12, '1');
+    await platform.db.insert(schoolIdentifier).values({ schoolId: schoolA1, nsm, updatedBy: 'uji' });
+    await platform.db.insert(schoolIdentifier).values({ schoolId: schoolB, nsm: null, updatedBy: 'uji' });
+    try {
+      const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(schoolIdentifier));
+      expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+      expect(await app.db.select().from(schoolIdentifier)).toHaveLength(0);
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) =>
+          tx.update(schoolIdentifier).set({ nsm: '99999999' }).where(eq(schoolIdentifier.schoolId, schoolB)),
+        ),
+      ).resolves.toBeDefined(); // RLS menyaring baris sekolah lain: tidak ada yang terubah
+      expect(
+        (await platform.db.select().from(schoolIdentifier).where(eq(schoolIdentifier.schoolId, schoolB)))[0]
+          ?.nsm,
+      ).toBeNull();
+      // CHECK longgar: 7 dan 17 digit, atau huruf, ditolak; NULL boleh (banyak baris NULL tidak bentrok).
+      for (const bad of ['1234567', '12345678901234567', '1234567a']) {
+        await expect(
+          platform.db
+            .update(schoolIdentifier)
+            .set({ nsm: bad })
+            .where(eq(schoolIdentifier.schoolId, schoolB)),
+        ).rejects.toThrow();
+      }
+      // Unik lintas sekolah.
+      await expect(
+        platform.db.update(schoolIdentifier).set({ nsm }).where(eq(schoolIdentifier.schoolId, schoolB)),
+      ).rejects.toThrow();
+    } finally {
+      for (const sid of [schoolA1, schoolB])
+        await platform.db.delete(schoolIdentifier).where(eq(schoolIdentifier.schoolId, sid));
     }
   });
 });

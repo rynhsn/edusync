@@ -114,6 +114,8 @@ export const reportDocumentV2Schema = reportDocumentSchema.extend({
   cocurricularNote: z.string().optional(),
   cocurricular: reportCocurricularSchema.optional(),
   developmentNote: z.string().optional(),
+  /** NSM madrasah (tahap 4.5) untuk kop; kunci tingkat atas, hanya ada bila NSM terisi. */
+  schoolNsm: z.string().optional(),
   subjects: z.array(reportSubjectV2Schema),
 });
 
@@ -174,6 +176,7 @@ export const REPORT_V2_DOCUMENT_KEYS = [
   'cocurricularNote',
   'cocurricular',
   'developmentNote',
+  'schoolNsm',
 ] as const;
 export const REPORT_V2_SUBJECT_KEYS = ['descriptionSource', 'objectives'] as const;
 

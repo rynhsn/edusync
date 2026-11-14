@@ -48368,6 +48368,9 @@
                         },
                         "developmentNote": {
                           "type": "string"
+                        },
+                        "schoolNsm": {
+                          "type": "string"
                         }
                       },
                       "required": [
@@ -91082,7 +91085,7 @@
         "tags": [
           "Report cards"
         ],
-        "description": "Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.",
+        "description": "Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), `schoolNsm` (NSM madrasah untuk kop, hanya bila terisi; dibekukan di snapshot), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.",
         "parameters": [
           {
             "schema": {
@@ -91558,6 +91561,9 @@
                       }
                     },
                     "developmentNote": {
+                      "type": "string"
+                    },
+                    "schoolNsm": {
                       "type": "string"
                     },
                     "schemaVersion": {
@@ -132119,6 +132125,313 @@
         }
       }
     },
+    "/v1/school/identifier": {
+      "get": {
+        "summary": "Nomor induk madrasah (NSM)",
+        "tags": [
+          "School"
+        ],
+        "description": "Izin: anggota aktif sekolah. `nsm` null bila belum diisi (tidak ada baris otomatis). `applicable` true hanya untuk jenjang berotoritas Kemenag; NSM tampil di kop rapor bila terisi.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "nsm": {
+                      "nullable": true,
+                      "description": "NSM madrasah (8-16 angka); null bila belum diisi",
+                      "type": "string"
+                    },
+                    "applicable": {
+                      "type": "boolean",
+                      "description": "true bila jenjang unit berotoritas Kemenag (MI/MTs/MA/MAK); NSM hanya diisi untuk madrasah"
+                    }
+                  },
+                  "required": [
+                    "nsm",
+                    "applicable"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Simpan NSM madrasah",
+        "tags": [
+          "School"
+        ],
+        "description": "Izin: `school:manage`. `nsm` 8-16 angka (spasi, titik, strip dibuang; rentang longgar karena format resmi belum diverifikasi); null atau kosong mengosongkan. Galat: 400 `invalid_nsm`, 400 `nsm_not_applicable` (jenjang bukan madrasah; mengosongkan tetap boleh), 409 `nsm_taken` (dipakai sekolah lain). Perubahan dicatat di audit.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nsm": {
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 40
+                  }
+                }
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "nsm": {
+                      "nullable": true,
+                      "description": "NSM madrasah (8-16 angka); null bila belum diisi",
+                      "type": "string"
+                    },
+                    "applicable": {
+                      "type": "boolean",
+                      "description": "true bila jenjang unit berotoritas Kemenag (MI/MTs/MA/MAK); NSM hanya diisi untuk madrasah"
+                    }
+                  },
+                  "required": [
+                    "nsm",
+                    "applicable"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/v1/school/identity/logo": {
       "post": {
         "summary": "Unggah logo sekolah",
@@ -146975,7 +147288,7 @@
         "tags": [
           "Reference"
         ],
-        "description": "Izin: `subject:manage`. Menyalin mapel acuan (semua, atau hanya `subjectCodes` yang dipilih) ke mapel sekolah. Salinan diberi tautan `refSubjectId` ke mapel acuan. Mapel yang sudah tertaut ke acuan itu atau yang kodenya sudah ada dilewati; bila kodenya sudah ada tapi belum tertaut, tautannya diisi tanpa menimpa nama. Salinan bebas diubah sekolah; pembaruan acuan tidak menimpanya.",
+        "description": "Izin: `subject:manage`. Menyalin mapel acuan (semua, atau hanya `subjectCodes` yang dipilih) ke mapel sekolah. Salinan diberi tautan `refSubjectId` ke mapel acuan. Mapel yang sudah tertaut ke acuan itu atau yang kodenya sudah ada dilewati; bila kodenya sudah ada tapi belum tertaut, tautannya diisi tanpa menimpa nama. Salinan bebas diubah sekolah; pembaruan acuan tidak menimpanya. Acuan `kma` (MI, MTs, MA) hanya memuat nama rumpun PAI/Bahasa Arab (AQH, AKH, FQH, SKI, BAR; tanpa JP): salinannya diberi `subjectGroup` `pai_arabic`. Madrasah mengadopsi `merdeka` dan `kma` bersamaan (dua panggilan); JP dan mapel khusus MA diisi sekolah sendiri.",
         "requestBody": {
           "required": true,
           "content": {
@@ -160900,7 +161213,7 @@
         "tags": [
           "Portal"
         ],
-        "description": "Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `cocurricular`, `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.",
+        "description": "Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `cocurricular`, `schoolNsm` (hanya bila NSM madrasah terisi), `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.",
         "parameters": [
           {
             "schema": {
@@ -161372,6 +161685,9 @@
                       }
                     },
                     "developmentNote": {
+                      "type": "string"
+                    },
+                    "schoolNsm": {
                       "type": "string"
                     },
                     "schemaVersion": {

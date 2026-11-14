@@ -32,6 +32,7 @@ import {
   reportSetting,
   reportSubjectNarrative,
   school,
+  schoolIdentifier,
   schoolLevel,
   schoolProfileItem,
   semester,
@@ -135,6 +136,8 @@ export interface ClassContext {
   cls: ClassRow;
   yearName: string;
   schoolName: string;
+  /** NSM madrasah (4.5); null bila belum diisi, sehingga dokumen tidak memuat `schoolNsm`. */
+  schoolNsm: string | null;
   reportSettings: ReportSettings;
   /** Konfigurasi nilai efektif semester (salinan beku bila ada); dipakai ketercapaian TP untuk narasi. */
   cfg: EffectiveGradingConfig;
@@ -177,6 +180,7 @@ export async function loadClassContext(
 ): Promise<ClassContext> {
   const { cls, rows: roster } = await semesterRosterOf(tx, clsInput.id, sem);
   const [sch] = await tx.select({ name: school.name }).from(school);
+  const [ident] = await tx.select({ nsm: schoolIdentifier.nsm }).from(schoolIdentifier);
   const [year] = await tx
     .select({ name: academicYear.name })
     .from(academicYear)
@@ -232,6 +236,7 @@ export async function loadClassContext(
     cls,
     yearName: year?.name ?? '',
     schoolName: sch?.name ?? '',
+    schoolNsm: ident?.nsm ?? null,
     reportSettings,
     cfg,
     kkm: settings.kkm,
@@ -610,6 +615,7 @@ export async function buildDocument(
     ...(descriptive ? { reportMode: 'descriptive' as const } : {}),
     ...(v2.cocurricularNote ? { cocurricularNote: v2.cocurricularNote } : {}),
     ...(v2.cocurricular?.length ? { cocurricular: v2.cocurricular } : {}),
+    ...(c.schoolNsm ? { schoolNsm: c.schoolNsm } : {}),
     ...(descriptive && v2.developmentNote ? { developmentNote: v2.developmentNote } : {}),
     generatedAt: new Date().toISOString(),
   };

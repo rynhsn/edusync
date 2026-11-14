@@ -208,3 +208,15 @@ describe('bagian cocurricular (tahap 4.4)', () => {
     ).toThrow();
   });
 });
+
+describe('kunci schoolNsm (tahap 4.5)', () => {
+  it('lolos skema v2, respons staf, dan portal; v1 membuangnya; menaikkan versi ke 2', () => {
+    const doc = { ...v1, schoolNsm: '131132730001' };
+    expect(reportDocumentV2Schema.parse(doc)).toEqual(doc);
+    expect(reportDocumentResponseSchema.parse(doc)).toEqual(doc);
+    expect(portalReportDocumentSchema.parse(doc)).toEqual(doc);
+    expect(reportDocumentSchema.parse(doc)).toEqual(v1);
+    expect(reportDocumentSchemaVersion(doc)).toBe(2);
+    expect(reportDocumentSchemaVersion({ ...v1, schoolNsm: undefined })).toBe(1);
+  });
+});

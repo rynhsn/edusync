@@ -20705,6 +20705,7 @@ export interface paths {
                                     }[];
                                 }[];
                                 developmentNote?: string;
+                                schoolNsm?: string;
                             } | null;
                         };
                     };
@@ -38830,7 +38831,7 @@ export interface paths {
         };
         /**
          * Dokumen rapor satu siswa
-         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
+         * @description Izin: `report_card:read`; modul `grades`. Rapor final dikembalikan dari snapshot saat finalisasi; rapor draft dihitung langsung dari nilai terkini memakai rumus yang sama dengan rekap penilaian. Mapel = yang punya penilaian di kelas siswa pada semester itu; deskripsi capaian diisi otomatis dari pengaturan rapor menurut predikat. `attendance` menghitung hari yang tercatat pada rentang semester. `rank` hanya ada bila pengaturan menampilkan peringkat (rata-rata sama berbagi peringkat). Hanya pemegang `report_card:manage`, kepala sekolah, kurikulum, atau wali kelas siswa itu (selain itu 403). 404 `not_found` bila siswa tidak ada atau tidak terdaftar di kelas pada tahun ajaran semester itu. Bagian v2 hanya ada bila dipakai (sparse): `schemaVersion` (hanya bila 2; draf membawa versi yang akan ditulis bila difinalkan), `reportMode` (`descriptive` bila tingkat kelas bermode deskriptif Fase A; angka tetap ada untuk staf), `cocurricularNote`, `cocurricular` (penilaian kokurikuler terstruktur per program: butir, tingkat rubrik, catatan; hanya bila siswa punya penilaian pada program yang tampil di rapor; label dibekukan di snapshot; server tidak pernah mengisi `cocurricularNote` otomatis), `schoolNsm` (NSM madrasah untuk kop, hanya bila terisi; dibekukan di snapshot), `developmentNote` (hanya mode deskriptif), `subjects[].descriptionSource` (`manual` bila ada deskripsi manual, `objectives` bila dari TP berstatus siswa itu; absen = dari predikat), `subjects[].objectives` (ringkasan TP, hanya bila ada TP berstatus) dan `guardianResponses` (tanggapan wali, bukan isi snapshot; terlihat staf yang berhak). Rapor final v1 dikembalikan persis seperti dulu.
          */
         get: {
             parameters: {
@@ -38957,6 +38958,7 @@ export interface paths {
                                 }[];
                             }[];
                             developmentNote?: string;
+                            schoolNsm?: string;
                             /**
                              * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
                              * @enum {number}
@@ -57585,6 +57587,174 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/v1/school/identifier": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Nomor induk madrasah (NSM)
+         * @description Izin: anggota aktif sekolah. `nsm` null bila belum diisi (tidak ada baris otomatis). `applicable` true hanya untuk jenjang berotoritas Kemenag; NSM tampil di kop rapor bila terisi.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description NSM madrasah (8-16 angka); null bila belum diisi */
+                            nsm: string | null;
+                            /** @description true bila jenjang unit berotoritas Kemenag (MI/MTs/MA/MAK); NSM hanya diisi untuk madrasah */
+                            applicable: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan NSM madrasah
+         * @description Izin: `school:manage`. `nsm` 8-16 angka (spasi, titik, strip dibuang; rentang longgar karena format resmi belum diverifikasi); null atau kosong mengosongkan. Galat: 400 `invalid_nsm`, 400 `nsm_not_applicable` (jenjang bukan madrasah; mengosongkan tetap boleh), 409 `nsm_taken` (dipakai sekolah lain). Perubahan dicatat di audit.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        nsm?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description NSM madrasah (8-16 angka); null bila belum diisi */
+                            nsm: string | null;
+                            /** @description true bila jenjang unit berotoritas Kemenag (MI/MTs/MA/MAK); NSM hanya diisi untuk madrasah */
+                            applicable: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/v1/school/identity/logo": {
         parameters: {
             query?: never;
@@ -63864,7 +64034,7 @@ export interface paths {
         put?: never;
         /**
          * Adopsi mapel dari bank data kurikulum
-         * @description Izin: `subject:manage`. Menyalin mapel acuan (semua, atau hanya `subjectCodes` yang dipilih) ke mapel sekolah. Salinan diberi tautan `refSubjectId` ke mapel acuan. Mapel yang sudah tertaut ke acuan itu atau yang kodenya sudah ada dilewati; bila kodenya sudah ada tapi belum tertaut, tautannya diisi tanpa menimpa nama. Salinan bebas diubah sekolah; pembaruan acuan tidak menimpanya.
+         * @description Izin: `subject:manage`. Menyalin mapel acuan (semua, atau hanya `subjectCodes` yang dipilih) ke mapel sekolah. Salinan diberi tautan `refSubjectId` ke mapel acuan. Mapel yang sudah tertaut ke acuan itu atau yang kodenya sudah ada dilewati; bila kodenya sudah ada tapi belum tertaut, tautannya diisi tanpa menimpa nama. Salinan bebas diubah sekolah; pembaruan acuan tidak menimpanya. Acuan `kma` (MI, MTs, MA) hanya memuat nama rumpun PAI/Bahasa Arab (AQH, AKH, FQH, SKI, BAR; tanpa JP): salinannya diberi `subjectGroup` `pai_arabic`. Madrasah mengadopsi `merdeka` dan `kma` bersamaan (dua panggilan); JP dan mapel khusus MA diisi sekolah sendiri.
          */
         post: {
             parameters: {
@@ -69834,7 +70004,7 @@ export interface paths {
         };
         /**
          * Dokumen rapor final satu semester
-         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `cocurricular`, `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.
+         * @description Izin: `portal:read`; modul `parent_portal` dan `grades`. Snapshot beku saat rapor difinalisasi. 404 `not_found` bila belum final, tidak ada, atau anak bukan milik akun ini; 403 `module_disabled` bila modul `grades` tidak aktif. Bagian v2 hanya ada bila dipakai: `schemaVersion` (hanya bila 2), `reportMode`, `cocurricularNote`, `cocurricular`, `schoolNsm` (hanya bila NSM madrasah terisi), `developmentNote`, `subjects[].descriptionSource`. Mode deskriptif (Fase A) MEMPROYEKSIKAN dokumen tanpa `final`, `predicate`, `kkm`, `belowKkm` per mapel dan tanpa `rank`. `guardianResponses` hanya memuat tanggapan milik wali pemanggil (tautan wali); tautan siswa dan wali lain tidak melihatnya.
          */
         get: {
             parameters: {
@@ -69960,6 +70130,7 @@ export interface paths {
                                 }[];
                             }[];
                             developmentNote?: string;
+                            schoolNsm?: string;
                             /**
                              * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
                              * @enum {number}

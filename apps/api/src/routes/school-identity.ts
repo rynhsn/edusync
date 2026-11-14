@@ -1,10 +1,11 @@
 import { assertNpsnsFree, NPSN_TAKEN_MESSAGE, requireNpsn } from '@edusync/billing';
-import { educationProfileBriefSchema } from '@edusync/contracts';
+import { educationProfileBriefSchema, normalizeNsm } from '@edusync/contracts';
 import {
   eq,
   refEducationProfile,
   school,
   schoolFile,
+  schoolIdentifier,
   schoolIdentity,
   type Tx,
   withTenant,
@@ -140,6 +141,23 @@ export async function readIdentity(tx: Tx, schoolId: string) {
   };
 }
 
+const identifierSchema = z.object({
+  nsm: z.string().nullable().describe('NSM madrasah (8-16 angka); null bila belum diisi'),
+  applicable: z
+    .boolean()
+    .describe('true bila jenjang unit berotoritas Kemenag (MI/MTs/MA/MAK); NSM hanya diisi untuk madrasah'),
+});
+
+export async function readIdentifier(tx: Tx, schoolId: string) {
+  const [sch] = await tx
+    .select({ authority: refEducationProfile.authority })
+    .from(school)
+    .leftJoin(refEducationProfile, eq(refEducationProfile.key, school.educationProfile))
+    .where(eq(school.id, schoolId));
+  const [row] = await tx.select().from(schoolIdentifier).where(eq(schoolIdentifier.schoolId, schoolId));
+  return { nsm: row?.nsm ?? null, applicable: sch?.authority === 'kemenag' };
+}
+
 const tags = ['School'];
 
 /** Identitas sekolah: logo, alamat lengkap, dan kontak. Dipakai kop ujian/surat dan, bila dipilih, situs publik. */
@@ -214,6 +232,69 @@ export async function schoolIdentityRoutes(instance: FastifyInstance) {
         });
       } catch (error) {
         if (isUniqueViolation(error)) throw new HttpError(409, 'npsn_taken', NPSN_TAKEN_MESSAGE);
+        throw error;
+      }
+    },
+  );
+
+  app.get(
+    '/v1/school/identifier',
+    {
+      onRequest: [requireTenant],
+      schema: {
+        tags,
+        summary: 'Nomor induk madrasah (NSM)',
+        description:
+          'Izin: anggota aktif sekolah. `nsm` null bila belum diisi (tidak ada baris otomatis). `applicable` true hanya untuk ' +
+          'jenjang berotoritas Kemenag; NSM tampil di kop rapor bila terisi.',
+        headers: schoolHeader,
+        response: { 200: identifierSchema, ...guarded },
+      },
+    },
+    async (request) => tenant(request, (tx) => readIdentifier(tx, (request.ctx as TenantContext).schoolId)),
+  );
+
+  app.put(
+    '/v1/school/identifier',
+    {
+      onRequest: [requirePermission('school:manage')],
+      schema: {
+        tags,
+        summary: 'Simpan NSM madrasah',
+        description:
+          'Izin: `school:manage`. `nsm` 8-16 angka (spasi, titik, strip dibuang; rentang longgar karena format resmi belum ' +
+          'diverifikasi); null atau kosong mengosongkan. Galat: 400 `invalid_nsm`, 400 `nsm_not_applicable` (jenjang bukan ' +
+          'madrasah; mengosongkan tetap boleh), 409 `nsm_taken` (dipakai sekolah lain). Perubahan dicatat di audit.',
+        headers: schoolHeader,
+        body: z.object({ nsm: z.string().max(40).nullish() }),
+        response: { 200: identifierSchema, 400: errorSchema, 409: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const raw = request.body.nsm?.trim();
+      const nsm = raw ? normalizeNsm(raw) : null;
+      if (raw && !nsm) throw new HttpError(400, 'invalid_nsm', 'NSM harus 8 sampai 16 angka.');
+      try {
+        return await tenant(request, async (tx) => {
+          const before = await readIdentifier(tx, ctx.schoolId);
+          if (nsm && !before.applicable) {
+            throw new HttpError(400, 'nsm_not_applicable', 'NSM hanya untuk madrasah (MI, MTs, MA, MAK).');
+          }
+          const values = { nsm, updatedBy: ctx.userId, updatedAt: new Date() };
+          await tx
+            .insert(schoolIdentifier)
+            .values({ schoolId: ctx.schoolId, ...values })
+            .onConflictDoUpdate({ target: schoolIdentifier.schoolId, set: values });
+          await audit(tx, ctx, 'school.nsm_update', 'school', ctx.schoolId, {
+            nsmFrom: before.nsm,
+            nsmTo: nsm,
+          });
+          return { nsm, applicable: before.applicable };
+        });
+      } catch (error) {
+        if (isUniqueViolation(error))
+          throw new HttpError(409, 'nsm_taken', 'NSM ini sudah dipakai sekolah lain.');
         throw error;
       }
     },

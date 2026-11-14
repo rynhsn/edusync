@@ -1,6 +1,6 @@
 'use client';
 
-import { NPSN_LENGTH } from '@edusync/contracts';
+import { NPSN_LENGTH, NSM_MAX_LENGTH, normalizeNsm } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { ImagePlus, Landmark, Trash2 } from 'lucide-react';
 import { useTranslations } from 'next-intl';
@@ -131,6 +131,29 @@ export function IdentityPanel() {
     onError: (e) => setNpsnError(te(errorKey(e))),
   });
 
+  // NSM madrasah (4.5): tabel terpisah, hanya untuk jenjang berotoritas Kemenag; tampil di kop rapor bila terisi.
+  const identifier = useQuery({
+    queryKey: ['school-identifier', school.schoolId],
+    queryFn: async () => unwrap(await api.GET('/v1/school/identifier', { params: header })),
+  });
+  const [nsmDraft, setNsmDraft] = useState<string | null>(null);
+  const [nsmError, setNsmError] = useState<string | null>(null);
+  const savedNsm = identifier.data?.nsm ?? '';
+  const nsmValue = nsmDraft ?? savedNsm;
+  const nsmInvalid = nsmValue.length > 0 && normalizeNsm(nsmValue) === null;
+  const nsmDirty = nsmDraft !== null && nsmDraft !== savedNsm;
+  const saveNsm = useMutation({
+    mutationFn: async (nsm: string) =>
+      unwrap(await api.PUT('/v1/school/identifier', { params: header, body: { nsm: nsm || null } })),
+    onSuccess: (data) => {
+      setNsmError(null);
+      setNsmDraft(null);
+      queryClient.setQueryData(['school-identifier', school.schoolId], data);
+      toast.success(t('nsmSaved'));
+    },
+    onError: (e) => setNsmError(te(errorKey(e))),
+  });
+
   const removeLogo = useMutation({
     mutationFn: async () => unwrap(await api.DELETE('/v1/school/identity/logo', { params: header })),
     onSuccess: () => {
@@ -254,6 +277,46 @@ export function IdentityPanel() {
           {npsnError ?? (npsnInvalid ? t('npsnInvalid') : savedNpsn ? t('npsnHint') : t('npsnEmpty'))}
         </p>
       </div>
+
+      {identifier.data?.applicable && (
+        <div className="grid max-w-md content-start gap-2">
+          <Label htmlFor="identity-nsm">{t('nsmLabel')}</Label>
+          <div className="flex flex-wrap items-start gap-2">
+            <Input
+              id="identity-nsm"
+              className={cn(TOUCH_INPUT, 'w-56 font-mono')}
+              inputMode="numeric"
+              autoComplete="off"
+              maxLength={NSM_MAX_LENGTH}
+              disabled={!canManage || saveNsm.isPending}
+              value={nsmValue}
+              aria-invalid={nsmInvalid || !!nsmError}
+              aria-describedby="identity-nsm-hint"
+              onChange={(e) => {
+                setNsmError(null);
+                setNsmDraft(e.target.value.replace(/\D/g, '').slice(0, NSM_MAX_LENGTH));
+              }}
+            />
+            {canManage && (
+              <Button
+                type="button"
+                className="h-10 md:h-8"
+                disabled={!nsmDirty || nsmInvalid || saveNsm.isPending}
+                onClick={() => saveNsm.mutate(nsmValue)}
+              >
+                {t('nsmSave')}
+              </Button>
+            )}
+          </div>
+          <p
+            id="identity-nsm-hint"
+            aria-live="polite"
+            className={cn('text-xs', nsmInvalid || nsmError ? 'text-destructive' : 'text-muted-foreground')}
+          >
+            {nsmError ?? (nsmInvalid ? t('nsmInvalid') : savedNsm ? t('nsmHint') : t('nsmEmpty'))}
+          </p>
+        </div>
+      )}
 
       <div className="grid max-w-md content-start gap-1">
         <Label>{t('educationProfileLabel')}</Label>

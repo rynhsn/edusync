@@ -253,6 +253,7 @@ describe('katalog route', () => {
     expect(rows).toEqual([
       'GET /v1/live/events',
       'GET /v1/live/snapshot',
+      'GET /v1/school/identifier',
       'GET /v1/school/identity',
       'GET /v1/school/settings',
     ]);
@@ -701,6 +702,20 @@ describe('kebijakan peran bawaan', () => {
     for (const r of roleKeys.filter((k) => k !== 'school_admin')) {
       expect(perms(r).has('role:manage'), r).toBe(false);
       expect(perms(r).has('member:manage'), r).toBe(false);
+    }
+  });
+});
+
+describe('NSM madrasah (tahap 4.5)', () => {
+  it('PUT /v1/school/identifier memakai school:manage; GET cukup anggota sekolah', () => {
+    const put = eps.find((e) => e.method === 'PUT' && e.url === '/v1/school/identifier');
+    expect(put?.perms).toEqual(['school:manage']);
+    expect(put?.description).toContain('Izin: `school:manage`');
+    const get = eps.find((e) => e.method === 'GET' && e.url === '/v1/school/identifier');
+    expect(get?.kind).toBe('tenant');
+    for (const r of roleKeys) {
+      const has = (SYSTEM_ROLES[r].permissions as readonly string[]).includes('school:manage');
+      expect(allows(r, put!), r).toBe(has);
     }
   });
 });

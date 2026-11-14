@@ -4262,6 +4262,26 @@ export const cocurricularEvidence = pgTable(
   ],
 );
 
+/**
+ * Identitas tambahan sekolah (tahap 4.5): NSM madrasah. Tabel terpisah, bukan kolom `school`, supaya garis dasar sekolah tidak berubah.
+ * Satu baris per sekolah, hanya ada setelah NSM disimpan. CHECK 8-16 digit longgar (format resmi belum diverifikasi); unik lintas sekolah.
+ */
+export const schoolIdentifier = pgTable(
+  'school_identifier',
+  {
+    schoolId: uuid('school_id')
+      .primaryKey()
+      .references(() => school.id),
+    nsm: text('nsm'),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    uniqueIndex('school_identifier_nsm_uq').on(t.nsm).where(sql`${t.nsm} is not null`),
+    check('school_identifier_nsm_ck', sql`${t.nsm} is null or ${t.nsm} ~ '^[0-9]{8,16}$'`),
+  ],
+);
+
 /* ---------- Perubahan paket yayasan (tingkatkan, tambah unit, jadwalkan penurunan) ---------- */
 
 /**

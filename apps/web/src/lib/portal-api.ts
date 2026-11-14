@@ -305,6 +305,7 @@ export interface PortalReportDocument {
   reportMode?: 'descriptive';
   cocurricularNote?: string | null;
   cocurricular?: CocurricularProgramLike[];
+  schoolNsm?: string;
   developmentNote?: string | null;
   guardianResponses?: PortalGuardianResponse[];
 }
