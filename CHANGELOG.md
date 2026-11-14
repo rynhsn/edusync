@@ -7,10 +7,10 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
-## [1.0.0] - 2026-11-15
+## [0.5.0] - 2026-11-15
 
-Rilis pertama yang lengkap setelah revisi kurikulum (Fase 3 sampai 5). Nomor rilis sebelumnya (1.0.0 sampai 1.4.0) diubah menjadi
-0.0.0 sampai 0.4.0 karena sistem baru dianggap sempurna setelah semua fase selesai; tag lamanya kini bernama `archive/v0.x.y`.
+Revisi kurikulum selesai (Fase 3 sampai 5). Nomor rilis sebelumnya (1.0.0 sampai 1.4.0) diubah menjadi 0.0.0 sampai 0.4.0;
+v1.0.0 disimpan untuk rilis stabil berikutnya. Tag lamanya kini bernama `archive/v0.x.y`.
 
 Fase 3 (asesmen dan rapor), tahap 3.3 sampai 3.5: kaitan tujuan pembelajaran (TP), ketercapaian TP per murid, narasi rapor dari
 TP, serta remedial dan pengayaan. Nilai akhir, predikat, rekap, dan portal nilai tidak berubah selama sekolah tidak memilih
