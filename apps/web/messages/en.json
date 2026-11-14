@@ -1605,7 +1605,11 @@
     "in_use_objective": "This TP is still in use: it is linked to an assessment, used by an ATP, or already has a teacher achievement decision. Deactivate it instead so it no longer appears.",
     "in_use_outcome": "This CP or a TP under it is still used by an assessment, an ATP, or a teacher achievement decision, so it cannot be deleted. Deactivate it instead.",
     "not_vocational": "This feature is only available for vocational levels (SMK/MAK).",
-    "in_use_expertise": "This skills entry still has items under it or is still linked to a program. Delete or unlink them first, or just deactivate it."
+    "in_use_expertise": "This skills entry still has items under it or is still linked to a program. Delete or unlink them first, or just deactivate it.",
+    "pkl_link_incomplete": "The semester and the internship subject must be filled in together.",
+    "invalid_weights": "The school and industry weights must both be empty or both be whole numbers that add up to 100.",
+    "certificate_taken": "That certificate number is already used by another placement.",
+    "placement_not_completed": "A certificate number is only for a completed placement."
   },
   "theme": {
     "label": "Theme",
@@ -2927,6 +2931,7 @@
     "adoptNew": "Adopt the new ones ({count})"
   },
   "curriculum": {
+    "pklSuggestion": "Suggested internship length: {three} periods in grade XII of a 3-year program, {four} periods in grade XIII of a 4-year program. Source: {source}. This is only a suggestion, not a limit; follow your school curriculum.",
     "title": "Curriculum",
     "subtitle": "Set the lesson periods (JP) of each subject per level, the curriculum each level uses, and pick subjects from the curriculum bank.",
     "readOnly": "You can only view this page.",
@@ -4587,7 +4592,16 @@
     "pdfExpertiseProgram": "Program of Expertise",
     "pdfExpertiseConcentration": "Skill Concentration",
     "pdfGroupOther": "Other",
-    "groupOther": "Other"
+    "groupOther": "Other",
+    "pdfInternshipTitle": "Work-based learning (internship)",
+    "pdfInternshipPartner": "Placement",
+    "pdfInternshipTime": "Period",
+    "pdfInternshipPresent": "Days present",
+    "pdfInternshipSchoolSup": "School supervisor",
+    "pdfInternshipIndustrySup": "Industry supervisor",
+    "pdfInternshipAspect": "Aspect",
+    "pdfInternshipFinal": "Final grade",
+    "pdfInternshipCertificate": "Certificate no."
   },
   "financeReports": {
     "title": "Finance reports",
@@ -6323,9 +6337,62 @@
       "invalid": "Enter whole numbers from 1 to 100 with A higher than B and B higher than C.",
       "save": "Save thresholds",
       "saved": "Grade thresholds saved."
+    },
+    "link": {
+      "title": "Include in report card",
+      "hint": "Link this period to a semester and an internship subject so the internship grade becomes that subject's grade on the semester report card and counts toward the average, rank, ledger, and graduation suggestion. Leave both empty to keep internship grades off the report card.",
+      "semester": "Report semester",
+      "subject": "Internship subject",
+      "none": "Not on report card",
+      "pickSubject": "Choose internship subject",
+      "noSubjects": "No subject of the internship type yet. Add one under Subjects.",
+      "incomplete": "Choose both a semester and an internship subject, or leave both empty.",
+      "badge": "On report card: {subject} ({semester})",
+      "notLinked": "Not on report card"
+    },
+    "weights": {
+      "title": "Assessor weights",
+      "hint": "Set how much the supervising teacher's and the industry supervisor's scores count toward each aspect. The default is the average of whoever scored. If only one assessor scored, that score is used as is. Applies to every internship screen and to report cards prepared afterwards; final report cards do not change.",
+      "school": "School weight",
+      "industry": "Industry weight",
+      "average": "Average of assessors (default)",
+      "custom": "Set my own weights",
+      "total": "Total {total}",
+      "needs100": "School and industry weights must add up to 100.",
+      "reset": "Back to average",
+      "save": "Save weights",
+      "saved": "Assessor weights saved.",
+      "active": "Active weights: school {school}, industry {industry}",
+      "averageActive": "No weights: average of whoever scored"
+    },
+    "certNo": {
+      "title": "Certificate number",
+      "hint": "Pattern for bulk numbering. Use '{seq}', '{code}', '{roman}', '{month}', '{year}'. There is no national format for internship certificate numbers, so follow your school's policy.",
+      "pattern": "Number pattern",
+      "default": "Default: {pattern}",
+      "preview": "Preview: {sample}",
+      "save": "Save pattern",
+      "saved": "Number pattern saved.",
+      "label": "Certificate number",
+      "none": "Not numbered yet",
+      "set": "Record number",
+      "edit": "Edit number",
+      "input": "Certificate number",
+      "saveNumber": "Save number",
+      "clear": "Remove number",
+      "saved1": "Certificate number saved.",
+      "numberAll": "Number certificates",
+      "numbered": "{count} certificates numbered.",
+      "allNumbered": "All completed placements already have a number.",
+      "completedOnly": "A number can only be recorded for a completed placement."
+    },
+    "locked": {
+      "banner": "This internship grade is already on a final report card. Reopen the class report card under Report cards if the grade must change.",
+      "linked": "This final grade becomes the internship subject grade on the report card."
     }
   },
   "pklPublic": {
+    "reportLocked": "This student's internship grade is already on a final report card, so it can no longer be changed through this link. Contact the supervising teacher if something needs correcting.",
     "pageTitle": "Internship industry supervisor",
     "invalidTitle": "The link is invalid or has been revoked",
     "invalidBody": "Ask the supervising teacher at the school for a new link.",

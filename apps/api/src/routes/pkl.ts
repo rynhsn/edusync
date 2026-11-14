@@ -1,9 +1,12 @@
 import {
   canPlacementTransition,
   DEFAULT_PKL_ASPECTS,
+  DEFAULT_PKL_CERTIFICATE_PATTERN,
   type PklPlacementStatus,
   pklPredicate,
   pklResult,
+  renderNumberPattern,
+  schoolCodeFromSlug,
   validPklThresholds,
 } from '@edusync/contracts';
 import {
@@ -18,6 +21,7 @@ import {
   gte,
   ilike,
   inArray,
+  letterSetting,
   lte,
   or,
   pklAspect,
@@ -28,10 +32,14 @@ import {
   pklScore,
   pklSetting,
   pklVisit,
+  school,
+  semester,
   sql,
   student,
+  subject,
   type Tx,
   teacher,
+  vocationalSetting,
   withTenant,
 } from '@edusync/db';
 import type { FastifyInstance } from 'fastify';
@@ -42,14 +50,17 @@ import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
 import {
   assertJournalDate,
+  assertPlacementReportOpen,
   hashAccessToken,
   loadSheet,
   newAccessToken,
   pklThresholds,
+  pklWeights,
   saveScores,
   scoreRecordsBody,
 } from '../pkl-lib';
-import { audit, conflictAs409, guarded, idParams, ok, schoolHeader } from './helpers';
+import { assertStudentsReportNotFinal } from '../report-lock-lib';
+import { audit, conflictAs409, guarded, idParams, isUniqueViolation, ok, schoolHeader } from './helpers';
 
 const tag = ['PKL'];
 const dateField = z.iso.date();
@@ -104,6 +115,11 @@ const periodSchema = z.object({
   startsOn: z.string(),
   endsOn: z.string(),
   placementCount: z.number().int(),
+  semesterId: z
+    .uuid()
+    .nullable()
+    .describe('Semester rapor yang memuat nilai PKL periode ini; null = tidak masuk rapor'),
+  subjectId: z.uuid().nullable().describe('Mapel PKL (kind = internship) tempat nilai PKL masuk rapor'),
 });
 
 const periodBody = z
@@ -112,6 +128,13 @@ const periodBody = z
     name: z.string().trim().min(1).max(120),
     startsOn: dateField,
     endsOn: dateField,
+    semesterId: z
+      .uuid()
+      .nullish()
+      .describe(
+        'Tautan rapor (opsional, berpasangan dengan subjectId). Dihilangkan saat mengubah = tidak berubah; null = lepas',
+      ),
+    subjectId: z.uuid().nullish().describe('Mapel PKL (kind = internship); berpasangan dengan semesterId'),
   })
   .refine((b) => b.startsOn <= b.endsOn, {
     message: 'Tanggal mulai harus sebelum atau sama dengan tanggal selesai.',
@@ -137,6 +160,7 @@ const placementSchema = z.object({
   finalScore: z.number().nullable().describe('Nilai akhir tertimbang; null bila belum ada nilai'),
   predicate: z.enum(['A', 'B', 'C', 'D']).nullable(),
   hasAccessLink: z.boolean().describe('Tautan pembimbing industri sedang aktif'),
+  certificateNo: z.string().nullable().describe('Nomor sertifikat PKL; null bila belum dicatat'),
   canWrite: z
     .boolean()
     .describe('Pengguna ini boleh mengisi jurnal, kunjungan, nilai sekolah, dan tautan penempatan ini'),
@@ -211,6 +235,16 @@ const sheetSchema = z.object({
     final: z.number().nullable(),
     predicate: z.enum(['A', 'B', 'C', 'D']).nullable(),
   }),
+  weights: z
+    .object({ school: z.number().int(), industry: z.number().int() })
+    .nullable()
+    .describe('Bobot penilai sekolah:industri yang berlaku; null = rata-rata penilai yang ada'),
+  certificateNo: z.string().nullable(),
+  reportLinked: z
+    .boolean()
+    .describe(
+      'Periode tertaut ke rapor: nilai ini menjadi nilai mapel PKL dan terkunci saat rapor final (409 `report_final`)',
+    ),
 });
 
 /* ---------- Pembantu ---------- */
@@ -246,6 +280,12 @@ async function periodOrThrow(tx: Tx, id: string) {
 /** Susun lembar nilai (aspek + nilai kedua penilai + hasil) satu penempatan. */
 async function buildSheet(tx: Tx, placementId: string) {
   const { aspects, scores } = await loadSheet(tx, placementId);
+  const weights = await pklWeights(tx);
+  const [link] = await tx
+    .select({ semesterId: pklPeriod.semesterId, certificateNo: pklPlacement.certificateNo })
+    .from(pklPlacement)
+    .innerJoin(pklPeriod, eq(pklPeriod.id, pklPlacement.periodId))
+    .where(eq(pklPlacement.id, placementId));
   const cell = (aspectId: string, assessor: 'school' | 'industry') => {
     const s = scores.find((x) => x.aspectId === aspectId && x.assessor === assessor);
     return s ? { value: s.value, note: s.note } : null;
@@ -253,6 +293,7 @@ async function buildSheet(tx: Tx, placementId: string) {
   const result = pklResult(
     aspects,
     scores.filter((s) => aspects.some((a) => a.id === s.aspectId)),
+    weights,
   );
   return {
     aspects: aspects.map((a) => ({
@@ -266,6 +307,9 @@ async function buildSheet(tx: Tx, placementId: string) {
       ...result,
       predicate: result.final === null ? null : pklPredicate(result.final, await pklThresholds(tx)),
     },
+    weights: weights ?? null,
+    certificateNo: link?.certificateNo ?? null,
+    reportLinked: link?.semesterId != null,
   };
 }
 
@@ -431,7 +475,53 @@ export async function pklRoutes(instance: FastifyInstance) {
       startsOn: r.startsOn,
       endsOn: r.endsOn,
       placementCount: counts.find((c) => c.id === r.id)?.n ?? 0,
+      semesterId: r.semesterId,
+      subjectId: r.subjectId,
     }));
+  }
+
+  /**
+   * Tautan rapor periode (5.3). `undefined` = tidak berubah (hanya saat mengubah), pasangan null = lepas, pasangan uuid = tautkan.
+   * Semester harus pada tahun ajaran periode; mapel harus aktif dan berjenis PKL.
+   */
+  async function resolveLink(
+    tx: Tx,
+    b: {
+      academicYearId: string;
+      semesterId?: string | null | undefined;
+      subjectId?: string | null | undefined;
+    },
+    current: { academicYearId: string; semesterId: string | null; subjectId: string | null } | null,
+  ) {
+    if (b.semesterId === undefined && b.subjectId === undefined) {
+      if (current?.semesterId && current.academicYearId !== b.academicYearId) {
+        throw invalidRef(
+          'Semester tautan harus pada tahun ajaran periode: pilih semester baru atau lepas tautan.',
+        );
+      }
+      return { semesterId: current?.semesterId ?? null, subjectId: current?.subjectId ?? null };
+    }
+    const semesterId = b.semesterId ?? null;
+    const subjectId = b.subjectId ?? null;
+    if ((semesterId === null) !== (subjectId === null)) {
+      throw new HttpError(400, 'pkl_link_incomplete', 'Semester dan mapel PKL harus diisi berpasangan.');
+    }
+    if (semesterId !== null && subjectId !== null) {
+      const [sem] = await tx
+        .select({ yearId: semester.academicYearId })
+        .from(semester)
+        .where(eq(semester.id, semesterId));
+      if (!sem) throw invalidRef('Semester tidak ditemukan.');
+      if (sem.yearId !== b.academicYearId) {
+        throw invalidRef('Semester harus berada pada tahun ajaran periode ini.');
+      }
+      const [sub] = await tx
+        .select({ id: subject.id })
+        .from(subject)
+        .where(and(eq(subject.id, subjectId), eq(subject.kind, 'internship'), eq(subject.active, true)));
+      if (!sub) throw invalidRef('Mapel PKL tidak ditemukan, tidak aktif, atau bukan berjenis PKL.');
+    }
+    return { semesterId, subjectId };
   }
 
   async function checkYear(tx: Tx, yearId: string) {
@@ -466,7 +556,10 @@ export async function pklRoutes(instance: FastifyInstance) {
         summary: 'Tambah periode PKL',
         description:
           'Izin: `pkl:manage`; modul `internship`. Tanggal mulai harus <= tanggal selesai (400 `validation`); ' +
-          'tahun ajaran harus milik sekolah (400 `invalid_reference`); nama unik per tahun ajaran (409 `conflict`).',
+          'tahun ajaran harus milik sekolah (400 `invalid_reference`); nama unik per tahun ajaran (409 `conflict`). ' +
+          'Tautan rapor opsional (`semesterId` + `subjectId`, berpasangan: 400 `pkl_link_incomplete`): semester pada tahun ajaran ' +
+          'periode dan mapel aktif berjenis PKL (400 `invalid_reference`). Periode tertaut: nilai PKL menjadi nilai mapel itu di ' +
+          'rapor semester tersebut (ikut rata-rata, peringkat, leger, kelulusan, ekspor) dan terkunci saat rapor final.',
         headers: schoolHeader,
         body: periodBody,
         response: { 201: periodSchema, 400: errorSchema, 409: errorSchema, ...guarded },
@@ -477,9 +570,17 @@ export async function pklRoutes(instance: FastifyInstance) {
       const row = await conflictAs409('Periode dengan nama itu sudah ada pada tahun ajaran tersebut.', () =>
         tenant(request, async (tx) => {
           await checkYear(tx, b.academicYearId);
+          const link = await resolveLink(tx, b, null);
           const [r] = await tx
             .insert(pklPeriod)
-            .values({ schoolId: ctxOf(request).schoolId, ...b })
+            .values({
+              schoolId: ctxOf(request).schoolId,
+              academicYearId: b.academicYearId,
+              name: b.name,
+              startsOn: b.startsOn,
+              endsOn: b.endsOn,
+              ...link,
+            })
             .returning({ id: pklPeriod.id });
           await audit(tx, ctxOf(request), 'pkl.period.create', 'pkl_period', r!.id, { name: b.name });
           return (await periodViews(tx, r!.id))[0]!;
@@ -497,7 +598,9 @@ export async function pklRoutes(instance: FastifyInstance) {
         tags: tag,
         summary: 'Ubah periode PKL',
         description:
-          'Izin: `pkl:manage`; modul `internship`. Validasi seperti saat menambah; 404 `not_found`.',
+          'Izin: `pkl:manage`; modul `internship`. Validasi seperti saat menambah; 404 `not_found`. `semesterId`/`subjectId` ' +
+          'dihilangkan = tautan rapor tidak berubah; keduanya null = lepas. Mengganti atau melepas tautan ke semester yang rapor ' +
+          'muridnya sudah final ditolak 409 `report_final` (buka kembali rapornya lebih dulu).',
         headers: schoolHeader,
         params: idParams,
         body: periodBody,
@@ -509,9 +612,29 @@ export async function pklRoutes(instance: FastifyInstance) {
       return conflictAs409('Periode dengan nama itu sudah ada pada tahun ajaran tersebut.', () =>
         tenant(request, async (tx) => {
           await checkYear(tx, b.academicYearId);
+          const before = await periodOrThrow(tx, request.params.id);
+          const link = await resolveLink(tx, b, before);
+          if (link.semesterId !== before.semesterId || link.subjectId !== before.subjectId) {
+            // Rapor yang sudah final membekukan nilai PKL; mengubah tautan di belakangnya membuat rapor beda dari data hidup.
+            const placed = (
+              await tx
+                .select({ id: pklPlacement.studentId })
+                .from(pklPlacement)
+                .where(eq(pklPlacement.periodId, before.id))
+            ).map((x) => x.id);
+            for (const sid of new Set([before.semesterId, link.semesterId])) {
+              if (sid) await assertStudentsReportNotFinal(tx, sid, placed);
+            }
+          }
           const [r] = await tx
             .update(pklPeriod)
-            .set(b)
+            .set({
+              academicYearId: b.academicYearId,
+              name: b.name,
+              startsOn: b.startsOn,
+              endsOn: b.endsOn,
+              ...link,
+            })
             .where(eq(pklPeriod.id, request.params.id))
             .returning({ id: pklPeriod.id });
           if (!r) throw notFound('Periode PKL');
@@ -603,11 +726,13 @@ export async function pklRoutes(instance: FastifyInstance) {
       : [];
     const mine = ctx.permissions.has('pkl:manage') ? null : await myTeacherId(tx, ctx);
     const thresholds = await pklThresholds(tx);
+    const weights = await pklWeights(tx);
     return rows.map((r) => {
       const s = stats.find((x) => x.id === r.p.id);
       const result = pklResult(
         aspects,
         scores.filter((x) => x.placementId === r.p.id),
+        weights,
       );
       return {
         id: r.p.id,
@@ -628,6 +753,7 @@ export async function pklRoutes(instance: FastifyInstance) {
         finalScore: result.final,
         predicate: result.final === null ? null : pklPredicate(result.final, thresholds),
         hasAccessLink: r.p.accessTokenHash !== null,
+        certificateNo: r.p.certificateNo,
         canWrite:
           ctx.permissions.has('pkl:manage') ||
           (mine !== null && r.p.supervisorTeacherId !== null && r.p.supervisorTeacherId === mine),
@@ -1434,11 +1560,12 @@ export async function pklRoutes(instance: FastifyInstance) {
         summary: 'Isi nilai dari sekolah',
         description:
           'Izin: `pkl:manage` atau guru pembimbing penempatan itu; modul `internship`. Menyimpan nilai penilai ' +
-          '`school` (upsert per aspek), nilai 0..100 bulat. Aspek harus milik sekolah (400 `invalid_reference`).',
+          '`school` (upsert per aspek), nilai 0..100 bulat. Aspek harus milik sekolah (400 `invalid_reference`). Periode tertaut ke ' +
+          'rapor dan rapor murid itu sudah final: 409 `report_final`.',
         headers: schoolHeader,
         params: idParams,
         body: scoreRecordsBody,
-        response: { 200: sheetSchema, 400: errorSchema, 404: errorSchema, ...guarded },
+        response: { 200: sheetSchema, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
       },
     },
     async (request) =>
@@ -1450,6 +1577,164 @@ export async function pklRoutes(instance: FastifyInstance) {
         });
         return buildSheet(tx, p.id);
       }),
+  );
+
+  /* ---------- Nomor sertifikat (5.3) ---------- */
+
+  const certificateTaken = () =>
+    new HttpError(409, 'certificate_taken', 'Nomor sertifikat itu sudah dipakai penempatan lain.');
+  const certificateOut = z.object({ placementId: z.uuid(), certificateNo: z.string().nullable() });
+
+  app.put(
+    '/v1/pkl/placements/:id/certificate',
+    {
+      onRequest: manageGate,
+      schema: {
+        tags: tag,
+        summary: 'Catat nomor sertifikat PKL',
+        description:
+          'Izin: `pkl:manage`; modul `internship`. `certificateNo` 1-80 karakter, unik per sekolah (409 `certificate_taken`); ' +
+          'null menghapus nomor. Mengisi nomor hanya untuk penempatan berstatus `completed` (409 `placement_not_completed`). ' +
+          'Periode tertaut ke rapor dan rapor murid sudah final: 409 `report_final`. Format nomor tidak diatur negara; ' +
+          'sekolah bebas memakai pola sendiri.',
+        headers: schoolHeader,
+        params: idParams,
+        body: z.object({
+          certificateNo: z
+            .string()
+            .trim()
+            .min(1)
+            .max(80)
+            .nullable()
+            .describe('Nomor sertifikat; null = hapus'),
+        }),
+        response: { 200: certificateOut, 400: errorSchema, 404: errorSchema, 409: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const no = request.body.certificateNo;
+      try {
+        return await tenant(request, async (tx) => {
+          const p = await placementOrThrow(tx, request.params.id);
+          if (no !== null && p.status !== 'completed') {
+            throw new HttpError(
+              409,
+              'placement_not_completed',
+              'Nomor sertifikat hanya untuk penempatan yang sudah selesai.',
+            );
+          }
+          await assertPlacementReportOpen(tx, p.id);
+          await tx.update(pklPlacement).set({ certificateNo: no }).where(eq(pklPlacement.id, p.id));
+          await audit(tx, ctxOf(request), 'pkl.certificate.set', 'pkl_placement', p.id, {
+            certificateNo: no,
+          });
+          return { placementId: p.id, certificateNo: no };
+        });
+      } catch (error) {
+        if (isUniqueViolation(error)) throw certificateTaken();
+        throw error;
+      }
+    },
+  );
+
+  app.post(
+    '/v1/pkl/periods/:id/certificates',
+    {
+      onRequest: manageGate,
+      schema: {
+        tags: tag,
+        summary: 'Nomori sertifikat PKL satu periode',
+        description:
+          'Izin: `pkl:manage`; modul `internship`. Memberi nomor berurutan menurut pola sekolah (`/v1/vocational/settings/pkl`, ' +
+          'bawaan `PKL/{seq}/{code}/{year}`) kepada penempatan `completed` yang belum bernomor, urut nama siswa. Nomor yang sudah ' +
+          'terpakai dilewati. Idempoten: penempatan yang sudah bernomor tidak diubah. Tanpa penempatan selesai sama sekali: ' +
+          '409 `placement_not_completed`. Periode tertaut ke rapor dan ada rapor murid final: 409 `report_final`. 404 `not_found`.',
+        headers: schoolHeader,
+        params: idParams,
+        response: {
+          200: z.object({
+            numbered: z.array(certificateOut),
+            skipped: z.number().int().describe('Penempatan completed yang sudah bernomor'),
+          }),
+          404: errorSchema,
+          409: errorSchema,
+          ...guarded,
+        },
+      },
+    },
+    async (request) => {
+      const ctx = ctxOf(request);
+      return tenant(request, async (tx) => {
+        const period = await periodOrThrow(tx, request.params.id);
+        // Kunci baris pengaturan (dibuat bila belum ada) supaya penomoran paralel berurutan.
+        await tx
+          .insert(vocationalSetting)
+          .values({ schoolId: ctx.schoolId, updatedBy: ctx.userId })
+          .onConflictDoNothing();
+        const [setting] = await tx
+          .select({ pattern: vocationalSetting.pklCertificatePattern })
+          .from(vocationalSetting)
+          .for('update');
+        const [sch] = await tx.select({ slug: school.slug }).from(school).where(eq(school.id, ctx.schoolId));
+        const [letters] = await tx.select({ code: letterSetting.schoolCode }).from(letterSetting);
+        const code = letters?.code ?? schoolCodeFromSlug(sch?.slug ?? '');
+        const pattern = setting?.pattern ?? DEFAULT_PKL_CERTIFICATE_PATTERN;
+        const done = await tx
+          .select({ id: pklPlacement.id, studentName: student.name, no: pklPlacement.certificateNo })
+          .from(pklPlacement)
+          .innerJoin(student, eq(student.id, pklPlacement.studentId))
+          .where(and(eq(pklPlacement.periodId, period.id), eq(pklPlacement.status, 'completed')))
+          .orderBy(asc(student.name), asc(pklPlacement.id));
+        const todo = done.filter((d) => d.no === null);
+        if (done.length === 0) {
+          throw new HttpError(
+            409,
+            'placement_not_completed',
+            'Periode ini belum punya penempatan yang selesai.',
+          );
+        }
+        if (todo.length === 0) return { numbered: [], skipped: done.length };
+        if (period.semesterId) {
+          const ids = await tx
+            .select({ id: pklPlacement.studentId })
+            .from(pklPlacement)
+            .where(
+              inArray(
+                pklPlacement.id,
+                todo.map((t) => t.id),
+              ),
+            );
+          await assertStudentsReportNotFinal(
+            tx,
+            period.semesterId,
+            ids.map((x) => x.id),
+          );
+        }
+        const taken = new Set(
+          (
+            await tx
+              .select({ no: pklPlacement.certificateNo })
+              .from(pklPlacement)
+              .where(sql`${pklPlacement.certificateNo} is not null`)
+          ).map((r) => r.no as string),
+        );
+        const [y, m] = todayInJakarta().split('-').map(Number) as [number, number];
+        let seq = 0;
+        const numbered: { placementId: string; certificateNo: string }[] = [];
+        for (const row of todo) {
+          let no: string;
+          do {
+            seq += 1;
+            no = renderNumberPattern(pattern, { seq, code, month: m, year: y });
+          } while (taken.has(no));
+          taken.add(no);
+          await tx.update(pklPlacement).set({ certificateNo: no }).where(eq(pklPlacement.id, row.id));
+          numbered.push({ placementId: row.id, certificateNo: no });
+        }
+        await audit(tx, ctx, 'pkl.certificate.bulk', 'pkl_period', period.id, { count: numbered.length });
+        return { numbered, skipped: done.length - todo.length };
+      });
+    },
   );
 
   /* ---------- Rekap ---------- */

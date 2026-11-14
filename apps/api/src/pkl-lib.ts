@@ -1,8 +1,20 @@
 import { createHash, randomBytes } from 'node:crypto';
-import { PKL_PREDICATE_SETTINGS, type PredicateSettings } from '@edusync/contracts';
-import { and, eq, inArray, pklAspect, pklScore, pklSetting, type Tx } from '@edusync/db';
+import { PKL_PREDICATE_SETTINGS, type PklWeights, type PredicateSettings } from '@edusync/contracts';
+import {
+  and,
+  eq,
+  inArray,
+  pklAspect,
+  pklPeriod,
+  pklPlacement,
+  pklScore,
+  pklSetting,
+  type Tx,
+  vocationalSetting,
+} from '@edusync/db';
 import { z } from 'zod';
 import { HttpError } from './http-error';
+import { assertStudentsReportNotFinal } from './report-lock-lib';
 
 /** Token tautan pembimbing industri: 32 byte acak, base64url (43 karakter). */
 export function newAccessToken() {
@@ -57,7 +69,30 @@ export const scoreRecordsBody = z.object({
     .max(50),
 });
 
-/** Simpan (upsert) nilai satu penilai; aspek harus milik sekolah ini. */
+/**
+ * Tolak (409 `report_final`) bila periode penempatan ini tertaut ke semester dan rapor murid itu pada semester tersebut sudah final.
+ * Periode tanpa tautan tidak pernah ditolak (perilaku lama). Dipakai semua jalur yang mengubah nilai/nomor yang masuk rapor.
+ */
+export async function assertPlacementReportOpen(tx: Tx, placementId: string) {
+  const [r] = await tx
+    .select({ semesterId: pklPeriod.semesterId, studentId: pklPlacement.studentId })
+    .from(pklPlacement)
+    .innerJoin(pklPeriod, eq(pklPeriod.id, pklPlacement.periodId))
+    .where(eq(pklPlacement.id, placementId));
+  if (r?.semesterId) await assertStudentsReportNotFinal(tx, r.semesterId, [r.studentId]);
+}
+
+/** Bobot penilai sekolah:industri (dari vocational_setting); undefined bila belum diatur = rumus lama. */
+export async function pklWeights(tx: Tx): Promise<PklWeights | undefined> {
+  const [row] = await tx
+    .select({ school: vocationalSetting.pklSchoolWeight, industry: vocationalSetting.pklIndustryWeight })
+    .from(vocationalSetting);
+  return row && row.school !== null && row.industry !== null
+    ? { school: row.school, industry: row.industry }
+    : undefined;
+}
+
+/** Simpan (upsert) nilai satu penilai; aspek harus milik sekolah ini. Ditolak 409 `report_final` bila nilai ini sudah masuk rapor final. */
 export async function saveScores(
   tx: Tx,
   schoolId: string,
@@ -65,6 +100,7 @@ export async function saveScores(
   assessor: 'school' | 'industry',
   records: z.infer<typeof scoreRecordsBody>['records'],
 ) {
+  await assertPlacementReportOpen(tx, placementId);
   const aspectIds = [...new Set(records.map((r) => r.aspectId))];
   const found = await tx.select({ id: pklAspect.id }).from(pklAspect).where(inArray(pklAspect.id, aspectIds));
   if (found.length !== aspectIds.length) {

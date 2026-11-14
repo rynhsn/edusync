@@ -349,7 +349,11 @@ Tes wajib roadmap (`grading`, `report-card`, `schedule`, `pkl`, `rbac-matrix`, `
 - A1: `semester`, `subject`, `teacher`, `student`, `program`, `academic_year` punya `UNIQUE (school_id, id)` (terverifikasi 0087, 0088,
   `schema.ts:581`); `pkl_period` belum, ditambah di 0111.
 - A2: `takersOf`/`SubjectTakers` dapat menerima pengambil tambahan tanpa mengubah hasil sekolah tanpa mapel pilihan (cek
-  `subject-roster-lib.ts:42` saat 5.4).
+  `subject-roster-lib.ts:42` saat 5.4). **Terverifikasi 5.4:** `SubjectTakers` = `Map<mapel, Set<murid>>` dan `takes()` memperlakukan mapel
+  tanpa entri sebagai "semua murid mengambil"; `takersOf` mengembalikan `null` bila tak ada mapel berpenanda. `loadClassContext` memadukan
+  entri mapel PKL (murid berpenempatan) ke peta itu (membuat peta baru bila `null`), hanya bila ada periode tertaut; entri PKL menggantikan
+  penanda pilihan bila mapel PKL juga ditandai pilihan di rombel itu. Penghitung nilai, `subjectsOf`, leger, dan narasi membaca peta yang
+  sama tanpa perubahan; tanpa periode tertaut `takers` persis hasil `takersOf`. Diuji di `pkl-report.test.ts`.
 - A3: `pkl_partner` tidak punya `UNIQUE (school_id, id)`; `ukk_event.partner_id` divalidasi API (atau tambah konstrain di 0112).
 - A4: daftar rapor dan PDF dapat membaca `report_section` dari label beku di dokumen tanpa memuat ulang `ref_subject_group`.
 - Sumber: 792/1.368 JP dan kelompok A/B dari salinan JDIH struktur 2022 (S3, T-salinan); isi Lampiran II 13/2025 (S2) **B**. Skala UKK,

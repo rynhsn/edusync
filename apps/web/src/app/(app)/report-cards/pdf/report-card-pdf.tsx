@@ -101,6 +101,17 @@ export interface SignLabels {
   cocurricular?: { title: string; dimension: string; achievement: string; remark: string };
   /** Identitas keahlian di kop dan subjudul mapel tanpa kelompok (rapor SMK berkelompok). */
   expertise?: { field: string; program: string; concentration: string; groupOther: string };
+  /** Blok Praktik Kerja Lapangan di bawah tabel mapel (5.4). */
+  internship?: {
+    title: string;
+    time: string;
+    present: string;
+    schoolSup: string;
+    industrySup: string;
+    aspect: string;
+    final: string;
+    certificate: string;
+  };
 }
 const DEFAULT_SIGN_LABELS: Required<SignLabels> = {
   parent: 'Orang tua / wali',
@@ -121,6 +132,16 @@ const DEFAULT_SIGN_LABELS: Required<SignLabels> = {
     program: 'Program Keahlian',
     concentration: 'Konsentrasi Keahlian',
     groupOther: 'Lainnya',
+  },
+  internship: {
+    title: 'Praktik Kerja Lapangan',
+    time: 'Waktu',
+    present: 'Hari hadir',
+    schoolSup: 'Pembimbing sekolah',
+    industrySup: 'Pembimbing industri',
+    aspect: 'Aspek',
+    final: 'Nilai akhir',
+    certificate: 'No. sertifikat',
   },
 };
 
@@ -248,6 +269,61 @@ export function ReportCardPage({
       </View>
       {view.showBelowKkmNote ? (
         <Text style={styles.small}>* Nilai di bawah KKM (Kriteria Ketuntasan Minimal).</Text>
+      ) : null}
+
+      {doc.internship?.length ? (
+        <View>
+          <Text style={styles.section}>{labels.internship.title}</Text>
+          {doc.internship.map((e) => (
+            <View key={`${e.periodName}-${e.partner}-${e.startsOn}`} wrap={false} style={{ marginBottom: 4 }}>
+              <Text style={styles.bold}>{e.partner}</Text>
+              <Text style={styles.small}>
+                {labels.internship.time}: {formatIdDate(e.startsOn)} - {formatIdDate(e.endsOn)} (
+                {e.periodName}). {labels.internship.present}: {e.presentDays}
+              </Text>
+              {e.schoolSupervisor || e.industrySupervisor ? (
+                <Text style={styles.small}>
+                  {[
+                    e.schoolSupervisor ? `${labels.internship.schoolSup}: ${e.schoolSupervisor}` : null,
+                    e.industrySupervisor ? `${labels.internship.industrySup}: ${e.industrySupervisor}` : null,
+                  ]
+                    .filter(Boolean)
+                    .join('. ')}
+                </Text>
+              ) : null}
+              {view.showNumbers ? (
+                <>
+                  <View style={styles.head}>
+                    <Text style={[styles.cell, styles.bold, { flex: 3 }]}>{labels.internship.aspect}</Text>
+                    <Text style={[styles.cell, styles.bold, styles.center, { width: W.grade }]}>Nilai</Text>
+                  </View>
+                  {e.aspects.map((a) => (
+                    <View key={a.name} style={styles.row}>
+                      <Text style={[styles.cell, { flex: 3 }]}>{a.name}</Text>
+                      <Text style={[styles.cell, styles.center, { width: W.grade }]}>
+                        {a.value == null ? '-' : formatGrade(a.value)}
+                      </Text>
+                    </View>
+                  ))}
+                  <View style={styles.row}>
+                    <Text style={[styles.cell, styles.bold, { flex: 3 }]}>
+                      {labels.internship.final}
+                      {e.predicate ? ` (${e.predicate})` : ''}
+                    </Text>
+                    <Text style={[styles.cell, styles.bold, styles.center, { width: W.grade }]}>
+                      {e.final == null ? '-' : formatGrade(e.final)}
+                    </Text>
+                  </View>
+                </>
+              ) : null}
+              {e.certificateNo ? (
+                <Text style={styles.small}>
+                  {labels.internship.certificate}: {e.certificateNo}
+                </Text>
+              ) : null}
+            </View>
+          ))}
+        </View>
       ) : null}
 
       <View wrap={false}>

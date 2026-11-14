@@ -71,6 +71,8 @@ export interface PklPlacement {
   finalScore: number | null;
   predicate: Predicate | null;
   hasAccessLink: boolean;
+  /** Nomor sertifikat PKL (5.3); null/absen = belum dicatat. */
+  certificateNo?: string | null;
   canWrite: boolean;
 }
 

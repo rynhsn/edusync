@@ -213,6 +213,11 @@ describe('PDF sertifikat PKL', () => {
     expect(pageCount(await render('sertifikat-lengkap', <CertificateDocument doc={base} />))).toBe(1);
   });
 
+  it('sertifikat bernomor (5.3) tetap satu halaman', async () => {
+    const doc = { ...base, certificateNo: 'PKL/001/SMK-UJI/2026' };
+    expect(pageCount(await render('sertifikat-bernomor', <CertificateDocument doc={doc} />))).toBe(1);
+  });
+
   it('merender sertifikat tanpa aspek, kota, kelas, dan pembimbing', async () => {
     const doc = {
       ...base,
@@ -476,6 +481,38 @@ describe('PDF rapor', () => {
     const plain = await render('rapor-v1-banding5', <ReportCardDocument docs={[base]} />);
     expect(pageCount(withGroups)).toBeGreaterThanOrEqual(1);
     expect(withGroups.length).toBeGreaterThan(plain.length);
+  });
+
+  it('rapor dengan blok PKL (5.4): blok Praktik Kerja Lapangan dirender; mode deskriptif tanpa angka tetap sah', async () => {
+    const entry = {
+      periodName: 'PKL Semester 5',
+      partner: 'PT Maju Jaya',
+      startsOn: '2026-09-01',
+      endsOn: '2026-12-01',
+      presentDays: 70,
+      schoolSupervisor: 'Pak Pembimbing',
+      industrySupervisor: 'Pak Industri',
+      aspects: [
+        { name: 'Disiplin', value: 90 },
+        { name: 'Laporan', value: null },
+      ],
+      final: 90,
+      predicate: 'A' as const,
+      certificateNo: 'PKL/001/SMK/2026',
+    };
+    const withPkl: ReportCardDoc = {
+      ...base,
+      schemaVersion: 2,
+      internship: [entry, { ...entry, partner: 'CV Karya' }],
+    };
+    const a = await render('rapor-blok-pkl', <ReportCardDocument docs={[withPkl]} />);
+    const plain = await render('rapor-v1-tanpa-pkl', <ReportCardDocument docs={[base]} />);
+    expect(pageCount(a)).toBeGreaterThanOrEqual(1);
+    expect(a.length).toBeGreaterThan(plain.length);
+    const descriptive: ReportCardDoc = { ...withPkl, reportMode: 'descriptive' };
+    expect(
+      pageCount(await render('rapor-blok-pkl-deskriptif', <ReportCardDocument docs={[descriptive]} />)),
+    ).toBeGreaterThanOrEqual(1);
   });
 });
 

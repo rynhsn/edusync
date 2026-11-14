@@ -1605,7 +1605,11 @@
     "in_use_objective": "TP ini masih dipakai: dikaitkan ke penilaian, dipakai ATP, atau sudah punya keputusan ketercapaian dari guru. Nonaktifkan saja agar tidak muncul lagi.",
     "in_use_outcome": "CP ini atau TP di bawahnya masih dipakai oleh penilaian, ATP, atau keputusan ketercapaian guru, jadi tidak bisa dihapus. Nonaktifkan saja.",
     "not_vocational": "Fitur ini hanya tersedia untuk jenjang kejuruan (SMK/MAK).",
-    "in_use_expertise": "Data keahlian ini masih punya isi di bawahnya atau masih ditautkan ke jurusan. Hapus atau lepas dulu, atau nonaktifkan saja."
+    "in_use_expertise": "Data keahlian ini masih punya isi di bawahnya atau masih ditautkan ke jurusan. Hapus atau lepas dulu, atau nonaktifkan saja.",
+    "pkl_link_incomplete": "Semester dan mapel PKL harus diisi berpasangan.",
+    "invalid_weights": "Bobot sekolah dan industri harus keduanya kosong atau keduanya bilangan bulat berjumlah 100.",
+    "certificate_taken": "Nomor sertifikat itu sudah dipakai penempatan lain.",
+    "placement_not_completed": "Nomor sertifikat hanya untuk penempatan yang sudah selesai."
   },
   "theme": {
     "label": "Tema",
@@ -2927,6 +2931,7 @@
     "adoptNew": "Adopsi yang baru ({count})"
   },
   "curriculum": {
+    "pklSuggestion": "Saran lama PKL: {three} JP kelas XII program 3 tahun, {four} JP kelas XIII program 4 tahun. Sumber: {source}. Ini hanya saran, bukan batas; isi sesuai kurikulum sekolah.",
     "title": "Kurikulum",
     "subtitle": "Atur jam pelajaran (JP) tiap mapel per tingkat, kurikulum yang dipakai tiap tingkat, dan ambil mapel dari bank kurikulum.",
     "readOnly": "Anda hanya dapat melihat halaman ini.",
@@ -4587,7 +4592,16 @@
     "pdfExpertiseProgram": "Program Keahlian",
     "pdfExpertiseConcentration": "Konsentrasi Keahlian",
     "pdfGroupOther": "Lainnya",
-    "groupOther": "Lainnya"
+    "groupOther": "Lainnya",
+    "pdfInternshipTitle": "Praktik Kerja Lapangan",
+    "pdfInternshipPartner": "Tempat PKL",
+    "pdfInternshipTime": "Waktu",
+    "pdfInternshipPresent": "Hari hadir",
+    "pdfInternshipSchoolSup": "Pembimbing sekolah",
+    "pdfInternshipIndustrySup": "Pembimbing industri",
+    "pdfInternshipAspect": "Aspek",
+    "pdfInternshipFinal": "Nilai akhir",
+    "pdfInternshipCertificate": "No. sertifikat"
   },
   "financeReports": {
     "title": "Laporan keuangan",
@@ -6323,9 +6337,62 @@
       "invalid": "Isi bilangan bulat 1-100 dengan A lebih besar dari B dan B lebih besar dari C.",
       "save": "Simpan ambang",
       "saved": "Ambang predikat disimpan."
+    },
+    "link": {
+      "title": "Masuk rapor",
+      "hint": "Tautkan periode ini ke semester dan mapel PKL supaya nilai PKL menjadi nilai mapel itu di rapor semester tersebut, ikut rata-rata, peringkat, leger, dan saran kelulusan. Kosongkan keduanya bila nilai PKL tidak perlu masuk rapor.",
+      "semester": "Semester rapor",
+      "subject": "Mapel PKL",
+      "none": "Tidak masuk rapor",
+      "pickSubject": "Pilih mapel PKL",
+      "noSubjects": "Belum ada mapel berjenis PKL/prakerin. Tambahkan lewat menu Mata pelajaran.",
+      "incomplete": "Pilih semester dan mapel PKL sekaligus, atau kosongkan keduanya.",
+      "badge": "Masuk rapor: {subject} ({semester})",
+      "notLinked": "Tidak masuk rapor"
+    },
+    "weights": {
+      "title": "Bobot penilai",
+      "hint": "Atur seberapa besar nilai guru pembimbing dan pembimbing industri memengaruhi nilai tiap aspek. Bawaannya rata-rata penilai yang mengisi. Bila hanya satu penilai yang mengisi, nilainya dipakai langsung. Berlaku untuk semua layar PKL dan rapor yang disusun sesudahnya; rapor final tidak berubah.",
+      "school": "Bobot sekolah",
+      "industry": "Bobot industri",
+      "average": "Rata-rata penilai (bawaan)",
+      "custom": "Atur bobot sendiri",
+      "total": "Jumlah {total}",
+      "needs100": "Bobot sekolah dan industri harus berjumlah 100.",
+      "reset": "Kembalikan ke rata-rata",
+      "save": "Simpan bobot",
+      "saved": "Bobot penilai disimpan.",
+      "active": "Bobot aktif: sekolah {school}, industri {industry}",
+      "averageActive": "Tanpa bobot: rata-rata penilai yang mengisi"
+    },
+    "certNo": {
+      "title": "Nomor sertifikat",
+      "hint": "Pola untuk penomoran massal. Pakai '{seq}', '{code}', '{roman}', '{month}', '{year}'. Format nomor sertifikat PKL tidak diatur secara nasional, jadi isi sesuai kebijakan sekolah.",
+      "pattern": "Pola nomor",
+      "default": "Bawaan: {pattern}",
+      "preview": "Pratinjau: {sample}",
+      "save": "Simpan pola",
+      "saved": "Pola nomor disimpan.",
+      "label": "Nomor sertifikat",
+      "none": "Belum bernomor",
+      "set": "Catat nomor",
+      "edit": "Ubah nomor",
+      "input": "Nomor sertifikat",
+      "saveNumber": "Simpan nomor",
+      "clear": "Hapus nomor",
+      "saved1": "Nomor sertifikat disimpan.",
+      "numberAll": "Nomori sertifikat",
+      "numbered": "{count} sertifikat diberi nomor.",
+      "allNumbered": "Semua penempatan selesai sudah bernomor.",
+      "completedOnly": "Nomor hanya bisa dicatat untuk penempatan yang sudah selesai."
+    },
+    "locked": {
+      "banner": "Nilai PKL ini sudah masuk rapor final. Buka kembali rapor kelasnya di menu Rapor bila nilai perlu diubah.",
+      "linked": "Nilai akhir ini menjadi nilai mapel PKL di rapor."
     }
   },
   "pklPublic": {
+    "reportLocked": "Nilai PKL murid ini sudah masuk rapor final, jadi tidak bisa diubah lagi lewat tautan ini. Hubungi guru pembimbing bila ada yang perlu diperbaiki.",
     "pageTitle": "Pembimbing industri PKL",
     "invalidTitle": "Tautan tidak valid atau sudah dicabut",
     "invalidBody": "Minta tautan baru kepada guru pembimbing di sekolah.",

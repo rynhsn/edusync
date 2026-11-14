@@ -4718,4 +4718,166 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'pkl-report',
+    icon: 'briefcase',
+    tone: 'sky',
+    group: 'academic',
+    module: 'internship',
+    text: {
+      id: {
+        title: 'Nilai PKL di rapor, bobot penilai, dan nomor sertifikat',
+        summary:
+          'Cara menautkan periode PKL ke semester dan mapel PKL agar nilai PKL masuk rapor (rata-rata, peringkat, leger, kelulusan, ekspor), mengatur bobot nilai guru dan industri, mencatat nomor sertifikat, dan apa yang terkunci saat rapor final.',
+        forWho: 'Admin, kurikulum, dan pengelola PKL di SMK/MAK.',
+        sections: [
+          {
+            heading: 'Menautkan periode PKL ke rapor',
+            body: 'Di Pengaturan PKL, formulir periode punya bagian Masuk rapor: pilih semester (pada tahun ajaran periode) dan mapel PKL, yaitu mapel berjenis PKL/prakerin di Mata pelajaran. Keduanya harus diisi bersama atau dikosongkan bersama. Periode yang tertaut membuat nilai akhir PKL menjadi nilai mapel itu di rapor semester tersebut: baris mapel PKL ikut rata-rata, peringkat, dan kelengkapan finalisasi, dan di bawah tabel mapel muncul blok Praktik Kerja Lapangan (tempat, tanggal, hari hadir menurut jurnal, nilai per aspek, nilai akhir, predikat, nomor sertifikat). Hanya murid yang punya penempatan (selain yang dibatalkan) pada periode itu yang mengambil mapel PKL; murid lain tidak melihat baris atau blok itu. Bila seorang murid punya dua penempatan pada semester dan mapel yang sama (rotasi), nilai mapelnya adalah rata-rata nilai akhir yang ada, dan blok PKL memuat rincian tiap tempat. Predikat baris PKL memakai ambang predikat PKL, bukan ambang rapor. Periode tanpa tautan berperilaku persis seperti sebelumnya dan tidak mengubah rapor. Legger, saran kelulusan, transkrip, dan ekspor nilai akhir membaca rapor final, jadi baris PKL ikut otomatis; tidak ada pengaturan tambahan.',
+            steps: [
+              'Pastikan ada mapel berjenis PKL/prakerin di Mata pelajaran.',
+              'Buka Pengaturan PKL, tambah atau ubah periode.',
+              'Di bagian Masuk rapor pilih semester dan mapel PKL, lalu simpan.',
+              'Nilai PKL murid, lalu buka rapor semester itu untuk memeriksa baris dan blok PKL.',
+            ],
+            href: '/pkl/settings',
+            warning:
+              'Rapor yang sudah final membekukan nilai PKL. Mengganti atau melepas tautan semester yang rapornya final ditolak sampai rapornya dibuka kembali.',
+          },
+          {
+            heading: 'Bobot penilai sekolah dan industri',
+            body: 'Bawaannya, nilai tiap aspek adalah rata-rata nilai yang diisi guru pembimbing dan pembimbing industri. Di kartu Bobot penilai (Pengaturan PKL, jenjang kejuruan) sekolah dapat mengatur bobot sekolah dan industri yang berjumlah 100, misalnya 60:40. Bila hanya satu penilai yang mengisi sebuah aspek, nilainya dipakai langsung. Tombol Kembalikan ke rata-rata menghapus bobot dan memulihkan rumus lama. Bobot berlaku di papan, lembar nilai, rekap, dan rapor yang disusun sesudahnya; rapor final tidak berubah. Bobot antar aspek (misalnya aspek lawan laporan) tetap diatur di tabel aspek penilaian.',
+            href: '/pkl/settings',
+          },
+          {
+            heading: 'Nomor sertifikat',
+            body: 'Di panel nilai sebuah penempatan yang sudah selesai, pengelola PKL dapat mencatat nomor sertifikat (unik per sekolah). Untuk satu periode, tombol penomoran massal memberi nomor berurutan kepada penempatan selesai yang belum bernomor menurut pola sekolah (bawaan PKL/{seq}/{code}/{year}; variabel {seq}, {code}, {roman}, {month}, {year}). Format nomor sertifikat PKL tidak diatur secara nasional, jadi pola hanya usulan yang dapat diubah di kartu Nomor sertifikat. Nomor yang tercatat ikut dicetak di sertifikat PDF dan muncul di blok PKL pada rapor.',
+            href: '/pkl/settings',
+          },
+          {
+            heading: 'Apa yang terkunci saat rapor final',
+            body: 'Selama rapor semester itu final untuk murid tersebut, mengisi atau mengubah nilai PKL ditolak dengan galat Rapor sudah difinalisasi, baik oleh staf, guru pembimbing, maupun lewat tautan pembimbing industri; halaman tautan menampilkan keterangan terkunci. Mengubah nomor sertifikat juga ditolak. Buka kembali rapor kelas di menu Rapor bila nilai perlu diperbaiki, lalu finalkan ulang.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Saran lama PKL (jam pelajaran)',
+            body: 'Di Kurikulum, pada alokasi mapel PKL tampil petunjuk: 792 JP untuk kelas XII program 3 tahun dan 1.368 JP untuk kelas XIII program 4 tahun, bersumber dari salinan struktur kurikulum SMK 2022 (JDIH). Ini hanya saran berlabel sumber, bukan batas atau validasi; isi Lampiran II Permendikdasmen 13/2025 belum diverifikasi, jadi sekolah memeriksanya sendiri.',
+            href: '/curriculum',
+          },
+        ],
+        faq: [
+          {
+            q: 'Murid sudah dinilai PKL tetapi rapornya tidak memuat PKL.',
+            a: 'Rapor hanya memuat PKL bila periode penempatannya ditautkan ke semester rapor itu dan mapel PKL, dan penempatannya tidak dibatalkan. Periksa bagian Masuk rapor pada periode.',
+          },
+          {
+            q: 'Finalisasi rapor menyatakan nilai belum lengkap karena PKL.',
+            a: 'Mapel PKL diperlakukan seperti mapel lain: murid yang berpenempatan harus sudah punya nilai PKL. Lengkapi nilai PKL-nya atau finalkan dengan opsi lanjutkan walau belum lengkap.',
+          },
+        ],
+      },
+      en: {
+        title: 'Internship grades on the report card, assessor weights, and certificate numbers',
+        summary:
+          'How to link an internship period to a semester and an internship subject so internship grades reach the report card (average, rank, ledger, graduation, export), set the weights of school and industry scores, record certificate numbers, and what is locked once a report card is final.',
+        forWho: 'Admins, curriculum staff, and internship coordinators at SMK/MAK.',
+        sections: [
+          {
+            heading: 'Linking an internship period to the report card',
+            body: 'In Internship settings, the period form has an Include in report card section: choose a semester (in the period’s academic year) and an internship subject, meaning a subject of the internship type under Subjects. Fill both or leave both empty. A linked period makes the internship final grade the grade of that subject on that semester’s report card: the internship subject row counts toward the average, rank, and finalization completeness, and under the subjects table an Internship block appears (place, dates, days present from the journal, score per aspect, final grade, predicate, certificate number). Only students with a placement (other than cancelled) in that period take the internship subject; other students see neither the row nor the block. If a student has two placements in the same semester and subject (rotation), the subject grade is the average of the final grades that exist, and the block lists each place. The internship row’s predicate uses the internship predicate thresholds, not the report card thresholds. A period without a link behaves exactly as before and does not change report cards. The ledger, graduation suggestion, transcript, and final-grades export read final report cards, so the internship row follows automatically with no extra setting.',
+            steps: [
+              'Make sure a subject of the internship type exists under Subjects.',
+              'Open Internship settings, add or edit a period.',
+              'In Include in report card choose the semester and the internship subject, then save.',
+              'Grade the students, then open that semester’s report card to check the internship row and block.',
+            ],
+            href: '/pkl/settings',
+            warning:
+              'A final report card freezes the internship grade. Changing or removing the link to a semester whose report card is final is refused until the report card is reopened.',
+          },
+          {
+            heading: 'School and industry assessor weights',
+            body: 'By default each aspect’s score is the average of what the supervising teacher and the industry supervisor entered. On the Assessor weights card (Internship settings, vocational levels) the school can set school and industry weights that add up to 100, for example 60:40. If only one assessor scored an aspect, that score is used as is. Back to average removes the weights and restores the old formula. The weights apply on the board, the score sheet, the recap, and report cards prepared afterwards; final report cards do not change. Weights between aspects (for example an aspect versus a report) are still set in the assessment aspects table.',
+            href: '/pkl/settings',
+          },
+          {
+            heading: 'Certificate numbers',
+            body: 'On the score panel of a completed placement, internship coordinators can record a certificate number (unique per school). For a whole period, the bulk numbering button gives sequential numbers to completed placements without one, following the school pattern (default PKL/{seq}/{code}/{year}; variables {seq}, {code}, {roman}, {month}, {year}). There is no national format for internship certificate numbers, so the pattern is only a suggestion you can change on the Certificate number card. A recorded number is printed on the PDF certificate and shown in the internship block of the report card.',
+            href: '/pkl/settings',
+          },
+          {
+            heading: 'What is locked once the report card is final',
+            body: 'While that semester’s report card is final for the student, entering or changing the internship grade is refused with the report-finalized error, whether by staff, the supervising teacher, or through the industry supervisor link; the link page shows a locked notice. Changing the certificate number is refused too. Reopen the class report card under Report cards if a grade must be corrected, then finalize again.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Suggested internship length (lesson periods)',
+            body: 'Under Curriculum, the allocation of an internship subject shows a hint: 792 periods for grade XII of a 3-year program and 1,368 periods for grade XIII of a 4-year program, taken from a copy of the 2022 SMK curriculum structure (JDIH). It is only a labelled suggestion, not a limit or a validation; the content of Annex II of Permendikdasmen 13/2025 is not yet verified, so the school checks it itself.',
+            href: '/curriculum',
+          },
+        ],
+        faq: [
+          {
+            q: 'A student was graded for the internship but the report card has no internship.',
+            a: 'The report card includes the internship only when the placement’s period is linked to that report semester and an internship subject, and the placement is not cancelled. Check the Include in report card section of the period.',
+          },
+          {
+            q: 'Report card finalization says grades are incomplete because of the internship.',
+            a: 'The internship subject is treated like any other subject: students with a placement must have an internship grade. Complete their internship grades or finalize with the option to continue despite gaps.',
+          },
+        ],
+      },
+      su: {
+        title: 'Nilai PKL dina rapor, bobot penilai, jeung nomer sertifikat',
+        summary:
+          'Cara nautkeun période PKL ka semester jeung mapel PKL supaya nilai PKL asup rapor (rata-rata, peringkat, legér, kalulusan, ékspor), ngatur bobot nilai guru jeung industri, nyatet nomer sertifikat, jeung naon nu dikonci mun rapor geus final.',
+        forWho: 'Admin, kurikulum, jeung pangokolna PKL di SMK/MAK.',
+        sections: [
+          {
+            heading: 'Nautkeun période PKL ka rapor',
+            body: 'Dina Setélan PKL, formulir période boga bagian Asup rapor: pilih semester (dina taun pangajaran période) jeung mapel PKL, nyaéta mapel jenis PKL/prakerin di Mata pelajaran. Duanana kudu dieusian bareng atawa dikosongkeun bareng. Période nu ditautkeun ngajadikeun nilai akhir PKL jadi nilai mapel éta dina rapor semester kasebut: baris mapel PKL milu rata-rata, peringkat, jeung kalengkepan finalisasi, tur di handapeun tabél mapel némbongan blok Praktik Kerja Lapangan (tempat, tanggal, poé hadir nurutkeun jurnal, nilai per aspék, nilai akhir, predikat, nomer sertifikat). Ngan murid nu boga panempatan (iwal nu dibatalkeun) dina période éta nu ngambil mapel PKL; murid séjén teu ningali baris atawa blokna. Lamun hiji murid boga dua panempatan dina semester jeung mapel nu sarua (rotasi), nilai mapelna nyaéta rata-rata nilai akhir nu aya, jeung blok PKL ngandung rincian unggal tempat. Predikat baris PKL maké wates predikat PKL, lain wates rapor. Période tanpa tautan hirup persis siga saméméhna tur teu ngarobah rapor. Legér, saran kalulusan, transkrip, jeung ékspor nilai akhir maca rapor final, jadi baris PKL milu otomatis; teu aya setélan tambahan.',
+            steps: [
+              'Pastikeun aya mapel jenis PKL/prakerin di Mata pelajaran.',
+              'Buka Setélan PKL, tambah atawa robah période.',
+              'Dina bagian Asup rapor pilih semester jeung mapel PKL, tuluy simpen.',
+              'Nilaian murid, tuluy buka rapor semester éta pikeun mariksa baris jeung blok PKL.',
+            ],
+            href: '/pkl/settings',
+            warning:
+              'Rapor nu geus final ngabekukeun nilai PKL. Ngaganti atawa ngaleupaskeun tautan semester nu raporna final ditolak nepi ka raporna dibuka deui.',
+          },
+          {
+            heading: 'Bobot penilai sakola jeung industri',
+            body: 'Sacara baku, nilai unggal aspék nyaéta rata-rata nilai nu diisi guru pembimbing jeung pembimbing industri. Dina kartu Bobot penilai (Setélan PKL, jenjang kejuruan) sakola bisa ngatur bobot sakola jeung industri nu jumlahna 100, upamana 60:40. Lamun ngan hiji penilai nu ngeusian hiji aspék, nilaina dipaké langsung. Tombol Balikeun ka rata-rata mupus bobot jeung mulangkeun rumus heubeul. Bobot lumaku di papan, lambar nilai, rékap, jeung rapor nu disusun satuluyna; rapor final teu robah. Bobot antar aspék (upamana aspék lawan laporan) tetep diatur dina tabél aspék pangaji.',
+            href: '/pkl/settings',
+          },
+          {
+            heading: 'Nomer sertifikat',
+            body: 'Dina panél nilai hiji panempatan nu geus réngsé, pangokolna PKL bisa nyatet nomer sertifikat (unik per sakola). Pikeun hiji période, tombol panomeran massal méré nomer nu tutuluyan ka panempatan réngsé nu can boga nomer nurutkeun pola sakola (bawaan PKL/{seq}/{code}/{year}; variabel {seq}, {code}, {roman}, {month}, {year}). Format nomer sertifikat PKL teu diatur sacara nasional, jadi pola téh ngan usulan nu bisa dirobah dina kartu Nomer sertifikat. Nomer nu kacatet dicitak dina sertifikat PDF jeung muncul dina blok PKL di rapor.',
+            href: '/pkl/settings',
+          },
+          {
+            heading: 'Naon nu dikonci mun rapor geus final',
+            body: 'Salila rapor semester éta final pikeun murid kasebut, ngeusian atawa ngarobah nilai PKL ditolak ku kasalahan Rapor geus difinalisasi, boh ku staf, guru pembimbing, boh ngaliwatan tautan pembimbing industri; kaca tautan nembongkeun katerangan dikonci. Ngarobah nomer sertifikat ogé ditolak. Buka deui rapor kelas di ménu Rapor mun nilai kudu dibenerkeun, tuluy finalkeun deui.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Saran lila PKL (jam pelajaran)',
+            body: 'Di Kurikulum, dina alokasi mapel PKL némbongan pituduh: 792 JP pikeun kelas XII program 3 taun jeung 1.368 JP pikeun kelas XIII program 4 taun, sumberna salinan struktur kurikulum SMK 2022 (JDIH). Ieu ngan saran nu dilabélan sumber, lain wates atawa validasi; eusi Lampiran II Permendikdasmen 13/2025 can diverifikasi, jadi sakola mariksa sorangan.',
+            href: '/curriculum',
+          },
+        ],
+        faq: [
+          {
+            q: 'Murid geus dinilai PKL tapi raporna teu ngandung PKL.',
+            a: 'Rapor ngan ngandung PKL lamun période panempatanana ditautkeun ka semester rapor éta jeung mapel PKL, jeung panempatanana teu dibatalkeun. Parios bagian Asup rapor dina période.',
+          },
+          {
+            q: 'Finalisasi rapor nyebutkeun nilai can lengkep gara-gara PKL.',
+            a: 'Mapel PKL diperlakukeun siga mapel séjén: murid nu boga panempatan kudu geus boga nilai PKL. Lengkepan nilai PKL-na atawa finalkeun jeung pilihan neruskeun sanajan can lengkep.',
+          },
+        ],
+      },
+    },
+  },
 ];

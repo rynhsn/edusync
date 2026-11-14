@@ -35,6 +35,8 @@ export interface ReportCardDoc {
     descriptionSource?: 'manual' | 'objectives';
     /** Kelompok mapel beku (5.2); hanya pada rapor SMK berkelompok. */
     group?: { key: string; label: string; section: string | null };
+    /** Baris ini nilai PKL dari periode tertaut (5.4). */
+    source?: 'internship';
   }[];
   extracurriculars: { name: string; predicate: Predicate | null; note: string | null }[];
   attendance: { sick: number; excused: number; absent: number };
@@ -54,6 +56,20 @@ export interface ReportCardDoc {
   schoolNsm?: string;
   /** Identitas keahlian SMK untuk kop (5.2); hanya bila sakelar rapor berkelompok menyala dan jurusan tertaut. */
   expertise?: { field: string; program: string; concentration: string };
+  /** Rincian PKL (5.4); hanya bila murid punya penempatan pada periode yang ditautkan ke semester ini. */
+  internship?: {
+    periodName: string;
+    partner: string;
+    startsOn: string;
+    endsOn: string;
+    presentDays: number;
+    schoolSupervisor: string | null;
+    industrySupervisor: string | null;
+    aspects: { name: string; value: number | null }[];
+    final: number | null;
+    predicate: Predicate | null;
+    certificateNo?: string;
+  }[];
   developmentNote?: string | null;
   guardianResponses?: ReportCardResponse[];
 }

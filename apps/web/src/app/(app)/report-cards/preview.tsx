@@ -133,6 +133,62 @@ export function ReportCardPreview({ doc, display }: { doc: ReportCardDoc; displa
         </div>
       </section>
 
+      {doc.internship?.length ? (
+        <section className="grid content-start gap-2">
+          <h3 className="font-medium">{t('pdfInternshipTitle')}</h3>
+          <ul className="grid gap-2">
+            {doc.internship.map((e) => (
+              <li
+                key={`${e.periodName}-${e.partner}-${e.startsOn}`}
+                className="grid gap-1.5 rounded-lg border p-3"
+              >
+                <p className="font-medium break-words">{e.partner}</p>
+                <p className="text-muted-foreground text-xs break-words">
+                  {t('pdfInternshipTime')}: {e.startsOn} - {e.endsOn} ({e.periodName}) ·{' '}
+                  {t('pdfInternshipPresent')}: {e.presentDays}
+                </p>
+                {(e.schoolSupervisor || e.industrySupervisor) && (
+                  <p className="text-muted-foreground text-xs break-words">
+                    {[
+                      e.schoolSupervisor ? `${t('pdfInternshipSchoolSup')}: ${e.schoolSupervisor}` : null,
+                      e.industrySupervisor
+                        ? `${t('pdfInternshipIndustrySup')}: ${e.industrySupervisor}`
+                        : null,
+                    ]
+                      .filter(Boolean)
+                      .join(' · ')}
+                  </p>
+                )}
+                {view.showNumbers && (
+                  <dl className="grid grid-cols-[1fr_auto] gap-x-3 gap-y-1 text-xs">
+                    {e.aspects.map((a) => (
+                      <Fragment key={a.name}>
+                        <dt className="break-words">{a.name}</dt>
+                        <dd className="text-right tabular-nums">
+                          {a.value == null ? '-' : formatGrade(a.value)}
+                        </dd>
+                      </Fragment>
+                    ))}
+                    <dt className="font-medium">
+                      {t('pdfInternshipFinal')}
+                      {e.predicate ? ` (${e.predicate})` : ''}
+                    </dt>
+                    <dd className="text-right font-medium tabular-nums">
+                      {e.final == null ? '-' : formatGrade(e.final)}
+                    </dd>
+                  </dl>
+                )}
+                {e.certificateNo && (
+                  <p className="text-muted-foreground text-xs break-all">
+                    {t('pdfInternshipCertificate')}: {e.certificateNo}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
       <section className="grid content-start gap-2">
         <h3 className="font-medium">{t('extracurriculars')}</h3>
         {doc.extracurriculars.length === 0 ? (

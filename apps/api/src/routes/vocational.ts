@@ -1,6 +1,10 @@
 import {
+  DEFAULT_PKL_CERTIFICATE_PATTERN,
+  validateNumberPattern,
+  validPklWeights,
   vocationalConcentrationBodySchema,
   vocationalFieldBodySchema,
+  vocationalPklSettingSchema,
   vocationalProgramBodySchema,
   vocationalReportSettingSchema,
 } from '@edusync/contracts';
@@ -29,10 +33,9 @@ import { audit, conflictAs409, guarded, idParams, isForeignKeyViolation, ok, sch
 const tags = ['Vocational'];
 
 /** Gerbang modul berbayar `internship` (fase 5: tidak ada modul katalog baru). Profil kejuruan diperiksa di `requireVocational`. */
-const gate = (perm: 'class:read' | 'class:manage' | 'report_card:read' | 'report_card:manage') => [
-  requirePermission(perm),
-  requireModule('internship'),
-];
+const gate = (
+  perm: 'class:read' | 'class:manage' | 'report_card:read' | 'report_card:manage' | 'pkl:read' | 'pkl:manage',
+) => [requirePermission(perm), requireModule('internship')];
 
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
 const invalidRef = (message: string) => new HttpError(400, 'invalid_reference', message);
@@ -676,6 +679,100 @@ export async function vocationalRoutes(instance: FastifyInstance) {
           request.body,
         );
         return readReportSetting(tx);
+      });
+    },
+  );
+  /* ---------- Pengaturan PKL kejuruan (5.3): bobot penilai dan pola nomor sertifikat ---------- */
+
+  const pklSettingOut = z.object({
+    schoolWeight: z.number().int().nullable(),
+    industryWeight: z.number().int().nullable(),
+    certificatePattern: z.string().nullable(),
+    defaultCertificatePattern: z.string().describe('Pola yang dipakai bila `certificatePattern` null'),
+  });
+  const readPklSetting = async (tx: Tx) => {
+    const [s] = await tx.select().from(vocationalSetting);
+    return {
+      schoolWeight: s?.pklSchoolWeight ?? null,
+      industryWeight: s?.pklIndustryWeight ?? null,
+      certificatePattern: s?.pklCertificatePattern ?? null,
+      defaultCertificatePattern: DEFAULT_PKL_CERTIFICATE_PATTERN,
+    };
+  };
+
+  app.get(
+    '/v1/vocational/settings/pkl',
+    {
+      onRequest: gate('pkl:read'),
+      schema: {
+        tags,
+        summary: 'Pengaturan PKL kejuruan',
+        description:
+          'Izin: `pkl:read`; modul `internship`; hanya jenjang kejuruan. Bobot penilai sekolah:industri (null = rumus lama: ' +
+          'rata-rata penilai yang ada) dan pola nomor sertifikat (null = bawaan `PKL/{seq}/{code}/{year}`). Belum pernah disimpan: ' +
+          'semua null, tanpa baris otomatis.',
+        headers: schoolHeader,
+        response: { 200: pklSettingOut, 404: errorSchema, ...guarded },
+      },
+    },
+    async (request) => tenant(request, readPklSetting),
+  );
+
+  app.put(
+    '/v1/vocational/settings/pkl',
+    {
+      onRequest: gate('pkl:manage'),
+      schema: {
+        tags,
+        summary: 'Simpan pengaturan PKL kejuruan',
+        description:
+          'Izin: `pkl:manage`; modul `internship`; hanya jenjang kejuruan. `schoolWeight` dan `industryWeight` keduanya null ' +
+          '(rata-rata penilai yang ada) atau keduanya bilangan bulat >= 0 berjumlah 100 (400 `invalid_weights`). Dengan bobot, nilai ' +
+          'tiap aspek = rata-rata tertimbang penilai yang mengisi (bobot dinormalisasi atas penilai yang ada); berlaku pada semua ' +
+          'layar PKL dan rapor yang disusun sesudahnya, rapor final tidak berubah (snapshot beku). `certificatePattern` memakai ' +
+          'placeholder `{seq}`, `{code}`, `{roman}`, `{month}`, `{year}` (400 `invalid_pattern`); kosong = bawaan. Pola tidak diatur ' +
+          'negara; ini usulan sekolah.',
+        headers: schoolHeader,
+        body: vocationalPklSettingSchema,
+        response: { 200: pklSettingOut, 400: errorSchema, 404: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const b = request.body;
+      if (
+        (b.schoolWeight === null) !== (b.industryWeight === null) ||
+        (b.schoolWeight !== null &&
+          b.industryWeight !== null &&
+          !validPklWeights({ school: b.schoolWeight, industry: b.industryWeight }))
+      ) {
+        throw new HttpError(
+          400,
+          'invalid_weights',
+          'Bobot sekolah dan industri harus keduanya kosong atau keduanya bilangan bulat berjumlah 100.',
+        );
+      }
+      if (b.certificatePattern !== null && !validateNumberPattern(b.certificatePattern).ok) {
+        throw new HttpError(
+          400,
+          'invalid_pattern',
+          'Pola nomor wajib memuat {seq} dan hanya memakai {seq}, {code}, {roman}, {month}, {year}.',
+        );
+      }
+      return tenant(request, async (tx) => {
+        const values = {
+          pklSchoolWeight: b.schoolWeight,
+          pklIndustryWeight: b.industryWeight,
+          pklCertificatePattern: b.certificatePattern,
+          updatedBy: ctx.userId,
+          updatedAt: new Date(),
+        };
+        await tx
+          .insert(vocationalSetting)
+          .values({ schoolId: ctx.schoolId, ...values })
+          .onConflictDoUpdate({ target: vocationalSetting.schoolId, set: values });
+        await audit(tx, ctx, 'vocational_setting.pkl_update', 'vocational_setting', ctx.schoolId, { ...b });
+        return readPklSetting(tx);
       });
     },
   );

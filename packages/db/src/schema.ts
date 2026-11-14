@@ -3156,9 +3156,15 @@ export const pklPeriod = pgTable(
     name: text('name').notNull(),
     startsOn: date('starts_on').notNull(),
     endsOn: date('ends_on').notNull(),
+    /** Tautan ke rapor (5.3): semester dan mapel PKL; keduanya terisi atau keduanya kosong (CHECK). Kosong = nilai PKL tidak masuk rapor. */
+    semesterId: uuid('semester_id').references(() => semester.id),
+    subjectId: uuid('subject_id').references(() => subject.id),
     createdAt: createdAt(),
   },
-  (t) => [unique('pkl_period_name_uq').on(t.schoolId, t.academicYearId, t.name)],
+  (t) => [
+    unique('pkl_period_name_uq').on(t.schoolId, t.academicYearId, t.name),
+    unique('pkl_period_school_id_uq').on(t.schoolId, t.id),
+  ],
 );
 
 export const pklPlacement = pgTable(
@@ -3186,6 +3192,8 @@ export const pklPlacement = pgTable(
       .default('planned'),
     /** Hash SHA-256 dari token tautan terbatas pembimbing industri (token asli hanya tampil sekali). */
     accessTokenHash: text('access_token_hash'),
+    /** Nomor sertifikat PKL (5.3); unik per sekolah bila terisi (indeks parsial di migrasi 0111). */
+    certificateNo: text('certificate_no'),
     createdAt: createdAt(),
   },
   (t) => [
@@ -4387,6 +4395,11 @@ export const vocationalSetting = pgTable('vocational_setting', {
     .references(() => school.id),
   /** Rapor dikelompokkan menurut kelompok mapel dan kop memuat identitas keahlian (5.2). */
   reportGrouped: boolean('report_grouped').notNull().default(false),
+  /** Bobot penilai PKL (5.3): keduanya NULL = rata-rata penilai yang ada (rumus lama); jumlah 100 (CHECK). */
+  pklSchoolWeight: integer('pkl_school_weight'),
+  pklIndustryWeight: integer('pkl_industry_weight'),
+  /** Pola nomor sertifikat PKL; NULL = pola bawaan kontrak. */
+  pklCertificatePattern: text('pkl_certificate_pattern'),
   updatedBy: text('updated_by').notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });

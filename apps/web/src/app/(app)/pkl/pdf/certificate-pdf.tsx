@@ -152,6 +152,11 @@ export function CertificateDocument({ doc }: { doc: CertificateDoc }) {
             <Corner bottom={4} right={4} rotate={180} />
             <Corner bottom={4} left={4} rotate={270} />
 
+            {doc.certificateNo ? (
+              <Text style={{ position: 'absolute', top: 12, right: 26, fontSize: 9, color: MUTED }}>
+                No. {doc.certificateNo}
+              </Text>
+            ) : null}
             <Medal />
             <Text style={[styles.school, { marginTop: 4 }]}>{doc.schoolName}</Text>
             <Text style={styles.title}>SERTIFIKAT</Text>

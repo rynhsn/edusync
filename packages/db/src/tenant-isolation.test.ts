@@ -12,6 +12,9 @@ import {
   cocurricularRubricLevel,
   createDb,
   foundation,
+  pklPartner,
+  pklPeriod,
+  pklPlacement,
   program,
   programConcentration,
   school,
@@ -19,6 +22,7 @@ import {
   schoolProfileItem,
   semester,
   student,
+  subject,
   teacher,
   vocationalConcentration,
   vocationalField,
@@ -572,6 +576,119 @@ describe('tabel tenant struktur keahlian SMK (tahap 5.1)', () => {
         await platform.db.delete(vocationalConcentration).where(eq(vocationalConcentration.schoolId, sid));
         await platform.db.delete(vocationalProgram).where(eq(vocationalProgram.schoolId, sid));
         await platform.db.delete(vocationalField).where(eq(vocationalField.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tautan PKL ke rapor (tahap 5.3, migrasi 0111)', () => {
+  it('FK komposit semester dan mapel, CHECK tertaut penuh, nomor sertifikat unik per sekolah, CHECK bobot', async () => {
+    const seed = async (sid: string, n: number) => {
+      const [y] = await platform.db.select().from(academicYear).where(eq(academicYear.schoolId, sid));
+      const [sem] = await platform.db
+        .insert(semester)
+        .values({
+          schoolId: sid,
+          academicYearId: y!.id,
+          name: `Ganjil ${n}`,
+          startsOn: '2026-07-13',
+          endsOn: '2026-12-20',
+        })
+        .returning();
+      const [sub] = await platform.db
+        .insert(subject)
+        .values({ schoolId: sid, code: `PKL${n}`, name: 'PKL', kind: 'internship' })
+        .returning();
+      const [stu] = await platform.db
+        .insert(student)
+        .values({ schoolId: sid, name: `Murid ${n}`, gender: 'L' })
+        .returning();
+      const [partner] = await platform.db
+        .insert(pklPartner)
+        .values({ schoolId: sid, name: `Mitra ${n}` })
+        .returning();
+      return { year: y!.id, sem: sem!.id, sub: sub!.id, stu: stu!.id, partner: partner!.id };
+    };
+    const a = await seed(schoolA1, 1);
+    const b = await seed(schoolB, 2);
+    const periodOf = (
+      sid: string,
+      year: string,
+      name: string,
+      extra: Partial<typeof pklPeriod.$inferInsert> = {},
+    ) =>
+      platform.db
+        .insert(pklPeriod)
+        .values({
+          schoolId: sid,
+          academicYearId: year,
+          name,
+          startsOn: '2026-09-01',
+          endsOn: '2026-12-01',
+          ...extra,
+        })
+        .returning();
+    try {
+      // Tanpa tautan (kedua NULL) sah; tertaut penuh sah.
+      const [free] = await periodOf(schoolA1, a.year, 'bebas');
+      expect(free).toMatchObject({ semesterId: null, subjectId: null });
+      const [linked] = await periodOf(schoolA1, a.year, 'tertaut', { semesterId: a.sem, subjectId: a.sub });
+      expect(linked).toMatchObject({ semesterId: a.sem, subjectId: a.sub });
+      // Setengah tertaut ditolak CHECK.
+      await expect(periodOf(schoolA1, a.year, 'setengah', { semesterId: a.sem })).rejects.toThrow();
+      await expect(periodOf(schoolA1, a.year, 'setengah2', { subjectId: a.sub })).rejects.toThrow();
+      // FK komposit: semester atau mapel sekolah lain ditolak walau id valid.
+      await expect(
+        periodOf(schoolA1, a.year, 'silang1', { semesterId: b.sem, subjectId: a.sub }),
+      ).rejects.toThrow();
+      await expect(
+        periodOf(schoolA1, a.year, 'silang2', { semesterId: a.sem, subjectId: b.sub }),
+      ).rejects.toThrow();
+      // Isolasi: sekolah A hanya melihat periodenya.
+      const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(pklPeriod));
+      expect(rows.every((r) => r.schoolId === schoolA1)).toBe(true);
+      // Nomor sertifikat unik per sekolah; sekolah lain boleh memakai nomor yang sama; NULL berganda sah.
+      const [pb] = await periodOf(schoolB, b.year, 'periode b');
+      const place = (
+        sid: string,
+        periodId: string,
+        studentId: string,
+        partnerId: string,
+        no: string | null,
+      ) =>
+        platform.db
+          .insert(pklPlacement)
+          .values({ schoolId: sid, periodId, studentId, partnerId, certificateNo: no })
+          .returning();
+      await place(schoolA1, free!.id, a.stu, a.partner, 'NO-1');
+      await expect(place(schoolA1, linked!.id, a.stu, a.partner, 'NO-1')).rejects.toThrow();
+      await place(schoolA1, linked!.id, a.stu, a.partner, null);
+      await place(schoolB, pb!.id, b.stu, b.partner, 'NO-1');
+      // CHECK nomor kosong dan bobot (vocational_setting): keduanya NULL atau jumlah 100.
+      await expect(
+        platform.db.update(pklPlacement).set({ certificateNo: '' }).where(eq(pklPlacement.studentId, b.stu)),
+      ).rejects.toThrow();
+      await platform.db.insert(vocationalSetting).values({ schoolId: schoolA1, updatedBy: 'uji' });
+      const setW = (w: number | null, i: number | null) =>
+        platform.db
+          .update(vocationalSetting)
+          .set({ pklSchoolWeight: w, pklIndustryWeight: i })
+          .where(eq(vocationalSetting.schoolId, schoolA1));
+      await setW(70, 30);
+      await setW(100, 0);
+      await setW(null, null);
+      await expect(setW(60, 30)).rejects.toThrow();
+      await expect(setW(70, null)).rejects.toThrow();
+      await expect(setW(110, -10)).rejects.toThrow();
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(vocationalSetting).where(eq(vocationalSetting.schoolId, sid));
+        await platform.db.delete(pklPlacement).where(eq(pklPlacement.schoolId, sid));
+        await platform.db.delete(pklPeriod).where(eq(pklPeriod.schoolId, sid));
+        await platform.db.delete(pklPartner).where(eq(pklPartner.schoolId, sid));
+        await platform.db.delete(student).where(eq(student.schoolId, sid));
+        await platform.db.delete(subject).where(eq(subject.schoolId, sid));
+        await platform.db.delete(semester).where(eq(semester.schoolId, sid));
       }
     }
   });

@@ -1,6 +1,6 @@
 'use client';
 
-import { totalPeriodsByLevel } from '@edusync/contracts';
+import { PKL_PERIOD_SUGGESTIONS, totalPeriodsByLevel } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { BookOpen, Clock, Layers, ListChecks, School, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -265,6 +265,18 @@ export function StructurePanel({ yearId, canWrite }: { yearId: string; canWrite:
             </Button>
           }
         />
+      )}
+
+      {allocations.data && rows.some((s) => s.kind === 'internship') && (
+        <Alert role="note">
+          <AlertDescription>
+            {t('pklSuggestion', {
+              three: PKL_PERIOD_SUGGESTIONS.items[0].periods,
+              four: PKL_PERIOD_SUGGESTIONS.items[1].periods,
+              source: PKL_PERIOD_SUGGESTIONS.source,
+            })}
+          </AlertDescription>
+        </Alert>
       )}
 
       {allocations.data && rows.length > 0 && (

@@ -48086,6 +48086,12 @@
                                 ],
                                 "additionalProperties": false
                               },
+                              "source": {
+                                "type": "string",
+                                "enum": [
+                                  "internship"
+                                ]
+                              },
                               "objectives": {
                                 "type": "object",
                                 "properties": {
@@ -48412,6 +48418,90 @@
                             "concentration"
                           ],
                           "additionalProperties": false
+                        },
+                        "internship": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "periodName": {
+                                "type": "string"
+                              },
+                              "partner": {
+                                "type": "string"
+                              },
+                              "startsOn": {
+                                "type": "string"
+                              },
+                              "endsOn": {
+                                "type": "string"
+                              },
+                              "presentDays": {
+                                "type": "integer",
+                                "minimum": -9007199254740991,
+                                "maximum": 9007199254740991,
+                                "description": "Hari hadir menurut jurnal PKL"
+                              },
+                              "schoolSupervisor": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "industrySupervisor": {
+                                "nullable": true,
+                                "type": "string"
+                              },
+                              "aspects": {
+                                "type": "array",
+                                "items": {
+                                  "type": "object",
+                                  "properties": {
+                                    "name": {
+                                      "type": "string"
+                                    },
+                                    "value": {
+                                      "nullable": true,
+                                      "type": "number"
+                                    }
+                                  },
+                                  "required": [
+                                    "name",
+                                    "value"
+                                  ],
+                                  "additionalProperties": false
+                                }
+                              },
+                              "final": {
+                                "nullable": true,
+                                "type": "number"
+                              },
+                              "predicate": {
+                                "nullable": true,
+                                "type": "string",
+                                "enum": [
+                                  "A",
+                                  "B",
+                                  "C",
+                                  "D"
+                                ]
+                              },
+                              "certificateNo": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "periodName",
+                              "partner",
+                              "startsOn",
+                              "endsOn",
+                              "presentDays",
+                              "schoolSupervisor",
+                              "industrySupervisor",
+                              "aspects",
+                              "final",
+                              "predicate"
+                            ],
+                            "additionalProperties": false
+                          }
                         }
                       },
                       "required": [
@@ -91321,6 +91411,12 @@
                             ],
                             "additionalProperties": false
                           },
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "internship"
+                            ]
+                          },
                           "objectives": {
                             "type": "object",
                             "properties": {
@@ -91647,6 +91743,90 @@
                         "concentration"
                       ],
                       "additionalProperties": false
+                    },
+                    "internship": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "periodName": {
+                            "type": "string"
+                          },
+                          "partner": {
+                            "type": "string"
+                          },
+                          "startsOn": {
+                            "type": "string"
+                          },
+                          "endsOn": {
+                            "type": "string"
+                          },
+                          "presentDays": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "description": "Hari hadir menurut jurnal PKL"
+                          },
+                          "schoolSupervisor": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "industrySupervisor": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "aspects": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "nullable": true,
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "final": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "predicate": {
+                            "nullable": true,
+                            "type": "string",
+                            "enum": [
+                              "A",
+                              "B",
+                              "C",
+                              "D"
+                            ]
+                          },
+                          "certificateNo": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "periodName",
+                          "partner",
+                          "startsOn",
+                          "endsOn",
+                          "presentDays",
+                          "schoolSupervisor",
+                          "industrySupervisor",
+                          "aspects",
+                          "final",
+                          "predicate"
+                        ],
+                        "additionalProperties": false
+                      }
                     },
                     "schemaVersion": {
                       "description": "Hanya ada bila dokumen berbentuk v2; dihilangkan = v1",
@@ -120931,6 +121111,20 @@
                         "type": "integer",
                         "minimum": -9007199254740991,
                         "maximum": 9007199254740991
+                      },
+                      "semesterId": {
+                        "nullable": true,
+                        "description": "Semester rapor yang memuat nilai PKL periode ini; null = tidak masuk rapor",
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      "subjectId": {
+                        "nullable": true,
+                        "description": "Mapel PKL (kind = internship) tempat nilai PKL masuk rapor",
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                       }
                     },
                     "required": [
@@ -120939,7 +121133,9 @@
                       "name",
                       "startsOn",
                       "endsOn",
-                      "placementCount"
+                      "placementCount",
+                      "semesterId",
+                      "subjectId"
                     ],
                     "additionalProperties": false
                   }
@@ -121018,7 +121214,7 @@
         "tags": [
           "PKL"
         ],
-        "description": "Izin: `pkl:manage`; modul `internship`. Tanggal mulai harus <= tanggal selesai (400 `validation`); tahun ajaran harus milik sekolah (400 `invalid_reference`); nama unik per tahun ajaran (409 `conflict`).",
+        "description": "Izin: `pkl:manage`; modul `internship`. Tanggal mulai harus <= tanggal selesai (400 `validation`); tahun ajaran harus milik sekolah (400 `invalid_reference`); nama unik per tahun ajaran (409 `conflict`). Tautan rapor opsional (`semesterId` + `subjectId`, berpasangan: 400 `pkl_link_incomplete`): semester pada tahun ajaran periode dan mapel aktif berjenis PKL (400 `invalid_reference`). Periode tertaut: nilai PKL menjadi nilai mapel itu di rapor semester tersebut (ikut rata-rata, peringkat, leger, kelulusan, ekspor) dan terkunci saat rapor final.",
         "requestBody": {
           "required": true,
           "content": {
@@ -121045,6 +121241,20 @@
                     "type": "string",
                     "format": "date",
                     "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "semesterId": {
+                    "description": "Tautan rapor (opsional, berpasangan dengan subjectId). Dihilangkan saat mengubah = tidak berubah; null = lepas",
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "subjectId": {
+                    "description": "Mapel PKL (kind = internship); berpasangan dengan semesterId",
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   }
                 },
                 "required": [
@@ -121101,6 +121311,20 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "semesterId": {
+                      "nullable": true,
+                      "description": "Semester rapor yang memuat nilai PKL periode ini; null = tidak masuk rapor",
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "subjectId": {
+                      "nullable": true,
+                      "description": "Mapel PKL (kind = internship) tempat nilai PKL masuk rapor",
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                     }
                   },
                   "required": [
@@ -121109,7 +121333,9 @@
                     "name",
                     "startsOn",
                     "endsOn",
-                    "placementCount"
+                    "placementCount",
+                    "semesterId",
+                    "subjectId"
                   ],
                   "additionalProperties": false
                 }
@@ -121253,7 +121479,7 @@
         "tags": [
           "PKL"
         ],
-        "description": "Izin: `pkl:manage`; modul `internship`. Validasi seperti saat menambah; 404 `not_found`.",
+        "description": "Izin: `pkl:manage`; modul `internship`. Validasi seperti saat menambah; 404 `not_found`. `semesterId`/`subjectId` dihilangkan = tautan rapor tidak berubah; keduanya null = lepas. Mengganti atau melepas tautan ke semester yang rapor muridnya sudah final ditolak 409 `report_final` (buka kembali rapornya lebih dulu).",
         "requestBody": {
           "required": true,
           "content": {
@@ -121280,6 +121506,20 @@
                     "type": "string",
                     "format": "date",
                     "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$"
+                  },
+                  "semesterId": {
+                    "description": "Tautan rapor (opsional, berpasangan dengan subjectId). Dihilangkan saat mengubah = tidak berubah; null = lepas",
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "subjectId": {
+                    "description": "Mapel PKL (kind = internship); berpasangan dengan semesterId",
+                    "nullable": true,
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                   }
                 },
                 "required": [
@@ -121346,6 +121586,20 @@
                       "type": "integer",
                       "minimum": -9007199254740991,
                       "maximum": 9007199254740991
+                    },
+                    "semesterId": {
+                      "nullable": true,
+                      "description": "Semester rapor yang memuat nilai PKL periode ini; null = tidak masuk rapor",
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "subjectId": {
+                      "nullable": true,
+                      "description": "Mapel PKL (kind = internship) tempat nilai PKL masuk rapor",
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
                     }
                   },
                   "required": [
@@ -121354,7 +121608,9 @@
                     "name",
                     "startsOn",
                     "endsOn",
-                    "placementCount"
+                    "placementCount",
+                    "semesterId",
+                    "subjectId"
                   ],
                   "additionalProperties": false
                 }
@@ -121893,6 +122149,11 @@
                             "type": "boolean",
                             "description": "Tautan pembimbing industri sedang aktif"
                           },
+                          "certificateNo": {
+                            "nullable": true,
+                            "description": "Nomor sertifikat PKL; null bila belum dicatat",
+                            "type": "string"
+                          },
                           "canWrite": {
                             "type": "boolean",
                             "description": "Pengguna ini boleh mengisi jurnal, kunjungan, nilai sekolah, dan tautan penempatan ini"
@@ -121917,6 +122178,7 @@
                           "finalScore",
                           "predicate",
                           "hasAccessLink",
+                          "certificateNo",
                           "canWrite"
                         ],
                         "additionalProperties": false
@@ -122366,6 +122628,11 @@
                       "type": "boolean",
                       "description": "Tautan pembimbing industri sedang aktif"
                     },
+                    "certificateNo": {
+                      "nullable": true,
+                      "description": "Nomor sertifikat PKL; null bila belum dicatat",
+                      "type": "string"
+                    },
                     "canWrite": {
                       "type": "boolean",
                       "description": "Pengguna ini boleh mengisi jurnal, kunjungan, nilai sekolah, dan tautan penempatan ini"
@@ -122390,6 +122657,7 @@
                     "finalScore",
                     "predicate",
                     "hasAccessLink",
+                    "certificateNo",
                     "canWrite"
                   ],
                   "additionalProperties": false
@@ -122663,6 +122931,11 @@
                       "type": "boolean",
                       "description": "Tautan pembimbing industri sedang aktif"
                     },
+                    "certificateNo": {
+                      "nullable": true,
+                      "description": "Nomor sertifikat PKL; null bila belum dicatat",
+                      "type": "string"
+                    },
                     "canWrite": {
                       "type": "boolean",
                       "description": "Pengguna ini boleh mengisi jurnal, kunjungan, nilai sekolah, dan tautan penempatan ini"
@@ -122687,6 +122960,7 @@
                     "finalScore",
                     "predicate",
                     "hasAccessLink",
+                    "certificateNo",
                     "canWrite"
                   ],
                   "additionalProperties": false
@@ -125862,11 +126136,44 @@
                         "predicate"
                       ],
                       "additionalProperties": false
+                    },
+                    "weights": {
+                      "nullable": true,
+                      "description": "Bobot penilai sekolah:industri yang berlaku; null = rata-rata penilai yang ada",
+                      "type": "object",
+                      "properties": {
+                        "school": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "industry": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "school",
+                        "industry"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "certificateNo": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "reportLinked": {
+                      "type": "boolean",
+                      "description": "Periode tertaut ke rapor: nilai ini menjadi nilai mapel PKL dan terkunci saat rapor final (409 `report_final`)"
                     }
                   },
                   "required": [
                     "aspects",
-                    "result"
+                    "result",
+                    "weights",
+                    "certificateNo",
+                    "reportLinked"
                   ],
                   "additionalProperties": false
                 }
@@ -125976,7 +126283,7 @@
         "tags": [
           "PKL"
         ],
-        "description": "Izin: `pkl:manage` atau guru pembimbing penempatan itu; modul `internship`. Menyimpan nilai penilai `school` (upsert per aspek), nilai 0..100 bulat. Aspek harus milik sekolah (400 `invalid_reference`).",
+        "description": "Izin: `pkl:manage` atau guru pembimbing penempatan itu; modul `internship`. Menyimpan nilai penilai `school` (upsert per aspek), nilai 0..100 bulat. Aspek harus milik sekolah (400 `invalid_reference`). Periode tertaut ke rapor dan rapor murid itu sudah final: 409 `report_final`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -126167,11 +126474,44 @@
                         "predicate"
                       ],
                       "additionalProperties": false
+                    },
+                    "weights": {
+                      "nullable": true,
+                      "description": "Bobot penilai sekolah:industri yang berlaku; null = rata-rata penilai yang ada",
+                      "type": "object",
+                      "properties": {
+                        "school": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        },
+                        "industry": {
+                          "type": "integer",
+                          "minimum": -9007199254740991,
+                          "maximum": 9007199254740991
+                        }
+                      },
+                      "required": [
+                        "school",
+                        "industry"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "certificateNo": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "reportLinked": {
+                      "type": "boolean",
+                      "description": "Periode tertaut ke rapor: nilai ini menjadi nilai mapel PKL dan terkunci saat rapor final (409 `report_final`)"
                     }
                   },
                   "required": [
                     "aspects",
-                    "result"
+                    "result",
+                    "weights",
+                    "certificateNo",
+                    "reportLinked"
                   ],
                   "additionalProperties": false
                 }
@@ -126275,6 +126615,487 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/pkl/placements/{id}/certificate": {
+      "put": {
+        "summary": "Catat nomor sertifikat PKL",
+        "tags": [
+          "PKL"
+        ],
+        "description": "Izin: `pkl:manage`; modul `internship`. `certificateNo` 1-80 karakter, unik per sekolah (409 `certificate_taken`); null menghapus nomor. Mengisi nomor hanya untuk penempatan berstatus `completed` (409 `placement_not_completed`). Periode tertaut ke rapor dan rapor murid sudah final: 409 `report_final`. Format nomor tidak diatur negara; sekolah bebas memakai pola sendiri.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "certificateNo": {
+                    "nullable": true,
+                    "description": "Nomor sertifikat; null = hapus",
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 80
+                  }
+                },
+                "required": [
+                  "certificateNo"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "placementId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "certificateNo": {
+                      "nullable": true,
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "placementId",
+                    "certificateNo"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/pkl/periods/{id}/certificates": {
+      "post": {
+        "summary": "Nomori sertifikat PKL satu periode",
+        "tags": [
+          "PKL"
+        ],
+        "description": "Izin: `pkl:manage`; modul `internship`. Memberi nomor berurutan menurut pola sekolah (`/v1/vocational/settings/pkl`, bawaan `PKL/{seq}/{code}/{year}`) kepada penempatan `completed` yang belum bernomor, urut nama siswa. Nomor yang sudah terpakai dilewati. Idempoten: penempatan yang sudah bernomor tidak diubah. Tanpa penempatan selesai sama sekali: 409 `placement_not_completed`. Periode tertaut ke rapor dan ada rapor murid final: 409 `report_final`. 404 `not_found`.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "path",
+            "name": "id",
+            "required": true
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "numbered": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "placementId": {
+                            "type": "string",
+                            "format": "uuid",
+                            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                          },
+                          "certificateNo": {
+                            "nullable": true,
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "placementId",
+                          "certificateNo"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "skipped": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991,
+                      "description": "Penempatan completed yang sudah bernomor"
+                    }
+                  },
+                  "required": [
+                    "numbered",
+                    "skipped"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -126757,6 +127578,10 @@
                     },
                     "canWrite": {
                       "type": "boolean"
+                    },
+                    "reportLocked": {
+                      "type": "boolean",
+                      "description": "Nilai PKL ini sudah masuk rapor final: pengisian nilai ditolak 409 `report_final`"
                     }
                   },
                   "required": [
@@ -126767,7 +127592,8 @@
                     "status",
                     "journals",
                     "aspects",
-                    "canWrite"
+                    "canWrite",
+                    "reportLocked"
                   ],
                   "additionalProperties": false
                 }
@@ -127050,7 +127876,7 @@
         "tags": [
           "PKL (publik)"
         ],
-        "description": "Tanpa login. Menyimpan nilai penilai `industry` (upsert per aspek), nilai 0..100 bulat. 403 `link_read_only` bila periode sudah lewat lebih dari 14 hari. Token tak dikenal: 404 `not_found`.",
+        "description": "Tanpa login. Menyimpan nilai penilai `industry` (upsert per aspek), nilai 0..100 bulat. 403 `link_read_only` bila periode sudah lewat lebih dari 14 hari. Periode tertaut ke rapor dan rapor murid itu sudah final: 409 `report_final` (nilai terkunci). Token tak dikenal: 404 `not_found`.",
         "requestBody": {
           "required": true,
           "content": {
@@ -127195,6 +128021,38 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "409": {
             "description": "Default Response",
             "content": {
               "application/json": {
@@ -161490,6 +162348,12 @@
                             ],
                             "additionalProperties": false
                           },
+                          "source": {
+                            "type": "string",
+                            "enum": [
+                              "internship"
+                            ]
+                          },
                           "objectives": {
                             "type": "object",
                             "properties": {
@@ -161812,6 +162676,90 @@
                         "concentration"
                       ],
                       "additionalProperties": false
+                    },
+                    "internship": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "periodName": {
+                            "type": "string"
+                          },
+                          "partner": {
+                            "type": "string"
+                          },
+                          "startsOn": {
+                            "type": "string"
+                          },
+                          "endsOn": {
+                            "type": "string"
+                          },
+                          "presentDays": {
+                            "type": "integer",
+                            "minimum": -9007199254740991,
+                            "maximum": 9007199254740991,
+                            "description": "Hari hadir menurut jurnal PKL"
+                          },
+                          "schoolSupervisor": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "industrySupervisor": {
+                            "nullable": true,
+                            "type": "string"
+                          },
+                          "aspects": {
+                            "type": "array",
+                            "items": {
+                              "type": "object",
+                              "properties": {
+                                "name": {
+                                  "type": "string"
+                                },
+                                "value": {
+                                  "nullable": true,
+                                  "type": "number"
+                                }
+                              },
+                              "required": [
+                                "name",
+                                "value"
+                              ],
+                              "additionalProperties": false
+                            }
+                          },
+                          "final": {
+                            "nullable": true,
+                            "type": "number"
+                          },
+                          "predicate": {
+                            "nullable": true,
+                            "type": "string",
+                            "enum": [
+                              "A",
+                              "B",
+                              "C",
+                              "D"
+                            ]
+                          },
+                          "certificateNo": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "periodName",
+                          "partner",
+                          "startsOn",
+                          "endsOn",
+                          "presentDays",
+                          "schoolSupervisor",
+                          "industrySupervisor",
+                          "aspects",
+                          "final",
+                          "predicate"
+                        ],
+                        "additionalProperties": false
+                      }
                     },
                     "schemaVersion": {
                       "description": "Hanya ada bila dokumen berbentuk v2; dihilangkan = v1",
@@ -168285,6 +169233,390 @@
                   },
                   "required": [
                     "reportGrouped"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/vocational/settings/pkl": {
+      "get": {
+        "summary": "Pengaturan PKL kejuruan",
+        "tags": [
+          "Vocational"
+        ],
+        "description": "Izin: `pkl:read`; modul `internship`; hanya jenjang kejuruan. Bobot penilai sekolah:industri (null = rumus lama: rata-rata penilai yang ada) dan pola nomor sertifikat (null = bawaan `PKL/{seq}/{code}/{year}`). Belum pernah disimpan: semua null, tanpa baris otomatis.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "schoolWeight": {
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "industryWeight": {
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "certificatePattern": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "defaultCertificatePattern": {
+                      "type": "string",
+                      "description": "Pola yang dipakai bila `certificatePattern` null"
+                    }
+                  },
+                  "required": [
+                    "schoolWeight",
+                    "industryWeight",
+                    "certificatePattern",
+                    "defaultCertificatePattern"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "summary": "Simpan pengaturan PKL kejuruan",
+        "tags": [
+          "Vocational"
+        ],
+        "description": "Izin: `pkl:manage`; modul `internship`; hanya jenjang kejuruan. `schoolWeight` dan `industryWeight` keduanya null (rata-rata penilai yang ada) atau keduanya bilangan bulat >= 0 berjumlah 100 (400 `invalid_weights`). Dengan bobot, nilai tiap aspek = rata-rata tertimbang penilai yang mengisi (bobot dinormalisasi atas penilai yang ada); berlaku pada semua layar PKL dan rapor yang disusun sesudahnya, rapor final tidak berubah (snapshot beku). `certificatePattern` memakai placeholder `{seq}`, `{code}`, `{roman}`, `{month}`, `{year}` (400 `invalid_pattern`); kosong = bawaan. Pola tidak diatur negara; ini usulan sekolah.",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "schoolWeight": {
+                    "nullable": true,
+                    "description": "Bobot nilai penilai sekolah (0-100); null = rata-rata",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "industryWeight": {
+                    "nullable": true,
+                    "description": "Bobot nilai penilai industri (0-100); null = rata-rata",
+                    "type": "integer",
+                    "minimum": 0,
+                    "maximum": 100
+                  },
+                  "certificatePattern": {
+                    "description": "Pola nomor sertifikat: {seq}, {code}, {roman}, {month}, {year}; kosong = bawaan",
+                    "nullable": true,
+                    "type": "string",
+                    "maxLength": 120
+                  }
+                },
+                "required": [
+                  "schoolWeight",
+                  "industryWeight"
+                ]
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "schoolWeight": {
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "industryWeight": {
+                      "nullable": true,
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "certificatePattern": {
+                      "nullable": true,
+                      "type": "string"
+                    },
+                    "defaultCertificatePattern": {
+                      "type": "string",
+                      "description": "Pola yang dipakai bila `certificatePattern` null"
+                    }
+                  },
+                  "required": [
+                    "schoolWeight",
+                    "industryWeight",
+                    "certificatePattern",
+                    "defaultCertificatePattern"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
                   ],
                   "additionalProperties": false
                 }

@@ -98,10 +98,34 @@ export const reportExpertiseSchema = z.object({
 });
 export type ReportExpertise = z.infer<typeof reportExpertiseSchema>;
 
+/**
+ * Rincian PKL satu penempatan pada dokumen (tahap 5.4): tempat, tanggal, hari hadir menurut jurnal, nilai per aspek, nilai akhir,
+ * predikat, dan nomor sertifikat. Nama dan nilai dibekukan saat dokumen disusun. Hanya ada bila murid punya penempatan non-batal
+ * pada periode PKL yang ditautkan ke semester rapor itu.
+ */
+export const reportInternshipSchema = z.array(
+  z.object({
+    periodName: z.string(),
+    partner: z.string(),
+    startsOn: z.string(),
+    endsOn: z.string(),
+    presentDays: z.number().int().describe('Hari hadir menurut jurnal PKL'),
+    schoolSupervisor: z.string().nullable(),
+    industrySupervisor: z.string().nullable(),
+    aspects: z.array(z.object({ name: z.string(), value: z.number().nullable() })),
+    final: z.number().nullable(),
+    predicate: predicateEnum.nullable(),
+    certificateNo: z.string().optional(),
+  }),
+);
+export type ReportInternship = z.infer<typeof reportInternshipSchema>;
+
 export const reportSubjectV2Schema = reportSubjectSchema.extend({
   /** Absen = deskripsi dari predikat (v1). */
   descriptionSource: z.enum(['manual', 'objectives']).optional(),
   group: reportSubjectGroupSchema.optional(),
+  /** Baris ini nilai PKL (tahap 5.4), bukan nilai penilaian kelas; hanya pada mapel PKL dari periode tertaut. */
+  source: z.literal('internship').optional(),
   objectives: reportSubjectObjectivesSchema.optional(),
 });
 
@@ -138,6 +162,8 @@ export const reportDocumentV2Schema = reportDocumentSchema.extend({
   schoolNsm: z.string().optional(),
   /** Identitas keahlian SMK (tahap 5.2); hanya bila rombel bertaut ke konsentrasi dan sakelar `report_grouped` menyala. */
   expertise: reportExpertiseSchema.optional(),
+  /** Rincian PKL (tahap 5.4); hanya bila murid punya penempatan pada periode PKL yang ditautkan ke semester ini. */
+  internship: reportInternshipSchema.optional(),
   subjects: z.array(reportSubjectV2Schema),
 });
 
@@ -200,8 +226,9 @@ export const REPORT_V2_DOCUMENT_KEYS = [
   'developmentNote',
   'schoolNsm',
   'expertise',
+  'internship',
 ] as const;
-export const REPORT_V2_SUBJECT_KEYS = ['descriptionSource', 'objectives', 'group'] as const;
+export const REPORT_V2_SUBJECT_KEYS = ['descriptionSource', 'objectives', 'group', 'source'] as const;
 
 /**
  * Versi bentuk dokumen: 2 bila ada minimal satu bagian v2 (kunci hadir, nilai bukan `undefined`), selain itu 1.
@@ -230,5 +257,15 @@ export function projectDescriptiveForPortal<
     const { final: _f, predicate: _p, kkm: _k, belowKkm: _b, ...keep } = s as Record<string, unknown>;
     return keep;
   });
-  return { ...rest, subjects } as unknown as T;
+  // Blok PKL (5.4) memuat nilai dan predikat juga: buang agar mode deskriptif tidak membocorkan angka lewat jalur ini.
+  const internship = (rest as { internship?: readonly Record<string, unknown>[] }).internship?.map((e) => {
+    const { final: _f, predicate: _p, aspects, ...keep } = e;
+    return {
+      ...keep,
+      aspects: (aspects as readonly { name: string }[]).map((a) => ({ name: a.name, value: null })),
+      final: null,
+      predicate: null,
+    };
+  });
+  return { ...rest, subjects, ...(internship ? { internship } : {}) } as unknown as T;
 }

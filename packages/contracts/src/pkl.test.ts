@@ -5,6 +5,7 @@ import {
   pklPredicate,
   pklResult,
   validPklThresholds,
+  validPklWeights,
 } from './pkl';
 
 describe('aspek bawaan', () => {
@@ -76,5 +77,53 @@ describe('canPlacementTransition', () => {
     expect(canPlacementTransition('active', 'planned')).toBe(false);
     expect(canPlacementTransition('completed', 'cancelled')).toBe(false);
     expect(canPlacementTransition('cancelled', 'active')).toBe(false);
+  });
+});
+
+describe('pklResult dengan bobot penilai (5.3)', () => {
+  const aspects = [
+    { id: 'a', weight: 60 },
+    { id: 'b', weight: 40 },
+  ];
+  const both = [
+    { aspectId: 'a', assessor: 'school' as const, value: 80 },
+    { aspectId: 'a', assessor: 'industry' as const, value: 90 },
+    { aspectId: 'b', assessor: 'school' as const, value: 70 },
+    { aspectId: 'b', assessor: 'industry' as const, value: 100 },
+  ];
+  it('bobot kosong atau null = hasil lama persis', () => {
+    expect(pklResult(aspects, both, null)).toEqual(pklResult(aspects, both));
+    expect(pklResult(aspects, both, undefined)).toEqual(pklResult(aspects, both));
+  });
+  it('bobot 50:50 sama dengan rata-rata biasa bila kedua penilai ada', () => {
+    expect(pklResult(aspects, both, { school: 50, industry: 50 })).toEqual(pklResult(aspects, both));
+  });
+  it('bobot 70:30', () => {
+    const r = pklResult(aspects, both, { school: 70, industry: 30 });
+    // a = 80*.7 + 90*.3 = 83; b = 70*.7 + 100*.3 = 79; final = (83*60 + 79*40) / 100 = 81.4
+    expect(r.perAspect.map((p) => p.value)).toEqual([83, 79]);
+    expect(r.final).toBe(81.4);
+  });
+  it('satu penilai saja: bobot dinormalisasi atas penilai yang mengisi', () => {
+    const r = pklResult(aspects, [{ aspectId: 'a', assessor: 'industry', value: 90 }], {
+      school: 70,
+      industry: 30,
+    });
+    expect(r.perAspect[0]?.value).toBe(90);
+    expect(r.final).toBe(90);
+  });
+  it('bobot penilai yang ada 0 jatuh ke rata-rata biasa', () => {
+    const r = pklResult(aspects, [{ aspectId: 'a', assessor: 'industry', value: 90 }], {
+      school: 100,
+      industry: 0,
+    });
+    expect(r.final).toBe(90);
+  });
+  it('validPklWeights', () => {
+    expect(validPklWeights({ school: 70, industry: 30 })).toBe(true);
+    expect(validPklWeights({ school: 100, industry: 0 })).toBe(true);
+    expect(validPklWeights({ school: 60, industry: 30 })).toBe(false);
+    expect(validPklWeights({ school: 50.5, industry: 49.5 })).toBe(false);
+    expect(validPklWeights({ school: -10, industry: 110 })).toBe(false);
   });
 });

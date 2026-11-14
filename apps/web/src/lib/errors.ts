@@ -213,6 +213,10 @@ const KNOWN = [
   'nsm_not_applicable',
   'nsm_taken',
   'not_vocational',
+  'pkl_link_incomplete',
+  'invalid_weights',
+  'certificate_taken',
+  'placement_not_completed',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

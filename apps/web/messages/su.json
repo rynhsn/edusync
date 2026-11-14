@@ -1605,7 +1605,11 @@
     "in_use_objective": "TP ieu masih dipaké: dikaitkeun ka panilaian, dipaké ATP, atawa geus boga kaputusan kahontal ti guru. Pareuman wungkul sangkan teu muncul deui.",
     "in_use_outcome": "CP ieu atawa TP di handapeunana masih dipaké ku panilaian, ATP, atawa kaputusan kahontal guru, jadi teu tiasa dihapus. Pareuman wungkul.",
     "not_vocational": "Fitur ieu ngan sayogi pikeun jenjang kejuruan (SMK/MAK).",
-    "in_use_expertise": "Data kaahlian ieu masih aya eusina atawa masih ditaut ka jurusan. Hapus atawa leupaskeun heula, atawa nonaktipkeun waé."
+    "in_use_expertise": "Data kaahlian ieu masih aya eusina atawa masih ditaut ka jurusan. Hapus atawa leupaskeun heula, atawa nonaktipkeun waé.",
+    "pkl_link_incomplete": "Semester jeung mapel PKL kudu dieusian bareng.",
+    "invalid_weights": "Bobot sakola jeung industri kudu duanana kosong atawa duanana wilangan buleud nu jumlahna 100.",
+    "certificate_taken": "Nomer sertifikat éta geus dipaké panempatan séjén.",
+    "placement_not_completed": "Nomer sertifikat ngan pikeun panempatan anu geus réngsé."
   },
   "theme": {
     "label": "Tema",
@@ -2927,6 +2931,7 @@
     "adoptNew": "Adopsi nu anyar ({count})"
   },
   "curriculum": {
+    "pklSuggestion": "Saran lila PKL: {three} JP kelas XII program 3 taun, {four} JP kelas XIII program 4 taun. Sumber: {source}. Ieu ngan saran, lain wates; eusian luyu jeung kurikulum sakola.",
     "title": "Kurikulum",
     "subtitle": "Atur jam pelajaran (JP) unggal mapél per tingkat, kurikulum nu dipaké unggal tingkat, jeung candak mapél tina bank kurikulum.",
     "readOnly": "Anjeun ngan tiasa ningali kaca ieu.",
@@ -4587,7 +4592,16 @@
     "pdfExpertiseProgram": "Program Kaahlian",
     "pdfExpertiseConcentration": "Konsentrasi Kaahlian",
     "pdfGroupOther": "Lianna",
-    "groupOther": "Lianna"
+    "groupOther": "Lianna",
+    "pdfInternshipTitle": "Praktik Kerja Lapangan",
+    "pdfInternshipPartner": "Tempat PKL",
+    "pdfInternshipTime": "Waktu",
+    "pdfInternshipPresent": "Poé hadir",
+    "pdfInternshipSchoolSup": "Pembimbing sakola",
+    "pdfInternshipIndustrySup": "Pembimbing industri",
+    "pdfInternshipAspect": "Aspék",
+    "pdfInternshipFinal": "Nilai akhir",
+    "pdfInternshipCertificate": "No. sertifikat"
   },
   "financeReports": {
     "title": "Laporan kauangan",
@@ -6323,9 +6337,62 @@
       "invalid": "Eusian wilangan bulat 1-100 jeung A leuwih gedé batan B, B leuwih gedé batan C.",
       "save": "Simpen ambang",
       "saved": "Ambang predikat geus disimpen."
+    },
+    "link": {
+      "title": "Asup rapor",
+      "hint": "Tautkeun période ieu ka semester jeung mapel PKL supaya nilai PKL jadi nilai mapel éta dina rapor semester kasebut, milu rata-rata, peringkat, legér, jeung saran kalulusan. Kosongkeun duanana lamun nilai PKL teu kudu asup rapor.",
+      "semester": "Semester rapor",
+      "subject": "Mapel PKL",
+      "none": "Teu asup rapor",
+      "pickSubject": "Pilih mapel PKL",
+      "noSubjects": "Can aya mapel jenis PKL/prakerin. Tambahkeun ngaliwatan ménu Mata pelajaran.",
+      "incomplete": "Pilih semester jeung mapel PKL sakaligus, atawa kosongkeun duanana.",
+      "badge": "Asup rapor: {subject} ({semester})",
+      "notLinked": "Teu asup rapor"
+    },
+    "weights": {
+      "title": "Bobot penilai",
+      "hint": "Atur sabaraha gedé nilai guru pembimbing jeung pembimbing industri mangaruhan nilai unggal aspék. Bawaanna rata-rata penilai nu ngeusian. Upami ngan hiji penilai nu ngeusian, nilaina dipaké langsung. Berlaku pikeun sakabéh layar PKL jeung rapor nu disusun satuluyna; rapor final teu robah.",
+      "school": "Bobot sakola",
+      "industry": "Bobot industri",
+      "average": "Rata-rata penilai (bawaan)",
+      "custom": "Atur bobot sorangan",
+      "total": "Jumlah {total}",
+      "needs100": "Bobot sakola jeung industri kudu jumlahna 100.",
+      "reset": "Balikeun ka rata-rata",
+      "save": "Simpen bobot",
+      "saved": "Bobot penilai disimpen.",
+      "active": "Bobot aktip: sakola {school}, industri {industry}",
+      "averageActive": "Tanpa bobot: rata-rata penilai nu ngeusian"
+    },
+    "certNo": {
+      "title": "Nomer sertifikat",
+      "hint": "Pola pikeun panomeran massal. Paké '{seq}', '{code}', '{roman}', '{month}', '{year}'. Format nomer sertifikat PKL teu diatur sacara nasional, jadi eusian luyu jeung kawijakan sakola.",
+      "pattern": "Pola nomer",
+      "default": "Bawaan: {pattern}",
+      "preview": "Pratinjau: {sample}",
+      "save": "Simpen pola",
+      "saved": "Pola nomer disimpen.",
+      "label": "Nomer sertifikat",
+      "none": "Can aya nomer",
+      "set": "Catet nomer",
+      "edit": "Ganti nomer",
+      "input": "Nomer sertifikat",
+      "saveNumber": "Simpen nomer",
+      "clear": "Hapus nomer",
+      "saved1": "Nomer sertifikat disimpen.",
+      "numberAll": "Nomeran sertifikat",
+      "numbered": "{count} sertifikat dipasihan nomer.",
+      "allNumbered": "Sakabéh panempatan anu réngsé geus aya nomerna.",
+      "completedOnly": "Nomer ngan bisa dicatet pikeun panempatan anu geus réngsé."
+    },
+    "locked": {
+      "banner": "Nilai PKL ieu geus asup rapor final. Buka deui rapor kelasna di ménu Rapor upami nilai kudu dirobah.",
+      "linked": "Nilai akhir ieu jadi nilai mapel PKL dina rapor."
     }
   },
   "pklPublic": {
+    "reportLocked": "Nilai PKL murid ieu geus asup rapor final, jadi teu bisa dirobah deui ngaliwatan tautan ieu. Hubungi guru pembimbing upami aya nu kudu dibenerkeun.",
     "pageTitle": "Pembimbing industri PKL",
     "invalidTitle": "Tautan teu valid atawa geus dicabut",
     "invalidBody": "Menta tautan anyar ka guru pembimbing di sakola.",

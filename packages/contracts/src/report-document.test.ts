@@ -259,3 +259,67 @@ describe('kelompok mapel dan identitas keahlian (tahap 5.2)', () => {
     expect(() => reportDocumentV2Schema.parse({ ...v1, expertise: { field: 'x' } })).toThrow();
   });
 });
+
+describe('PKL di rapor (tahap 5.4)', () => {
+  const internship = [
+    {
+      periodName: 'PKL Semester 5',
+      partner: 'PT Maju Jaya',
+      startsOn: '2026-07-20',
+      endsOn: '2026-12-18',
+      presentDays: 80,
+      schoolSupervisor: 'Bu Sari',
+      industrySupervisor: null,
+      aspects: [
+        { name: 'Disiplin', value: 90 },
+        { name: 'Laporan', value: null },
+      ],
+      final: 90,
+      predicate: 'A' as const,
+      certificateNo: 'PKL/001/SMK/2026',
+    },
+  ];
+
+  it('subjects[].source dan internship lolos skema v2, respons staf, dan portal; v1 membuangnya; versi 2', () => {
+    const doc = {
+      ...v1,
+      subjects: [{ ...v1.subjects[0]!, source: 'internship' as const }, v1.subjects[1]!],
+      internship,
+    };
+    expect(reportDocumentV2Schema.parse(doc)).toEqual(doc);
+    expect(reportDocumentResponseSchema.parse(doc)).toEqual(doc);
+    expect(portalReportDocumentSchema.parse(doc)).toEqual(doc);
+    expect(reportDocumentSchema.parse(doc)).toEqual({ ...v1, subjects: v1.subjects });
+    expect(reportDocumentSchemaVersion(doc)).toBe(2);
+    expect(reportDocumentSchemaVersion({ ...v1, internship })).toBe(2);
+    expect(
+      reportDocumentSchemaVersion({ ...v1, subjects: [{ ...v1.subjects[0]!, source: 'internship' }] }),
+    ).toBe(2);
+  });
+
+  it('mode deskriptif: portal tidak menerima angka PKL (nilai, predikat, nilai per aspek)', () => {
+    const doc = { ...v1, reportMode: 'descriptive' as const, internship };
+    const projected = projectDescriptiveForPortal(doc);
+    expect(projected.internship?.[0]).toMatchObject({
+      partner: 'PT Maju Jaya',
+      final: null,
+      predicate: null,
+    });
+    expect(projected.internship?.[0]?.aspects.every((x) => x.value === null)).toBe(true);
+    expect(projected.internship?.[0]?.certificateNo).toBe('PKL/001/SMK/2026');
+    // Tanpa blok PKL proyeksi tidak menambah kunci.
+    expect(projectDescriptiveForPortal({ ...v1, reportMode: 'descriptive' as const })).not.toHaveProperty(
+      'internship',
+    );
+  });
+
+  it('tanpa kunci PKL dokumen tetap v1; bentuk salah ditolak', () => {
+    expect(reportDocumentSchemaVersion({ ...v1, internship: undefined })).toBe(1);
+    expect(REPORT_V2_DOCUMENT_KEYS).toContain('internship');
+    expect(REPORT_V2_SUBJECT_KEYS).toContain('source');
+    expect(() => reportDocumentV2Schema.parse({ ...v1, internship: [{ periodName: 'x' }] })).toThrow();
+    expect(() =>
+      reportDocumentV2Schema.parse({ ...v1, subjects: [{ ...v1.subjects[0]!, source: 'lain' }] }),
+    ).toThrow();
+  });
+});

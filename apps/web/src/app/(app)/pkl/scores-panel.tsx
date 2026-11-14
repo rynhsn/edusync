@@ -1,7 +1,7 @@
 'use client';
 
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Award, Download, Save } from 'lucide-react';
+import { Award, Download, Hash, Lock, Save } from 'lucide-react';
 import { useTranslations } from 'next-intl';
 import { useEffect, useState } from 'react';
 import { toast } from 'sonner';
@@ -38,7 +38,7 @@ const LS_KEY = 'edusync.pkl.certificate';
 export function ScoresPanel({ placement, period }: { placement: PklPlacement; period: Period | null }) {
   const t = useTranslations('pkl');
   const te = useTranslations();
-  const { school } = useSchool();
+  const { school, can } = useSchool();
   const queryClient = useQueryClient();
   const header = { header: schoolHeader(school.schoolId) };
   const writable = placement.canWrite && placement.status !== 'cancelled';
@@ -100,7 +100,7 @@ export function ScoresPanel({ placement, period }: { placement: PklPlacement; pe
       </Alert>
     );
   }
-  const { aspects, result } = sheet.data;
+  const { aspects, result, weights, reportLinked } = sheet.data;
   if (aspects.length === 0) {
     return (
       <div className="text-muted-foreground rounded-xl border border-dashed px-4 py-10 text-center text-sm">
@@ -170,6 +170,16 @@ export function ScoresPanel({ placement, period }: { placement: PklPlacement; pe
             </TableBody>
           </Table>
         </div>
+        <p className="text-muted-foreground text-xs">
+          {weights
+            ? t('weights.active', { school: weights.school, industry: weights.industry })
+            : t('weights.averageActive')}
+        </p>
+        {reportLinked && (
+          <p className="text-muted-foreground flex items-center gap-1.5 text-xs">
+            <Lock className="size-3.5 shrink-0" aria-hidden /> {t('locked.linked')}
+          </p>
+        )}
         {error && (
           <Alert variant="destructive" role="alert">
             <AlertDescription>{error}</AlertDescription>
@@ -208,6 +218,7 @@ export function ScoresPanel({ placement, period }: { placement: PklPlacement; pe
               placement={placement}
               period={period}
               final={result.final}
+              certificateNo={sheet.data.certificateNo}
               predicate={result.predicate}
               aspects={aspects.map((a) => ({
                 name: a.name,
@@ -217,7 +228,109 @@ export function ScoresPanel({ placement, period }: { placement: PklPlacement; pe
             />
           </>
         )}
+        <CertificateNumber
+          placementId={placement.id}
+          status={placement.status}
+          certificateNo={sheet.data.certificateNo}
+          canManage={can('pkl:manage')}
+        />
       </aside>
+    </div>
+  );
+}
+
+/** Nomor sertifikat penempatan (5.3): tampil, dan dicatat/diubah pengelola PKL hanya bila penempatan sudah selesai. */
+function CertificateNumber({
+  placementId,
+  status,
+  certificateNo,
+  canManage,
+}: {
+  placementId: string;
+  status: string;
+  certificateNo: string | null;
+  canManage: boolean;
+}) {
+  const t = useTranslations('pkl');
+  const te = useTranslations();
+  const { school } = useSchool();
+  const queryClient = useQueryClient();
+  const [value, setValue] = useState(certificateNo ?? '');
+  const [editing, setEditing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  useEffect(() => setValue(certificateNo ?? ''), [certificateNo]);
+  const save = useMutation({
+    mutationFn: async (next: string | null) =>
+      unwrap(
+        await api.PUT('/v1/pkl/placements/{id}/certificate', {
+          params: { header: schoolHeader(school.schoolId), path: { id: placementId } },
+          body: { certificateNo: next },
+        }),
+      ),
+    onSuccess: () => {
+      toast.success(t('certNo.saved1'));
+      setError(null);
+      setEditing(false);
+      queryClient.invalidateQueries({ queryKey: pklKey(school.schoolId) });
+    },
+    onError: (e) => setError(te(errorKey(e))),
+  });
+  const canEdit = canManage && status === 'completed';
+  return (
+    <div className="border-t pt-3 text-left">
+      <p className="text-muted-foreground flex items-center gap-1.5 text-xs font-medium">
+        <Hash className="size-3.5" aria-hidden /> {t('certNo.label')}
+      </p>
+      {editing ? (
+        <form
+          className="mt-2 grid gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            save.mutate(value.trim() || null);
+          }}
+        >
+          <Input
+            aria-label={t('certNo.input')}
+            className={TOUCH_INPUT}
+            maxLength={80}
+            autoComplete="off"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+          />
+          {error && (
+            <p role="alert" className="text-destructive text-xs">
+              {error}
+            </p>
+          )}
+          <div className="flex gap-2">
+            <Button type="submit" size="sm" disabled={save.isPending}>
+              {t('certNo.saveNumber')}
+            </Button>
+            <Button type="button" size="sm" variant="ghost" onClick={() => setEditing(false)}>
+              {t('cancel')}
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <>
+          <p className="mt-1 text-sm font-medium break-all tabular-nums">
+            {certificateNo ?? <span className="text-muted-foreground font-normal">{t('certNo.none')}</span>}
+          </p>
+          {canEdit ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="mt-2"
+              onClick={() => setEditing(true)}
+            >
+              {certificateNo ? t('certNo.edit') : t('certNo.set')}
+            </Button>
+          ) : canManage && !certificateNo ? (
+            <p className="text-muted-foreground mt-1 text-xs">{t('certNo.completedOnly')}</p>
+          ) : null}
+        </>
+      )}
     </div>
   );
 }
@@ -228,9 +341,11 @@ function CertificateDialog({
   final,
   predicate,
   aspects,
+  certificateNo,
 }: {
   placement: PklPlacement;
   period: Period | null;
+  certificateNo: string | null;
   final: number;
   predicate: 'A' | 'B' | 'C' | 'D';
   aspects: { name: string; weight: number; value: number | null }[];
@@ -298,6 +413,7 @@ function CertificateDialog({
             dateIso: date,
             principalName: principal.trim(),
             industrySupervisorName: placement.industrySupervisorName,
+            certificateNo,
           });
         } catch (e) {
           setError(t('certificateError'));

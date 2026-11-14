@@ -294,6 +294,7 @@ export interface PortalReportDocument {
     belowKkm?: boolean;
     descriptionSource?: 'manual' | 'objectives';
     group?: { key: string; label: string; section: string | null };
+    source?: 'internship';
   }[];
   extracurriculars: { name: string; predicate: Predicate | null; note: string | null }[];
   attendance: { sick: number; excused: number; absent: number; late: number };
@@ -308,6 +309,19 @@ export interface PortalReportDocument {
   cocurricular?: CocurricularProgramLike[];
   schoolNsm?: string;
   expertise?: { field: string; program: string; concentration: string };
+  internship?: {
+    periodName: string;
+    partner: string;
+    startsOn: string;
+    endsOn: string;
+    presentDays: number;
+    schoolSupervisor: string | null;
+    industrySupervisor: string | null;
+    aspects: { name: string; value: number | null }[];
+    final: number | null;
+    predicate: Predicate | null;
+    certificateNo?: string;
+  }[];
   developmentNote?: string | null;
   guardianResponses?: PortalGuardianResponse[];
 }

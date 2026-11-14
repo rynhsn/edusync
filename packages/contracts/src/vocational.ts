@@ -50,3 +50,42 @@ export const vocationalReportSettingSchema = z.object({
     .describe('Rapor dikelompokkan menurut kelompok mapel (Umum/Kejuruan) dan kop memuat identitas keahlian'),
 });
 export type VocationalReportSetting = z.infer<typeof vocationalReportSettingSchema>;
+
+/** Kode galat tahap 5.3. */
+export const PKL_LINK_ERROR_CODES = [
+  'invalid_weights',
+  'invalid_pattern',
+  'pkl_link_incomplete',
+  'certificate_taken',
+  'placement_not_completed',
+  'report_final',
+] as const;
+
+/**
+ * Pengaturan PKL kejuruan (5.3): bobot penilai sekolah:industri dan pola nomor sertifikat. Bobot kosong (null) = rumus lama
+ * (rata-rata penilai yang ada). Pola kosong (null) = pola bawaan `DEFAULT_PKL_CERTIFICATE_PATTERN`.
+ */
+export const vocationalPklSettingSchema = z.object({
+  schoolWeight: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .nullable()
+    .describe('Bobot nilai penilai sekolah (0-100); null = rata-rata'),
+  industryWeight: z
+    .number()
+    .int()
+    .min(0)
+    .max(100)
+    .nullable()
+    .describe('Bobot nilai penilai industri (0-100); null = rata-rata'),
+  certificatePattern: z
+    .string()
+    .trim()
+    .max(120)
+    .nullish()
+    .transform((v) => (v ? v : null))
+    .describe('Pola nomor sertifikat: {seq}, {code}, {roman}, {month}, {year}; kosong = bawaan'),
+});
+export type VocationalPklSetting = z.infer<typeof vocationalPklSettingSchema>;

@@ -731,6 +731,32 @@ describe('kebijakan peran bawaan', () => {
     }
   });
 
+  it('rute PKL ke rapor (tahap 5.3) memakai izin pkl:* dan gerbang modul internship; tanpa izin baru', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const groups: [string, (ReturnType<typeof find> | undefined)[]][] = [
+      ['pkl:read', [find('GET', '/v1/vocational/settings/pkl')]],
+      [
+        'pkl:manage',
+        [
+          find('PUT', '/v1/vocational/settings/pkl'),
+          find('PUT', '/v1/pkl/placements/:id/certificate'),
+          find('POST', '/v1/pkl/periods/:id/certificates'),
+        ],
+      ],
+    ];
+    for (const [perm, list] of groups) {
+      for (const e of list) {
+        expect(e, perm).toBeDefined();
+        expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([[perm], ['internship']]);
+        expect(e?.description).toContain(`Izin: \`${perm}\``);
+      }
+      for (const r of roleKeys) {
+        const has = (SYSTEM_ROLES[r].permissions as readonly string[]).includes(perm);
+        for (const e of list) expect(allows(r, e!), `${r} ${e?.url}`).toBe(has);
+      }
+    }
+  });
+
   it('rute ekspor akademik (tahap 3C.5) memasang data_export:run tanpa modul di gerbang', () => {
     const e = eps.find((x) => x.method === 'GET' && x.url === '/v1/exports/academic');
     // Modul grades hanya diperiksa di handler untuk dataset nilai (400 dataset_requires_module), bukan di gerbang rute.

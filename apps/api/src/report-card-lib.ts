@@ -4,10 +4,13 @@ import {
   DEFAULT_PREDICATE_DESCRIPTIONS,
   descriptionOf,
   type ObjectiveNarrative,
+  pklPredicate,
+  pklResult,
   type ReportCocurricular,
   type ReportDocument,
   type ReportDocumentV2,
   type ReportExpertise,
+  type ReportInternship,
   type ReportSubjectGroup,
   rankPositions,
 } from '@edusync/contracts';
@@ -29,7 +32,14 @@ import {
   inArray,
   isNull,
   lte,
+  ne,
   or,
+  pklAspect,
+  pklJournal,
+  pklPartner,
+  pklPeriod,
+  pklPlacement,
+  pklScore,
   programConcentration,
   refSubjectGroup,
   reportCardSection,
@@ -40,6 +50,7 @@ import {
   schoolLevel,
   schoolProfileItem,
   semester,
+  sql,
   subject,
   type Tx,
   teacher,
@@ -51,6 +62,7 @@ import {
 import { type EffectiveGradingConfig, loadGradingConfig, remedialContextFor } from './grading-config-lib';
 import { assessedSubjects, computeGrades, notCountedComponentIds, type StudentGrade } from './grading-lib';
 import { HttpError } from './http-error';
+import { pklThresholds, pklWeights } from './pkl-lib';
 import { isNarrativeStale, loadObjectiveNarratives, type ObjectiveNarratives } from './report-narrative-lib';
 import { semesterRosterOf } from './student-mobility-lib';
 import { type SubjectTakers, takersOf, takes } from './subject-roster-lib';
@@ -162,7 +174,12 @@ export interface ClassContext {
     expertise: ReportExpertise | null;
     groups: Map<string, ReportSubjectGroup & { sort: number }>;
   } | null;
-  /** Mapel kelas yang dinilai pada semester itu; mapel yang dipilih per murid disaring lewat `subjectsOf`. */
+  /**
+   * PKL pada rapor semester ini (5.4): null bila tidak ada periode PKL yang ditautkan ke semester ini dengan penempatan murid kelas
+   * ini (dokumen persis seperti sebelumnya). `subjectIds` = mapel PKL; `entries` = rincian per murid untuk kunci dokumen `internship`.
+   */
+  internship: { subjectIds: Set<string>; entries: Map<string, ReportInternship> } | null;
+  /** Mapel kelas yang dinilai pada semester itu (ditambah mapel PKL tertaut); mapel yang dipilih per murid disaring lewat `subjectsOf`. */
   subjects: { id: string; name: string }[];
   /** Pengambil per mapel berpenanda partisipasi (3B.2); `null` = tidak ada mapel pilihan, semua murid mengambil semua mapel. */
   takers: SubjectTakers | null;
@@ -231,6 +248,108 @@ async function loadVocationalReport(tx: Tx, programId: string | null, subjectIds
   return { expertise, groups };
 }
 
+/**
+ * Nilai PKL untuk rapor semester (tahap 5.4): periode PKL yang ditautkan ke semester ini, penempatan non-batal murid-murid itu. Nilai
+ * akhir per penempatan = `pklResult` (bobot sekolah bila diatur), predikat = ambang `pkl_setting`. Murid dengan lebih dari satu
+ * penempatan pada mapel yang sama (rotasi) mendapat rata-rata nilai akhir yang ada. Maksimal enam kueri tanpa memandang jumlah murid;
+ * hanya dipanggil bila ada periode tertaut (`loadClassContext`), jadi sekolah tanpa tautan tidak menambah kueri.
+ */
+export async function loadInternship(tx: Tx, semesterId: string, studentIds: string[]) {
+  if (studentIds.length === 0) return null;
+  const rows = await tx
+    .select({
+      placementId: pklPlacement.id,
+      studentId: pklPlacement.studentId,
+      periodName: pklPeriod.name,
+      startsOn: pklPeriod.startsOn,
+      endsOn: pklPeriod.endsOn,
+      subjectId: subject.id,
+      subjectName: subject.name,
+      partner: pklPartner.name,
+      schoolSupervisor: teacher.name,
+      industrySupervisor: pklPlacement.industrySupervisorName,
+      certificateNo: pklPlacement.certificateNo,
+    })
+    .from(pklPlacement)
+    .innerJoin(pklPeriod, eq(pklPeriod.id, pklPlacement.periodId))
+    .innerJoin(subject, eq(subject.id, pklPeriod.subjectId))
+    .innerJoin(pklPartner, eq(pklPartner.id, pklPlacement.partnerId))
+    .leftJoin(teacher, eq(teacher.id, pklPlacement.supervisorTeacherId))
+    .where(
+      and(
+        eq(pklPeriod.semesterId, semesterId),
+        inArray(pklPlacement.studentId, studentIds),
+        ne(pklPlacement.status, 'cancelled'),
+      ),
+    )
+    .orderBy(asc(pklPeriod.startsOn), asc(pklPeriod.name), asc(pklPlacement.id));
+  if (rows.length === 0) return null;
+  const placementIds = rows.map((r) => r.placementId);
+  const [aspects, scores, present, thresholds, weights] = await Promise.all([
+    tx.select().from(pklAspect).orderBy(asc(pklAspect.sort), asc(pklAspect.name)),
+    tx.select().from(pklScore).where(inArray(pklScore.placementId, placementIds)),
+    tx
+      .select({ id: pklJournal.placementId, n: count() })
+      .from(pklJournal)
+      .where(and(inArray(pklJournal.placementId, placementIds), eq(pklJournal.present, true)))
+      .groupBy(pklJournal.placementId),
+    pklThresholds(tx),
+    pklWeights(tx),
+  ]);
+  const subjects = new Map<string, { id: string; name: string }>();
+  const entries = new Map<string, ReportInternship>();
+  const finals = new Map<string, Map<string, number[]>>();
+  for (const r of rows) {
+    subjects.set(r.subjectId, { id: r.subjectId, name: r.subjectName });
+    const result = pklResult(
+      aspects,
+      scores.filter((x) => x.placementId === r.placementId),
+      weights,
+    );
+    const predicate = result.final === null ? null : pklPredicate(result.final, thresholds);
+    const list = entries.get(r.studentId) ?? [];
+    list.push({
+      periodName: r.periodName,
+      partner: r.partner,
+      startsOn: r.startsOn,
+      endsOn: r.endsOn,
+      presentDays: present.find((x) => x.id === r.placementId)?.n ?? 0,
+      schoolSupervisor: r.schoolSupervisor ?? null,
+      industrySupervisor: r.industrySupervisor,
+      aspects: aspects.map((a) => ({
+        name: a.name,
+        value: result.perAspect.find((p) => p.aspectId === a.id)?.value ?? null,
+      })),
+      final: result.final,
+      predicate,
+      ...(r.certificateNo ? { certificateNo: r.certificateNo } : {}),
+    });
+    entries.set(r.studentId, list);
+    if (result.final !== null) {
+      const bySubject = finals.get(r.subjectId) ?? new Map<string, number[]>();
+      bySubject.set(r.studentId, [...(bySubject.get(r.studentId) ?? []), result.final]);
+      finals.set(r.subjectId, bySubject);
+    }
+  }
+  const grades = new Map<string, Map<string, StudentGrade>>();
+  const takers: SubjectTakers = new Map();
+  for (const r of rows) {
+    const g = grades.get(r.subjectId) ?? new Map<string, StudentGrade>();
+    const mine = finals.get(r.subjectId)?.get(r.studentId) ?? [];
+    const final = mine.length ? averageOfFinals(mine) : null;
+    g.set(r.studentId, {
+      perComponent: [],
+      final,
+      predicate: final === null ? null : pklPredicate(final, thresholds),
+    });
+    grades.set(r.subjectId, g);
+    const set = takers.get(r.subjectId) ?? new Set<string>();
+    set.add(r.studentId);
+    takers.set(r.subjectId, set);
+  }
+  return { subjects: [...subjects.values()], grades, takers, entries };
+}
+
 export async function loadClassContext(
   tx: Tx,
   sem: SemesterRow,
@@ -238,9 +357,13 @@ export async function loadClassContext(
   extraStudentIds: string[] = [],
 ): Promise<ClassContext> {
   const { cls, rows: roster } = await semesterRosterOf(tx, clsInput.id, sem);
-  // Satu kueri untuk nama sekolah dan sakelar kejuruan (jumlah kueri konteks tidak bertambah).
+  // Satu kueri untuk nama sekolah, sakelar kejuruan, dan ada-tidaknya periode PKL tertaut ke semester ini (jumlah kueri konteks tetap).
   const [sch] = await tx
-    .select({ name: school.name, reportGrouped: vocationalSetting.reportGrouped })
+    .select({
+      name: school.name,
+      reportGrouped: vocationalSetting.reportGrouped,
+      hasPkl: sql<boolean>`exists (select 1 from ${pklPeriod} where ${pklPeriod.semesterId} = ${sem.id})`,
+    })
     .from(school)
     .leftJoin(vocationalSetting, eq(vocationalSetting.schoolId, school.id));
   const [ident] = await tx.select({ nsm: schoolIdentifier.nsm }).from(schoolIdentifier);
@@ -251,26 +374,43 @@ export async function loadClassContext(
   const cfg = await loadGradingConfig(tx, sem.id);
   const { settings, components, kkmResolver } = cfg;
   const reportSettings = await loadReportSettings(tx);
-  const subjects = await assessedSubjects(tx, sem.id, cls.id, notCountedComponentIds(components));
+  const assessed = await assessedSubjects(tx, sem.id, cls.id, notCountedComponentIds(components));
   const studentIds = [...new Set([...roster.map((s) => s.id), ...extraStudentIds])];
+  // PKL (5.4): periode yang ditautkan ke semester ini menambah mapel PKL; tanpa tautan hasilnya null dan semua di bawah identik.
+  const pkl = sch?.hasPkl ? await loadInternship(tx, sem.id, studentIds) : null;
+  const subjects = pkl
+    ? [...assessed, ...pkl.subjects.filter((p) => !assessed.some((a) => a.id === p.id))].sort((a, b) =>
+        a.name.localeCompare(b.name),
+      )
+    : assessed;
   // Satu kueri batch (dua bila ada mapel pilihan) tanpa memandang jumlah murid; sekolah tanpa penanda mendapat null.
-  const takers = await takersOf(tx, {
+  const choice = await takersOf(tx, {
     classId: cls.id,
     semesterId: sem.id,
     subjectIds: subjects.map((s) => s.id),
     academicYearId: cls.academicYearId,
   });
+  // Pengambil mapel PKL ditentukan penempatan (A2: `takers` boleh ditambah; mapel tanpa entri = semua murid). Menggantikan penanda
+  // pilihan bila mapel PKL juga ditandai pilihan di rombel ini.
+  const takers: SubjectTakers | null = pkl ? new Map([...(choice ?? []), ...pkl.takers]) : choice;
   const grades = await computeGrades(tx, {
     semesterId: sem.id,
     classId: cls.id,
-    subjectIds: subjects.map((s) => s.id),
+    subjectIds: assessed.map((s) => s.id),
     studentIds,
     components,
     settings,
     takers,
     // Nilai efektif remedial menurut kebijakan semester (undefined = record_only: tanpa kueri tambahan, hasil identik).
-    remedial: await remedialContextFor(tx, cfg, { classId: cls.id, subjectIds: subjects.map((s) => s.id) }),
+    remedial: await remedialContextFor(tx, cfg, { classId: cls.id, subjectIds: assessed.map((s) => s.id) }),
   });
+  if (pkl) {
+    for (const [subjectId, byStudent] of pkl.grades) {
+      const existing = grades.get(subjectId) ?? new Map<string, StudentGrade>();
+      for (const [studentId, g] of byStudent) existing.set(studentId, g);
+      grades.set(subjectId, existing);
+    }
+  }
   const vocational = sch?.reportGrouped
     ? await loadVocationalReport(
         tx,
@@ -308,6 +448,7 @@ export async function loadClassContext(
     schoolName: sch?.name ?? '',
     schoolNsm: ident?.nsm ?? null,
     vocational,
+    internship: pkl ? { subjectIds: new Set(pkl.subjects.map((p) => p.id)), entries: pkl.entries } : null,
     reportSettings,
     cfg,
     kkm: settings.kkm,
@@ -677,6 +818,7 @@ export async function buildDocument(
         description: manual ?? obj?.text ?? (predicate && !descriptive ? descriptionOf(predicate, d) : null),
         belowKkm: final !== null && final < kkm,
         ...(group ? { group: { key: group.key, label: group.label, section: group.section } } : {}),
+        ...(c.internship?.subjectIds.has(sub.id) ? { source: 'internship' as const } : {}),
         ...(manual
           ? { descriptionSource: 'manual' as const }
           : obj
@@ -698,6 +840,7 @@ export async function buildDocument(
     ...(v2.cocurricular?.length ? { cocurricular: v2.cocurricular } : {}),
     ...(c.schoolNsm ? { schoolNsm: c.schoolNsm } : {}),
     ...(c.vocational?.expertise ? { expertise: c.vocational.expertise } : {}),
+    ...(c.internship?.entries.get(stu.id) ? { internship: c.internship.entries.get(stu.id) } : {}),
     ...(descriptive && v2.developmentNote ? { developmentNote: v2.developmentNote } : {}),
     generatedAt: new Date().toISOString(),
   };

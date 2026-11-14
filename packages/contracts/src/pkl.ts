@@ -36,24 +36,52 @@ export const PKL_PREDICATE_SETTINGS = { predicateA: 90, predicateB: 80, predicat
 
 const round2 = (n: number) => Math.round((n + Number.EPSILON) * 100) / 100;
 
+/** Bobot penilai sekolah:industri (fase 5.3). Bilangan bulat >= 0 berjumlah 100. Tanpa bobot = rata-rata penilai yang ada. */
+export interface PklWeights {
+  school: number;
+  industry: number;
+}
+
+export function validPklWeights(w: PklWeights): boolean {
+  return (
+    Number.isInteger(w.school) &&
+    Number.isInteger(w.industry) &&
+    w.school >= 0 &&
+    w.industry >= 0 &&
+    w.school + w.industry === 100
+  );
+}
+
 /**
  * Nilai tiap aspek = rata-rata nilai penilai yang ada (sekolah dan industri). Nilai akhir = rata-rata tertimbang
  * aspek yang punya nilai (bobot dinormalisasi atas aspek itu saja), dibulatkan 2 desimal.
+ *
+ * `weights` (opsional, 5.3): nilai aspek = rata-rata tertimbang penilai YANG ADA (bobot dinormalisasi atas penilai yang mengisi; bila
+ * jumlah bobot penilai yang ada 0, jatuh ke rata-rata biasa). Tanpa `weights` hasilnya persis rumus sebelumnya.
  */
-export function pklResult(aspects: readonly PklAspectInput[], scores: readonly PklScoreInput[]): PklResult {
+export function pklResult(
+  aspects: readonly PklAspectInput[],
+  scores: readonly PklScoreInput[],
+  weights?: PklWeights | null,
+): PklResult {
   let weighted = 0;
-  let weights = 0;
+  let weightSum = 0;
   const perAspect = aspects.map((a) => {
     const mine = scores.filter((s) => s.aspectId === a.id);
     if (mine.length === 0) return { aspectId: a.id, value: null };
-    const avg = mine.reduce((sum, s) => sum + s.value, 0) / mine.length;
+    let avg = mine.reduce((sum, s) => sum + s.value, 0) / mine.length;
+    if (weights) {
+      const w = (s: PklScoreInput) => (s.assessor === 'school' ? weights.school : weights.industry);
+      const total = mine.reduce((sum, s) => sum + w(s), 0);
+      if (total > 0) avg = mine.reduce((sum, s) => sum + s.value * w(s), 0) / total;
+    }
     if (a.weight > 0) {
       weighted += avg * a.weight;
-      weights += a.weight;
+      weightSum += a.weight;
     }
     return { aspectId: a.id, value: round2(avg) };
   });
-  return { perAspect, final: weights === 0 ? null : round2(weighted / weights) };
+  return { perAspect, final: weightSum === 0 ? null : round2(weighted / weightSum) };
 }
 
 /** Predikat PKL dari nilai akhir; ambang bawaan bila `settings` tidak diberikan. */
@@ -84,3 +112,18 @@ export const placementStatusTransitions: Record<PklPlacementStatus, readonly Pkl
 export function canPlacementTransition(from: PklPlacementStatus, to: PklPlacementStatus): boolean {
   return placementStatusTransitions[from].includes(to);
 }
+
+/** Pola bawaan nomor sertifikat PKL: usulan, bukan aturan (format resmi tidak ditemukan). Placeholder seperti nomor surat. */
+export const DEFAULT_PKL_CERTIFICATE_PATTERN = 'PKL/{seq}/{code}/{year}';
+
+/**
+ * Saran lama PKL (jam pelajaran) untuk petunjuk di alokasi mapel PKL. HANYA saran berlabel sumber: bukan konstanta aturan dan
+ * tidak divalidasi atau disimpan. Isi Lampiran II Permendikdasmen 13/2025 belum terbaca, jadi sekolah wajib memeriksanya.
+ */
+export const PKL_PERIOD_SUGGESTIONS = {
+  source: 'Struktur kurikulum SMK 2022 (salinan JDIH); periksa Lampiran II Permendikdasmen 13/2025',
+  items: [
+    { programYears: 3, level: 'XII', periods: 792 },
+    { programYears: 4, level: 'XIII', periods: 1368 },
+  ],
+} as const;

@@ -203,6 +203,13 @@ export function PklPublicView({ token }: { token: string }) {
               </Alert>
             )}
 
+            {data.reportLocked && (
+              <Alert role="status">
+                <Eye className="size-4" aria-hidden />
+                <AlertDescription>{t('reportLocked')}</AlertDescription>
+              </Alert>
+            )}
+
             {data.canWrite && (
               <form
                 className="bg-card grid gap-3 rounded-2xl border p-5 shadow-sm"
@@ -317,7 +324,7 @@ export function PklPublicView({ token }: { token: string }) {
                           max={100}
                           step={1}
                           aria-label={a.name}
-                          disabled={!data.canWrite}
+                          disabled={!data.canWrite || data.reportLocked}
                           value={n ?? 0}
                           onChange={(e) => setDrafts({ ...drafts, [a.id]: { ...d, value: e.target.value } })}
                           className="h-2 flex-1 accent-orange-500"
@@ -328,7 +335,7 @@ export function PklPublicView({ token }: { token: string }) {
                           maxLength={3}
                           className="w-16 text-center"
                           aria-invalid={d.value.trim() !== '' && n === null}
-                          disabled={!data.canWrite}
+                          disabled={!data.canWrite || data.reportLocked}
                           value={d.value}
                           onChange={(e) => setDrafts({ ...drafts, [a.id]: { ...d, value: e.target.value } })}
                         />
@@ -337,7 +344,7 @@ export function PklPublicView({ token }: { token: string }) {
                         maxLength={500}
                         aria-label={`${t('note')}: ${a.name}`}
                         placeholder={t('note')}
-                        disabled={!data.canWrite}
+                        disabled={!data.canWrite || data.reportLocked}
                         value={d.note}
                         onChange={(e) => setDrafts({ ...drafts, [a.id]: { ...d, note: e.target.value } })}
                       />
@@ -358,7 +365,7 @@ export function PklPublicView({ token }: { token: string }) {
                     <CheckCircle2 className="size-4" aria-hidden /> {t('scoresSaved')}
                   </p>
                 )}
-                {data.canWrite && (
+                {data.canWrite && !data.reportLocked && (
                   <Button type="submit" size="lg" disabled={scoreInvalid || saveScores.isPending}>
                     {t('saveScores')}
                   </Button>

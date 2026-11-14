@@ -282,6 +282,30 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   konsentrasi. Pratinjau, PDF, dan portal menampilkan subjudul kelompok dan identitas keahlian di kop. Sekolah non-SMK dan SMK tanpa
   sakelar: dokumen, snapshot, leger, saran kelulusan, dan ekspor identik dengan sebelumnya. Bantuan baru "SMK: bidang, program,
   konsentrasi keahlian dan rapor berkelompok" (id/en/su).
+- **SMK: PKL ditautkan ke rapor** (fase 5, tahap 5.3; migrasi 0111, aditif): periode PKL kini dapat ditautkan ke semester dan mapel PKL
+  (`pkl_period.semester_id` dan `subject_id`, berpasangan, FK komposit; mapel harus aktif dan berjenis PKL, semester pada tahun ajaran
+  periode) lewat `semesterId` dan `subjectId` opsional di `POST/PUT /v1/pkl/periods` (galat `pkl_link_incomplete` dan
+  `invalid_reference`; dihilangkan saat mengubah = tautan tidak berubah, keduanya null = lepas). Bobot penilai sekolah:industri
+  (jumlah 100) dan pola nomor sertifikat diatur lewat `GET/PUT /v1/vocational/settings/pkl` (izin `pkl:read` dan `pkl:manage`,
+  jenjang kejuruan; `invalid_weights`, `invalid_pattern`); bobot kosong = rumus lama persis (rata-rata penilai yang ada), dengan bobot
+  nilai aspek = rata-rata tertimbang penilai yang mengisi (`pklResult(aspects, scores, weights?)`). Nomor sertifikat PKL
+  (`pkl_placement.certificate_no`, unik per sekolah): `PUT /v1/pkl/placements/{id}/certificate` dan penomoran massal
+  `POST /v1/pkl/periods/{id}/certificates` (pola bawaan `PKL/{seq}/{code}/{year}` hanya usulan; format resmi tidak ada; galat
+  `certificate_taken`, `placement_not_completed`); nomor ikut dicetak di sertifikat PDF. Nilai PKL dikunci saat rapor final: mengisi
+  nilai lewat staf, guru pembimbing, atau tautan pembimbing industri pada periode tertaut ditolak `409 report_final` (halaman tautan
+  menampilkan keterangan terkunci lewat `reportLocked`), begitu pula mengubah nomor sertifikat dan mengganti atau melepas tautan
+  semester yang rapornya final. Lembar nilai dan penempatan bertambah kunci `weights`, `certificateNo`, dan `reportLinked`. UI: bagian
+  Masuk rapor di formulir periode, kartu Bobot penilai dan Nomor sertifikat di Pengaturan PKL, nomor di panel nilai, dan saran lama
+  PKL (792 JP kelas XII program 3 tahun, 1.368 JP kelas XIII program 4 tahun; salinan struktur kurikulum SMK 2022, hanya saran
+  berlabel sumber, bukan validasi) di alokasi mapel PKL. Periode tanpa tautan berperilaku persis seperti sebelumnya.
+- **SMK: nilai PKL di rapor** (fase 5, tahap 5.4; tanpa migrasi): untuk periode tertaut, nilai akhir PKL menjadi baris mapel PKL di
+  `subjects[]` rapor (kunci sparse `source: "internship"`; predikat memakai ambang PKL) dan rincian per penempatan di kunci dokumen
+  `internship` (tempat, tanggal, hari hadir menurut jurnal, pembimbing, nilai per aspek, nilai akhir, predikat, nomor sertifikat).
+  Hanya murid yang punya penempatan non-batal yang mengambil mapel itu; dua penempatan pada mapel dan semester yang sama dirata-rata.
+  Nilai PKL ikut rata-rata, peringkat, dan kelengkapan finalisasi; leger, saran kelulusan, transkrip, dan ekspor nilai akhir ikut
+  otomatis lewat snapshot (tanpa jalur baru). Pratinjau, PDF (blok Praktik Kerja Lapangan), dan portal menampilkannya; mode deskriptif
+  membuang angka blok PKL di portal. Tanpa periode tertaut dokumen tetap v1 dan identik. Bantuan baru "Nilai PKL di rapor, bobot
+  penilai, dan nomor sertifikat" (id/en/su).
 
 ### Diubah
 
@@ -351,6 +375,11 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
 - SMK (tahap 5.1 dan 5.2): tabel struktur keahlian dan `vocational_setting` dibiarkan di database. Setelah kembali ke versi sebelumnya
   hierarki keahlian dan sakelar tidak terbaca, rapor tidak lagi berkelompok, dan kunci `group` serta `expertise` pada snapshot rapor final
   diabaikan (rapor tetap terbaca tanpa keduanya). Tidak ada efek pada nilai, kenaikan, atau kelulusan.
+- SMK (tahap 5.3 dan 5.4): kolom `pkl_period.semester_id`/`subject_id`, `pkl_placement.certificate_no`, dan kolom bobot/pola di
+  `vocational_setting` dibiarkan di database. Setelah kembali ke versi sebelumnya periode tertaut diperlakukan tanpa tautan: baris PKL
+  hilang dari rapor DRAF (rapor final aman, dibaca dari snapshot; kunci `internship` dan `source` diabaikan), bobot penilai diabaikan
+  (nilai kembali rata-rata penilai) dan nilai PKL tidak lagi terkunci saat rapor final. Tidak ada tabel baru; tidak ada efek pada sekolah
+  yang tidak menautkan periode.
 - Rapor kokurikuler (tahap 4.4): tanpa migrasi. Snapshot rapor final yang sudah memuat `cocurricular` tetap utuh di database; versi lama tidak
   membacanya (kunci itu diabaikan saat respons dibentuk), sehingga rapor final tetap terbaca seperti rapor tanpa bagian kokurikuler
   terstruktur. Tidak ada efek pada nilai, kenaikan, atau kelulusan.

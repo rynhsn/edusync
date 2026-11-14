@@ -23,7 +23,14 @@ import type { ZodTypeProvider } from 'fastify-type-provider-zod';
 import { z } from 'zod';
 import { todayInJakarta } from '../attendance-lib';
 import { errorSchema, HttpError } from '../http-error';
-import { assertJournalDate, hashAccessToken, linkCanWrite, saveScores, scoreRecordsBody } from '../pkl-lib';
+import {
+  assertJournalDate,
+  assertPlacementReportOpen,
+  hashAccessToken,
+  linkCanWrite,
+  saveScores,
+  scoreRecordsBody,
+} from '../pkl-lib';
 import { journalBody } from './pkl';
 
 const tags = ['PKL (publik)'];
@@ -108,6 +115,9 @@ export async function pklPublicRoutes(instance: FastifyInstance) {
               }),
             ),
             canWrite: z.boolean(),
+            reportLocked: z
+              .boolean()
+              .describe('Nilai PKL ini sudah masuk rapor final: pengisian nilai ditolak 409 `report_final`'),
           }),
           404: errorSchema,
           429: errorSchema,
@@ -157,6 +167,13 @@ export async function pklPublicRoutes(instance: FastifyInstance) {
             };
           }),
           canWrite: linkCanWrite(period.endsOn, p.status, todayInJakarta()),
+          reportLocked: await assertPlacementReportOpen(tx, p.id).then(
+            () => false,
+            (e) => {
+              if (e instanceof HttpError && e.status === 409) return true;
+              throw e;
+            },
+          ),
         };
       });
     },
@@ -226,7 +243,8 @@ export async function pklPublicRoutes(instance: FastifyInstance) {
         summary: 'Isi nilai industri lewat tautan (publik)',
         description:
           'Tanpa login. Menyimpan nilai penilai `industry` (upsert per aspek), nilai 0..100 bulat. 403 ' +
-          '`link_read_only` bila periode sudah lewat lebih dari 14 hari. Token tak dikenal: 404 `not_found`.',
+          '`link_read_only` bila periode sudah lewat lebih dari 14 hari. Periode tertaut ke rapor dan rapor murid itu sudah final: ' +
+          '409 `report_final` (nilai terkunci). Token tak dikenal: 404 `not_found`.',
         params: tokenParams,
         body: scoreRecordsBody,
         response: {
@@ -234,6 +252,7 @@ export async function pklPublicRoutes(instance: FastifyInstance) {
           400: errorSchema,
           403: errorSchema,
           404: errorSchema,
+          409: errorSchema,
           429: errorSchema,
         },
       },

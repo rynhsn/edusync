@@ -25,5 +25,15 @@ export function useSignLabels(): SignLabels {
       concentration: t('pdfExpertiseConcentration'),
       groupOther: t('pdfGroupOther'),
     },
+    internship: {
+      title: t('pdfInternshipTitle'),
+      time: t('pdfInternshipTime'),
+      present: t('pdfInternshipPresent'),
+      schoolSup: t('pdfInternshipSchoolSup'),
+      industrySup: t('pdfInternshipIndustrySup'),
+      aspect: t('pdfInternshipAspect'),
+      final: t('pdfInternshipFinal'),
+      certificate: t('pdfInternshipCertificate'),
+    },
   };
 }

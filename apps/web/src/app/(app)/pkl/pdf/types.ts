@@ -17,4 +17,6 @@ export interface CertificateDoc {
   dateIso: string;
   principalName: string;
   industrySupervisorName: string | null;
+  /** Nomor sertifikat (5.3); dicetak bila sudah dicatat. */
+  certificateNo?: string | null;
 }

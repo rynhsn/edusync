@@ -2,7 +2,16 @@
 
 import { DEFAULT_PKL_ASPECTS } from '@edusync/contracts';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { AlertTriangle, CalendarRange, Pencil, Plus, Scale, Sparkles, Trash2 } from 'lucide-react';
+import {
+  AlertTriangle,
+  BookOpenCheck,
+  CalendarRange,
+  Pencil,
+  Plus,
+  Scale,
+  Sparkles,
+  Trash2,
+} from 'lucide-react';
 import { useLocale, useTranslations } from 'next-intl';
 import { useState } from 'react';
 import { toast } from 'sonner';
@@ -36,6 +45,7 @@ import {
 } from '../pkl-validation';
 import { pklKey, usePklPeriods } from '../shared';
 import { ThresholdsCard } from './thresholds-card';
+import { WeightsCard } from './weights-card';
 
 interface PeriodDraft {
   id: string | null;
@@ -43,6 +53,9 @@ interface PeriodDraft {
   name: string;
   startsOn: string;
   endsOn: string;
+  /** Tautan rapor (5.3): kosong = tidak masuk rapor. */
+  semesterId: string;
+  subjectId: string;
 }
 interface AspectDraft {
   id: string | null;
@@ -66,6 +79,14 @@ export function SettingsView() {
     queryKey: ['academic-years', school.schoolId],
     queryFn: async () => unwrap(await api.GET('/v1/academic-years', { params: header })),
   });
+  const semesters = useQuery({
+    queryKey: ['semesters', school.schoolId, 'all'],
+    queryFn: async () => unwrap(await api.GET('/v1/semesters', { params: header })),
+  });
+  const subjects = useQuery({
+    queryKey: ['subjects', school.schoolId],
+    queryFn: async () => unwrap(await api.GET('/v1/subjects', { params: header })),
+  });
   const aspects = useQuery({
     queryKey: pklKey(school.schoolId, 'aspects'),
     queryFn: async () => unwrap(await api.GET('/v1/pkl/aspects', { params: header })),
@@ -78,6 +99,8 @@ export function SettingsView() {
     name: '',
     startsOn: '',
     endsOn: '',
+    semesterId: '',
+    subjectId: '',
   });
   const [aOpen, setAOpen] = useState(false);
   const [aDraft, setADraft] = useState<AspectDraft>({ id: null, name: '', weight: '' });
@@ -94,6 +117,8 @@ export function SettingsView() {
   });
 
   const yearOf = (id: string) => years.data?.find((y) => y.id === id)?.name ?? '';
+  const pklSubjects = (subjects.data ?? []).filter((x) => x.kind === 'internship' && x.active !== false);
+  const draftSemesters = (semesters.data ?? []).filter((x) => x.academicYearId === pDraft.academicYearId);
 
   const savePeriod = useMutation({
     mutationFn: async (d: PeriodDraft) => {
@@ -102,6 +127,8 @@ export function SettingsView() {
         name: d.name.trim(),
         startsOn: d.startsOn,
         endsOn: d.endsOn,
+        semesterId: d.semesterId || null,
+        subjectId: d.subjectId || null,
       };
       if (d.id)
         return unwrap(
@@ -182,7 +209,15 @@ export function SettingsView() {
               size="sm"
               onClick={() => {
                 const y = years.data?.find((x) => x.isActive) ?? years.data?.[0];
-                setPDraft({ id: null, academicYearId: y?.id ?? '', name: '', startsOn: '', endsOn: '' });
+                setPDraft({
+                  id: null,
+                  academicYearId: y?.id ?? '',
+                  name: '',
+                  startsOn: '',
+                  endsOn: '',
+                  semesterId: '',
+                  subjectId: '',
+                });
                 setError(null);
                 pValidation.reset();
                 setPOpen(true);
@@ -200,7 +235,13 @@ export function SettingsView() {
           submitLabel={t('save')}
           error={error}
           validation={pValidation}
-          onSubmit={() => savePeriod.mutateAsync(pDraft)}
+          onSubmit={() => {
+            if (!pDraft.semesterId !== !pDraft.subjectId) {
+              setError(t('link.incomplete'));
+              return Promise.reject(new Error('pkl_link_incomplete'));
+            }
+            return savePeriod.mutateAsync(pDraft);
+          }}
         >
           <div className="grid content-start gap-2">
             <Label htmlFor="pp-name">{t('periodName')}</Label>
@@ -221,7 +262,7 @@ export function SettingsView() {
               {...pValidation.fieldProps('academicYearId')}
               className={TOUCH_SELECT}
               value={pDraft.academicYearId}
-              onChange={(e) => setPDraft({ ...pDraft, academicYearId: e.target.value })}
+              onChange={(e) => setPDraft({ ...pDraft, academicYearId: e.target.value, semesterId: '' })}
             >
               {(years.data ?? []).map((y) => (
                 <option key={y.id} value={y.id}>
@@ -253,6 +294,47 @@ export function SettingsView() {
               <FieldError id={pValidation.idOf('endsOn')} issue={pValidation.issue('endsOn')} />
             </div>
           </div>
+          <fieldset className="grid gap-3 rounded-lg border p-3">
+            <legend className="px-1 text-sm font-medium">{t('link.title')}</legend>
+            <p className="text-muted-foreground text-xs">{t('link.hint')}</p>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="grid content-start gap-2">
+                <Label htmlFor="pp-semesterId">{t('link.semester')}</Label>
+                <SelectField
+                  id="pp-semesterId"
+                  className={TOUCH_SELECT}
+                  value={pDraft.semesterId}
+                  onChange={(e) => setPDraft({ ...pDraft, semesterId: e.target.value })}
+                >
+                  <option value="">{t('link.none')}</option>
+                  {draftSemesters.map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.name}
+                    </option>
+                  ))}
+                </SelectField>
+              </div>
+              <div className="grid content-start gap-2">
+                <Label htmlFor="pp-subjectId">{t('link.subject')}</Label>
+                <SelectField
+                  id="pp-subjectId"
+                  className={TOUCH_SELECT}
+                  value={pDraft.subjectId}
+                  onChange={(e) => setPDraft({ ...pDraft, subjectId: e.target.value })}
+                >
+                  <option value="">{t('link.pickSubject')}</option>
+                  {pklSubjects.map((x) => (
+                    <option key={x.id} value={x.id}>
+                      {x.name}
+                    </option>
+                  ))}
+                </SelectField>
+              </div>
+            </div>
+            {subjects.isSuccess && pklSubjects.length === 0 && (
+              <p className="text-muted-foreground text-xs">{t('link.noSubjects')}</p>
+            )}
+          </fieldset>
         </FormDialog>
 
         {periods.isPending ? (
@@ -271,6 +353,17 @@ export function SettingsView() {
                     <div className="min-w-0 flex-1">
                       <h3 className="font-heading truncate font-semibold">{p.name}</h3>
                       <p className="text-muted-foreground text-xs">{yearOf(p.academicYearId)}</p>
+                      {p.semesterId && p.subjectId && (
+                        <p className="mt-1 inline-flex max-w-full items-center gap-1 rounded-md bg-teal-100 px-1.5 py-0.5 text-xs font-medium text-teal-900 dark:bg-teal-500/20 dark:text-teal-200">
+                          <BookOpenCheck className="size-3 shrink-0" aria-hidden />
+                          <span className="truncate">
+                            {t('link.badge', {
+                              subject: subjects.data?.find((x) => x.id === p.subjectId)?.name ?? '-',
+                              semester: semesters.data?.find((x) => x.id === p.semesterId)?.name ?? '-',
+                            })}
+                          </span>
+                        </p>
+                      )}
                     </div>
                     <span
                       className={cn(
@@ -322,6 +415,8 @@ export function SettingsView() {
                               name: p.name,
                               startsOn: p.startsOn,
                               endsOn: p.endsOn,
+                              semesterId: p.semesterId ?? '',
+                              subjectId: p.subjectId ?? '',
                             });
                             setError(null);
                             pValidation.reset();
@@ -522,6 +617,7 @@ export function SettingsView() {
       </section>
 
       <ThresholdsCard />
+      <WeightsCard />
     </PageBody>
   );
 }

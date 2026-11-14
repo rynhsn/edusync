@@ -20643,6 +20643,8 @@ export interface paths {
                                         label: string;
                                         section: string | null;
                                     };
+                                    /** @enum {string} */
+                                    source?: "internship";
                                     objectives?: {
                                         assessed: number;
                                         achieved: number;
@@ -20716,6 +20718,24 @@ export interface paths {
                                     program: string;
                                     concentration: string;
                                 };
+                                internship?: {
+                                    periodName: string;
+                                    partner: string;
+                                    startsOn: string;
+                                    endsOn: string;
+                                    /** @description Hari hadir menurut jurnal PKL */
+                                    presentDays: number;
+                                    schoolSupervisor: string | null;
+                                    industrySupervisor: string | null;
+                                    aspects: {
+                                        name: string;
+                                        value: number | null;
+                                    }[];
+                                    final: number | null;
+                                    /** @enum {string|null} */
+                                    predicate: "A" | "B" | "C" | "D" | null;
+                                    certificateNo?: string;
+                                }[];
                             } | null;
                         };
                     };
@@ -38906,6 +38926,8 @@ export interface paths {
                                     label: string;
                                     section: string | null;
                                 };
+                                /** @enum {string} */
+                                source?: "internship";
                                 objectives?: {
                                     assessed: number;
                                     achieved: number;
@@ -38979,6 +39001,24 @@ export interface paths {
                                 program: string;
                                 concentration: string;
                             };
+                            internship?: {
+                                periodName: string;
+                                partner: string;
+                                startsOn: string;
+                                endsOn: string;
+                                /** @description Hari hadir menurut jurnal PKL */
+                                presentDays: number;
+                                schoolSupervisor: string | null;
+                                industrySupervisor: string | null;
+                                aspects: {
+                                    name: string;
+                                    value: number | null;
+                                }[];
+                                final: number | null;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                                certificateNo?: string;
+                            }[];
                             /**
                              * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
                              * @enum {number}
@@ -52312,6 +52352,16 @@ export interface paths {
                             startsOn: string;
                             endsOn: string;
                             placementCount: number;
+                            /**
+                             * Format: uuid
+                             * @description Semester rapor yang memuat nilai PKL periode ini; null = tidak masuk rapor
+                             */
+                            semesterId: string | null;
+                            /**
+                             * Format: uuid
+                             * @description Mapel PKL (kind = internship) tempat nilai PKL masuk rapor
+                             */
+                            subjectId: string | null;
                         }[];
                     };
                 };
@@ -52348,7 +52398,7 @@ export interface paths {
         put?: never;
         /**
          * Tambah periode PKL
-         * @description Izin: `pkl:manage`; modul `internship`. Tanggal mulai harus <= tanggal selesai (400 `validation`); tahun ajaran harus milik sekolah (400 `invalid_reference`); nama unik per tahun ajaran (409 `conflict`).
+         * @description Izin: `pkl:manage`; modul `internship`. Tanggal mulai harus <= tanggal selesai (400 `validation`); tahun ajaran harus milik sekolah (400 `invalid_reference`); nama unik per tahun ajaran (409 `conflict`). Tautan rapor opsional (`semesterId` + `subjectId`, berpasangan: 400 `pkl_link_incomplete`): semester pada tahun ajaran periode dan mapel aktif berjenis PKL (400 `invalid_reference`). Periode tertaut: nilai PKL menjadi nilai mapel itu di rapor semester tersebut (ikut rata-rata, peringkat, leger, kelulusan, ekspor) dan terkunci saat rapor final.
          */
         post: {
             parameters: {
@@ -52370,6 +52420,16 @@ export interface paths {
                         startsOn: string;
                         /** Format: date */
                         endsOn: string;
+                        /**
+                         * Format: uuid
+                         * @description Tautan rapor (opsional, berpasangan dengan subjectId). Dihilangkan saat mengubah = tidak berubah; null = lepas
+                         */
+                        semesterId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description Mapel PKL (kind = internship); berpasangan dengan semesterId
+                         */
+                        subjectId?: string | null;
                     };
                 };
             };
@@ -52389,6 +52449,16 @@ export interface paths {
                             startsOn: string;
                             endsOn: string;
                             placementCount: number;
+                            /**
+                             * Format: uuid
+                             * @description Semester rapor yang memuat nilai PKL periode ini; null = tidak masuk rapor
+                             */
+                            semesterId: string | null;
+                            /**
+                             * Format: uuid
+                             * @description Mapel PKL (kind = internship) tempat nilai PKL masuk rapor
+                             */
+                            subjectId: string | null;
                         };
                     };
                 };
@@ -52466,7 +52536,7 @@ export interface paths {
         get?: never;
         /**
          * Ubah periode PKL
-         * @description Izin: `pkl:manage`; modul `internship`. Validasi seperti saat menambah; 404 `not_found`.
+         * @description Izin: `pkl:manage`; modul `internship`. Validasi seperti saat menambah; 404 `not_found`. `semesterId`/`subjectId` dihilangkan = tautan rapor tidak berubah; keduanya null = lepas. Mengganti atau melepas tautan ke semester yang rapor muridnya sudah final ditolak 409 `report_final` (buka kembali rapornya lebih dulu).
          */
         put: {
             parameters: {
@@ -52490,6 +52560,16 @@ export interface paths {
                         startsOn: string;
                         /** Format: date */
                         endsOn: string;
+                        /**
+                         * Format: uuid
+                         * @description Tautan rapor (opsional, berpasangan dengan subjectId). Dihilangkan saat mengubah = tidak berubah; null = lepas
+                         */
+                        semesterId?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description Mapel PKL (kind = internship); berpasangan dengan semesterId
+                         */
+                        subjectId?: string | null;
                     };
                 };
             };
@@ -52509,6 +52589,16 @@ export interface paths {
                             startsOn: string;
                             endsOn: string;
                             placementCount: number;
+                            /**
+                             * Format: uuid
+                             * @description Semester rapor yang memuat nilai PKL periode ini; null = tidak masuk rapor
+                             */
+                            semesterId: string | null;
+                            /**
+                             * Format: uuid
+                             * @description Mapel PKL (kind = internship) tempat nilai PKL masuk rapor
+                             */
+                            subjectId: string | null;
                         };
                     };
                 };
@@ -52744,6 +52834,8 @@ export interface paths {
                                 predicate: "A" | "B" | "C" | "D" | null;
                                 /** @description Tautan pembimbing industri sedang aktif */
                                 hasAccessLink: boolean;
+                                /** @description Nomor sertifikat PKL; null bila belum dicatat */
+                                certificateNo: string | null;
                                 /** @description Pengguna ini boleh mengisi jurnal, kunjungan, nilai sekolah, dan tautan penempatan ini */
                                 canWrite: boolean;
                             }[];
@@ -52944,6 +53036,8 @@ export interface paths {
                             predicate: "A" | "B" | "C" | "D" | null;
                             /** @description Tautan pembimbing industri sedang aktif */
                             hasAccessLink: boolean;
+                            /** @description Nomor sertifikat PKL; null bila belum dicatat */
+                            certificateNo: string | null;
                             /** @description Pengguna ini boleh mengisi jurnal, kunjungan, nilai sekolah, dan tautan penempatan ini */
                             canWrite: boolean;
                         };
@@ -53059,6 +53153,8 @@ export interface paths {
                             predicate: "A" | "B" | "C" | "D" | null;
                             /** @description Tautan pembimbing industri sedang aktif */
                             hasAccessLink: boolean;
+                            /** @description Nomor sertifikat PKL; null bila belum dicatat */
+                            certificateNo: string | null;
                             /** @description Pengguna ini boleh mengisi jurnal, kunjungan, nilai sekolah, dan tautan penempatan ini */
                             canWrite: boolean;
                         };
@@ -54647,6 +54743,14 @@ export interface paths {
                                 /** @enum {string|null} */
                                 predicate: "A" | "B" | "C" | "D" | null;
                             };
+                            /** @description Bobot penilai sekolah:industri yang berlaku; null = rata-rata penilai yang ada */
+                            weights: {
+                                school: number;
+                                industry: number;
+                            } | null;
+                            certificateNo: string | null;
+                            /** @description Periode tertaut ke rapor: nilai ini menjadi nilai mapel PKL dan terkunci saat rapor final (409 `report_final`) */
+                            reportLinked: boolean;
                         };
                     };
                 };
@@ -54696,7 +54800,7 @@ export interface paths {
         };
         /**
          * Isi nilai dari sekolah
-         * @description Izin: `pkl:manage` atau guru pembimbing penempatan itu; modul `internship`. Menyimpan nilai penilai `school` (upsert per aspek), nilai 0..100 bulat. Aspek harus milik sekolah (400 `invalid_reference`).
+         * @description Izin: `pkl:manage` atau guru pembimbing penempatan itu; modul `internship`. Menyimpan nilai penilai `school` (upsert per aspek), nilai 0..100 bulat. Aspek harus milik sekolah (400 `invalid_reference`). Periode tertaut ke rapor dan rapor murid itu sudah final: 409 `report_final`.
          */
         put: {
             parameters: {
@@ -54754,6 +54858,14 @@ export interface paths {
                                 /** @enum {string|null} */
                                 predicate: "A" | "B" | "C" | "D" | null;
                             };
+                            /** @description Bobot penilai sekolah:industri yang berlaku; null = rata-rata penilai yang ada */
+                            weights: {
+                                school: number;
+                                industry: number;
+                            } | null;
+                            certificateNo: string | null;
+                            /** @description Periode tertaut ke rapor: nilai ini menjadi nilai mapel PKL dan terkunci saat rapor final (409 `report_final`) */
+                            reportLinked: boolean;
                         };
                     };
                 };
@@ -54813,9 +54925,256 @@ export interface paths {
                         };
                     };
                 };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
             };
         };
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/placements/{id}/certificate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Catat nomor sertifikat PKL
+         * @description Izin: `pkl:manage`; modul `internship`. `certificateNo` 1-80 karakter, unik per sekolah (409 `certificate_taken`); null menghapus nomor. Mengisi nomor hanya untuk penempatan berstatus `completed` (409 `placement_not_completed`). Periode tertaut ke rapor dan rapor murid sudah final: 409 `report_final`. Format nomor tidak diatur negara; sekolah bebas memakai pola sendiri.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Nomor sertifikat; null = hapus */
+                        certificateNo: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            placementId: string;
+                            certificateNo: string | null;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/pkl/periods/{id}/certificates": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Nomori sertifikat PKL satu periode
+         * @description Izin: `pkl:manage`; modul `internship`. Memberi nomor berurutan menurut pola sekolah (`/v1/vocational/settings/pkl`, bawaan `PKL/{seq}/{code}/{year}`) kepada penempatan `completed` yang belum bernomor, urut nama siswa. Nomor yang sudah terpakai dilewati. Idempoten: penempatan yang sudah bernomor tidak diubah. Tanpa penempatan selesai sama sekali: 409 `placement_not_completed`. Periode tertaut ke rapor dan ada rapor murid final: 409 `report_final`. 404 `not_found`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            numbered: {
+                                /** Format: uuid */
+                                placementId: string;
+                                certificateNo: string | null;
+                            }[];
+                            /** @description Penempatan completed yang sudah bernomor */
+                            skipped: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         delete?: never;
         options?: never;
         head?: never;
@@ -54999,6 +55358,8 @@ export interface paths {
                                 } | null;
                             }[];
                             canWrite: boolean;
+                            /** @description Nilai PKL ini sudah masuk rapor final: pengisian nilai ditolak 409 `report_final` */
+                            reportLocked: boolean;
                         };
                     };
                 };
@@ -55160,7 +55521,7 @@ export interface paths {
         get?: never;
         /**
          * Isi nilai industri lewat tautan (publik)
-         * @description Tanpa login. Menyimpan nilai penilai `industry` (upsert per aspek), nilai 0..100 bulat. 403 `link_read_only` bila periode sudah lewat lebih dari 14 hari. Token tak dikenal: 404 `not_found`.
+         * @description Tanpa login. Menyimpan nilai penilai `industry` (upsert per aspek), nilai 0..100 bulat. 403 `link_read_only` bila periode sudah lewat lebih dari 14 hari. Periode tertaut ke rapor dan rapor murid itu sudah final: 409 `report_final` (nilai terkunci). Token tak dikenal: 404 `not_found`.
          */
         put: {
             parameters: {
@@ -55226,6 +55587,20 @@ export interface paths {
                 };
                 /** @description Default Response */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
                     headers: {
                         [name: string]: unknown;
                     };
@@ -70088,6 +70463,8 @@ export interface paths {
                                     label: string;
                                     section: string | null;
                                 };
+                                /** @enum {string} */
+                                source?: "internship";
                                 objectives?: {
                                     assessed: number;
                                     achieved: number;
@@ -70161,6 +70538,24 @@ export interface paths {
                                 program: string;
                                 concentration: string;
                             };
+                            internship?: {
+                                periodName: string;
+                                partner: string;
+                                startsOn: string;
+                                endsOn: string;
+                                /** @description Hari hadir menurut jurnal PKL */
+                                presentDays: number;
+                                schoolSupervisor: string | null;
+                                industrySupervisor: string | null;
+                                aspects: {
+                                    name: string;
+                                    value: number | null;
+                                }[];
+                                final: number | null;
+                                /** @enum {string|null} */
+                                predicate: "A" | "B" | "C" | "D" | null;
+                                certificateNo?: string;
+                            }[];
                             /**
                              * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
                              * @enum {number}
@@ -73240,6 +73635,195 @@ export interface paths {
                         "application/json": {
                             /** @description Rapor dikelompokkan menurut kelompok mapel (Umum/Kejuruan) dan kop memuat identitas keahlian */
                             reportGrouped: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vocational/settings/pkl": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pengaturan PKL kejuruan
+         * @description Izin: `pkl:read`; modul `internship`; hanya jenjang kejuruan. Bobot penilai sekolah:industri (null = rumus lama: rata-rata penilai yang ada) dan pola nomor sertifikat (null = bawaan `PKL/{seq}/{code}/{year}`). Belum pernah disimpan: semua null, tanpa baris otomatis.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            schoolWeight: number | null;
+                            industryWeight: number | null;
+                            certificatePattern: string | null;
+                            /** @description Pola yang dipakai bila `certificatePattern` null */
+                            defaultCertificatePattern: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan pengaturan PKL kejuruan
+         * @description Izin: `pkl:manage`; modul `internship`; hanya jenjang kejuruan. `schoolWeight` dan `industryWeight` keduanya null (rata-rata penilai yang ada) atau keduanya bilangan bulat >= 0 berjumlah 100 (400 `invalid_weights`). Dengan bobot, nilai tiap aspek = rata-rata tertimbang penilai yang mengisi (bobot dinormalisasi atas penilai yang ada); berlaku pada semua layar PKL dan rapor yang disusun sesudahnya, rapor final tidak berubah (snapshot beku). `certificatePattern` memakai placeholder `{seq}`, `{code}`, `{roman}`, `{month}`, `{year}` (400 `invalid_pattern`); kosong = bawaan. Pola tidak diatur negara; ini usulan sekolah.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Bobot nilai penilai sekolah (0-100); null = rata-rata */
+                        schoolWeight: number | null;
+                        /** @description Bobot nilai penilai industri (0-100); null = rata-rata */
+                        industryWeight: number | null;
+                        /** @description Pola nomor sertifikat: {seq}, {code}, {roman}, {month}, {year}; kosong = bawaan */
+                        certificatePattern?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            schoolWeight: number | null;
+                            industryWeight: number | null;
+                            certificatePattern: string | null;
+                            /** @description Pola yang dipakai bila `certificatePattern` null */
+                            defaultCertificatePattern: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
                         };
                     };
                 };
