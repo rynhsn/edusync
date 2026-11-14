@@ -11,6 +11,8 @@ import { PredicateBadge, ScoreChip } from '../grades/grade-ui';
 import { formatGrade } from './pdf/format';
 import type { ReportCardDoc } from './pdf/types';
 
+const PATTERN_KEY = { lsp: 'Lsp', industry: 'Industry', independent: 'Independent' } as const;
+
 /**
  * Isi pratinjau rapor: identitas, tabel nilai, ekstrakurikuler, ketidakhadiran, catatan wali kelas, dan peringkat.
  * Bagian v2 (kokurikuler, catatan perkembangan, tanggapan wali, mode deskriptif tanpa angka) hanya tampil bila dokumen
@@ -181,6 +183,46 @@ export function ReportCardPreview({ doc, display }: { doc: ReportCardDoc; displa
                 {e.certificateNo && (
                   <p className="text-muted-foreground text-xs break-all">
                     {t('pdfInternshipCertificate')}: {e.certificateNo}
+                  </p>
+                )}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
+
+      {doc.ukk?.length ? (
+        <section className="grid content-start gap-2">
+          <h3 className="font-medium">{t('pdfUkkTitle')}</h3>
+          <ul className="grid gap-2">
+            {doc.ukk.map((u) => (
+              <li key={`${u.title}-${u.attempt}`} className="grid gap-1.5 rounded-lg border p-3">
+                <p className="font-medium break-words">{u.title}</p>
+                <p className="text-muted-foreground text-xs break-words">
+                  {t('pdfUkkPattern')}: {t(`pdfUkkPattern${PATTERN_KEY[u.pattern]}`)} ·{' '}
+                  {t('pdfUkkConcentration')}: {u.concentration} · {t('pdfUkkAttempt')}: {u.attempt}
+                </p>
+                <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs">
+                  {view.showNumbers && (
+                    <span>
+                      {t('pdfUkkScore')}:{' '}
+                      <span className="font-medium tabular-nums">{formatGrade(u.finalScore)}</span>
+                    </span>
+                  )}
+                  {u.band && (
+                    <span>
+                      {t('pdfUkkBand')}: <span className="font-medium">{u.band.label}</span>
+                    </span>
+                  )}
+                </p>
+                {u.certificateNo && (
+                  <p className="text-muted-foreground text-xs break-all">
+                    {t('pdfUkkCertificate')}: {u.certificateNo}
+                  </p>
+                )}
+                {u.statementNo && (
+                  <p className="text-muted-foreground text-xs break-all">
+                    {t('pdfUkkStatement')}: {u.statementNo}
                   </p>
                 )}
               </li>

@@ -4400,9 +4400,125 @@ export const vocationalSetting = pgTable('vocational_setting', {
   pklIndustryWeight: integer('pkl_industry_weight'),
   /** Pola nomor sertifikat PKL; NULL = pola bawaan kontrak. */
   pklCertificatePattern: text('pkl_certificate_pattern'),
+  /** Skala kategori UKK per pola (5.5): {lsp|industry|independent: [{code,label,min,competent}]}; NULL = bawaan kontrak. */
+  ukkBands:
+    jsonb('ukk_bands').$type<
+      Record<string, { code: string; label: string; min: number; competent: boolean }[]>
+    >(),
+  /** Bobot praktik:teori UKK; keduanya NULL = nilai akhir diisi langsung; jumlah 100 (CHECK). */
+  ukkPracticeWeight: integer('ukk_practice_weight'),
+  ukkTheoryWeight: integer('ukk_theory_weight'),
+  /** Blok UKK tampil di rapor (5.6); false = rapor tidak berubah. */
+  ukkInReport: boolean('ukk_in_report').notNull().default(false),
+  /** Pola nomor sertifikat/surat keterangan UKK; NULL = pola bawaan kontrak. */
+  ukkCertificatePattern: text('ukk_certificate_pattern'),
   updatedBy: text('updated_by').notNull(),
   updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
 });
+
+/**
+ * UKK (tahap 5.5). Kegiatan per tahun ajaran, semester, dan konsentrasi keahlian; tiga pola (lsp, industry, independent).
+ * FK komposit dan CHECK ada di migrasi 0112 (SQL tangan). Penanda lapor Dinas/e-Rapor dicatat manual.
+ */
+export const ukkEvent = pgTable(
+  'ukk_event',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    semesterId: uuid('semester_id')
+      .notNull()
+      .references(() => semester.id),
+    concentrationId: uuid('concentration_id')
+      .notNull()
+      .references(() => vocationalConcentration.id),
+    pattern: text('pattern', { enum: ['lsp', 'industry', 'independent'] }).notNull(),
+    title: text('title').notNull(),
+    schemeName: text('scheme_name'),
+    kkniLevel: smallint('kkni_level'),
+    lspName: text('lsp_name'),
+    lspLicenseRef: text('lsp_license_ref'),
+    partnerId: uuid('partner_id').references(() => pklPartner.id),
+    tukName: text('tuk_name'),
+    startsOn: date('starts_on'),
+    endsOn: date('ends_on'),
+    status: text('status', { enum: ['draft', 'active', 'closed'] })
+      .notNull()
+      .default('draft'),
+    reportedToDinasAt: timestamp('reported_to_dinas_at', { withTimezone: true }),
+    pushedToEraporAt: timestamp('pushed_to_erapor_at', { withTimezone: true }),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('ukk_event_school_id_uq').on(t.schoolId, t.id),
+    index('ukk_event_year_idx').on(t.schoolId, t.academicYearId),
+    index('ukk_event_semester_idx').on(t.schoolId, t.semesterId),
+  ],
+);
+
+/** Penguji kegiatan UKK: internal (guru) atau eksternal (isian bebas). Diganti sekaligus; terhapus bersama kegiatan. */
+export const ukkAssessor = pgTable(
+  'ukk_assessor',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    eventId: uuid('event_id')
+      .notNull()
+      .references(() => ukkEvent.id),
+    kind: text('kind', { enum: ['internal', 'external'] }).notNull(),
+    teacherId: uuid('teacher_id').references(() => teacher.id),
+    name: text('name'),
+    institution: text('institution'),
+    qualification: text('qualification'),
+    createdAt: createdAt(),
+  },
+  (t) => [unique('ukk_assessor_school_id_uq').on(t.schoolId, t.id)],
+);
+
+/**
+ * Hasil UKK: satu baris per (kegiatan, murid, percobaan). Kategori diturunkan server dari skala saat disimpan dan dibekukan di baris.
+ * Hasil yang dipakai rapor/kelulusan = percobaan terakhir yang bernilai.
+ */
+export const ukkResult = pgTable(
+  'ukk_result',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    eventId: uuid('event_id')
+      .notNull()
+      .references(() => ukkEvent.id),
+    studentId: uuid('student_id')
+      .notNull()
+      .references(() => student.id),
+    attemptNo: smallint('attempt_no').notNull().default(1),
+    practiceScore: numeric('practice_score', { precision: 5, scale: 2, mode: 'number' }),
+    theoryScore: numeric('theory_score', { precision: 5, scale: 2, mode: 'number' }),
+    finalScore: numeric('final_score', { precision: 5, scale: 2, mode: 'number' }),
+    bandCode: text('band_code'),
+    bandLabel: text('band_label'),
+    competent: boolean('competent'),
+    certificateNo: text('certificate_no'),
+    statementNo: text('statement_no'),
+    passportUnits: text('passport_units').array(),
+    note: text('note'),
+    updatedBy: text('updated_by').notNull(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('ukk_result_attempt_uq').on(t.eventId, t.studentId, t.attemptNo),
+    index('ukk_result_student_idx').on(t.schoolId, t.studentId),
+  ],
+);
 
 /* ---------- Perubahan paket yayasan (tingkatkan, tambah unit, jadwalkan penurunan) ---------- */
 

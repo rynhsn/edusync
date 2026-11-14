@@ -35,5 +35,20 @@ export function useSignLabels(): SignLabels {
       final: t('pdfInternshipFinal'),
       certificate: t('pdfInternshipCertificate'),
     },
+    ukk: {
+      title: t('pdfUkkTitle'),
+      pattern: t('pdfUkkPattern'),
+      concentration: t('pdfUkkConcentration'),
+      attempt: t('pdfUkkAttempt'),
+      score: t('pdfUkkScore'),
+      band: t('pdfUkkBand'),
+      certificate: t('pdfUkkCertificate'),
+      statement: t('pdfUkkStatement'),
+      patterns: {
+        lsp: t('pdfUkkPatternLsp'),
+        industry: t('pdfUkkPatternIndustry'),
+        independent: t('pdfUkkPatternIndependent'),
+      },
+    },
   };
 }

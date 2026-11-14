@@ -306,6 +306,29 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   otomatis lewat snapshot (tanpa jalur baru). Pratinjau, PDF (blok Praktik Kerja Lapangan), dan portal menampilkannya; mode deskriptif
   membuang angka blok PKL di portal. Tanpa periode tertaut dokumen tetap v1 dan identik. Bantuan baru "Nilai PKL di rapor, bobot
   penilai, dan nomor sertifikat" (id/en/su).
+- **SMK: UKK, data dan hasil** (fase 5, tahap 5.5; migrasi 0112, aditif; izin baru `ukk:read` dan `ukk:manage`): modul UKK (Uji Kompetensi
+  Keahlian) di bawah gerbang modul `internship` dan jenjang kejuruan. Kegiatan per tahun ajaran, semester, dan konsentrasi keahlian
+  (`/v1/ukk/events`) dengan tiga pola (`lsp`, `industry`, `independent`), skema/paket soal, level KKNI, LSP, TUK, dan mitra dunia kerja;
+  penguji internal (guru) dan eksternal (isian bebas) diganti sekaligus; hasil per murid dengan percobaan (uji ulang sampai 5), nilai
+  praktik, teori, dan akhir, kategori yang diturunkan server dari skala dan dibekukan di baris, serta unit kompetensi (paspor keterampilan).
+  Penguji internal boleh mengisi hasil kegiatannya tanpa `ukk:manage`. Skala bawaan (Pedoman UKK SMK TA 2025/2026: LSP biner 75; mandiri
+  Belum Kompeten < 61, Cukup Kompeten 61-74, Kompeten 75-90, Sangat Kompeten 91-100) hanya usulan berlabel sumber yang dapat ditimpa
+  sekolah per pola; skala pola industri tidak disebut eksplisit di sumber, jadi memakai skala LSP dan ditandai "periksa Pedoman". Bobot
+  praktik:teori opsional (kosong = nilai akhir diisi langsung). Nomor sertifikat (kompeten) dan surat keterangan (belum kompeten) lewat
+  `POST /v1/ukk/events/{id}/numbers` (pola bawaan `UKK/{seq}/{code}/{year}` hanya usulan, idempoten, satu urutan bersama). Penanda sudah
+  dilaporkan ke Dinas dan diunggah ke e-Rapor dicatat manual (bukan integrasi). Pengaturan di `GET/PUT /v1/vocational/settings/ukk`.
+  Galat baru: `ukk_assessed`, `event_closed`, `student_not_in_concentration`, `too_many_items`, `invalid_bands`, `invalid_attempt`,
+  `max_attempts`. UI: `/ukk`, `/ukk/[id]` (Ringkasan, Penguji, Hasil, Dokumen), dan `/ukk/settings`, mobile lebih dulu. Sekolah tanpa data
+  UKK: tidak ada perubahan apa pun.
+- **SMK: UKK di rapor, kelulusan, dan ekspor** (fase 5, tahap 5.6; tanpa migrasi): sakelar `inReport` (bawaan mati) menambah kunci dokumen
+  sparse `ukk` pada rapor (judul kegiatan, pola, konsentrasi, percobaan terakhir bernilai, nilai akhir, kategori beku, nomor), dibekukan
+  di snapshot dan hanya memuat kegiatan yang bukan draf; saat menyala, hasil UKK dikunci `409 report_final` bila rapor murid final. Mode
+  deskriptif membuang blok di portal. Syarat kelulusan UKK opsional `requireUkkCompetent` pada kebijakan kelulusan: hanya SARAN (kegagalan
+  `ukk_not_competent` atau `ukk_missing` pada saran, tidak pernah menolak penetapan; Pedoman tidak menyatakan UKK menentukan kelulusan);
+  skor UKK tidak masuk ijazah. Dataset ekspor baru `ukk_results` (semua percobaan kegiatan non-draf, kategori beku, penanda `is_latest`,
+  tanpa NIK, CSV/JSON generik pada `GET /v1/exports/academic`; pemetaan ke templat impor e-Rapor SMK tidak dikarang karena formatnya belum
+  diverifikasi). Tanpa sakelar dan tanpa syarat: dokumen rapor, snapshot, leger, saran kelulusan, dan ekspor lain identik dengan
+  sebelumnya. Bantuan baru "UKK: kegiatan, penguji, hasil, skala, nomor, dan rapor" (id/en/su).
 
 ### Diubah
 
@@ -380,6 +403,10 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   hilang dari rapor DRAF (rapor final aman, dibaca dari snapshot; kunci `internship` dan `source` diabaikan), bobot penilai diabaikan
   (nilai kembali rata-rata penilai) dan nilai PKL tidak lagi terkunci saat rapor final. Tidak ada tabel baru; tidak ada efek pada sekolah
   yang tidak menautkan periode.
+- SMK (tahap 5.5 dan 5.6): tabel `ukk_event`, `ukk_assessor`, `ukk_result`, kolom skala/bobot/sakelar/pola di `vocational_setting`, dan
+  constraint `pkl_partner_school_id_uq` dibiarkan di database. Setelah kembali ke versi sebelumnya menu dan rute UKK tidak ada, data
+  tetap tersimpan, kunci `ukk` pada snapshot rapor final diabaikan (rapor tetap terbaca tanpa blok UKK), rapor draf tidak lagi memuat
+  UKK, dan syarat kelulusan UKK tidak diperiksa. Tidak ada efek pada nilai, kenaikan, atau kelulusan.
 - Rapor kokurikuler (tahap 4.4): tanpa migrasi. Snapshot rapor final yang sudah memuat `cocurricular` tetap utuh di database; versi lama tidak
   membacanya (kunci itu diabaikan saat respons dibentuk), sehingga rapor final tetap terbaca seperti rapor tanpa bagian kokurikuler
   terstruktur. Tidak ada efek pada nilai, kenaikan, atau kelulusan.

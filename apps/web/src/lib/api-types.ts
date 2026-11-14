@@ -9877,7 +9877,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "cocurricular:read" | "cocurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "cocurricular:read" | "cocurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "ukk:read" | "ukk:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
                     };
                 };
             };
@@ -10413,7 +10413,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "cocurricular:read" | "cocurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "cocurricular:read" | "cocurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "ukk:read" | "ukk:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
                     };
                 };
             };
@@ -16680,7 +16680,7 @@ export interface paths {
                     academicYearId: string;
                     /** @description Semester; wajib untuk `subject_choices`, `final_grades`, dan `descriptions` */
                     semesterId?: string;
-                    dataset: "rombel" | "class_subjects" | "subject_choices" | "final_grades" | "descriptions";
+                    dataset: "rombel" | "class_subjects" | "subject_choices" | "final_grades" | "descriptions" | "ukk_results";
                     format?: "csv" | "json";
                 };
                 header: {
@@ -16702,7 +16702,7 @@ export interface paths {
                             /** @enum {string} */
                             format: "edusync-academic-v1";
                             /** @enum {string} */
-                            dataset: "rombel" | "class_subjects" | "subject_choices" | "final_grades" | "descriptions";
+                            dataset: "rombel" | "class_subjects" | "subject_choices" | "final_grades" | "descriptions" | "ukk_results";
                             generatedAt: string;
                             columns: {
                                 key: string;
@@ -16830,6 +16830,8 @@ export interface paths {
                                     requiredSubjectIds: string[];
                                     /** @description Teks kriteria untuk dokumen dan murid */
                                     criteriaText?: string | null;
+                                    /** @description Hanya SMK (5.6): saran kelulusan menandai murid yang belum kompeten UKK atau belum punya hasil UKK. Absen = tidak dipakai. Pedoman UKK tidak menyatakan UKK menentukan kelulusan, jadi hanya saran, bukan penolakan */
+                                    requireUkkCompetent?: boolean;
                                 };
                                 sklNumberTemplate: string | null;
                                 /** Format: date */
@@ -16929,6 +16931,8 @@ export interface paths {
                             requiredSubjectIds?: string[];
                             /** @description Teks kriteria untuk dokumen dan murid */
                             criteriaText?: string | null;
+                            /** @description Hanya SMK (5.6): saran kelulusan menandai murid yang belum kompeten UKK atau belum punya hasil UKK. Absen = tidak dipakai. Pedoman UKK tidak menyatakan UKK menentukan kelulusan, jadi hanya saran, bukan penolakan */
+                            requireUkkCompetent?: boolean;
                         };
                         sklNumberTemplate?: string | null;
                         /** Format: date */
@@ -16975,6 +16979,8 @@ export interface paths {
                                 requiredSubjectIds: string[];
                                 /** @description Teks kriteria untuk dokumen dan murid */
                                 criteriaText?: string | null;
+                                /** @description Hanya SMK (5.6): saran kelulusan menandai murid yang belum kompeten UKK atau belum punya hasil UKK. Absen = tidak dipakai. Pedoman UKK tidak menyatakan UKK menentukan kelulusan, jadi hanya saran, bukan penolakan */
+                                requireUkkCompetent?: boolean;
                             };
                             sklNumberTemplate: string | null;
                             /** Format: date */
@@ -17910,6 +17916,8 @@ export interface paths {
                                     requiredSubjectIds: string[];
                                     /** @description Teks kriteria untuk dokumen dan murid */
                                     criteriaText?: string | null;
+                                    /** @description Hanya SMK (5.6): saran kelulusan menandai murid yang belum kompeten UKK atau belum punya hasil UKK. Absen = tidak dipakai. Pedoman UKK tidak menyatakan UKK menentukan kelulusan, jadi hanya saran, bukan penolakan */
+                                    requireUkkCompetent?: boolean;
                                 };
                                 sklNumberTemplate: string | null;
                                 /** Format: date */
@@ -17981,7 +17989,7 @@ export interface paths {
                                     meetsCriteria: boolean;
                                     failures: {
                                         /** @enum {string} */
-                                        code: "below_average" | "below_subject" | "required_missing" | "no_scores";
+                                        code: "below_average" | "below_subject" | "required_missing" | "no_scores" | "ukk_not_competent" | "ukk_missing";
                                         /** Format: uuid */
                                         subjectId?: string;
                                     }[];
@@ -18018,6 +18026,8 @@ export interface paths {
                                         minSubjectScore: number | null;
                                         requiredSubjectIds: string[];
                                         criteriaText: string | null;
+                                        /** @description Syarat UKK opsional (5.6); hanya ada bila dinyalakan */
+                                        requireUkkCompetent?: boolean;
                                     };
                                     reportSemesters: {
                                         /** Format: uuid */
@@ -18046,7 +18056,7 @@ export interface paths {
                                     meetsCriteria: boolean;
                                     failures: {
                                         /** @enum {string} */
-                                        code: "below_average" | "below_subject" | "required_missing" | "no_scores";
+                                        code: "below_average" | "below_subject" | "required_missing" | "no_scores" | "ukk_not_competent" | "ukk_missing";
                                         /** Format: uuid */
                                         subjectId?: string;
                                     }[];
@@ -20735,6 +20745,21 @@ export interface paths {
                                     /** @enum {string|null} */
                                     predicate: "A" | "B" | "C" | "D" | null;
                                     certificateNo?: string;
+                                }[];
+                                ukk?: {
+                                    title: string;
+                                    /** @enum {string} */
+                                    pattern: "lsp" | "industry" | "independent";
+                                    concentration: string;
+                                    attempt: number;
+                                    finalScore: number;
+                                    band: {
+                                        code: string;
+                                        label: string;
+                                    } | null;
+                                    competent: boolean | null;
+                                    certificateNo?: string;
+                                    statementNo?: string;
                                 }[];
                             } | null;
                         };
@@ -39018,6 +39043,21 @@ export interface paths {
                                 /** @enum {string|null} */
                                 predicate: "A" | "B" | "C" | "D" | null;
                                 certificateNo?: string;
+                            }[];
+                            ukk?: {
+                                title: string;
+                                /** @enum {string} */
+                                pattern: "lsp" | "industry" | "independent";
+                                concentration: string;
+                                attempt: number;
+                                finalScore: number;
+                                band: {
+                                    code: string;
+                                    label: string;
+                                } | null;
+                                competent: boolean | null;
+                                certificateNo?: string;
+                                statementNo?: string;
                             }[];
                             /**
                              * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
@@ -70556,6 +70596,21 @@ export interface paths {
                                 predicate: "A" | "B" | "C" | "D" | null;
                                 certificateNo?: string;
                             }[];
+                            ukk?: {
+                                title: string;
+                                /** @enum {string} */
+                                pattern: "lsp" | "industry" | "independent";
+                                concentration: string;
+                                attempt: number;
+                                finalScore: number;
+                                band: {
+                                    code: string;
+                                    label: string;
+                                } | null;
+                                competent: boolean | null;
+                                certificateNo?: string;
+                                statementNo?: string;
+                            }[];
                             /**
                              * @description Hanya ada bila dokumen berbentuk v2; dihilangkan = v1
                              * @enum {number}
@@ -73824,6 +73879,1848 @@ export interface paths {
                                 code: string;
                                 message: string;
                             };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/vocational/settings/ukk": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pengaturan UKK kejuruan
+         * @description Izin: `ukk:read`; modul `internship`; hanya jenjang kejuruan. Skala kategori per pola (`lsp`, `industry`, `independent`): `bands` = timpaan sekolah (null = bawaan), `defaultBands` = bawaan kontrak dari Pedoman UKK SMK TA 2025/2026 dengan `bandSources` (pola `industry` tidak disebut eksplisit di Pedoman: `verified` false, tampilkan "periksa"). Bobot praktik:teori (null = nilai akhir diisi langsung), `inReport` (blok UKK di rapor, bawaan mati), dan pola nomor sertifikat. Belum pernah disimpan: semua bawaan, tanpa baris otomatis.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Skala timpaan sekolah per pola; null = bawaan kontrak */
+                            bands: {
+                                lsp: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[] | null;
+                                industry: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[] | null;
+                                independent: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[] | null;
+                            };
+                            /** @description Skala bawaan kontrak (Pedoman UKK SMK TA 2025/2026), hanya usulan yang dapat ditimpa */
+                            defaultBands: {
+                                lsp: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[];
+                                industry: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[];
+                                independent: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[];
+                            };
+                            bandSources: {
+                                lsp: {
+                                    source: string;
+                                    verified: boolean;
+                                };
+                                industry: {
+                                    source: string;
+                                    verified: boolean;
+                                };
+                                independent: {
+                                    source: string;
+                                    verified: boolean;
+                                };
+                            };
+                            practiceWeight: number | null;
+                            theoryWeight: number | null;
+                            inReport: boolean;
+                            certificatePattern: string | null;
+                            defaultCertificatePattern: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan pengaturan UKK kejuruan
+         * @description Izin: `ukk:manage`; modul `internship`; hanya jenjang kejuruan. `bands` per pola: null/dihilangkan = bawaan; skala sah = 1-8 kategori, batas bawah kategori pertama 0, naik tegas tanpa celah/tumpang tindih, kode unik, minimal satu kompeten (400 `invalid_bands`). `practiceWeight` dan `theoryWeight` keduanya null (nilai akhir diisi langsung) atau bilangan bulat >= 0 berjumlah 100 (400 `invalid_weights`). `certificatePattern` memakai `{seq}`, `{code}`, `{roman}`, `{month}`, `{year}` (400 `invalid_pattern`); kosong = bawaan. Perubahan hanya berlaku untuk hasil yang disimpan sesudahnya dan rapor yang disusun sesudahnya; rapor final tidak berubah (snapshot beku).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @description Skala per pola; null/dihilangkan = bawaan kontrak */
+                        bands: {
+                            lsp?: {
+                                code: string;
+                                label: string;
+                                min: number;
+                                competent: boolean;
+                            }[] | null;
+                            industry?: {
+                                code: string;
+                                label: string;
+                                min: number;
+                                competent: boolean;
+                            }[] | null;
+                            independent?: {
+                                code: string;
+                                label: string;
+                                min: number;
+                                competent: boolean;
+                            }[] | null;
+                        };
+                        /** @description Bobot nilai praktik; null = nilai akhir diisi langsung */
+                        practiceWeight: number | null;
+                        /** @description Bobot nilai teori; null = nilai akhir diisi langsung */
+                        theoryWeight: number | null;
+                        /** @description Tampilkan blok UKK di rapor */
+                        inReport: boolean;
+                        /** @description Pola nomor: {seq}, {code}, {roman}, {month}, {year}; kosong = bawaan */
+                        certificatePattern?: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @description Skala timpaan sekolah per pola; null = bawaan kontrak */
+                            bands: {
+                                lsp: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[] | null;
+                                industry: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[] | null;
+                                independent: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[] | null;
+                            };
+                            /** @description Skala bawaan kontrak (Pedoman UKK SMK TA 2025/2026), hanya usulan yang dapat ditimpa */
+                            defaultBands: {
+                                lsp: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[];
+                                industry: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[];
+                                independent: {
+                                    code: string;
+                                    label: string;
+                                    min: number;
+                                    competent: boolean;
+                                }[];
+                            };
+                            bandSources: {
+                                lsp: {
+                                    source: string;
+                                    verified: boolean;
+                                };
+                                industry: {
+                                    source: string;
+                                    verified: boolean;
+                                };
+                                independent: {
+                                    source: string;
+                                    verified: boolean;
+                                };
+                            };
+                            practiceWeight: number | null;
+                            theoryWeight: number | null;
+                            inReport: boolean;
+                            certificatePattern: string | null;
+                            defaultCertificatePattern: string;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ukk/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar kegiatan UKK
+         * @description Izin: `ukk:read`; modul `internship`; hanya jenjang kejuruan (404 `not_vocational`). Filter opsional: tahun ajaran, semester, konsentrasi, status, pola. Terurut tanggal mulai lalu judul. `canAssess` menandai kegiatan yang boleh diisi pengguna ini (pengelola `ukk:manage` atau penguji internal kegiatan itu).
+         */
+        get: {
+            parameters: {
+                query?: {
+                    academicYearId?: string;
+                    concentrationId?: string;
+                    semesterId?: string;
+                    status?: "draft" | "active" | "closed";
+                    pattern?: "lsp" | "industry" | "independent";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            concentrationId: string;
+                            concentrationCode: string;
+                            concentrationName: string;
+                            /** @enum {string} */
+                            pattern: "lsp" | "industry" | "independent";
+                            title: string;
+                            schemeName: string | null;
+                            kkniLevel: number | null;
+                            lspName: string | null;
+                            lspLicenseRef: string | null;
+                            /** Format: uuid */
+                            partnerId: string | null;
+                            partnerName: string | null;
+                            tukName: string | null;
+                            startsOn: string | null;
+                            endsOn: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** @description Penanda manual: sudah dilaporkan ke Dinas */
+                            reportedToDinasAt: string | null;
+                            /** @description Penanda manual: sudah diunggah ke e-Rapor */
+                            pushedToEraporAt: string | null;
+                            assessorCount: number;
+                            /** @description Jumlah murid yang sudah punya baris hasil */
+                            studentCount: number;
+                            /** @description Pengguna ini boleh mengisi hasil kegiatan ini (pengelola atau penguji internal) */
+                            canAssess: boolean;
+                            createdAt: string;
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Tambah kegiatan UKK
+         * @description Izin: `ukk:manage`; modul `internship`; hanya jenjang kejuruan. Pola `lsp`, `industry`, atau `independent`; semester pada tahun ajaran kegiatan; konsentrasi keahlian dan mitra (opsional) milik sekolah (400 `invalid_reference`). Status awal `draft`. Penanda lapor Dinas/e-Rapor diisi lewat `PUT /v1/ukk/events/{id}/reporting`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        academicYearId: string;
+                        /**
+                         * Format: uuid
+                         * @description Semester yang rapornya memuat hasil UKK (bila diaktifkan di pengaturan)
+                         */
+                        semesterId: string;
+                        /**
+                         * Format: uuid
+                         * @description Konsentrasi keahlian peserta
+                         */
+                        concentrationId: string;
+                        /** @enum {string} */
+                        pattern: "lsp" | "industry" | "independent";
+                        title: string;
+                        /** @description Skema sertifikasi LSP atau paket soal */
+                        schemeName?: string | null;
+                        /** @description Level KKNI (2 atau 3) */
+                        kkniLevel?: (2 | 3) | null;
+                        lspName?: string | null;
+                        /** @description Rujukan lisensi LSP (isian bebas) */
+                        lspLicenseRef?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description Mitra dunia kerja (mitra PKL) penyelenggara/pengampu pola industri
+                         */
+                        partnerId?: string | null;
+                        /** @description Tempat Uji Kompetensi */
+                        tukName?: string | null;
+                        /** Format: date */
+                        startsOn?: string | null;
+                        /** Format: date */
+                        endsOn?: string | null;
+                        /**
+                         * @default draft
+                         * @enum {string}
+                         */
+                        status?: "draft" | "active" | "closed";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            concentrationId: string;
+                            concentrationCode: string;
+                            concentrationName: string;
+                            /** @enum {string} */
+                            pattern: "lsp" | "industry" | "independent";
+                            title: string;
+                            schemeName: string | null;
+                            kkniLevel: number | null;
+                            lspName: string | null;
+                            lspLicenseRef: string | null;
+                            /** Format: uuid */
+                            partnerId: string | null;
+                            partnerName: string | null;
+                            tukName: string | null;
+                            startsOn: string | null;
+                            endsOn: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** @description Penanda manual: sudah dilaporkan ke Dinas */
+                            reportedToDinasAt: string | null;
+                            /** @description Penanda manual: sudah diunggah ke e-Rapor */
+                            pushedToEraporAt: string | null;
+                            assessorCount: number;
+                            /** @description Jumlah murid yang sudah punya baris hasil */
+                            studentCount: number;
+                            /** @description Pengguna ini boleh mengisi hasil kegiatan ini (pengelola atau penguji internal) */
+                            canAssess: boolean;
+                            createdAt: string;
+                            assessors: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "internal" | "external";
+                                /** Format: uuid */
+                                teacherId: string | null;
+                                teacherName: string | null;
+                                name: string | null;
+                                institution: string | null;
+                                qualification: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ukk/events/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail kegiatan UKK
+         * @description Izin: `ukk:read`; modul `internship`. Kegiatan beserta daftar penguji; 404 `not_found`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            concentrationId: string;
+                            concentrationCode: string;
+                            concentrationName: string;
+                            /** @enum {string} */
+                            pattern: "lsp" | "industry" | "independent";
+                            title: string;
+                            schemeName: string | null;
+                            kkniLevel: number | null;
+                            lspName: string | null;
+                            lspLicenseRef: string | null;
+                            /** Format: uuid */
+                            partnerId: string | null;
+                            partnerName: string | null;
+                            tukName: string | null;
+                            startsOn: string | null;
+                            endsOn: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** @description Penanda manual: sudah dilaporkan ke Dinas */
+                            reportedToDinasAt: string | null;
+                            /** @description Penanda manual: sudah diunggah ke e-Rapor */
+                            pushedToEraporAt: string | null;
+                            assessorCount: number;
+                            /** @description Jumlah murid yang sudah punya baris hasil */
+                            studentCount: number;
+                            /** @description Pengguna ini boleh mengisi hasil kegiatan ini (pengelola atau penguji internal) */
+                            canAssess: boolean;
+                            createdAt: string;
+                            assessors: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "internal" | "external";
+                                /** Format: uuid */
+                                teacherId: string | null;
+                                teacherName: string | null;
+                                name: string | null;
+                                institution: string | null;
+                                qualification: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah kegiatan UKK
+         * @description Izin: `ukk:manage`; modul `internship`. Validasi seperti saat menambah; 404 `not_found`. Mengganti tahun ajaran, semester, atau konsentrasi setelah ada hasil ditolak 409 `ukk_assessed`. Status `closed` mengunci tulis hasil (409 `event_closed`); kembalikan ke `active` untuk membukanya.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        academicYearId: string;
+                        /**
+                         * Format: uuid
+                         * @description Semester yang rapornya memuat hasil UKK (bila diaktifkan di pengaturan)
+                         */
+                        semesterId: string;
+                        /**
+                         * Format: uuid
+                         * @description Konsentrasi keahlian peserta
+                         */
+                        concentrationId: string;
+                        /** @enum {string} */
+                        pattern: "lsp" | "industry" | "independent";
+                        title: string;
+                        /** @description Skema sertifikasi LSP atau paket soal */
+                        schemeName?: string | null;
+                        /** @description Level KKNI (2 atau 3) */
+                        kkniLevel?: (2 | 3) | null;
+                        lspName?: string | null;
+                        /** @description Rujukan lisensi LSP (isian bebas) */
+                        lspLicenseRef?: string | null;
+                        /**
+                         * Format: uuid
+                         * @description Mitra dunia kerja (mitra PKL) penyelenggara/pengampu pola industri
+                         */
+                        partnerId?: string | null;
+                        /** @description Tempat Uji Kompetensi */
+                        tukName?: string | null;
+                        /** Format: date */
+                        startsOn?: string | null;
+                        /** Format: date */
+                        endsOn?: string | null;
+                        /**
+                         * @default draft
+                         * @enum {string}
+                         */
+                        status?: "draft" | "active" | "closed";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            concentrationId: string;
+                            concentrationCode: string;
+                            concentrationName: string;
+                            /** @enum {string} */
+                            pattern: "lsp" | "industry" | "independent";
+                            title: string;
+                            schemeName: string | null;
+                            kkniLevel: number | null;
+                            lspName: string | null;
+                            lspLicenseRef: string | null;
+                            /** Format: uuid */
+                            partnerId: string | null;
+                            partnerName: string | null;
+                            tukName: string | null;
+                            startsOn: string | null;
+                            endsOn: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** @description Penanda manual: sudah dilaporkan ke Dinas */
+                            reportedToDinasAt: string | null;
+                            /** @description Penanda manual: sudah diunggah ke e-Rapor */
+                            pushedToEraporAt: string | null;
+                            assessorCount: number;
+                            /** @description Jumlah murid yang sudah punya baris hasil */
+                            studentCount: number;
+                            /** @description Pengguna ini boleh mengisi hasil kegiatan ini (pengelola atau penguji internal) */
+                            canAssess: boolean;
+                            createdAt: string;
+                            assessors: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "internal" | "external";
+                                /** Format: uuid */
+                                teacherId: string | null;
+                                teacherName: string | null;
+                                name: string | null;
+                                institution: string | null;
+                                qualification: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus kegiatan UKK
+         * @description Izin: `ukk:manage`; modul `internship`. Hanya kegiatan tanpa hasil; yang sudah punya hasil ditolak 409 `ukk_assessed` (tutup dengan status `closed` untuk menyimpan riwayat). Penguji ikut terhapus. 404 `not_found`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ukk/events/{id}/assessors": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ganti daftar penguji kegiatan UKK
+         * @description Izin: `ukk:manage`; modul `internship`. Mengganti SELURUH daftar (maks. 20). `kind` `internal` = guru sekolah (`teacherId`, boleh mengisi hasil kegiatan ini tanpa `ukk:manage`); `external` = penguji dari LSP/industri (nama wajib; instansi dan kualifikasi opsional; tanpa akun). Penguji yang sama dua kali digabung. 400 `invalid_reference` bila guru tidak ada.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        assessors: ({
+                            /** @enum {string} */
+                            kind: "internal";
+                            /** Format: uuid */
+                            teacherId: string;
+                        } | {
+                            /** @enum {string} */
+                            kind: "external";
+                            name: string;
+                            institution?: string | null;
+                            qualification?: string | null;
+                        })[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            concentrationId: string;
+                            concentrationCode: string;
+                            concentrationName: string;
+                            /** @enum {string} */
+                            pattern: "lsp" | "industry" | "independent";
+                            title: string;
+                            schemeName: string | null;
+                            kkniLevel: number | null;
+                            lspName: string | null;
+                            lspLicenseRef: string | null;
+                            /** Format: uuid */
+                            partnerId: string | null;
+                            partnerName: string | null;
+                            tukName: string | null;
+                            startsOn: string | null;
+                            endsOn: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** @description Penanda manual: sudah dilaporkan ke Dinas */
+                            reportedToDinasAt: string | null;
+                            /** @description Penanda manual: sudah diunggah ke e-Rapor */
+                            pushedToEraporAt: string | null;
+                            assessorCount: number;
+                            /** @description Jumlah murid yang sudah punya baris hasil */
+                            studentCount: number;
+                            /** @description Pengguna ini boleh mengisi hasil kegiatan ini (pengelola atau penguji internal) */
+                            canAssess: boolean;
+                            createdAt: string;
+                            assessors: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "internal" | "external";
+                                /** Format: uuid */
+                                teacherId: string | null;
+                                teacherName: string | null;
+                                name: string | null;
+                                institution: string | null;
+                                qualification: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ukk/events/{id}/results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Hasil UKK per murid
+         * @description Izin: `ukk:read`; modul `internship`. Peserta = murid aktif pada rombel yang jurusannya tertaut ke konsentrasi kegiatan di tahun ajaran kegiatan, ditambah murid yang sudah punya hasil. Tiap murid memuat semua percobaan (uji ulang) dan `latestAttemptNo` (percobaan terakhir bernilai, dipakai rapor/kelulusan). `bands` = skala yang berlaku untuk pola kegiatan, `weights` = bobot praktik:teori (null = nilai akhir diisi langsung), `canAssess` = pengguna ini boleh mengisi.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            event: {
+                                /** Format: uuid */
+                                id: string;
+                                title: string;
+                                /** @enum {string} */
+                                pattern: "lsp" | "industry" | "independent";
+                                /** @enum {string} */
+                                status: "draft" | "active" | "closed";
+                                /** Format: uuid */
+                                semesterId: string;
+                                concentrationName: string;
+                            };
+                            /** @description Skala yang berlaku untuk pola kegiatan ini (timpaan sekolah atau bawaan) */
+                            bands: {
+                                code: string;
+                                label: string;
+                                min: number;
+                                competent: boolean;
+                            }[];
+                            /** @description Bobot praktik:teori; null = nilai akhir diisi langsung */
+                            weights: {
+                                practice: number;
+                                theory: number;
+                            } | null;
+                            inReport: boolean;
+                            canAssess: boolean;
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                nisn: string | null;
+                                className: string;
+                                /** @description Hasil UKK masuk rapor dan rapor murid pada semester kegiatan sudah final: tulis ditolak 409 `report_final` */
+                                reportFinal: boolean;
+                                attempts: {
+                                    attemptNo: number;
+                                    practiceScore: number | null;
+                                    theoryScore: number | null;
+                                    finalScore: number | null;
+                                    bandCode: string | null;
+                                    bandLabel: string | null;
+                                    competent: boolean | null;
+                                    certificateNo: string | null;
+                                    statementNo: string | null;
+                                    passportUnits: string[] | null;
+                                    note: string | null;
+                                    updatedAt: string;
+                                }[];
+                                /** @description Percobaan terakhir yang bernilai akhir (dipakai rapor) */
+                                latestAttemptNo: number | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan hasil UKK (batch)
+         * @description Izin: `ukk:read` di gerbang; yang boleh menyimpan = pemegang `ukk:manage` atau penguji internal kegiatan ini (selain itu 403). Maks. 500 butir (400 `too_many_items`). Tiap butir menyimpan satu percobaan (`attemptNo`, bawaan 1; percobaan > 1 hanya bila percobaan sebelumnya ada: 400 `invalid_attempt`). Nilai yang dihilangkan tidak berubah, null menghapus. Bila bobot praktik:teori diatur, nilai akhir dihitung server dari praktik dan teori (keduanya wajib; isian `finalScore` diabaikan); selain itu `finalScore` diisi langsung. Kategori dan status kompeten diturunkan server dari skala saat disimpan dan dibekukan di baris; nomor sertifikat/surat keterangan yang tidak lagi sesuai hasil dikosongkan. Murid harus terdaftar pada rombel yang jurusannya tertaut ke konsentrasi kegiatan (400 `student_not_in_concentration`). Kegiatan ditutup: 409 `event_closed`. Hasil masuk rapor dan rapor murid itu sudah final: 409 `report_final`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        items: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** @default 1 */
+                            attemptNo?: number;
+                            /** @description Nilai praktik 0-100; dihilangkan = tidak berubah, null = hapus */
+                            practiceScore?: number | null;
+                            /** @description Nilai teori 0-100; dihilangkan = tidak berubah, null = hapus */
+                            theoryScore?: number | null;
+                            /** @description Nilai akhir 0-100, hanya dipakai bila bobot praktik/teori belum diatur; dengan bobot nilai akhir dihitung server dan isian ini diabaikan */
+                            finalScore?: number | null;
+                            /** @description Unit kompetensi yang dinyatakan kompeten (paspor keterampilan) */
+                            passportUnits?: string[] | null;
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ukk/events/{id}/results/{studentId}/retake": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Buat percobaan uji ulang
+         * @description Izin: `ukk:read` di gerbang; yang boleh = pemegang `ukk:manage` atau penguji internal kegiatan ini (selain itu 403). Membuat percobaan berikutnya (kosong) setelah percobaan terakhir yang sudah bernilai; maks. 5 percobaan (409 `max_attempts`). Belum ada percobaan atau percobaan terakhir belum bernilai: 400 `invalid_attempt`. Kegiatan ditutup: 409 `event_closed`; rapor final: 409 `report_final`. Percobaan lama tetap tersimpan; rapor memakai percobaan terakhir bernilai.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                    studentId: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            studentId: string;
+                            attemptNo: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ukk/events/{id}/numbers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Nomori sertifikat dan surat keterangan UKK
+         * @description Izin: `ukk:manage`; modul `internship`. Untuk percobaan terakhir bernilai tiap murid: yang kompeten mendapat nomor SERTIFIKAT, yang tidak mendapat nomor SURAT KETERANGAN, berurutan menurut pola sekolah (`/v1/vocational/settings/ukk`, bawaan `UKK/{seq}/{code}/{year}`; format resmi tidak ditemukan, pola ini usulan) dan urut nama murid. Idempoten: yang sudah bernomor tidak diubah; nomor yang terpakai dilewati (satu urutan untuk sertifikat dan surat keterangan). Hasil masuk rapor dan rapor murid itu sudah final: 409 `report_final`. 409 `certificate_taken` bila bentrok dengan penomoran paralel.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            numbered: {
+                                /** Format: uuid */
+                                studentId: string;
+                                attemptNo: number;
+                                /** @enum {string} */
+                                kind: "certificate" | "statement";
+                                number: string;
+                            }[];
+                            /** @description Murid bernilai yang sudah bernomor */
+                            skipped: number;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/ukk/events/{id}/reporting": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Catat penanda lapor Dinas dan e-Rapor
+         * @description Izin: `ukk:manage`; modul `internship`. Penanda MANUAL (bukan integrasi): waktu hasil UKK dilaporkan ke Dinas dan diunggah ke e-Rapor; null menghapus penanda. Tidak mengunci hasil. 404 `not_found`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /**
+                         * Format: date-time
+                         * @description Penanda manual sudah dilaporkan ke Dinas
+                         */
+                        reportedToDinasAt: string | null;
+                        /**
+                         * Format: date-time
+                         * @description Penanda manual sudah diunggah ke e-Rapor
+                         */
+                        pushedToEraporAt: string | null;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** Format: uuid */
+                            semesterId: string;
+                            semesterName: string;
+                            /** Format: uuid */
+                            concentrationId: string;
+                            concentrationCode: string;
+                            concentrationName: string;
+                            /** @enum {string} */
+                            pattern: "lsp" | "industry" | "independent";
+                            title: string;
+                            schemeName: string | null;
+                            kkniLevel: number | null;
+                            lspName: string | null;
+                            lspLicenseRef: string | null;
+                            /** Format: uuid */
+                            partnerId: string | null;
+                            partnerName: string | null;
+                            tukName: string | null;
+                            startsOn: string | null;
+                            endsOn: string | null;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** @description Penanda manual: sudah dilaporkan ke Dinas */
+                            reportedToDinasAt: string | null;
+                            /** @description Penanda manual: sudah diunggah ke e-Rapor */
+                            pushedToEraporAt: string | null;
+                            assessorCount: number;
+                            /** @description Jumlah murid yang sudah punya baris hasil */
+                            studentCount: number;
+                            /** @description Pengguna ini boleh mengisi hasil kegiatan ini (pengelola atau penguji internal) */
+                            canAssess: boolean;
+                            createdAt: string;
+                            assessors: {
+                                /** Format: uuid */
+                                id: string;
+                                /** @enum {string} */
+                                kind: "internal" | "external";
+                                /** Format: uuid */
+                                teacherId: string | null;
+                                teacherName: string | null;
+                                name: string | null;
+                                institution: string | null;
+                                qualification: string | null;
+                            }[];
                         };
                     };
                 };

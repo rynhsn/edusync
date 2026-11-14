@@ -356,6 +356,14 @@ Tes wajib roadmap (`grading`, `report-card`, `schedule`, `pkl`, `rbac-matrix`, `
   sama tanpa perubahan; tanpa periode tertaut `takers` persis hasil `takersOf`. Diuji di `pkl-report.test.ts`.
 - A3: `pkl_partner` tidak punya `UNIQUE (school_id, id)`; `ukk_event.partner_id` divalidasi API (atau tambah konstrain di 0112).
 - A4: daftar rapor dan PDF dapat membaca `report_section` dari label beku di dokumen tanpa memuat ulang `ref_subject_group`.
+- A3 **diselesaikan 5.5:** `pkl_partner` mendapat `UNIQUE (school_id, id)` di 0112 dan `ukk_event.partner_id` memakai FK komposit.
+- **Beda dokumen vs kode, tahap 5.5-5.6:** (1) ekspor `ukk_results` lewat `GET /v1/exports/academic?dataset=ukk_results` (rute ekspor yang
+  sudah ada), bukan `POST /v1/exports`; tanpa gerbang modul dan tanpa wajib semester (semester opsional menyaring). (2) `ukk_result`
+  juga punya indeks unik parsial `statement_no` dan satu urutan nomor dipakai bersama sertifikat dan surat keterangan. (3) Kegiatan
+  `draft` tidak masuk rapor, kelulusan, dan ekspor. (4) Kegiatan yang sudah punya hasil tidak dapat berganti tahun ajaran, semester, atau
+  konsentrasi (`ukk_assessed`). (5) Syarat kelulusan memakai dua kode saran, `ukk_not_competent` dan `ukk_missing`; murid dianggap
+  kompeten bila hasil terakhir bernilai pada salah satu kegiatan non-draf kompeten. (6) Skala bawaan: kategori `Cukup Kompeten` (61-74)
+  bukan kompeten (ambang kompeten 75, keputusan terbuka 5). (7) Hasil UKK baru terkunci `report_final` bila `ukk_in_report` menyala.
 - Sumber: 792/1.368 JP dan kelompok A/B dari salinan JDIH struktur 2022 (S3, T-salinan); isi Lampiran II 13/2025 (S2) **B**. Skala UKK,
   tiga pola, penguji, sertifikat/surat keterangan dari Pedoman UKK 2025/2026 (S12, T). Bobot sekolah:industri, format nomor, format
   e-Rapor, syarat kelulusan SMK: **tidak ada sumber**, jadi konfigurasi.

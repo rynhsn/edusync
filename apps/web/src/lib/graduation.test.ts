@@ -417,6 +417,43 @@ const finalStudent = stu('1', {
   },
 });
 
+describe('kebijakan: syarat UKK kompeten (5.6)', () => {
+  it('kunci tidak dikirim saat mati dan dikirim true saat menyala', () => {
+    expect('requireUkkCompetent' in buildPolicyBody(policy(), [E1]).config).toBe(false);
+    expect(buildPolicyBody(policy({ requireUkkCompetent: true }), [E1]).config.requireUkkCompetent).toBe(
+      true,
+    );
+  });
+
+  it('konfigurasi tanpa kunci tetap bolak-balik tanpa kunci; dengan kunci tetap menyala', () => {
+    const base = {
+      reportWeight: 100,
+      examWeights: {},
+      reportScope: 'final_level' as const,
+      reportLevels: [],
+      rounding: 'two_decimals' as const,
+      minAverage: null,
+      minSubjectScore: null,
+      requiredSubjectIds: [],
+      criteriaText: null,
+    };
+    const view = (config: typeof base & { requireUkkCompetent?: boolean }) => ({
+      id: E1,
+      academicYearId: E1,
+      config,
+      sklNumberTemplate: null,
+      announceOn: null,
+      updatedAt: '',
+    });
+    const off = formFromPolicy(view(base));
+    expect(off.requireUkkCompetent).toBe(false);
+    expect(buildPolicyBody(off, []).config).toEqual(base);
+    const on = formFromPolicy(view({ ...base, requireUkkCompetent: true }));
+    expect(on.requireUkkCompetent).toBe(true);
+    expect(buildPolicyBody(on, []).config).toEqual({ ...base, requireUkkCompetent: true });
+  });
+});
+
 describe('cetak SKL dan transkrip', () => {
   it('SKL memuat identitas, nomor, dan penandatangan; semua teks di-escape; draf diberi catatan', () => {
     const html = sklHtml(finalStudent, sklLabels, meta);

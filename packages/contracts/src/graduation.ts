@@ -73,6 +73,12 @@ export const graduationConfigSchema = z
       .nullable()
       .optional()
       .describe('Teks kriteria untuk dokumen dan murid'),
+    requireUkkCompetent: z
+      .boolean()
+      .optional()
+      .describe(
+        'Hanya SMK (5.6): saran kelulusan menandai murid yang belum kompeten UKK atau belum punya hasil UKK. Absen = tidak dipakai. Pedoman UKK tidak menyatakan UKK menentukan kelulusan, jadi hanya saran, bukan penolakan',
+      ),
   })
   .refine((c) => c.reportWeight + Object.values(c.examWeights).reduce((a, b) => a + b, 0) > 0, {
     message: 'Jumlah bobot harus lebih dari 0',
@@ -108,7 +114,16 @@ export interface GraduationSubjectResult {
   missing: string[];
 }
 
-export type GraduationFailureCode = 'below_average' | 'below_subject' | 'required_missing' | 'no_scores';
+export type GraduationFailureCode =
+  | 'below_average'
+  | 'below_subject'
+  | 'required_missing'
+  | 'no_scores'
+  | 'ukk_not_competent'
+  | 'ukk_missing';
+
+/** Status UKK murid untuk saran (5.6): `competent` bila hasil terakhir salah satu kegiatannya kompeten; `none` bila belum ada hasil bernilai. */
+export type GraduationUkkStatus = 'competent' | 'not_competent' | 'none';
 
 export interface GraduationFailure {
   code: GraduationFailureCode;
@@ -142,6 +157,7 @@ const mean = (xs: number[]) => xs.reduce((a, b) => a + b, 0) / xs.length;
 export function computeGraduationSuggestion(
   config: GraduationConfig,
   subjects: readonly GraduationSubjectInput[],
+  ukk?: GraduationUkkStatus,
 ): GraduationSuggestion {
   const examWeight = (id: string) => config.examWeights[id] ?? 0;
   const results: GraduationSubjectResult[] = subjects.map((s) => {
@@ -196,6 +212,10 @@ export function computeGraduationSuggestion(
         failures.push({ code: 'below_subject', subjectId: r.subjectId });
       }
     }
+  }
+  // Syarat UKK opsional (5.6): hanya bila dinyalakan; `ukk` tidak diberikan = tidak diperiksa.
+  if (config.requireUkkCompetent === true && ukk !== undefined && ukk !== 'competent') {
+    failures.push({ code: ukk === 'none' ? 'ukk_missing' : 'ukk_not_competent' });
   }
   return {
     subjects: results,

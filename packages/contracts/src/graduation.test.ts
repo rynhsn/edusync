@@ -155,3 +155,24 @@ describe('templat nomor SKL', () => {
     );
   });
 });
+
+describe('syarat UKK opsional (tahap 5.6)', () => {
+  const subjects = [{ subjectId: S1, name: 'A', reportFinals: [80], exams: [{ examId: E1, value: 80 }] }];
+  it('tanpa kunci atau tanpa status UKK: hasil persis seperti sebelumnya', () => {
+    const base = computeGraduationSuggestion(config(), subjects);
+    expect(computeGraduationSuggestion(config(), subjects, 'none')).toEqual(base);
+    expect(computeGraduationSuggestion(config({ requireUkkCompetent: false }), subjects, 'none')).toEqual(
+      base,
+    );
+    expect(computeGraduationSuggestion(config({ requireUkkCompetent: true }), subjects)).toEqual(base);
+    expect(graduationConfigSchema.parse({ ...config() })).not.toHaveProperty('requireUkkCompetent');
+  });
+  it('dinyalakan: belum kompeten dan belum ada hasil hanya menjadi saran (failures)', () => {
+    const on = config({ requireUkkCompetent: true });
+    expect(computeGraduationSuggestion(on, subjects, 'competent').failures).toEqual([]);
+    const no = computeGraduationSuggestion(on, subjects, 'not_competent');
+    expect(no.failures).toEqual([{ code: 'ukk_not_competent' }]);
+    expect(no.meetsCriteria).toBe(false);
+    expect(computeGraduationSuggestion(on, subjects, 'none').failures).toEqual([{ code: 'ukk_missing' }]);
+  });
+});

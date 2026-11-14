@@ -24,6 +24,9 @@ import {
   student,
   subject,
   teacher,
+  ukkAssessor,
+  ukkEvent,
+  ukkResult,
   vocationalConcentration,
   vocationalField,
   vocationalProgram,
@@ -688,6 +691,190 @@ describe('tautan PKL ke rapor (tahap 5.3, migrasi 0111)', () => {
         await platform.db.delete(pklPartner).where(eq(pklPartner.schoolId, sid));
         await platform.db.delete(student).where(eq(student.schoolId, sid));
         await platform.db.delete(subject).where(eq(subject.schoolId, sid));
+        await platform.db.delete(semester).where(eq(semester.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tabel tenant UKK (tahap 5.5, migrasi 0112)', () => {
+  it('kegiatan, penguji, dan hasil terisolasi; FK komposit, CHECK, unik percobaan dan nomor, CASCADE penguji', async () => {
+    const seed = async (sid: string, n: number) => {
+      const [y] = await platform.db.select().from(academicYear).where(eq(academicYear.schoolId, sid));
+      const [sem] = await platform.db
+        .insert(semester)
+        .values({
+          schoolId: sid,
+          academicYearId: y!.id,
+          name: `Ganjil ${n}`,
+          startsOn: '2026-07-13',
+          endsOn: '2026-12-20',
+        })
+        .returning();
+      const [field] = await platform.db
+        .insert(vocationalField)
+        .values({ schoolId: sid, code: `B${n}`, name: `Bidang ${n}` })
+        .returning();
+      const [vp] = await platform.db
+        .insert(vocationalProgram)
+        .values({ schoolId: sid, fieldId: field!.id, code: `P${n}`, name: `Program ${n}` })
+        .returning();
+      const [conc] = await platform.db
+        .insert(vocationalConcentration)
+        .values({ schoolId: sid, vocationalProgramId: vp!.id, code: `K${n}`, name: `Konsentrasi ${n}` })
+        .returning();
+      const [stu] = await platform.db
+        .insert(student)
+        .values({ schoolId: sid, name: `Murid ${n}`, gender: 'L' })
+        .returning();
+      const [tch] = await platform.db
+        .insert(teacher)
+        .values({ schoolId: sid, name: `Guru ${n}` })
+        .returning();
+      const [partner] = await platform.db
+        .insert(pklPartner)
+        .values({ schoolId: sid, name: `Mitra ${n}` })
+        .returning();
+      return { year: y!.id, sem: sem!.id, conc: conc!.id, stu: stu!.id, tch: tch!.id, partner: partner!.id };
+    };
+    const a = await seed(schoolA1, 1);
+    const b = await seed(schoolB, 2);
+    const eventOf = (
+      sid: string,
+      x: typeof a,
+      title: string,
+      extra: Partial<typeof ukkEvent.$inferInsert> = {},
+    ) =>
+      platform.db
+        .insert(ukkEvent)
+        .values({
+          schoolId: sid,
+          academicYearId: x.year,
+          semesterId: x.sem,
+          concentrationId: x.conc,
+          pattern: 'lsp',
+          title,
+          createdBy: 'uji',
+          ...extra,
+        })
+        .returning();
+    const resultOf = (
+      sid: string,
+      eventId: string,
+      studentId: string,
+      extra: Partial<typeof ukkResult.$inferInsert> = {},
+    ) =>
+      platform.db
+        .insert(ukkResult)
+        .values({ schoolId: sid, eventId, studentId, updatedBy: 'uji', ...extra })
+        .returning();
+    const assessorOf = (eventId: string, extra: Partial<typeof ukkAssessor.$inferInsert>) =>
+      platform.db
+        .insert(ukkAssessor)
+        .values({ schoolId: schoolA1, eventId, ...(extra as { kind: 'internal' | 'external' }) });
+    try {
+      const [ea] = await eventOf(schoolA1, a, 'UKK A', { partnerId: a.partner });
+      const [eb] = await eventOf(schoolB, b, 'UKK B');
+      expect(ea).toMatchObject({ status: 'draft', reportedToDinasAt: null, pushedToEraporAt: null });
+      await assessorOf(ea!.id, { kind: 'internal', teacherId: a.tch });
+      await assessorOf(ea!.id, { kind: 'external', name: 'Penguji LSP' });
+      await resultOf(schoolA1, ea!.id, a.stu, {
+        finalScore: 80,
+        competent: true,
+        certificateNo: 'UKK-1',
+      });
+      await resultOf(schoolB, eb!.id, b.stu);
+      // Isolasi: aplikasi hanya melihat sekolahnya; tanpa konteks tidak melihat apa pun.
+      for (const t of [ukkEvent, ukkAssessor, ukkResult] as const) {
+        const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(t));
+        expect(rows.length).toBeGreaterThan(0);
+        expect(rows.every((r) => r.schoolId === schoolA1)).toBe(true);
+        expect(await app.db.select().from(t)).toHaveLength(0);
+      }
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) =>
+          tx.insert(ukkResult).values({
+            schoolId: schoolB,
+            eventId: eb!.id,
+            studentId: b.stu,
+            attemptNo: 2,
+            updatedBy: 'uji',
+          }),
+        ),
+      ).rejects.toThrow();
+      // CHECK: pola, status, KKNI, tanggal, skor, percobaan, sertifikat hanya untuk yang kompeten, penguji internal wajib guru.
+      await expect(eventOf(schoolA1, a, 'x', { pattern: 'lain' as never })).rejects.toThrow();
+      await expect(eventOf(schoolA1, a, 'x', { status: 'lain' as never })).rejects.toThrow();
+      await expect(eventOf(schoolA1, a, 'x', { kkniLevel: 4 })).rejects.toThrow();
+      await expect(
+        eventOf(schoolA1, a, 'x', { startsOn: '2026-12-02', endsOn: '2026-12-01' }),
+      ).rejects.toThrow();
+      await expect(resultOf(schoolA1, ea!.id, a.stu, { attemptNo: 6 })).rejects.toThrow();
+      await expect(resultOf(schoolA1, ea!.id, a.stu, { attemptNo: 2, finalScore: 101 })).rejects.toThrow();
+      await expect(
+        resultOf(schoolA1, ea!.id, a.stu, { attemptNo: 2, competent: false, certificateNo: 'UKK-2' }),
+      ).rejects.toThrow();
+      await expect(assessorOf(ea!.id, { kind: 'internal' })).rejects.toThrow();
+      // Unik: percobaan per (kegiatan, murid), nomor sertifikat per sekolah, penguji yang sama dua kali.
+      await expect(resultOf(schoolA1, ea!.id, a.stu, { attemptNo: 1 })).rejects.toThrow();
+      await resultOf(schoolB, eb!.id, b.stu, {
+        attemptNo: 2,
+        finalScore: 90,
+        competent: true,
+        certificateNo: 'UKK-1',
+      });
+      await expect(
+        resultOf(schoolA1, ea!.id, a.stu, {
+          attemptNo: 2,
+          finalScore: 85,
+          competent: true,
+          certificateNo: 'UKK-1',
+        }),
+      ).rejects.toThrow();
+      await expect(assessorOf(ea!.id, { kind: 'internal', teacherId: a.tch })).rejects.toThrow();
+      await expect(assessorOf(ea!.id, { kind: 'external', name: 'Penguji LSP' })).rejects.toThrow();
+      // FK komposit: semester, konsentrasi, mitra, murid, dan guru sekolah lain ditolak walau id valid.
+      await expect(eventOf(schoolA1, a, 'silang1', { semesterId: b.sem })).rejects.toThrow();
+      await expect(eventOf(schoolA1, a, 'silang2', { concentrationId: b.conc })).rejects.toThrow();
+      await expect(eventOf(schoolA1, a, 'silang3', { partnerId: b.partner })).rejects.toThrow();
+      await expect(resultOf(schoolA1, ea!.id, b.stu, { attemptNo: 3 })).rejects.toThrow();
+      await expect(assessorOf(ea!.id, { kind: 'internal', teacherId: b.tch })).rejects.toThrow();
+      // Bobot praktik:teori dan kolom pengaturan baru: keduanya NULL atau berjumlah 100.
+      await platform.db.insert(vocationalSetting).values({ schoolId: schoolA1, updatedBy: 'uji' });
+      const setW = (p: number | null, t: number | null) =>
+        platform.db
+          .update(vocationalSetting)
+          .set({ ukkPracticeWeight: p, ukkTheoryWeight: t })
+          .where(eq(vocationalSetting.schoolId, schoolA1));
+      await setW(70, 30);
+      await setW(null, null);
+      await expect(setW(60, 30)).rejects.toThrow();
+      await expect(setW(70, null)).rejects.toThrow();
+      const [vs] = await platform.db
+        .select()
+        .from(vocationalSetting)
+        .where(eq(vocationalSetting.schoolId, schoolA1));
+      expect(vs).toMatchObject({ ukkBands: null, ukkInReport: false, ukkCertificatePattern: null });
+      // Kegiatan yang punya hasil tidak bisa dihapus (NO ACTION); penguji ikut terhapus bersama kegiatan tanpa hasil.
+      await expect(platform.db.delete(ukkEvent).where(eq(ukkEvent.id, ea!.id))).rejects.toThrow();
+      const [free] = await eventOf(schoolA1, a, 'tanpa hasil');
+      await assessorOf(free!.id, { kind: 'external', name: 'Eksternal' });
+      await platform.db.delete(ukkEvent).where(eq(ukkEvent.id, free!.id));
+      expect(
+        await platform.db.select().from(ukkAssessor).where(eq(ukkAssessor.eventId, free!.id)),
+      ).toHaveLength(0);
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(ukkResult).where(eq(ukkResult.schoolId, sid));
+        await platform.db.delete(ukkAssessor).where(eq(ukkAssessor.schoolId, sid));
+        await platform.db.delete(ukkEvent).where(eq(ukkEvent.schoolId, sid));
+        await platform.db.delete(vocationalSetting).where(eq(vocationalSetting.schoolId, sid));
+        await platform.db.delete(pklPartner).where(eq(pklPartner.schoolId, sid));
+        await platform.db.delete(teacher).where(eq(teacher.schoolId, sid));
+        await platform.db.delete(student).where(eq(student.schoolId, sid));
+        await platform.db.delete(vocationalConcentration).where(eq(vocationalConcentration.schoolId, sid));
+        await platform.db.delete(vocationalProgram).where(eq(vocationalProgram.schoolId, sid));
+        await platform.db.delete(vocationalField).where(eq(vocationalField.schoolId, sid));
         await platform.db.delete(semester).where(eq(semester.schoolId, sid));
       }
     }

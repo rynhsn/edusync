@@ -15,6 +15,7 @@ import {
   eq,
   inArray,
   isNull,
+  ne,
   or,
   program,
   refSubject,
@@ -27,6 +28,9 @@ import {
   type Tx,
   teacher,
   teachingAssignment,
+  ukkEvent,
+  ukkResult,
+  vocationalConcentration,
 } from '@edusync/db';
 import { HttpError } from './http-error';
 
@@ -120,6 +124,9 @@ export async function buildExport(tx: Tx, input: ExportInput): Promise<ExportRes
     case 'final_grades':
     case 'descriptions':
       rows = await snapshotRows(tx, ctx, input.dataset);
+      break;
+    case 'ukk_results':
+      rows = await ukkRows(tx, ctx);
       break;
   }
   return { yearName: year.name, semesterName: sem?.name ?? null, rows: shape(input.dataset, rows) };
@@ -406,6 +413,87 @@ async function snapshotRows(tx: Tx, c: Ctx, dataset: 'final_grades' | 'descripti
     }
   }
   return rows.sort((a, b) => byText(a._sort, b._sort));
+}
+
+/**
+ * Hasil UKK (5.6): semua percobaan pada kegiatan non-draft di tahun ajaran itu (dan semester bila disebut), dari data hidup tabel
+ * `ukk_result` (kategori dibekukan di baris). Tanpa NIK. Kolom dapat dipetakan manual; pemetaan ke templat impor e-Rapor SMK tidak
+ * dikarang karena formatnya belum diverifikasi.
+ */
+async function ukkRows(tx: Tx, c: Ctx): Promise<ExportRow[]> {
+  const rows = await tx
+    .select({
+      r: ukkResult,
+      st: { name: student.name, nis: student.nis, nisn: student.nisn },
+      ev: {
+        title: ukkEvent.title,
+        pattern: ukkEvent.pattern,
+        scheme: ukkEvent.schemeName,
+        academicYearId: ukkEvent.academicYearId,
+      },
+      semesterName: semester.name,
+      con: {
+        code: vocationalConcentration.code,
+        name: vocationalConcentration.name,
+        dapodik: vocationalConcentration.dapodikCode,
+      },
+      className: classRoom.name,
+    })
+    .from(ukkResult)
+    .innerJoin(ukkEvent, eq(ukkEvent.id, ukkResult.eventId))
+    .innerJoin(student, eq(student.id, ukkResult.studentId))
+    .innerJoin(semester, eq(semester.id, ukkEvent.semesterId))
+    .innerJoin(vocationalConcentration, eq(vocationalConcentration.id, ukkEvent.concentrationId))
+    .leftJoin(
+      enrollment,
+      and(
+        eq(enrollment.studentId, ukkResult.studentId),
+        eq(enrollment.academicYearId, ukkEvent.academicYearId),
+      ),
+    )
+    .leftJoin(classRoom, eq(classRoom.id, enrollment.classId))
+    .where(
+      and(
+        eq(ukkEvent.academicYearId, c.year.id),
+        ne(ukkEvent.status, 'draft'),
+        c.sem ? eq(ukkEvent.semesterId, c.sem.id) : undefined,
+      ),
+    );
+  const latest = new Map<string, number>();
+  for (const { r } of rows) {
+    if (r.finalScore === null) continue;
+    const k = `${r.eventId}|${r.studentId}`;
+    if ((latest.get(k) ?? 0) < r.attemptNo) latest.set(k, r.attemptNo);
+  }
+  const scored = rows.filter(
+    ({ r }) => r.finalScore !== null || r.practiceScore !== null || r.theoryScore !== null,
+  );
+  const out = scored.map(({ r, st, ev, semesterName, con, className }) => ({
+    ...c.base,
+    semester: semesterName,
+    class_name: className ?? null,
+    student_nisn: st.nisn,
+    student_nis: st.nis,
+    student_name: st.name,
+    concentration_code: con.code,
+    concentration_name: con.name,
+    concentration_dapodik_code: con.dapodik,
+    pattern: ev.pattern,
+    event_title: ev.title,
+    scheme_name: ev.scheme,
+    attempt: r.attemptNo,
+    is_latest: latest.get(`${r.eventId}|${r.studentId}`) === r.attemptNo,
+    practice_score: r.practiceScore,
+    theory_score: r.theoryScore,
+    final_score: r.finalScore,
+    band_code: r.bandCode,
+    band_label: r.bandLabel,
+    competent: r.competent,
+    certificate_no: r.certificateNo,
+    statement_no: r.statementNo,
+    _sort: `${className ?? ''} ${st.name} ${ev.title} ${String(r.attemptNo).padStart(2, '0')}`,
+  }));
+  return out.sort((a, b) => byText(a._sort, b._sort));
 }
 
 /** Nama berkas yang aman untuk header (huruf, angka, strip). */

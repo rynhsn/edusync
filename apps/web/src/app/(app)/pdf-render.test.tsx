@@ -514,6 +514,35 @@ describe('PDF rapor', () => {
       pageCount(await render('rapor-blok-pkl-deskriptif', <ReportCardDocument docs={[descriptive]} />)),
     ).toBeGreaterThanOrEqual(1);
   });
+
+  it('rapor dengan blok UKK (5.6): blok dirender; tanpa kunci ukk rapor v1 tidak berubah', async () => {
+    const entry = {
+      title: 'UKK TKJ 2026',
+      pattern: 'independent' as const,
+      concentration: 'Teknik Komputer dan Jaringan',
+      attempt: 2,
+      finalScore: 88,
+      band: { code: 'k', label: 'Kompeten' },
+      competent: true,
+      certificateNo: 'UKK/001/SMK/2026',
+    };
+    const withUkk: ReportCardDoc = {
+      ...base,
+      schemaVersion: 2,
+      ukk: [
+        entry,
+        { ...entry, title: 'UKK Jaringan', band: null, competent: null, statementNo: 'UKK/002/SMK/2026' },
+      ],
+    };
+    const a = await render('rapor-blok-ukk', <ReportCardDocument docs={[withUkk]} />);
+    const plain = await render('rapor-v1-tanpa-ukk', <ReportCardDocument docs={[base]} />);
+    expect(pageCount(a)).toBeGreaterThanOrEqual(1);
+    expect(a.length).toBeGreaterThan(plain.length);
+    const descriptive: ReportCardDoc = { ...withUkk, reportMode: 'descriptive' };
+    expect(
+      pageCount(await render('rapor-blok-ukk-deskriptif', <ReportCardDocument docs={[descriptive]} />)),
+    ).toBeGreaterThanOrEqual(1);
+  });
 });
 
 describe('PDF rekap presensi', () => {

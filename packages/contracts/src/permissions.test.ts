@@ -160,3 +160,24 @@ describe('izin kokurikuler', () => {
     }
   });
 });
+
+describe('izin UKK', () => {
+  const has = (role: keyof typeof SYSTEM_ROLES, p: string) =>
+    (SYSTEM_ROLES[role].permissions as readonly string[]).includes(p);
+  it('tulis: admin dan kurikulum; baca: ditambah kepala sekolah, operator, dan guru', () => {
+    expect(isPermission('ukk:read')).toBe(true);
+    expect(isPermission('ukk:manage')).toBe(true);
+    for (const role of ['school_admin', 'curriculum'] as const) {
+      expect(has(role, 'ukk:manage')).toBe(true);
+      expect(has(role, 'ukk:read')).toBe(true);
+    }
+    for (const role of ['principal', 'operator', 'teacher'] as const) {
+      expect(has(role, 'ukk:manage')).toBe(false);
+      expect(has(role, 'ukk:read')).toBe(true);
+    }
+    for (const role of ['treasurer', 'guardian', 'student'] as const) {
+      expect(has(role, 'ukk:manage')).toBe(false);
+      expect(has(role, 'ukk:read')).toBe(false);
+    }
+  });
+});

@@ -70,6 +70,18 @@ export interface ReportCardDoc {
     predicate: Predicate | null;
     certificateNo?: string;
   }[];
+  /** Hasil UKK (5.6): percobaan terakhir bernilai per kegiatan; hanya bila sekolah menyalakan "tampilkan di rapor". */
+  ukk?: {
+    title: string;
+    pattern: 'lsp' | 'industry' | 'independent';
+    concentration: string;
+    attempt: number;
+    finalScore: number;
+    band: { code: string; label: string } | null;
+    competent: boolean | null;
+    certificateNo?: string;
+    statementNo?: string;
+  }[];
   developmentNote?: string | null;
   guardianResponses?: ReportCardResponse[];
 }

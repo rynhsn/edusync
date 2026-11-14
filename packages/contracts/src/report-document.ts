@@ -120,6 +120,25 @@ export const reportInternshipSchema = z.array(
 );
 export type ReportInternship = z.infer<typeof reportInternshipSchema>;
 
+/**
+ * Hasil UKK pada dokumen (tahap 5.6): percobaan terakhir yang bernilai per kegiatan pada semester rapor itu. Judul, konsentrasi, dan
+ * label kategori dibekukan saat dokumen disusun. Hanya ada bila sekolah menyalakan `ukk_in_report` dan murid punya hasil.
+ */
+export const reportUkkSchema = z.array(
+  z.object({
+    title: z.string(),
+    pattern: z.enum(['lsp', 'industry', 'independent']),
+    concentration: z.string(),
+    attempt: z.number().int(),
+    finalScore: z.number(),
+    band: z.object({ code: z.string(), label: z.string() }).nullable(),
+    competent: z.boolean().nullable(),
+    certificateNo: z.string().optional(),
+    statementNo: z.string().optional(),
+  }),
+);
+export type ReportUkk = z.infer<typeof reportUkkSchema>;
+
 export const reportSubjectV2Schema = reportSubjectSchema.extend({
   /** Absen = deskripsi dari predikat (v1). */
   descriptionSource: z.enum(['manual', 'objectives']).optional(),
@@ -164,6 +183,8 @@ export const reportDocumentV2Schema = reportDocumentSchema.extend({
   expertise: reportExpertiseSchema.optional(),
   /** Rincian PKL (tahap 5.4); hanya bila murid punya penempatan pada periode PKL yang ditautkan ke semester ini. */
   internship: reportInternshipSchema.optional(),
+  /** Hasil UKK (tahap 5.6); hanya bila `ukk_in_report` menyala dan murid punya hasil pada kegiatan semester ini. */
+  ukk: reportUkkSchema.optional(),
   subjects: z.array(reportSubjectV2Schema),
 });
 
@@ -227,6 +248,7 @@ export const REPORT_V2_DOCUMENT_KEYS = [
   'schoolNsm',
   'expertise',
   'internship',
+  'ukk',
 ] as const;
 export const REPORT_V2_SUBJECT_KEYS = ['descriptionSource', 'objectives', 'group', 'source'] as const;
 
@@ -252,7 +274,8 @@ export function projectDescriptiveForPortal<
   T extends { reportMode?: 'descriptive' | undefined; subjects: readonly object[] },
 >(doc: T): T {
   if (doc.reportMode !== 'descriptive') return doc;
-  const { rank: _rank, ...rest } = doc as T & { rank?: unknown };
+  // Skor UKK (5.6) juga angka: dibuang di mode deskriptif.
+  const { rank: _rank, ukk: _ukk, ...rest } = doc as T & { rank?: unknown; ukk?: unknown };
   const subjects = doc.subjects.map((s) => {
     const { final: _f, predicate: _p, kkm: _k, belowKkm: _b, ...keep } = s as Record<string, unknown>;
     return keep;

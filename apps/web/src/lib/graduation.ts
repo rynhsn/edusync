@@ -60,6 +60,8 @@ export interface PolicyForm {
   minSubjectScore: string;
   requiredSubjectIds: string[];
   criteriaText: string;
+  /** Hanya SMK (5.6): saran menandai murid yang belum kompeten UKK. Mati = kunci tidak dikirim. */
+  requireUkkCompetent: boolean;
   sklNumberTemplate: string;
   announceOn: string;
 }
@@ -94,6 +96,7 @@ export const EMPTY_POLICY: PolicyForm = {
   minSubjectScore: '',
   requiredSubjectIds: [],
   criteriaText: '',
+  requireUkkCompetent: false,
   sklNumberTemplate: '',
   announceOn: '',
 };
@@ -113,6 +116,7 @@ export function formFromPolicy(policy: PolicyView | null): PolicyForm {
     minSubjectScore: numText(c.minSubjectScore),
     requiredSubjectIds: [...(c.requiredSubjectIds ?? [])],
     criteriaText: c.criteriaText ?? '',
+    requireUkkCompetent: c.requireUkkCompetent === true,
     sklNumberTemplate: policy.sklNumberTemplate ?? '',
     announceOn: policy.announceOn ?? '',
   };
@@ -198,6 +202,8 @@ export function buildPolicyBody(f: PolicyForm, examIds: readonly string[]) {
       minSubjectScore: orNull(f.minSubjectScore),
       requiredSubjectIds: f.requiredSubjectIds,
       criteriaText: f.criteriaText.trim() === '' ? null : f.criteriaText.trim(),
+      // Kunci opsional: hanya dikirim bila menyala, supaya konfigurasi lama tetap persis sama.
+      ...(f.requireUkkCompetent ? { requireUkkCompetent: true } : {}),
     },
     sklNumberTemplate: f.sklNumberTemplate.trim() === '' ? null : f.sklNumberTemplate.trim(),
     announceOn: f.announceOn === '' ? null : f.announceOn,

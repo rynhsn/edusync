@@ -386,6 +386,8 @@ function StudentDialog({
       return t('detail.failBelowSubject', { name, min: min.minSubjectScore ?? 0 });
     }
     if (fl.code === 'required_missing') return t('detail.failRequiredMissing', { name });
+    if (fl.code === 'ukk_not_competent') return t('detail.failUkkNotCompetent');
+    if (fl.code === 'ukk_missing') return t('detail.failUkkMissing');
     return t('detail.failNoScores');
   }
 

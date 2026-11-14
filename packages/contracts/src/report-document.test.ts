@@ -323,3 +323,32 @@ describe('PKL di rapor (tahap 5.4)', () => {
     ).toThrow();
   });
 });
+
+describe('blok UKK di rapor (tahap 5.6)', () => {
+  const ukk = [
+    {
+      title: 'UKK TKJ 2026',
+      pattern: 'lsp' as const,
+      concentration: 'Teknik Komputer dan Jaringan',
+      attempt: 2,
+      finalScore: 82.5,
+      band: { code: 'k', label: 'Kompeten' },
+      competent: true,
+      certificateNo: 'UKK/001/SMK/2026',
+    },
+  ];
+  it('kunci ukk menjadikan dokumen v2 dan lolos serializer staf serta portal', () => {
+    const doc = { ...v1, ukk };
+    expect(REPORT_V2_DOCUMENT_KEYS).toContain('ukk');
+    expect(reportDocumentSchemaVersion(doc)).toBe(2);
+    expect(reportDocumentV2Schema.parse(doc)).toEqual(doc);
+    expect(reportDocumentResponseSchema.parse(doc)).toEqual(doc);
+    expect(portalReportDocumentSchema.parse(doc)).toEqual(doc);
+    expect(reportDocumentSchemaVersion({ ...v1, ukk: undefined })).toBe(1);
+    expect(() => reportDocumentV2Schema.parse({ ...v1, ukk: [{ title: 'x' }] })).toThrow();
+  });
+  it('mode deskriptif membuang blok ukk (angka); tanpa blok proyeksi tidak menambah kunci', () => {
+    const projected = projectDescriptiveForPortal({ ...v1, reportMode: 'descriptive' as const, ukk });
+    expect(projected).not.toHaveProperty('ukk');
+  });
+});

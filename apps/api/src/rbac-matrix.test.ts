@@ -757,6 +757,55 @@ describe('kebijakan peran bawaan', () => {
     }
   });
 
+  it('rute UKK (tahap 5.5) memakai ukk:read/ukk:manage dan gerbang modul internship; hak mengisi kontekstual', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const ev = '/v1/ukk/events';
+    const groups: [string, (ReturnType<typeof find> | undefined)[]][] = [
+      [
+        'ukk:read',
+        [
+          find('GET', ev),
+          find('GET', `${ev}/:id`),
+          find('GET', `${ev}/:id/results`),
+          // Menulis hasil dan uji ulang: gerbang cukup baca; pengelola atau penguji internal diputuskan di handler (403 selain itu).
+          find('PUT', `${ev}/:id/results`),
+          find('POST', `${ev}/:id/results/:studentId/retake`),
+          find('GET', '/v1/vocational/settings/ukk'),
+        ],
+      ],
+      [
+        'ukk:manage',
+        [
+          find('POST', ev),
+          find('PUT', `${ev}/:id`),
+          find('DELETE', `${ev}/:id`),
+          find('PUT', `${ev}/:id/assessors`),
+          find('POST', `${ev}/:id/numbers`),
+          find('PUT', `${ev}/:id/reporting`),
+          find('PUT', '/v1/vocational/settings/ukk'),
+        ],
+      ],
+    ];
+    for (const [perm, list] of groups) {
+      for (const e of list) {
+        expect(e, perm).toBeDefined();
+        expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([[perm], ['internship']]);
+        expect(e?.description).toContain(`Izin: \`${perm}\``);
+      }
+      for (const r of roleKeys) {
+        const has = (SYSTEM_ROLES[r].permissions as readonly string[]).includes(perm);
+        for (const e of list) expect(allows(r, e!), `${r} ${e?.method} ${e?.url}`).toBe(has);
+      }
+    }
+    expect(PERMISSIONS).not.toContain('ukk:assess');
+    const readers = ['school_admin', 'principal', 'curriculum', 'operator', 'teacher'];
+    const writers = ['school_admin', 'curriculum'];
+    for (const r of roleKeys) {
+      expect(perms(r).has('ukk:read'), r).toBe(readers.includes(r));
+      expect(perms(r).has('ukk:manage'), r).toBe(writers.includes(r));
+    }
+  });
+
   it('rute ekspor akademik (tahap 3C.5) memasang data_export:run tanpa modul di gerbang', () => {
     const e = eps.find((x) => x.method === 'GET' && x.url === '/v1/exports/academic');
     // Modul grades hanya diperiksa di handler untuk dataset nilai (400 dataset_requires_module), bukan di gerbang rute.

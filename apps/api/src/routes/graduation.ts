@@ -116,7 +116,14 @@ const scoringShape = {
   meetsCriteria: z.boolean().describe('SARAN: memenuhi ambang kebijakan; penetapan tetap oleh sekolah'),
   failures: z.array(
     z.object({
-      code: z.enum(['below_average', 'below_subject', 'required_missing', 'no_scores']),
+      code: z.enum([
+        'below_average',
+        'below_subject',
+        'required_missing',
+        'no_scores',
+        'ukk_not_competent',
+        'ukk_missing',
+      ]),
       subjectId: z.uuid().optional(),
     }),
   ),
@@ -144,6 +151,10 @@ const policySnapshotSchema = z.object({
   minSubjectScore: z.number().nullable(),
   requiredSubjectIds: z.array(z.uuid()),
   criteriaText: z.string().nullable(),
+  requireUkkCompetent: z
+    .boolean()
+    .optional()
+    .describe('Syarat UKK opsional (5.6); hanya ada bila dinyalakan'),
 });
 
 const transcriptSchema = z.object({

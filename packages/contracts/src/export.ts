@@ -19,6 +19,7 @@ export const EXPORT_DATASETS = [
   'subject_choices',
   'final_grades',
   'descriptions',
+  'ukk_results',
 ] as const;
 export type ExportDataset = (typeof EXPORT_DATASETS)[number];
 
@@ -136,6 +137,31 @@ export const EXPORT_COLUMNS = {
     ...subjectIds,
     { key: 'description', description: 'Deskripsi capaian pada rapor final' },
     { key: 'finalized_at', description: 'Waktu rapor difinalkan (ISO 8601, UTC)' },
+  ],
+  ukk_results: [
+    ...school,
+    { key: 'semester', description: 'Nama semester kegiatan UKK' },
+    { key: 'class_name', description: 'Nama rombel murid pada tahun ajaran itu' },
+    ...studentIds,
+    { key: 'concentration_code', description: 'Kode konsentrasi keahlian di sekolah' },
+    { key: 'concentration_name', description: 'Nama konsentrasi keahlian' },
+    { key: 'concentration_dapodik_code', description: 'Kode Dapodik konsentrasi (kosong bila belum diisi)' },
+    { key: 'pattern', description: 'Pola UKK: lsp, industry, atau independent' },
+    { key: 'event_title', description: 'Judul kegiatan UKK' },
+    { key: 'scheme_name', description: 'Skema sertifikasi LSP atau paket soal (kosong bila belum diisi)' },
+    { key: 'attempt', description: 'Nomor percobaan (1 = pertama; lebih dari 1 = uji ulang)' },
+    {
+      key: 'is_latest',
+      description: '`true` bila percobaan ini yang terakhir bernilai (dipakai rapor), selain itu `false`',
+    },
+    { key: 'practice_score', description: 'Nilai praktik 0-100 (kosong bila tidak diisi)' },
+    { key: 'theory_score', description: 'Nilai teori 0-100 (kosong bila tidak diisi)' },
+    { key: 'final_score', description: 'Nilai akhir 0-100' },
+    { key: 'band_code', description: 'Kode kategori hasil menurut skala saat disimpan' },
+    { key: 'band_label', description: 'Label kategori hasil menurut skala saat disimpan' },
+    { key: 'competent', description: '`true` bila kompeten, `false` bila belum kompeten' },
+    { key: 'certificate_no', description: 'Nomor sertifikat (hanya yang kompeten)' },
+    { key: 'statement_no', description: 'Nomor surat keterangan (hanya yang belum kompeten)' },
   ],
 } as const satisfies Record<ExportDataset, readonly ExportColumn[]>;
 

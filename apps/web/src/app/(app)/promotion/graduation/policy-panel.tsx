@@ -292,6 +292,21 @@ export function PolicyPanel({ yearId, policy }: { yearId: string; policy: Policy
           </div>
         )}
 
+        {school.educationProfile?.vocational !== false && (
+          <div className="flex min-h-11 items-start gap-3">
+            <Checkbox
+              id={f('requireUkkCompetent')}
+              className="mt-1"
+              checked={values.requireUkkCompetent}
+              onCheckedChange={(v) => set('requireUkkCompetent', v === true)}
+            />
+            <div className="grid gap-1">
+              <Label htmlFor={f('requireUkkCompetent')}>{t('policy.requireUkk')}</Label>
+              <p className="text-muted-foreground text-xs">{t('policy.requireUkkHint')}</p>
+            </div>
+          </div>
+        )}
+
         <div className="grid content-start gap-2">
           <Label htmlFor={f('criteriaText')}>{t('policy.criteriaText')}</Label>
           <Textarea

@@ -1,12 +1,19 @@
 import {
   DEFAULT_PKL_CERTIFICATE_PATTERN,
+  DEFAULT_UKK_CERTIFICATE_PATTERN,
+  UKK_BAND_SOURCES,
+  UKK_DEFAULT_BANDS,
+  UKK_PATTERNS,
   validateNumberPattern,
   validPklWeights,
+  validUkkBands,
+  validUkkWeights,
   vocationalConcentrationBodySchema,
   vocationalFieldBodySchema,
   vocationalPklSettingSchema,
   vocationalProgramBodySchema,
   vocationalReportSettingSchema,
+  vocationalUkkSettingSchema,
 } from '@edusync/contracts';
 import {
   asc,
@@ -34,7 +41,15 @@ const tags = ['Vocational'];
 
 /** Gerbang modul berbayar `internship` (fase 5: tidak ada modul katalog baru). Profil kejuruan diperiksa di `requireVocational`. */
 const gate = (
-  perm: 'class:read' | 'class:manage' | 'report_card:read' | 'report_card:manage' | 'pkl:read' | 'pkl:manage',
+  perm:
+    | 'class:read'
+    | 'class:manage'
+    | 'report_card:read'
+    | 'report_card:manage'
+    | 'pkl:read'
+    | 'pkl:manage'
+    | 'ukk:read'
+    | 'ukk:manage',
 ) => [requirePermission(perm), requireModule('internship')];
 
 const notFound = (what: string) => new HttpError(404, 'not_found', `${what} tidak ditemukan.`);
@@ -773,6 +788,160 @@ export async function vocationalRoutes(instance: FastifyInstance) {
           .onConflictDoUpdate({ target: vocationalSetting.schoolId, set: values });
         await audit(tx, ctx, 'vocational_setting.pkl_update', 'vocational_setting', ctx.schoolId, { ...b });
         return readPklSetting(tx);
+      });
+    },
+  );
+
+  /* ---------- Pengaturan UKK kejuruan (5.5): skala, bobot, tampil di rapor, pola nomor ---------- */
+
+  const bandOut = z.object({
+    code: z.string(),
+    label: z.string(),
+    min: z.number(),
+    competent: z.boolean(),
+  });
+  const ukkSettingOut = z.object({
+    bands: z
+      .object({
+        lsp: z.array(bandOut).nullable(),
+        industry: z.array(bandOut).nullable(),
+        independent: z.array(bandOut).nullable(),
+      })
+      .describe('Skala timpaan sekolah per pola; null = bawaan kontrak'),
+    defaultBands: z
+      .object({ lsp: z.array(bandOut), industry: z.array(bandOut), independent: z.array(bandOut) })
+      .describe('Skala bawaan kontrak (Pedoman UKK SMK TA 2025/2026), hanya usulan yang dapat ditimpa'),
+    bandSources: z.object({
+      lsp: z.object({ source: z.string(), verified: z.boolean() }),
+      industry: z.object({ source: z.string(), verified: z.boolean() }),
+      independent: z.object({ source: z.string(), verified: z.boolean() }),
+    }),
+    practiceWeight: z.number().int().nullable(),
+    theoryWeight: z.number().int().nullable(),
+    inReport: z.boolean(),
+    certificatePattern: z.string().nullable(),
+    defaultCertificatePattern: z.string(),
+  });
+  const readUkkSetting = async (tx: Tx) => {
+    const [s] = await tx.select().from(vocationalSetting);
+    const stored = s?.ukkBands ?? null;
+    return {
+      bands: {
+        lsp: stored?.lsp ?? null,
+        industry: stored?.industry ?? null,
+        independent: stored?.independent ?? null,
+      },
+      defaultBands: {
+        lsp: UKK_DEFAULT_BANDS.lsp.map((b) => ({ ...b })),
+        industry: UKK_DEFAULT_BANDS.industry.map((b) => ({ ...b })),
+        independent: UKK_DEFAULT_BANDS.independent.map((b) => ({ ...b })),
+      },
+      bandSources: UKK_BAND_SOURCES,
+      practiceWeight: s?.ukkPracticeWeight ?? null,
+      theoryWeight: s?.ukkTheoryWeight ?? null,
+      inReport: s?.ukkInReport ?? false,
+      certificatePattern: s?.ukkCertificatePattern ?? null,
+      defaultCertificatePattern: DEFAULT_UKK_CERTIFICATE_PATTERN,
+    };
+  };
+
+  app.get(
+    '/v1/vocational/settings/ukk',
+    {
+      onRequest: gate('ukk:read'),
+      schema: {
+        tags,
+        summary: 'Pengaturan UKK kejuruan',
+        description:
+          'Izin: `ukk:read`; modul `internship`; hanya jenjang kejuruan. Skala kategori per pola (`lsp`, `industry`, `independent`): ' +
+          '`bands` = timpaan sekolah (null = bawaan), `defaultBands` = bawaan kontrak dari Pedoman UKK SMK TA 2025/2026 dengan ' +
+          '`bandSources` (pola `industry` tidak disebut eksplisit di Pedoman: `verified` false, tampilkan "periksa"). Bobot praktik:teori ' +
+          '(null = nilai akhir diisi langsung), `inReport` (blok UKK di rapor, bawaan mati), dan pola nomor sertifikat. Belum pernah ' +
+          'disimpan: semua bawaan, tanpa baris otomatis.',
+        headers: schoolHeader,
+        response: { 200: ukkSettingOut, 404: errorSchema, ...guarded },
+      },
+    },
+    async (request) => tenant(request, readUkkSetting),
+  );
+
+  app.put(
+    '/v1/vocational/settings/ukk',
+    {
+      onRequest: gate('ukk:manage'),
+      schema: {
+        tags,
+        summary: 'Simpan pengaturan UKK kejuruan',
+        description:
+          'Izin: `ukk:manage`; modul `internship`; hanya jenjang kejuruan. `bands` per pola: null/dihilangkan = bawaan; skala sah = 1-8 ' +
+          'kategori, batas bawah kategori pertama 0, naik tegas tanpa celah/tumpang tindih, kode unik, minimal satu kompeten (400 ' +
+          '`invalid_bands`). `practiceWeight` dan `theoryWeight` keduanya null (nilai akhir diisi langsung) atau bilangan bulat >= 0 ' +
+          'berjumlah 100 (400 `invalid_weights`). `certificatePattern` memakai `{seq}`, `{code}`, `{roman}`, `{month}`, `{year}` (400 ' +
+          '`invalid_pattern`); kosong = bawaan. Perubahan hanya berlaku untuk hasil yang disimpan sesudahnya dan rapor yang disusun ' +
+          'sesudahnya; rapor final tidak berubah (snapshot beku).',
+        headers: schoolHeader,
+        body: vocationalUkkSettingSchema,
+        response: { 200: ukkSettingOut, 400: errorSchema, 404: errorSchema, ...guarded },
+      },
+    },
+    async (request) => {
+      const ctx = request.ctx as TenantContext;
+      const b = request.body;
+      for (const p of UKK_PATTERNS) {
+        const bands = b.bands[p];
+        if (bands && !validUkkBands(bands)) {
+          throw new HttpError(
+            400,
+            'invalid_bands',
+            `Skala pola ${p} tidak sah: kategori pertama mulai 0, batas bawah naik tegas, kode unik, minimal satu kategori kompeten.`,
+          );
+        }
+      }
+      if (
+        (b.practiceWeight === null) !== (b.theoryWeight === null) ||
+        (b.practiceWeight !== null &&
+          b.theoryWeight !== null &&
+          !validUkkWeights({ practice: b.practiceWeight, theory: b.theoryWeight }))
+      ) {
+        throw new HttpError(
+          400,
+          'invalid_weights',
+          'Bobot praktik dan teori harus keduanya kosong atau keduanya bilangan bulat berjumlah 100.',
+        );
+      }
+      if (b.certificatePattern !== null && !validateNumberPattern(b.certificatePattern).ok) {
+        throw new HttpError(
+          400,
+          'invalid_pattern',
+          'Pola nomor wajib memuat {seq} dan hanya memakai {seq}, {code}, {roman}, {month}, {year}.',
+        );
+      }
+      const custom = Object.fromEntries(
+        UKK_PATTERNS.flatMap((p) => {
+          const bands = b.bands[p];
+          return bands ? [[p, bands]] : [];
+        }),
+      );
+      return tenant(request, async (tx) => {
+        const values = {
+          ukkBands: Object.keys(custom).length > 0 ? custom : null,
+          ukkPracticeWeight: b.practiceWeight,
+          ukkTheoryWeight: b.theoryWeight,
+          ukkInReport: b.inReport,
+          ukkCertificatePattern: b.certificatePattern,
+          updatedBy: ctx.userId,
+          updatedAt: new Date(),
+        };
+        await tx
+          .insert(vocationalSetting)
+          .values({ schoolId: ctx.schoolId, ...values })
+          .onConflictDoUpdate({ target: vocationalSetting.schoolId, set: values });
+        await audit(tx, ctx, 'vocational_setting.ukk_update', 'vocational_setting', ctx.schoolId, {
+          customBands: Object.keys(custom),
+          weights: [b.practiceWeight, b.theoryWeight],
+          inReport: b.inReport,
+        });
+        return readUkkSetting(tx);
       });
     },
   );

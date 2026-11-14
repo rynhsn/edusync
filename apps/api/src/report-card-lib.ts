@@ -12,6 +12,7 @@ import {
   type ReportExpertise,
   type ReportInternship,
   type ReportSubjectGroup,
+  type ReportUkk,
   rankPositions,
 } from '@edusync/contracts';
 import {
@@ -66,6 +67,7 @@ import { pklThresholds, pklWeights } from './pkl-lib';
 import { isNarrativeStale, loadObjectiveNarratives, type ObjectiveNarratives } from './report-narrative-lib';
 import { semesterRosterOf } from './student-mobility-lib';
 import { type SubjectTakers, takersOf, takes } from './subject-roster-lib';
+import { loadUkkForReport } from './ukk-lib';
 
 /** Pengaturan rapor sekolah. Sekolah yang belum mengaturnya mendapat nilai bawaan. */
 export interface ReportSettings {
@@ -179,6 +181,8 @@ export interface ClassContext {
    * ini (dokumen persis seperti sebelumnya). `subjectIds` = mapel PKL; `entries` = rincian per murid untuk kunci dokumen `internship`.
    */
   internship: { subjectIds: Set<string>; entries: Map<string, ReportInternship> } | null;
+  /** Hasil UKK per murid (5.6): null bila `ukk_in_report` mati (dokumen persis seperti sebelumnya). */
+  ukk: Map<string, ReportUkk> | null;
   /** Mapel kelas yang dinilai pada semester itu (ditambah mapel PKL tertaut); mapel yang dipilih per murid disaring lewat `subjectsOf`. */
   subjects: { id: string; name: string }[];
   /** Pengambil per mapel berpenanda partisipasi (3B.2); `null` = tidak ada mapel pilihan, semua murid mengambil semua mapel. */
@@ -362,6 +366,7 @@ export async function loadClassContext(
     .select({
       name: school.name,
       reportGrouped: vocationalSetting.reportGrouped,
+      ukkInReport: vocationalSetting.ukkInReport,
       hasPkl: sql<boolean>`exists (select 1 from ${pklPeriod} where ${pklPeriod.semesterId} = ${sem.id})`,
     })
     .from(school)
@@ -449,6 +454,7 @@ export async function loadClassContext(
     schoolNsm: ident?.nsm ?? null,
     vocational,
     internship: pkl ? { subjectIds: new Set(pkl.subjects.map((p) => p.id)), entries: pkl.entries } : null,
+    ukk: sch?.ukkInReport ? await loadUkkForReport(tx, sem.id, studentIds) : null,
     reportSettings,
     cfg,
     kkm: settings.kkm,
@@ -841,6 +847,7 @@ export async function buildDocument(
     ...(c.schoolNsm ? { schoolNsm: c.schoolNsm } : {}),
     ...(c.vocational?.expertise ? { expertise: c.vocational.expertise } : {}),
     ...(c.internship?.entries.get(stu.id) ? { internship: c.internship.entries.get(stu.id) } : {}),
+    ...(c.ukk?.get(stu.id) ? { ukk: c.ukk.get(stu.id) } : {}),
     ...(descriptive && v2.developmentNote ? { developmentNote: v2.developmentNote } : {}),
     generatedAt: new Date().toISOString(),
   };

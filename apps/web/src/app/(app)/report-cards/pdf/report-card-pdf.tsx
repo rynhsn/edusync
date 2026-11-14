@@ -112,6 +112,18 @@ export interface SignLabels {
     final: string;
     certificate: string;
   };
+  /** Blok Uji Kompetensi Keahlian di bawah blok PKL (5.6). */
+  ukk?: {
+    title: string;
+    pattern: string;
+    concentration: string;
+    attempt: string;
+    score: string;
+    band: string;
+    certificate: string;
+    statement: string;
+    patterns: { lsp: string; industry: string; independent: string };
+  };
 }
 const DEFAULT_SIGN_LABELS: Required<SignLabels> = {
   parent: 'Orang tua / wali',
@@ -142,6 +154,17 @@ const DEFAULT_SIGN_LABELS: Required<SignLabels> = {
     aspect: 'Aspek',
     final: 'Nilai akhir',
     certificate: 'No. sertifikat',
+  },
+  ukk: {
+    title: 'Uji Kompetensi Keahlian (UKK)',
+    pattern: 'Pola',
+    concentration: 'Konsentrasi',
+    attempt: 'Percobaan',
+    score: 'Nilai akhir',
+    band: 'Kategori',
+    certificate: 'No. sertifikat',
+    statement: 'No. surat keterangan',
+    patterns: { lsp: 'LSP', industry: 'Dunia kerja', independent: 'Mandiri' },
   },
 };
 
@@ -321,6 +344,31 @@ export function ReportCardPage({
                   {labels.internship.certificate}: {e.certificateNo}
                 </Text>
               ) : null}
+            </View>
+          ))}
+        </View>
+      ) : null}
+
+      {doc.ukk?.length ? (
+        <View>
+          <Text style={styles.section}>{labels.ukk.title}</Text>
+          {doc.ukk.map((u) => (
+            <View key={`${u.title}-${u.attempt}`} wrap={false} style={{ marginBottom: 4 }}>
+              <Text style={styles.bold}>{u.title}</Text>
+              <Text style={styles.small}>
+                {labels.ukk.pattern}: {labels.ukk.patterns[u.pattern]}. {labels.ukk.concentration}:{' '}
+                {u.concentration}. {labels.ukk.attempt}: {u.attempt}
+              </Text>
+              <Text style={styles.small}>
+                {[
+                  view.showNumbers ? `${labels.ukk.score}: ${formatGrade(u.finalScore)}` : null,
+                  u.band ? `${labels.ukk.band}: ${u.band.label}` : null,
+                  u.certificateNo ? `${labels.ukk.certificate}: ${u.certificateNo}` : null,
+                  u.statementNo ? `${labels.ukk.statement}: ${u.statementNo}` : null,
+                ]
+                  .filter(Boolean)
+                  .join('. ')}
+              </Text>
             </View>
           ))}
         </View>

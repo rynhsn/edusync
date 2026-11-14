@@ -217,6 +217,12 @@ const KNOWN = [
   'invalid_weights',
   'certificate_taken',
   'placement_not_completed',
+  'ukk_assessed',
+  'event_closed',
+  'student_not_in_concentration',
+  'invalid_bands',
+  'invalid_attempt',
+  'max_attempts',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

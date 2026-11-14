@@ -30,6 +30,7 @@ import {
   type Tx,
 } from '@edusync/db';
 import { HttpError } from './http-error';
+import { ukkStatusOf } from './ukk-lib';
 
 /**
  * Kelulusan (tahap 3C.4): pemuatan data dan perhitungan saran per murid, serta penjaga penetapan final. Nilai rapor HANYA dibaca
@@ -222,6 +223,8 @@ export async function scoreStudents(
     tx.select({ id: subject.id, name: subject.name }).from(subject),
   );
   const subjectName = new Map(subjects.map((s) => [s.id, s.name]));
+  // Syarat UKK opsional (5.6): satu kueri tambahan hanya bila dinyalakan; selain itu tidak ada kueri dan hasil identik.
+  const ukk = config.requireUkkCompetent === true ? await ukkStatusOf(tx, studentIds) : null;
   const weightedExams = new Set(Object.entries(config.examWeights).flatMap(([id, w]) => (w > 0 ? [id] : [])));
 
   const inScope = (c: (typeof cards)[number]) =>
@@ -273,6 +276,7 @@ export async function scoreStudents(
       suggestion: computeGraduationSuggestion(
         config,
         [...inputs.values()].sort((a, b) => a.name.localeCompare(b.name, 'id')),
+        ukk ? (ukk.get(studentId) ?? 'none') : undefined,
       ),
       reportNotFinal,
       reportSemesters: used.map((c) => ({
@@ -303,6 +307,7 @@ export async function policySnapshot(tx: Tx, yearId: string, config: GraduationC
     minSubjectScore: config.minSubjectScore,
     requiredSubjectIds: config.requiredSubjectIds,
     criteriaText: config.criteriaText ?? null,
+    ...(config.requireUkkCompetent === true ? { requireUkkCompetent: true } : {}),
   };
 }
 

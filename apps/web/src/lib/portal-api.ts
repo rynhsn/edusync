@@ -322,6 +322,17 @@ export interface PortalReportDocument {
     predicate: Predicate | null;
     certificateNo?: string;
   }[];
+  ukk?: {
+    title: string;
+    pattern: 'lsp' | 'industry' | 'independent';
+    concentration: string;
+    attempt: number;
+    finalScore: number;
+    band: { code: string; label: string } | null;
+    competent: boolean | null;
+    certificateNo?: string;
+    statementNo?: string;
+  }[];
   developmentNote?: string | null;
   guardianResponses?: PortalGuardianResponse[];
 }

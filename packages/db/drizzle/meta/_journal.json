@@ -785,6 +785,13 @@
       "when": 1797816600000,
       "tag": "0111_pkl_report_link",
       "breakpoints": true
+    },
+    {
+      "idx": 112,
+      "version": "7",
+      "when": 1797903000000,
+      "tag": "0112_ukk",
+      "breakpoints": true
     }
   ]
 }

@@ -29,6 +29,15 @@ describe('dataset ekspor', () => {
     expect(EXPORT_DATASETS.filter(datasetNeedsGrades)).toEqual(['final_grades', 'descriptions']);
   });
 
+  it('ukk_results (5.6) tidak memerlukan semester maupun modul nilai', () => {
+    expect(datasetNeedsSemester('ukk_results')).toBe(false);
+    expect(datasetNeedsGrades('ukk_results')).toBe(false);
+    expect(exportReady({ academicYearId: YEAR, dataset: 'ukk_results' })).toBe(true);
+    expect(
+      exportQueryString({ academicYearId: YEAR, semesterId: SEM, dataset: 'ukk_results', format: 'csv' }),
+    ).toBe(`academicYearId=${YEAR}&dataset=ukk_results&format=csv`);
+  });
+
   it('kamus kolom tersedia untuk setiap dataset dan tidak memuat NIK', () => {
     for (const d of EXPORT_DATASETS) {
       expect(EXPORT_COLUMNS[d].length).toBeGreaterThan(0);

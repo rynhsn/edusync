@@ -4880,4 +4880,220 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'ukk',
+    icon: 'clipboard',
+    tone: 'violet',
+    group: 'academic',
+    module: 'internship',
+    text: {
+      id: {
+        title: 'UKK: kegiatan, penguji, hasil, skala, nomor, dan rapor',
+        summary:
+          'Cara membuat kegiatan Uji Kompetensi Keahlian (UKK) di SMK/MAK, menambah penguji, mengisi nilai dan uji ulang, mengatur skala kategori dan bobot, memberi nomor sertifikat atau surat keterangan, serta memasukkan hasil ke rapor, saran kelulusan, dan ekspor.',
+        forWho: 'Admin, kurikulum, guru penguji, dan pengelola UKK di SMK/MAK.',
+        sections: [
+          {
+            heading: 'Tiga pola dan kegiatan UKK',
+            body: 'Satu kegiatan UKK dibuat untuk satu konsentrasi keahlian pada satu tahun ajaran, dengan salah satu dari tiga pola: LSP, Dunia kerja (industri), atau Mandiri (sekolah). Isi judul, semester rapor (semester yang rapornya memuat hasil UKK bila sakelar rapor dinyalakan), skema atau paket soal, level KKNI, nama dan rujukan lisensi LSP, Tempat Uji Kompetensi (TUK), mitra dunia kerja, dan tanggal. Pesertanya adalah murid aktif di rombel yang jurusannya tertaut ke konsentrasi kegiatan; tautan jurusan ke konsentrasi diatur di Kelas, tab Keahlian. Status kegiatan: Draf, Berjalan, atau Ditutup. Kegiatan yang sudah punya nilai tidak dapat dihapus; tutup saja kegiatannya, dan nilai kegiatan yang ditutup tidak dapat diubah.',
+            steps: [
+              'Buka UKK dan pilih Kegiatan baru.',
+              'Pilih tahun ajaran, semester, konsentrasi, dan pola, lalu isi judulnya.',
+              'Simpan, lalu tambahkan penguji dan isi nilai murid.',
+            ],
+            href: '/ukk',
+          },
+          {
+            heading: 'Penguji dan hak mengisi nilai',
+            body: 'Di tab Penguji, pengelola menambah penguji internal (guru sekolah) dan penguji eksternal (nama, instansi, kualifikasi sebagai isian bebas). Guru yang terdaftar sebagai penguji internal boleh mengisi nilai dan membuat uji ulang untuk kegiatan itu tanpa harus menjadi pengelola UKK. Penguji eksternal hanya dicatat: nilainya diinput oleh staf. Pengguna lain hanya dapat melihat.',
+            href: '/ukk',
+          },
+          {
+            heading: 'Skala kategori, bobot, dan nomor',
+            body: 'Di Pengaturan UKK, setiap pola punya skala kategori bawaan berlabel sumber, yaitu Pedoman UKK SMK TA 2025/2026. Skala bawaan itu hanya usulan: sekolah dapat menggantinya per pola dengan skalanya sendiri (mulai dari 0, nilai mulai harus naik, minimal satu kategori kompeten). Skala bawaan pola Dunia kerja tidak disebut jelas di sumbernya dan memakai skala LSP sementara, jadi tandanya Periksa Pedoman: cocokkan dengan Pedoman sebelum dipakai. Sekolah juga dapat mengatur bobot praktik dan teori yang berjumlah 100 supaya nilai akhir dihitung otomatis; tombol Kembalikan ke nilai akhir langsung menghapus bobot sehingga nilai akhir diisi langsung. Pola nomor sertifikat dan surat keterangan juga diatur di sini (bawaan UKK/{seq}/{code}/{year}); polanya usulan Edusync, bukan format resmi. Perubahan hanya berlaku untuk nilai yang disimpan sesudahnya, dan rapor final tidak berubah.',
+            href: '/ukk/settings',
+            warning:
+              'Kategori ditetapkan saat nilai disimpan dan dibekukan di barisnya. Mengganti skala tidak mengubah kategori nilai yang sudah tersimpan; simpan ulang nilainya bila perlu.',
+          },
+          {
+            heading: 'Mengisi nilai dan uji ulang',
+            body: 'Di tab Hasil, isi nilai praktik dan teori (0 sampai 100). Dengan bobot, nilai akhir dan kategori langsung tampil saat Anda mengetik dan ditandai belum disimpan sampai Anda menekan Simpan nilai; tanpa bobot, nilai akhir diisi langsung. Murid yang belum kompeten dapat mengulang: tombol Uji ulang membuat percobaan baru setelah percobaan terakhir bernilai (maksimal 5 percobaan). Percobaan lama tetap tersimpan, dan yang dipakai rapor, penomoran, kelulusan, dan ekspor sebagai nilai utama adalah percobaan terakhir yang sudah bernilai. Hasil tidak dapat diisi bila kegiatan ditutup, dan murid yang rapornya sudah final dikunci (bila hasil UKK ditampilkan di rapor) sampai rapornya dibuka kembali.',
+            steps: [
+              'Buka kegiatan, tab Hasil.',
+              'Isi nilai tiap murid; kategori muncul langsung.',
+              'Tekan Simpan nilai. Untuk uji ulang, tekan Uji ulang pada murid yang bersangkutan.',
+            ],
+            href: '/ukk',
+          },
+          {
+            heading: 'Nomor sertifikat dan surat keterangan',
+            body: 'Tombol Nomori sertifikat/surat keterangan di tab Hasil (untuk pengelola) memberi nomor berurutan menurut pola sekolah: murid yang kompeten mendapat nomor sertifikat, murid yang belum kompeten mendapat nomor surat keterangan, keduanya dari satu urutan. Tombol ini aman diulang: yang sudah bernomor tidak diubah. Bila nilai berubah sehingga status kompetennya berbeda, nomor yang tidak lagi sesuai dilepas dan dapat dinomori ulang. Tab Dokumen menampilkan daftar nomor tiap murid.',
+            href: '/ukk',
+          },
+          {
+            heading: 'Penanda lapor Dinas dan e-Rapor',
+            body: 'Di tab Ringkasan ada dua penanda: Sudah dilaporkan ke Dinas dan Sudah diunggah ke e-Rapor. Keduanya penanda manual untuk catatan sekolah; Edusync tidak mengirim apa pun ke Dinas atau e-Rapor, dan penanda tidak mengunci nilai.',
+            href: '/ukk',
+          },
+          {
+            heading: 'Rapor, saran kelulusan, dan ekspor',
+            body: 'Blok UKK di rapor bersifat pilihan: nyalakan Tampilkan di rapor di Pengaturan UKK, maka rapor semester kegiatan memuat blok Uji Kompetensi Keahlian (UKK) berisi judul, pola, konsentrasi, percobaan, nilai akhir, kategori, dan nomor dokumen dari percobaan terakhir yang bernilai. Rapor yang sudah final membekukan blok itu. Di Kelulusan, kebijakan punya pilihan Syarat UKK kompeten (saran) untuk SMK: bila dinyalakan, saran kelulusan menandai murid yang belum kompeten UKK atau belum punya hasil UKK. Ini hanya saran; keputusan tetap di tangan sekolah, dan nilai UKK tidak masuk ijazah. Di Ekspor data tersedia dataset Hasil UKK (semua percobaan, kategori yang dibekukan, nomor dokumen) sebagai berkas CSV generik tanpa NIK dan tanpa perlu memilih semester; ini bukan format impor resmi aplikasi mana pun.',
+            href: '/exports',
+          },
+        ],
+        faq: [
+          {
+            q: 'Guru penguji tidak bisa menyimpan nilai.',
+            a: 'Pastikan guru itu ditambahkan sebagai penguji internal di tab Penguji kegiatan tersebut, kegiatannya belum ditutup, dan rapor muridnya belum final.',
+          },
+          {
+            q: 'Murid yang saya cari tidak muncul di daftar hasil.',
+            a: 'Peserta adalah murid aktif di rombel yang jurusannya tertaut ke konsentrasi kegiatan pada tahun ajaran kegiatan. Periksa tautan jurusan ke konsentrasi di Kelas, tab Keahlian.',
+          },
+          {
+            q: 'Blok UKK tidak muncul di rapor.',
+            a: 'Blok hanya tampil bila Tampilkan di rapor menyala di Pengaturan UKK dan murid punya nilai pada kegiatan yang semesternya sama dengan semester rapor.',
+          },
+        ],
+      },
+      en: {
+        title: 'UKK: events, assessors, results, scales, numbers, and the report card',
+        summary:
+          'How to create a vocational competency test (UKK) event at SMK/MAK, add assessors, enter scores and retakes, set the category scale and weights, number certificates or statements, and carry results into the report card, graduation advice, and export.',
+        forWho: 'Admins, curriculum staff, assessor teachers, and UKK coordinators at SMK/MAK.',
+        sections: [
+          {
+            heading: 'The three patterns and UKK events',
+            body: 'One UKK event is created for one skills concentration in one academic year, using one of three patterns: LSP, Industry, or Independent (school). Fill in the title, the report semester (the semester whose report card carries the UKK result when the report switch is on), the scheme or question set, KKNI level, LSP name and license reference, the test venue (TUK), the industry partner, and the dates. Participants are active students in classes whose program is linked to the event’s concentration; the program-to-concentration link is set under Classes, Skills tab. Event status is Draft, In progress, or Closed. An event that already has scores cannot be deleted; close it instead, and scores of a closed event cannot be changed.',
+            steps: [
+              'Open UKK and choose New event.',
+              'Pick the academic year, semester, concentration, and pattern, then enter the title.',
+              'Save, then add assessors and enter student scores.',
+            ],
+            href: '/ukk',
+          },
+          {
+            heading: 'Assessors and who can enter scores',
+            body: 'On the Assessors tab, managers add internal assessors (school teachers) and external assessors (name, institution, and qualification as free text). A teacher listed as an internal assessor may enter scores and create retakes for that event without being a UKK manager. External assessors are only recorded: staff enter their scores. Other users can only view.',
+            href: '/ukk',
+          },
+          {
+            heading: 'Category scale, weights, and numbers',
+            body: 'In UKK settings, each pattern has a default category scale labelled with its source, the Pedoman UKK SMK TA 2025/2026. The default is only a suggestion: the school can replace it per pattern with its own scale (starting at 0, start scores strictly increasing, at least one competent category). The default scale of the Industry pattern is not stated clearly in its source and temporarily uses the LSP scale, so it is marked Check the Guideline: compare it with the Guideline before use. The school can also set practice and theory weights that add up to 100 so the final score is calculated automatically; the Back to direct final score button removes the weights so the final score is typed directly. The number pattern for certificates and statements is set here too (default UKK/{seq}/{code}/{year}); the pattern is an Edusync suggestion, not an official format. Changes only apply to scores saved afterwards, and final report cards do not change.',
+            href: '/ukk/settings',
+            warning:
+              'The category is decided when a score is saved and frozen in its row. Changing the scale does not change categories of scores already saved; save the scores again if needed.',
+          },
+          {
+            heading: 'Entering scores and retakes',
+            body: 'On the Results tab, enter practice and theory scores (0 to 100). With weights, the final score and category appear as you type and are marked not saved until you press Save scores; without weights, the final score is typed directly. A student who is not yet competent can retry: the Retake button creates a new attempt after the latest attempt has a score (at most 5 attempts). Earlier attempts stay saved, and the one used by the report card, numbering, graduation, and export as the main result is the latest attempt that has a score. Scores cannot be entered when the event is closed, and students whose report card is final are locked (when UKK results are shown on the report card) until the report card is reopened.',
+            steps: [
+              'Open the event, Results tab.',
+              'Enter each student’s scores; the category appears right away.',
+              'Press Save scores. For a retake, press Retake on that student.',
+            ],
+            href: '/ukk',
+          },
+          {
+            heading: 'Certificate and statement numbers',
+            body: 'The Number certificates/statements button on the Results tab (for managers) gives sequential numbers following the school pattern: competent students get a certificate number, students who are not yet competent get a statement number, both from one sequence. It is safe to repeat: numbers already given are not changed. If a score changes so that the competent status differs, the number that no longer fits is released and can be numbered again. The Documents tab lists the numbers per student.',
+            href: '/ukk',
+          },
+          {
+            heading: 'Dinas and e-Rapor reporting markers',
+            body: 'The Summary tab has two markers: Reported to the Dinas and Uploaded to e-Rapor. Both are manual markers for the school’s records; Edusync does not send anything to the Dinas or e-Rapor, and the markers do not lock scores.',
+            href: '/ukk',
+          },
+          {
+            heading: 'Report card, graduation advice, and export',
+            body: 'The UKK block on the report card is optional: turn on Show on the report card in UKK settings, and the report card of the event semester carries a Vocational Competency Test (UKK) block with the title, pattern, concentration, attempt, final score, category, and document number from the latest scored attempt. A final report card freezes that block. In Graduation, the policy has a UKK competent requirement (advice) option for vocational schools: when on, the graduation suggestion flags students who are not yet competent in UKK or have no UKK result. It is advice only; the decision stays with the school, and UKK scores do not go into the diploma. In Data export there is a UKK results dataset (all attempts, frozen categories, document numbers) as a generic CSV file without NIK and without choosing a semester; it is not the official import format of any application.',
+            href: '/exports',
+          },
+        ],
+        faq: [
+          {
+            q: 'The assessor teacher cannot save scores.',
+            a: 'Make sure the teacher is added as an internal assessor on the Assessors tab of that event, the event is not closed, and the student’s report card is not final.',
+          },
+          {
+            q: 'A student I am looking for is not in the results list.',
+            a: 'Participants are active students in classes whose program is linked to the event’s concentration in the event’s academic year. Check the program-to-concentration link under Classes, Skills tab.',
+          },
+          {
+            q: 'The UKK block does not appear on the report card.',
+            a: 'The block only appears when Show on the report card is on in UKK settings and the student has scores in an event whose semester matches the report semester.',
+          },
+        ],
+      },
+      su: {
+        title: 'UKK: kagiatan, penguji, hasil, skala, nomer, jeung rapor',
+        summary:
+          'Cara nyieun kagiatan Uji Kompeténsi Kaahlian (UKK) di SMK/MAK, nambahan penguji, ngeusian nilai jeung uji ulang, ngatur skala kategori jeung bobot, méré nomer sertipikat atawa surat katerangan, sarta ngasupkeun hasil kana rapor, saran kalulusan, jeung ékspor.',
+        forWho: 'Admin, kurikulum, guru penguji, jeung pangurus UKK di SMK/MAK.',
+        sections: [
+          {
+            heading: 'Tilu pola jeung kagiatan UKK',
+            body: 'Hiji kagiatan UKK didamel pikeun hiji konsentrasi kaahlian dina hiji taun ajaran, maké salah sahiji tina tilu pola: LSP, Dunya gawé (industri), atawa Mandiri (sakola). Eusian judul, semester rapor (semester nu raporna ngandung hasil UKK upami sakelar rapor hurung), skéma atawa paket soal, level KKNI, ngaran jeung rujukan lisénsi LSP, Tempat Uji Kompeténsi (TUK), mitra dunya gawé, jeung tanggal. Pamilonna nyaéta murid aktip di rombel nu jurusanana numbu ka konsentrasi kagiatan; tautan jurusan ka konsentrasi diatur di Kelas, tab Kaahlian. Status kagiatan: Rarancang, Keur lumangsung, atawa Ditutup. Kagiatan nu geus aya nilaina teu bisa dihapus; tutup waé kagiatanana, jeung nilai kagiatan nu ditutup teu bisa dirobah.',
+            steps: [
+              'Buka UKK tuluy pilih Kagiatan anyar.',
+              'Pilih taun ajaran, semester, konsentrasi, jeung pola, tuluy eusian judulna.',
+              'Simpen, tuluy tambahkeun penguji jeung eusian nilai murid.',
+            ],
+            href: '/ukk',
+          },
+          {
+            heading: 'Penguji jeung hak ngeusian nilai',
+            body: 'Dina tab Penguji, pangurus nambahan penguji internal (guru sakola) jeung penguji éksternal (ngaran, instansi, kualifikasi salaku eusian bébas). Guru nu kadaptar salaku penguji internal meunang ngeusian nilai jeung nyieun uji ulang pikeun kagiatan éta tanpa kudu jadi pangurus UKK. Penguji éksternal ngan dicatet: nilaina diinput ku staf. Pamaké séjén ngan bisa nempo.',
+            href: '/ukk',
+          },
+          {
+            heading: 'Skala kategori, bobot, jeung nomer',
+            body: 'Dina Setélan UKK, unggal pola boga skala kategori bawaan nu dilabélan sumberna, nyaéta Pedoman UKK SMK TA 2025/2026. Skala bawaan éta ngan usulan: sakola bisa ngagantina per pola ku skalana sorangan (mimiti ti 0, nilai mimiti kudu naék, sahanteuna hiji kategori kompeten). Skala bawaan pola Dunya gawé henteu disebutkeun écés dina sumberna jeung samentara maké skala LSP, ku kituna ditandaan Pariksa Pedoman: cocogkeun jeung Pedoman méméh dipaké. Sakola ogé bisa ngatur bobot praktik jeung téori nu jumlahna 100 supaya nilai ahir diitung otomatis; tombol Balikkeun ka nilai ahir langsung miceun bobot sangkan nilai ahir diisi langsung. Pola nomer sertipikat jeung surat katerangan diatur di dieu ogé (bawaan UKK/{seq}/{code}/{year}); polana usulan Edusync, lain format resmi. Parobahan ngan lumaku pikeun nilai nu disimpen sanggeusna, jeung rapor final teu robah.',
+            href: '/ukk/settings',
+            warning:
+              'Kategori ditangtukeun waktu nilai disimpen jeung dibekukeun dina barisna. Ngaganti skala teu ngarobah kategori nilai nu geus disimpen; simpen deui nilaina upami perlu.',
+          },
+          {
+            heading: 'Ngeusian nilai jeung uji ulang',
+            body: 'Dina tab Hasil, eusian nilai praktik jeung téori (0 nepi ka 100). Upami maké bobot, nilai ahir jeung kategori langsung muncul waktu ngetik jeung ditandaan can disimpen nepi ka mencét Simpen nilai; tanpa bobot, nilai ahir diisi langsung. Murid nu can kompeten bisa ngulang: tombol Uji ulang nyieun percobaan anyar sanggeus percobaan pamungkas aya nilaina (pangluhurna 5 percobaan). Percobaan heubeul tetep disimpen, jeung nu dipaké rapor, panomeran, kalulusan, jeung ékspor salaku hasil utama nyaéta percobaan pamungkas nu geus aya nilaina. Hasil teu bisa diisi upami kagiatan ditutup, jeung murid nu raporna geus final dikonci (upami hasil UKK ditémbongkeun dina rapor) nepi ka raporna dibuka deui.',
+            steps: [
+              'Buka kagiatan, tab Hasil.',
+              'Eusian nilai unggal murid; kategori langsung muncul.',
+              'Pencét Simpen nilai. Pikeun uji ulang, pencét Uji ulang dina murid nu bersangkutan.',
+            ],
+            href: '/ukk',
+          },
+          {
+            heading: 'Nomer sertipikat jeung surat katerangan',
+            body: 'Tombol Nomeran sertipikat/surat katerangan dina tab Hasil (pikeun pangurus) méré nomer nu tutuluyan nurutkeun pola sakola: murid nu kompeten meunang nomer sertipikat, murid nu can kompeten meunang nomer surat katerangan, duanana tina hiji urutan. Tombol ieu aman diulang: nu geus boga nomer teu dirobah. Upami nilai robah nepi ka status kompetenna béda, nomer nu teu cocog deui dileupaskeun jeung bisa dinomeran deui. Tab Dokumén nembongkeun daptar nomer unggal murid.',
+            href: '/ukk',
+          },
+          {
+            heading: 'Tanda lapor Dinas jeung e-Rapor',
+            body: 'Dina tab Ringkesan aya dua tanda: Geus dilaporkeun ka Dinas jeung Geus diunggah ka e-Rapor. Duanana tanda manual pikeun catetan sakola; Edusync teu ngirim nanaon ka Dinas atawa e-Rapor, jeung tanda teu ngonci nilai.',
+            href: '/ukk',
+          },
+          {
+            heading: 'Rapor, saran kalulusan, jeung ékspor',
+            body: 'Blok UKK dina rapor sipatna pilihan: hurungkeun Témbongkeun dina rapor di Setélan UKK, mangka rapor semester kagiatan ngandung blok Uji Kompeténsi Kaahlian (UKK) eusina judul, pola, konsentrasi, percobaan, nilai ahir, kategori, jeung nomer dokumén tina percobaan pamungkas nu aya nilaina. Rapor nu geus final ngabekukeun blok éta. Di Kalulusan, kawijakan boga pilihan Sarat UKK kompeten (saran) pikeun SMK: upami dihurungkeun, saran kalulusan nandaan murid nu can kompeten UKK atawa can boga hasil UKK. Ieu ngan saran; kaputusan tetep di sakola, jeung nilai UKK teu asup kana ijazah. Di Ékspor data aya dataset Hasil UKK (sadaya percobaan, kategori nu dibekukeun, nomer dokumén) salaku berkas CSV generik tanpa NIK jeung teu kudu milih semester; ieu lain format impor resmi aplikasi mana waé.',
+            href: '/exports',
+          },
+        ],
+        faq: [
+          {
+            q: 'Guru penguji teu bisa nyimpen nilai.',
+            a: 'Pastikeun guru éta geus ditambahkeun salaku penguji internal dina tab Penguji kagiatan éta, kagiatanana can ditutup, jeung rapor muridna can final.',
+          },
+          {
+            q: 'Murid nu dipilari teu aya dina daptar hasil.',
+            a: 'Pamilon nyaéta murid aktip di rombel nu jurusanana numbu ka konsentrasi kagiatan dina taun ajaran kagiatan. Parios tautan jurusan ka konsentrasi di Kelas, tab Kaahlian.',
+          },
+          {
+            q: 'Blok UKK teu muncul dina rapor.',
+            a: 'Blok ngan muncul upami Témbongkeun dina rapor hurung di Setélan UKK jeung murid boga nilai dina kagiatan nu semesterna sarua jeung semester rapor.',
+          },
+        ],
+      },
+    },
+  },
 ];
