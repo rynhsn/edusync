@@ -7,12 +7,15 @@ memutus kompatibilitas. Produksi hanya berubah saat tag `vX.Y.Z` dikirim; tulis 
 Cara merilis: tulis bagian baru di bawah "Belum dirilis" lalu ganti judulnya menjadi `## [x.y.z] - tanggal`, kemudian
 `pnpm release x.y.z` dan `git push edusync HEAD:main vx.y.z`.
 
-## Belum dirilis
+## [1.0.0] - 2026-11-15
+
+Rilis pertama yang lengkap setelah revisi kurikulum (Fase 3 sampai 5). Nomor rilis sebelumnya (1.0.0 sampai 1.4.0) diubah menjadi
+0.0.0 sampai 0.4.0 karena sistem baru dianggap sempurna setelah semua fase selesai; tag lamanya kini bernama `archive/v0.x.y`.
 
 Fase 3 (asesmen dan rapor), tahap 3.3 sampai 3.5: kaitan tujuan pembelajaran (TP), ketercapaian TP per murid, narasi rapor dari
 TP, serta remedial dan pengayaan. Nilai akhir, predikat, rekap, dan portal nilai tidak berubah selama sekolah tidak memilih
 kebijakan nilai remedial selain "hanya mencatat" (bawaan). Rapor murid yang belum punya status TP sama persis dengan
-v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran yang punya ketercapaian TP mendapat narasi baru.
+v0.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran yang punya ketercapaian TP mendapat narasi baru.
 
 ### Ditambahkan
 
@@ -425,7 +428,7 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   penjaga `report_final`; larangan semester genap tingkat akhir tidak berlaku (hanya berlaku lewat halaman mutasi). Status murid
   yang diubah lewat mutasi tetap pada nilainya.
 
-## [1.4.0] - 2026-11-13
+## [0.4.0] - 2026-11-13
 
 Fase 3 (asesmen dan rapor), tahap 3.2: komponen rapor tambahan dan tanggapan orang tua. Rapor sekolah yang tidak memakai
 bagian baru tetap sama persis dengan sebelumnya (bentuk data versi 1); bagian baru hanya muncul untuk siswa yang memakainya.
@@ -456,10 +459,10 @@ bagian baru tetap sama persis dengan sebelumnya (bentuk data versi 1); bagian ba
   tampil kembali setelah maju lagi. Tanggapan wali tidak dapat ditulis selama rollback. Rapor draf di tingkat bermode
   deskriptif kembali menampilkan angka dan predikat selama rollback.
 
-## [1.3.0] - 2026-11-13
+## [0.3.0] - 2026-11-13
 
 Fase 3 (asesmen dan rapor), tahap 3.0 dan 3.1: persiapan internal dan kategori asesmen. Sekolah yang tidak memakai komponen
-formatif tidak merasakan perubahan: nilai, predikat, rekap, rapor, dan portal sama persis dengan v1.2.2.
+formatif tidak merasakan perubahan: nilai, predikat, rekap, rapor, dan portal sama persis dengan v0.2.2.
 
 ### Diubah
 
@@ -497,7 +500,7 @@ komponen formatif**, komponen formatif itu kembali ikut nilai akhir draf (dan sa
 draf dapat berubah. Rapor yang sudah final aman karena dibaca dari snapshot. Disarankan membatalkan hanya sebelum sekolah
 memakai komponen formatif.
 
-## [1.2.2] - 2026-11-13
+## [0.2.2] - 2026-11-13
 
 Dua pengetatan hak akses hasil audit.
 
@@ -516,9 +519,9 @@ Dua pengetatan hak akses hasil audit.
 - Di halaman **Peran dan izin**, izin kenaikan kelas dan kelola kurikulum kini berlencana "Berdampak besar" beserta
   keterangan apa yang bisa diubahnya, agar tidak diberikan sembarangan.
 
-## [1.2.1] - 2026-11-13
+## [0.2.1] - 2026-11-13
 
-Perbaikan setelah v1.2.0.
+Perbaikan setelah v0.2.0.
 
 ### Diperbaiki
 
@@ -531,7 +534,7 @@ Perbaikan setelah v1.2.0.
   atau melebar di layar sempit. Tampilan desktop tidak berubah.
 - Tes billing dan katalog tidak lagi bergantung pada harga katalog di database (yang bisa diubah operator di konsol platform).
 
-## [1.2.0] - 2026-11-13
+## [0.2.0] - 2026-11-13
 
 ### Ditambahkan
 
@@ -592,21 +595,21 @@ Perbaikan setelah v1.2.0.
 - **Tampilan**: target sentuh 44 px di ponsel, dialog dengan tombol aksi yang selalu terjangkau, tabel menjadi kartu di layar sempit,
   dan beberapa halaman yang melebar di ponsel diperbaiki. Label "KKM" dan "KKTP" dieja lengkap.
 
-## [1.1.2] - 2026-11-11
+## [0.1.2] - 2026-11-11
 
 ### Ditambahkan
 
-- **Versi tampil di antarmuka**: nomor versi ("Versi 1.1.2") di dasar menu samping panel sekolah dan konsol platform; arahkan
+- **Versi tampil di antarmuka**: nomor versi ("Versi 0.1.2") di dasar menu samping panel sekolah dan konsol platform; arahkan
   kursor untuk melihat kode commit. Sumbernya `GET /v1/version` (publik, sama dengan `/version` untuk operasional).
 
-## [1.1.1] - 2026-11-11
+## [0.1.1] - 2026-11-11
 
-Perbaikan setelah v1.1.0 dipasang di server.
+Perbaikan setelah v0.1.0 dipasang di server.
 
 ### Diperbaiki
 
 - **Port API di server**: port 4000 ternyata dipakai aplikasi lain di server yang sama (`edusync.service` milik aplikasi Node
-  lain), sehingga API gagal start (`EADDRINUSE`) setelah deploy v1.1.0. API kini memakai port 4100 (`API_PORT` di `.env`
+  lain), sehingga API gagal start (`EADDRINUSE`) setelah deploy v0.1.0. API kini memakai port 4100 (`API_PORT` di `.env`
   server); templat Caddy (`tls-ask`), `init-env.sh`, dan pengecekan versi di workflow Deploy membaca port itu, tidak lagi
   mengunci 4000.
 - **Izin peran bawaan tidak sampai ke sekolah yang sudah ada**: migrasi yang membaca tabel `role` (ber-RLS) berjalan sebagai
@@ -615,7 +618,7 @@ Perbaikan setelah v1.1.0 dipasang di server.
   melengkapi izin peran bawaan lewat koneksi platform setelah migrasi (hanya menambah, aman diulang).
 - Langkah "Cek versi" di workflow Deploy mencoba ulang sampai API siap, sehingga catatan rilis GitHub tidak terlewat.
 
-## [1.1.0] - 2026-11-11
+## [0.1.0] - 2026-11-11
 
 Jenjang unit (Fase 0) dan integritas rapor, arsip, serta jadwal per semester (Fase 1).
 
@@ -654,7 +657,7 @@ Jenjang unit (Fase 0) dan integritas rapor, arsip, serta jadwal per semester (Fa
   diisi staf platform.
 - `POST /v1/registrations` dan penambahan unit baru mensyaratkan `educationProfile`.
 
-## [1.0.0] - 2026-11-10
+## [0.0.0] - 2026-11-10
 
 Rilis produksi pertama.
 
