@@ -1,6 +1,14 @@
 import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { academicYear, createDb, foundation, school, withTenant } from './index';
+import {
+  academicYear,
+  cocurricularRubricLevel,
+  createDb,
+  foundation,
+  school,
+  schoolProfileItem,
+  withTenant,
+} from './index';
 
 const appUrl = process.env.DATABASE_URL;
 const platformUrl = process.env.DATABASE_PLATFORM_URL;
@@ -148,6 +156,46 @@ describe('setiap tabel bersekolah dijaga RLS', () => {
       expect(t.forced, `${t.table_name}: RLS belum dipaksa`).toBe(true);
       // Tabel yang bisa dibaca peran aplikasi wajib punya kebijakan; bila tidak, hasilnya selalu kosong tetapi tetap salah arah.
       if (t.app_can_select) expect(t.policies, `${t.table_name}: tanpa kebijakan`).toBeGreaterThan(0);
+    }
+  });
+});
+
+describe('tabel tenant kerangka profil (tahap 4.1)', () => {
+  it('butir kerangka dan rubrik kokurikuler terisolasi per sekolah, tulis lintas sekolah ditolak', async () => {
+    const mk = (sid: string, n: number) => [
+      platform.db.insert(schoolProfileItem).values({
+        schoolId: sid,
+        frameworkKey: 'profil_lulusan_2025',
+        code: `x${n}`,
+        label: `Butir ${n}`,
+      }),
+      platform.db
+        .insert(cocurricularRubricLevel)
+        .values({ schoolId: sid, code: `L${n}`, label: `Tingkat ${n}`, sort: n }),
+    ];
+    await Promise.all([...mk(schoolA1, 1), ...mk(schoolB, 2)]);
+    try {
+      const items = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(schoolProfileItem));
+      const levels = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(cocurricularRubricLevel));
+      expect(items.map((r) => r.schoolId)).toEqual([schoolA1]);
+      expect(levels.map((r) => r.schoolId)).toEqual([schoolA1]);
+      expect(await app.db.select().from(schoolProfileItem)).toHaveLength(0);
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) =>
+          tx
+            .insert(cocurricularRubricLevel)
+            .values({ schoolId: schoolB, code: 'Z', label: 'sisipan', sort: 1 }),
+        ),
+      ).rejects.toThrow();
+      const hit = await withTenant(app.db, [schoolA1], (tx) =>
+        tx.delete(schoolProfileItem).where(eq(schoolProfileItem.schoolId, schoolB)).returning(),
+      );
+      expect(hit).toHaveLength(0);
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(schoolProfileItem).where(eq(schoolProfileItem.schoolId, sid));
+        await platform.db.delete(cocurricularRubricLevel).where(eq(cocurricularRubricLevel.schoolId, sid));
+      }
     }
   });
 });

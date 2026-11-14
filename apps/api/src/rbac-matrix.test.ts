@@ -605,6 +605,34 @@ describe('kebijakan peran bawaan', () => {
     expect(find('PUT', '/v1/academic-years/:id/promotions')?.modules).toEqual([]);
   });
 
+  it('rute kokurikuler (tahap 4.1) memasang cocurricular:read/manage dan modul grades', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const reads = [
+      find('GET', '/v1/reference/profile-frameworks'),
+      find('GET', '/v1/cocurricular/profile-items'),
+      find('GET', '/v1/cocurricular/rubric-levels'),
+    ];
+    const writes = [
+      find('POST', '/v1/cocurricular/profile-items/adopt'),
+      find('PUT', '/v1/cocurricular/profile-items'),
+      find('PUT', '/v1/cocurricular/rubric-levels'),
+    ];
+    for (const e of reads) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['cocurricular:read'], ['grades']]);
+      expect(e?.description).toContain('Izin: `cocurricular:read`');
+    }
+    for (const e of writes) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['cocurricular:manage'], ['grades']]);
+      expect(e?.description).toContain('Izin: `cocurricular:manage`');
+    }
+    const readers = ['school_admin', 'principal', 'curriculum', 'operator', 'teacher'];
+    const writers = ['school_admin', 'curriculum'];
+    for (const r of roleKeys) {
+      for (const e of reads) expect(allows(r, e!), `${r} ${e?.url}`).toBe(readers.includes(r));
+      for (const e of writes) expect(allows(r, e!), `${r} ${e?.url}`).toBe(writers.includes(r));
+    }
+  });
+
   it('rute ekspor akademik (tahap 3C.5) memasang data_export:run tanpa modul di gerbang', () => {
     const e = eps.find((x) => x.method === 'GET' && x.url === '/v1/exports/academic');
     // Modul grades hanya diperiksa di handler untuk dataset nilai (400 dataset_requires_module), bukan di gerbang rute.

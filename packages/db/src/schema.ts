@@ -4026,6 +4026,89 @@ export const refSubjectGroup = pgTable('ref_subject_group', {
   active: boolean('active').notNull().default(true),
 });
 
+/* ---------- Kerangka profil dan rubrik kokurikuler (fase 4, tahap 4.1; DDL di migrasi 0106) ---------- */
+
+/**
+ * Kerangka profil global (`profil_lulusan_2025` = delapan dimensi, `panca_cinta_2025` = lima topik nilai). Tanpa `school_id` dan
+ * tanpa RLS; sekolah hanya membaca. `verification = 'secondary'` menandai sumber sekunder (Panca Cinta). `profileKeys` null = semua profil.
+ */
+export const refProfileFramework = pgTable('ref_profile_framework', {
+  key: text('key').primaryKey(),
+  kind: text('kind', { enum: ['dimension', 'value'] }).notNull(),
+  labelId: text('label_id').notNull(),
+  labelEn: text('label_en').notNull(),
+  labelSu: text('label_su').notNull(),
+  profileKeys: text('profile_keys').array(),
+  source: text('source').notNull(),
+  verification: text('verification', { enum: ['official', 'secondary'] }).notNull(),
+  sort: integer('sort').notNull().default(0),
+  active: boolean('active').notNull().default(true),
+});
+
+export const refProfileFrameworkItem = pgTable(
+  'ref_profile_framework_item',
+  {
+    frameworkKey: text('framework_key')
+      .notNull()
+      .references(() => refProfileFramework.key),
+    code: text('code').notNull(),
+    groupCode: text('group_code'),
+    labelId: text('label_id').notNull(),
+    labelEn: text('label_en').notNull(),
+    labelSu: text('label_su').notNull(),
+    sort: integer('sort').notNull().default(0),
+  },
+  (t) => [primaryKey({ columns: [t.frameworkKey, t.code] })],
+);
+
+/** Butir kerangka yang diadopsi sekolah (salinan label; `refCode` null = butir buatan sekolah). Tanpa baris otomatis per sekolah. */
+export const schoolProfileItem = pgTable(
+  'school_profile_item',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    frameworkKey: text('framework_key')
+      .notNull()
+      .references(() => refProfileFramework.key),
+    refCode: text('ref_code'),
+    code: text('code').notNull(),
+    label: text('label').notNull(),
+    description: text('description'),
+    sort: integer('sort').notNull().default(0),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('school_profile_item_school_id_uq').on(t.schoolId, t.id),
+    unique('school_profile_item_code_uq').on(t.schoolId, t.frameworkKey, t.code),
+  ],
+);
+
+/** Tingkat capaian rubrik kokurikuler per sekolah (label, urutan, deskripsi; bukan enum). */
+export const cocurricularRubricLevel = pgTable(
+  'cocurricular_rubric_level',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    code: text('code').notNull(),
+    label: text('label').notNull(),
+    description: text('description'),
+    sort: integer('sort').notNull(),
+    active: boolean('active').notNull().default(true),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('cocurricular_rubric_level_school_id_uq').on(t.schoolId, t.id),
+    unique('cocurricular_rubric_level_code_uq').on(t.schoolId, t.code),
+  ],
+);
+
 /* ---------- Perubahan paket yayasan (tingkatkan, tambah unit, jadwalkan penurunan) ---------- */
 
 /**

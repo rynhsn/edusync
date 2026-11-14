@@ -172,3 +172,34 @@ describe('sinkron izin ekspor akademik', () => {
     expect(await has(await roleId('principal'))).toBe(false);
   });
 });
+
+describe('sinkron izin kokurikuler', () => {
+  it('menyebar ke sekolah lama: kurikulum menulis, guru hanya membaca, bendahara tidak', async () => {
+    const roleId = async (key: string) =>
+      (
+        await platform.db
+          .select({ id: role.id })
+          .from(role)
+          .where(and(eq(role.schoolId, schoolId), eq(role.key, key)))
+      )[0]!.id;
+    const has = async (id: string, permission: string) =>
+      (await platform.db.select().from(rolePermission).where(eq(rolePermission.roleId, id))).some(
+        (r) => r.permission === permission,
+      );
+    const cur = await roleId('curriculum');
+    const teacher = await roleId('teacher');
+    await platform.db
+      .delete(rolePermission)
+      .where(and(eq(rolePermission.roleId, cur), eq(rolePermission.permission, 'cocurricular:manage')));
+    await platform.db
+      .delete(rolePermission)
+      .where(and(eq(rolePermission.roleId, teacher), eq(rolePermission.permission, 'cocurricular:read')));
+    expect(await has(cur, 'cocurricular:manage')).toBe(false);
+    expect(await has(teacher, 'cocurricular:read')).toBe(false);
+    await syncSystemRolePermissions(platform.db);
+    expect(await has(cur, 'cocurricular:manage')).toBe(true);
+    expect(await has(teacher, 'cocurricular:read')).toBe(true);
+    expect(await has(teacher, 'cocurricular:manage')).toBe(false);
+    expect(await has(await roleId('treasurer'), 'cocurricular:read')).toBe(false);
+  });
+});

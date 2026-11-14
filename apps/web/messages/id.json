@@ -725,7 +725,8 @@
     "cards": "Kartu cetak",
     "curriculum": "Kurikulum",
     "subjectChoices": "Pilihan mapel",
-    "exports": "Ekspor data"
+    "exports": "Ekspor data",
+    "cocurricularSettings": "Pengaturan kokurikuler"
   },
   "roles": {
     "school_admin": "Admin sekolah",
@@ -739,6 +740,8 @@
     "student": "Siswa"
   },
   "permissions": {
+    "cocurricular_read": "Melihat kerangka profil, rubrik, program, dan penilaian kokurikuler",
+    "cocurricular_manage": "Mengelola kerangka profil, rubrik, program, dan penilaian kokurikuler",
     "data_export_run": "Mengekspor data akademik (rombel, mapel, nilai akhir) sebagai berkas CSV atau JSON",
     "graduation_read": "Melihat kelulusan, nilai ujian sekolah, dan transkrip",
     "graduation_manage": "Mengelola kriteria kelulusan, nilai ujian sekolah, penetapan, dan SKL",
@@ -1374,6 +1377,8 @@
     "versionWarningAssessed": "Khusus TP yang sudah dikaitkan ke penilaian: mengubah teksnya membuat versi baru, dan penilaian yang sudah ada tetap memakai teks lama beserta skornya. Bila ingin penilaian memakai teks baru, ubah TP di penilaian tersebut. TP yang sudah dikaitkan ke penilaian tidak bisa dihapus; nonaktifkan saja."
   },
   "errors": {
+    "framework_not_for_profile": "Kerangka ini tidak berlaku untuk jenjang unit sekolah Anda.",
+    "item_in_use": "Butir atau tingkat ini sudah dipakai. Nonaktifkan saja, jangan dihapus.",
     "dataset_requires_module": "Dataset nilai dan deskripsi memerlukan modul Nilai dan rapor. Aktifkan modul itu atau pilih dataset lain.",
     "graduation_final": "Murid ini sudah ditetapkan di menu Kelulusan, jadi keputusannya harus sama. Buka kembali penetapannya di sana bila perlu mengubah.",
     "graduation_not_determined": "Keputusan lulus harus ditetapkan lebih dulu di menu Kelulusan; tidak bisa dipilih langsung di sini.",
@@ -8300,5 +8305,63 @@
     "colKey": "Kolom",
     "colDescription": "Keterangan",
     "dictNote": "Keterangan kolom disediakan dalam bahasa Indonesia."
+  },
+  "cocurricular": {
+    "title": "Pengaturan kokurikuler",
+    "subtitle": "Kerangka profil lulusan dan rubrik tingkat capaian untuk kegiatan kokurikuler. Kokurikuler tidak masuk nilai mata pelajaran, peringkat, kenaikan, maupun kelulusan.",
+    "noAccess": "Anda belum punya akses ke halaman ini",
+    "noAccessBody": "Halaman ini untuk pengguna yang boleh melihat kokurikuler. Hubungi admin sekolah bila perlu.",
+    "readOnly": "Anda hanya dapat melihat pengaturan ini. Perubahan memerlukan izin mengelola kokurikuler.",
+    "frameworksTitle": "Kerangka profil",
+    "frameworksIntro": "Pilih kerangka acuan lalu adopsi: butirnya disalin ke sekolah Anda dan labelnya boleh diubah, dinonaktifkan, atau ditambah butir sendiri. Tidak ada yang disalin otomatis.",
+    "noFrameworks": "Belum ada kerangka acuan untuk jenjang unit ini.",
+    "kindDimension": "Dimensi profil",
+    "kindValue": "Topik nilai",
+    "source": "Sumber: {source}",
+    "official": "Sumber resmi",
+    "secondary": "Sumber sekunder, periksa",
+    "secondaryNote": "Nama dan urutan butir ini diambil dari sumber sekunder, bukan dari teks resmi. Periksa dan sesuaikan labelnya dengan dokumen resmi sebelum dipakai di rapor.",
+    "spellingNote": "Ejaan label belum dicocokkan dengan lampiran resmi; Anda dapat menggantinya setelah diadopsi.",
+    "adopt": "Adopsi kerangka",
+    "adoptMore": "Lengkapi dari acuan",
+    "adopting": "Menyalin...",
+    "adoptedCount": "{count} butir baru disalin dari acuan.",
+    "adoptedNone": "Semua butir acuan sudah ada di sekolah Anda.",
+    "adoptBlocked": "Simpan atau batalkan perubahan dulu sebelum mengadopsi.",
+    "itemsEmpty": "Belum ada butir dari kerangka ini.",
+    "itemLabel": "Label butir",
+    "itemDescription": "Deskripsi (opsional)",
+    "itemActive": "Aktif",
+    "fromReference": "Dari acuan",
+    "custom": "Buatan sekolah",
+    "addItem": "Tambah butir sendiri",
+    "newItemLabel": "Butir baru",
+    "removeItem": "Hapus butir {label}",
+    "rubricTitle": "Rubrik tingkat capaian",
+    "rubricIntro": "Tingkat capaian yang dipakai untuk menilai kegiatan kokurikuler. Isi sesuai kebijakan sekolah; urutan dari atas ke bawah adalah dari tertinggi ke terendah.",
+    "rubricEmpty": "Belum ada tingkat. Tambahkan sendiri atau isi contoh.",
+    "levelCode": "Kode",
+    "levelLabel": "Nama tingkat",
+    "levelDescription": "Deskripsi (opsional)",
+    "levelActive": "Aktif",
+    "addLevel": "Tambah tingkat",
+    "fillSample": "Isi contoh",
+    "sampleNote": "Contoh (sumber sekunder): Sangat Baik, Baik, Cukup, Kurang. Dapat diubah sesuai kebijakan sekolah.",
+    "moveUp": "Naikkan {label}",
+    "moveDown": "Turunkan {label}",
+    "removeLevel": "Hapus tingkat {label}",
+    "limitReached": "Batas {max} tingkat tercapai.",
+    "unsaved": "Ada perubahan yang belum disimpan",
+    "allSaved": "Semua perubahan sudah disimpan",
+    "save": "Simpan",
+    "saving": "Menyimpan...",
+    "saved": "Pengaturan disimpan.",
+    "discard": "Batalkan",
+    "sample": {
+      "SB": "Sangat Baik",
+      "B": "Baik",
+      "C": "Cukup",
+      "K": "Kurang"
+    }
   }
 }

@@ -208,6 +208,19 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   pemisah `;`, sel berawalan rumus diberi apostrof; JSON memuat kamus kolom. Izin baru `data_export:run` (admin sekolah, kurikulum,
   operator; menyebar ke sekolah lama lewat sinkron peran); dataset nilai dan deskripsi memerlukan modul `grades` (400
   `dataset_requires_module`). Setiap ekspor tercatat di jejak audit. Tanpa migrasi baru.
+- **Kerangka profil kokurikuler** (fase 4, tahap 4.1; rancangan: `docs/rancangan-fase-4-kokurikuler-madrasah.md`): halaman Pengaturan
+  kokurikuler (Nilai dan rapor) untuk mengadopsi kerangka profil dan mengisi rubrik tingkat capaian. Kerangka acuan global
+  `GET /v1/reference/profile-frameworks`: `profil_lulusan_2025` (delapan dimensi, Permendikdasmen 13/2025 Pasal 17, sumber resmi; ejaan
+  label belum dicocokkan dengan lampiran) dan `panca_cinta_2025` (lima topik, Kepdirjen Pendis 6077/2025, bertanda SUMBER SEKUNDER:
+  nama dan urutan dari halaman kanwil, bukan teks resmi; hanya untuk jenjang MI, MTs, MA, MAK). Sekolah mengadopsi lewat
+  `POST /v1/cocurricular/profile-items/adopt` (idempoten, tidak menimpa label yang sudah diubah; 400 `framework_not_for_profile`),
+  lalu menyimpan daftar butir lewat `GET/PUT /v1/cocurricular/profile-items` (ubah label, nonaktifkan, tambah butir sendiri) dan rubrik
+  lewat `GET/PUT /v1/cocurricular/rubric-levels` (maks. 12 tingkat; isian contoh Sangat Baik, Baik, Cukup, Kurang hanya saran di layar,
+  bukan data bawaan). Tidak ada baris yang dibuat otomatis saat sekolah dibuat; sekolah yang tidak memakainya identik dengan sebelumnya.
+  Izin baru `cocurricular:read` (admin sekolah, kepala sekolah, kurikulum, operator, guru) dan `cocurricular:manage` (admin sekolah,
+  kurikulum), menyebar ke sekolah lama lewat sinkron peran; modul `grades`. Migrasi 0106 (empat tabel baru: dua acuan global, dua tabel
+  sekolah ber-RLS; tanpa kolom baru pada tabel lama). Kokurikuler bukan mapel dan tidak memengaruhi nilai, peringkat, kenaikan, atau
+  kelulusan. Program, penilaian, dan rapor kokurikuler menyusul di tahap 4.2 sampai 4.4.
 
 ### Diubah
 
@@ -259,6 +272,10 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   `total` kembali menghitung seluruh rombel; absensi yang sudah tercatat tetap utuh.
 - Ekspor akademik generik (tahap 3C.5): tanpa migrasi dan tanpa tabel baru; hanya izin `data_export:run` ditambahkan ke peran. Setelah
   kembali ke versi sebelumnya rute ekspor hilang dan izin itu diabaikan; baris jejak audit `export.academic` yang sudah ada tetap.
+- Kerangka profil kokurikuler (tahap 4.1): tabel `ref_profile_framework`, `ref_profile_framework_item`, `school_profile_item`, dan
+  `cocurricular_rubric_level` serta izin `cocurricular:read` dan `cocurricular:manage` dibiarkan di database dan tampil lagi setelah
+  maju. Setelah kembali ke versi sebelumnya halaman dan endpoint kokurikuler tidak ada; tidak ada efek pada nilai, rapor, kenaikan,
+  atau kelulusan karena belum ada yang membacanya.
 - Kelulusan (tahap 3C.4): tabel `graduation_policy`, `school_exam`, `school_exam_score`, dan `graduation_decision` serta izin
   `graduation:read` dan `graduation:manage` dibiarkan di database dan tampil lagi setelah maju. Setelah kembali ke versi
   sebelumnya, halaman dan endpoint kelulusan tidak ada dan keputusan `graduate` di wizard kenaikan kembali bebas dipilih (penjaga

@@ -725,7 +725,8 @@
     "cards": "Printable cards",
     "curriculum": "Curriculum",
     "subjectChoices": "Subject choices",
-    "exports": "Data export"
+    "exports": "Data export",
+    "cocurricularSettings": "Cocurricular settings"
   },
   "roles": {
     "school_admin": "School admin",
@@ -739,6 +740,8 @@
     "student": "Student"
   },
   "permissions": {
+    "cocurricular_read": "View the profile framework, rubric, programs, and cocurricular assessments",
+    "cocurricular_manage": "Manage the profile framework, rubric, programs, and cocurricular assessments",
     "data_export_run": "Export academic data (classes, subjects, final grades) as CSV or JSON files",
     "graduation_read": "View graduation, school exam scores, and transcripts",
     "graduation_manage": "Manage graduation criteria, school exam scores, decisions, and certificates",
@@ -1374,6 +1377,8 @@
     "versionWarningAssessed": "For a TP already linked to an assessment: changing its text creates a new version, and existing assessments keep the old text together with their scores. To make an assessment use the new text, change its TP in that assessment. A TP linked to an assessment cannot be deleted; deactivate it instead."
   },
   "errors": {
+    "framework_not_for_profile": "This framework does not apply to your school unit level.",
+    "item_in_use": "This item or level is already in use. Deactivate it instead of deleting it.",
     "dataset_requires_module": "The grades and descriptions datasets need the Grades and report cards module. Turn that module on or choose another dataset.",
     "graduation_final": "This student has been decided in the Graduation menu, so the decision must match. Reopen it there if you need to change it.",
     "graduation_not_determined": "A graduation decision must be confirmed in the Graduation menu first; it cannot be chosen directly here.",
@@ -8297,5 +8302,63 @@
     "colKey": "Column",
     "colDescription": "Description",
     "dictNote": "Column descriptions are provided in Indonesian."
+  },
+  "cocurricular": {
+    "title": "Cocurricular settings",
+    "subtitle": "The graduate profile framework and the achievement rubric for cocurricular activities. Cocurricular work does not count toward subject grades, rankings, promotion, or graduation.",
+    "noAccess": "You do not have access to this page yet",
+    "noAccessBody": "This page is for users who may view cocurricular data. Contact your school admin if needed.",
+    "readOnly": "You can only view these settings. Changing them needs the manage cocurricular permission.",
+    "frameworksTitle": "Profile frameworks",
+    "frameworksIntro": "Pick a reference framework and adopt it: its items are copied to your school, where you can rename them, deactivate them, or add your own. Nothing is copied automatically.",
+    "noFrameworks": "No reference framework is available for this unit level yet.",
+    "kindDimension": "Profile dimensions",
+    "kindValue": "Value topics",
+    "source": "Source: {source}",
+    "official": "Official source",
+    "secondary": "Secondary source, please verify",
+    "secondaryNote": "The names and order of these items come from a secondary source, not from the official text. Check and adjust the labels against the official document before using them on report cards.",
+    "spellingNote": "Label spelling has not been matched to the official annex; you can change it after adopting.",
+    "adopt": "Adopt framework",
+    "adoptMore": "Complete from reference",
+    "adopting": "Copying...",
+    "adoptedCount": "{count} new items copied from the reference.",
+    "adoptedNone": "All reference items already exist in your school.",
+    "adoptBlocked": "Save or discard your changes before adopting.",
+    "itemsEmpty": "No items from this framework yet.",
+    "itemLabel": "Item label",
+    "itemDescription": "Description (optional)",
+    "itemActive": "Active",
+    "fromReference": "From reference",
+    "custom": "School-made",
+    "addItem": "Add your own item",
+    "newItemLabel": "New item",
+    "removeItem": "Delete item {label}",
+    "rubricTitle": "Achievement rubric",
+    "rubricIntro": "The achievement levels used to assess cocurricular activities. Fill them in per school policy; top to bottom runs from highest to lowest.",
+    "rubricEmpty": "No levels yet. Add your own or fill in the example.",
+    "levelCode": "Code",
+    "levelLabel": "Level name",
+    "levelDescription": "Description (optional)",
+    "levelActive": "Active",
+    "addLevel": "Add level",
+    "fillSample": "Fill in example",
+    "sampleNote": "Example (secondary source): Very good, Good, Fair, Needs improvement. You can change it to match school policy.",
+    "moveUp": "Move {label} up",
+    "moveDown": "Move {label} down",
+    "removeLevel": "Delete level {label}",
+    "limitReached": "The limit of {max} levels is reached.",
+    "unsaved": "You have unsaved changes",
+    "allSaved": "All changes are saved",
+    "save": "Save",
+    "saving": "Saving...",
+    "saved": "Settings saved.",
+    "discard": "Discard",
+    "sample": {
+      "SB": "Very good",
+      "B": "Good",
+      "C": "Fair",
+      "K": "Needs improvement"
+    }
   }
 }

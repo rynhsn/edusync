@@ -725,7 +725,8 @@
     "cards": "Kartu citak",
     "curriculum": "Kurikulum",
     "subjectChoices": "Pilihan mapel",
-    "exports": "Ékspor data"
+    "exports": "Ékspor data",
+    "cocurricularSettings": "Pangaturan kokurikuler"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -739,6 +740,8 @@
     "student": "Murid"
   },
   "permissions": {
+    "cocurricular_read": "Ningali kerangka profil, rubrik, program, jeung pangajén kokurikuler",
+    "cocurricular_manage": "Ngokolakeun kerangka profil, rubrik, program, jeung pangajén kokurikuler",
     "data_export_run": "Ngékspor data akademik (rombongan, mapel, nilai ahir) minangka berkas CSV atawa JSON",
     "graduation_read": "Nempo kalulusan, nilai ujian sakola, jeung transkrip",
     "graduation_manage": "Ngatur kriteria kalulusan, nilai ujian sakola, panetepan, jeung SKL",
@@ -1374,6 +1377,8 @@
     "versionWarningAssessed": "Pikeun TP nu geus dikaitkeun ka panilaian: ngarobah téksna nyieun vérsi anyar, jeung panilaian nu geus aya tetep migunakeun téks heubeul sarta skorna. Upami hayang panilaian migunakeun téks anyar, robah TP dina panilaian éta. TP nu geus dikaitkeun ka panilaian teu tiasa dihapus; pareuman wungkul."
   },
   "errors": {
+    "framework_not_for_profile": "Kerangka ieu teu lumaku pikeun jenjang unit sakola Anjeun.",
+    "item_in_use": "Butir atawa tingkat ieu geus dipaké. Nonaktipkeun waé, ulah dipupus.",
     "dataset_requires_module": "Dataset nilai jeung déskripsi peryogi modul Nilai jeung rapor. Hurungkeun modul éta atawa pilih dataset séjén.",
     "graduation_final": "Murid ieu geus ditetepkeun di menu Kalulusan, jadi kaputusanana kudu sarua. Buka deui panetepanana di ditu lamun perlu dirobah.",
     "graduation_not_determined": "Kaputusan lulus kudu ditetepkeun heula di menu Kalulusan; teu bisa dipilih langsung di dieu.",
@@ -8297,5 +8302,63 @@
     "colKey": "Kolom",
     "colDescription": "Katerangan",
     "dictNote": "Katerangan kolom disayogikeun dina basa Indonesia."
+  },
+  "cocurricular": {
+    "title": "Pangaturan kokurikuler",
+    "subtitle": "Kerangka profil lulusan jeung rubrik tingkat capaian pikeun kagiatan kokurikuler. Kokurikuler henteu asup kana nilai mata pelajaran, pangkat, kanaékan, atawa kalulusan.",
+    "noAccess": "Anjeun can boga aksés ka kaca ieu",
+    "noAccessBody": "Kaca ieu pikeun pamaké anu meunang ningali kokurikuler. Hubungi admin sakola lamun perlu.",
+    "readOnly": "Anjeun ngan bisa ningali pangaturan ieu. Pikeun ngarobah peryogi idin ngokolakeun kokurikuler.",
+    "frameworksTitle": "Kerangka profil",
+    "frameworksIntro": "Pilih kerangka acuan terus adopsi: butirna disalin ka sakola Anjeun, labelna bisa dirobah, dinonaktipkeun, atawa ditambah butir sorangan. Teu aya anu disalin otomatis.",
+    "noFrameworks": "Can aya kerangka acuan pikeun jenjang unit ieu.",
+    "kindDimension": "Dimensi profil",
+    "kindValue": "Topik nilai",
+    "source": "Sumber: {source}",
+    "official": "Sumber resmi",
+    "secondary": "Sumber sékundér, pariksa",
+    "secondaryNote": "Ngaran jeung urutan butir ieu dicokot tina sumber sékundér, lain tina téks resmi. Pariksa jeung saluyukeun labelna jeung dokumén resmi saméméh dipaké dina rapor.",
+    "spellingNote": "Éjahan label can dicocogkeun jeung lampiran resmi; Anjeun bisa ngarobahna sanggeus diadopsi.",
+    "adopt": "Adopsi kerangka",
+    "adoptMore": "Lengkepan tina acuan",
+    "adopting": "Nyalin...",
+    "adoptedCount": "{count} butir anyar disalin tina acuan.",
+    "adoptedNone": "Kabéh butir acuan geus aya di sakola Anjeun.",
+    "adoptBlocked": "Simpen atawa bolaykeun parobahan heula saméméh ngadopsi.",
+    "itemsEmpty": "Can aya butir tina kerangka ieu.",
+    "itemLabel": "Label butir",
+    "itemDescription": "Katerangan (opsional)",
+    "itemActive": "Aktip",
+    "fromReference": "Tina acuan",
+    "custom": "Damelan sakola",
+    "addItem": "Tambah butir sorangan",
+    "newItemLabel": "Butir anyar",
+    "removeItem": "Pupus butir {label}",
+    "rubricTitle": "Rubrik tingkat capaian",
+    "rubricIntro": "Tingkat capaian anu dipaké pikeun ngajénan kagiatan kokurikuler. Eusian luyu jeung kawijakan sakola; urutan ti luhur ka handap nyaéta ti pangluhurna ka panghandapna.",
+    "rubricEmpty": "Can aya tingkat. Tambahkeun sorangan atawa eusian conto.",
+    "levelCode": "Kode",
+    "levelLabel": "Ngaran tingkat",
+    "levelDescription": "Katerangan (opsional)",
+    "levelActive": "Aktip",
+    "addLevel": "Tambah tingkat",
+    "fillSample": "Eusian conto",
+    "sampleNote": "Conto (sumber sékundér): Pohara Alus, Alus, Cukup, Kurang. Bisa dirobah luyu jeung kawijakan sakola.",
+    "moveUp": "Naékkeun {label}",
+    "moveDown": "Handapkeun {label}",
+    "removeLevel": "Pupus tingkat {label}",
+    "limitReached": "Wates {max} tingkat geus kahontal.",
+    "unsaved": "Aya parobahan anu can disimpen",
+    "allSaved": "Kabéh parobahan geus disimpen",
+    "save": "Simpen",
+    "saving": "Nyimpen...",
+    "saved": "Pangaturan disimpen.",
+    "discard": "Bolaykeun",
+    "sample": {
+      "SB": "Pohara Alus",
+      "B": "Alus",
+      "C": "Cukup",
+      "K": "Kurang"
+    }
   }
 }

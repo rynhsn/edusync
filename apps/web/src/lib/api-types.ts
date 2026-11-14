@@ -9877,7 +9877,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "cocurricular:read" | "cocurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
                     };
                 };
             };
@@ -10413,7 +10413,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "cocurricular:read" | "cocurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
                     };
                 };
             };
@@ -14115,6 +14115,592 @@ export interface paths {
             };
         };
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/reference/profile-frameworks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar kerangka profil (acuan)
+         * @description Izin: `cocurricular:read`; modul `grades`. Kerangka acuan platform beserta butirnya, disaring menurut jenjang unit (`profileKeys` null = semua jenjang; Panca Cinta hanya jenjang madrasah). `verification = secondary` berarti sumber sekunder: label belum dicek ke teks resmi dan perlu diperiksa sekolah. Kerangka dipakai lewat adopsi ke butir sekolah.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            frameworks: {
+                                key: string;
+                                /** @enum {string} */
+                                kind: "dimension" | "value";
+                                labelId: string;
+                                labelEn: string;
+                                labelSu: string;
+                                /** @description Profil jenjang yang boleh memakai kerangka; null = semua */
+                                profileKeys: string[] | null;
+                                /** @description Nomor regulasi sumber */
+                                source: string;
+                                /** @enum {string} */
+                                verification: "official" | "secondary";
+                                sort: number;
+                                items: {
+                                    code: string;
+                                    groupCode: string | null;
+                                    labelId: string;
+                                    labelEn: string;
+                                    labelSu: string;
+                                    sort: number;
+                                }[];
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/profile-items": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar butir kerangka profil sekolah
+         * @description Izin: `cocurricular:read`; modul `grades`. Butir yang sudah diadopsi atau dibuat sekolah (dimensi profil lulusan, topik Panca Cinta), urut kerangka, `sort`, lalu kode. Sekolah yang belum mengadopsi mendapat daftar kosong; tidak ada butir yang dibuat otomatis.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                frameworkKey: string;
+                                /** @description Kode butir acuan asal; null = butir buatan sekolah */
+                                refCode: string | null;
+                                code: string;
+                                label: string;
+                                description: string | null;
+                                sort: number;
+                                active: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan butir kerangka profil sekolah
+         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar butir: butir dengan `id` diubah (label, deskripsi, kode, urutan, aktif; `frameworkKey` tidak bisa diganti), butir tanpa `id` dibuat sebagai butir buatan sekolah, butir yang tidak disertakan dihapus (maks. 100 butir). Untuk menyembunyikan butir, kirim `active: false`. Galat: 400 `invalid_reference` (id atau kerangka tidak dikenal), 400 `framework_not_for_profile`, 409 `conflict` (kode kembar dalam satu kerangka). Penolakan 409 `item_in_use` untuk butir yang dipakai program berlaku sejak tahap 4.2.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        items: {
+                            /**
+                             * Format: uuid
+                             * @description Kosong = butir baru buatan sekolah
+                             */
+                            id?: string;
+                            frameworkKey: string;
+                            code: string;
+                            label: string;
+                            description?: string | null;
+                            /** @default 0 */
+                            sort?: number;
+                            /** @default true */
+                            active?: boolean;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                frameworkKey: string;
+                                /** @description Kode butir acuan asal; null = butir buatan sekolah */
+                                refCode: string | null;
+                                code: string;
+                                label: string;
+                                description: string | null;
+                                sort: number;
+                                active: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/profile-items/adopt": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Adopsi kerangka profil
+         * @description Izin: `cocurricular:manage`; modul `grades`. Menyalin butir kerangka acuan (label berbahasa Indonesia) ke butir sekolah; sesudahnya sekolah bebas mengganti label, menonaktifkan, atau menambah butir. IDEMPOTEN: butir yang kodenya sudah ada dilewati, tidak ditimpa. `added` = jumlah butir baru. Galat: 400 `invalid_reference` (kerangka tidak ada), 400 `framework_not_for_profile` (mis. Panca Cinta untuk jenjang non-madrasah).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        frameworkKey: string;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            added: number;
+                            items: {
+                                /** Format: uuid */
+                                id: string;
+                                frameworkKey: string;
+                                /** @description Kode butir acuan asal; null = butir buatan sekolah */
+                                refCode: string | null;
+                                code: string;
+                                label: string;
+                                description: string | null;
+                                sort: number;
+                                active: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/rubric-levels": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar tingkat rubrik kokurikuler
+         * @description Izin: `cocurricular:read`; modul `grades`. Tingkat capaian milik sekolah (label, urutan, deskripsi), urut `sort`. Kosong bila sekolah belum mengisinya; isian contoh hanya saran di layar pengaturan, bukan data bawaan.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            levels: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string;
+                                label: string;
+                                description: string | null;
+                                sort: number;
+                                active: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan tingkat rubrik kokurikuler
+         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar tingkat: tingkat dengan `id` diubah, tanpa `id` dibuat, yang tidak disertakan dihapus (maks. 12). Untuk menyembunyikan tingkat kirim `active: false`. Galat: 400 `invalid_reference` (id tidak dikenal), 409 `conflict` (kode kembar). Penolakan 409 `item_in_use` untuk tingkat yang sudah dipakai penilaian berlaku sejak tahap 4.3.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        levels: {
+                            /**
+                             * Format: uuid
+                             * @description Kosong = tingkat baru
+                             */
+                            id?: string;
+                            code: string;
+                            label: string;
+                            description?: string | null;
+                            sort: number;
+                            /** @default true */
+                            active?: boolean;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            levels: {
+                                /** Format: uuid */
+                                id: string;
+                                code: string;
+                                label: string;
+                                description: string | null;
+                                sort: number;
+                                active: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         post?: never;
         delete?: never;
         options?: never;

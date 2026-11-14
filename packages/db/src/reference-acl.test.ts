@@ -18,6 +18,8 @@ const REFERENCE_TABLES = [
   'ref_subject',
   'ref_curriculum',
   'ref_school_level',
+  'ref_profile_framework',
+  'ref_profile_framework_item',
 ] as const;
 
 afterAll(async () => {

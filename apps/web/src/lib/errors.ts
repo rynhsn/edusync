@@ -203,6 +203,8 @@ const KNOWN = [
   'graduation_final',
   'graduation_not_determined',
   'dataset_requires_module',
+  'framework_not_for_profile',
+  'item_in_use',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

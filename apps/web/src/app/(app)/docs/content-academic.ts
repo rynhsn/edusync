@@ -3664,4 +3664,202 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'cocurricular-settings',
+    icon: 'layers',
+    tone: 'violet',
+    group: 'academic',
+    module: 'grades',
+    text: {
+      id: {
+        title: 'Pengaturan kokurikuler: kerangka profil dan rubrik',
+        summary:
+          'Cara menyiapkan delapan dimensi profil lulusan (dan topik Panca Cinta untuk madrasah) serta tingkat capaian rubrik sebelum sekolah membuat kegiatan kokurikuler.',
+        forWho:
+          'Admin sekolah dan Kurikulum yang mengatur kokurikuler; guru dan kepala sekolah dapat melihatnya.',
+        sections: [
+          {
+            heading: 'Apa yang diatur di sini',
+            body: 'Kokurikuler adalah kegiatan penguatan profil lulusan di luar jam mata pelajaran. Halaman ini menyiapkan dua hal: butir kerangka profil (dimensi yang dituju kegiatan) dan rubrik tingkat capaian (skala penilaian kegiatan). Kokurikuler bukan mata pelajaran, jadi tidak memengaruhi nilai, peringkat, kenaikan kelas, maupun kelulusan. Sekolah yang tidak memakainya tidak mengalami perubahan apa pun, dan tidak ada data yang dibuat otomatis.',
+            href: '/cocurricular/settings',
+          },
+          {
+            heading: 'Mengadopsi kerangka profil',
+            body: 'Kerangka acuan disediakan platform. Klik Adopsi kerangka untuk menyalin butirnya ke sekolah Anda, lalu ubah label, nonaktifkan butir yang tidak dipakai, atau tambah butir buatan sendiri. Mengadopsi lagi hanya menambah butir acuan yang belum ada dan tidak menimpa label yang sudah Anda ubah. Butir hasil adopsi tidak dihapus, cukup dinonaktifkan; butir buatan sendiri boleh dihapus.',
+            steps: [
+              'Buka Pengaturan kokurikuler.',
+              'Pada kerangka yang diinginkan, klik Adopsi kerangka.',
+              'Periksa label tiap butir dan sesuaikan bila perlu.',
+              'Hilangkan centang Aktif pada butir yang tidak dipakai, atau klik Tambah butir sendiri.',
+              'Klik Simpan.',
+            ],
+            href: '/cocurricular/settings',
+            tip: 'Ubah label sesuai dokumen resmi yang dipegang sekolah; label yang tersimpan menjadi label di rapor.',
+            warning:
+              'Ejaan delapan dimensi belum dicocokkan dengan lampiran resmi, dan Panca Cinta berasal dari sumber sekunder (bukan teks resmi). Periksa keduanya sebelum dipakai di rapor.',
+          },
+          {
+            heading: 'Panca Cinta untuk madrasah',
+            body: 'Kerangka Panca Cinta (lima topik nilai cinta) hanya muncul untuk unit madrasah (MI, MTs, MA, MAK). Sekolah umum tidak melihatnya, dan mencoba mengadopsinya ditolak. Kerangka ini berlabel sumber sekunder karena nama dan urutannya diambil dari sumber sekunder.',
+            href: '/cocurricular/settings',
+          },
+          {
+            heading: 'Mengisi rubrik tingkat capaian',
+            body: 'Rubrik adalah daftar tingkat capaian milik sekolah, misalnya Sangat Baik, Baik, Cukup, dan Kurang. Urutan dari atas ke bawah adalah dari tertinggi ke terendah. Tombol Isi contoh menawarkan empat tingkat tersebut sebagai awal (sumber sekunder) dan dapat diubah sepenuhnya. Maksimal ada 12 tingkat dengan kode unik.',
+            steps: [
+              'Di bagian Rubrik tingkat capaian, klik Isi contoh atau Tambah tingkat.',
+              'Isi kode singkat dan nama tiap tingkat.',
+              'Atur urutan dengan tombol panah.',
+              'Klik Simpan.',
+            ],
+            href: '/cocurricular/settings',
+          },
+          {
+            heading: 'Siapa yang dapat mengubah',
+            body: 'Admin sekolah dan Kurikulum dapat mengubah pengaturan ini. Guru, kepala sekolah, dan operator dapat melihatnya tetapi tidak mengubahnya. Fitur ini memerlukan modul Nilai dan rapor.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Mengapa daftar butir kosong?',
+            a: 'Sekolah belum mengadopsi kerangka. Tidak ada butir yang dibuat otomatis; klik Adopsi kerangka pada kerangka yang diinginkan.',
+          },
+          {
+            q: 'Apakah kokurikuler memengaruhi nilai rapor?',
+            a: 'Tidak. Kokurikuler bukan mata pelajaran dan tidak dihitung dalam nilai akhir, peringkat, kenaikan kelas, atau kelulusan.',
+          },
+          {
+            q: 'Bisakah saya mengganti nama dimensi?',
+            a: 'Bisa. Setelah diadopsi, label menjadi milik sekolah dan dapat diganti kapan saja. Perubahan hanya berlaku untuk penggunaan berikutnya.',
+          },
+        ],
+      },
+      en: {
+        title: 'Cocurricular settings: profile framework and rubric',
+        summary:
+          'How to set up the eight graduate profile dimensions (plus the Panca Cinta topics for madrasahs) and the rubric achievement levels before the school creates cocurricular activities.',
+        forWho:
+          'School admins and Curriculum staff who manage cocurricular work; teachers and principals can view it.',
+        sections: [
+          {
+            heading: 'What is set up here',
+            body: 'Cocurricular work is activity that strengthens the graduate profile outside subject lessons. This page prepares two things: the profile framework items (the dimensions an activity aims at) and the achievement rubric (the scale used to assess activities). Cocurricular work is not a subject, so it does not affect grades, rankings, promotion, or graduation. A school that does not use it sees no change, and nothing is created automatically.',
+            href: '/cocurricular/settings',
+          },
+          {
+            heading: 'Adopting a profile framework',
+            body: 'Reference frameworks are provided by the platform. Click Adopt framework to copy its items to your school, then rename them, deactivate the ones you do not use, or add your own. Adopting again only adds reference items that are missing and never overwrites labels you changed. Adopted items are not deleted, only deactivated; items you created yourself can be deleted.',
+            steps: [
+              'Open Cocurricular settings.',
+              'On the framework you want, click Adopt framework.',
+              'Check each item label and adjust it if needed.',
+              'Untick Active on items you do not use, or click Add your own item.',
+              'Click Save.',
+            ],
+            href: '/cocurricular/settings',
+            tip: 'Set labels to match the official document your school holds; the saved label is the one shown on report cards.',
+            warning:
+              'The spelling of the eight dimensions has not been matched to the official annex, and Panca Cinta comes from a secondary source (not the official text). Check both before using them on report cards.',
+          },
+          {
+            heading: 'Panca Cinta for madrasahs',
+            body: 'The Panca Cinta framework (five love-based value topics) appears only for madrasah units (MI, MTs, MA, MAK). General schools do not see it, and trying to adopt it is refused. It is marked as a secondary source because its names and order were taken from a secondary source.',
+            href: '/cocurricular/settings',
+          },
+          {
+            heading: 'Filling in the achievement rubric',
+            body: 'The rubric is the school’s own list of achievement levels, for example Very good, Good, Fair, and Needs improvement. Top to bottom runs from highest to lowest. Fill in example offers those four levels as a starting point (secondary source) and you can change them entirely. There can be up to 12 levels with unique codes.',
+            steps: [
+              'In the Achievement rubric section, click Fill in example or Add level.',
+              'Enter a short code and a name for each level.',
+              'Set the order with the arrow buttons.',
+              'Click Save.',
+            ],
+            href: '/cocurricular/settings',
+          },
+          {
+            heading: 'Who can change it',
+            body: 'School admins and Curriculum staff can change these settings. Teachers, principals, and operators can view them but not change them. This feature needs the Grades and report cards module.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why is the item list empty?',
+            a: 'The school has not adopted a framework yet. Nothing is created automatically; click Adopt framework on the one you want.',
+          },
+          {
+            q: 'Does cocurricular work affect report card grades?',
+            a: 'No. It is not a subject and is not counted in final grades, rankings, promotion, or graduation.',
+          },
+          {
+            q: 'Can I rename a dimension?',
+            a: 'Yes. Once adopted, the label belongs to your school and can be changed at any time. A change only applies to later use.',
+          },
+        ],
+      },
+      su: {
+        title: 'Pangaturan kokurikuler: kerangka profil jeung rubrik',
+        summary:
+          'Cara nyiapkeun dalapan dimensi profil lulusan (jeung topik Panca Cinta pikeun madrasah) sarta tingkat capaian rubrik saméméh sakola nyieun kagiatan kokurikuler.',
+        forWho:
+          'Admin sakola jeung Kurikulum anu ngatur kokurikuler; guru jeung kepala sakola bisa ningalina.',
+        sections: [
+          {
+            heading: 'Naon anu diatur di dieu',
+            body: 'Kokurikuler nyaéta kagiatan anu nguatkeun profil lulusan di luar jam mata pelajaran. Kaca ieu nyiapkeun dua hal: butir kerangka profil (dimensi anu dituju ku kagiatan) jeung rubrik tingkat capaian (skala pangajén kagiatan). Kokurikuler lain mata pelajaran, jadi henteu mangaruhan nilai, pangkat, kanaékan kelas, atawa kalulusan. Sakola anu henteu maké teu aya parobahan, jeung teu aya data anu dijieun otomatis.',
+            href: '/cocurricular/settings',
+          },
+          {
+            heading: 'Ngadopsi kerangka profil',
+            body: 'Kerangka acuan disayogikeun ku platform. Klik Adopsi kerangka pikeun nyalin butirna ka sakola Anjeun, terus robah labelna, nonaktipkeun butir anu teu dipaké, atawa tambah butir sorangan. Ngadopsi deui ngan nambahan butir acuan anu can aya jeung henteu nimpa label anu geus dirobah. Butir hasil adopsi henteu dipupus, cukup dinonaktipkeun; butir damelan sorangan bisa dipupus.',
+            steps: [
+              'Buka Pangaturan kokurikuler.',
+              'Dina kerangka anu dipikahayang, klik Adopsi kerangka.',
+              'Pariksa label unggal butir jeung saluyukeun lamun perlu.',
+              'Cabut centang Aktip dina butir anu teu dipaké, atawa klik Tambah butir sorangan.',
+              'Klik Simpen.',
+            ],
+            href: '/cocurricular/settings',
+            tip: 'Saluyukeun label jeung dokumén resmi anu aya di sakola; label anu disimpen nya éta anu kaciri dina rapor.',
+            warning:
+              'Éjahan dalapan dimensi can dicocogkeun jeung lampiran resmi, jeung Panca Cinta asalna tina sumber sékundér (lain téks resmi). Pariksa duanana saméméh dipaké dina rapor.',
+          },
+          {
+            heading: 'Panca Cinta pikeun madrasah',
+            body: 'Kerangka Panca Cinta (lima topik nilai cinta) ngan kaciri pikeun unit madrasah (MI, MTs, MA, MAK). Sakola umum henteu ningali, jeung nyobaan ngadopsina ditolak. Kerangka ieu diciri sumber sékundér sabab ngaran jeung urutanna dicokot tina sumber sékundér.',
+            href: '/cocurricular/settings',
+          },
+          {
+            heading: 'Ngeusian rubrik tingkat capaian',
+            body: 'Rubrik nyaéta daptar tingkat capaian milik sakola, upamana Pohara Alus, Alus, Cukup, jeung Kurang. Urutan ti luhur ka handap nyaéta ti pangluhurna ka panghandapna. Tombol Eusian conto nawarkeun éta opat tingkat minangka awal (sumber sékundér) jeung bisa dirobah sakabéhna. Maksimal aya 12 tingkat kalayan kode anu unik.',
+            steps: [
+              'Dina bagian Rubrik tingkat capaian, klik Eusian conto atawa Tambah tingkat.',
+              'Eusian kode pondok jeung ngaran unggal tingkat.',
+              'Atur urutan maké tombol panah.',
+              'Klik Simpen.',
+            ],
+            href: '/cocurricular/settings',
+          },
+          {
+            heading: 'Saha anu bisa ngarobah',
+            body: 'Admin sakola jeung Kurikulum bisa ngarobah pangaturan ieu. Guru, kepala sakola, jeung operator bisa ningali tapi teu bisa ngarobah. Fitur ieu peryogi modul Nilai jeung rapor.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha daptar butir kosong?',
+            a: 'Sakola can ngadopsi kerangka. Teu aya butir anu dijieun otomatis; klik Adopsi kerangka dina anu dipikahayang.',
+          },
+          {
+            q: 'Naha kokurikuler mangaruhan nilai rapor?',
+            a: 'Henteu. Lain mata pelajaran jeung henteu diitung dina nilai ahir, pangkat, kanaékan kelas, atawa kalulusan.',
+          },
+          {
+            q: 'Naha abdi tiasa ngarobah ngaran dimensi?',
+            a: 'Tiasa. Sanggeus diadopsi, labelna jadi milik sakola jeung bisa dirobah iraha waé. Parobahan ngan lumaku pikeun pamakéan satuluyna.',
+          },
+        ],
+      },
+    },
+  },
 ];
