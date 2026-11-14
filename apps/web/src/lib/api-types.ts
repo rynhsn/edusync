@@ -9877,7 +9877,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
                     };
                 };
             };
@@ -10413,7 +10413,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
                     };
                 };
             };
@@ -15322,6 +15322,1497 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/classes/{id}/subject-participation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Mapel rombel dan mode partisipasinya
+         * @description Izin: `class:read`. Mapel rombel (penugasan guru, alokasi kurikulum tingkat/program, dan mapel berpenanda) dengan `mode`: `all` (bawaan: semua murid rombel mengikuti) atau `selected` (hanya murid yang terdaftar). `scoredStudents` = murid rombel yang sudah punya skor di mapel itu (skor tidak pernah dihapus; tampilkan sebelum menyalakan `selected`). `canManage` = pengguna boleh mengubah (pemegang `subject_choice:manage` atau wali kelas rombel ini). Tahap 3B.1: mode belum memengaruhi nilai, rapor, jadwal, atau absensi.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            classId: string;
+                            className: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** @description Pengguna ini boleh mengubah pilihan mapel rombel (izin kelola atau wali kelas) */
+                            canManage: boolean;
+                            subjects: {
+                                /** Format: uuid */
+                                subjectId: string;
+                                code: string;
+                                name: string;
+                                kind: string;
+                                religionVariant: string | null;
+                                /**
+                                 * @description `all` = semua murid rombel; `selected` = hanya yang terdaftar
+                                 * @enum {string}
+                                 */
+                                mode: "all" | "selected";
+                                /** @description Murid rombel yang sudah punya skor pada mapel ini. Skor tidak pernah dihapus; layar menampilkannya sebelum mode `selected` dinyalakan. */
+                                scoredStudents: number;
+                                /** @description Murid rombel yang punya baris pilihan untuk mapel ini tahun ini */
+                                enrolledStudents: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Atur mode partisipasi mapel rombel (batch)
+         * @description Izin: `class:read`, dan pemegang `subject_choice:manage` atau wali kelas rombel itu (selain itu 403). Menetapkan `mode` per mapel: `selected` membuat penanda (mapel hanya diikuti murid yang terdaftar), `all` menghapusnya (kembali ke semua murid; baris pilihan murid tetap tersimpan). Hanya perubahan nyata yang diterapkan. Ditolak 409 `report_final` bila ada semester tahun rombel yang sudah final untuk rombel ini (buka kembali rapornya lebih dulu). Mengembalikan keadaan terbaru seperti GET.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        subjects: {
+                            /** Format: uuid */
+                            subjectId: string;
+                            /** @enum {string} */
+                            mode: "all" | "selected";
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            classId: string;
+                            className: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /** @description Pengguna ini boleh mengubah pilihan mapel rombel (izin kelola atau wali kelas) */
+                            canManage: boolean;
+                            subjects: {
+                                /** Format: uuid */
+                                subjectId: string;
+                                code: string;
+                                name: string;
+                                kind: string;
+                                religionVariant: string | null;
+                                /**
+                                 * @description `all` = semua murid rombel; `selected` = hanya yang terdaftar
+                                 * @enum {string}
+                                 */
+                                mode: "all" | "selected";
+                                /** @description Murid rombel yang sudah punya skor pada mapel ini. Skor tidak pernah dihapus; layar menampilkannya sebelum mode `selected` dinyalakan. */
+                                scoredStudents: number;
+                                /** @description Murid rombel yang punya baris pilihan untuk mapel ini tahun ini */
+                                enrolledStudents: number;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/classes/{id}/subject-choices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Matriks pilihan murid x mapel berpenanda rombel
+         * @description Izin: `class:read`. Mapel berpenanda `selected` di rombel, murid aktif rombel, dan semua baris pilihan tahun ajaran rombel (`semesterId` null = setahun). `entries[].religionMismatch` (sparse) menandai mapel agama yang tidak cocok dengan agama murid.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            classId: string;
+                            className: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            canManage: boolean;
+                            semesters: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                /** Format: date */
+                                startsOn: string;
+                                /** Format: date */
+                                endsOn: string;
+                            }[];
+                            /** @description Mapel berpenanda `selected` di rombel ini */
+                            subjects: {
+                                /** Format: uuid */
+                                subjectId: string;
+                                code: string;
+                                name: string;
+                                kind: string;
+                                religionVariant: string | null;
+                            }[];
+                            students: {
+                                /** Format: uuid */
+                                id: string;
+                                name: string;
+                                nis: string | null;
+                                religion: string | null;
+                            }[];
+                            entries: {
+                                /** Format: uuid */
+                                studentId: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                                /**
+                                 * Format: uuid
+                                 * @description null = setahun; terisi = hanya semester itu
+                                 */
+                                semesterId: string | null;
+                                /** @enum {string} */
+                                source: "choice" | "religion" | "arts" | "admin";
+                                note: string | null;
+                                /**
+                                 * @description Sparse: ada hanya bila mapel agama tidak cocok dengan agama murid
+                                 * @enum {boolean}
+                                 */
+                                religionMismatch?: true;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Tetapkan, ubah, atau hapus pilihan murid (batch)
+         * @description Izin: `class:read`, dan pemegang `subject_choice:manage` atau wali kelas rombel itu (selain itu 403). Atomik. `set` membuat/mengubah baris (`semesterId` null atau kosong = setahun; `source` bawaan `choice` pada baris baru, `note` null menghapus catatan), `remove` menghapus (tanpa `semesterId` = semua baris mapel itu; dengan `semesterId` = baris semester itu), `changeFrom` memecah baris setahun menjadi per semester dan mengganti pilihan mulai `fromSemesterId` (semester sebelumnya mempertahankan keadaan lama). Mapel harus berpenanda di rombel (400 `subject_not_selected_mode`); murid harus anggota aktif rombel dan semester milik tahun rombel (400 `invalid_reference`); baris setahun dan per semester untuk mapel yang sama tidak boleh bertumpuk (400 `scope_overlap`). Perubahan yang mengubah apa yang diambil murid pada semester yang rapornya sudah final ditolak 409 `report_final`. Aturan pilihan: peringatan di `warnings`, kecuali aturan ber-`enforce` menolak 400 `choice_rule_violation`. Setelah batas `lockedFromSemesterId` aturan lewat: 409 `choice_locked`, kecuali pemegang `curriculum:manage` mengirim `override: true` (dicatat di audit). Tahap 3B.1: pilihan belum memengaruhi nilai, rapor, jadwal, atau absensi.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** @default [] */
+                        set?: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            /**
+                             * Format: uuid
+                             * @default null
+                             */
+                            semesterId?: string | null;
+                            /** @enum {string} */
+                            source?: "choice" | "religion" | "arts" | "admin";
+                            note?: string | null;
+                        }[];
+                        /** @default [] */
+                        remove?: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            /** Format: uuid */
+                            semesterId?: string | null;
+                        }[];
+                        /** @default [] */
+                        changeFrom?: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** Format: uuid */
+                            subjectId: string;
+                            /** Format: uuid */
+                            fromSemesterId: string;
+                            taking: boolean;
+                            /** @enum {string} */
+                            source?: "choice" | "religion" | "arts" | "admin";
+                        }[];
+                        /** @default false */
+                        override?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            created: number;
+                            updated: number;
+                            removed: number;
+                            /** @description Peringatan aturan pilihan untuk murid dan kelompok yang disentuh (aturan tanpa `enforce`) */
+                            warnings: {
+                                /** Format: uuid */
+                                ruleId: string;
+                                groupKey: string;
+                                label: string;
+                                enforce: boolean;
+                                /** @description Jumlah mapel anggota aturan yang diambil murid pada semester itu */
+                                count: number;
+                                minChoices: number | null;
+                                maxChoices: number | null;
+                                /** @enum {string} */
+                                status: "ok" | "below_min" | "above_max";
+                                /** Format: uuid */
+                                studentId: string;
+                                studentName: string;
+                                /**
+                                 * Format: uuid
+                                 * @description Semester yang dinilai; null bila hasilnya sama di semua semester tahun ajaran
+                                 */
+                                semesterId: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/classes/{id}/subject-choices/from-religion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Isi pilihan mapel agama dari agama murid
+         * @description Izin: `class:read`, dan pemegang `subject_choice:manage` atau wali kelas rombel itu (selain itu 403). Untuk tiap murid aktif rombel (atau hanya `studentIds`) membuat baris setahun `source = religion` ke mapel agama berpenanda yang bervarian sesuai agama murid (agama `other` ke varian `belief`). Tidak menebak: harus ada tepat satu mapel agama berpenanda dengan varian itu; yang lain dilaporkan di `unmatched` dengan `reason`: `no_religion`, `no_matching_subject`, `ambiguous_subject`, `has_other_religion_choice` (murid sudah memilih mapel agama lain). `existing` = murid yang sudah punya pilihan itu. Penjaga sama dengan PUT pilihan (409 `report_final`, `choice_locked`).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        studentIds?: string[];
+                        /** @default false */
+                        override?: boolean;
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            created: number;
+                            existing: number;
+                            unmatched: {
+                                /** Format: uuid */
+                                studentId: string;
+                                studentName: string;
+                                religion: string | null;
+                                /** @enum {string} */
+                                reason: "no_religion" | "no_matching_subject" | "ambiguous_subject" | "has_other_religion_choice";
+                            }[];
+                            warnings: {
+                                /** Format: uuid */
+                                ruleId: string;
+                                groupKey: string;
+                                label: string;
+                                enforce: boolean;
+                                /** @description Jumlah mapel anggota aturan yang diambil murid pada semester itu */
+                                count: number;
+                                minChoices: number | null;
+                                maxChoices: number | null;
+                                /** @enum {string} */
+                                status: "ok" | "below_min" | "above_max";
+                                /** Format: uuid */
+                                studentId: string;
+                                studentName: string;
+                                /**
+                                 * Format: uuid
+                                 * @description Semester yang dinilai; null bila hasilnya sama di semua semester tahun ajaran
+                                 */
+                                semesterId: string | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/classes/{id}/subject-choices/summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ringkasan pilihan rombel: aturan, peringatan, murid belum memilih
+         * @description Izin: `class:read`. Per murid: jumlah mapel berpenanda yang diambil dan hasil tiap aturan (`ok`, `below_min`, `above_max`) pada `semesterId` (bawaan: semester aktif tahun rombel, lalu yang paling awal). Per aturan: jumlah mapel ditawarkan terhadap `minOffered`. `unchosen` = murid tanpa satu pun mapel berpenanda. Peringatan hanya informasi; aturan `enforce` menolak saat penyimpanan.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    semesterId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            classId: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            /**
+                             * Format: uuid
+                             * @description Semester yang dinilai; null bila tahun ajaran tanpa semester
+                             */
+                            semesterId: string | null;
+                            participatingSubjectIds: string[];
+                            rules: {
+                                /** Format: uuid */
+                                ruleId: string;
+                                groupKey: string;
+                                label: string;
+                                enforce: boolean;
+                                minChoices: number | null;
+                                maxChoices: number | null;
+                                minOffered: number | null;
+                                /** @description Mapel anggota yang berpenanda (ditawarkan) di rombel ini */
+                                offered: number;
+                                /** @description false bila `offered` kurang dari `minOffered` */
+                                offeredOk: boolean;
+                            }[];
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                religion: string | null;
+                                /** @description Jumlah mapel berpenanda yang diambil pada semester itu */
+                                takenCount: number;
+                                results: {
+                                    /** Format: uuid */
+                                    ruleId: string;
+                                    groupKey: string;
+                                    label: string;
+                                    enforce: boolean;
+                                    /** @description Jumlah mapel anggota aturan yang diambil murid pada semester itu */
+                                    count: number;
+                                    minChoices: number | null;
+                                    maxChoices: number | null;
+                                    /** @enum {string} */
+                                    status: "ok" | "below_min" | "above_max";
+                                }[];
+                                warningCount: number;
+                            }[];
+                            /** @description Murid yang belum mengambil satu pun mapel berpenanda pada semester itu */
+                            unchosen: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/students/{id}/subject-choices": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Pilihan mapel satu murid pada satu tahun ajaran
+         * @description Izin: `student:read`. Rombel murid pada `academicYearId` (bawaan: tahun ajaran aktif), mapel berpenanda rombel itu, baris pilihan murid, dan hasil aturan pada `semesterId` (bawaan: semester aktif, lalu yang paling awal). Murid tanpa rombel pada tahun itu: `classId` null dan daftar kosong.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    academicYearId?: string;
+                    semesterId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** Format: uuid */
+                            academicYearId: string | null;
+                            /** Format: uuid */
+                            classId: string | null;
+                            /** Format: uuid */
+                            semesterId: string | null;
+                            subjects: {
+                                /** Format: uuid */
+                                subjectId: string;
+                                code: string;
+                                name: string;
+                                kind: string;
+                                religionVariant: string | null;
+                                /** @description Mengambil mapel ini pada semester yang dinilai */
+                                taking: boolean;
+                            }[];
+                            entries: {
+                                /** Format: uuid */
+                                studentId: string;
+                                /** Format: uuid */
+                                subjectId: string;
+                                /**
+                                 * Format: uuid
+                                 * @description null = setahun; terisi = hanya semester itu
+                                 */
+                                semesterId: string | null;
+                                /** @enum {string} */
+                                source: "choice" | "religion" | "arts" | "admin";
+                                note: string | null;
+                                /**
+                                 * @description Sparse: ada hanya bila mapel agama tidak cocok dengan agama murid
+                                 * @enum {boolean}
+                                 */
+                                religionMismatch?: true;
+                            }[];
+                            results: {
+                                /** Format: uuid */
+                                ruleId: string;
+                                groupKey: string;
+                                label: string;
+                                enforce: boolean;
+                                /** @description Jumlah mapel anggota aturan yang diambil murid pada semester itu */
+                                count: number;
+                                minChoices: number | null;
+                                maxChoices: number | null;
+                                /** @enum {string} */
+                                status: "ok" | "below_min" | "above_max";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/subject-choice-rules": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar aturan pilihan mapel
+         * @description Izin: `subject:read`. Aturan pilihan per tahun ajaran (`academicYearId`, bawaan semua), tingkat, dan program opsional: batas jumlah dipilih, minimal ditawarkan, `enforce`, batas ganti pilihan, dan mapel anggota.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    academicYearId?: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            levelCode: string;
+                            /** Format: uuid */
+                            programId: string | null;
+                            groupKey: string;
+                            label: string;
+                            minChoices: number | null;
+                            maxChoices: number | null;
+                            minOffered: number | null;
+                            enforce: boolean;
+                            /** Format: uuid */
+                            lockedFromSemesterId: string | null;
+                            subjectIds: string[];
+                        }[];
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat aturan pilihan mapel
+         * @description Izin: `subject_choice:manage`. Satu aturan per (tahun ajaran, tingkat, program, kunci kelompok); duplikat 409 `conflict`. Bawaan hanya peringatan (`enforce` false). Rujukan tidak valid (tahun, program, semester batas, mapel): 400 `invalid_reference`.
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        academicYearId: string;
+                        /** @description Kode tingkat rombel (mis. XI), sama dengan `level` kelas */
+                        levelCode: string;
+                        /**
+                         * Format: uuid
+                         * @description Kosong = berlaku untuk semua program
+                         * @default null
+                         */
+                        programId?: string | null;
+                        /** @description Kunci kelompok bebas, mis. elective, arts, religion */
+                        groupKey: string;
+                        label: string;
+                        /** @default null */
+                        minChoices?: number | null;
+                        /** @default null */
+                        maxChoices?: number | null;
+                        /**
+                         * @description Jumlah mapel anggota yang minimal ditawarkan (berpenanda) di rombel
+                         * @default null
+                         */
+                        minOffered?: number | null;
+                        /**
+                         * @description false (bawaan) = hanya peringatan; true = penyimpanan pilihan di luar batas ditolak 400 `choice_rule_violation`
+                         * @default false
+                         */
+                        enforce?: boolean;
+                        /**
+                         * Format: uuid
+                         * @description Setelah semester ini dimulai, perubahan pilihan kelompok ini ditolak 409 `choice_locked` (kecuali override kurikulum)
+                         * @default null
+                         */
+                        lockedFromSemesterId?: string | null;
+                        /**
+                         * @description Mapel anggota kelompok
+                         * @default []
+                         */
+                        subjectIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            levelCode: string;
+                            /** Format: uuid */
+                            programId: string | null;
+                            groupKey: string;
+                            label: string;
+                            minChoices: number | null;
+                            maxChoices: number | null;
+                            minOffered: number | null;
+                            enforce: boolean;
+                            /** Format: uuid */
+                            lockedFromSemesterId: string | null;
+                            subjectIds: string[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/subject-choice-rules/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ubah aturan pilihan mapel
+         * @description Izin: `subject_choice:manage`. Mengganti seluruh isi aturan, termasuk daftar mapel anggota. Aturan tidak menghapus pilihan murid yang sudah ada; hanya menentukan peringatan atau penolakan pada penyimpanan berikutnya.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        academicYearId: string;
+                        /** @description Kode tingkat rombel (mis. XI), sama dengan `level` kelas */
+                        levelCode: string;
+                        /**
+                         * Format: uuid
+                         * @description Kosong = berlaku untuk semua program
+                         * @default null
+                         */
+                        programId?: string | null;
+                        /** @description Kunci kelompok bebas, mis. elective, arts, religion */
+                        groupKey: string;
+                        label: string;
+                        /** @default null */
+                        minChoices?: number | null;
+                        /** @default null */
+                        maxChoices?: number | null;
+                        /**
+                         * @description Jumlah mapel anggota yang minimal ditawarkan (berpenanda) di rombel
+                         * @default null
+                         */
+                        minOffered?: number | null;
+                        /**
+                         * @description false (bawaan) = hanya peringatan; true = penyimpanan pilihan di luar batas ditolak 400 `choice_rule_violation`
+                         * @default false
+                         */
+                        enforce?: boolean;
+                        /**
+                         * Format: uuid
+                         * @description Setelah semester ini dimulai, perubahan pilihan kelompok ini ditolak 409 `choice_locked` (kecuali override kurikulum)
+                         * @default null
+                         */
+                        lockedFromSemesterId?: string | null;
+                        /**
+                         * @description Mapel anggota kelompok
+                         * @default []
+                         */
+                        subjectIds?: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            levelCode: string;
+                            /** Format: uuid */
+                            programId: string | null;
+                            groupKey: string;
+                            label: string;
+                            minChoices: number | null;
+                            maxChoices: number | null;
+                            minOffered: number | null;
+                            enforce: boolean;
+                            /** Format: uuid */
+                            lockedFromSemesterId: string | null;
+                            subjectIds: string[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus aturan pilihan mapel
+         * @description Izin: `subject_choice:manage`. Menghapus aturan dan daftar mapel anggotanya; pilihan murid tidak berubah.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
         options?: never;
         head?: never;
         patch?: never;

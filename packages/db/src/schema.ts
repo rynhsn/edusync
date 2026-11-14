@@ -744,6 +744,110 @@ export const enrollmentChange = pgTable(
   ],
 );
 
+/**
+ * Penanda partisipasi mapel per rombel (tahap 3B.1), SPARSE: baris ada hanya bila mapel itu di rombel itu diikuti murid yang
+ * terdaftar saja (`mode = 'selected'`). Tanpa baris = semua murid rombel mengikuti (perilaku sebelumnya). Hanya baris ini yang
+ * menyalakan fitur pilihan mapel. FK komposit di SQL tangan 0102.
+ */
+export const classSubjectParticipation = pgTable(
+  'class_subject_participation',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    classId: uuid('class_id').notNull(),
+    subjectId: uuid('subject_id').notNull(),
+    mode: text('mode', { enum: ['selected'] })
+      .notNull()
+      .default('selected'),
+    updatedBy: text('updated_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('class_subject_participation_school_id_uq').on(t.schoolId, t.id),
+    unique('class_subject_participation_uq').on(t.classId, t.subjectId),
+    index('class_subject_participation_class_idx').on(t.schoolId, t.classId),
+  ],
+);
+
+/**
+ * Murid mengambil mapel pada satu tahun ajaran (`semesterId` null) atau satu semester (tahap 3B.1). `source`: choice | religion |
+ * arts | admin (CHECK di migrasi 0102). Dua indeks unik parsial ada di SQL tangan (tidak diwakili di sini).
+ */
+export const studentSubjectEnrollment = pgTable(
+  'student_subject_enrollment',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    studentId: uuid('student_id').notNull(),
+    subjectId: uuid('subject_id').notNull(),
+    academicYearId: uuid('academic_year_id').notNull(),
+    semesterId: uuid('semester_id'),
+    source: text('source', { enum: ['choice', 'religion', 'arts', 'admin'] }).notNull(),
+    note: text('note'),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('student_subject_enrollment_school_id_uq').on(t.schoolId, t.id),
+    index('student_subject_enrollment_year_subject_idx').on(t.schoolId, t.academicYearId, t.subjectId),
+    index('student_subject_enrollment_student_idx').on(t.schoolId, t.studentId),
+  ],
+);
+
+/**
+ * Aturan pilihan mapel sekolah (tahap 3B.1): per (tahun, tingkat, program opsional, kelompok). `enforce` false (bawaan) = hanya
+ * peringatan. Indeks unik ber-COALESCE dan FK komposit di SQL tangan 0102.
+ */
+export const subjectChoiceRule = pgTable(
+  'subject_choice_rule',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id').notNull(),
+    levelCode: text('level_code').notNull(),
+    programId: uuid('program_id'),
+    groupKey: text('group_key').notNull(),
+    label: text('label').notNull(),
+    minChoices: integer('min_choices'),
+    maxChoices: integer('max_choices'),
+    minOffered: integer('min_offered'),
+    enforce: boolean('enforce').notNull().default(false),
+    lockedFromSemesterId: uuid('locked_from_semester_id'),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('subject_choice_rule_school_id_uq').on(t.schoolId, t.id),
+    index('subject_choice_rule_year_idx').on(t.schoolId, t.academicYearId),
+  ],
+);
+
+/** Mapel anggota aturan pilihan. FK ke aturan CASCADE, ke mapel NO ACTION (SQL tangan 0102). */
+export const subjectChoiceRuleSubject = pgTable(
+  'subject_choice_rule_subject',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    ruleId: uuid('rule_id').notNull(),
+    subjectId: uuid('subject_id').notNull(),
+  },
+  (t) => [
+    unique('subject_choice_rule_subject_school_id_uq').on(t.schoolId, t.id),
+    unique('subject_choice_rule_subject_uq').on(t.ruleId, t.subjectId),
+    index('subject_choice_rule_subject_subject_idx').on(t.schoolId, t.subjectId),
+  ],
+);
+
 export const subject = pgTable(
   'subject',
   {

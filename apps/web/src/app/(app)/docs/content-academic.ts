@@ -2370,4 +2370,291 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'subject-choices',
+    icon: 'layers',
+    tone: 'violet',
+    group: 'academic',
+    text: {
+      id: {
+        title: 'Pilihan mata pelajaran',
+        summary:
+          'Cara menandai mapel yang hanya diambil murid yang memilihnya, mencatat pilihan tiap murid, membaca peringatan, dan mengatur aturan sekolah.',
+        forWho:
+          'Wali kelas dan pengelola pilihan mata pelajaran yang mencatat pilihan murid, serta admin sekolah yang mengatur aturan pilihan.',
+        sections: [
+          {
+            heading: 'Gambaran singkat',
+            body: 'Di sebagian sekolah, murid tidak mengambil semua mata pelajaran: ada mapel pilihan yang hanya diambil murid yang memilihnya. Halaman Pilihan mapel dipakai untuk mencatat mapel apa saja yang diambil tiap murid, lalu memeriksa apakah pilihannya sesuai aturan sekolah, misalnya jumlah mapel yang boleh dipilih. Halaman ini mencatat pilihan dan memeriksa aturan.',
+            tip: 'Semua pengguna yang boleh melihat data kelas dapat membuka halaman ini. Yang boleh mengubah pilihan adalah wali kelas rombel itu dan pengelola pilihan mata pelajaran.',
+          },
+          {
+            heading: 'Menandai mapel yang dipilih murid',
+            body: 'Langkah pertama per kelas: tandai mapel mana yang hanya diikuti murid yang memilihnya. Mapel yang tidak ditandai tetap diikuti semua murid di kelas itu. Bila sebuah mapel sudah punya nilai murid, Anda akan melihat jumlah murid yang sudah bernilai dan diminta mengonfirmasi dulu.',
+            steps: [
+              'Buka menu Pilihan mapel, lalu pilih tahun ajaran dan kelas.',
+              'Buka bagian Mapel yang dipilih murid.',
+              'Centang mapel yang hanya diambil murid yang memilihnya.',
+              'Klik Simpan pengaturan mapel. Bila ada nilai yang sudah ada, baca keterangannya lalu konfirmasi.',
+            ],
+            href: '/subject-choices',
+            warning:
+              'Nilai yang sudah ada tidak dihapus saat sebuah mapel ditandai sebagai pilihan. Melepas centang juga tidak menghapus pilihan murid yang sudah dicatat.',
+          },
+          {
+            heading: 'Mencatat pilihan tiap murid',
+            body: 'Setelah mapel ditandai, buka bagian Pilihan murid. Di layar lebar, pilihan tampil sebagai tabel murid dan mapel; di ponsel, sebagai kartu per murid. Centang mapel yang diambil murid, lalu simpan. Di bawah tiap centang tertulis asal pilihannya, misalnya dipilih langsung atau diisi dari agama.',
+            steps: [
+              'Buka bagian Pilihan murid.',
+              'Centang mapel yang diambil tiap murid. Jumlah perubahan tampil di tombol simpan.',
+              'Klik Simpan pilihan.',
+              'Baca ringkasan aturan sekolah di bagian bawah untuk melihat apakah ada murid yang belum sesuai.',
+            ],
+            href: '/subject-choices',
+            tip: 'Pilihan yang hanya berlaku pada satu semester ditampilkan sebagai keterangan dan tidak bisa diubah dari tabel ini.',
+          },
+          {
+            heading: 'Mengisi pilihan agama dari data murid',
+            body: 'Tombol Isi pilihan agama dari data murid mengisi mapel agama sesuai agama yang tercatat pada data tiap murid. Sistem tidak menebak: murid hanya diisi bila ada tepat satu mapel agama yang cocok di kelas itu. Murid yang tidak bisa diisi otomatis ditampilkan beserta alasannya, misalnya agama belum diisi, tidak ada mapel yang cocok, atau sudah memilih mapel agama lain.',
+            tip: 'Lengkapi data agama murid di halaman Siswa lebih dulu agar lebih banyak murid terisi otomatis.',
+          },
+          {
+            heading: 'Membaca ringkasan peringatan',
+            body: 'Ringkasan di bawah matriks menunjukkan murid yang pilihannya kurang atau lebih dari yang ditentukan aturan, murid yang belum memilih seni atau agama, dan aturan yang jumlah mapel ditawarkannya masih kurang. Semester dapat diganti untuk melihat keadaan semester lain. Peringatan hanya untuk diketahui: pilihan tetap bisa disimpan.',
+          },
+          {
+            heading: 'Mengatur aturan sekolah',
+            body: 'Aturan sekolah, hanya terlihat oleh pengelola pilihan mata pelajaran, menentukan berapa mapel yang ditawarkan dan berapa yang boleh dipilih murid, per tingkat dan program. Contoh: sekolah menawarkan minimal 7 mapel pilihan, murid memilih 4 sampai 5. Pilih jenis aturan lalu sesuaikan nama, batas, dan mapel yang termasuk di dalamnya.',
+            steps: [
+              'Buka bagian Aturan sekolah pada tahun ajaran yang dipilih.',
+              'Klik Tambah aturan dan pilih jenisnya: mapel pilihan, satu mapel seni, atau satu mapel agama.',
+              'Isi tingkat, batas jumlah, dan centang mapel yang termasuk aturan ini.',
+              'Klik Simpan. Aturan dapat diubah atau dihapus kapan saja.',
+            ],
+            href: '/subject-choices',
+            tip: 'Bawaannya aturan hanya memberi peringatan. Centang Tolak penyimpanan hanya bila sekolah benar-benar ingin pilihan yang melanggar tidak bisa disimpan.',
+          },
+          {
+            heading: 'Pilihan yang sudah terkunci',
+            body: 'Aturan dapat menetapkan semester tertentu sebagai batas: setelah semester itu dimulai, pilihan tidak bisa diubah lagi. Hanya pemegang izin kelola kurikulum yang masih boleh mengubahnya, setelah mengonfirmasi, dan perubahan itu dicatat. Pilihan juga tidak bisa diubah bila rapor semester terkait sudah difinalisasi; buka kembali rapornya lebih dulu.',
+            warning:
+              'Menimpa pilihan yang terkunci sebaiknya hanya untuk koreksi yang memang perlu, karena tercatat atas nama Anda.',
+          },
+          {
+            heading: 'Melihat pilihan satu murid',
+            body: 'Di halaman Siswa, buka menu tindakan pada baris murid lalu pilih Mapel pilihan. Anda melihat mapel pilihan di kelasnya, mana yang diambil, dan apakah murid itu sudah sesuai aturan sekolah.',
+            href: '/students',
+          },
+        ],
+        faq: [
+          {
+            q: 'Mengapa tabel pilihan kosong?',
+            a: 'Belum ada mapel yang ditandai sebagai pilihan di kelas itu. Buka bagian Mapel yang dipilih murid dan tandai mapelnya lebih dulu.',
+          },
+          {
+            q: 'Apakah murid yang belum dicentang dianggap tidak mengambil mapel itu?',
+            a: 'Ya, untuk mapel yang ditandai sebagai pilihan. Murid hanya dianggap mengambil mapel yang dicentang.',
+          },
+          {
+            q: 'Pilihan ditolak dan muncul keterangan bahwa pilihan terkunci. Apa yang harus dilakukan?',
+            a: 'Batas waktu mengganti pilihan sudah lewat. Hubungi pengelola kurikulum sekolah; hanya mereka yang boleh mengubahnya.',
+          },
+          {
+            q: 'Pilihan ditolak karena rapor sudah final. Bagaimana?',
+            a: 'Buka kembali rapor kelas itu di menu Rapor, ubah pilihannya, lalu finalkan rapor lagi.',
+          },
+          {
+            q: 'Apakah menghapus aturan juga menghapus pilihan murid?',
+            a: 'Tidak. Aturan hanya dipakai untuk memeriksa dan memberi peringatan; pilihan murid yang sudah dicatat tetap tersimpan.',
+          },
+        ],
+      },
+      en: {
+        title: 'Subject choices',
+        summary:
+          "How to mark the subjects that only the students who choose them take, record each student's choices, read the warnings, and set school rules.",
+        forWho:
+          'Homeroom teachers and subject choice managers who record student choices, and school admins who set the choice rules.',
+        sections: [
+          {
+            heading: 'Overview',
+            body: 'In some schools students do not take every subject: there are elective subjects that only the students who choose them take. The Subject choices page records which subjects each student takes and checks the choices against school rules, such as how many electives a student may choose. This page records choices and checks rules.',
+            tip: "Everyone who can view class data can open this page. Choices can be changed by the class's homeroom teacher and by subject choice managers.",
+          },
+          {
+            heading: 'Marking the subjects students choose',
+            body: 'The first step for each class is to mark which subjects only the students who choose them take. Subjects you do not mark are still taken by every student in that class. If a subject already has student scores, you will see how many students have scores and be asked to confirm first.',
+            steps: [
+              'Open Subject choices, then pick the academic year and class.',
+              'Open the Subjects chosen by students section.',
+              'Tick the subjects that only the students who choose them take.',
+              'Click Save subject settings. If scores already exist, read the notice and confirm.',
+            ],
+            href: '/subject-choices',
+            warning:
+              'Existing scores are not deleted when a subject is marked as elective. Unticking a subject also does not delete choices already recorded for students.',
+          },
+          {
+            heading: "Recording each student's choices",
+            body: 'Once subjects are marked, open the Student choices section. On a wide screen the choices appear as a table of students and subjects; on a phone they appear as one card per student. Tick the subjects each student takes, then save. Under each tick you see where the choice came from, for example chosen directly or filled in from religion.',
+            steps: [
+              'Open the Student choices section.',
+              'Tick the subjects each student takes. The number of changes shows on the save button.',
+              'Click Save choices.',
+              'Read the school rules summary at the bottom to see whether any student does not yet comply.',
+            ],
+            href: '/subject-choices',
+            tip: 'Choices that apply to only one semester are shown as a note and cannot be changed from this table.',
+          },
+          {
+            heading: 'Filling religion choices from student data',
+            body: 'The Fill religion choices from student data button fills in the religion subject that matches the religion recorded for each student. The system does not guess: a student is only filled in when exactly one matching religion subject exists in the class. Students that cannot be filled in automatically are listed with a reason, for example religion not recorded, no matching subject, or already chose a different religion subject.',
+            tip: "Complete the students' religion data on the Students page first so more students are filled in automatically.",
+          },
+          {
+            heading: 'Reading the warnings summary',
+            body: 'The summary below the table shows students whose choices are below or above what a rule allows, students who have not chosen an arts or religion subject, and rules where too few subjects are offered. You can switch the semester to see another one. Warnings are for your information only: choices can still be saved.',
+          },
+          {
+            heading: 'Setting school rules',
+            body: 'School rules, visible only to subject choice managers, set how many subjects are offered and how many a student may choose, per level and program. For example: the school offers at least 7 elective subjects and students choose 4 to 5. Pick a rule type, then adjust the name, limits, and the subjects it covers.',
+            steps: [
+              'Open the School rules section for the selected academic year.',
+              'Click Add rule and pick a type: elective subjects, one arts subject, or one religion subject.',
+              'Fill in the level and limits, and tick the subjects this rule covers.',
+              'Click Save. A rule can be edited or deleted at any time.',
+            ],
+            href: '/subject-choices',
+            tip: 'By default a rule only gives warnings. Tick Refuse saving only if the school really wants choices that break the rule to be impossible to save.',
+          },
+          {
+            heading: 'Locked choices',
+            body: 'A rule can set a semester as a deadline: once that semester starts, choices can no longer be changed. Only people with the curriculum management permission can still change them, after confirming, and the change is recorded. Choices also cannot be changed when the report cards of the related semester are finalized; reopen those report cards first.',
+            warning:
+              'Overriding locked choices should be kept for corrections that are really needed, because it is recorded under your name.',
+          },
+          {
+            heading: "Viewing one student's choices",
+            body: "On the Students page, open the actions menu on a student's row and pick Elective subjects. You see the elective subjects in the student's class, which ones the student takes, and whether the student meets the school rules.",
+            href: '/students',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why is the choices table empty?',
+            a: 'No subject in that class is marked as elective yet. Open Subjects chosen by students and mark the subjects first.',
+          },
+          {
+            q: 'Is a student with no tick treated as not taking that subject?',
+            a: 'Yes, for subjects marked as elective. A student is only treated as taking the subjects that are ticked.',
+          },
+          {
+            q: 'My change was refused with a notice that choices are locked. What now?',
+            a: "The deadline for changing choices has passed. Contact the school's curriculum manager; only they can change them.",
+          },
+          {
+            q: 'My change was refused because the report card is final. What now?',
+            a: "Reopen the class's report cards under Report cards, change the choices, then finalize the report cards again.",
+          },
+          {
+            q: 'Does deleting a rule also delete student choices?',
+            a: 'No. Rules are only used to check and warn; choices already recorded for students are kept.',
+          },
+        ],
+      },
+      su: {
+        title: 'Pilihan mata pelajaran',
+        summary:
+          'Cara nandaan mapel anu ngan dicandak ku murid anu milihna, nyatet pilihan unggal murid, maca pépéling, jeung nyieun aturan sakola.',
+        forWho:
+          'Wali kelas jeung pangurus pilihan mata pelajaran anu nyatet pilihan murid, sarta admin sakola anu nyieun aturan pilihan.',
+        sections: [
+          {
+            heading: 'Gambaran singget',
+            body: 'Di sawaréh sakola, murid teu nyandak sakabéh mata pelajaran: aya mapel pilihan anu ngan dicandak ku murid anu milihna. Kaca Pilihan mapel dipaké pikeun nyatet mapel naon waé anu dicandak unggal murid, terus mariksa naha pilihanana luyu jeung aturan sakola, upamana jumlah mapel anu meunang dipilih. Kaca ieu nyatet pilihan jeung mariksa aturan.',
+            tip: 'Sakabéh pamaké anu tiasa ningali data kelas bisa muka kaca ieu. Anu tiasa ngarobah pilihan nyaéta wali kelas rombel éta jeung pangurus pilihan mata pelajaran.',
+          },
+          {
+            heading: 'Nandaan mapel anu dipilih murid',
+            body: 'Léngkah kahiji pikeun unggal kelas: tandaan mapel mana anu ngan dicandak ku murid anu milihna. Mapel anu teu ditandaan tetep dicandak ku sakabéh murid di kelas éta. Upami hiji mapel geus boga nilai murid, Anjeun bakal ningali jumlah murid anu geus boga nilai jeung dipenta ngonfirmasi heula.',
+            steps: [
+              'Buka ménu Pilihan mapel, terus pilih taun ajaran jeung kelas.',
+              'Buka bagian Mapel anu dipilih murid.',
+              'Centang mapel anu ngan dicandak ku murid anu milihna.',
+              'Klik Simpen setélan mapel. Upami aya nilai anu geus aya, baca katerangana terus konfirmasi.',
+            ],
+            href: '/subject-choices',
+            warning:
+              'Nilai anu geus aya henteu dipiceun nalika mapel ditandaan salaku pilihan. Nyabut centang ogé henteu mupus pilihan murid anu geus dicatet.',
+          },
+          {
+            heading: 'Nyatet pilihan unggal murid',
+            body: 'Sanggeus mapel ditandaan, buka bagian Pilihan murid. Di layar lega, pilihan mucunghul salaku tabel murid jeung mapel; di ponsel, salaku kartu per murid. Centang mapel anu dicandak murid, terus simpen. Handapeun unggal centang aya katerangan asal pilihanana, upamana dipilih langsung atawa diusian tina agama.',
+            steps: [
+              'Buka bagian Pilihan murid.',
+              'Centang mapel anu dicandak unggal murid. Jumlah parobahan muncul dina tombol simpen.',
+              'Klik Simpen pilihan.',
+              'Baca ringkesan aturan sakola di handap pikeun nempo naha aya murid anu can luyu.',
+            ],
+            href: '/subject-choices',
+            tip: 'Pilihan anu ngan lumaku dina hiji semester ditembongkeun salaku katerangan jeung teu bisa dirobah tina tabel ieu.',
+          },
+          {
+            heading: 'Ngeusian pilihan agama tina data murid',
+            body: 'Tombol Eusian pilihan agama tina data murid ngeusian mapel agama luyu jeung agama anu dicatet dina data unggal murid. Sistem teu nebak: murid ngan diusian upami aya pas hiji mapel agama anu cocog di kelas éta. Murid anu teu bisa diusian sacara otomatis ditembongkeun jeung alesanana, upamana agama can dieusian, taya mapel anu cocog, atawa geus milih mapel agama séjén.',
+            tip: 'Lengkepan heula data agama murid di kaca Murid supaya leuwih loba murid anu kaeusian sacara otomatis.',
+          },
+          {
+            heading: 'Maca ringkesan pépéling',
+            body: 'Ringkesan handapeun tabel nembongkeun murid anu pilihanana kurang atawa leuwih ti anu ditangtukeun ku aturan, murid anu can milih seni atawa agama, jeung aturan anu jumlah mapel ditawarkeunana masih kurang. Semester bisa diganti pikeun nempo kaayaan semester séjén. Pépéling ngan pikeun dipikanyaho: pilihan tetep tiasa disimpen.',
+          },
+          {
+            heading: 'Nyieun aturan sakola',
+            body: 'Aturan sakola, ngan katingali ku pangurus pilihan mata pelajaran, nangtukeun sabaraha mapel anu ditawarkeun jeung sabaraha anu meunang dipilih ku murid, per tingkat jeung program. Conto: sakola nawarkeun minimal 7 mapel pilihan, murid milih 4 nepi ka 5. Pilih jenis aturan terus saluyukeun ngaran, wates, jeung mapel anu kaasup.',
+            steps: [
+              'Buka bagian Aturan sakola dina taun ajaran anu dipilih.',
+              'Klik Tambih aturan terus pilih jenisna: mapel pilihan, hiji mapel seni, atawa hiji mapel agama.',
+              'Eusian tingkat, wates jumlah, jeung centang mapel anu kaasup aturan ieu.',
+              'Klik Simpen. Aturan bisa dirobah atawa dipiceun iraha waé.',
+            ],
+            href: '/subject-choices',
+            tip: 'Sacara baku aturan ngan méré pépéling. Centang Tolak nyimpen ngan upami sakola bener-bener hayang pilihan anu ngalanggar teu bisa disimpen.',
+          },
+          {
+            heading: 'Pilihan anu geus dikonci',
+            body: 'Aturan bisa nangtukeun hiji semester salaku wates: sanggeus semester éta dimimitian, pilihan teu bisa dirobah deui. Ngan anu boga idin ngurus kurikulum anu tetep tiasa ngarobahna, sanggeus ngonfirmasi, jeung parobahanana dicatet. Pilihan ogé teu bisa dirobah upami rapor semester anu patali geus difinalkeun; buka deui heula raporna.',
+            warning:
+              'Nimpa pilihan anu dikonci sakuduna ngan pikeun koréksi anu bener-bener perlu, sabab dicatet atas ngaran Anjeun.',
+          },
+          {
+            heading: 'Nempo pilihan hiji murid',
+            body: 'Di kaca Murid, buka ménu tindakan dina baris murid terus pilih Mapel pilihan. Anjeun nempo mapel pilihan di kelasna, mana anu dicandak, jeung naha murid éta geus luyu jeung aturan sakola.',
+            href: '/students',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha tabel pilihan kosong?',
+            a: 'Can aya mapel anu ditandaan salaku pilihan di kelas éta. Buka Mapel anu dipilih murid terus tandaan mapelna heula.',
+          },
+          {
+            q: 'Naha murid anu can dicentang dianggap teu nyandak mapel éta?',
+            a: 'Enya, pikeun mapel anu ditandaan salaku pilihan. Murid ngan dianggap nyandak mapel anu dicentang.',
+          },
+          {
+            q: 'Parobahan ditolak jeung aya katerangan yén pilihan dikonci. Kumaha?',
+            a: 'Wates waktu ngarobah pilihan geus kaliwat. Hubungi pangurus kurikulum sakola; ngan maranéhna anu tiasa ngarobahna.',
+          },
+          {
+            q: 'Parobahan ditolak sabab rapor geus final. Kumaha?',
+            a: 'Buka deui rapor kelas éta dina ménu Rapor, robah pilihanana, terus finalkeun deui raporna.',
+          },
+          {
+            q: 'Naha mupus aturan ogé mupus pilihan murid?',
+            a: 'Henteu. Aturan ngan dipaké pikeun mariksa jeung méré pépéling; pilihan murid anu geus dicatet tetep disimpen.',
+          },
+        ],
+      },
+    },
+  },
 ];

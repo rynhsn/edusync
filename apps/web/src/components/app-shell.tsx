@@ -29,6 +29,7 @@ import {
   KeyRound,
   Landmark,
   LayoutDashboard,
+  ListChecks,
   LibraryBig,
   Mail,
   Megaphone,
@@ -216,6 +217,12 @@ export const NAV_GROUPS = [
         labelKey: 'teachingPlan',
         icon: NotebookPen,
         permission: 'teaching_plan:write',
+      },
+      {
+        href: '/subject-choices',
+        labelKey: 'subjectChoices',
+        icon: ListChecks,
+        permission: 'class:read',
       },
       {
         href: '/schedule',

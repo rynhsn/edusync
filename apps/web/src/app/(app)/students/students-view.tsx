@@ -8,6 +8,7 @@ import {
   GraduationCap,
   History,
   Layers,
+  ListChecks,
   Pencil,
   Plus,
   Trash2,
@@ -60,6 +61,7 @@ import { buildClassMoveBody, LIMITS } from '@/lib/transfer';
 import { TransferOutDialog } from '../transfers/transfer-forms';
 import { GuardiansPanel } from './guardians-panel';
 import { StudentCards } from './student-cards';
+import { StudentChoices } from './student-choices';
 import { exportStudentsExcel } from './student-export';
 import { clean, type Draft, EMPTY, STATUS_KEY, STATUSES, type Status, StudentFields } from './student-fields';
 import { StudentHistory } from './student-history';
@@ -117,6 +119,7 @@ export function StudentsView() {
   const [exporting, setExporting] = useState(false);
   const [deleting, setDeleting] = useState<{ id: string; name: string } | null>(null);
   const [historyFor, setHistoryFor] = useState<{ id: string; name: string } | null>(null);
+  const [choicesFor, setChoicesFor] = useState<{ id: string; name: string } | null>(null);
   const [transferFor, setTransferFor] = useState<{ id: string; name: string } | null>(null);
 
   // Kelas yang dapat dipilih: hanya tahun ajaran aktif, karena siswa ditempatkan pada tahun berjalan.
@@ -520,6 +523,11 @@ export function StudentsView() {
                   icon: History,
                   onSelect: () => setHistoryFor({ id: s.id, name: s.name }),
                 },
+                {
+                  label: t('choicesMenu'),
+                  icon: ListChecks,
+                  onSelect: () => setChoicesFor({ id: s.id, name: s.name }),
+                },
                 ...(cardsAllowed
                   ? [
                       {
@@ -636,6 +644,17 @@ export function StudentsView() {
             </DialogTitle>
           </DialogHeader>
           {historyFor && <StudentHistory studentId={historyFor.id} name={historyFor.name} />}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!choicesFor} onOpenChange={(open) => !open && setChoicesFor(null)}>
+        <DialogContent className="max-h-[90dvh] overflow-y-auto sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle className="font-heading text-lg">
+              {t('choicesMenu')} · {choicesFor?.name}
+            </DialogTitle>
+          </DialogHeader>
+          {choicesFor && <StudentChoices studentId={choicesFor.id} />}
         </DialogContent>
       </Dialog>
 

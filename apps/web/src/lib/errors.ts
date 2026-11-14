@@ -191,6 +191,10 @@ const KNOWN = [
   'transfer_not_cancellable',
   'student_status_changed',
   'transfer_superseded',
+  'subject_not_selected_mode',
+  'choice_rule_violation',
+  'scope_overlap',
+  'choice_locked',
 ] as const;
 
 type KnownCode = (typeof KNOWN)[number];

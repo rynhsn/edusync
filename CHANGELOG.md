@@ -86,6 +86,16 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   sekolah tidak terkena larangan.
 - Kode galat baru: `transfer_final_level_even_semester`, `exception_requires_school_manage`, `student_not_active`,
   `transfer_not_cancellable`, `student_status_changed`, `transfer_superseded` (terjemahan id, en, su).
+- **Pilihan mata pelajaran per murid (data dan aturan).** Sekolah dapat menandai sebuah mapel di sebuah rombel sebagai "berdasarkan
+  pilihan" (hanya diikuti murid yang terdaftar), lalu mencatat pilihan tiap murid untuk satu tahun ajaran atau satu semester
+  (dengan "ganti pilihan mulai semester X"). Pilihan agama dapat diisi dari agama murid tanpa menebak; murid yang agamanya kosong
+  atau tidak punya pasangan mapel dilaporkan terpisah. Aturan pilihan per sekolah (jumlah dipilih, jumlah minimal ditawarkan,
+  satu seni, satu agama, batas ganti pilihan) disimpan sebagai data dan bawaannya hanya peringatan; sekolah boleh menyalakan
+  penolakan per aturan. Ringkasan rombel menampilkan peringatan dan murid yang belum memilih. Izin baru `subject_choice:manage`
+  (admin sekolah, kurikulum, operator; wali kelas boleh mengatur rombelnya sendiri). Tahap ini hanya data dan aturan: nilai,
+  rekap, rapor, portal, jadwal, dan absensi belum berubah, dan sekolah tanpa penanda mapel identik dengan sebelumnya. Mengubah
+  pilihan yang memengaruhi semester dengan rapor final ditolak (`report_final`). Kode galat baru: `subject_not_selected_mode`,
+  `choice_rule_violation`, `scope_overlap`, `choice_locked`.
 
 ### Diubah
 
@@ -109,6 +119,10 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   rekap, leger, portal, dan ketercapaian TP); rapor final aman karena dibaca dari snapshot. Sekolah dengan kebijakan bawaan
   tidak terpengaruh. Pendampingan, peserta, dan percobaan remedial dibiarkan di database dan tampil lagi setelah maju; kolom
   kebijakan di konfigurasi beku diabaikan versi lama. Disarankan rollback hanya sebelum sekolah memakai kebijakan lain.
+- Pilihan mata pelajaran per murid (tahap 3B.1): tabel `class_subject_participation`, `student_subject_enrollment`,
+  `subject_choice_rule`, dan `subject_choice_rule_subject` dibiarkan di database; versi lama tidak membacanya sehingga tidak ada
+  efek pada nilai, rapor, jadwal, atau absensi (tahap ini memang belum memakainya). Data pilihan tetap ada dan tampil lagi setelah
+  maju. Izin `subject_choice:manage` pada peran sekolah dibiarkan dan diabaikan versi lama.
 - Mutasi murid dan riwayat rombel (tahap 3C.1): tabel `student_transfer` dan `enrollment_change` dibiarkan di database dan
   tampil lagi setelah maju. Setelah kembali ke versi sebelumnya, murid berstatus pindah kembali dikecualikan dari daftar rapor
   kelas (rapor final mereka tetap aman di snapshot dan tetap terbaca lewat dokumen tunggal), dan membuka kembali lalu

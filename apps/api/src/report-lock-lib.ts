@@ -109,3 +109,42 @@ export async function assertClassYearNotClosed(tx: Tx, classId: string) {
     );
   }
 }
+
+/**
+ * Tolak bila salah satu semester pada tahun ajaran kelas itu sudah final untuk kelas itu. Dipakai penanda partisipasi mapel
+ * (3B.1): mengubahnya mengubah himpunan pengambil mapel, jadi rapor kelas yang sudah final harus dibuka kembali lebih dulu.
+ * Pemeriksaan sederhana dan aman: tidak mencoba menghitung apakah himpunan pengambil benar-benar berubah.
+ */
+export async function assertClassYearHasNoFinal(tx: Tx, classId: string) {
+  const [cls] = await tx
+    .select({ academicYearId: classRoom.academicYearId })
+    .from(classRoom)
+    .where(eq(classRoom.id, classId));
+  if (!cls) return;
+  const sems = await tx
+    .select({ id: semester.id })
+    .from(semester)
+    .where(eq(semester.academicYearId, cls.academicYearId));
+  if (sems.length === 0) return;
+  const [hit] = await tx
+    .select({ id: reportCard.id })
+    .from(reportCard)
+    .where(
+      and(
+        eq(reportCard.classId, classId),
+        eq(reportCard.status, 'final'),
+        inArray(
+          reportCard.semesterId,
+          sems.map((s) => s.id),
+        ),
+      ),
+    )
+    .limit(1);
+  if (hit) {
+    throw new HttpError(
+      409,
+      REPORT_FINAL_CODE,
+      'Rapor kelas ini sudah difinalkan pada salah satu semester tahun ajarannya, jadi mapel pilihan kelas ini tidak bisa diubah. Buka kembali rapor kelasnya di menu Rapor bila perlu.',
+    );
+  }
+}

@@ -90,3 +90,17 @@ describe('izin tanggapan portal', () => {
     expect(has('school_admin', 'portal:respond')).toBe(true);
   });
 });
+
+describe('izin pilihan mapel', () => {
+  const has = (role: keyof typeof SYSTEM_ROLES, p: string) =>
+    (SYSTEM_ROLES[role].permissions as readonly string[]).includes(p);
+  it('dipegang admin, kurikulum, dan operator saja', () => {
+    expect(isPermission('subject_choice:manage')).toBe(true);
+    for (const role of ['school_admin', 'curriculum', 'operator'] as const) {
+      expect(has(role, 'subject_choice:manage')).toBe(true);
+    }
+    for (const role of ['principal', 'treasurer', 'teacher', 'guardian', 'student'] as const) {
+      expect(has(role, 'subject_choice:manage')).toBe(false);
+    }
+  });
+});

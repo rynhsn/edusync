@@ -30,6 +30,7 @@ export * from './school-domain';
 export * from './school-settings';
 export * from './site-assets';
 export * from './site-content';
+export * from './subject-choice';
 export * from './teaching-plan';
 export * from './timezone';
 export * from './transfer';

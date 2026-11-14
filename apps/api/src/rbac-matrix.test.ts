@@ -487,6 +487,41 @@ describe('kebijakan peran bawaan', () => {
     }
   });
 
+  it('rute pilihan mapel (tahap 3B.1) memasang izin sesuai rancangan tanpa modul', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const classReads = [
+      find('GET', '/v1/classes/:id/subject-participation'),
+      find('GET', '/v1/classes/:id/subject-choices'),
+      find('GET', '/v1/classes/:id/subject-choices/summary'),
+    ];
+    // Penulis rombel: class:read di gerbang; pemegang subject_choice:manage atau wali kelas diperiksa di handler.
+    const classWrites = [
+      find('PUT', '/v1/classes/:id/subject-participation'),
+      find('PUT', '/v1/classes/:id/subject-choices'),
+      find('POST', '/v1/classes/:id/subject-choices/from-religion'),
+    ];
+    for (const e of [...classReads, ...classWrites]) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['class:read'], []]);
+    }
+    for (const e of classWrites) expect(e?.description).toContain('subject_choice:manage');
+    const studentChoices = find('GET', '/v1/students/:id/subject-choices');
+    expect([studentChoices?.perms, studentChoices?.modules]).toEqual([['student:read'], []]);
+    const ruleRead = find('GET', '/v1/subject-choice-rules');
+    expect([ruleRead?.perms, ruleRead?.modules]).toEqual([['subject:read'], []]);
+    const ruleWrites = [
+      find('POST', '/v1/subject-choice-rules'),
+      find('PUT', '/v1/subject-choice-rules/:id'),
+      find('DELETE', '/v1/subject-choice-rules/:id'),
+    ];
+    for (const e of ruleWrites) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['subject_choice:manage'], []]);
+      expect(e?.description).toContain('Izin: `subject_choice:manage`');
+      for (const r of roleKeys) {
+        expect(allows(r, e!), `${r} ${e?.url}`).toBe(['school_admin', 'curriculum', 'operator'].includes(r));
+      }
+    }
+  });
+
   it('hanya admin sekolah yang mengelola peran dan anggota', () => {
     for (const r of roleKeys.filter((k) => k !== 'school_admin')) {
       expect(perms(r).has('role:manage'), r).toBe(false);
