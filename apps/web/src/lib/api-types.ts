@@ -12464,7 +12464,7 @@ export interface paths {
         put?: never;
         /**
          * Salin tahun ajaran ke tahun berikutnya
-         * @description Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin, kecuali kelas tingkat akhir yang memuat murid berkeputusan tinggal kelas: disalin dengan nama dan tingkat yang sama agar mereka punya kelas tujuan, dapat dimatikan dengan `copyFinalLevelForRetained` false, peringatan `final_level_copied_for_retained`) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Selain `promotion:manage`, tiap bagian butuh izin spesifik pemanggil: kelas, wali kelas, dan penugasan guru butuh `class:manage`; kalender butuh `academic_year:manage`; kurikulum (alokasi dan versi) butuh `curriculum:manage`; ATP butuh `teaching_plan:write`. Bagian yang diminta (flag true, termasuk bawaan true) tetapi tidak diizinkan DILEWATI, bukan 403: hitungannya 0 dan `warningItems` memuat `part_skipped_no_permission` dengan params `part` (`classes`, `calendar`, `curriculum`, `teachingPlans`) dan `permission` (izin yang kurang); `dryRun` berperilaku sama. Pemanggil dengan semua izin (admin dan Kurikulum bawaan) tidak terpengaruh. Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` (kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, final_level_not_copied, final_level_copied_for_retained, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, event_class_skipped, event_out_of_year, flow_inactive_objectives, part_skipped_no_permission) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.
+         * @description Izin: `promotion:manage`. Menyalin ke `targetYearId`: kelas (tingkat non-akhir menjadi tingkat berikutnya, mis. 7A menjadi 8A; tingkat pertama juga disalin sebagai tingkat yang sama untuk siswa baru dan yang tinggal kelas; tingkat akhir tidak disalin, kecuali kelas tingkat akhir yang memuat murid berkeputusan tinggal kelas: disalin dengan nama dan tingkat yang sama agar mereka punya kelas tujuan, dapat dimatikan dengan `copyFinalLevelForRetained` false, peringatan `final_level_copied_for_retained`) beserta wali kelas, penugasan guru mapel ke kelas hasil salinan, kalender akademik (hanya bila `copyCalendar` true; bawaan false; tanggal digeser selisih tahun mulai), struktur kurikulum (alokasi JP serta versi kurikulum per tingkat yang sama; `copyCurriculum`, bawaan true), dan ATP berstatus terbit (`copyTeachingPlans`, bawaan true; disalin sebagai draf versi 1 beserta item, hanya versi terbit terbaru tiap ATP, semester dikosongkan, `flowsCreated`). Selain `promotion:manage`, tiap bagian butuh izin spesifik pemanggil: kelas, wali kelas, dan penugasan guru butuh `class:manage`; kalender butuh `academic_year:manage`; kurikulum (alokasi dan versi) butuh `curriculum:manage`; ATP butuh `teaching_plan:write`. Bagian yang diminta (flag true, termasuk bawaan true) tetapi tidak diizinkan DILEWATI, bukan 403: hitungannya 0 dan `warningItems` memuat `part_skipped_no_permission` dengan params `part` (`classes`, `calendar`, `curriculum`, `teachingPlans`) dan `permission` (izin yang kurang); `dryRun` berperilaku sama. Pemanggil dengan semua izin (admin dan Kurikulum bawaan) tidak terpengaruh. Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. Penanda mapel pilihan rombel (partisipasi) ikut disalin ke kelas hasil salinan (`copySubjectChoices`, bawaan true; kelas tujuan yang sudah punya penanda tidak diubah; `participationCopied`, sparse); izinnya mengikuti bagian kelas. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. 400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` (kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, final_level_not_copied, final_level_copied_for_retained, class_level_mismatch, inactive_homeroom_skipped, homeroom_multiple, inactive_teacher_skipped, event_class_skipped, event_out_of_year, flow_inactive_objectives, part_skipped_no_permission) bagi hal yang perlu diperiksa. Tingkat akhir kelas mengikuti `final_level_code` jurusannya.
          */
         post: {
             parameters: {
@@ -12498,6 +12498,8 @@ export interface paths {
                         copyTeachingPlans?: boolean;
                         /** @description Salin kelas tingkat akhir (nama sama) bila ada murid yang diputuskan tinggal kelas di kelas itu, agar mereka punya kelas tujuan; bawaan true. Tanpa keputusan tinggal kelas di tingkat akhir, hasil salinan tidak berubah */
                         copyFinalLevelForRetained?: boolean;
+                        /** @description Salin penanda mapel pilihan rombel (partisipasi) ke kelas hasil salinan; kelas tujuan yang sudah punya penanda tidak diubah. Bawaan true; tanpa mapel pilihan hasil salinan tidak berubah */
+                        copySubjectChoices?: boolean;
                         /** @default false */
                         dryRun?: boolean;
                     };
@@ -12518,6 +12520,8 @@ export interface paths {
                             allocationsCreated?: number;
                             versionsCreated?: number;
                             flowsCreated?: number;
+                            /** @description Penanda mapel pilihan yang disalin ke kelas hasil salinan; absen bila tidak ada */
+                            participationCopied?: number;
                             warnings: string[];
                             /** @description Peringatan terstruktur (kode stabil + parameter) yang sejajar dengan `warnings`, untuk diterjemahkan klien */
                             warningItems?: {
@@ -12618,7 +12622,7 @@ export interface paths {
         put?: never;
         /**
          * Terapkan keputusan kenaikan kelas ke tahun berikutnya
-         * @description Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau bila tidak ada, satu-satunya kelas sejurusan pada tingkat itu; selain itu `unplaced` `no_target_class`, tidak pernah menebak kelas pertama), `retain` di kelas sebaya tahun tujuan dengan aturan yang sama, `graduate` mengubah status siswa menjadi lulus (tingkat akhir kelas asal divalidasi ulang: bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; siswa yang sudah ter-enroll di tahun tujuan (termasuk yang terdahului proses lain) dilewati dan dilaporkan di `alreadyEnrolled`, keputusannya tidak ditandai diterapkan. Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. `graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber (lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah lulus). Penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.
+         * @description Izin: `promotion:manage`. Untuk tiap keputusan yang belum diterapkan: `promote` menempatkan siswa di kelas tujuan (eksplisit, atau kelas tingkat berikutnya pada tahun tujuan dengan "bagian" nama yang sama, atau bila tidak ada, satu-satunya kelas sejurusan pada tingkat itu; selain itu `unplaced` `no_target_class`, tidak pernah menebak kelas pertama), `retain` di kelas sebaya tahun tujuan dengan aturan yang sama, `graduate` mengubah status siswa menjadi lulus (tingkat akhir kelas asal divalidasi ulang: bukan tingkat akhir lagi = `unplaced` `not_final_level`). Enrollment lama tidak dihapus; siswa yang sudah ter-enroll di tahun tujuan (termasuk yang terdahului proses lain) dilewati dan dilaporkan di `alreadyEnrolled`, keputusannya tidak ditandai diterapkan. Siswa tanpa kelas tujuan masuk `unplaced` beserta alasannya, dengan `reasonCode` stabil (dan `reasonParams`), tanpa menggagalkan yang lain. `retain` tidak menghapus enrollment lama; riwayat rombel tahun sumber tetap utuh. `graduate` hanya diterapkan bila keputusan eksplisit tersimpan. Tahun ajaran aktif tidak diubah. `dryRun` menghitung tanpa menulis. `graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber (lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah lulus). Penerapan untuk tahun sumber yang sama berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. Pilihan mapel setahun murid yang ditempatkan (`promote` dan `retain`) dibawa ke tahun tujuan bila kelas tujuannya juga menandai mapel itu pilihan (`copySubjectChoices`, bawaan true): `choicesCopied` dan `choicesDropped` (mapel yang tak lagi berpenanda di kelas tujuan), keduanya sparse. Pilihan per semester tidak dibawa, pilihan yang sudah ada di tahun tujuan tidak ditimpa, dan penempatan murid tidak memperhitungkan pilihan. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.
          */
         post: {
             parameters: {
@@ -12637,6 +12641,8 @@ export interface paths {
                     "application/json": {
                         /** Format: uuid */
                         targetYearId: string;
+                        /** @description Bawa pilihan mapel setahun murid ke tahun tujuan bila kelas tujuan juga menandai mapel itu pilihan; bawaan true. Tanpa pilihan murid hasil penerapan tidak berubah */
+                        copySubjectChoices?: boolean;
                         /** @default false */
                         dryRun?: boolean;
                     };
@@ -12675,6 +12681,10 @@ export interface paths {
                             }[];
                             /** @description Siswa aktif tahun sumber yang belum punya keputusan */
                             skippedNoDecision: number;
+                            /** @description Pilihan mapel setahun yang dibawa ke tahun tujuan; absen bila tidak ada pilihan murid */
+                            choicesCopied?: number;
+                            /** @description Pilihan mapel yang tidak dibawa karena kelas tujuan tidak lagi menandai mapel itu pilihan; absen bila 0 */
+                            choicesDropped?: number;
                             /** @description Jumlah siswa lulus yang kelas asalnya belum punya rapor final pada semester terakhir tahun sumber. Lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah ditetapkan lulus; peringatan ini hanya mengingatkan bahwa rapornya belum final */
                             graduateReportNotFinal?: number;
                             /** @description Peringatan terstruktur (kode stabil + parameter): graduate_report_not_final */
@@ -21077,7 +21087,7 @@ export interface paths {
         };
         /**
          * Jam pelajaran yang belum terisi absensinya
-         * @description Izin: `attendance:read`; modul `attendance` harus aktif. Sel jadwal pada tanggal itu (tahun ajaran aktif) yang absensi per jamnya belum lengkap (`filled` kurang dari `total`), untuk dipantau guru piket. Pengurus (`attendance:configure`), kepala sekolah, kurikulum, dan guru piket hari itu melihat semua kelas; guru lain hanya jam miliknya. Hari libur/jeda dan hari Minggu menghasilkan daftar kosong.
+         * @description Izin: `attendance:read`; modul `attendance` harus aktif. Sel jadwal pada tanggal itu (tahun ajaran aktif) yang absensi per jamnya belum lengkap (`filled` kurang dari `total`), untuk dipantau guru piket. Pengurus (`attendance:configure`), kepala sekolah, kurikulum, dan guru piket hari itu melihat semua kelas; guru lain hanya jam miliknya. Hari libur/jeda dan hari Minggu menghasilkan daftar kosong. Untuk mapel pilihan, `total` hanya murid pengambil mapel itu (jam tanpa pengambil tidak pernah masuk daftar); `lane` dan `combinedKey` muncul hanya bila dipakai.
          */
         get: {
             parameters: {
@@ -21119,6 +21129,9 @@ export interface paths {
                                 endsAt: string;
                                 total: number;
                                 filled: number;
+                                lane?: number;
+                                /** Format: uuid */
+                                combinedKey?: string;
                             }[];
                         };
                     };
@@ -26490,7 +26503,7 @@ export interface paths {
         };
         /**
          * Jam pelajaran pada satu tanggal
-         * @description Izin: `attendance:read`; modul `attendance`. Sel jadwal pada hari itu di tahun ajaran aktif, dengan jumlah siswa yang sudah diabsen. Guru biasa melihat jam miliknya; pengurus dan guru piket (hari ini) melihat semua sehingga bisa menggantikan. `mine` menandai jam milik pengguna.
+         * @description Izin: `attendance:read`; modul `attendance`. Sel jadwal pada hari itu di tahun ajaran aktif, dengan jumlah siswa yang sudah diabsen. Guru biasa melihat jam miliknya; pengurus dan guru piket (hari ini) melihat semua sehingga bisa menggantikan. `mine` menandai jam milik pengguna. Untuk mapel yang berpenanda pilihan di rombelnya, `total` hanya menghitung murid yang mengambil mapel itu. `lane` (jalur paralel, hanya bila > 0) dan `combinedKey` (pertemuan gabungan) hanya muncul pada sel yang memakainya.
          */
         get: {
             parameters: {
@@ -26534,6 +26547,9 @@ export interface paths {
                                 mine: boolean;
                                 total: number;
                                 filled: number;
+                                lane?: number;
+                                /** Format: uuid */
+                                combinedKey?: string;
                             }[];
                         };
                     };
@@ -26585,7 +26601,7 @@ export interface paths {
         };
         /**
          * Lembar absensi satu jam pelajaran
-         * @description Izin: `attendance:read`; modul `attendance`. Siswa kelas itu dengan status jam ini dan status gerbang (`gate`, null bila belum tap), sehingga yang hadir di gerbang tetapi tidak di kelas terlihat. `canRecord` menyatakan apakah pengguna boleh mengisi; `substitute` bila pengisiannya menggantikan guru jadwal.
+         * @description Izin: `attendance:read`; modul `attendance`. Siswa kelas itu dengan status jam ini dan status gerbang (`gate`, null bila belum tap), sehingga yang hadir di gerbang tetapi tidak di kelas terlihat. Mapel yang berpenanda pilihan di rombelnya hanya memuat murid yang mengambilnya, dan menyimpan untuk non-pengambil ditolak 400 `invalid_reference`. `canRecord` menyatakan apakah pengguna boleh mengisi; `substitute` bila pengisiannya menggantikan guru jadwal.
          */
         get: {
             parameters: {
@@ -26712,6 +26728,258 @@ export interface paths {
                         "application/json": {
                             saved: number;
                             substitute: boolean;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/lesson-attendance/combined": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Lembar absensi satu pertemuan gabungan
+         * @description Izin: `attendance:read`; modul `attendance`. Pertemuan gabungan = sel jadwal berbeda rombel dengan `combinedKey` yang sama (guru, mapel, hari, jam, dan cakupan sama). Mengembalikan gabungan murid semua sel itu (tiap murid dengan `scheduleEntryId` selnya sendiri; mapel pilihan hanya memuat pengambilnya), status jam ini, dan status gerbang. `canRecord` dan `substitute` seperti pada absensi satu jam. Kunci tanpa sel: 404; tanggal bukan hari jadwal atau di luar cakupan semester sel: 400 `invalid_date`.
+         */
+        get: {
+            parameters: {
+                query: {
+                    combinedKey: string;
+                    date: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            date: string;
+                            canRecord: boolean;
+                            substitute: boolean;
+                            subjectName: string;
+                            teacherName: string;
+                            periodNumber: number;
+                            startsAt: string;
+                            endsAt: string;
+                            cells: {
+                                /** Format: uuid */
+                                scheduleEntryId: string;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                                total: number;
+                            }[];
+                            students: {
+                                /** Format: uuid */
+                                studentId: string;
+                                name: string;
+                                nis: string | null;
+                                /** Format: uuid */
+                                scheduleEntryId: string;
+                                /** Format: uuid */
+                                classId: string;
+                                className: string;
+                                /** @enum {string|null} */
+                                status: "present" | "excused" | "sick" | "absent" | null;
+                                note: string | null;
+                                /** @enum {string|null} */
+                                gate: "present" | "late" | "excused" | "sick" | "absent" | null;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Simpan absensi satu pertemuan gabungan
+         * @description Izin: `attendance:read` ditambah salah satu: guru jadwal itu, guru piket hari ini (menggantikan, ditandai `substitute`), atau `attendance:configure`; selain itu 403 `not_your_lesson`. Tiap catatan ditulis ke sel jadwal rombel murid itu (skema `lesson_attendance` tidak berubah), sehingga laporan per kelas tetap benar. Murid yang bukan anggota sel bergabung atau tidak mengambil mapelnya: 400 `invalid_reference`. Aturan tanggal sama dengan absensi satu jam (409 `future_date`, 400 `invalid_date`, 409 `school_closed`); rapor final salah satu murid pada semester tanggal itu: 409 `report_final`. Semua atau tidak sama sekali (satu transaksi).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        combinedKey: string;
+                        /** Format: date */
+                        date: string;
+                        records: {
+                            /** Format: uuid */
+                            studentId: string;
+                            /** @enum {string} */
+                            status: "present" | "excused" | "sick" | "absent";
+                            /** @default null */
+                            note?: string | null;
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            saved: number;
+                            substitute: boolean;
+                            /** @description Jumlah sel (rombel) yang menerima catatan */
+                            cells: number;
                         };
                     };
                 };

@@ -202,6 +202,24 @@ export function ApplyStep({
               value={result.data.alreadyEnrolled.length}
               hint={t('resAlreadyHint')}
             />
+            {result.data.choicesCopied !== undefined && (
+              <StatCard
+                icon={CheckCircle2}
+                tone="teal"
+                label={t('resChoicesCopied')}
+                value={result.data.choicesCopied}
+                hint={t('resChoicesCopiedHint')}
+              />
+            )}
+            {result.data.choicesDropped !== undefined && (
+              <StatCard
+                icon={UserX}
+                tone="amber"
+                label={t('resChoicesDropped')}
+                value={result.data.choicesDropped}
+                hint={t('resChoicesDroppedHint')}
+              />
+            )}
             <StatCard
               icon={UserX}
               tone="slate"

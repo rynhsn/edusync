@@ -181,6 +181,25 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   `schedule_entry` (berdefault aman, tanpa backfill) dan penggantian indeks unik jadwal: indeks slot kelas kini menyertakan `lane`,
   indeks slot guru dibatasi pada sel tanpa kunci gabungan (indeks baru dibuat sebelum yang lama dihapus; keunikan lama terjaga
   persis karena semua baris lama berjalur 0 dan tanpa kunci).
+- **Absensi per jam untuk mapel pilihan dan pertemuan gabungan** (tahap 3B.4). Lembar absensi satu jam (`GET` dan `PUT
+  /v1/lesson-attendance`) untuk mapel yang berpenanda pilihan di rombelnya kini hanya memuat murid yang mengambil mapel itu pada
+  semester tanggal tersebut; menyimpan untuk murid yang tidak mengambil ditolak 400 `invalid_reference`. Mapel tanpa penanda
+  persis seperti sebelumnya. Endpoint baru `GET` dan `PUT /v1/lesson-attendance/combined` (izin `attendance:read` ditambah guru
+  jadwal, guru piket, atau `attendance:configure`, sama dengan absensi satu jam): lembar satu pertemuan gabungan menggabungkan murid
+  semua sel ber-`combinedKey` sama, dan satu kali simpan menulis baris `lesson_attendance` ke sel rombel masing-masing murid (skema
+  tidak berubah; semua atau tidak sama sekali). Rapor final salah satu murid pada semester tanggal itu menolak 409 `report_final`
+  (pada absensi satu jam tetap tanpa penjaga ini seperti sebelumnya). `GET /v1/lessons` dan `GET /v1/attendance/report/lessons-unfilled`
+  menghitung `total` dari murid pengambil untuk mapel pilihan dan memuat `lane` serta `combinedKey` hanya bila dipakai (sparse); jam
+  tanpa satu pun pengambil tidak pernah dianggap belum diisi, juga pada hitungan `lessons.unfilled` di dasbor. Kartu jam di halaman
+  Absensi per jam berlabel Gabungan atau Jalur, dengan tombol Isi bersama dan lembar yang dikelompokkan per rombel (id, en, su;
+  bantuan di artikel Pilihan mata pelajaran).
+- **Pilihan mapel ikut tahun ajaran baru.** `POST /v1/academic-years/:id/rollover` menyalin penanda mapel pilihan rombel ke kelas hasil
+  salinan (`copySubjectChoices`, bawaan true; kelas tujuan yang sudah punya penanda tidak diubah; `participationCopied`, hanya
+  bila ada). `POST /v1/academic-years/:id/promotions/apply` membawa pilihan mapel setahun murid yang ditempatkan (`promote` dan `retain`)
+  ke tahun tujuan bila kelas tujuannya juga menandai mapel itu pilihan (`copySubjectChoices`, bawaan true): hasil memuat
+  `choicesCopied` dan `choicesDropped` (mapel yang tak lagi berpenanda di kelas tujuan), keduanya hanya bila murid punya pilihan.
+  Pilihan per semester tidak dibawa, pilihan yang sudah ada di tahun tujuan tidak ditimpa, dan penempatan murid tidak memperhitungkan
+  pilihan. Sekolah tanpa mapel pilihan mendapat respons yang sama persis seperti sebelumnya. Tanpa migrasi baru.
 
 ### Diubah
 
@@ -226,6 +245,10 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   sel per guru per slot) tidak ada lagi: bila versi lama dipasang ulang dengan `drizzle` dan masih ada baris berjalur lebih dari 0 atau
   ber-kunci, pembuatan indeks lama gagal sampai baris itu dikosongkan. Sekolah yang tidak memakai jalur paralel atau kelas gabungan
   tidak terpengaruh.
+- Absensi gabungan dan pilihan mapel pada rollover (tahap 3B.4): tanpa migrasi, jadi tidak ada yang tertinggal di database selain
+  baris yang sudah ditulis (penanda mapel pilihan dan pilihan murid di tahun tujuan, absensi per sel). Setelah kembali ke versi
+  sebelumnya, lembar absensi satu jam memuat seluruh murid rombel lagi (termasuk yang tidak mengambil mapelnya) dan jumlah
+  `total` kembali menghitung seluruh rombel; absensi yang sudah tercatat tetap utuh.
 - Kelulusan (tahap 3C.4): tabel `graduation_policy`, `school_exam`, `school_exam_score`, dan `graduation_decision` serta izin
   `graduation:read` dan `graduation:manage` dibiarkan di database dan tampil lagi setelah maju. Setelah kembali ke versi
   sebelumnya, halaman dan endpoint kelulusan tidak ada dan keputusan `graduate` di wizard kenaikan kembali bebas dipilih (penjaga

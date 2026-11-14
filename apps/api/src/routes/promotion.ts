@@ -43,6 +43,7 @@ import { finalResultsOf, loadPolicy } from '../graduation-lib';
 import { errorSchema, HttpError } from '../http-error';
 import { requirePermission, type TenantContext } from '../identity/guards';
 import { assertClassYearNotClosed } from '../report-lock-lib';
+import { carryChoices, copyParticipationMarks } from '../subject-choice-carry-lib';
 import { copyCurriculumStructure } from './curriculum-structure';
 import { audit, conflictAs409, guarded, idParams, schoolHeader } from './helpers';
 import { copyTeachingPlans } from './teaching-plan';
@@ -214,6 +215,12 @@ const rolloverBody = z.object({
     .describe(
       'Salin kelas tingkat akhir (nama sama) bila ada murid yang diputuskan tinggal kelas di kelas itu, agar mereka punya kelas tujuan; bawaan true. Tanpa keputusan tinggal kelas di tingkat akhir, hasil salinan tidak berubah',
     ),
+  copySubjectChoices: z
+    .boolean()
+    .optional()
+    .describe(
+      'Salin penanda mapel pilihan rombel (partisipasi) ke kelas hasil salinan; kelas tujuan yang sudah punya penanda tidak diubah. Bawaan true; tanpa mapel pilihan hasil salinan tidak berubah',
+    ),
   dryRun: z.boolean().default(false),
 });
 
@@ -225,6 +232,11 @@ const rolloverResponse = z.object({
   allocationsCreated: z.number().int().optional(),
   versionsCreated: z.number().int().optional(),
   flowsCreated: z.number().int().optional(),
+  participationCopied: z
+    .number()
+    .int()
+    .optional()
+    .describe('Penanda mapel pilihan yang disalin ke kelas hasil salinan; absen bila tidak ada'),
   warnings: z.array(z.string()),
   warningItems: z
     .array(z.object({ code: z.string(), params: z.record(z.string(), z.union([z.string(), z.number()])) }))
@@ -234,7 +246,16 @@ const rolloverResponse = z.object({
     ),
 });
 
-const applyBody = z.object({ targetYearId: z.uuid(), dryRun: z.boolean().default(false) });
+const applyBody = z.object({
+  targetYearId: z.uuid(),
+  copySubjectChoices: z
+    .boolean()
+    .optional()
+    .describe(
+      'Bawa pilihan mapel setahun murid ke tahun tujuan bila kelas tujuan juga menandai mapel itu pilihan; bawaan true. Tanpa pilihan murid hasil penerapan tidak berubah',
+    ),
+  dryRun: z.boolean().default(false),
+});
 
 const applyResponse = z.object({
   placed: z.number().int().describe('Siswa naik kelas yang ditempatkan di kelas tahun tujuan'),
@@ -257,6 +278,18 @@ const applyResponse = z.object({
     .array(z.object({ studentId: z.uuid(), classId: z.uuid() }))
     .describe('Sudah punya enrollment di tahun tujuan: dilewati, keputusannya tetap menunggu'),
   skippedNoDecision: z.number().int().describe('Siswa aktif tahun sumber yang belum punya keputusan'),
+  choicesCopied: z
+    .number()
+    .int()
+    .optional()
+    .describe('Pilihan mapel setahun yang dibawa ke tahun tujuan; absen bila tidak ada pilihan murid'),
+  choicesDropped: z
+    .number()
+    .int()
+    .optional()
+    .describe(
+      'Pilihan mapel yang tidak dibawa karena kelas tujuan tidak lagi menandai mapel itu pilihan; absen bila 0',
+    ),
   graduateReportNotFinal: z
     .number()
     .int()
@@ -337,6 +370,7 @@ async function runRollover(
     allocationsCreated: 0,
     versionsCreated: 0,
     flowsCreated: 0,
+    participationCopied: undefined as number | undefined,
     warnings,
     warningItems,
   };
@@ -591,6 +625,17 @@ async function runRollover(
     }
   }
 
+  // 3b. Penanda mapel pilihan rombel ikut ke kelas hasil salinan (kelas tujuan yang sudah punya penanda tidak disentuh).
+  if ((body.copySubjectChoices ?? true) && (body.copyClasses || body.copyAssignments) && copies.size > 0) {
+    const copied = await copyParticipationMarks(tx, {
+      schoolId: ctx.schoolId,
+      actorId: ctx.userId,
+      targets: copies,
+      write,
+    });
+    if (copied > 0) out.participationCopied = copied;
+  }
+
   // 4. Kalender: tanggal digeser selisih tahun mulai; cakupan kelas dipetakan ke kelas baru atau dilewati.
   if (body.copyCalendar ?? false) {
     const events = await tx.select().from(calendarEvent).where(eq(calendarEvent.academicYearId, source.id));
@@ -687,6 +732,7 @@ async function runRollover(
       allocationsCreated: out.allocationsCreated,
       versionsCreated: out.versionsCreated,
       flowsCreated: out.flowsCreated,
+      participationCopied: out.participationCopied,
     });
   }
   return out;
@@ -769,6 +815,8 @@ async function runApply(
     alreadyEnrolled: [] as { studentId: string; classId: string }[],
     skippedNoDecision: 0,
     graduateReportNotFinal: 0,
+    choicesCopied: undefined as number | undefined,
+    choicesDropped: undefined as number | undefined,
     warningItems: [] as { code: string; params: Record<string, string | number> }[],
   };
   /** Penempatan yang direncanakan; hanya yang benar-benar menghasilkan enrollment yang ditandai diterapkan. */
@@ -964,6 +1012,24 @@ async function runApply(
     }
   }
 
+  const carryBase = {
+    schoolId: ctx.schoolId,
+    actorId: ctx.userId,
+    sourceYearId: source.id,
+    targetYearId: target.id,
+  };
+  if (!write && (body.copySubjectChoices ?? true)) {
+    const carried = await carryChoices(tx, {
+      ...carryBase,
+      placements: pending.map((p) => ({ studentId: p.row.studentId, classId: p.row.classId })),
+      write: false,
+    });
+    if (carried) {
+      out.choicesCopied = carried.copied;
+      if (carried.dropped > 0) out.choicesDropped = carried.dropped;
+    }
+  }
+
   if (write) {
     const inserted = pending.length
       ? await tx
@@ -999,6 +1065,20 @@ async function runApply(
         });
         if (p.decision === 'promote') out.placed--;
         else out.retained--;
+      }
+    }
+    // Pilihan mapel setahun ikut ke rombel tujuan hanya untuk murid yang benar-benar kita tempatkan.
+    if (body.copySubjectChoices ?? true) {
+      const carried = await carryChoices(tx, {
+        ...carryBase,
+        placements: pending
+          .filter((p) => enrolledNow.has(p.row.studentId))
+          .map((p) => ({ studentId: p.row.studentId, classId: p.row.classId })),
+        write: true,
+      });
+      if (carried) {
+        out.choicesCopied = carried.copied;
+        if (carried.dropped > 0) out.choicesDropped = carried.dropped;
       }
     }
     const candidateIds = [
@@ -1037,6 +1117,8 @@ async function runApply(
       graduated: out.graduated,
       unplaced: out.unplaced.length,
       alreadyEnrolled: out.alreadyEnrolled.length,
+      choicesCopied: out.choicesCopied,
+      choicesDropped: out.choicesDropped,
     });
   }
   return out;
@@ -1437,6 +1519,8 @@ export async function promotionRoutes(instance: FastifyInstance) {
           'Idempoten: kelas dicocokkan menurut nama, penugasan menurut (kelas, mapel), acara menurut (jenis, cakupan, judul, tanggal mulai), ' +
           'alokasi menurut (tingkat, jurusan, mapel), versi menurut tingkat, ATP menurut (mapel, nama, tingkat); ' +
           'yang sudah ada dilewati. Data tahun sumber tidak diubah. `dryRun` menghitung tanpa menulis. ' +
+          'Penanda mapel pilihan rombel (partisipasi) ikut disalin ke kelas hasil salinan (`copySubjectChoices`, bawaan true; ' +
+          'kelas tujuan yang sudah punya penanda tidak diubah; `participationCopied`, sparse); izinnya mengikuti bagian kelas. ' +
           '400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya. ' +
           '400 `levels_not_configured`: daftar tingkat sekolah kosong. Respons memuat `warnings` (teks) dan `warningItems` ' +
           '(kode stabil + parameter, sejajar dengan `warnings`: class_level_unknown, class_name_unmatched, class_name_conflict, ' +
@@ -1481,7 +1565,10 @@ export async function promotionRoutes(instance: FastifyInstance) {
           '`graduateReportNotFinal` dan `warningItems` (`graduate_report_not_final`) memberi tahu jumlah siswa lulus yang kelas asalnya belum punya rapor ' +
           'final pada semester terakhir tahun sumber (lulusan tetap tampil di rapor kelas tahun terakhirnya dan dapat difinalkan sesudah lulus). Penerapan untuk tahun sumber yang sama ' +
           'berjalan bergantian (kunci per tahun sumber), jadi dua penerapan ke tahun tujuan berbeda tidak menempatkan siswa ganda. ' +
-          '400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.',
+          'Pilihan mapel setahun murid yang ditempatkan (`promote` dan `retain`) dibawa ke tahun tujuan bila kelas tujuannya juga menandai ' +
+          'mapel itu pilihan (`copySubjectChoices`, bawaan true): `choicesCopied` dan `choicesDropped` (mapel yang tak lagi berpenanda di kelas tujuan), ' +
+          'keduanya sparse. Pilihan per semester tidak dibawa, pilihan yang sudah ada di tahun tujuan tidak ditimpa, dan penempatan murid ' +
+          'tidak memperhitungkan pilihan. 400 `invalid_target`: tahun tujuan sama dengan sumber atau tidak dimulai setelahnya.',
         headers: schoolHeader,
         params: idParams,
         body: applyBody,

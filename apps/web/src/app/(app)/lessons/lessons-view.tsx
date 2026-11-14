@@ -28,6 +28,68 @@ const ACTIVE_STYLE: Record<Status, string> = {
   absent: 'bg-red-600 text-white border-red-600 hover:bg-red-600/90',
 };
 
+interface MarkStudent {
+  studentId: string;
+  name: string;
+  nis: string | null;
+  gate: 'present' | 'late' | 'excused' | 'sick' | 'absent' | null;
+}
+
+/** Satu baris murid pada lembar absensi: nama, status gerbang, dan empat tombol status. Dipakai lembar satu jam dan gabungan. */
+function MarkRow({
+  s,
+  index,
+  mark,
+  canRecord,
+  onMark,
+}: {
+  s: MarkStudent;
+  index: number;
+  mark: Status | null | undefined;
+  canRecord: boolean;
+  onMark: (id: string, status: Status) => void;
+}) {
+  const t = useTranslations('gate');
+  const ta = useTranslations('attendance');
+  return (
+    <li
+      style={stagger(index)}
+      className={cn(
+        ENTER,
+        'grid gap-2 px-3 py-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-4 sm:px-4',
+      )}
+    >
+      <PersonCell name={s.name} sub={s.nis ? <span className="font-mono">{s.nis}</span> : undefined} />
+      <div className="flex items-center gap-2 sm:justify-end">
+        <span className="text-muted-foreground text-xs">{t('atGate')}</span>
+        {s.gate ? (
+          <ToneBadge tone={STATUS_TONE[s.gate] ?? 'slate'}>{t(`status_${s.gate}`)}</ToneBadge>
+        ) : (
+          <span className="text-muted-foreground text-xs">{t('noTap')}</span>
+        )}
+      </div>
+      <fieldset className="m-0 inline-flex gap-1 border-0 p-0 sm:justify-end">
+        <legend className="sr-only">{`${ta('status')} ${s.name}`}</legend>
+        {STATUSES.map((st) => (
+          <Button
+            key={st}
+            size="sm"
+            variant="outline"
+            disabled={!canRecord}
+            aria-pressed={mark === st}
+            title={ta(st)}
+            className={cn('min-w-9 flex-1 sm:flex-none', mark === st && ACTIVE_STYLE[st])}
+            onClick={() => onMark(s.studentId, st)}
+          >
+            <span className="sm:hidden">{ta(`short.${st}`)}</span>
+            <span className="hidden sm:inline">{ta(st)}</span>
+          </Button>
+        ))}
+      </fieldset>
+    </li>
+  );
+}
+
 function LessonSheet({ entryId, date, onClose }: { entryId: string; date: string; onClose: () => void }) {
   const t = useTranslations('gate');
   const ta = useTranslations('attendance');
@@ -121,46 +183,162 @@ function LessonSheet({ entryId, date, onClose }: { entryId: string; date: string
       )}
       <ul className="divide-y rounded-xl border">
         {students.map((s, i) => (
-          <li
+          <MarkRow
             key={s.studentId}
-            style={stagger(i)}
-            className={cn(
-              ENTER,
-              'grid gap-2 px-3 py-2.5 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center sm:gap-4 sm:px-4',
-            )}
-          >
-            <PersonCell name={s.name} sub={s.nis ? <span className="font-mono">{s.nis}</span> : undefined} />
-            <div className="flex items-center gap-2 sm:justify-end">
-              <span className="text-muted-foreground text-xs">{t('atGate')}</span>
-              {s.gate ? (
-                <ToneBadge tone={STATUS_TONE[s.gate as keyof typeof STATUS_TONE] ?? 'slate'}>
-                  {t(`status_${s.gate}`)}
-                </ToneBadge>
-              ) : (
-                <span className="text-muted-foreground text-xs">{t('noTap')}</span>
-              )}
-            </div>
-            <fieldset className="m-0 inline-flex gap-1 border-0 p-0 sm:justify-end">
-              <legend className="sr-only">{`${ta('status')} ${s.name}`}</legend>
-              {STATUSES.map((st) => (
-                <Button
-                  key={st}
-                  size="sm"
-                  variant="outline"
-                  disabled={!canRecord}
-                  aria-pressed={marks[s.studentId] === st}
-                  title={ta(st)}
-                  className={cn('min-w-9 flex-1 sm:flex-none', marks[s.studentId] === st && ACTIVE_STYLE[st])}
-                  onClick={() => set(s.studentId, st)}
-                >
-                  <span className="sm:hidden">{ta(`short.${st}`)}</span>
-                  <span className="hidden sm:inline">{ta(st)}</span>
-                </Button>
-              ))}
-            </fieldset>
-          </li>
+            s={s}
+            index={i}
+            mark={marks[s.studentId]}
+            canRecord={canRecord}
+            onMark={set}
+          />
         ))}
       </ul>
+      {dirty && <p className="text-muted-foreground text-sm">{ta('unsaved')}</p>}
+    </section>
+  );
+}
+
+/** Lembar absensi satu pertemuan gabungan: murid semua rombel yang bergabung, ditulis ke sel rombel masing-masing. */
+function CombinedSheet({
+  combinedKey,
+  date,
+  onClose,
+}: {
+  combinedKey: string;
+  date: string;
+  onClose: () => void;
+}) {
+  const t = useTranslations('gate');
+  const ta = useTranslations('attendance');
+  const te = useTranslations();
+  const { school } = useSchool();
+  const queryClient = useQueryClient();
+  const header = { header: schoolHeader(school.schoolId) };
+  const [marks, setMarks] = useState<Record<string, Status | null>>({});
+  const [dirty, setDirty] = useState(false);
+
+  const sheet = useQuery({
+    queryKey: ['lesson-combined-sheet', school.schoolId, combinedKey, date],
+    queryFn: async () =>
+      unwrap(
+        await api.GET('/v1/lesson-attendance/combined', {
+          params: { ...header, query: { combinedKey, date } },
+        }),
+      ),
+  });
+  useEffect(() => {
+    if (!sheet.data) return;
+    setMarks(Object.fromEntries(sheet.data.students.map((s) => [s.studentId, s.status])));
+    setDirty(false);
+  }, [sheet.data]);
+
+  const save = useMutation({
+    mutationFn: async () => {
+      const records = Object.entries(marks)
+        .filter((entry): entry is [string, Status] => entry[1] !== null)
+        .map(([studentId, status]) => ({ studentId, status, note: null }));
+      return unwrap(
+        await api.PUT('/v1/lesson-attendance/combined', {
+          params: header,
+          body: { combinedKey, date, records },
+        }),
+      );
+    },
+    onSuccess: (r) => {
+      toast.success(
+        r.substitute ? t('savedSubstitute', { count: r.saved }) : ta('saved', { count: r.saved }),
+      );
+      setDirty(false);
+      queryClient.invalidateQueries({ queryKey: ['lessons', school.schoolId] });
+      queryClient.invalidateQueries({ queryKey: ['lesson-sheet', school.schoolId] });
+      queryClient.invalidateQueries({ queryKey: ['lesson-combined-sheet', school.schoolId] });
+    },
+    onError: (e) => toast.error(te(errorKey(e))),
+  });
+
+  if (sheet.isPending) return <Skeleton className="h-48 w-full" />;
+  if (!sheet.data) return null;
+  const { students, cells, canRecord, substitute } = sheet.data;
+  const filled = Object.values(marks).filter((m) => m !== null).length;
+  const set = (id: string, status: Status) => {
+    setMarks((m) => ({ ...m, [id]: status }));
+    setDirty(true);
+  };
+
+  return (
+    <section className={cn(ENTER, 'bg-card grid gap-4 rounded-2xl border p-4 sm:p-5')}>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Button size="sm" variant="ghost" onClick={onClose}>
+            ← {t('back')}
+          </Button>
+          <ToneBadge tone="violet">{t('combinedBadge')}</ToneBadge>
+          {substitute && canRecord && <ToneBadge tone="amber">{t('substituteBadge')}</ToneBadge>}
+          <span className="text-muted-foreground text-xs tabular-nums">
+            {t('markedCount', { filled, total: students.length })}
+          </span>
+        </div>
+        {canRecord && (
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setMarks(Object.fromEntries(students.map((s) => [s.studentId, 'present' as Status])));
+                setDirty(true);
+              }}
+            >
+              <CheckCheck className="size-4" /> {ta('allPresent')}
+            </Button>
+            <Button disabled={!dirty || filled === 0 || save.isPending} onClick={() => save.mutate()}>
+              {ta('save')}
+            </Button>
+          </div>
+        )}
+      </div>
+      <div>
+        <p className="font-medium">
+          {sheet.data.subjectName} · {t('period', { n: sheet.data.periodNumber })}
+        </p>
+        <p className="text-muted-foreground text-sm">
+          {cells.map((c) => c.className).join(', ')} · {sheet.data.teacherName}
+        </p>
+      </div>
+      {!canRecord && (
+        <Alert>
+          <AlertDescription>{t('notYourLesson')}</AlertDescription>
+        </Alert>
+      )}
+      {cells.map((cell) => {
+        const rows = students.filter((s) => s.scheduleEntryId === cell.scheduleEntryId);
+        return (
+          <div key={cell.scheduleEntryId} className="grid gap-2">
+            <h3 className="text-sm font-semibold">
+              {cell.className}{' '}
+              <span className="text-muted-foreground font-normal tabular-nums">
+                {t('combinedClassCount', { count: rows.length })}
+              </span>
+            </h3>
+            {rows.length === 0 ? (
+              <p className="text-muted-foreground rounded-xl border border-dashed p-3 text-sm">
+                {t('combinedNoStudents')}
+              </p>
+            ) : (
+              <ul className="divide-y rounded-xl border">
+                {rows.map((s, i) => (
+                  <MarkRow
+                    key={s.studentId}
+                    s={s}
+                    index={i}
+                    mark={marks[s.studentId]}
+                    canRecord={canRecord}
+                    onMark={set}
+                  />
+                ))}
+              </ul>
+            )}
+          </div>
+        );
+      })}
       {dirty && <p className="text-muted-foreground text-sm">{ta('unsaved')}</p>}
     </section>
   );
@@ -173,6 +351,7 @@ export function LessonsView() {
   const header = { header: schoolHeader(school.schoolId) };
   const [date, setDate] = useState(todayIso());
   const [open, setOpen] = useState<string | null>(null);
+  const [openCombined, setOpenCombined] = useState<string | null>(null);
 
   const lessons = useQuery({
     queryKey: ['lessons', school.schoolId, date],
@@ -200,6 +379,7 @@ export function LessonsView() {
                 if (v) {
                   setDate(v);
                   setOpen(null);
+                  setOpenCombined(null);
                 }
               }}
             />
@@ -226,7 +406,7 @@ export function LessonsView() {
         </Alert>
       )}
 
-      {lessons.data && items.length > 0 && !open && (
+      {lessons.data && items.length > 0 && !open && !openCombined && (
         <StatGrid className={ENTER}>
           <StatCard
             label={t('lessonsTotal')}
@@ -259,7 +439,9 @@ export function LessonsView() {
           body={t('noLessons')}
         />
       )}
-      {open ? (
+      {openCombined ? (
+        <CombinedSheet combinedKey={openCombined} date={date} onClose={() => setOpenCombined(null)} />
+      ) : open ? (
         <LessonSheet entryId={open} date={date} onClose={() => setOpen(null)} />
       ) : (
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
@@ -295,6 +477,14 @@ export function LessonsView() {
                   </div>
                   {l.mine && <ToneBadge tone="violet">{t('mine')}</ToneBadge>}
                 </div>
+                {(l.combinedKey || l.lane !== undefined) && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    {l.combinedKey && <ToneBadge tone="violet">{t('combinedBadge')}</ToneBadge>}
+                    {l.lane !== undefined && (
+                      <ToneBadge tone="slate">{t('laneBadge', { n: l.lane + 1 })}</ToneBadge>
+                    )}
+                  </div>
+                )}
                 <div className="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-sm">
                   <span className="inline-flex items-center gap-1 tabular-nums">
                     <Clock aria-hidden className="size-3.5" />
@@ -322,8 +512,11 @@ export function LessonsView() {
                     {t('filled', { filled: l.filled, total: l.total })}
                   </p>
                 </div>
-                <Button variant={done ? 'outline' : 'default'} onClick={() => setOpen(l.id)}>
-                  {l.mine ? t('fill') : t('cover')}
+                <Button
+                  variant={done ? 'outline' : 'default'}
+                  onClick={() => (l.combinedKey ? setOpenCombined(l.combinedKey) : setOpen(l.id))}
+                >
+                  {l.combinedKey ? t('fillCombined') : l.mine ? t('fill') : t('cover')}
                 </Button>
               </article>
             );

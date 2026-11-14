@@ -27,6 +27,7 @@ import { closureOn, reportClassScope } from '../attendance-lib';
 import { isOnDuty, weekdayOf } from '../gate';
 import { errorSchema, forbidden, HttpError } from '../http-error';
 import { requireModule, requirePermission, type TenantContext } from '../identity/guards';
+import { lessonTakerCounts } from '../lesson-roster-lib';
 import { scheduleAppliesOn } from '../schedule-lib';
 import { guarded, schoolHeader } from './helpers';
 
@@ -319,7 +320,8 @@ export async function attendanceReportRoutes(instance: FastifyInstance) {
           'Izin: `attendance:read`; modul `attendance` harus aktif. Sel jadwal pada tanggal itu (tahun ajaran aktif) ' +
           'yang absensi per jamnya belum lengkap (`filled` kurang dari `total`), untuk dipantau guru piket. ' +
           'Pengurus (`attendance:configure`), kepala sekolah, kurikulum, dan guru piket hari itu melihat semua kelas; ' +
-          'guru lain hanya jam miliknya. Hari libur/jeda dan hari Minggu menghasilkan daftar kosong.',
+          'guru lain hanya jam miliknya. Hari libur/jeda dan hari Minggu menghasilkan daftar kosong. Untuk mapel pilihan, `total` hanya ' +
+          'murid pengambil mapel itu (jam tanpa pengambil tidak pernah masuk daftar); `lane` dan `combinedKey` muncul hanya bila dipakai.',
         headers: schoolHeader,
         querystring: z.object({ date: dateField }),
         response: {
@@ -338,6 +340,8 @@ export async function attendanceReportRoutes(instance: FastifyInstance) {
                 endsAt: z.string(),
                 total: z.number().int(),
                 filled: z.number().int(),
+                lane: z.number().int().optional(),
+                combinedKey: z.uuid().optional(),
               }),
             ),
           }),
@@ -366,12 +370,17 @@ export async function attendanceReportRoutes(instance: FastifyInstance) {
             id: scheduleEntry.id,
             classId: scheduleEntry.classId,
             className: classRoom.name,
+            subjectId: scheduleEntry.subjectId,
             subjectName: subject.name,
             teacherId: scheduleEntry.teacherId,
             teacherName: teacher.name,
             periodNumber: lessonPeriod.number,
             startsAt: lessonPeriod.startsAt,
             endsAt: lessonPeriod.endsAt,
+            semesterId: scheduleEntry.semesterId,
+            academicYearId: scheduleEntry.academicYearId,
+            lane: scheduleEntry.lane,
+            combinedKey: scheduleEntry.combinedKey,
           })
           .from(scheduleEntry)
           .innerJoin(
@@ -413,12 +422,26 @@ export async function attendanceReportRoutes(instance: FastifyInstance) {
             ),
           )
           .groupBy(enrollment.classId);
+        // Mapel pilihan: total = murid yang mengambil mapel itu (tanpa mapel berpenanda, peta kosong = hitungan lama).
+        const takerTotals = await lessonTakerCounts(tx, visible, date);
         const lessons = visible
-          .map(({ teacherId: _teacherId, ...r }) => ({
-            ...r,
-            total: totals.find((t) => t.id === r.classId)?.n ?? 0,
-            filled: filled.find((f) => f.id === r.id)?.n ?? 0,
-          }))
+          .map(
+            ({
+              teacherId: _teacherId,
+              subjectId: _subjectId,
+              semesterId: _semesterId,
+              academicYearId: _yearId,
+              lane,
+              combinedKey,
+              ...r
+            }) => ({
+              ...r,
+              total: takerTotals.get(r.id) ?? totals.find((t) => t.id === r.classId)?.n ?? 0,
+              filled: filled.find((f) => f.id === r.id)?.n ?? 0,
+              ...(lane > 0 ? { lane } : {}),
+              ...(combinedKey ? { combinedKey } : {}),
+            }),
+          )
           .filter((l) => l.total > 0 && l.filled < l.total);
         return { ...base, lessons };
       });

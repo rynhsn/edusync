@@ -2441,6 +2441,26 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Menimpa pilihan yang terkunci sebaiknya hanya untuk koreksi yang memang perlu, karena tercatat atas nama Anda.',
           },
           {
+            heading: 'Absensi per jam untuk mapel pilihan dan kelas gabungan',
+            body: 'Di Absensi per jam, lembar sebuah jam untuk mapel pilihan hanya memuat murid yang mengambil mapel itu, dan jumlah "terisi" di kartu jam dihitung dari murid-murid itu saja. Jam yang tidak punya satu pun murid pengambil tidak pernah dianggap belum diisi di dasbor maupun di laporan jam belum diisi. Untuk pertemuan gabungan (beberapa kelas belajar bersama satu guru), kartu jamnya berlabel Gabungan dan tombolnya menjadi Isi bersama: lembarnya menampilkan murid semua kelas yang bergabung, dikelompokkan per kelas, dan satu kali simpan menuliskan absensi ke jam kelas masing-masing sehingga laporan per kelas tetap benar.',
+            steps: [
+              'Buka Absensi per jam dan pilih tanggalnya.',
+              'Untuk pertemuan gabungan, klik Isi bersama pada salah satu kartu berlabel Gabungan.',
+              'Tandai status tiap murid lalu klik Simpan.',
+            ],
+            href: '/lessons',
+            tip: 'Sekolah yang tidak memakai mapel pilihan atau kelas gabungan tidak melihat perubahan: satu jam tetap berisi seluruh murid kelasnya.',
+            warning:
+              'Absensi gabungan ditolak bila rapor salah satu murid pada semester itu sudah final. Buka kembali rapor kelasnya lebih dulu.',
+          },
+          {
+            heading: 'Pilihan mapel saat tahun ajaran baru',
+            body: 'Saat Salin tahun ajaran, tanda mapel pilihan tiap kelas ikut disalin ke kelas hasil salinan (kelas tujuan yang sudah punya tanda tidak diubah). Saat Terapkan keputusan kenaikan, pilihan mapel setahun murid yang naik atau tinggal kelas dibawa ke tahun tujuan bila kelas tujuannya juga menandai mapel itu sebagai pilihan; hasilnya menampilkan jumlah pilihan yang dibawa dan yang tidak dibawa. Pilihan per semester tidak dibawa, dan penempatan murid ke kelas tujuan tidak memperhitungkan pilihan: pilih kelas tujuan sendiri bila kelas dibentuk per paket pilihan.',
+            href: '/promotion',
+            tip: 'Murid kelas X belum punya pilihan untuk dibawa; pilihan mereka diisi baru di kelas XI.',
+            warning: 'Pilihan yang tidak dibawa harus diisi ulang di tab Mapel dan peserta kelas tujuan.',
+          },
+          {
             heading: 'Jadwal paralel dan kelas gabungan',
             body: 'Mapel pilihan sering berjalan bersamaan: murid yang memilih Fisika belajar di satu ruang sementara yang memilih Kimia di ruang lain pada jam yang sama. Di halaman Jadwal pelajaran, buka sel kelas lalu klik Tambah jalur paralel untuk menaruh mapel pilihan lain di jam yang sama; tiap jalur punya guru pengampunya sendiri. Jalur paralel hanya bisa diisi mapel yang sudah ditandai sebagai pilihan di kelas itu, dan seorang guru tetap tidak bisa mengajar dua jalur pada jam yang sama. Bila satu guru mengajar mapel pilihan yang sama untuk beberapa kelas sekaligus (kelas gabungan), centang Pertemuan gabungan dengan kelas lain di sel itu lalu pilih kelas lain yang jamnya sama; guru tidak dianggap bentrok untuk pertemuan gabungan itu.',
             steps: [
@@ -2548,6 +2568,27 @@ export const ACADEMIC_DOCS: DocArticle[] = [
               'Overriding locked choices should be kept for corrections that are really needed, because it is recorded under your name.',
           },
           {
+            heading: 'Per-period attendance for electives and combined classes',
+            body: 'In Lesson attendance, the sheet of a period for an elective subject only lists the students who take that subject, and the "filled" count on the period card is counted from those students only. A period with no student taking the subject is never counted as unfilled on the dashboard or in the unfilled-periods report. For a combined meeting (several classes learning together with one teacher), the period card is labelled Combined and its button becomes Fill together: the sheet shows the students of all joined classes grouped by class, and one save writes the attendance into each class\'s own period so per-class reports stay correct.',
+            steps: [
+              'Open Lesson attendance and pick the date.',
+              'For a combined meeting, click Fill together on one of the cards labelled Combined.',
+              "Mark each student's status, then click Save.",
+            ],
+            href: '/lessons',
+            tip: 'Schools that do not use electives or combined classes see no change: a period still holds the whole class.',
+            warning:
+              "Combined attendance is refused when any student's report card for that semester is final. Reopen the class report card first.",
+          },
+          {
+            heading: 'Elective choices in a new school year',
+            body: "When you Copy the school year, each class's elective-subject marks go with the copied classes (target classes that already have marks are left unchanged). When you Apply promotion decisions, a student's year-long elective choices are carried to the target year for students who move up or repeat, if the target class also marks that subject as an elective; the result shows how many choices were carried and how many were not. Per-semester choices are not carried, and placing students in target classes does not take choices into account: choose the target class yourself when classes are formed per choice package.",
+            href: '/promotion',
+            tip: 'Grade X students have no choices to carry yet; their choices are filled in fresh in grade XI.',
+            warning:
+              'Choices that were not carried must be entered again in the target class Subjects and participants tab.',
+          },
+          {
             heading: 'Parallel schedule and combined classes',
             body: 'Elective subjects often run at the same time: students who chose Physics study in one room while those who chose Chemistry study in another during the same period. On the Lesson schedule page, open a class cell and click Add parallel lane to put another elective subject in the same period; each lane has its own teacher. A parallel lane can only hold subjects already marked as electives in that class, and one teacher still cannot teach two lanes in the same period. When one teacher teaches the same elective for several classes at once (a combined class), tick Combined meeting with other classes in that cell and pick the other class with the same period; the teacher is not treated as double-booked for that combined meeting.',
             steps: [
@@ -2653,6 +2694,26 @@ export const ACADEMIC_DOCS: DocArticle[] = [
             body: 'Aturan bisa nangtukeun hiji semester salaku wates: sanggeus semester éta dimimitian, pilihan teu bisa dirobah deui. Ngan anu boga idin ngurus kurikulum anu tetep tiasa ngarobahna, sanggeus ngonfirmasi, jeung parobahanana dicatet. Pilihan ogé teu bisa dirobah upami rapor semester anu patali geus difinalkeun; buka deui heula raporna.',
             warning:
               'Nimpa pilihan anu dikonci sakuduna ngan pikeun koréksi anu bener-bener perlu, sabab dicatet atas ngaran Anjeun.',
+          },
+          {
+            heading: 'Absensi per jam pikeun mapel pilihan jeung kelas gabungan',
+            body: 'Di Absensi per jam, lembar hiji jam pikeun mapel pilihan ngan ngandung murid anu nyokot mapel éta, sarta itungan "kaeusi" dina kartu jam diitung ti murid-murid éta wungkul. Jam anu euweuh murid nyokotna teu kungsi dianggap can kaeusi di dasbor atawa dina laporan jam can kaeusi. Pikeun patepungan gabungan (sababaraha kelas diajar babarengan jeung hiji guru), kartu jamna dilabélan Gabungan sarta tombolna jadi Eusian babarengan: lembarna mintonkeun murid sakabéh kelas anu gabung, dikelompokkeun per kelas, sarta sakali simpen nuliskeun absensi kana jam kelas masing-masing supados laporan per kelas tetep bener.',
+            steps: [
+              'Buka Absensi per jam terus pilih tanggalna.',
+              'Pikeun patepungan gabungan, klik Eusian babarengan dina salah sahiji kartu anu dilabélan Gabungan.',
+              'Tandaan status unggal murid terus klik Simpen.',
+            ],
+            href: '/lessons',
+            tip: 'Sakola anu teu makéna mapel pilihan atawa kelas gabungan teu nempo parobahan: hiji jam tetep eusina sakabéh murid kelasna.',
+            warning:
+              'Absensi gabungan ditolak upami rapor salah saurang murid dina semester éta geus final. Buka deui rapor kelasna heula.',
+          },
+          {
+            heading: 'Pilihan mapel dina taun ajaran anyar',
+            body: 'Nalika Nyalin taun ajaran, tanda mapel pilihan unggal kelas milu disalin ka kelas hasil salinan (kelas tujuan anu geus boga tanda henteu dirobah). Nalika Nerapkeun kaputusan kanaékan, pilihan mapel sataun murid anu naék atawa lungguh kelas dibawa ka taun tujuan upami kelas tujuanna ogé nandaan mapel éta salaku pilihan; hasilna nunjukkeun sabaraha pilihan anu dibawa jeung anu henteu dibawa. Pilihan per semester henteu dibawa, sarta panempatan murid ka kelas tujuan teu merhatikeun pilihan: pilih kelas tujuan sorangan upami kelas dibentuk per pakét pilihan.',
+            href: '/promotion',
+            tip: 'Murid kelas X can boga pilihan pikeun dibawa; pilihanana diaranan anyar di kelas XI.',
+            warning: 'Pilihan anu henteu dibawa kudu diisi deui dina tab Mapel jeung pamilon kelas tujuan.',
           },
           {
             heading: 'Jadwal paralel jeung kelas gabungan',

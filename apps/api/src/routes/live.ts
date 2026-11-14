@@ -3,6 +3,7 @@ import {
   and,
   asc,
   classRoom,
+  classSubjectParticipation,
   count,
   dailyAttendance,
   desc,
@@ -33,6 +34,7 @@ import { z } from 'zod';
 import { closureOn } from '../attendance-lib';
 import { jakarta, weekdayOf } from '../gate';
 import { requireTenant, type TenantContext } from '../identity/guards';
+import { lessonTakerCounts } from '../lesson-roster-lib';
 import { type PeriodSlot, periodState, startOfJakartaDay } from '../live-lib';
 import { scheduleAppliesOn } from '../schedule-lib';
 import { guarded, schoolHeader } from './helpers';
@@ -224,6 +226,12 @@ export async function liveRoutes(instance: FastifyInstance) {
                 .orderBy(asc(lessonPeriod.number), asc(classRoom.name))
                 .limit(MAX_RUNNING)
             : [];
+          const unfilledWhere = and(
+            eq(scheduleEntry.weekday, weekday),
+            scheduleAppliesOn(date),
+            lte(lessonPeriod.startsAt, time),
+            sql`not exists (select 1 from lesson_attendance la where la.schedule_entry_id = ${scheduleEntry.id} and la.date = ${date}::date)`,
+          );
           const [unfilled] = teaching
             ? await tx
                 .select({ n: count() })
@@ -233,20 +241,40 @@ export async function liveRoutes(instance: FastifyInstance) {
                   and(eq(academicYear.id, scheduleEntry.academicYearId), eq(academicYear.isActive, true)),
                 )
                 .innerJoin(lessonPeriod, eq(lessonPeriod.id, scheduleEntry.periodId))
-                .where(
-                  and(
-                    eq(scheduleEntry.weekday, weekday),
-                    scheduleAppliesOn(date),
-                    lte(lessonPeriod.startsAt, time),
-                    sql`not exists (select 1 from lesson_attendance la where la.schedule_entry_id = ${scheduleEntry.id} and la.date = ${date}::date)`,
-                  ),
-                )
+                .where(unfilledWhere)
             : [{ n: 0 }];
+          let unfilledCount = unfilled?.n ?? 0;
+          // Mapel pilihan: sel yang tak punya satu pun murid pengambil tidak pernah bisa terisi, jadi tidak dihitung belum diisi.
+          if (teaching && unfilledCount > 0) {
+            const [marked] = await tx
+              .select({ id: classSubjectParticipation.id })
+              .from(classSubjectParticipation)
+              .limit(1);
+            if (marked) {
+              const cells = await tx
+                .select({
+                  id: scheduleEntry.id,
+                  classId: scheduleEntry.classId,
+                  subjectId: scheduleEntry.subjectId,
+                  semesterId: scheduleEntry.semesterId,
+                  academicYearId: scheduleEntry.academicYearId,
+                })
+                .from(scheduleEntry)
+                .innerJoin(
+                  academicYear,
+                  and(eq(academicYear.id, scheduleEntry.academicYearId), eq(academicYear.isActive, true)),
+                )
+                .innerJoin(lessonPeriod, eq(lessonPeriod.id, scheduleEntry.periodId))
+                .where(unfilledWhere);
+              const takers = await lessonTakerCounts(tx, cells, date);
+              unfilledCount = cells.filter((c) => takers.get(c.id) !== 0).length;
+            }
+          }
           lessons = {
             running,
             currentPeriod: state.currentPeriod,
             nextPeriodStartsAt: state.nextPeriodStartsAt,
-            unfilled: unfilled?.n ?? 0,
+            unfilled: unfilledCount,
           };
         }
 

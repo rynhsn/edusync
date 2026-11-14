@@ -230,6 +230,15 @@ export function RolloverStep({
                 />
               </>
             )}
+            {result.data.participationCopied !== undefined && (
+              <StatCard
+                icon={Copy}
+                tone="teal"
+                label={t('participationCopied')}
+                value={result.data.participationCopied}
+                hint={t('participationCopiedHint')}
+              />
+            )}
             {sent.copyTeachingPlans && (
               <StatCard
                 icon={Copy}
