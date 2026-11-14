@@ -633,6 +633,37 @@ describe('kebijakan peran bawaan', () => {
     }
   });
 
+  it('rute program kokurikuler (tahap 4.2) memasang cocurricular:read/manage dan modul grades', () => {
+    const find = (method: string, url: string) => eps.find((e) => e.method === method && e.url === url);
+    const reads = [
+      find('GET', '/v1/cocurricular/programs'),
+      find('GET', '/v1/cocurricular/programs/:id'),
+      find('GET', '/v1/cocurricular/periods-summary'),
+    ];
+    const writes = [
+      find('POST', '/v1/cocurricular/programs'),
+      find('PUT', '/v1/cocurricular/programs/:id'),
+      find('DELETE', '/v1/cocurricular/programs/:id'),
+      find('PUT', '/v1/cocurricular/programs/:id/classes'),
+      find('PUT', '/v1/cocurricular/programs/:id/targets'),
+      find('PUT', '/v1/cocurricular/programs/:id/facilitators'),
+    ];
+    for (const e of reads) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['cocurricular:read'], ['grades']]);
+      expect(e?.description).toContain('Izin: `cocurricular:read`');
+    }
+    for (const e of writes) {
+      expect([e?.perms, e?.modules], `${e?.method} ${e?.url}`).toEqual([['cocurricular:manage'], ['grades']]);
+      expect(e?.description).toContain('Izin: `cocurricular:manage`');
+    }
+    const readers = ['school_admin', 'principal', 'curriculum', 'operator', 'teacher'];
+    const writers = ['school_admin', 'curriculum'];
+    for (const r of roleKeys) {
+      for (const e of reads) expect(allows(r, e!), `${r} ${e?.url}`).toBe(readers.includes(r));
+      for (const e of writes) expect(allows(r, e!), `${r} ${e?.url}`).toBe(writers.includes(r));
+    }
+  });
+
   it('rute ekspor akademik (tahap 3C.5) memasang data_export:run tanpa modul di gerbang', () => {
     const e = eps.find((x) => x.method === 'GET' && x.url === '/v1/exports/academic');
     // Modul grades hanya diperiksa di handler untuk dataset nilai (400 dataset_requires_module), bukan di gerbang rute.

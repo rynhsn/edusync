@@ -3862,4 +3862,220 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'cocurricular-programs',
+    icon: 'layers',
+    tone: 'violet',
+    group: 'academic',
+    module: 'grades',
+    text: {
+      id: {
+        title: 'Program kokurikuler: bentuk, rombel, sasaran, dan fasilitator',
+        summary:
+          'Cara membuat program kokurikuler per tahun ajaran, memilih rombel dan butir sasaran profil, menunjuk koordinator dan fasilitator, serta membaca peringatan rencana JP.',
+        forWho:
+          'Admin sekolah dan Kurikulum yang membuat dan mengatur program; guru dan kepala sekolah dapat melihatnya (baca saja).',
+        sections: [
+          {
+            heading: 'Apa itu program kokurikuler',
+            body: 'Program adalah satu kegiatan penguatan profil lulusan pada satu tahun ajaran, misalnya proyek kolaboratif atau gerakan 7 Kebiasaan Anak Indonesia Hebat. Program mencatat bentuk, tema, uraian, rencana JP, semester (atau sepanjang tahun), status, dan apakah tampil di rapor. Program bukan mata pelajaran, jadi tidak memengaruhi nilai, peringkat, kenaikan kelas, maupun kelulusan. Penilaian dan bukti belum tersedia di tahap ini.',
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Membuat program',
+            body: 'Program dibuat pada tahun ajaran yang sedang dipilih di bagian atas halaman. Status awal adalah Draf; ubah menjadi Berjalan saat kegiatan dimulai dan Selesai untuk mengarsipkannya. Program Selesai tidak dihapus sehingga riwayatnya tetap ada.',
+            steps: [
+              'Buka Program kokurikuler dan pilih tahun ajaran.',
+              'Klik Program baru.',
+              'Isi judul (wajib), bentuk, semester, tema, uraian, dan rencana JP bila ada.',
+              'Klik Buat program; Anda dibawa ke halaman program untuk melengkapinya.',
+            ],
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Rombel, koordinator, dan fasilitator',
+            body: 'Di tab Rombel dan fasilitator, centang rombel pada tahun ajaran program lalu simpan. Setelah itu tambahkan guru: koordinator mencakup seluruh rombel program dan tidak memilih rombel; fasilitator wajib memilih satu rombel program. Guru yang sama tidak boleh dicatat dua kali untuk rombel yang sama. Rombel yang masih punya fasilitator tidak bisa dilepas; ubah fasilitatornya dulu.',
+            steps: [
+              'Buka program, tab Rombel dan fasilitator.',
+              'Centang rombel peserta, lalu Simpan.',
+              'Klik Tambah guru, pilih guru, peran, dan (untuk fasilitator) rombelnya.',
+              'Klik Simpan.',
+            ],
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Butir sasaran',
+            body: 'Tab Butir sasaran menampilkan butir kerangka profil milik sekolah (dari Pengaturan kokurikuler). Centang butir yang dituju program. Hanya butir aktif yang bisa dipilih baru; butir yang sudah menjadi sasaran tetap tersimpan walau kemudian dinonaktifkan. Bila daftar kosong, adopsi kerangka dulu di Pengaturan kokurikuler.',
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Peringatan rencana JP',
+            body: 'Jumlah rencana JP program dibandingkan dengan JP kokurikuler tahunan pada Kurikulum, per tingkat. Bila rencana melebihi alokasi, halaman daftar menampilkan pita peringatan kuning. Ini hanya peringatan: program tetap dapat disimpan, dan tanpa alokasi tidak ada peringatan.',
+            href: '/cocurricular',
+            tip: 'Isi JP kokurikuler tahunan di Kurikulum agar perbandingan ini muncul.',
+          },
+          {
+            heading: 'Siapa yang dapat melakukan apa',
+            body: 'Izin Melihat kokurikuler (admin sekolah, kepala sekolah, Kurikulum, operator, dan guru) membuka daftar dan detail dalam tampilan baca saja. Izin Mengelola kokurikuler (admin sekolah dan Kurikulum) diperlukan untuk membuat, mengubah, dan menghapus program, rombel, sasaran, dan fasilitator. Fitur ini memerlukan modul Nilai dan rapor.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Mengapa saya tidak melihat tombol Program baru?',
+            a: 'Akun Anda hanya punya izin melihat. Hubungi admin sekolah bila perlu mengelola program.',
+          },
+          {
+            q: 'Muncul pesan data yang dirujuk tidak ditemukan. Apa artinya?',
+            a: 'Rombel, semester, butir, atau guru yang dipilih tidak termasuk tahun ajaran atau sekolah program, atau butirnya nonaktif. Muat ulang halaman lalu pilih lagi.',
+          },
+          {
+            q: 'Muncul pesan data sudah ada saat menyimpan rombel atau fasilitator. Mengapa?',
+            a: 'Ada guru yang dicatat dua kali untuk rombel yang sama, atau Anda melepas rombel yang masih punya fasilitator. Perbaiki daftar fasilitator lalu simpan lagi.',
+          },
+          {
+            q: 'Bolehkah menghapus program?',
+            a: 'Boleh, beserta rombel, sasaran, dan fasilitatornya. Untuk menyimpan riwayat, ubah statusnya menjadi Selesai.',
+          },
+        ],
+      },
+      en: {
+        title: 'Cocurricular programs: form, classes, targets, and facilitators',
+        summary:
+          'How to create cocurricular programs per academic year, choose classes and profile target items, assign coordinators and facilitators, and read the planned-periods warning.',
+        forWho:
+          'School admins and Curriculum staff who create and manage programs; teachers and principals can view them (read only).',
+        sections: [
+          {
+            heading: 'What a cocurricular program is',
+            body: 'A program is one activity that strengthens the graduate profile in one academic year, for example a collaborative project or the 7 Habits of Great Indonesian Children movement. It records the form, theme, description, planned periods, semester (or the whole year), status, and whether it appears on the report card. A program is not a subject, so it does not affect grades, rankings, promotion, or graduation. Assessment and evidence are not available at this stage.',
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Creating a program',
+            body: 'A program is created in the academic year chosen at the top of the page. It starts as Draft; set it to Running when the activity begins and to Closed to archive it. A Closed program is not deleted, so its history stays.',
+            steps: [
+              'Open Cocurricular programs and choose the academic year.',
+              'Click New program.',
+              'Fill in the title (required), form, semester, theme, description, and planned periods if any.',
+              'Click Create program; you are taken to the program page to complete it.',
+            ],
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Classes, coordinators, and facilitators',
+            body: 'On the Classes and facilitators tab, tick the classes of the program’s academic year and save. Then add teachers: a coordinator covers all program classes and picks no class; a facilitator must pick one program class. The same teacher cannot be listed twice for the same class. A class that still has a facilitator cannot be removed; change the facilitator first.',
+            steps: [
+              'Open the program, Classes and facilitators tab.',
+              'Tick the participating classes, then Save.',
+              'Click Add teacher, then choose the teacher, the role, and (for a facilitator) the class.',
+              'Click Save.',
+            ],
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Target items',
+            body: 'The Target items tab shows the school’s profile framework items (from Cocurricular settings). Tick the items the program aims at. Only active items can be newly chosen; an item that is already a target stays even if it is deactivated later. If the list is empty, adopt a framework first in Cocurricular settings.',
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Planned-periods warning',
+            body: 'A program’s planned periods are compared per level with the yearly cocurricular periods set in Curriculum. When the plan exceeds the allocation, the list page shows a yellow warning. It is only a warning: the program can still be saved, and with no allocation there is no warning.',
+            href: '/cocurricular',
+            tip: 'Fill in the yearly cocurricular periods in Curriculum so this comparison appears.',
+          },
+          {
+            heading: 'Who can do what',
+            body: 'The View cocurricular permission (school admin, principal, Curriculum, operator, and teacher) opens the list and details read only. The Manage cocurricular permission (school admin and Curriculum) is needed to create, change, and delete programs, classes, targets, and facilitators. This feature needs the Grades and report cards module.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Why do I not see the New program button?',
+            a: 'Your account can only view. Ask the school admin if you need to manage programs.',
+          },
+          {
+            q: 'I got a message that the referenced data was not found. What does it mean?',
+            a: 'A chosen class, semester, item, or teacher does not belong to the program’s academic year or school, or the item is inactive. Reload the page and choose again.',
+          },
+          {
+            q: 'I got a message that the data already exists when saving classes or facilitators. Why?',
+            a: 'A teacher is listed twice for the same class, or you removed a class that still has a facilitator. Fix the facilitator list and save again.',
+          },
+          {
+            q: 'Can I delete a program?',
+            a: 'Yes, together with its classes, targets, and facilitators. To keep the history, set its status to Closed instead.',
+          },
+        ],
+      },
+      su: {
+        title: 'Program kokurikuler: wangun, rombel, tujuan, jeung fasilitator',
+        summary:
+          'Cara nyieun program kokurikuler per taun pelajaran, milih rombel jeung butir tujuan profil, nunjuk koordinator jeung fasilitator, sarta maca pépéling rencana JP.',
+        forWho:
+          'Admin sakola jeung Kurikulum anu nyieun jeung ngatur program; guru jeung kepala sakola bisa ningalina (maca wungkul).',
+        sections: [
+          {
+            heading: 'Naon éta program kokurikuler',
+            body: 'Program nyaéta hiji kagiatan nu nguatkeun profil lulusan dina hiji taun pelajaran, upamana proyék kolaboratif atawa gerakan 7 Kabiasaan Anak Indonesia Hébat. Program nyatet wangun, téma, uraian, rencana JP, semester (atawa sapanjang taun), status, jeung naha kaciri dina rapor. Program lain mata pelajaran, jadi henteu mangaruhan nilai, pangkat, kanaékan kelas, atawa kalulusan. Pangajén jeung bukti acan sayogi dina tahap ieu.',
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Nyieun program',
+            body: 'Program dijieun dina taun pelajaran nu keur dipilih di luhur kaca. Status awal nyaéta Rancangan; robah jadi Jalan nalika kagiatan dimimitian jeung Réngsé pikeun ngarsipkeunana. Program Réngsé henteu dipupus sangkan riwayatna tetep aya.',
+            steps: [
+              'Buka Program kokurikuler jeung pilih taun pelajaran.',
+              'Klik Program anyar.',
+              'Eusian judul (wajib), wangun, semester, téma, uraian, jeung rencana JP lamun aya.',
+              'Klik Jieun program; Anjeun dibawa ka kaca program pikeun ngalengkepan.',
+            ],
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Rombel, koordinator, jeung fasilitator',
+            body: 'Dina tab Rombel jeung fasilitator, centang rombel dina taun pelajaran program tuluy simpen. Sanggeus éta tambahkeun guru: koordinator nyakup sakabéh rombel program jeung henteu milih rombel; fasilitator kudu milih hiji rombel program. Guru nu sarua teu meunang dicatet dua kali pikeun rombel nu sarua. Rombel nu masih boga fasilitator teu bisa dicabut; robah heula fasilitatorna.',
+            steps: [
+              'Buka program, tab Rombel jeung fasilitator.',
+              'Centang rombel pamilon, tuluy Simpen.',
+              'Klik Tambah guru, tuluy pilih guru, peran, jeung (pikeun fasilitator) rombelna.',
+              'Klik Simpen.',
+            ],
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Butir tujuan',
+            body: 'Tab Butir tujuan nembongkeun butir kerangka profil milik sakola (tina Pangaturan kokurikuler). Centang butir nu dituju ku program. Ngan butir aktip nu bisa dipilih anyar; butir nu geus jadi tujuan tetep disimpen sanajan engkéna dinonaktipkeun. Lamun daptarna kosong, adopsi kerangka heula dina Pangaturan kokurikuler.',
+            href: '/cocurricular',
+          },
+          {
+            heading: 'Pépéling rencana JP',
+            body: 'Rencana JP program dibandingkeun per tingkat jeung JP kokurikuler taunan dina Kurikulum. Lamun rencana ngaleuwihan alokasi, kaca daptar nembongkeun pita pépéling koneng. Ieu ngan pépéling: program tetep bisa disimpen, jeung tanpa alokasi euweuh pépéling.',
+            href: '/cocurricular',
+            tip: 'Eusian JP kokurikuler taunan dina Kurikulum sangkan babandingan ieu muncul.',
+          },
+          {
+            heading: 'Saha nu bisa naon',
+            body: 'Idin Ningali kokurikuler (admin sakola, kepala sakola, Kurikulum, operator, jeung guru) muka daptar jeung rincian dina tampilan maca wungkul. Idin Ngatur kokurikuler (admin sakola jeung Kurikulum) diperyogikeun pikeun nyieun, ngarobah, jeung mupus program, rombel, tujuan, jeung fasilitator. Fitur ieu peryogi modul Nilai jeung rapor.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha abdi henteu ningali tombol Program anyar?',
+            a: 'Akun Anjeun ngan boga idin ningali. Hubungi admin sakola lamun kudu ngatur program.',
+          },
+          {
+            q: 'Muncul pesen data nu dirujuk teu kapanggih. Naon hartosna?',
+            a: 'Rombel, semester, butir, atawa guru nu dipilih lain bagian tina taun pelajaran atawa sakola program, atawa butirna nonaktip. Muat deui kaca tuluy pilih deui.',
+          },
+          {
+            q: 'Muncul pesen data geus aya waktu nyimpen rombel atawa fasilitator. Naha?',
+            a: 'Aya guru nu dicatet dua kali pikeun rombel nu sarua, atawa Anjeun nyabut rombel nu masih boga fasilitator. Pérbaiki daptar fasilitator tuluy simpen deui.',
+          },
+          {
+            q: 'Naha program bisa dipupus?',
+            a: 'Bisa, jeung rombel, tujuan, jeung fasilitatorna. Pikeun nyimpen riwayat, robah statusna jadi Réngsé.',
+          },
+        ],
+      },
+    },
+  },
 ];

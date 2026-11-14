@@ -221,6 +221,17 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   kurikulum), menyebar ke sekolah lama lewat sinkron peran; modul `grades`. Migrasi 0106 (empat tabel baru: dua acuan global, dua tabel
   sekolah ber-RLS; tanpa kolom baru pada tabel lama). Kokurikuler bukan mapel dan tidak memengaruhi nilai, peringkat, kenaikan, atau
   kelulusan. Program, penilaian, dan rapor kokurikuler menyusul di tahap 4.2 sampai 4.4.
+- **Program kokurikuler** (fase 4, tahap 4.2): halaman Program kokurikuler (Nilai dan rapor) berisi daftar program per tahun ajaran
+  (kartu di ponsel, tabel di layar lebar; guru dengan izin baca hanya melihat) dan halaman detail untuk mengelola rombel peserta,
+  butir sasaran (dimensi profil lulusan atau topik Panca Cinta milik sekolah), serta koordinator dan fasilitator. Bentuk program:
+  kolaboratif, 7 Kebiasaan Anak Indonesia Hebat, atau lainnya; satu semester atau sepanjang tahun; status draf, aktif, atau ditutup.
+  Endpoint `GET/POST /v1/cocurricular/programs`, `GET/PUT/DELETE /v1/cocurricular/programs/:id`, `PUT .../classes`, `.../targets`,
+  `.../facilitators` (ganti seluruh daftar), dan `GET /v1/cocurricular/periods-summary` (rencana JP program dibandingkan JP kokurikuler
+  pada alokasi kurikulum per tingkat; hanya peringatan, tidak pernah menolak). Butir kerangka yang sudah menjadi sasaran program tidak
+  bisa dihapus (409 `item_in_use`; nonaktifkan saja). Tanpa izin baru (memakai `cocurricular:read` dan `cocurricular:manage` dari 4.1);
+  modul `grades`. Migrasi 0107 (empat tabel tenant baru ber-RLS dengan FK komposit; tanpa kolom baru pada tabel lama, tanpa baris
+  otomatis). Penilaian murid, bukti, dan bagian rapor menyusul di tahap 4.3 dan 4.4; kokurikuler tetap bukan mapel dan tidak
+  memengaruhi nilai, peringkat, kenaikan, atau kelulusan.
 
 ### Diubah
 
@@ -276,6 +287,9 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   `cocurricular_rubric_level` serta izin `cocurricular:read` dan `cocurricular:manage` dibiarkan di database dan tampil lagi setelah
   maju. Setelah kembali ke versi sebelumnya halaman dan endpoint kokurikuler tidak ada; tidak ada efek pada nilai, rapor, kenaikan,
   atau kelulusan karena belum ada yang membacanya.
+- Program kokurikuler (tahap 4.2): tabel `cocurricular_program`, `cocurricular_program_target`, `cocurricular_program_class`, dan
+  `cocurricular_facilitator` dibiarkan di database. Setelah kembali ke versi sebelumnya halaman dan endpoint program tidak ada dan
+  penghapusan butir kerangka tidak lagi dicegah (FK database tetap menolak menghapus butir yang masih menjadi sasaran program).
 - Kelulusan (tahap 3C.4): tabel `graduation_policy`, `school_exam`, `school_exam_score`, dan `graduation_decision` serta izin
   `graduation:read` dan `graduation:manage` dibiarkan di database dan tampil lagi setelah maju. Setelah kembali ke versi
   sebelumnya, halaman dan endpoint kelulusan tidak ada dan keputusan `graduate` di wizard kenaikan kembali bebas dipilih (penjaga

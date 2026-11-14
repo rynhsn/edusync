@@ -750,6 +750,13 @@
       "when": 1797384600000,
       "tag": "0106_profile_framework",
       "breakpoints": true
+    },
+    {
+      "idx": 107,
+      "version": "7",
+      "when": 1797471000000,
+      "tag": "0107_cocurricular_program",
+      "breakpoints": true
     }
   ]
 }

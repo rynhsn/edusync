@@ -314,6 +314,13 @@ export const NAV_GROUPS = [
         settings: true,
       },
       {
+        href: '/cocurricular',
+        labelKey: 'cocurricular',
+        icon: Sparkles,
+        permission: 'cocurricular:read',
+        module: 'grades',
+      },
+      {
         href: '/cocurricular/settings',
         labelKey: 'cocurricularSettings',
         icon: Sparkles,

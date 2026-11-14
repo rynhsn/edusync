@@ -4109,6 +4109,101 @@ export const cocurricularRubricLevel = pgTable(
   ],
 );
 
+/* ---------- Program kokurikuler (fase 4, tahap 4.2; DDL dan FK komposit di migrasi 0107) ---------- */
+
+/** Program kokurikuler per tahun ajaran (`semesterId` null = sepanjang tahun). Bukan mapel; tidak memengaruhi nilai. */
+export const cocurricularProgram = pgTable(
+  'cocurricular_program',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    academicYearId: uuid('academic_year_id')
+      .notNull()
+      .references(() => academicYear.id),
+    semesterId: uuid('semester_id').references(() => semester.id),
+    form: text('form', { enum: ['collaborative', 'g7kaih', 'other'] }).notNull(),
+    title: text('title').notNull(),
+    theme: text('theme'),
+    description: text('description'),
+    plannedPeriods: integer('planned_periods'),
+    showInReport: boolean('show_in_report').notNull().default(true),
+    status: text('status', { enum: ['draft', 'active', 'closed'] })
+      .notNull()
+      .default('draft'),
+    createdBy: text('created_by').notNull(),
+    createdAt: createdAt(),
+    updatedAt: timestamp('updated_at', { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [
+    unique('cocurricular_program_school_id_uq').on(t.schoolId, t.id),
+    index('cocurricular_program_year_idx').on(t.schoolId, t.academicYearId),
+  ],
+);
+
+/** Butir sasaran program (dimensi profil / topik Panca Cinta milik sekolah). Anak program: terhapus bersama programnya. */
+export const cocurricularProgramTarget = pgTable(
+  'cocurricular_program_target',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    programId: uuid('program_id')
+      .notNull()
+      .references(() => cocurricularProgram.id),
+    profileItemId: uuid('profile_item_id')
+      .notNull()
+      .references(() => schoolProfileItem.id),
+  },
+  (t) => [
+    unique('cocurricular_program_target_school_id_uq').on(t.schoolId, t.id),
+    unique('cocurricular_program_target_uq').on(t.programId, t.profileItemId),
+  ],
+);
+
+/** Rombel peserta program (peserta = roster rombel). */
+export const cocurricularProgramClass = pgTable(
+  'cocurricular_program_class',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    programId: uuid('program_id')
+      .notNull()
+      .references(() => cocurricularProgram.id),
+    classId: uuid('class_id')
+      .notNull()
+      .references(() => classRoom.id),
+  },
+  (t) => [
+    unique('cocurricular_program_class_school_id_uq').on(t.schoolId, t.id),
+    unique('cocurricular_program_class_uq').on(t.programId, t.classId),
+  ],
+);
+
+/** Koordinator (`classId` null, seluruh rombel program) atau fasilitator (satu rombel). Keunikan ber-COALESCE ada di SQL 0107. */
+export const cocurricularFacilitator = pgTable(
+  'cocurricular_facilitator',
+  {
+    id: id(),
+    schoolId: uuid('school_id')
+      .notNull()
+      .references(() => school.id),
+    programId: uuid('program_id')
+      .notNull()
+      .references(() => cocurricularProgram.id),
+    teacherId: uuid('teacher_id')
+      .notNull()
+      .references(() => teacher.id),
+    classId: uuid('class_id').references(() => classRoom.id),
+    role: text('role', { enum: ['coordinator', 'facilitator'] }).notNull(),
+  },
+  (t) => [unique('cocurricular_facilitator_school_id_uq').on(t.schoolId, t.id)],
+);
+
 /* ---------- Perubahan paket yayasan (tingkatkan, tambah unit, jadwalkan penurunan) ---------- */
 
 /**

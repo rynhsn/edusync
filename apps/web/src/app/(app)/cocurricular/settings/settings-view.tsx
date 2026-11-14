@@ -32,7 +32,7 @@ import { errorKey } from '@/lib/errors';
 type Header = { header: { 'x-school-id': string } };
 
 /** Bilah simpan lengket di bawah: indikator "belum disimpan", batal, dan simpan. */
-function SaveBar({
+export function SaveBar({
   dirty,
   valid,
   pending,

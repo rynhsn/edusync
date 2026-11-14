@@ -1,4 +1,4 @@
-import { RUBRIC_LEVEL_LIMIT } from '@edusync/contracts';
+import { facilitatorShapeValid, RUBRIC_LEVEL_LIMIT } from '@edusync/contracts';
 
 /** Pembantu murni untuk halaman Pengaturan kokurikuler (tahap 4.1). */
 
@@ -93,4 +93,95 @@ export function itemsValid(drafts: readonly ItemDraft[]): boolean {
 export function sameDrafts<T extends { key: string }>(a: readonly T[], b: readonly T[]): boolean {
   const strip = (list: readonly T[]) => JSON.stringify(list.map(({ key: _key, ...rest }) => rest));
   return strip(a) === strip(b);
+}
+
+/* ---------- Program kokurikuler (tahap 4.2) ---------- */
+
+export interface ProgramDraft {
+  semesterId: string;
+  form: 'collaborative' | 'g7kaih' | 'other';
+  title: string;
+  theme: string;
+  description: string;
+  plannedPeriods: string;
+  showInReport: boolean;
+  status: 'draft' | 'active' | 'closed';
+}
+
+export const EMPTY_PROGRAM: ProgramDraft = {
+  semesterId: '',
+  form: 'collaborative',
+  title: '',
+  theme: '',
+  description: '',
+  plannedPeriods: '',
+  showInReport: true,
+  status: 'draft',
+};
+
+const PERIODS_MAX = 100000;
+
+/** Judul wajib; rencana JP kosong atau bilangan bulat 0..100000 (sama dengan kontrak API). */
+export function programValid(d: ProgramDraft): boolean {
+  const p = d.plannedPeriods.trim();
+  return d.title.trim() !== '' && (p === '' || (/^\d+$/.test(p) && Number(p) <= PERIODS_MAX));
+}
+
+/** Badan POST/PUT data pokok program; isian kosong menjadi null. */
+export function programBody(d: ProgramDraft) {
+  const orNull = (v: string) => (v.trim() === '' ? null : v.trim());
+  return {
+    semesterId: d.semesterId === '' ? null : d.semesterId,
+    form: d.form,
+    title: d.title.trim(),
+    theme: orNull(d.theme),
+    description: orNull(d.description),
+    plannedPeriods: d.plannedPeriods.trim() === '' ? null : Number(d.plannedPeriods),
+    showInReport: d.showInReport,
+    status: d.status,
+  };
+}
+
+export interface FacilitatorDraft {
+  key: string;
+  teacherId: string;
+  /** '' = koordinator (seluruh rombel program). */
+  classId: string;
+  role: 'coordinator' | 'facilitator';
+}
+
+/** Badan PUT fasilitator; koordinator selalu tanpa rombel. */
+export function facilitatorsBody(drafts: readonly FacilitatorDraft[]) {
+  return drafts.map((d) => ({
+    teacherId: d.teacherId,
+    classId: d.role === 'coordinator' || d.classId === '' ? null : d.classId,
+    role: d.role,
+  }));
+}
+
+/** Guru terpilih, bentuk peran benar, rombel termasuk rombel program, dan tidak ada pasangan guru+rombel ganda. */
+export function facilitatorsValid(
+  drafts: readonly FacilitatorDraft[],
+  programClassIds: ReadonlySet<string>,
+): boolean {
+  const body = facilitatorsBody(drafts);
+  const keys = body.map((f) => `${f.teacherId}\u0000${f.classId ?? ''}`);
+  return (
+    body.every(
+      (f) =>
+        f.teacherId !== '' &&
+        facilitatorShapeValid(f) &&
+        (f.classId === null || programClassIds.has(f.classId)),
+    ) && new Set(keys).size === keys.length
+  );
+}
+
+/** Tambah bila belum ada, buang bila sudah ada (pilihan centang). */
+export function toggleId(list: readonly string[], id: string): string[] {
+  return list.includes(id) ? list.filter((x) => x !== id) : [...list, id];
+}
+
+/** Sama bila isinya sama tanpa memandang urutan; penanda "belum disimpan" untuk daftar id. */
+export function sameIds(a: readonly string[], b: readonly string[]): boolean {
+  return a.length === b.length && new Set([...a, ...b]).size === a.length;
 }

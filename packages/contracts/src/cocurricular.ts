@@ -100,3 +100,120 @@ export function duplicateKeys(keys: readonly string[]): string[] {
   for (const k of keys) (seen.has(k) ? dup : seen).add(k);
   return [...dup];
 }
+
+/* ---------- Program kokurikuler (tahap 4.2) ---------- */
+
+export const COCURRICULAR_FORMS = ['collaborative', 'g7kaih', 'other'] as const;
+export const COCURRICULAR_PROGRAM_STATUSES = ['draft', 'active', 'closed'] as const;
+export const COCURRICULAR_FACILITATOR_ROLES = ['coordinator', 'facilitator'] as const;
+
+/** Batas daftar anak program (rombel, butir, fasilitator) per permintaan. */
+export const PROGRAM_CHILD_LIMIT = 200;
+
+export const cocurricularProgramFieldsSchema = z.object({
+  semesterId: z.uuid().nullable().describe('null = sepanjang tahun ajaran'),
+  form: z.enum(COCURRICULAR_FORMS),
+  title: z.string(),
+  theme: z.string().nullable(),
+  description: z.string().nullable(),
+  plannedPeriods: z
+    .number()
+    .int()
+    .nullable()
+    .describe('JP yang direncanakan; hanya dibandingkan dengan alokasi'),
+  showInReport: z.boolean(),
+  status: z.enum(COCURRICULAR_PROGRAM_STATUSES),
+});
+
+export const cocurricularProgramSummarySchema = cocurricularProgramFieldsSchema.extend({
+  id: z.uuid(),
+  academicYearId: z.uuid(),
+  classCount: z.number().int(),
+  targetCount: z.number().int(),
+  facilitatorCount: z.number().int(),
+  createdAt: z.string(),
+});
+
+export const cocurricularProgramClassSchema = z.object({
+  classId: z.uuid(),
+  name: z.string(),
+  level: z.string(),
+});
+
+export const cocurricularProgramTargetSchema = z.object({
+  profileItemId: z.uuid(),
+  frameworkKey: z.string(),
+  code: z.string(),
+  label: z.string(),
+  active: z.boolean(),
+});
+
+export const cocurricularFacilitatorSchema = z.object({
+  teacherId: z.uuid(),
+  teacherName: z.string(),
+  classId: z.uuid().nullable().describe('null = koordinator seluruh rombel program'),
+  role: z.enum(COCURRICULAR_FACILITATOR_ROLES),
+});
+
+export const cocurricularProgramDetailSchema = cocurricularProgramSummarySchema.extend({
+  classes: z.array(cocurricularProgramClassSchema),
+  targets: z.array(cocurricularProgramTargetSchema),
+  facilitators: z.array(cocurricularFacilitatorSchema),
+});
+
+export const cocurricularProgramInputSchema = z.object({
+  semesterId: z
+    .uuid()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+  form: z.enum(COCURRICULAR_FORMS),
+  title: z.string().trim().min(1).max(200),
+  theme: optionalText(200),
+  description: optionalText(4000),
+  plannedPeriods: z
+    .number()
+    .int()
+    .min(0)
+    .max(100000)
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+  showInReport: z.boolean().default(true),
+  status: z.enum(COCURRICULAR_PROGRAM_STATUSES).default('draft'),
+});
+
+export const cocurricularFacilitatorInputSchema = z.object({
+  teacherId: z.uuid(),
+  classId: z
+    .uuid()
+    .nullable()
+    .optional()
+    .transform((v) => v ?? null),
+  role: z.enum(COCURRICULAR_FACILITATOR_ROLES),
+});
+
+export const cocurricularProgramCreateSchema = cocurricularProgramInputSchema.extend({
+  academicYearId: z.uuid(),
+  classIds: z.array(z.uuid()).max(PROGRAM_CHILD_LIMIT).default([]),
+  profileItemIds: z.array(z.uuid()).max(PROGRAM_CHILD_LIMIT).default([]),
+  facilitators: z.array(cocurricularFacilitatorInputSchema).max(PROGRAM_CHILD_LIMIT).default([]),
+});
+
+/** Ringkasan rencana JP vs alokasi per tingkat (peringatan saja, tidak menolak). */
+export const cocurricularPeriodsLevelSchema = z.object({
+  levelCode: z.string(),
+  programCount: z.number().int(),
+  plannedPeriods: z.number().int().describe('Jumlah JP rencana program yang memuat rombel tingkat ini'),
+  allocatedPeriods: z
+    .number()
+    .int()
+    .nullable()
+    .describe('JP kokurikuler tahunan pada alokasi kurikulum; null = belum ada alokasi'),
+  exceeds: z.boolean().describe('Rencana melebihi alokasi (hanya bila alokasi ada)'),
+});
+
+/** Aturan koordinator/fasilitator: fasilitator wajib punya rombel; koordinator tidak. Dipakai API dan layar. */
+export function facilitatorShapeValid(f: { role: string; classId: string | null }): boolean {
+  return f.role === 'coordinator' ? f.classId === null : f.classId !== null;
+}

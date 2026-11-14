@@ -2,11 +2,17 @@ import { eq, sql } from 'drizzle-orm';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import {
   academicYear,
+  classRoom,
+  cocurricularFacilitator,
+  cocurricularProgram,
+  cocurricularProgramClass,
+  cocurricularProgramTarget,
   cocurricularRubricLevel,
   createDb,
   foundation,
   school,
   schoolProfileItem,
+  teacher,
   withTenant,
 } from './index';
 
@@ -195,6 +201,107 @@ describe('tabel tenant kerangka profil (tahap 4.1)', () => {
       for (const sid of [schoolA1, schoolB]) {
         await platform.db.delete(schoolProfileItem).where(eq(schoolProfileItem.schoolId, sid));
         await platform.db.delete(cocurricularRubricLevel).where(eq(cocurricularRubricLevel.schoolId, sid));
+      }
+    }
+  });
+});
+
+describe('tabel tenant program kokurikuler (tahap 4.2)', () => {
+  it('program, sasaran, rombel, dan fasilitator terisolasi; FK komposit menolak rujukan lintas sekolah', async () => {
+    const seed = async (sid: string, n: number) => {
+      const [year] = await platform.db.select().from(academicYear).where(eq(academicYear.schoolId, sid));
+      const [cls] = await platform.db
+        .insert(classRoom)
+        .values({ schoolId: sid, academicYearId: year!.id, name: `K${n}`, level: '7' })
+        .returning();
+      const [tch] = await platform.db
+        .insert(teacher)
+        .values({ schoolId: sid, name: `Guru ${n}` })
+        .returning();
+      const [item] = await platform.db
+        .insert(schoolProfileItem)
+        .values({ schoolId: sid, frameworkKey: 'profil_lulusan_2025', code: `p${n}`, label: `Butir ${n}` })
+        .returning();
+      const [prog] = await platform.db
+        .insert(cocurricularProgram)
+        .values({
+          schoolId: sid,
+          academicYearId: year!.id,
+          form: 'other',
+          title: `Program ${n}`,
+          createdBy: 'uji',
+        })
+        .returning();
+      await platform.db
+        .insert(cocurricularProgramClass)
+        .values({ schoolId: sid, programId: prog!.id, classId: cls!.id });
+      await platform.db
+        .insert(cocurricularProgramTarget)
+        .values({ schoolId: sid, programId: prog!.id, profileItemId: item!.id });
+      await platform.db
+        .insert(cocurricularFacilitator)
+        .values({ schoolId: sid, programId: prog!.id, teacherId: tch!.id, role: 'coordinator' });
+      return { year: year!.id, cls: cls!.id, prog: prog!.id };
+    };
+    const a = await seed(schoolA1, 1);
+    const b = await seed(schoolB, 2);
+    try {
+      const tables = [
+        cocurricularProgram,
+        cocurricularProgramClass,
+        cocurricularProgramTarget,
+        cocurricularFacilitator,
+      ] as const;
+      for (const t of tables) {
+        const rows = await withTenant(app.db, [schoolA1], (tx) => tx.select().from(t));
+        expect(rows.map((r) => r.schoolId)).toEqual([schoolA1]);
+        expect(await app.db.select().from(t)).toHaveLength(0);
+      }
+      // Tulis lintas sekolah ditolak RLS.
+      await expect(
+        withTenant(app.db, [schoolA1], (tx) =>
+          tx.insert(cocurricularProgram).values({
+            schoolId: schoolB,
+            academicYearId: b.year,
+            form: 'other',
+            title: 'x',
+            createdBy: 'uji',
+          }),
+        ),
+      ).rejects.toThrow();
+      // FK komposit: rombel sekolah B tidak boleh dipakai program sekolah A walau id valid.
+      await expect(
+        platform.db
+          .insert(cocurricularProgramClass)
+          .values({ schoolId: schoolA1, programId: a.prog, classId: b.cls }),
+      ).rejects.toThrow();
+      // Fasilitator tanpa rombel melanggar CHECK (hanya koordinator boleh class_id NULL).
+      await expect(
+        platform.db.execute(
+          sql`insert into cocurricular_facilitator (school_id, program_id, teacher_id, role)
+              select ${schoolA1}, ${a.prog}, id, 'facilitator' from teacher where school_id = ${schoolA1} limit 1`,
+        ),
+      ).rejects.toThrow();
+      // Hapus program menyapu anaknya (ON DELETE CASCADE).
+      await platform.db.delete(cocurricularProgram).where(eq(cocurricularProgram.id, a.prog));
+      for (const t of [
+        cocurricularProgramClass,
+        cocurricularProgramTarget,
+        cocurricularFacilitator,
+      ] as const) {
+        expect(await platform.db.select().from(t).where(eq(t.programId, a.prog))).toHaveLength(0);
+      }
+    } finally {
+      for (const sid of [schoolA1, schoolB]) {
+        await platform.db.delete(cocurricularFacilitator).where(eq(cocurricularFacilitator.schoolId, sid));
+        await platform.db
+          .delete(cocurricularProgramTarget)
+          .where(eq(cocurricularProgramTarget.schoolId, sid));
+        await platform.db.delete(cocurricularProgramClass).where(eq(cocurricularProgramClass.schoolId, sid));
+        await platform.db.delete(cocurricularProgram).where(eq(cocurricularProgram.schoolId, sid));
+        await platform.db.delete(schoolProfileItem).where(eq(schoolProfileItem.schoolId, sid));
+        await platform.db.delete(classRoom).where(eq(classRoom.schoolId, sid));
+        await platform.db.delete(teacher).where(eq(teacher.schoolId, sid));
       }
     }
   });

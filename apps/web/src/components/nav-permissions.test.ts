@@ -24,6 +24,7 @@ const PRIMARY: Record<string, string> = {
   '/teaching-plan': 'POST /v1/learning-flows',
   '/subject-choices': 'GET /v1/classes/{id}/subject-participation',
   '/exports': 'GET /v1/exports/academic',
+  '/cocurricular': 'GET /v1/cocurricular/programs',
   '/cocurricular/settings': 'PUT /v1/cocurricular/profile-items',
   '/academic-years': 'GET /v1/academic-years',
   '/calendar': 'GET /v1/academic-years/{id}/calendar',

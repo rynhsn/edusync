@@ -14293,7 +14293,7 @@ export interface paths {
         };
         /**
          * Simpan butir kerangka profil sekolah
-         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar butir: butir dengan `id` diubah (label, deskripsi, kode, urutan, aktif; `frameworkKey` tidak bisa diganti), butir tanpa `id` dibuat sebagai butir buatan sekolah, butir yang tidak disertakan dihapus (maks. 100 butir). Untuk menyembunyikan butir, kirim `active: false`. Galat: 400 `invalid_reference` (id atau kerangka tidak dikenal), 400 `framework_not_for_profile`, 409 `conflict` (kode kembar dalam satu kerangka). Penolakan 409 `item_in_use` untuk butir yang dipakai program berlaku sejak tahap 4.2.
+         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar butir: butir dengan `id` diubah (label, deskripsi, kode, urutan, aktif; `frameworkKey` tidak bisa diganti), butir tanpa `id` dibuat sebagai butir buatan sekolah, butir yang tidak disertakan dihapus (maks. 100 butir). Untuk menyembunyikan butir, kirim `active: false`. Galat: 400 `invalid_reference` (id atau kerangka tidak dikenal), 400 `framework_not_for_profile`, 409 `conflict` (kode kembar dalam satu kerangka), 409 `item_in_use` (butir yang dipakai program kokurikuler tidak bisa dihapus; nonaktifkan).
          */
         put: {
             parameters: {
@@ -14701,6 +14701,1251 @@ export interface paths {
                 };
             };
         };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/programs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Daftar program kokurikuler
+         * @description Izin: `cocurricular:read`; modul `grades`. Program per tahun ajaran (bawaan: tahun ajaran aktif; daftar kosong bila belum ada tahun aktif), terbaru dulu, dengan jumlah rombel, butir sasaran, dan fasilitator. Saring dengan `semesterId` (program sepanjang tahun ikut tampil) dan `status`. Sekolah yang belum membuat program mendapat daftar kosong.
+         */
+        get: {
+            parameters: {
+                query?: {
+                    academicYearId?: string;
+                    semesterId?: string;
+                    status?: "draft" | "active" | "closed";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** Format: uuid */
+                            academicYearId: string | null;
+                            programs: {
+                                /**
+                                 * Format: uuid
+                                 * @description null = sepanjang tahun ajaran
+                                 */
+                                semesterId: string | null;
+                                /** @enum {string} */
+                                form: "collaborative" | "g7kaih" | "other";
+                                title: string;
+                                theme: string | null;
+                                description: string | null;
+                                /** @description JP yang direncanakan; hanya dibandingkan dengan alokasi */
+                                plannedPeriods: number | null;
+                                showInReport: boolean;
+                                /** @enum {string} */
+                                status: "draft" | "active" | "closed";
+                                /** Format: uuid */
+                                id: string;
+                                /** Format: uuid */
+                                academicYearId: string;
+                                classCount: number;
+                                targetCount: number;
+                                facilitatorCount: number;
+                                createdAt: string;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        /**
+         * Buat program kokurikuler
+         * @description Izin: `cocurricular:manage`; modul `grades`. Membuat program pada satu tahun ajaran, opsional sekaligus rombel, butir sasaran, dan fasilitator. `semesterId` kosong = sepanjang tahun. Koordinator tidak memakai `classId`; fasilitator wajib memilih satu rombel program (maks. 200 isi per daftar). Rencana JP hanya dibandingkan dengan alokasi (lihat `periods-summary`), tidak pernah menolak. Galat: 400 `invalid_reference` (tahun/semester/rombel/butir/guru tidak valid, butir nonaktif), 409 `conflict` (fasilitator ganda).
+         */
+        post: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId?: string | null;
+                        /** @enum {string} */
+                        form: "collaborative" | "g7kaih" | "other";
+                        title: string;
+                        theme?: string | null;
+                        description?: string | null;
+                        plannedPeriods?: number | null;
+                        /** @default true */
+                        showInReport?: boolean;
+                        /**
+                         * @default draft
+                         * @enum {string}
+                         */
+                        status?: "draft" | "active" | "closed";
+                        /** Format: uuid */
+                        academicYearId: string;
+                        /** @default [] */
+                        classIds?: string[];
+                        /** @default [] */
+                        profileItemIds?: string[];
+                        facilitators?: {
+                            /** Format: uuid */
+                            teacherId: string;
+                            /** Format: uuid */
+                            classId?: string | null;
+                            /** @enum {string} */
+                            role: "coordinator" | "facilitator";
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                201: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description null = sepanjang tahun ajaran
+                             */
+                            semesterId: string | null;
+                            /** @enum {string} */
+                            form: "collaborative" | "g7kaih" | "other";
+                            title: string;
+                            theme: string | null;
+                            description: string | null;
+                            /** @description JP yang direncanakan; hanya dibandingkan dengan alokasi */
+                            plannedPeriods: number | null;
+                            showInReport: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            classCount: number;
+                            targetCount: number;
+                            facilitatorCount: number;
+                            createdAt: string;
+                            classes: {
+                                /** Format: uuid */
+                                classId: string;
+                                name: string;
+                                level: string;
+                            }[];
+                            targets: {
+                                /** Format: uuid */
+                                profileItemId: string;
+                                frameworkKey: string;
+                                code: string;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            facilitators: {
+                                /** Format: uuid */
+                                teacherId: string;
+                                teacherName: string;
+                                /**
+                                 * Format: uuid
+                                 * @description null = koordinator seluruh rombel program
+                                 */
+                                classId: string | null;
+                                /** @enum {string} */
+                                role: "coordinator" | "facilitator";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/programs/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Detail program kokurikuler
+         * @description Izin: `cocurricular:read`; modul `grades`. Satu program beserta rombel, butir sasaran, dan fasilitator/koordinatornya. Galat: 404 `not_found`.
+         */
+        get: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description null = sepanjang tahun ajaran
+                             */
+                            semesterId: string | null;
+                            /** @enum {string} */
+                            form: "collaborative" | "g7kaih" | "other";
+                            title: string;
+                            theme: string | null;
+                            description: string | null;
+                            /** @description JP yang direncanakan; hanya dibandingkan dengan alokasi */
+                            plannedPeriods: number | null;
+                            showInReport: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            classCount: number;
+                            targetCount: number;
+                            facilitatorCount: number;
+                            createdAt: string;
+                            classes: {
+                                /** Format: uuid */
+                                classId: string;
+                                name: string;
+                                level: string;
+                            }[];
+                            targets: {
+                                /** Format: uuid */
+                                profileItemId: string;
+                                frameworkKey: string;
+                                code: string;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            facilitators: {
+                                /** Format: uuid */
+                                teacherId: string;
+                                teacherName: string;
+                                /**
+                                 * Format: uuid
+                                 * @description null = koordinator seluruh rombel program
+                                 */
+                                classId: string | null;
+                                /** @enum {string} */
+                                role: "coordinator" | "facilitator";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        /**
+         * Ubah program kokurikuler
+         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti data pokok program (semester, bentuk, judul, tema, uraian, rencana JP, tampil di rapor, status). Tahun ajaran tidak dapat diubah. Arsipkan dengan `status: closed`. Rombel, butir, dan fasilitator diubah lewat endpoint khususnya. Galat: 404 `not_found`, 400 `invalid_reference` (semester bukan milik tahun program).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        /** Format: uuid */
+                        semesterId?: string | null;
+                        /** @enum {string} */
+                        form: "collaborative" | "g7kaih" | "other";
+                        title: string;
+                        theme?: string | null;
+                        description?: string | null;
+                        plannedPeriods?: number | null;
+                        /** @default true */
+                        showInReport?: boolean;
+                        /**
+                         * @default draft
+                         * @enum {string}
+                         */
+                        status?: "draft" | "active" | "closed";
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description null = sepanjang tahun ajaran
+                             */
+                            semesterId: string | null;
+                            /** @enum {string} */
+                            form: "collaborative" | "g7kaih" | "other";
+                            title: string;
+                            theme: string | null;
+                            description: string | null;
+                            /** @description JP yang direncanakan; hanya dibandingkan dengan alokasi */
+                            plannedPeriods: number | null;
+                            showInReport: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            classCount: number;
+                            targetCount: number;
+                            facilitatorCount: number;
+                            createdAt: string;
+                            classes: {
+                                /** Format: uuid */
+                                classId: string;
+                                name: string;
+                                level: string;
+                            }[];
+                            targets: {
+                                /** Format: uuid */
+                                profileItemId: string;
+                                frameworkKey: string;
+                                code: string;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            facilitators: {
+                                /** Format: uuid */
+                                teacherId: string;
+                                teacherName: string;
+                                /**
+                                 * Format: uuid
+                                 * @description null = koordinator seluruh rombel program
+                                 */
+                                classId: string | null;
+                                /** @enum {string} */
+                                role: "coordinator" | "facilitator";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        /**
+         * Hapus program kokurikuler
+         * @description Izin: `cocurricular:manage`; modul `grades`. Menghapus program beserta rombel, butir sasaran, dan fasilitatornya. Penolakan 409 `cocurricular_assessed` untuk program yang sudah punya penilaian berlaku sejak tahap 4.3 (gunakan `status: closed`). Galat: 404 `not_found`.
+         */
+        delete: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {boolean} */
+                            ok: true;
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/programs/{id}/classes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ganti rombel program kokurikuler
+         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar rombel peserta. Rombel harus milik tahun ajaran program. Rombel yang masih punya fasilitator tidak bisa dilepas (409 `conflict`; ubah fasilitator dulu). Galat: 404 `not_found`, 400 `invalid_reference`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        classIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description null = sepanjang tahun ajaran
+                             */
+                            semesterId: string | null;
+                            /** @enum {string} */
+                            form: "collaborative" | "g7kaih" | "other";
+                            title: string;
+                            theme: string | null;
+                            description: string | null;
+                            /** @description JP yang direncanakan; hanya dibandingkan dengan alokasi */
+                            plannedPeriods: number | null;
+                            showInReport: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            classCount: number;
+                            targetCount: number;
+                            facilitatorCount: number;
+                            createdAt: string;
+                            classes: {
+                                /** Format: uuid */
+                                classId: string;
+                                name: string;
+                                level: string;
+                            }[];
+                            targets: {
+                                /** Format: uuid */
+                                profileItemId: string;
+                                frameworkKey: string;
+                                code: string;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            facilitators: {
+                                /** Format: uuid */
+                                teacherId: string;
+                                teacherName: string;
+                                /**
+                                 * Format: uuid
+                                 * @description null = koordinator seluruh rombel program
+                                 */
+                                classId: string | null;
+                                /** @enum {string} */
+                                role: "coordinator" | "facilitator";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/programs/{id}/targets": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ganti butir sasaran program kokurikuler
+         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar butir sasaran (dimensi profil / topik Panca Cinta milik sekolah). Butir baru harus aktif; butir yang sudah menjadi sasaran boleh tetap walau kini nonaktif. Galat: 404 `not_found`, 400 `invalid_reference`.
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        profileItemIds: string[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description null = sepanjang tahun ajaran
+                             */
+                            semesterId: string | null;
+                            /** @enum {string} */
+                            form: "collaborative" | "g7kaih" | "other";
+                            title: string;
+                            theme: string | null;
+                            description: string | null;
+                            /** @description JP yang direncanakan; hanya dibandingkan dengan alokasi */
+                            plannedPeriods: number | null;
+                            showInReport: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            classCount: number;
+                            targetCount: number;
+                            facilitatorCount: number;
+                            createdAt: string;
+                            classes: {
+                                /** Format: uuid */
+                                classId: string;
+                                name: string;
+                                level: string;
+                            }[];
+                            targets: {
+                                /** Format: uuid */
+                                profileItemId: string;
+                                frameworkKey: string;
+                                code: string;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            facilitators: {
+                                /** Format: uuid */
+                                teacherId: string;
+                                teacherName: string;
+                                /**
+                                 * Format: uuid
+                                 * @description null = koordinator seluruh rombel program
+                                 */
+                                classId: string | null;
+                                /** @enum {string} */
+                                role: "coordinator" | "facilitator";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/programs/{id}/facilitators": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /**
+         * Ganti fasilitator program kokurikuler
+         * @description Izin: `cocurricular:manage`; modul `grades`. Mengganti SELURUH daftar koordinator (`role: coordinator`, tanpa `classId`, seluruh rombel program) dan fasilitator (`role: facilitator`, wajib `classId` rombel program). Data ini juga menjadi dasar hak menilai kontekstual (tahap 4.3). Galat: 404 `not_found`, 400 `invalid_reference`, 409 `conflict` (ganda).
+         */
+        put: {
+            parameters: {
+                query?: never;
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path: {
+                    id: string;
+                };
+                cookie?: never;
+            };
+            requestBody: {
+                content: {
+                    "application/json": {
+                        facilitators: {
+                            /** Format: uuid */
+                            teacherId: string;
+                            /** Format: uuid */
+                            classId?: string | null;
+                            /** @enum {string} */
+                            role: "coordinator" | "facilitator";
+                        }[];
+                    };
+                };
+            };
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /**
+                             * Format: uuid
+                             * @description null = sepanjang tahun ajaran
+                             */
+                            semesterId: string | null;
+                            /** @enum {string} */
+                            form: "collaborative" | "g7kaih" | "other";
+                            title: string;
+                            theme: string | null;
+                            description: string | null;
+                            /** @description JP yang direncanakan; hanya dibandingkan dengan alokasi */
+                            plannedPeriods: number | null;
+                            showInReport: boolean;
+                            /** @enum {string} */
+                            status: "draft" | "active" | "closed";
+                            /** Format: uuid */
+                            id: string;
+                            /** Format: uuid */
+                            academicYearId: string;
+                            classCount: number;
+                            targetCount: number;
+                            facilitatorCount: number;
+                            createdAt: string;
+                            classes: {
+                                /** Format: uuid */
+                                classId: string;
+                                name: string;
+                                level: string;
+                            }[];
+                            targets: {
+                                /** Format: uuid */
+                                profileItemId: string;
+                                frameworkKey: string;
+                                code: string;
+                                label: string;
+                                active: boolean;
+                            }[];
+                            facilitators: {
+                                /** Format: uuid */
+                                teacherId: string;
+                                teacherName: string;
+                                /**
+                                 * Format: uuid
+                                 * @description null = koordinator seluruh rombel program
+                                 */
+                                classId: string | null;
+                                /** @enum {string} */
+                                role: "coordinator" | "facilitator";
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                409: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/cocurricular/periods-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Rencana JP kokurikuler vs alokasi per tingkat
+         * @description Izin: `cocurricular:read`; modul `grades`. Per tingkat: jumlah `plannedPeriods` program (semua status) yang memuat rombel tingkat itu, dibandingkan dengan JP kokurikuler tahunan pada alokasi kurikulum. Alokasi tingkat dihitung sebagai baris semua jurusan ditambah jurusan dengan total terbesar (batas atas yang paling longgar). Hanya peringatan: `exceeds` bernilai true bila rencana melebihi alokasi; tanpa alokasi `allocatedPeriods` null dan `exceeds` false.
+         */
+        get: {
+            parameters: {
+                query: {
+                    academicYearId: string;
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description Default Response */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            levels: {
+                                levelCode: string;
+                                programCount: number;
+                                /** @description Jumlah JP rencana program yang memuat rombel tingkat ini */
+                                plannedPeriods: number;
+                                /** @description JP kokurikuler tahunan pada alokasi kurikulum; null = belum ada alokasi */
+                                allocatedPeriods: number | null;
+                                /** @description Rencana melebihi alokasi (hanya bila alokasi ada) */
+                                exceeds: boolean;
+                            }[];
+                        };
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
         post?: never;
         delete?: never;
         options?: never;

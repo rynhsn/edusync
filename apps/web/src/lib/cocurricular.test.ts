@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import {
+  EMPTY_PROGRAM,
+  type FacilitatorDraft,
+  facilitatorsBody,
+  facilitatorsValid,
   type ItemDraft,
   itemsBody,
   itemsValid,
@@ -7,8 +11,12 @@ import {
   levelsBody,
   levelsValid,
   moveItem,
+  programBody,
+  programValid,
   refLabel,
   sameDrafts,
+  sameIds,
+  toggleId,
 } from './cocurricular';
 
 const item = (over: Partial<ItemDraft> = {}): ItemDraft => ({
@@ -77,5 +85,54 @@ describe('pembantu pengaturan kokurikuler', () => {
   it('sameDrafts mengabaikan kunci lokal', () => {
     expect(sameDrafts([item({ key: '1' })], [item({ key: '2' })])).toBe(true);
     expect(sameDrafts([item()], [item({ label: 'Lain' })])).toBe(false);
+  });
+});
+
+describe('program kokurikuler', () => {
+  const fac = (over: Partial<FacilitatorDraft> = {}): FacilitatorDraft => ({
+    key: 'k',
+    teacherId: 't1',
+    classId: 'c1',
+    role: 'facilitator',
+    ...over,
+  });
+  const classes = new Set(['c1', 'c2']);
+
+  it('programBody mengubah isian kosong menjadi null dan JP menjadi angka', () => {
+    expect(
+      programBody({ ...EMPTY_PROGRAM, title: ' Proyek ', plannedPeriods: ' 36 ', theme: ' ' }),
+    ).toMatchObject({ semesterId: null, title: 'Proyek', theme: null, plannedPeriods: 36 });
+    expect(programBody({ ...EMPTY_PROGRAM, title: 'a' }).plannedPeriods).toBeNull();
+  });
+
+  it('programValid menolak judul kosong dan JP bukan bilangan bulat tak negatif', () => {
+    expect(programValid({ ...EMPTY_PROGRAM, title: 'a' })).toBe(true);
+    expect(programValid({ ...EMPTY_PROGRAM, title: ' ' })).toBe(false);
+    expect(programValid({ ...EMPTY_PROGRAM, title: 'a', plannedPeriods: '0' })).toBe(true);
+    expect(programValid({ ...EMPTY_PROGRAM, title: 'a', plannedPeriods: '-1' })).toBe(false);
+    expect(programValid({ ...EMPTY_PROGRAM, title: 'a', plannedPeriods: '1.5' })).toBe(false);
+    expect(programValid({ ...EMPTY_PROGRAM, title: 'a', plannedPeriods: '100001' })).toBe(false);
+  });
+
+  it('facilitatorsBody: koordinator tanpa rombel', () => {
+    expect(facilitatorsBody([fac({ role: 'coordinator' })])).toEqual([
+      { teacherId: 't1', classId: null, role: 'coordinator' },
+    ]);
+  });
+
+  it('facilitatorsValid menegakkan bentuk peran, rombel program, dan tanpa ganda', () => {
+    expect(facilitatorsValid([fac(), fac({ role: 'coordinator', classId: '' })], classes)).toBe(true);
+    expect(facilitatorsValid([fac({ classId: '' })], classes)).toBe(false);
+    expect(facilitatorsValid([fac({ classId: 'zzz' })], classes)).toBe(false);
+    expect(facilitatorsValid([fac({ teacherId: '' })], classes)).toBe(false);
+    expect(facilitatorsValid([fac(), fac({ key: 'k2' })], classes)).toBe(false);
+    expect(facilitatorsValid([fac(), fac({ key: 'k2', classId: 'c2' })], classes)).toBe(true);
+  });
+
+  it('toggleId dan sameIds', () => {
+    expect(toggleId(['a'], 'b')).toEqual(['a', 'b']);
+    expect(toggleId(['a', 'b'], 'a')).toEqual(['b']);
+    expect(sameIds(['a', 'b'], ['b', 'a'])).toBe(true);
+    expect(sameIds(['a'], ['b'])).toBe(false);
   });
 });

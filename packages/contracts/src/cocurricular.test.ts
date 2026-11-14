@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest';
-import { duplicateKeys, rubricLevelInputSchema, schoolProfileItemInputSchema } from './cocurricular';
+import {
+  cocurricularProgramCreateSchema,
+  duplicateKeys,
+  facilitatorShapeValid,
+  rubricLevelInputSchema,
+  schoolProfileItemInputSchema,
+} from './cocurricular';
 
 describe('kontrak kerangka profil', () => {
   it('butir: memangkas teks, deskripsi kosong menjadi null, bawaan aktif dan urutan 0', () => {
@@ -26,5 +32,39 @@ describe('kontrak kerangka profil', () => {
   it('duplicateKeys mengembalikan kunci yang berulang', () => {
     expect(duplicateKeys(['a', 'b', 'a', 'c', 'a', 'b'])).toEqual(['a', 'b']);
     expect(duplicateKeys(['a', 'b'])).toEqual([]);
+  });
+});
+
+describe('kontrak program kokurikuler', () => {
+  const base = {
+    academicYearId: '019e0000-0000-7000-8000-000000000001',
+    form: 'collaborative',
+    title: ' Tema ',
+  };
+  it('bawaan: sepanjang tahun, draf, tampil di rapor, anak kosong; teks dipangkas', () => {
+    const v = cocurricularProgramCreateSchema.parse(base);
+    expect(v).toMatchObject({
+      title: 'Tema',
+      semesterId: null,
+      theme: null,
+      plannedPeriods: null,
+      showInReport: true,
+      status: 'draft',
+      classIds: [],
+      profileItemIds: [],
+      facilitators: [],
+    });
+  });
+  it('menolak bentuk/status tak dikenal, judul kosong, dan JP negatif', () => {
+    expect(cocurricularProgramCreateSchema.safeParse({ ...base, form: 'x' }).success).toBe(false);
+    expect(cocurricularProgramCreateSchema.safeParse({ ...base, status: 'x' }).success).toBe(false);
+    expect(cocurricularProgramCreateSchema.safeParse({ ...base, title: ' ' }).success).toBe(false);
+    expect(cocurricularProgramCreateSchema.safeParse({ ...base, plannedPeriods: -1 }).success).toBe(false);
+  });
+  it('koordinator tanpa rombel, fasilitator wajib rombel', () => {
+    expect(facilitatorShapeValid({ role: 'coordinator', classId: null })).toBe(true);
+    expect(facilitatorShapeValid({ role: 'coordinator', classId: 'c' })).toBe(false);
+    expect(facilitatorShapeValid({ role: 'facilitator', classId: 'c' })).toBe(true);
+    expect(facilitatorShapeValid({ role: 'facilitator', classId: null })).toBe(false);
   });
 });

@@ -11,6 +11,7 @@ import {
 import {
   and,
   asc,
+  cocurricularProgramTarget,
   cocurricularRubricLevel,
   eq,
   inArray,
@@ -255,7 +256,7 @@ export async function cocurricularRoutes(instance: FastifyInstance) {
           'kode, urutan, aktif; `frameworkKey` tidak bisa diganti), butir tanpa `id` dibuat sebagai butir buatan sekolah, butir ' +
           `yang tidak disertakan dihapus (maks. ${PROFILE_ITEM_LIMIT} butir). Untuk menyembunyikan butir, kirim \`active: false\`. ` +
           'Galat: 400 `invalid_reference` (id atau kerangka tidak dikenal), 400 `framework_not_for_profile`, 409 `conflict` (kode ' +
-          'kembar dalam satu kerangka). Penolakan 409 `item_in_use` untuk butir yang dipakai program berlaku sejak tahap 4.2.',
+          'kembar dalam satu kerangka), 409 `item_in_use` (butir yang dipakai program kokurikuler tidak bisa dihapus; nonaktifkan).',
         headers: schoolHeader,
         body: z.object({ items: z.array(schoolProfileItemInputSchema).max(PROFILE_ITEM_LIMIT) }),
         response: {
@@ -285,6 +286,20 @@ export async function cocurricularRoutes(instance: FastifyInstance) {
           }
           const keepIds = input.flatMap((i) => (i.id ? [i.id] : []));
           const removed = [...existing.keys()].filter((id) => !keepIds.includes(id));
+          if (removed.length > 0) {
+            const used = await tx
+              .select({ id: cocurricularProgramTarget.profileItemId })
+              .from(cocurricularProgramTarget)
+              .where(inArray(cocurricularProgramTarget.profileItemId, removed))
+              .limit(1);
+            if (used.length > 0) {
+              throw new HttpError(
+                409,
+                'item_in_use',
+                'Butir ini dipakai program kokurikuler; nonaktifkan, jangan dihapus.',
+              );
+            }
+          }
           // Hapus dulu supaya kode yang dibebaskan bisa dipakai ulang di daftar yang sama.
           if (removed.length > 0)
             await tx.delete(schoolProfileItem).where(inArray(schoolProfileItem.id, removed));
