@@ -3473,4 +3473,195 @@ export const ACADEMIC_DOCS: DocArticle[] = [
       },
     },
   },
+  {
+    slug: 'data-export',
+    icon: 'file',
+    tone: 'teal',
+    group: 'academic',
+    text: {
+      id: {
+        title: 'Ekspor data akademik (CSV)',
+        summary:
+          'Cara mengunduh data rombel, mapel, pilihan mapel, nilai akhir, dan deskripsi capaian sebagai berkas generik Edusync untuk diolah sendiri atau dipetakan manual.',
+        forWho:
+          'Admin sekolah, kurikulum, dan operator yang perlu menyalin data akademik ke aplikasi lain atau ke lembar kerja sendiri.',
+        sections: [
+          {
+            heading: 'Penting: ini ekspor generik Edusync',
+            body: 'Berkas ini memakai format generik Edusync bernama edusync-academic-v1. Ini bukan format impor resmi Dapodik, e-Rapor, maupun EMIS, dan Edusync tidak mengklaim kompatibel dengan aplikasi mana pun. Format yang benar-benar diterima aplikasi tujuan belum diverifikasi, jadi periksa dulu kebutuhan aplikasi itu. Berkas ini membantu pemetaan manual karena memuat kode identitas: NPSN sekolah, NISN, NIS, kode mapel sekolah, dan kode mapel acuan bila ada.',
+            href: '/exports',
+            warning:
+              'Jangan mengunggah berkas ini langsung ke aplikasi pelaporan resmi dengan harapan otomatis diterima. Cocokkan dulu kolomnya secara manual.',
+          },
+          {
+            heading: 'Mengunduh berkas',
+            body: 'Buka menu Ekspor data, pilih pilihan yang sesuai, lalu klik Unduh. Di bawah tombol tampil pratinjau sepuluh baris pertama dan kamus kolom, sehingga Anda bisa memeriksa isinya sebelum mengunduh.',
+            steps: [
+              'Pilih tahun ajaran.',
+              'Pilih dataset. Untuk pilihan mapel, nilai akhir, dan deskripsi, pilih juga semester.',
+              'Pilih format berkas: CSV untuk Excel, atau berkas data terstruktur untuk diolah program.',
+              'Periksa pratinjau, lalu klik Unduh.',
+            ],
+            href: '/exports',
+            tip: 'Berkas CSV memakai tanda titik koma sebagai pemisah dan dapat langsung dibuka di Excel dengan huruf yang benar.',
+          },
+          {
+            heading: 'Dataset yang tersedia',
+            body: 'Ada lima dataset. Rombel dan anggota: satu baris per murid di tiap rombel beserta wali kelas, NISN, NIS, jenis kelamin, dan tanggal lahir. Mapel per rombel: satu baris per mapel di tiap rombel beserta guru, jam pelajaran per minggu, dan mode peserta. Pilihan mapel murid: mapel pilihan yang diambil tiap murid pada semester terpilih. Nilai akhir: nilai akhir, predikat, dan KKM per murid dan mapel. Deskripsi capaian: deskripsi per murid dan mapel. Nilai akhir dan deskripsi capaian memerlukan modul Nilai dan rapor aktif di sekolah Anda.',
+            href: '/exports',
+          },
+          {
+            heading: 'Kamus kolom',
+            body: 'Setiap kolom punya kunci tetap berbahasa Inggris dengan huruf kecil, misalnya school_npsn, student_nisn, student_nis, subject_code, dan class_name. Kolom yang kosong berarti datanya memang belum ada, misalnya NPSN yang belum diisi. Daftar lengkap kolom dataset yang dipilih tampil di halaman Ekspor data pada bagian Kamus kolom, berurutan seperti di berkas. Bila kolom diubah di masa depan, itu menjadi versi format baru dan bukan perubahan diam-diam.',
+            href: '/exports',
+          },
+          {
+            heading: 'Data yang tidak ikut',
+            body: 'NIK murid tidak pernah disertakan. Nilai akhir dan deskripsi capaian hanya diambil dari rapor yang sudah final, sebagai salinan yang dibekukan saat finalisasi; rapor yang masih draf tidak ikut. Karena itu, finalkan rapor kelas lebih dulu bila nilainya belum muncul.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Siapa yang bisa mengekspor',
+            body: 'Admin sekolah, Kurikulum, dan Operator dapat mengekspor data. Peran lain tidak melihat menu Ekspor data. Dataset nilai akhir dan deskripsi capaian hanya dapat diunduh bila modul Nilai dan rapor aktif; bila tidak, tampil pesan yang menjelaskannya.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Apakah berkas ini bisa langsung diimpor ke Dapodik, e-Rapor, atau EMIS?',
+            a: 'Tidak ada jaminan. Ini format generik Edusync dan Edusync tidak mengklaim kompatibel dengan aplikasi tersebut. Gunakan berkas ini sebagai bahan untuk memetakan data secara manual.',
+          },
+          {
+            q: 'Mengapa nilai akhir atau deskripsi kosong untuk sebuah kelas?',
+            a: 'Hanya rapor yang sudah final yang disertakan. Finalkan rapor kelas itu pada semester yang sama, lalu muat ulang pratinjau.',
+          },
+          {
+            q: 'Apakah NIK ikut diekspor?',
+            a: 'Tidak. NIK tidak pernah menjadi kolom pada ekspor ini.',
+          },
+        ],
+      },
+      en: {
+        title: 'Academic data export (CSV)',
+        summary:
+          'How to download classes, subjects, subject choices, final grades, and achievement descriptions as a generic Edusync file to process yourself or map manually.',
+        forWho:
+          'School admins, Curriculum staff, and Operators who need to copy academic data into another application or their own spreadsheet.',
+        sections: [
+          {
+            heading: 'Important: this is a generic Edusync export',
+            body: 'The file uses a generic Edusync format named edusync-academic-v1. It is not the official import format of Dapodik, e-Rapor, or EMIS, and Edusync does not claim compatibility with any application. The format the destination application actually accepts has not been verified, so check that application’s requirements first. The file helps manual mapping because it carries identity codes: the school NPSN, NISN, NIS, the school subject code, and the reference subject code when there is one.',
+            href: '/exports',
+            warning:
+              'Do not upload this file straight into an official reporting application expecting it to be accepted automatically. Match the columns manually first.',
+          },
+          {
+            heading: 'Downloading a file',
+            body: 'Open the Data export menu, choose your options, and click Download. Below the button you see a preview of the first ten rows and the column dictionary, so you can check the content before downloading.',
+            steps: [
+              'Choose the academic year.',
+              'Choose the dataset. For subject choices, final grades, and descriptions, also choose the semester.',
+              'Choose the file format: CSV for Excel, or a structured data file for programs.',
+              'Check the preview, then click Download.',
+            ],
+            href: '/exports',
+            tip: 'The CSV file uses a semicolon as separator and opens directly in Excel with the correct characters.',
+          },
+          {
+            heading: 'Available datasets',
+            body: 'There are five datasets. Classes and members: one row per student in each class with the homeroom teacher, NISN, NIS, gender, and date of birth. Subjects per class: one row per subject in each class with the teacher, periods per week, and participation mode. Student subject choices: the elective subjects each student takes in the chosen semester. Final grades: the final grade, predicate, and KKM per student and subject. Achievement descriptions: the description per student and subject. Final grades and achievement descriptions need the Grades and report cards module to be active at your school.',
+            href: '/exports',
+          },
+          {
+            heading: 'Column dictionary',
+            body: 'Every column has a fixed lowercase English key, for example school_npsn, student_nisn, student_nis, subject_code, and class_name. An empty column means the data does not exist yet, for example an NPSN that has not been filled in. The full list of columns for the chosen dataset appears on the Data export page under Column dictionary, in the same order as the file. If a column changes in the future, it becomes a new format version rather than a silent change.',
+            href: '/exports',
+          },
+          {
+            heading: 'Data that is left out',
+            body: 'The student NIK is never included. Final grades and achievement descriptions come only from finalized report cards, as the copy frozen at finalization; draft report cards are not included. So finalize the class report cards first if the grades do not show up.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Who can export',
+            body: 'School admins, Curriculum staff, and Operators can export data. Other roles do not see the Data export menu. The final grades and achievement descriptions datasets can only be downloaded when the Grades and report cards module is active; otherwise a message explains it.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Can this file be imported directly into Dapodik, e-Rapor, or EMIS?',
+            a: 'There is no guarantee. This is a generic Edusync format and Edusync does not claim compatibility with those applications. Use the file as material for mapping the data manually.',
+          },
+          {
+            q: 'Why are final grades or descriptions empty for a class?',
+            a: 'Only finalized report cards are included. Finalize that class’s report cards in the same semester, then reload the preview.',
+          },
+          {
+            q: 'Is the NIK exported?',
+            a: 'No. The NIK is never a column in this export.',
+          },
+        ],
+      },
+      su: {
+        title: 'Ékspor data akademik (CSV)',
+        summary:
+          'Cara ngaunduh data rombongan, mapel, pilihan mapel, nilai ahir, jeung déskripsi capaian minangka berkas umum Edusync pikeun diolah sorangan atawa dipetakeun sacara manual.',
+        forWho:
+          'Admin sakola, Kurikulum, jeung Operator anu perlu nyalin data akademik ka aplikasi séjén atawa ka lembar kerja sorangan.',
+        sections: [
+          {
+            heading: 'Penting: ieu ékspor umum Edusync',
+            body: 'Berkas ieu maké format umum Edusync anu ngaranna edusync-academic-v1. Ieu lain format impor resmi Dapodik, e-Rapor, atawa EMIS, jeung Edusync henteu ngaku cocog jeung aplikasi mana waé. Format anu sabenerna ditarima ku aplikasi tujuan can diverifikasi, jadi pariksa heula pangabutuh aplikasi éta. Berkas ieu mantuan pamétaan manual sabab ngandung kode idéntitas: NPSN sakola, NISN, NIS, kode mapel sakola, jeung kode mapel acuan lamun aya.',
+            href: '/exports',
+            warning:
+              'Ulah ngunggah berkas ieu langsung ka aplikasi laporan resmi bari ngarepkeun otomatis ditarima. Cocogkeun heula kolomna sacara manual.',
+          },
+          {
+            heading: 'Ngaunduh berkas',
+            body: 'Buka ménu Ékspor data, pilih pilihan anu cocog, terus klik Unduh. Di handapeun tombol kaciri pratinjau sapuluh baris kahiji jeung kamus kolom, jadi Anjeun bisa mariksa eusina saméméh ngaunduh.',
+            steps: [
+              'Pilih taun ajaran.',
+              'Pilih dataset. Pikeun pilihan mapel, nilai ahir, jeung déskripsi, pilih ogé semester.',
+              'Pilih format berkas: CSV pikeun Excel, atawa berkas data terstruktur pikeun program.',
+              'Pariksa pratinjau, terus klik Unduh.',
+            ],
+            href: '/exports',
+            tip: 'Berkas CSV maké titik koma minangka pamisah jeung bisa langsung dibuka di Excel kalayan aksara anu bener.',
+          },
+          {
+            heading: 'Dataset anu aya',
+            body: 'Aya lima dataset. Rombongan jeung anggotana: sabaris pikeun unggal murid di tiap rombongan jeung wali kelas, NISN, NIS, jenis kelamin, jeung tanggal lahir. Mapel per rombongan: sabaris pikeun unggal mapel di tiap rombongan jeung guru, jam pelajaran per minggu, jeung mode pamilon. Pilihan mapel murid: mapel pilihan anu dicandak ku tiap murid dina semester anu dipilih. Nilai ahir: nilai ahir, predikat, jeung KKM per murid jeung mapel. Déskripsi capaian: déskripsi per murid jeung mapel. Nilai ahir jeung déskripsi capaian peryogi modul Nilai jeung rapor aktip di sakola Anjeun.',
+            href: '/exports',
+          },
+          {
+            heading: 'Kamus kolom',
+            body: 'Unggal kolom boga konci tetep maké basa Inggris huruf leutik, upamana school_npsn, student_nisn, student_nis, subject_code, jeung class_name. Kolom kosong hartina datana memang can aya, upamana NPSN anu can dieusian. Daptar lengkep kolom dataset anu dipilih kaciri di kaca Ékspor data dina bagian Kamus kolom, diurutkeun sakumaha dina berkas. Lamun kolom robah di mangsa nu bakal datang, éta jadi versi format anyar, lain robahan anu cicingeun.',
+            href: '/exports',
+          },
+          {
+            heading: 'Data anu teu milu',
+            body: 'NIK murid henteu pernah diasupkeun. Nilai ahir jeung déskripsi capaian ngan dicokot tina rapor anu geus final, minangka salinan anu dibekukeun waktu finalisasi; rapor anu masih rarancang teu milu. Ku kituna, finalkeun heula rapor rombongan lamun nilaina can muncul.',
+            href: '/report-cards',
+          },
+          {
+            heading: 'Saha anu bisa ngékspor',
+            body: 'Admin sakola, Kurikulum, jeung Operator bisa ngékspor data. Peran séjén teu nempo ménu Ékspor data. Dataset nilai ahir jeung déskripsi capaian ngan bisa diunduh lamun modul Nilai jeung rapor aktip; lamun henteu, kaciri pesen anu ngajelaskeun.',
+          },
+        ],
+        faq: [
+          {
+            q: 'Naha berkas ieu bisa langsung diimpor ka Dapodik, e-Rapor, atawa EMIS?',
+            a: 'Euweuh jaminan. Ieu format umum Edusync jeung Edusync henteu ngaku cocog jeung aplikasi éta. Paké berkas ieu minangka bahan pikeun mamétakeun data sacara manual.',
+          },
+          {
+            q: 'Naha nilai ahir atawa déskripsi kosong pikeun hiji rombongan?',
+            a: 'Ngan rapor anu geus final anu diasupkeun. Finalkeun rapor rombongan éta dina semester anu sarua, terus muat deui pratinjau.',
+          },
+          {
+            q: 'Naha NIK milu diékspor?',
+            a: 'Henteu. NIK henteu pernah jadi kolom dina ékspor ieu.',
+          },
+        ],
+      },
+    },
+  },
 ];

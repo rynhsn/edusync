@@ -724,7 +724,8 @@
     "attendanceManual": "Absen datang & pulang",
     "cards": "Kartu cetak",
     "curriculum": "Kurikulum",
-    "subjectChoices": "Pilihan mapel"
+    "subjectChoices": "Pilihan mapel",
+    "exports": "Ekspor data"
   },
   "roles": {
     "school_admin": "Admin sekolah",
@@ -738,6 +739,7 @@
     "student": "Siswa"
   },
   "permissions": {
+    "data_export_run": "Mengekspor data akademik (rombel, mapel, nilai akhir) sebagai berkas CSV atau JSON",
     "graduation_read": "Melihat kelulusan, nilai ujian sekolah, dan transkrip",
     "graduation_manage": "Mengelola kriteria kelulusan, nilai ujian sekolah, penetapan, dan SKL",
     "member_read": "Melihat anggota",
@@ -1372,6 +1374,7 @@
     "versionWarningAssessed": "Khusus TP yang sudah dikaitkan ke penilaian: mengubah teksnya membuat versi baru, dan penilaian yang sudah ada tetap memakai teks lama beserta skornya. Bila ingin penilaian memakai teks baru, ubah TP di penilaian tersebut. TP yang sudah dikaitkan ke penilaian tidak bisa dihapus; nonaktifkan saja."
   },
   "errors": {
+    "dataset_requires_module": "Dataset nilai dan deskripsi memerlukan modul Nilai dan rapor. Aktifkan modul itu atau pilih dataset lain.",
     "graduation_final": "Murid ini sudah ditetapkan di menu Kelulusan, jadi keputusannya harus sama. Buka kembali penetapannya di sana bila perlu mengubah.",
     "graduation_not_determined": "Keputusan lulus harus ditetapkan lebih dulu di menu Kelulusan; tidak bisa dipilih langsung di sini.",
     "gateway_disabled": "Pembayaran online belum diaktifkan oleh sekolah. Bayar lewat kasir sekolah.",
@@ -8248,5 +8251,54 @@
     "taking": "Mengambil",
     "notTaking": "Tidak mengambil",
     "studentOpenPage": "Buka halaman pilihan mata pelajaran"
+  },
+  "exports": {
+    "title": "Ekspor data akademik",
+    "subtitle": "Unduh data rombel, mapel, pilihan mapel, nilai akhir, dan deskripsi capaian sebagai berkas CSV atau JSON untuk diolah sendiri atau dipetakan secara manual.",
+    "noAccess": "Anda belum punya akses ke halaman ini",
+    "noAccessBody": "Halaman ini untuk pengguna yang boleh mengekspor data. Hubungi admin sekolah bila perlu.",
+    "noYears": "Belum ada tahun ajaran",
+    "noYearsBody": "Buat tahun ajaran lebih dulu, lalu kembali ke halaman ini.",
+    "yearsLink": "Buka tahun ajaran",
+    "noticeTitle": "Ekspor generik Edusync, bukan format impor resmi",
+    "noticeFormat": "Berkas memakai format generik Edusync {format}. Kolomnya tetap dan terdokumentasi, tetapi hanya Edusync yang menetapkannya.",
+    "noticeNotOfficial": "Ini bukan format impor resmi Dapodik, e-Rapor, maupun EMIS, dan Edusync tidak mengklaim kompatibilitas dengan aplikasi mana pun. Periksa format yang diminta aplikasi tujuan, lalu petakan kolomnya secara manual dengan kode NPSN, NISN, NIS, dan kode mapel.",
+    "noticeNik": "NIK tidak pernah disertakan dalam ekspor ini.",
+    "noticeFinalOnly": "Nilai dan deskripsi hanya diambil dari rapor yang sudah final; rapor yang masih draf tidak ikut.",
+    "year": "Tahun ajaran",
+    "semester": "Semester",
+    "dataset": "Dataset",
+    "format": "Format berkas",
+    "formats": {
+      "csv": "CSV (titik koma, cocok untuk Excel)",
+      "json": "JSON"
+    },
+    "datasets": {
+      "rombel": "Rombel dan anggota",
+      "class_subjects": "Mapel per rombel",
+      "subject_choices": "Pilihan mapel murid",
+      "final_grades": "Nilai akhir (rapor final)",
+      "descriptions": "Deskripsi capaian (rapor final)"
+    },
+    "datasetHints": {
+      "rombel": "Satu baris per murid di tiap rombel: tingkat, program, wali kelas, NISN, NIS, nama, jenis kelamin, dan tanggal lahir.",
+      "class_subjects": "Satu baris per mapel di tiap rombel: kode mapel, kelompok, jenis, guru pengampu, jam pelajaran per minggu, dan mode peserta.",
+      "subject_choices": "Satu baris per murid dan mapel pilihan yang diambil pada semester terpilih.",
+      "final_grades": "Satu baris per murid dan mapel: nilai akhir, predikat, dan KKM dari rapor yang sudah final pada semester terpilih.",
+      "descriptions": "Satu baris per murid dan mapel: deskripsi capaian dari rapor yang sudah final pada semester terpilih."
+    },
+    "needsGrades": "Dataset ini memerlukan modul Nilai dan rapor aktif di sekolah Anda.",
+    "noSemester": "Tahun ajaran ini belum punya semester. Buat semester lebih dulu.",
+    "download": "Unduh",
+    "preparing": "Menyiapkan…",
+    "downloaded": "Berkas {name} diunduh.",
+    "previewTitle": "Pratinjau",
+    "previewCount": "Menampilkan {shown} dari {total} baris. Berkas CSV dan JSON memakai kolom yang sama.",
+    "previewEmpty": "Tidak ada data untuk pilihan ini.",
+    "dictTitle": "Kamus kolom",
+    "dictIntro": "Kolom dataset terpilih pada format {format}, berurutan seperti pada berkas. Kunci kolom tetap dan berbahasa Inggris; perubahan kolom akan menjadi versi format baru.",
+    "colKey": "Kolom",
+    "colDescription": "Keterangan",
+    "dictNote": "Keterangan kolom disediakan dalam bahasa Indonesia."
   }
 }

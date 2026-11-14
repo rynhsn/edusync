@@ -11,6 +11,7 @@ export * from './curriculum';
 export * from './education-ids';
 export * from './education-profile';
 export * from './exam-paper';
+export * from './export';
 export * from './finance-billing';
 export * from './finance-late-fee';
 export * from './grading';

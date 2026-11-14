@@ -22679,7 +22679,7 @@
                   },
                   "permissions": {
                     "minItems": 1,
-                    "maxItems": 57,
+                    "maxItems": 58,
                     "type": "array",
                     "items": {
                       "type": "string",
@@ -22740,7 +22740,8 @@
                         "announcement:read",
                         "announcement:manage",
                         "audit:read",
-                        "account:reset"
+                        "account:reset",
+                        "data_export:run"
                       ]
                     }
                   }
@@ -23827,7 +23828,7 @@
                   },
                   "permissions": {
                     "minItems": 1,
-                    "maxItems": 57,
+                    "maxItems": 58,
                     "type": "array",
                     "items": {
                       "type": "string",
@@ -23888,7 +23889,8 @@
                         "announcement:read",
                         "announcement:manage",
                         "audit:read",
-                        "account:reset"
+                        "account:reset",
+                        "data_export:run"
                       ]
                     }
                   }
@@ -32578,6 +32580,263 @@
             }
           },
           "404": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/exports/academic": {
+      "get": {
+        "summary": "Ekspor akademik generik (CSV atau JSON)",
+        "tags": [
+          "Academic"
+        ],
+        "description": "Izin: `data_export:run`; modul Nilai dan rapor (kunci `grades`) hanya untuk dataset `final_grades` dan `descriptions` (400 `dataset_requires_module` bila modul belum aktif). Ekspor GENERIK format `edusync-academic-v1`: BUKAN format impor e-Rapor, Dapodik, atau EMIS, dan tidak ada klaim kompatibilitas dengan aplikasi tersebut; kode identitas (NPSN, NISN, NIS, kode mapel sekolah, kode mapel acuan) disertakan untuk memudahkan pemetaan manual. Dataset: `rombel` (anggota rombel), `class_subjects` (mapel per rombel dengan guru, JP, dan mode partisipasi), `subject_choices` (mapel yang diambil murid pada mapel pilihan; wajib `semesterId`), `final_grades` (nilai akhir, predikat, KKM) dan `descriptions` (deskripsi capaian), keduanya wajib `semesterId` dan HANYA dari snapshot rapor berstatus final (draf tidak pernah ikut). NIK tidak pernah disertakan. `format=csv` (bawaan): berkas `text/csv` UTF-8 dengan BOM, pemisah `;`, baris CRLF, header berupa kunci kolom tetap berbahasa Inggris, sel berawalan `=`, `+`, `-`, `@` diberi apostrof di depan; diunduh lewat `Content-Disposition: attachment`. `format=json`: objek `{ format, dataset, generatedAt, columns, rows }`; `columns` adalah kamus kolom. Mengubah kolom berarti versi format baru. Setiap ekspor dicatat di jejak audit (tanpa isi). 400 `invalid_reference`: tahun ajaran atau semester tidak ditemukan (atau semester bukan milik tahun itu), atau semester wajib tetapi tidak diisi.",
+        "parameters": [
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "academicYearId",
+            "required": true,
+            "description": "Tahun ajaran sumber data"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "query",
+            "name": "semesterId",
+            "required": false,
+            "description": "Semester; wajib untuk `subject_choices`, `final_grades`, dan `descriptions`"
+          },
+          {
+            "schema": {
+              "type": "string",
+              "enum": [
+                "rombel",
+                "class_subjects",
+                "subject_choices",
+                "final_grades",
+                "descriptions"
+              ]
+            },
+            "in": "query",
+            "name": "dataset",
+            "required": true
+          },
+          {
+            "schema": {
+              "default": "csv",
+              "type": "string",
+              "enum": [
+                "csv",
+                "json"
+              ]
+            },
+            "in": "query",
+            "name": "format",
+            "required": false
+          },
+          {
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "in": "header",
+            "name": "x-school-id",
+            "required": true,
+            "description": "Sekolah yang sedang dipakai"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "`format=json`: objek; `format=csv`: berkas `text/csv`.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "format": {
+                          "type": "string",
+                          "enum": [
+                            "edusync-academic-v1"
+                          ]
+                        },
+                        "dataset": {
+                          "type": "string",
+                          "enum": [
+                            "rombel",
+                            "class_subjects",
+                            "subject_choices",
+                            "final_grades",
+                            "descriptions"
+                          ]
+                        },
+                        "generatedAt": {
+                          "type": "string"
+                        },
+                        "columns": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "key": {
+                                "type": "string"
+                              },
+                              "description": {
+                                "type": "string"
+                              }
+                            },
+                            "required": [
+                              "key",
+                              "description"
+                            ],
+                            "additionalProperties": false
+                          }
+                        },
+                        "rows": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "additionalProperties": {
+                              "anyOf": [
+                                {
+                                  "type": "string"
+                                },
+                                {
+                                  "type": "number"
+                                },
+                                {
+                                  "type": "boolean"
+                                }
+                              ],
+                              "nullable": true
+                            }
+                          }
+                        }
+                      },
+                      "required": [
+                        "format",
+                        "dataset",
+                        "generatedAt",
+                        "columns",
+                        "rows"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "string",
+                      "description": "`format=csv`: isi berkas CSV (`text/csv`)"
+                    }
+                  ],
+                  "description": "`format=json`: objek; `format=csv`: berkas `text/csv`."
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Default Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": {
+                          "type": "string"
+                        },
+                        "message": {
+                          "type": "string"
+                        }
+                      },
+                      "required": [
+                        "code",
+                        "message"
+                      ],
+                      "additionalProperties": false
+                    }
+                  },
+                  "required": [
+                    "error"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "403": {
             "description": "Default Response",
             "content": {
               "application/json": {

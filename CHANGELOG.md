@@ -200,6 +200,14 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   `choicesCopied` dan `choicesDropped` (mapel yang tak lagi berpenanda di kelas tujuan), keduanya hanya bila murid punya pilihan.
   Pilihan per semester tidak dibawa, pilihan yang sudah ada di tahun tujuan tidak ditimpa, dan penempatan murid tidak memperhitungkan
   pilihan. Sekolah tanpa mapel pilihan mendapat respons yang sama persis seperti sebelumnya. Tanpa migrasi baru.
+- **Ekspor akademik generik** (tahap 3C.5): halaman Ekspor data dan `GET /v1/exports/academic` (`academicYearId`, `semesterId`,
+  `dataset`, `format=csv|json`) untuk lima dataset: `rombel`, `class_subjects`, `subject_choices`, `final_grades`, `descriptions`. Format
+  `edusync-academic-v1` milik Edusync, BUKAN format impor e-Rapor, Dapodik, atau EMIS (tidak ada klaim kompatibilitas); kode identitas
+  (NPSN, NISN, NIS, kode mapel sekolah dan acuan) disertakan untuk pemetaan manual. Nilai akhir dan deskripsi hanya dari snapshot
+  rapor final (draf tidak pernah ikut); NIK tidak pernah disertakan dan tidak ada opsi untuk menyertakannya. CSV UTF-8 dengan BOM,
+  pemisah `;`, sel berawalan rumus diberi apostrof; JSON memuat kamus kolom. Izin baru `data_export:run` (admin sekolah, kurikulum,
+  operator; menyebar ke sekolah lama lewat sinkron peran); dataset nilai dan deskripsi memerlukan modul `grades` (400
+  `dataset_requires_module`). Setiap ekspor tercatat di jejak audit. Tanpa migrasi baru.
 
 ### Diubah
 
@@ -249,6 +257,8 @@ v1.4.0 (teks per predikat, bentuk data versi 1); hanya murid dan mata pelajaran 
   baris yang sudah ditulis (penanda mapel pilihan dan pilihan murid di tahun tujuan, absensi per sel). Setelah kembali ke versi
   sebelumnya, lembar absensi satu jam memuat seluruh murid rombel lagi (termasuk yang tidak mengambil mapelnya) dan jumlah
   `total` kembali menghitung seluruh rombel; absensi yang sudah tercatat tetap utuh.
+- Ekspor akademik generik (tahap 3C.5): tanpa migrasi dan tanpa tabel baru; hanya izin `data_export:run` ditambahkan ke peran. Setelah
+  kembali ke versi sebelumnya rute ekspor hilang dan izin itu diabaikan; baris jejak audit `export.academic` yang sudah ada tetap.
 - Kelulusan (tahap 3C.4): tabel `graduation_policy`, `school_exam`, `school_exam_score`, dan `graduation_decision` serta izin
   `graduation:read` dan `graduation:manage` dibiarkan di database dan tampil lagi setelah maju. Setelah kembali ke versi
   sebelumnya, halaman dan endpoint kelulusan tidak ada dan keputusan `graduate` di wizard kenaikan kembali bebas dipilih (penjaga

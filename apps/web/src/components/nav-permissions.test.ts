@@ -23,6 +23,7 @@ const PRIMARY: Record<string, string> = {
   '/curriculum': 'GET /v1/academic-years/{id}/curriculum/allocations',
   '/teaching-plan': 'POST /v1/learning-flows',
   '/subject-choices': 'GET /v1/classes/{id}/subject-participation',
+  '/exports': 'GET /v1/exports/academic',
   '/academic-years': 'GET /v1/academic-years',
   '/calendar': 'GET /v1/academic-years/{id}/calendar',
   '/promotion': 'GET /v1/academic-years/{id}/promotions',

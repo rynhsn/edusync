@@ -724,7 +724,8 @@
     "attendanceManual": "Absén datang & mulih",
     "cards": "Kartu citak",
     "curriculum": "Kurikulum",
-    "subjectChoices": "Pilihan mapel"
+    "subjectChoices": "Pilihan mapel",
+    "exports": "Ékspor data"
   },
   "roles": {
     "school_admin": "Admin sakola",
@@ -738,6 +739,7 @@
     "student": "Murid"
   },
   "permissions": {
+    "data_export_run": "Ngékspor data akademik (rombongan, mapel, nilai ahir) minangka berkas CSV atawa JSON",
     "graduation_read": "Nempo kalulusan, nilai ujian sakola, jeung transkrip",
     "graduation_manage": "Ngatur kriteria kalulusan, nilai ujian sakola, panetepan, jeung SKL",
     "member_read": "Ningali anggota",
@@ -1372,6 +1374,7 @@
     "versionWarningAssessed": "Pikeun TP nu geus dikaitkeun ka panilaian: ngarobah téksna nyieun vérsi anyar, jeung panilaian nu geus aya tetep migunakeun téks heubeul sarta skorna. Upami hayang panilaian migunakeun téks anyar, robah TP dina panilaian éta. TP nu geus dikaitkeun ka panilaian teu tiasa dihapus; pareuman wungkul."
   },
   "errors": {
+    "dataset_requires_module": "Dataset nilai jeung déskripsi peryogi modul Nilai jeung rapor. Hurungkeun modul éta atawa pilih dataset séjén.",
     "graduation_final": "Murid ieu geus ditetepkeun di menu Kalulusan, jadi kaputusanana kudu sarua. Buka deui panetepanana di ditu lamun perlu dirobah.",
     "graduation_not_determined": "Kaputusan lulus kudu ditetepkeun heula di menu Kalulusan; teu bisa dipilih langsung di dieu.",
     "gateway_disabled": "Pambayaran online acan diaktipkeun ku sakola. Bayar di kasir sakola.",
@@ -8245,5 +8248,54 @@
     "taking": "Nyandak",
     "notTaking": "Teu nyandak",
     "studentOpenPage": "Buka kaca pilihan mata pelajaran"
+  },
+  "exports": {
+    "title": "Ékspor data akademik",
+    "subtitle": "Unduh data rombongan, mapel, pilihan mapel, nilai ahir, jeung déskripsi capaian minangka berkas CSV atawa JSON pikeun diolah sorangan atawa dipetakeun sacara manual.",
+    "noAccess": "Anjeun can gaduh aksés ka kaca ieu",
+    "noAccessBody": "Kaca ieu pikeun pamaké anu kenging ngékspor data. Hubungi admin sakola upami peryogi.",
+    "noYears": "Can aya taun ajaran",
+    "noYearsBody": "Jieun taun ajaran heula, terus balik deui ka kaca ieu.",
+    "yearsLink": "Buka taun ajaran",
+    "noticeTitle": "Ékspor umum Edusync, lain format impor resmi",
+    "noticeFormat": "Berkas maké format umum Edusync {format}. Kolomna tetep jeung didokuméntasikeun, tapi ngan Edusync anu nangtukeunana.",
+    "noticeNotOfficial": "Ieu lain format impor resmi Dapodik, e-Rapor, atawa EMIS, jeung Edusync henteu ngaku cocog jeung aplikasi mana waé. Pariksa heula format anu dipénta ku aplikasi tujuan, terus petakeun kolomna sacara manual maké kode NPSN, NISN, NIS, jeung kode mapel.",
+    "noticeNik": "NIK henteu pernah diasupkeun kana ékspor ieu.",
+    "noticeFinalOnly": "Nilai jeung déskripsi ngan dicokot tina rapor anu geus final; rapor anu masih rarancang teu milu.",
+    "year": "Taun ajaran",
+    "semester": "Semester",
+    "dataset": "Dataset",
+    "format": "Format berkas",
+    "formats": {
+      "csv": "CSV (titik koma, cocog pikeun Excel)",
+      "json": "JSON"
+    },
+    "datasets": {
+      "rombel": "Rombongan jeung anggotana",
+      "class_subjects": "Mapel per rombongan",
+      "subject_choices": "Pilihan mapel murid",
+      "final_grades": "Nilai ahir (rapor final)",
+      "descriptions": "Déskripsi capaian (rapor final)"
+    },
+    "datasetHints": {
+      "rombel": "Sabaris pikeun unggal murid di tiap rombongan: tingkat, program, wali kelas, NISN, NIS, ngaran, jenis kelamin, jeung tanggal lahir.",
+      "class_subjects": "Sabaris pikeun unggal mapel di tiap rombongan: kode mapel, kelompok, jinis, guru pangajar, jam pelajaran per minggu, jeung mode pamilon.",
+      "subject_choices": "Sabaris pikeun unggal murid jeung mapel pilihan anu dicandak dina semester anu dipilih.",
+      "final_grades": "Sabaris pikeun unggal murid jeung mapel: nilai ahir, predikat, jeung KKM tina rapor anu geus final dina semester anu dipilih.",
+      "descriptions": "Sabaris pikeun unggal murid jeung mapel: déskripsi capaian tina rapor anu geus final dina semester anu dipilih."
+    },
+    "needsGrades": "Dataset ieu peryogi modul Nilai jeung rapor aktip di sakola Anjeun.",
+    "noSemester": "Taun ajaran ieu can boga semester. Jieun semester heula.",
+    "download": "Unduh",
+    "preparing": "Nyiapkeun…",
+    "downloaded": "Berkas {name} geus diunduh.",
+    "previewTitle": "Pratinjau",
+    "previewCount": "Nembongkeun {shown} tina {total} baris. Berkas CSV jeung JSON maké kolom anu sarua.",
+    "previewEmpty": "Euweuh data pikeun pilihan ieu.",
+    "dictTitle": "Kamus kolom",
+    "dictIntro": "Kolom dataset anu dipilih dina format {format}, diurutkeun sakumaha dina berkas. Konci kolom tetep jeung maké basa Inggris; robahan kolom bakal jadi versi format anyar.",
+    "colKey": "Kolom",
+    "colDescription": "Katerangan",
+    "dictNote": "Katerangan kolom disayogikeun dina basa Indonesia."
   }
 }

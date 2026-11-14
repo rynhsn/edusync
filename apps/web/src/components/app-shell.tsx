@@ -20,6 +20,7 @@ import {
   Database,
   DoorOpen,
   Factory,
+  FileDown,
   FileQuestion,
   FileText,
   Globe,
@@ -230,6 +231,12 @@ export const NAV_GROUPS = [
         labelKey: 'subjectChoices',
         icon: ListChecks,
         permission: 'class:read',
+      },
+      {
+        href: '/exports',
+        labelKey: 'exports',
+        icon: FileDown,
+        permission: 'data_export:run',
       },
       {
         href: '/schedule',

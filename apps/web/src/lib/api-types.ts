@@ -9877,7 +9877,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
                     };
                 };
             };
@@ -10413,7 +10413,7 @@ export interface paths {
                 content: {
                     "application/json": {
                         name: string;
-                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset")[];
+                        permissions: ("member:read" | "member:manage" | "role:manage" | "academic_year:read" | "academic_year:manage" | "promotion:manage" | "graduation:read" | "graduation:manage" | "curriculum:manage" | "class:read" | "class:manage" | "student:read" | "student:manage" | "teacher:read" | "teacher:manage" | "subject:read" | "subject:manage" | "subject_choice:manage" | "teaching_plan:write" | "schedule:read" | "schedule:manage" | "attendance:read" | "attendance:manage" | "attendance:configure" | "extracurricular:read" | "extracurricular:manage" | "grade:read" | "grade:input" | "grade:configure" | "grade:read_all" | "report_card:read" | "report_card:manage" | "report_card:read_all" | "finance:read" | "finance:pay" | "finance:manage" | "message:read" | "message:manage" | "tahfidz:read" | "tahfidz:manage" | "letter:read" | "letter:manage" | "letter:sign" | "pkl:read" | "pkl:manage" | "exam:read" | "exam:author" | "exam:manage" | "admission:read" | "admission:manage" | "school:manage" | "portal:read" | "portal:respond" | "announcement:read" | "announcement:manage" | "audit:read" | "account:reset" | "data_export:run")[];
                     };
                 };
             };
@@ -14100,6 +14100,110 @@ export interface paths {
                 };
                 /** @description Default Response */
                 404: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/v1/exports/academic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Ekspor akademik generik (CSV atau JSON)
+         * @description Izin: `data_export:run`; modul Nilai dan rapor (kunci `grades`) hanya untuk dataset `final_grades` dan `descriptions` (400 `dataset_requires_module` bila modul belum aktif). Ekspor GENERIK format `edusync-academic-v1`: BUKAN format impor e-Rapor, Dapodik, atau EMIS, dan tidak ada klaim kompatibilitas dengan aplikasi tersebut; kode identitas (NPSN, NISN, NIS, kode mapel sekolah, kode mapel acuan) disertakan untuk memudahkan pemetaan manual. Dataset: `rombel` (anggota rombel), `class_subjects` (mapel per rombel dengan guru, JP, dan mode partisipasi), `subject_choices` (mapel yang diambil murid pada mapel pilihan; wajib `semesterId`), `final_grades` (nilai akhir, predikat, KKM) dan `descriptions` (deskripsi capaian), keduanya wajib `semesterId` dan HANYA dari snapshot rapor berstatus final (draf tidak pernah ikut). NIK tidak pernah disertakan. `format=csv` (bawaan): berkas `text/csv` UTF-8 dengan BOM, pemisah `;`, baris CRLF, header berupa kunci kolom tetap berbahasa Inggris, sel berawalan `=`, `+`, `-`, `@` diberi apostrof di depan; diunduh lewat `Content-Disposition: attachment`. `format=json`: objek `{ format, dataset, generatedAt, columns, rows }`; `columns` adalah kamus kolom. Mengubah kolom berarti versi format baru. Setiap ekspor dicatat di jejak audit (tanpa isi). 400 `invalid_reference`: tahun ajaran atau semester tidak ditemukan (atau semester bukan milik tahun itu), atau semester wajib tetapi tidak diisi.
+         */
+        get: {
+            parameters: {
+                query: {
+                    /** @description Tahun ajaran sumber data */
+                    academicYearId: string;
+                    /** @description Semester; wajib untuk `subject_choices`, `final_grades`, dan `descriptions` */
+                    semesterId?: string;
+                    dataset: "rombel" | "class_subjects" | "subject_choices" | "final_grades" | "descriptions";
+                    format?: "csv" | "json";
+                };
+                header: {
+                    /** @description Sekolah yang sedang dipakai */
+                    "x-school-id": string;
+                };
+                path?: never;
+                cookie?: never;
+            };
+            requestBody?: never;
+            responses: {
+                /** @description `format=json`: objek; `format=csv`: berkas `text/csv`. */
+                200: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            /** @enum {string} */
+                            format: "edusync-academic-v1";
+                            /** @enum {string} */
+                            dataset: "rombel" | "class_subjects" | "subject_choices" | "final_grades" | "descriptions";
+                            generatedAt: string;
+                            columns: {
+                                key: string;
+                                description: string;
+                            }[];
+                            rows: {
+                                [key: string]: (string | number | boolean) | null;
+                            }[];
+                        } | string;
+                    };
+                };
+                /** @description Default Response */
+                400: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                401: {
+                    headers: {
+                        [name: string]: unknown;
+                    };
+                    content: {
+                        "application/json": {
+                            error: {
+                                code: string;
+                                message: string;
+                            };
+                        };
+                    };
+                };
+                /** @description Default Response */
+                403: {
                     headers: {
                         [name: string]: unknown;
                     };

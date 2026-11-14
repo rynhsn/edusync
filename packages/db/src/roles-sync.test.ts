@@ -147,3 +147,28 @@ describe('sinkron izin kelulusan', () => {
     expect(await has(teacher, 'graduation:read')).toBe(false);
   });
 });
+
+describe('sinkron izin ekspor akademik', () => {
+  it('menyebar ke peran kurikulum sekolah lama, tidak ke guru dan kepala sekolah', async () => {
+    const roleId = async (key: string) =>
+      (
+        await platform.db
+          .select({ id: role.id })
+          .from(role)
+          .where(and(eq(role.schoolId, schoolId), eq(role.key, key)))
+      )[0]!.id;
+    const has = async (id: string) =>
+      (await platform.db.select().from(rolePermission).where(eq(rolePermission.roleId, id))).some(
+        (r) => r.permission === 'data_export:run',
+      );
+    const cur = await roleId('curriculum');
+    await platform.db
+      .delete(rolePermission)
+      .where(and(eq(rolePermission.roleId, cur), eq(rolePermission.permission, 'data_export:run')));
+    expect(await has(cur)).toBe(false);
+    await syncSystemRolePermissions(platform.db);
+    expect(await has(cur)).toBe(true);
+    expect(await has(await roleId('teacher'))).toBe(false);
+    expect(await has(await roleId('principal'))).toBe(false);
+  });
+});

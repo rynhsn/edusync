@@ -724,7 +724,8 @@
     "attendanceManual": "Manual arrival & departure",
     "cards": "Printable cards",
     "curriculum": "Curriculum",
-    "subjectChoices": "Subject choices"
+    "subjectChoices": "Subject choices",
+    "exports": "Data export"
   },
   "roles": {
     "school_admin": "School admin",
@@ -738,6 +739,7 @@
     "student": "Student"
   },
   "permissions": {
+    "data_export_run": "Export academic data (classes, subjects, final grades) as CSV or JSON files",
     "graduation_read": "View graduation, school exam scores, and transcripts",
     "graduation_manage": "Manage graduation criteria, school exam scores, decisions, and certificates",
     "member_read": "View members",
@@ -1372,6 +1374,7 @@
     "versionWarningAssessed": "For a TP already linked to an assessment: changing its text creates a new version, and existing assessments keep the old text together with their scores. To make an assessment use the new text, change its TP in that assessment. A TP linked to an assessment cannot be deleted; deactivate it instead."
   },
   "errors": {
+    "dataset_requires_module": "The grades and descriptions datasets need the Grades and report cards module. Turn that module on or choose another dataset.",
     "graduation_final": "This student has been decided in the Graduation menu, so the decision must match. Reopen it there if you need to change it.",
     "graduation_not_determined": "A graduation decision must be confirmed in the Graduation menu first; it cannot be chosen directly here.",
     "gateway_disabled": "Online payment is not enabled by the school. Pay at the school cashier.",
@@ -8245,5 +8248,54 @@
     "taking": "Takes it",
     "notTaking": "Does not take it",
     "studentOpenPage": "Open the subject choices page"
+  },
+  "exports": {
+    "title": "Academic data export",
+    "subtitle": "Download classes, subjects, subject choices, final grades, and achievement descriptions as CSV or JSON files to process yourself or map manually.",
+    "noAccess": "You do not have access to this page",
+    "noAccessBody": "This page is for users who may export data. Contact the school admin if needed.",
+    "noYears": "No academic years yet",
+    "noYearsBody": "Create an academic year first, then come back to this page.",
+    "yearsLink": "Open academic years",
+    "noticeTitle": "Generic Edusync export, not an official import format",
+    "noticeFormat": "The file uses the generic Edusync format {format}. Its columns are fixed and documented, but only Edusync defines them.",
+    "noticeNotOfficial": "This is not the official import format of Dapodik, e-Rapor, or EMIS, and Edusync does not claim compatibility with any of them. Check the format the destination application asks for, then map the columns manually using the NPSN, NISN, NIS, and subject codes.",
+    "noticeNik": "The NIK is never included in this export.",
+    "noticeFinalOnly": "Grades and descriptions come only from finalized report cards; draft report cards are not included.",
+    "year": "Academic year",
+    "semester": "Semester",
+    "dataset": "Dataset",
+    "format": "File format",
+    "formats": {
+      "csv": "CSV (semicolon, suits Excel)",
+      "json": "JSON"
+    },
+    "datasets": {
+      "rombel": "Classes and members",
+      "class_subjects": "Subjects per class",
+      "subject_choices": "Student subject choices",
+      "final_grades": "Final grades (final report cards)",
+      "descriptions": "Achievement descriptions (final report cards)"
+    },
+    "datasetHints": {
+      "rombel": "One row per student in each class: level, program, homeroom teacher, NISN, NIS, name, gender, and date of birth.",
+      "class_subjects": "One row per subject in each class: subject code, group, kind, teacher, periods per week, and participation mode.",
+      "subject_choices": "One row per student and elective subject taken in the chosen semester.",
+      "final_grades": "One row per student and subject: final grade, predicate, and KKM from the finalized report cards of the chosen semester.",
+      "descriptions": "One row per student and subject: the achievement description from the finalized report cards of the chosen semester."
+    },
+    "needsGrades": "This dataset needs the Grades and report cards module to be active at your school.",
+    "noSemester": "This academic year has no semester yet. Create a semester first.",
+    "download": "Download",
+    "preparing": "Preparing…",
+    "downloaded": "File {name} downloaded.",
+    "previewTitle": "Preview",
+    "previewCount": "Showing {shown} of {total} rows. The CSV and JSON files use the same columns.",
+    "previewEmpty": "There is no data for this selection.",
+    "dictTitle": "Column dictionary",
+    "dictIntro": "Columns of the chosen dataset in the {format} format, in file order. Column keys are fixed and in English; changing a column will mean a new format version.",
+    "colKey": "Column",
+    "colDescription": "Description",
+    "dictNote": "Column descriptions are provided in Indonesian."
   }
 }

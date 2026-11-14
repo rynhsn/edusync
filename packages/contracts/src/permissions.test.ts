@@ -125,3 +125,17 @@ describe('izin kelulusan', () => {
     }
   });
 });
+
+describe('izin ekspor akademik', () => {
+  const has = (role: keyof typeof SYSTEM_ROLES, p: string) =>
+    (SYSTEM_ROLES[role].permissions as readonly string[]).includes(p);
+  it('dipegang admin, kurikulum, dan operator saja', () => {
+    expect(isPermission('data_export:run')).toBe(true);
+    for (const role of ['school_admin', 'curriculum', 'operator'] as const) {
+      expect(has(role, 'data_export:run')).toBe(true);
+    }
+    for (const role of ['principal', 'treasurer', 'teacher', 'guardian', 'student'] as const) {
+      expect(has(role, 'data_export:run')).toBe(false);
+    }
+  });
+});

@@ -605,6 +605,17 @@ describe('kebijakan peran bawaan', () => {
     expect(find('PUT', '/v1/academic-years/:id/promotions')?.modules).toEqual([]);
   });
 
+  it('rute ekspor akademik (tahap 3C.5) memasang data_export:run tanpa modul di gerbang', () => {
+    const e = eps.find((x) => x.method === 'GET' && x.url === '/v1/exports/academic');
+    // Modul grades hanya diperiksa di handler untuk dataset nilai (400 dataset_requires_module), bukan di gerbang rute.
+    expect([e?.perms, e?.modules]).toEqual([['data_export:run'], []]);
+    expect(e?.description).toContain('Izin: `data_export:run`');
+    expect(e?.description).toContain('BUKAN format impor');
+    for (const r of roleKeys) {
+      expect(allows(r, e!), r).toBe(['school_admin', 'curriculum', 'operator'].includes(r));
+    }
+  });
+
   it('hanya admin sekolah yang mengelola peran dan anggota', () => {
     for (const r of roleKeys.filter((k) => k !== 'school_admin')) {
       expect(perms(r).has('role:manage'), r).toBe(false);

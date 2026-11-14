@@ -40,6 +40,7 @@ import { examBankRoutes } from './routes/exam-bank';
 import { portalExamsRoutes } from './routes/exam-portal';
 import { examScoreRoutes } from './routes/exam-scores';
 import { examRoutes } from './routes/exams';
+import { exportRoutes } from './routes/exports';
 import { extracurricularRoutes } from './routes/extracurricular';
 import { extracurricularCategoryRoutes } from './routes/extracurricular-categories';
 import { financeRoutes } from './routes/finance';
@@ -286,6 +287,7 @@ export async function buildApp(env: Env, deps: { dns?: DomainDns } = {}) {
   await app.register(academicStructureRoutes);
   await app.register(promotionRoutes);
   await app.register(councilMeetingRoutes);
+  await app.register(exportRoutes);
   await app.register(graduationRoutes);
   await app.register(peopleRoutes);
   await app.register(studentTransferRoutes);

@@ -60,6 +60,7 @@ export const PERMISSIONS = [
   'announcement:manage',
   'audit:read',
   'account:reset',
+  'data_export:run',
 ] as const;
 
 export type Permission = (typeof PERMISSIONS)[number];
@@ -137,6 +138,7 @@ export const SYSTEM_ROLES = {
       'exam:author',
       'exam:manage',
       'announcement:read',
+      'data_export:run',
     ],
   },
   treasurer: {
@@ -197,6 +199,7 @@ export const SYSTEM_ROLES = {
       'announcement:manage',
       'school:manage',
       'account:reset',
+      'data_export:run',
     ],
   },
   teacher: {
